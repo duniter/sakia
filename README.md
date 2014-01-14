@@ -1,10 +1,8 @@
-ucoin-python-api
-================
+#ucoin-python-api
 
 A python implementation of uCoin API
 
-Installation
-============
+##Installation
 
 Here is a fast installation procedure (a bit dirty) we suggest to quickly use this API.
 
