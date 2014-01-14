@@ -17,8 +17,10 @@ Thus you are ready to use it with your own python program. Here is an example il
 ```python
 In [1]: import ucoin
 
-In [2]: ucoin.ucg.Peering().get()
-Out[2]:
+In [2]: ucoin.settings['host'] = 'mycurrency.candan.fr'
+
+In [3]: ucoin.ucg.Peering().get()
+Out[3]:
 {'contract': {'currentNumber': '5',
   'hash': 'FB710AE30F843BF505ABF9DE8CF404B7F35D238A'},
  'currency': 'mycurrency',
