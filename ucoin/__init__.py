@@ -24,26 +24,28 @@ __nonsense__    = 'uCoin'
 
 import requests
 
-URL = 'http://mycurrency.candan.fr:8081'
-AUTH = False
+settings = {
+    'host': 'localhost',
+    'port': 8081,
+    'auth': False,
+}
 
 class API:
     """APIRequest is a class used as an interface. The intermediate derivated classes are the modules and the leaf classes are the API requests."""
 
-    def __init__(self, module, url=URL, auth=AUTH):
+    def __init__(self, module):
         """
         Asks a module in order to create the url used then by derivated classes.
 
         Arguments:
         - `module`: module name
-        - `url`: url defining the host and port of the server
-        - `auth`: enables to get multipart/signed messages.
         """
 
-        self.url = '%s/%s' % (url, module)
+        self.url = 'http://%s:%d/%s' % (settings['host'], settings['port'], module)
         self.headers = {}
 
-        if auth: self.headers['Accept'] = 'multipart/signed'
+        if settings['auth']:
+            self.headers['Accept'] = 'multipart/signed'
 
     def reverse_url(self, path):
         """

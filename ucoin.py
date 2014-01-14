@@ -20,9 +20,7 @@
 from parser import Parser
 from pprint import pprint
 import ucoin
-
-URL = 'http://mycurrency.candan.fr:8081'
-AUTH = False
+import json
 
 def action_peering():
     pprint(ucoin.ucg.Peering().get())
@@ -38,15 +36,24 @@ def action_transactions():
 if __name__ == '__main__':
     parser = Parser(description='ucoin client.', verbose='error')
 
-    parser.add_argument('--peering', '-p', help='get peering',
-                        action='store_const', dest='action', const=action_peering)
+    parser.add_argument('--peering', '-p', help='get peering', action='store_const', dest='action', const=action_peering)
+    parser.add_argument('--amendments', '-a', help='get amendments list', action='store_const', dest='action', const=action_amendments)
+    parser.add_argument('--transactions', '-t', help='get transactions list', action='store_const', dest='action', const=action_transactions)
 
-    parser.add_argument('--amendments', '-a', help='get amendments list',
-                        action='store_const', dest='action', const=action_amendments)
+    parser.add_argument('--user', '-u', help='set the pgp user')
+    parser.add_argument('--host', '-H', help='set the server host', default='localhost')
+    parser.add_argument('--port', '-P', help='set the server port', type=int, default=8081)
 
-    parser.add_argument('--transactions', '-t', help='get transactions list',
-                        action='store_const', dest='action', const=action_transactions)
+    parser.add_argument('--config', '-c', help='set a config file', default='config.json')
 
     args = parser()
+
+    ucoin.settings.update(args.__dict__)
+
+    try:
+        with open(args.config) as f:
+            ucoin.settings.update(json.load(f))
+    except FileNotFoundError:
+        pass
 
     if args.action: args.action()
