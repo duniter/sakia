@@ -22,4 +22,4 @@ class HDC(API):
     def __init__(self, module='hdc'):
         super().__init__(module)
 
-from . import amendments, transactions
+from . import amendments, coins, transactions

@@ -19,13 +19,11 @@
 from . import HDC
 
 class Base(HDC):
-    def __init__(self):
-        super().__init__('hdc/transactions')
+    def __init__(self, pgp_fingerprint, coin_number):
+        super().__init__('hdc/coins/%s/view/%d' % (pgp_fingerprint, coin_number))
 
-class All(Base):
-    """GET all the transactions stored by this node."""
+class History(Base):
+    """GET a transaction history of the coin [COIN_NUMBER] issued by [PGP_FINGERPRINT]."""
 
     def get(self):
-        """creates a generator with one transaction per iteration."""
-
-        return self.merkle_easy_parser('/all')
+        return self.requests_get('/history').json()

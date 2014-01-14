@@ -16,22 +16,27 @@
 # Caner Candan <caner@candan.fr>, http://caner.candan.fr
 #
 
-from . import HDC
+from .. import HDC
 
-class Base(HDC):
-    def __init__(self):
-        super().__init__('hdc/amendments')
+class Coins(HDC):
+    def __init__(self, pgp_fingerprint):
+        super().__init__('hdc/coins/%s' % pgp_fingerprint)
 
-class List(Base):
-    """GET the list of amendments through the previousHash value."""
+class List(Coins):
+    """GET a list of coins owned by the given [PGP_FINGERPRINT]."""
 
     def get(self):
-        """creates a generator with one amendment per iteration."""
+        return self.requests_get('/list').json()
 
-        current = self.requests_get('/current').json()
-        yield current
+class View(Coins):
+    """GET the ownership state of the coin [COIN_NUMBER] issued by [PGP_FINGERPRINT]."""
 
-        while 'previousHash' in current and current['previousHash']:
-            current['previousNumber'] = current['number']-1
-            current = self.requests_get('/view/%(previousNumber)d-%(previousHash)s/self' % current).json()
-            yield current
+    def __init__(self, pgp_fingerprint, coin_number):
+        super().__init__(pgp_fingerprint)
+
+        self.coin_number = coin_number
+
+    def get(self):
+        return self.requests_get('/view/%d' % self.coin_number).json()
+
+from . import view
