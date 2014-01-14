@@ -1,6 +1,6 @@
 #ucoin-python-api
 
-A python implementation of uCoin API
+A python implementation of [uCoin](https://github.com/c-geek/ucoin) API
 
 ##Installation
 
