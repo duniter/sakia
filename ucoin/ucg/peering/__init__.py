@@ -49,4 +49,16 @@ class Peers(Base):
     def post(self):
         pass
 
+class Forward(Base):
+    """POST a UCG forward document to this node in order to be sent back incoming transactions."""
+
+    def post(self):
+        pass
+
+class Status(Base):
+    """POST a UCG status document to this node in order notify of its status."""
+
+    def post(self):
+        pass
+
 from . import peers

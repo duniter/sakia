@@ -34,4 +34,28 @@ class Peering(UCG):
     def get(self):
         return self.requests_get('/peering').json()
 
+class THT(UCG):
+    """GET/POST THT entries."""
+
+    def __init__(self, pgp_fingerprint=None):
+        """
+        Use the pgp fingerprint parameter in order to fit the result.
+
+        Arguments:
+        - `pgp_fingerprint`: pgp fingerprint to use as a filter
+        """
+
+        super().__init__()
+
+        self.pgp_fingerprint = pgp_fingerprint
+
+    def get(self):
+        if not self.pgp_fingerprint:
+            return self.merkle_easy_parser('/tht').json()
+
+        return self.merkle_easy_parser('/tht/%s' % self.pgp_fingerprint).json()
+
+    def post(self):
+        pass
+
 from . import peering

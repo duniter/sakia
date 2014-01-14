@@ -19,20 +19,20 @@
 
 from parser import Parser
 from pprint import pprint
-import api
+import ucoin
 
 URL = 'http://mycurrency.candan.fr:8081'
 AUTH = False
 
 def action_peering():
-    pprint(api.ucg.Peering().get())
+    pprint(ucoin.ucg.Peering().get())
 
 def action_amendments():
-    for am in api.hdc.amendments.List().get():
+    for am in ucoin.hdc.amendments.List().get():
         print(am['number'])
 
 def action_transactions():
-    for tx in api.hdc.transactions.All().get():
+    for tx in ucoin.hdc.transactions.All().get():
         print(tx['hash'])
 
 if __name__ == '__main__':
