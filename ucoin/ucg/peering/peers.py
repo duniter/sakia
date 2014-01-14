@@ -16,7 +16,9 @@
 # Caner Candan <caner@candan.fr>, http://caner.candan.fr
 #
 
-from . import UCG
+from . import UCG, logging
+
+logger = logging.getLogger("ucoin/ucg/peering/peers")
 
 class Base(UCG):
     def __init__(self):
@@ -39,7 +41,7 @@ class Stream(Base):
         self.request = request
         self.pgp_fingerprint = pgp_fingerprint
 
-    def get(self):
+    def __get__(self):
         """returns the corresponding peer list."""
 
         if not self.pgp_fingerprint:

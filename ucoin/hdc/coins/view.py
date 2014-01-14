@@ -16,7 +16,9 @@
 # Caner Candan <caner@candan.fr>, http://caner.candan.fr
 #
 
-from . import HDC
+from . import HDC, logging
+
+logger = logging.getLogger("ucoin/hdc/coins/view")
 
 class Base(HDC):
     def __init__(self, pgp_fingerprint, coin_number):
@@ -25,5 +27,5 @@ class Base(HDC):
 class History(Base):
     """GET a transaction history of the coin [COIN_NUMBER] issued by [PGP_FINGERPRINT]."""
 
-    def get(self):
+    def __get__(self):
         return self.requests_get('/history').json()

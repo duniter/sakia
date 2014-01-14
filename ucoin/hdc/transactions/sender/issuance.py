@@ -16,7 +16,9 @@
 # Caner Candan <caner@candan.fr>, http://caner.candan.fr
 #
 
-from . import HDC
+from . import HDC, logging
+
+logger = logging.getLogger("ucoin/hdc/transactions/sender/issuance")
 
 class Base(HDC):
     """Get the received issuance transaction of a PGP key."""
@@ -32,13 +34,13 @@ class Base(HDC):
 class Last(Base):
     """GET the last received issuance transaction of a PGP key."""
 
-    def get(self):
+    def __get__(self):
         return self.requests_get('/last').json()
 
 class Fusion(Base):
     """GET all fusion transactions sent by this sender and stored by this node (should contain all fusion transactions of the sender)."""
 
-    def get(self):
+    def __get__(self):
         return self.merkle_easy_parser('/fusion')
 
 class Dividend(Base):
@@ -54,7 +56,7 @@ class Dividend(Base):
 
         self.am_number = am_number
 
-    def get(self):
+    def __get__(self):
         if not self.am_number:
             return self.merkle_easy_parser('/dividend')
 

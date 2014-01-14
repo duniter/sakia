@@ -16,7 +16,9 @@
 # Caner Candan <caner@candan.fr>, http://caner.candan.fr
 #
 
-from .. import API
+from .. import API, logging
+
+logger = logging.getLogger("ucoin/pks")
 
 class PKS(API):
     def __init__(self, module='pks'):
@@ -25,7 +27,7 @@ class PKS(API):
 class All(PKS):
     """GET all the received public keys."""
 
-    def get(self):
+    def __get__(self):
         """creates a generator with one public key per iteration."""
 
         return self.merkle_easy_parser('/all')

@@ -16,7 +16,9 @@
 # Caner Candan <caner@candan.fr>, http://caner.candan.fr
 #
 
-from .. import API
+from .. import API, logging
+
+logger = logging.getLogger("ucoin/ucg")
 
 class UCG(API):
     def __init__(self, module='ucg'):
@@ -25,13 +27,13 @@ class UCG(API):
 class Pubkey(UCG):
     """GET the public key of the peer."""
 
-    def get(self):
+    def __get__(self):
         return self.requests_get('/pubkey').text
 
 class Peering(UCG):
     """GET peering information about a peer."""
 
-    def get(self):
+    def __get__(self):
         return self.requests_get('/peering').json()
 
 class THT(UCG):
@@ -49,13 +51,13 @@ class THT(UCG):
 
         self.pgp_fingerprint = pgp_fingerprint
 
-    def get(self):
+    def __get__(self):
         if not self.pgp_fingerprint:
             return self.merkle_easy_parser('/tht').json()
 
         return self.merkle_easy_parser('/tht/%s' % self.pgp_fingerprint).json()
 
-    def post(self):
+    def __post__(self):
         pass
 
 from . import peering

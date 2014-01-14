@@ -16,7 +16,9 @@
 # Caner Candan <caner@candan.fr>, http://caner.candan.fr
 #
 
-from .. import HDC
+from .. import HDC, logging
+
+logger = logging.getLogger("ucoin/hdc/coins")
 
 class Coins(HDC):
     def __init__(self, pgp_fingerprint):
@@ -25,7 +27,7 @@ class Coins(HDC):
 class List(Coins):
     """GET a list of coins owned by the given [PGP_FINGERPRINT]."""
 
-    def get(self):
+    def __get__(self):
         return self.requests_get('/list').json()
 
 class View(Coins):
@@ -36,7 +38,7 @@ class View(Coins):
 
         self.coin_number = coin_number
 
-    def get(self):
+    def __get__(self):
         return self.requests_get('/view/%d' % self.coin_number).json()
 
 from . import view

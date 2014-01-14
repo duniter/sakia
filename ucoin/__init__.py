@@ -23,12 +23,15 @@ __version__     = '0.0.1'
 __nonsense__    = 'uCoin'
 
 import requests
+import logging
 
 settings = {
     'host': 'localhost',
     'port': 8081,
     'auth': False,
 }
+
+logger = logging.getLogger("ucoin")
 
 class API:
     """APIRequest is a class used as an interface. The intermediate derivated classes are the modules and the leaf classes are the API requests."""
@@ -58,11 +61,27 @@ class API:
         return self.url + path
 
     def get(self):
+        """wrapper of overloaded __get__ method."""
+
+        return self.__get__()
+
+    def post(self):
+        """wrapper of overloaded __post__ method."""
+
+        logger.debug('do some work with')
+
+        data = self.__post__()
+
+        logger.debug('and send back')
+
+        return data
+
+    def __get__(self):
         """interface purpose for GET request"""
 
         pass
 
-    def post(self):
+    def __post__(self):
         """interface purpose for POST request"""
 
         pass

@@ -19,11 +19,13 @@
 
 from parser import Parser
 from pprint import pprint
-import ucoin
-import json
+import ucoin, json, logging
+
+logger = logging.getLogger("cli")
 
 def action_peering():
     pprint(ucoin.ucg.Peering().get())
+    pprint(ucoin.ucg.Peering().post())
 
 def action_amendments():
     for am in ucoin.hdc.amendments.List().get():

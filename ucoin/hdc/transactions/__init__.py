@@ -16,7 +16,9 @@
 # Caner Candan <caner@candan.fr>, http://caner.candan.fr
 #
 
-from .. import HDC
+from .. import HDC, logging
+
+logger = logging.getLogger("ucoin/hdc/transactions")
 
 class Base(HDC):
     def __init__(self):
@@ -37,13 +39,13 @@ class Process(Base):
         self.transaction = transaction
         self.signature = signature
 
-    def post(self):
+    def __post__(self):
         pass
 
 class All(Base):
     """GET all the transactions stored by this node."""
 
-    def get(self):
+    def __get__(self):
         """creates a generator with one transaction per iteration."""
 
         return self.merkle_easy_parser('/all')
@@ -51,7 +53,7 @@ class All(Base):
 class Keys(Base):
     """GET PGP keys for which some transactions have been recoreded by this node (sent and received)."""
 
-    def get(self):
+    def __get__(self):
         """creates a generator with one key per iteration."""
 
         return self.merkle_easy_parser('/keys')
@@ -69,7 +71,7 @@ class Last(Base):
 
         self.count = count
 
-    def get(self):
+    def __get__(self):
         if not self.count:
             return self.requests_get('/last').json()
 
@@ -88,7 +90,7 @@ class Sender(Base):
 
         self.pgp_fingerprint = pgp_fingerprint
 
-    def get(self):
+    def __get__(self):
         return self.merkle_easy_parser('/sender/%s' % self.pgp_fingerprint)
 
 class Recipient(Base):
@@ -104,7 +106,7 @@ class Recipient(Base):
 
         self.pgp_fingerprint = pgp_fingerprint
 
-    def get(self):
+    def __get__(self):
         return self.merkle_easy_parser('/recipient/%s' % self.pgp_fingerprint)
 
 class View(Base):
@@ -120,7 +122,7 @@ class View(Base):
 
         self.transaction_id = transaction_id
 
-    def get(self):
+    def __get__(self):
         return self.requests_get('/view/%s' % self.transaction_id).json()
 
 from . import sender

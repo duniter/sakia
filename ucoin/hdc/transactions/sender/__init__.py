@@ -16,7 +16,9 @@
 # Caner Candan <caner@candan.fr>, http://caner.candan.fr
 #
 
-from .. import HDC
+from .. import HDC, logging
+
+logger = logging.getLogger("ucoin/hdc/transactions/sender")
 
 class Base(HDC):
     """Get the last received transaction of a PGP key."""
@@ -42,7 +44,7 @@ class Last(Base):
 
         self.count = count
 
-    def get(self):
+    def __get__(self):
         if not self.count:
             return self.requests_get('/last').json()
 
@@ -51,13 +53,13 @@ class Last(Base):
 class Transfer(Base):
     """GET all transfer transactions sent by this sender and stored by this node (should contain all transfert transactions of the sender)."""
 
-    def get(self):
+    def __get__(self):
         return self.merkle_easy_parser('/transfert')
 
 class Issuance(Base):
     """GET all issuance transactions (forged coins) sent by this sender and stored by this node (should contain all issuance transactions of the sender)."""
 
-    def get(self):
+    def __get__(self):
         return self.merkle_easy_parser('/issuance')
 
 from . import issuance
