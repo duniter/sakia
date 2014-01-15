@@ -58,6 +58,9 @@ class THT(UCG):
         return self.merkle_easy_parser('/tht/%s' % self.pgp_fingerprint).json()
 
     def __post__(self, **kwargs):
-        pass
+        assert 'entry' in kwargs
+        assert 'signature' in kwargs
+
+        return self.requests_post('/tht', **kwargs)
 
 from . import peering

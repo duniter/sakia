@@ -40,7 +40,10 @@ class Process(Base):
         self.signature = signature
 
     def __post__(self):
-        pass
+        assert 'transaction' in kwargs
+        assert 'signature' in kwargs
+
+        return self.requests_post('/process', **kwargs).json()
 
 class All(Base):
     """GET all the transactions stored by this node."""

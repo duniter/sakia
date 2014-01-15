@@ -24,6 +24,24 @@ class PKS(API):
     def __init__(self, module='pks'):
         super().__init__(module)
 
+class Add(PKS):
+    """POST ASCII-armored OpenPGP certificates."""
+
+    def __post__(self, **kwargs):
+        assert 'keytext' in kwargs
+        assert 'keysign' in kwargs
+
+        return self.requests_post('/add', **kwargs)
+
+class Lookup(PKS):
+    """Allows to search for OpenPGP certificates, according to HKP draft."""
+
+    def __get__(self, **kwargs):
+        assert 'search' in kwargs
+        assert 'op' in kwargs
+
+        return self.requests_get('/lookup', **kwargs)
+
 class All(PKS):
     """GET all the received public keys."""
 

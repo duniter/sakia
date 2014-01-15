@@ -92,6 +92,9 @@ class Votes(Base):
         return self.merkle_easy_parser('/votes/%s' % self.amendment_id)
 
     def __post__(self, **kwargs):
-        pass
+        assert 'amendment' in kwargs
+        assert 'signature' in kwargs
+
+        return self.requests_post('/votes', **kwargs).json()
 
 from . import view

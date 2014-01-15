@@ -49,18 +49,27 @@ class Peers(Base):
         return self.merkle_easy_parser('/peers')
 
     def __post__(self, **kwargs):
-        pass
+        assert 'entry' in kwargs
+        assert 'signature' in kwargs
+
+        return self.requests_post('/peers', **kwargs).json()
 
 class Forward(Base):
     """POST a UCG forward document to this node in order to be sent back incoming transactions."""
 
     def __post__(self, **kwargs):
-        pass
+        assert 'forward' in kwargs
+        assert 'signature' in kwargs
+
+        return self.requests_post('/forward', **kwargs).json()
 
 class Status(Base):
     """POST a UCG status document to this node in order notify of its status."""
 
     def __post__(self, **kwargs):
-        pass
+        assert 'status' in kwargs
+        assert 'signature' in kwargs
+
+        return self.requests_post('/status', **kwargs).json()
 
 from . import peers
