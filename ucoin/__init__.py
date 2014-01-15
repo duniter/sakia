@@ -25,7 +25,7 @@ __nonsense__    = 'uCoin'
 import requests, logging, gnupg, json
 
 settings = {
-    'host': 'localhost',
+    'server': 'localhost',
     'port': 8081,
     'auth': False,
 }
@@ -107,7 +107,7 @@ class API:
         - `module`: module name
         """
 
-        self.url = 'http://%s:%d/%s' % (settings['host'], settings['port'], module)
+        self.url = 'http://%s:%d/%s' % (settings['server'], settings['port'], module)
         self.headers = {}
 
         if settings['auth']:
