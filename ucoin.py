@@ -25,7 +25,6 @@ logger = logging.getLogger("cli")
 
 def action_peering():
     pprint(ucoin.ucg.Peering().get())
-    pprint(ucoin.ucg.Peering().post())
 
 def action_amendments():
     for am in ucoin.hdc.amendments.List().get():

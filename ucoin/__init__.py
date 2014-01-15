@@ -22,8 +22,7 @@ __author__      = 'Caner Candan'
 __version__     = '0.0.1'
 __nonsense__    = 'uCoin'
 
-import requests
-import logging
+import requests, logging, gnupg, json
 
 settings = {
     'host': 'localhost',
@@ -32,6 +31,70 @@ settings = {
 }
 
 logger = logging.getLogger("ucoin")
+
+class Response:
+    """Wrapper of requests.Response class in order to verify signed message."""
+
+    def __init__(self, response):
+        """
+        Arguments:
+        - `self`:
+        - `response`:
+        """
+
+        self.response = response
+
+        if settings.get('user'):
+            logger.debug('selected keyid: %s' % settings.get('user'))
+            self.gpg = gnupg.GPG(options=['-u %s' % settings['user']])
+        else:
+            self.gpg = gnupg.GPG()
+
+        self.status_code = response.status_code
+        self.headers = response.headers
+
+        if settings.get('auth'):
+            self.verified, clear, self.signature = self.split_n_verify(response)
+
+            if not self.verified:
+                raise ValueError('bad signature verification')
+
+            self.text = self.clear_text = clear
+            self.content = self.clear_content = self.text.encode('ascii')
+        else:
+            self.text = response.text
+            self.content = response.content
+
+    def json(self):
+        if not settings.get('auth'):
+            return self.response.json()
+
+        return json.loads(self.text)
+
+    def split_n_verify(self, response):
+        """
+        Split the signed message thanks to the boundary value got in content-type header.
+
+        returns a tuple with the status, the clear message and the signature.
+
+        `response`: the response returns by requests.get() needed to access to headers and response content.
+        """
+
+        begin = '-----BEGIN PGP SIGNATURE-----'
+        end = '-----END PGP SIGNATURE-----'
+        boundary_pattern = 'boundary='
+
+        content_type = response.headers['content-type']
+        boundary = content_type[content_type.index(boundary_pattern)+len(boundary_pattern):]
+        boundary = boundary[:boundary.index(';')].strip()
+
+        data = [x.strip() for x in response.text.split('--%s' % boundary)]
+
+        clear = data[1]
+        signed = data[2][data[2].index(begin):]
+        clearsigned = '-----BEGIN PGP SIGNED MESSAGE-----\nHash: SHA1\n\n%s\n%s' % (clear, signed)
+
+        return (bool(self.gpg.verify(clearsigned)), clear, signed)
 
 class API:
     """APIRequest is a class used as an interface. The intermediate derivated classes are the modules and the leaf classes are the API requests."""
@@ -49,6 +112,12 @@ class API:
 
         if settings['auth']:
             self.headers['Accept'] = 'multipart/signed'
+
+        if settings.get('user'):
+            logger.debug('selected keyid: %s' % settings.get('user'))
+            self.gpg = gnupg.GPG(options=['-u %s' % settings['user']])
+        else:
+            self.gpg = gnupg.GPG()
 
     def reverse_url(self, path):
         """
@@ -94,7 +163,10 @@ class API:
         - `path`: the request path
         """
 
-        return requests.get(self.reverse_url(path), headers=self.headers)
+        if not settings.get('auth'):
+            return requests.get(self.reverse_url(path), headers=self.headers)
+
+        return Response(requests.get(self.reverse_url(path), headers=self.headers))
 
     def requests_post(self, path):
         """
