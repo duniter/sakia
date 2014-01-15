@@ -27,5 +27,5 @@ class Base(HDC):
 class History(Base):
     """GET a transaction history of the coin [COIN_NUMBER] issued by [PGP_FINGERPRINT]."""
 
-    def __get__(self):
+    def __get__(self, **kwargs):
         return self.requests_get('/history').json()

@@ -41,7 +41,7 @@ class Stream(Base):
         self.request = request
         self.pgp_fingerprint = pgp_fingerprint
 
-    def __get__(self):
+    def __get__(self, **kwargs):
         """returns the corresponding peer list."""
 
         if not self.pgp_fingerprint:

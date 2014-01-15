@@ -27,19 +27,19 @@ class View(HDC):
 class Members(View):
     """GET the members present in the Community for this amendment."""
 
-    def __get__(self):
+    def __get__(self, **kwargs):
         return self.merkle_easy_parser('/members')
 
 class Self(View):
     """Shows the raw data of the amendment [AMENDMENT_ID]."""
 
-    def __get__(self):
+    def __get__(self, **kwargs):
         return self.requests_get('/self').json()
 
 class Voters(View):
     """GET the voters listed in this amendment."""
 
-    def __get__(self):
+    def __get__(self, **kwargs):
         return self.merkle_easy_parser('/voters')
 
 class Signatures(View):
@@ -48,5 +48,5 @@ class Signatures(View):
     This URL should give the same result as hdc/amendments/votes/[PREVIOUS_AMENDEMENT_ID] if all votes present in this URL were taken in count as signatures for this AMENDMENT_ID.
     """
 
-    def __get__(self):
+    def __get__(self, **kwargs):
         return self.merkle_easy_parser('/signatures')

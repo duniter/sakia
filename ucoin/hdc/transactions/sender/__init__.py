@@ -44,7 +44,7 @@ class Last(Base):
 
         self.count = count
 
-    def __get__(self):
+    def __get__(self, **kwargs):
         if not self.count:
             return self.requests_get('/last').json()
 
@@ -53,13 +53,13 @@ class Last(Base):
 class Transfer(Base):
     """GET all transfer transactions sent by this sender and stored by this node (should contain all transfert transactions of the sender)."""
 
-    def __get__(self):
+    def __get__(self, **kwargs):
         return self.merkle_easy_parser('/transfert')
 
 class Issuance(Base):
     """GET all issuance transactions (forged coins) sent by this sender and stored by this node (should contain all issuance transactions of the sender)."""
 
-    def __get__(self):
+    def __get__(self, **kwargs):
         return self.merkle_easy_parser('/issuance')
 
 from . import issuance

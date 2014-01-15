@@ -27,7 +27,7 @@ class Coins(HDC):
 class List(Coins):
     """GET a list of coins owned by the given [PGP_FINGERPRINT]."""
 
-    def __get__(self):
+    def __get__(self, **kwargs):
         return self.requests_get('/list').json()
 
 class View(Coins):
@@ -38,7 +38,7 @@ class View(Coins):
 
         self.coin_number = coin_number
 
-    def __get__(self):
+    def __get__(self, **kwargs):
         return self.requests_get('/view/%d' % self.coin_number).json()
 
 from . import view

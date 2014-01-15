@@ -27,7 +27,7 @@ class Base(UCG):
 class Keys(Base):
     """GET PGP keys' fingerprint this node manages, i.e. this node will have transactions history and follow ohter nodes for this history."""
 
-    def __get__(self):
+    def __get__(self, **kwargs):
         """creates a generator with one transaction per iteration."""
 
         return self.merkle_easy_parser('/keys')
@@ -35,7 +35,7 @@ class Keys(Base):
 class Peer(Base):
     """GET the peering informations of this node."""
 
-    def __get__(self):
+    def __get__(self, **kwargs):
         """returns peering entry of the node."""
 
         return self.requests_get('/peer').json()
@@ -43,24 +43,24 @@ class Peer(Base):
 class Peers(Base):
     """GET peering entries of every node inside the currency network."""
 
-    def __get__(self):
+    def __get__(self, **kwargs):
         """creates a generator with one peering entry per iteration."""
 
         return self.merkle_easy_parser('/peers')
 
-    def __post__(self):
+    def __post__(self, **kwargs):
         pass
 
 class Forward(Base):
     """POST a UCG forward document to this node in order to be sent back incoming transactions."""
 
-    def __post__(self):
+    def __post__(self, **kwargs):
         pass
 
 class Status(Base):
     """POST a UCG status document to this node in order notify of its status."""
 
-    def __post__(self):
+    def __post__(self, **kwargs):
         pass
 
 from . import peers

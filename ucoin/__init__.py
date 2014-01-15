@@ -129,33 +129,33 @@ class API:
 
         return self.url + path
 
-    def get(self):
+    def get(self, **kwargs):
         """wrapper of overloaded __get__ method."""
 
-        return self.__get__()
+        return self.__get__(**kwargs)
 
-    def post(self):
+    def post(self, **kwargs):
         """wrapper of overloaded __post__ method."""
 
         logger.debug('do some work with')
 
-        data = self.__post__()
+        data = self.__post__(**kwargs)
 
         logger.debug('and send back')
 
         return data
 
-    def __get__(self):
+    def __get__(self, **kwargs):
         """interface purpose for GET request"""
 
         pass
 
-    def __post__(self):
+    def __post__(self, **kwargs):
         """interface purpose for POST request"""
 
         pass
 
-    def requests_get(self, path):
+    def requests_get(self, path, **kwargs):
         """
         Requests GET wrapper in order to use API parameters.
 
@@ -164,11 +164,11 @@ class API:
         """
 
         if not settings.get('auth'):
-            return requests.get(self.reverse_url(path), headers=self.headers)
+            return requests.get(self.reverse_url(path), params=kwargs, headers=self.headers)
 
-        return Response(requests.get(self.reverse_url(path), headers=self.headers))
+        return Response(requests.get(self.reverse_url(path), params=kwargs, headers=self.headers))
 
-    def requests_post(self, path):
+    def requests_post(self, path, **kwargs):
         """
         Requests POST wrapper in order to use API parameters.
 
@@ -176,11 +176,11 @@ class API:
         - `path`: the request path
         """
 
-        return requests.post(self.reverse_url(path), headers=self.headers)
+        return requests.post(self.reverse_url(path), data=kwargs, headers=self.headers)
 
     def merkle_easy_parser(self, path):
-        root = self.requests_get(path + '?leaves=true').json()
+        root = self.requests_get(path, leaves='true').json()
         for leaf in root['leaves']:
-            yield self.requests_get(path + '?leaf=%s' % leaf).json()['leaf']
+            yield self.requests_get(path, leaf=leaf).json()['leaf']
 
 from . import pks, ucg, hdc

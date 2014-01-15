@@ -40,7 +40,7 @@ class Promoted(Base):
 
         self.number = number
 
-    def __get__(self):
+    def __get__(self, **kwargs):
         if not self.number:
             return self.requests_get('/promoted').json()
 
@@ -54,7 +54,7 @@ class Current(Promoted):
 class List(Base):
     """GET the list of amendments through the previousHash value."""
 
-    def __get__(self):
+    def __get__(self, **kwargs):
         """creates a generator with one amendment per iteration."""
 
         current = self.requests_get('/promoted').json()
@@ -67,7 +67,7 @@ class List(Base):
 class CurrentVotes(Base):
     """GET the votes that legitimate the current amendment."""
 
-    def __get__(self):
+    def __get__(self, **kwargs):
         return self.merkle_easy_parser('/current/votes')
 
 class Votes(Base):
@@ -85,13 +85,13 @@ class Votes(Base):
 
         self.amendment_id = amendment_id
 
-    def __get__(self):
+    def __get__(self, **kwargs):
         if not self.amendment_id:
             return self.requests_get('/votes').json()
 
         return self.merkle_easy_parser('/votes/%s' % self.amendment_id)
 
-    def __post__(self):
+    def __post__(self, **kwargs):
         pass
 
 from . import view

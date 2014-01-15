@@ -27,7 +27,7 @@ class PKS(API):
 class All(PKS):
     """GET all the received public keys."""
 
-    def __get__(self):
+    def __get__(self, **kwargs):
         """creates a generator with one public key per iteration."""
 
         return self.merkle_easy_parser('/all')

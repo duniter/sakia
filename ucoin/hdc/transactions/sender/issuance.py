@@ -34,13 +34,13 @@ class Base(HDC):
 class Last(Base):
     """GET the last received issuance transaction of a PGP key."""
 
-    def __get__(self):
+    def __get__(self, **kwargs):
         return self.requests_get('/last').json()
 
 class Fusion(Base):
     """GET all fusion transactions sent by this sender and stored by this node (should contain all fusion transactions of the sender)."""
 
-    def __get__(self):
+    def __get__(self, **kwargs):
         return self.merkle_easy_parser('/fusion')
 
 class Dividend(Base):
@@ -56,7 +56,7 @@ class Dividend(Base):
 
         self.am_number = am_number
 
-    def __get__(self):
+    def __get__(self, **kwargs):
         if not self.am_number:
             return self.merkle_easy_parser('/dividend')
 
