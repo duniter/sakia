@@ -23,32 +23,25 @@ from collections import OrderedDict
 
 logger = logging.getLogger("cli")
 
-# def action_peering():
-#     pprint(ucoin.ucg.Peering().get())
-
-# def action_amendments():
-#     for am in ucoin.hdc.amendments.List().get():
-#         print(am['number'])
-
 # def action_transactions():
 #     for tx in ucoin.hdc.transactions.All().get():
 #         print(tx['hash'])
 
 def print_amendment(am):
-    print('Version\t\t\t', am['version'])
-    print('Currency\t\t', am['currency'])
-    print('Number\t\t\t', am['number'])
-    print('GeneratedOn\t\t', am['generated'])
+    print('Version\t\t\t',      am['version'])
+    print('Currency\t\t',       am['currency'])
+    print('Number\t\t\t',       am['number'])
+    print('GeneratedOn\t\t',    am['generated'])
     print('UniversalDividend\t', am['dividend'])
     print('NextRequiredVotes\t', am['nextVotes'])
-    print('PreviousHash\t\t', am['previousHash'])
-    print('MembersRoot\t\t', am['membersRoot'])
-    print('MembersCount\t\t', am['membersCount'])
+    print('PreviousHash\t\t',   am['previousHash'])
+    print('MembersRoot\t\t',    am['membersRoot'])
+    print('MembersCount\t\t',   am['membersCount'])
     if am['membersChanges']:
         print('MembersChanges')
         for x in am['membersChanges']: print(x)
-    print('VotersRoot\t\t', am['votersRoot'])
-    print('VotersCount\t\t', am['votersCount'])
+    print('VotersRoot\t\t',     am['votersRoot'])
+    print('VotersCount\t\t',    am['votersCount'])
     if am['votersChanges']:
         print('VotersChanges')
         for x in am['votersChanges']: print(x)
@@ -74,8 +67,23 @@ def contract():
 def lookup():
     logger.debug('lookup')
 
+    print(ucoin.pks.Lookup().get(search=ucoin.settings['search'], op='get'))
+
 def peering():
     logger.debug('peering')
+
+    peer = ucoin.ucg.Peering().get()
+
+    print('Currency\t',         peer['currency'])
+    print('Public key FPR\t',   peer['key'])
+    print('Contract\t',         peer['contract']['currentNumber'] + '-' + peer['contract']['hash'])
+    print('Public keys\t',      peer['merkles']['pks/all']['leavesCount'])
+    print('Remote host\t',      peer['remote']['host'])
+    if peer['remote']['ipv4']:
+        print('Remote ipv4\t',  peer['remote']['ipv4'])
+    if peer['remote']['ipv6']:
+        print('Remote ipv6\t',  peer['remote']['ipv6'])
+    print('Remote port\t',      peer['remote']['port'])
 
 def pubkey():
     logger.debug('pubkey')
