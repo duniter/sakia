@@ -40,7 +40,11 @@ class Lookup(PKS):
         assert 'search' in kwargs
         assert 'op' in kwargs
 
-        return self.requests_get('/lookup', **kwargs)
+        r = self.requests_get('/lookup', **kwargs)
+
+        if kwargs['op'] == 'get': return r.text
+
+        return r.json()
 
 class All(PKS):
     """GET all the received public keys."""
