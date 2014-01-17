@@ -17,7 +17,7 @@ Thus you are ready to use it with your own python program. Here is an example il
 ```python
 In [1]: import ucoin
 
-In [2]: ucoin.settings['host'] = 'mycurrency.candan.fr'
+In [2]: ucoin.settings['server'] = 'mycurrency.candan.fr'
 
 In [3]: ucoin.ucg.Peering().get()
 Out[3]:
