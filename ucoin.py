@@ -18,8 +18,9 @@
 #
 
 from pprint import pprint
-import ucoin, json, logging, argparse, sys, gnupg, hashlib, re
+import ucoin, json, logging, argparse, sys, gnupg, hashlib, re, datetime as dt
 from collections import OrderedDict
+from merkle import Merkle
 
 logger = logging.getLogger("cli")
 
@@ -134,7 +135,7 @@ def issue():
     __dict.update(ucoin.settings)
     __dict['version'] = 1
     __dict['number'] = 0 if not last_tx else last_tx['transaction']['number']+1
-    __dict['previousHash'] = hashlib.sha1(("%(raw)s%(signature)s" % last_tx).encode('ascii')).hexdigest().upper()
+    __dict['previousHash'] = hashlib.sha1(("%(raw)s%(signature)s" % last_tx).encode('ascii')).hexdigest().upper() if last_tx else None
     __dict['type'] = 'ISSUANCE'
 
     # pprint(__dict)
@@ -359,6 +360,161 @@ def pub_tht():
 def forge_am():
     logger.debug('forge_am')
 
+    def format_changes(s):
+        changes_str = (s or '')\
+            .replace('"', '')\
+            .replace('+', ';+')\
+            .replace('-', ';-')
+        changes = []
+
+        for item in changes_str.split(';'):
+            if not item: continue
+            changes.append(item)
+
+        return changes
+
+    filter_plus = lambda x: x[0] == '+'
+    filter_minus = lambda x: x[0] == '-'
+    remove_sign = lambda x: x[1:]
+
+    if not ucoin.settings['timestamp']:
+        ucoin.settings['timestamp'] = int(dt.datetime.timestamp(dt.datetime.today()))
+
+    if not ucoin.settings['changes'] and ucoin.settings['stdin']:
+        ucoin.settings['changes'] = input()
+
+    try:
+        current = ucoin.hdc.amendments.Current().get()
+    except ValueError:
+        current = None
+
+    __dict = {}
+    __dict.update(ucoin.settings)
+    __dict['version'] = 1
+    __dict['previousNumber'] = -1 if not current else current['number']
+    __dict['number'] = __dict['previousNumber']+1
+    __dict['previousHash'] = hashlib.sha1(("%(raw)s" % current).encode('ascii')).hexdigest().upper() if current else None
+
+    am = """\
+Version: %(version)s
+Currency: %(currency)s
+Number: %(number)d
+GeneratedOn: %(timestamp)d
+""" % __dict
+
+    if __dict['dividend']: am += "UniversalDividend: %(dividend)s\n" % __dict
+    if __dict['power10']: am += "CoinMinimalPower: %(power10)d\n" % __dict
+
+    am += """\
+NextRequiredVotes: %(votes)d
+""" % __dict
+
+    if current: am += "PreviousHash: %(previousHash)s\n" % __dict
+
+    if ucoin.settings['changes']:
+        ucoin.settings['changes'] = ucoin.settings['changes'].split(';')
+
+    members_changes = format_changes(ucoin.settings['changes'][0]) if ucoin.settings['changes'] else []
+    voters_changes = format_changes(ucoin.settings['changes'][1] if len(ucoin.settings['changes']) > 1 else '') if ucoin.settings['changes'] else []
+    members_to_add = list(map(remove_sign, filter(filter_plus, members_changes)))
+    members_to_remove = list(map(remove_sign, filter(filter_minus, members_changes)))
+    voters_to_add = list(map(remove_sign, filter(filter_plus, voters_changes)))
+    voters_to_remove = list(map(remove_sign, filter(filter_minus, voters_changes)))
+    members_to_add = list(set(members_to_add) - set(members_to_remove))
+
+    if __dict['number']:
+        members_view = ucoin.hdc.amendments.view.Members('%(previousNumber)d-%(previousHash)s' % __dict).get()
+    else:
+        members_view = None
+
+    members = []
+    previous_members = []
+    really_added_members = []
+    really_removed_members = []
+
+    for fingerprint in members_view:
+        members.append(fingerprint['hash'])
+        previous_members.append(fingerprint['hash'])
+
+    for fingerprint in members_to_add:
+        members.append(fingerprint)
+
+    members = list(set(members))
+    members = list(set(members) - set(members_to_remove))
+
+    members.sort()
+
+    really_added_members = list(set(members) - set(previous_members))
+    really_removed_members = list(set(members_to_remove) - set(members))
+    really_removed_members = list(set(really_removed_members) & set(previous_members))
+
+    members_merkle = Merkle(members).process()
+    # pprint(members_merkle.__dict__)
+
+    members_changes = []
+    for fpr in really_added_members:
+        members_changes.append('+' + fpr)
+    for fpr in really_removed_members:
+        members_changes.append('-' + fpr)
+    members_changes.sort()
+    __dict['members_count'] = len(members_merkle.leaves)
+    __dict['members_root'] = members_merkle.root()
+
+    if __dict['number']:
+        voters_view = ucoin.hdc.amendments.view.Voters('%(previousNumber)d-%(previousHash)s' % __dict).get()
+    else:
+        voters_view = None
+
+    voters = []
+    previous_voters = []
+    really_added_voters = []
+    really_removed_voters = []
+
+    for fingerprint in voters_view:
+        voters.append(fingerprint['hash'])
+        previous_voters.append(fingerprint['hash'])
+
+    for fingerprint in voters_to_add:
+        voters.append(fingerprint)
+
+    voters = list(set(voters))
+    voters = list(set(voters) - set(voters_to_remove))
+
+    voters.sort()
+
+    really_added_voters = list(set(voters) - set(previous_voters))
+    really_removed_voters = list(set(voters_to_remove) - set(voters))
+
+    voters_merkle = Merkle(voters).process()
+    # pprint(voters_merkle.__dict__)
+
+    voters_changes = []
+    for fpr in really_added_voters:
+        voters_changes.append('+' + fpr)
+    for fpr in really_removed_voters:
+        voters_changes.append('-' + fpr)
+    voters_changes.sort()
+    __dict['voters_count'] = len(voters_merkle.leaves)
+    __dict['voters_root'] = voters_merkle.root()
+
+    am += """\
+MembersRoot: %(members_root)s
+MembersCount: %(members_count)d
+MembersChanges:
+""" % __dict
+
+    for m in members_changes: am += "%s\n" % m
+
+    am += """\
+VotersRoot: %(voters_root)s
+VotersCount: %(voters_count)d
+VotersChanges:
+""" % __dict
+
+    for m in voters_changes: am += "%s\n" % m
+
+    print(am)
+
 def clist():
     logger.debug('clist')
 
@@ -512,10 +668,12 @@ if __name__ == '__main__':
     subparsers.add_parser('pub-tht', help='Publish THT entry according to data returned by \'trust-list\' and \'host-list\'').set_defaults(func=pub_tht)
 
     sp = subparsers.add_parser('forge-am', help='Forge an amendment, following currently promoted of given node.')
-    sp.add_argument('--dividend', '-d', help='Universal Dividend value')
-    sp.add_argument('--power10', '-m', help='Minimal coin 10 power')
-    sp.add_argument('--votes', '-n', help='Number of required votes', required=True)
-    sp.add_argument('--timestamp', '-t', help='Generation timestamp')
+    sp.add_argument('changes', nargs='?', help='[members;voters] changes')
+    sp.add_argument('--dividend', '-d', type=int, help='Universal Dividend value')
+    sp.add_argument('--power10', '-m', type=int, help='Minimal coin 10 power')
+    sp.add_argument('--votes', '-n', type=int, help='Number of required votes', required=True)
+    sp.add_argument('--timestamp', '-t', type=int, help='Generation timestamp')
+    sp.add_argument('--stdin', '-C', action='store_true', default=False, help='forge-am will read community changes from STDIN')
     sp.set_defaults(func=forge_am)
 
     sp = subparsers.add_parser('clist', help='List coins of given user. May be limited by upper amount.')
