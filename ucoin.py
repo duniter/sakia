@@ -449,7 +449,6 @@ NextRequiredVotes: %(votes)d
     really_removed_members = list(set(really_removed_members) & set(previous_members))
 
     members_merkle = Merkle(members).process()
-    # pprint(members_merkle.__dict__)
 
     members_changes = []
     for fpr in really_added_members:
@@ -486,7 +485,6 @@ NextRequiredVotes: %(votes)d
     really_removed_voters = list(set(voters_to_remove) - set(voters))
 
     voters_merkle = Merkle(voters).process()
-    # pprint(voters_merkle.__dict__)
 
     voters_changes = []
     for fpr in really_added_voters:
@@ -579,17 +577,33 @@ def send_pubkey():
     elif ucoin.settings['file']:
         data = open(ucoin.settings['file']).read()
     else:
-        data = input()
+        data = ""
+        while True:
+            line = input()
+            if not line: break
+            data += line + "\n"
 
 def vote():
     logger.debug('vote')
 
-    data = None
-
     if ucoin.settings['file']:
-        data = open(ucoin.settings['file']).read()
+        am = open(ucoin.settings['file']).read()
     else:
-        data = input()
+        am = ""
+        while True:
+            line = input()
+            if not line: break
+            am += line + "\n"
+
+    am = am.replace("\n", "\r\n")
+    ams = ucoin.settings['gpg'].sign(am, detach=True, keyid=ucoin.settings['user'])
+
+    try:
+        r = ucoin.hdc.amendments.Votes().post(amendment=am, signature=ams)
+    except ValueError as e:
+        print(e)
+    else:
+        print('Posted vote for Amendment #%d' % r['amendment']['number'])
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='uCoin client.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
