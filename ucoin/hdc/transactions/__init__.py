@@ -27,23 +27,11 @@ class Base(HDC):
 class Process(Base):
     """POST a transaction."""
 
-    def __init__(self, transaction, signature):
-        """
-        Arguments:
-        - `transaction`: The raw transaction.
-        - `signature`: The signature of the transaction.
-        """
-
-        super().__init__()
-
-        self.transaction = transaction
-        self.signature = signature
-
-    def __post__(self):
+    def __post__(self, **kwargs):
         assert 'transaction' in kwargs
         assert 'signature' in kwargs
 
-        return self.requests_post('/process', **kwargs).json()
+        return self.requests_post('/process', **kwargs)
 
 class All(Base):
     """GET all the transactions stored by this node."""

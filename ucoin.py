@@ -18,7 +18,7 @@
 #
 
 from pprint import pprint
-import ucoin, json, logging, argparse, sys
+import ucoin, json, logging, argparse, sys, gnupg, hashlib, re
 from collections import OrderedDict
 
 logger = logging.getLogger("cli")
@@ -28,20 +28,27 @@ logger = logging.getLogger("cli")
 #         print(tx['hash'])
 
 def print_amendment(am):
-    print('Version\t\t\t',      am['version'])
-    print('Currency\t\t',       am['currency'])
-    print('Number\t\t\t',       am['number'])
-    print('GeneratedOn\t\t',    am['generated'])
-    print('UniversalDividend\t', am['dividend'])
-    print('NextRequiredVotes\t', am['nextVotes'])
-    print('PreviousHash\t\t',   am['previousHash'])
-    print('MembersRoot\t\t',    am['membersRoot'])
-    print('MembersCount\t\t',   am['membersCount'])
+    print("""\
+Version\t\t\t%(version)s
+Currency\t\t%(currency)s
+Number\t\t\t%(number)s
+GeneratedOn\t\t%(generated)s
+UniversalDividend\t%(dividend)s
+NextRequiredVotes\t%(nextVotes)s
+PreviousHash\t\t%(previousHash)s
+MembersRoot\t\t%(membersRoot)s
+MembersCount\t\t%(membersCount)s\
+    """ % am)
+
     if am['membersChanges']:
         print('MembersChanges')
         for x in am['membersChanges']: print(x)
-    print('VotersRoot\t\t',     am['votersRoot'])
-    print('VotersCount\t\t',    am['votersCount'])
+
+    print("""\
+VotersRoot\t\t%(votersRoot)s
+VotersCount\t\t%(votersCount)s\
+    """ % am)
+
     if am['votersChanges']:
         print('VotersChanges')
         for x in am['votersChanges']: print(x)
@@ -74,16 +81,24 @@ def peering():
 
     peer = ucoin.ucg.Peering().get()
 
-    print('Currency\t',         peer['currency'])
-    print('Public key FPR\t',   peer['key'])
-    print('Contract\t',         peer['contract']['currentNumber'] + '-' + peer['contract']['hash'])
-    print('Public keys\t',      peer['merkles']['pks/all']['leavesCount'])
-    print('Remote host\t',      peer['remote']['host'])
-    if peer['remote']['ipv4']:
-        print('Remote ipv4\t',  peer['remote']['ipv4'])
-    if peer['remote']['ipv6']:
-        print('Remote ipv6\t',  peer['remote']['ipv6'])
-    print('Remote port\t',      peer['remote']['port'])
+    __dict = {}
+    for d in [peer, peer['contract'], peer['merkles']['pks/all'], peer['remote'],]:
+        __dict.update(d)
+
+    print("""\
+Currency\t%(currency)s
+Public key FPR\t%(key)s
+Contract\t%(currentNumber)s-%(hash)s
+Public keys\t%(leavesCount)d
+Remote host\t%(host)s\
+    """ % __dict)
+
+    if __dict['ipv4']: print('Remote ipv4\t%(ipv4)s' % __dict)
+    if __dict['ipv6']: print('Remote ipv6\t%(ipv6)s' % __dict)
+
+    print("""\
+Remote port\t%(port)d\
+    """ % __dict)
 
 def pubkey():
     logger.debug('pubkey')
@@ -93,18 +108,229 @@ def pubkey():
 def index():
     logger.debug('index')
 
+    __dict = ucoin.hdc.amendments.Votes().get()['amendments']
+
+    i = 0
+    while True:
+        if str(i) not in __dict: break
+        for k,v in __dict[str(i)].items():
+            print('%d-%s:%d' % (i, k, v))
+        i += 1
+
 def issue():
     logger.debug('issue')
 
+    try:
+        last_tx = ucoin.hdc.transactions.sender.Last(ucoin.settings['fingerprint']).get()
+    except ValueError:
+        last_tx = None
+
+    try:
+        last_issuance = ucoin.hdc.transactions.sender.issuance.Last(ucoin.settings['fingerprint']).get()
+    except ValueError:
+        last_issuance = None
+
+    __dict = {}
+    __dict.update(ucoin.settings)
+    __dict['version'] = 1
+    __dict['number'] = 0 if not last_tx else last_tx['transaction']['number']+1
+    __dict['previousHash'] = hashlib.sha1(("%(raw)s%(signature)s" % last_tx).encode('ascii')).hexdigest().upper()
+    __dict['type'] = 'ISSUANCE'
+
+    # pprint(__dict)
+
+    tx = """\
+Version: %(version)d
+Currency: %(currency)s
+Sender: %(fingerprint)s
+Number: %(number)d
+""" % __dict
+
+    if last_tx: tx += "PreviousHash: %(previousHash)s\n" % __dict
+
+    tx += """\
+Recipient: %(fingerprint)s
+Type: %(type)s
+Coins:
+""" % __dict
+
+    def get_next_coin_number(coins):
+        number = 0
+        for c in coins:
+            candidate = int(c['id'].split('-')[1])
+            if candidate > number: number = candidate
+        return number+1
+
+    previous_idx = 0 if not last_issuance else get_next_coin_number(last_issuance['transaction']['coins'])
+
+    for idx, coin in enumerate(ucoin.settings['coins']):
+        __dict['idx'] = idx+previous_idx
+        __dict['base'], __dict['power'] = [int(x) for x in coin.split(',')]
+        tx += '%(fingerprint)s-%(idx)d-%(base)d-%(power)d-A-%(amendment)d\n' % __dict
+
+    tx += """\
+Comment:
+%(message)s
+""" % __dict
+
+    tx = tx.replace("\n", "\r\n")
+    txs = ucoin.settings['gpg'].sign(tx, detach=True, keyid=ucoin.settings['user'])
+
+    try:
+        ucoin.hdc.transactions.Process().post(transaction=tx, signature=txs)
+    except ValueError as e:
+        print(e)
+    else:
+        print('Posted issuance transaction')
+
 def transfer():
     logger.debug('transfer')
-    coins = input('coins: ')
-    logger.debug(coins)
+    logger.debug('recipient: %s' % ucoin.settings['recipient'])
+
+    if not ucoin.settings['coins']: ucoin.settings['coins'] = input()
+
+    logger.debug('coins: %s' % ucoin.settings['coins'])
+
+    try:
+        last_tx = ucoin.hdc.transactions.sender.Last(ucoin.settings['fingerprint']).get()
+    except ValueError:
+        last_tx = None
+
+    __dict = {}
+    __dict.update(ucoin.settings)
+    __dict['version'] = 1
+    __dict['number'] = 0 if not last_tx else last_tx['transaction']['number']+1
+    __dict['previousHash'] = hashlib.sha1(("%(raw)s%(signature)s" % last_tx).encode('ascii')).hexdigest().upper()
+    __dict['type'] = 'TRANSFER'
+
+    # pprint(__dict)
+
+    tx = """\
+Version: %(version)d
+Currency: %(currency)s
+Sender: %(fingerprint)s
+Number: %(number)d
+""" % __dict
+
+    if last_tx: tx += "PreviousHash: %(previousHash)s\n" % __dict
+
+    tx += """\
+Recipient: %(recipient)s
+Type: %(type)s
+Coins:
+""" % __dict
+
+    for coin in ucoin.settings['coins'].split(','):
+        data = coin.split(':')
+        issuer = data[0]
+        for number in data[1:]:
+            __dict.update(ucoin.hdc.coins.View(issuer, int(number)).get())
+            tx += '%(id)s, %(transaction)s\n' % __dict
+
+    tx += """\
+Comment:
+%(message)s
+""" % __dict
+
+    tx = tx.replace("\n", "\r\n")
+    txs = ucoin.settings['gpg'].sign(tx, detach=True, keyid=ucoin.settings['user'])
+
+    try:
+        ucoin.hdc.transactions.Process().post(transaction=tx, signature=txs)
+    except ValueError as e:
+        print(e)
+    else:
+        print('Posted transfer transaction')
 
 def fusion():
     logger.debug('fusion')
-    coins = input('coins: ')
-    logger.debug(coins)
+
+    if not ucoin.settings['coins']: ucoin.settings['coins'] = input()
+
+    logger.debug('coins: %s' % ucoin.settings['coins'])
+
+    try:
+        last_tx = ucoin.hdc.transactions.sender.Last(ucoin.settings['fingerprint']).get()
+    except ValueError:
+        last_tx = None
+
+    try:
+        last_issuance = ucoin.hdc.transactions.sender.issuance.Last(ucoin.settings['fingerprint']).get()
+    except ValueError:
+        last_issuance = None
+
+    __dict = {}
+    __dict.update(ucoin.settings)
+    __dict['version'] = 1
+    __dict['number'] = 0 if not last_tx else last_tx['transaction']['number']+1
+    __dict['previousHash'] = hashlib.sha1(("%(raw)s%(signature)s" % last_tx).encode('ascii')).hexdigest().upper()
+    __dict['type'] = 'FUSION'
+
+    # pprint(__dict)
+
+    tx = """\
+Version: %(version)d
+Currency: %(currency)s
+Sender: %(fingerprint)s
+Number: %(number)d
+""" % __dict
+
+    if last_tx: tx += "PreviousHash: %(previousHash)s\n" % __dict
+
+    tx += """\
+Recipient: %(fingerprint)s
+Type: %(type)s
+Coins:
+""" % __dict
+
+    coins = []
+    for coin in ucoin.settings['coins'].split(','):
+        data = coin.split(':')
+        issuer = data[0]
+        for number in data[1:]:
+            coins.append(ucoin.hdc.coins.View(issuer, int(number)).get())
+
+    __sum = 0
+    for coin in coins:
+        base, power = coin['id'].split('-')[2:4]
+        __sum += int(base) * 10**int(power)
+
+    m = re.match(r'^(\d)(0*)$', str(__sum))
+
+    if not m:
+        print('bad sum value %d' % __sum)
+        return
+
+    def get_next_coin_number(coins):
+        number = 0
+        for c in coins:
+            candidate = int(c['id'].split('-')[1])
+            if candidate > number: number = candidate
+        return number+1
+
+    __dict['idx'] = 0 if not last_issuance else get_next_coin_number(last_issuance['transaction']['coins'])
+
+    __dict['base'], __dict['power'] = int(m.groups()[0]), len(m.groups()[1])
+    tx += '%(fingerprint)s-%(idx)d-%(base)d-%(power)d-F-%(number)d\n' % __dict
+
+    for coin in coins:
+        __dict.update(coin)
+        tx += '%(id)s, %(transaction)s\n' % __dict
+
+    tx += """\
+Comment:
+%(message)s
+""" % __dict
+
+    tx = tx.replace("\n", "\r\n")
+    txs = ucoin.settings['gpg'].sign(tx, detach=True, keyid=ucoin.settings['user'])
+
+    try:
+        ucoin.hdc.transactions.Process().post(transaction=tx, signature=txs)
+    except ValueError as e:
+        print(e)
+    else:
+        print('Posted fusion transaction')
 
 def host_add():
     logger.debug('host_add')
@@ -162,7 +388,7 @@ def vote():
         data = input()
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='ucoin client.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(description='uCoin client.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     levels = OrderedDict([('debug', logging.DEBUG),
                           ('info', logging.INFO),
@@ -187,90 +413,80 @@ if __name__ == '__main__':
 
     subparsers = parser.add_subparsers(help='sub-command help')
 
-    parser_current = subparsers.add_parser('current', help='Show current amendment of the contract')
-    parser_current.set_defaults(func=current)
+    subparsers.add_parser('current', help='Show current amendment of the contract').set_defaults(func=current)
+    subparsers.add_parser('contract', help='List all amendments constituting the contract').set_defaults(func=contract)
 
-    parser_contract = subparsers.add_parser('contract', help='List all amendments constituting the contract')
-    parser_contract.set_defaults(func=contract)
+    sp = subparsers.add_parser('lookup', help='Search for a public key')
+    sp.add_argument('search', help='A value for searching in PGP certificates database. May start with \'0x\' for direct search on PGP fingerprint.')
+    sp.set_defaults(func=lookup)
 
-    parser_lookup = subparsers.add_parser('lookup', help='Search for a public key')
-    parser_lookup.add_argument('search', help='A value for searching in PGP certificates database. May start with \'0x\' for direct search on PGP fingerprint.')
-    parser_lookup.set_defaults(func=lookup)
+    subparsers.add_parser('peering', help='Show peering informations').set_defaults(func=peering)
+    subparsers.add_parser('pubkey', help='Show pubkey of remote node').set_defaults(func=pubkey)
+    subparsers.add_parser('index', help='List reiceved votes count for each amendment').set_defaults(func=index)
 
-    parser_peering = subparsers.add_parser('peering', help='Show peering informations')
-    parser_peering.set_defaults(func=peering)
+    sp = subparsers.add_parser('issue', help='Issue new coins')
+    sp.add_argument('amendment', type=int, help='amendment number')
+    sp.add_argument('coins', nargs='+', help='coins will respect this format [coin_value,number_of_zero_behind]')
+    sp.add_argument('--message', '-m', help='write a comment', default='')
+    sp.set_defaults(func=issue)
 
-    parser_pubkey = subparsers.add_parser('pubkey', help='Show pubkey of remote node')
-    parser_pubkey.set_defaults(func=pubkey)
+    sp = subparsers.add_parser('transfer', help='Transfers property of coins (coins a read from STDIN)')
+    sp.add_argument('recipient', help='recipient address')
+    sp.add_argument('coins', nargs='?', help='coins to send [coin,...]. If no value has passed, it will be read from STDIN.')
+    sp.add_argument('--message', '-m', help='write a comment', default='')
+    sp.set_defaults(func=transfer)
 
-    parser_index = subparsers.add_parser('index', help='List reiceved votes count for each amendment')
-    parser_index.set_defaults(func=index)
+    sp = subparsers.add_parser('fusion', help='Fusion coins to make a bigger coin (coins a read from STDIN)')
+    sp.add_argument('coins', nargs='?', help='coins to fusion [coin,...]. If no value has passed, it will be read from STDIN.')
+    sp.add_argument('--message', '-m', help='write a comment', default='')
+    sp.set_defaults(func=fusion)
 
-    parser_issue = subparsers.add_parser('issue', help='Issue new coins')
-    parser_issue.add_argument('amendment', help='amendment number')
-    parser_issue.add_argument('coins', help='coins')
-    parser_issue.add_argument('comment', help='write a comment')
-    parser_issue.set_defaults(func=issue)
+    sp = subparsers.add_parser('host-add', help='Add given key fingerprint to hosts managing transactions of key -u')
+    sp.add_argument('key', help='key fingerprint')
+    sp.set_defaults(func=host_add)
 
-    parser_transfer = subparsers.add_parser('transfer', help='Transfers property of coins (coins a read from STDIN)')
-    parser_transfer.add_argument('recipient', help='recipient address')
-    parser_transfer.add_argument('comment', help='write a comment')
-    parser_transfer.set_defaults(func=transfer)
+    sp = subparsers.add_parser('host-rm', help='Same as \'host-add\', but remove host instead')
+    sp.add_argument('key', help='key fingerprint')
+    sp.set_defaults(func=host_rm)
 
-    parser_fusion = subparsers.add_parser('fusion', help='Fusion coins to make a bigger coin (coins a read from STDIN)')
-    parser_fusion.add_argument('comment', help='write a comment')
-    parser_fusion.set_defaults(func=fusion)
+    subparsers.add_parser('host-list', help='Show the list of keys').set_defaults(func=host_list)
 
-    parser_host_add = subparsers.add_parser('host-add', help='Add given key fingerprint to hosts managing transactions of key -u')
-    parser_host_add.add_argument('key', help='key fingerprint')
-    parser_host_add.set_defaults(func=host_add)
+    sp = subparsers.add_parser('trust-add', help='Add given key fingerprint to hosts key -u trust for receiving transactions')
+    sp.add_argument('key', help='key fingerprint')
+    sp.set_defaults(func=trust_add)
 
-    parser_host_rm = subparsers.add_parser('host-rm', help='Same as \'host-add\', but remove host instead')
-    parser_host_rm.add_argument('key', help='key fingerprint')
-    parser_host_rm.set_defaults(func=host_rm)
+    sp = subparsers.add_parser('trust-rm', help='Same as \'trust-add\', but remove host instead')
+    sp.add_argument('key', help='key fingerprint')
+    sp.set_defaults(func=trust_rm)
 
-    parser_host_list = subparsers.add_parser('host-list', help='Show the list of keys')
-    parser_host_list.set_defaults(func=host_list)
+    subparsers.add_parser('trust-list', help='Show the list of keys').set_defaults(func=trust_list)
 
-    parser_trust_add = subparsers.add_parser('trust-add', help='Add given key fingerprint to hosts key -u trust for receiving transactions')
-    parser_trust_add.add_argument('key', help='key fingerprint')
-    parser_trust_add.set_defaults(func=trust_add)
+    subparsers.add_parser('tht', help='Show THT entry resulting of host-* and trust-* commands').set_defaults(func=tht)
 
-    parser_trust_rm = subparsers.add_parser('trust-rm', help='Same as \'trust-add\', but remove host instead')
-    parser_trust_rm.add_argument('key', help='key fingerprint')
-    parser_trust_rm.set_defaults(func=trust_rm)
+    subparsers.add_parser('pub-tht', help='Publish THT entry according to data returned by \'trust-list\' and \'host-list\'').set_defaults(func=pub_tht)
 
-    parser_trust_list = subparsers.add_parser('trust-list', help='Show the list of keys')
-    parser_trust_list.set_defaults(func=trust_list)
+    sp = subparsers.add_parser('forge-am', help='Forge an amendment, following currently promoted of given node.')
+    sp.add_argument('--dividend', '-d', help='Universal Dividend value')
+    sp.add_argument('--power10', '-m', help='Minimal coin 10 power')
+    sp.add_argument('--votes', '-n', help='Number of required votes', required=True)
+    sp.add_argument('--timestamp', '-t', help='Generation timestamp')
+    sp.set_defaults(func=forge_am)
 
-    parser_tht = subparsers.add_parser('tht', help='Show THT entry resulting of host-* and trust-* commands')
-    parser_tht.set_defaults(func=tht)
+    sp = subparsers.add_parser('clist', help='List coins of given user. May be limited by upper amount.')
+    sp.add_argument('limit', nargs='?', help='limit value')
+    sp.set_defaults(func=clist)
 
-    parser_pub_tht = subparsers.add_parser('pub-tht', help='Publish THT entry according to data returned by \'trust-list\' and \'host-list\'')
-    parser_pub_tht.set_defaults(func=pub_tht)
+    sp = subparsers.add_parser('cget', help='Get coins for given values in user account.')
+    sp.add_argument('value', nargs='+', help='value of the coin you want to select')
+    sp.set_defaults(func=cget)
 
-    parser_forge_am = subparsers.add_parser('forge-am', help='Forge an amendment, following currently promoted of given node.')
-    parser_forge_am.add_argument('--dividend', '-d', help='Universal Dividend value')
-    parser_forge_am.add_argument('--power10', '-m', help='Minimal coin 10 power')
-    parser_forge_am.add_argument('--votes', '-n', help='Number of required votes', required=True)
-    parser_forge_am.add_argument('--timestamp', '-t', help='Generation timestamp')
-    parser_forge_am.set_defaults(func=forge_am)
+    sp = subparsers.add_parser('send-pubkey', help='Send signed public key [file] to a uCoin server. If -u option is provided, [file] is ommited. If [file] is not provided, it is read from STDIN. Note: [file] may be forged using \'forge-*\' commands.')
+    sp.add_argument('file', nargs='?', help='signed public key to send')
+    sp.set_defaults(func=send_pubkey)
 
-    parser_clist = subparsers.add_parser('clist', help='List coins of given user. May be limited by upper amount.')
-    parser_clist.add_argument('limit', help='limit value')
-    parser_clist.set_defaults(func=clist)
-
-    parser_cget = subparsers.add_parser('cget', help='Get coins for given values in user account.')
-    parser_cget.add_argument('value', nargs='+', help='value of the coin you want to select')
-    parser_cget.set_defaults(func=cget)
-
-    parser_send_pubkey = subparsers.add_parser('send-pubkey', help='Send signed public key [file] to a uCoin server. If -u option is provided, [file] is ommited. If [file] is not provided, it is read from STDIN. Note: [file] may be forged using \'forge-*\' commands.')
-    parser_send_pubkey.add_argument('file', nargs='?', help='signed public key to send')
-    parser_send_pubkey.set_defaults(func=send_pubkey)
-
-    parser_vote = subparsers.add_parser('vote', help='Signs given amendment [file] and sends it to a uCoin server. If [file] is not provided, it is read from STDIN.')
-    parser_vote.add_argument('file', nargs='?', help='amendment file')
-    parser_vote.set_defaults(func=vote)
+    sp = subparsers.add_parser('vote', help='Signs given amendment [file] and sends it to a uCoin server. If [file] is not provided, it is read from STDIN.')
+    sp.add_argument('file', nargs='?', help='amendment file')
+    sp.set_defaults(func=vote)
 
     args = parser.parse_args()
 
@@ -299,6 +515,20 @@ if __name__ == '__main__':
             ucoin.settings.update(json.load(f))
     except FileNotFoundError:
         pass
+
+    if ucoin.settings.get('user'):
+        logger.debug('selected keyid: %s' % ucoin.settings['user'])
+        ucoin.settings['gpg'] = gpg = gnupg.GPG(options=['-u %s' % ucoin.settings['user']])
+
+        keys = gpg.list_keys(True)
+        for idx, fp in enumerate(keys.fingerprints):
+            if fp[-8:] == ucoin.settings['user']:
+                ucoin.settings.update(keys[idx])
+                break
+    else:
+        ucoin.settings['gpg'] = gpg = gnupg.GPG()
+
+    ucoin.settings.update(ucoin.ucg.Peering().get())
 
     logger.debug(args)
     logger.debug(ucoin.settings)

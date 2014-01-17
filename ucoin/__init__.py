@@ -43,13 +43,6 @@ class Response:
         """
 
         self.response = response
-
-        if settings.get('user'):
-            logger.debug('selected keyid: %s' % settings.get('user'))
-            self.gpg = gnupg.GPG(options=['-u %s' % settings['user']])
-        else:
-            self.gpg = gnupg.GPG()
-
         self.status_code = response.status_code
         self.headers = response.headers
 
@@ -94,7 +87,7 @@ class Response:
         signed = data[2][data[2].index(begin):]
         clearsigned = '-----BEGIN PGP SIGNED MESSAGE-----\nHash: SHA1\n\n%s\n%s' % (clear, signed)
 
-        return (bool(self.gpg.verify(clearsigned)), clear, signed)
+        return (bool(settings['gpg'].verify(clearsigned)), clear, signed)
 
 class API:
     """APIRequest is a class used as an interface. The intermediate derivated classes are the modules and the leaf classes are the API requests."""
@@ -112,12 +105,6 @@ class API:
 
         if settings['auth']:
             self.headers['Accept'] = 'multipart/signed'
-
-        if settings.get('user'):
-            logger.debug('selected keyid: %s' % settings.get('user'))
-            self.gpg = gnupg.GPG(options=['-u %s' % settings['user']])
-        else:
-            self.gpg = gnupg.GPG()
 
     def reverse_url(self, path):
         """
@@ -163,10 +150,17 @@ class API:
         - `path`: the request path
         """
 
-        if not settings.get('auth'):
-            return requests.get(self.reverse_url(path), params=kwargs, headers=self.headers)
+        response = None
 
-        return Response(requests.get(self.reverse_url(path), params=kwargs, headers=self.headers))
+        if not settings.get('auth'):
+            response = requests.get(self.reverse_url(path), params=kwargs, headers=self.headers)
+        else:
+            response = Response(requests.get(self.reverse_url(path), params=kwargs, headers=self.headers))
+
+        if response.status_code != 200:
+            raise ValueError('status code != 200 => %d (%s)' % (response.status_code, response.text))
+
+        return response
 
     def requests_post(self, path, **kwargs):
         """
@@ -176,7 +170,12 @@ class API:
         - `path`: the request path
         """
 
-        return requests.post(self.reverse_url(path), data=kwargs, headers=self.headers)
+        response = requests.post(self.reverse_url(path), data=kwargs, headers=self.headers)
+
+        if response.status_code != 200:
+            raise ValueError('status code != 200 => %d (%s)' % (response.status_code, response.text))
+
+        return response
 
     def merkle_easy_parser(self, path):
         root = self.requests_get(path, leaves='true').json()
