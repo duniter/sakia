@@ -460,9 +460,7 @@ if __name__ == '__main__':
     sp.set_defaults(func=trust_rm)
 
     subparsers.add_parser('trust-list', help='Show the list of keys').set_defaults(func=trust_list)
-
     subparsers.add_parser('tht', help='Show THT entry resulting of host-* and trust-* commands').set_defaults(func=tht)
-
     subparsers.add_parser('pub-tht', help='Publish THT entry according to data returned by \'trust-list\' and \'host-list\'').set_defaults(func=pub_tht)
 
     sp = subparsers.add_parser('forge-am', help='Forge an amendment, following currently promoted of given node.')
