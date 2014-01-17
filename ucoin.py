@@ -362,8 +362,56 @@ def forge_am():
 def clist():
     logger.debug('clist')
 
+    if ucoin.settings['limit']:
+        logger.debug('limit: %d' % ucoin.settings['limit'])
+
+    __list = ucoin.hdc.coins.List(ucoin.settings['fingerprint']).get()
+
+    coins = []
+    __sum = 0
+    for c in __list['coins']:
+        for id in c['ids']:
+            n,b,p,t,i = id.split('-')
+            amount = int(b) * 10**int(p)
+            __dict = {'issuer': c['issuer'], 'number': int(n), 'base': int(b), 'power': int(p), 'type': t, 'type_number': int(i), 'amount': amount}
+            if not ucoin.settings['limit'] or ucoin.settings['limit'] >= amount:
+                coins.append(__dict)
+                __sum += amount
+
+    print('Credit: %d\n-------------------\n' % __sum)
+    print('Value\tIssuer\t\t\t\t\t\t#\n')
+    for c in coins:
+        print('%(amount)d\t%(issuer)s\t%(number)d' % c)
+
 def cget():
     logger.debug('cget')
+    logger.debug('value: %s' % ucoin.settings['value'])
+
+    __list = ucoin.hdc.coins.List(ucoin.settings['fingerprint']).get()
+
+    coins = {}
+    for c in __list['coins']:
+        for id in c['ids']:
+            n,b,p,t,i = id.split('-')
+            amount = int(b) * 10**int(p)
+            coins[amount] = {'issuer': c['issuer'], 'number': int(n), 'base': int(b), 'power': int(p), 'type': t, 'type_number': int(i), 'amount': amount}
+
+    issuers = {}
+    for v in ucoin.settings['value']:
+        if v in coins:
+            c = coins[v]
+            issuers[c['issuer']] = issuers.get(c['issuer']) or []
+            issuers[c['issuer']].append(c)
+        else:
+            print('You do not have enough coins of value (%d)' % v)
+            return
+
+    for i, issuer in enumerate(issuers):
+        if i > 0: print(',', end='')
+        print(issuer, end='')
+        for c in issuers[issuer]:
+            print(':%(number)d' % c, end='')
+    print()
 
 def send_pubkey():
     logger.debug('send_pubkey')
@@ -471,11 +519,11 @@ if __name__ == '__main__':
     sp.set_defaults(func=forge_am)
 
     sp = subparsers.add_parser('clist', help='List coins of given user. May be limited by upper amount.')
-    sp.add_argument('limit', nargs='?', help='limit value')
+    sp.add_argument('limit', nargs='?', type=int, help='limit value')
     sp.set_defaults(func=clist)
 
     sp = subparsers.add_parser('cget', help='Get coins for given values in user account.')
-    sp.add_argument('value', nargs='+', help='value of the coin you want to select')
+    sp.add_argument('value', nargs='+', type=int, help='value of the coin you want to select')
     sp.set_defaults(func=cget)
 
     sp = subparsers.add_parser('send-pubkey', help='Send signed public key [file] to a uCoin server. If -u option is provided, [file] is ommited. If [file] is not provided, it is read from STDIN. Note: [file] may be forged using \'forge-*\' commands.')
