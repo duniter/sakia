@@ -1,0 +1,12 @@
+[submodule "static/jquery"]
+	path = static/jquery
+	url = git://github.com/components/jquery.git
+[submodule "static/jqueryui"]
+	path = static/jqueryui
+	url = git://github.com/components/jqueryui.git
+[submodule "static/bootstrap"]
+	path = static/bootstrap
+	url = git://github.com/components/bootstrap.git
+[submodule "static/chartjs"]
+	path = static/chartjs
+	url = git://github.com/nnnick/Chart.js.git
