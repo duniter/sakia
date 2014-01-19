@@ -53,7 +53,7 @@ class THT(UCG):
 
     def __get__(self, **kwargs):
         if not self.pgp_fingerprint:
-            return self.merkle_easy_parser('/tht').json()
+            return self.merkle_easy_parser('/tht')
 
         return self.merkle_easy_parser('/tht/%s' % self.pgp_fingerprint).json()
 
