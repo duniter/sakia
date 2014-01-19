@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block section_title %}API{% endblock %}
+
+{% block content %}
+
+<div class="row">
+  <div class="col-lg-3">
+
+    <div class="panel panel-default">
+      <div class="panel-heading">PKS</div>
+      <div class="list-group" style="background-color: #f7f5fa;">
+	<a id="pks_add" href="{{ url_for('pks_add') }}" class="list-group-item"><i class="glyphicon glyphicon-minus"></i> Add</a>
+	<a id="pks_lookup" href="{{ url_for('pks_lookup') }}" class="list-group-item"><i class="glyphicon glyphicon-minus"></i> Lookup</a>
+	<a id="pks_all" href="{{ url_for('pks_all') }}" class="list-group-item"><i class="glyphicon glyphicon-minus"></i> All</a>
+      </div>
+    </div>
+
+    <div class="panel panel-default">
+      <div class="panel-heading">UCG</div>
+      <div class="list-group" style="background-color: #f7f5fa;">
+	<a id="ucg_pubkey" href="{{ url_for('ucg_pubkey') }}" class="list-group-item"><i class="glyphicon glyphicon-minus"></i> Pubkey</a>
+	<a id="ucg_peering" href="{{ url_for('ucg_peering') }}" class="list-group-item"><i class="glyphicon glyphicon-minus"></i> Peering</a>
+	<a id="ucg_peering_keys" href="{{ url_for('ucg_peering_keys') }}" class="list-group-item"><i class="glyphicon glyphicon-minus"></i> Keys (peering)</a>
+	<a id="ucg_peering_peer" href="{{ url_for('ucg_peering_peer') }}" class="list-group-item"><i class="glyphicon glyphicon-minus"></i> Peer (peering)</a>
+	<a id="ucg_peering_peers" href="{{ url_for('ucg_peering_peers') }}" class="list-group-item"><i class="glyphicon glyphicon-minus"></i> Peers (peering)</a>
+	<a id="ucg_peering_peers_upstream" href="{{ url_for('ucg_peering_peers_upstream') }}" class="list-group-item"><i class="glyphicon glyphicon-minus"></i> Upstream (peering/peers)</a>
+	<a id="ucg_peering_peers_downstream" href="{{ url_for('ucg_peering_peers_downstream') }}" class="list-group-item"><i class="glyphicon glyphicon-minus"></i> Downstream (peering/peers)</a>
+	<a id="ucg_peering_forward" href="{{ url_for('ucg_peering_forward') }}" class="list-group-item"><i class="glyphicon glyphicon-minus"></i> Forward (peering)</a>
+	<a id="ucg_peering_status" href="{{ url_for('ucg_peering_status') }}" class="list-group-item"><i class="glyphicon glyphicon-minus"></i> Status (peering)</a>
+	<a id="ucg_tht" href="{{ url_for('ucg_tht') }}" class="list-group-item"><i class="glyphicon glyphicon-minus"></i> THT</a>
+      </div>
+    </div>
+
+    <div class="panel panel-default">
+      <div class="panel-heading">HDC</div>
+      <div class="list-group" style="background-color: #f7f5fa;">
+	<a id="hdc_amendments_current" href="{{ url_for('hdc_amendments_current') }}" class="list-group-item"><i class="glyphicon glyphicon-minus"></i> Current (amendments)</a>
+	<a id="hdc_amendments_current_votes" href="{{ url_for('hdc_amendments_current_votes') }}" class="list-group-item"><i class="glyphicon glyphicon-minus"></i> Votes (amendments/current)</a>
+	<a id="hdc_amendments_votes" href="{{ url_for('hdc_amendments_votes') }}" class="list-group-item"><i class="glyphicon glyphicon-minus"></i> Votes (amendments)</a>
+      </div>
+    </div>
+
+  </div>
+  <div class="col-lg-9">
+    {% block sub_content %}{% endblock %}
+  </div>
+</div>
+
+{% endblock %}
+
+{% block foot %}
+    <script src="{{ url_for('static', filename='google-code-prettify/run_prettify.js') }}"></script>
+
+    <script type="text/javascript">
+      $('body').ready(function () {
+        var urls = {
+	  '{{ url_for('pks_add') }}': 'pks_add',
+	  '{{ url_for('pks_lookup') }}': 'pks_lookup',
+	  '{{ url_for('pks_all') }}': 'pks_all',
+
+          '{{ url_for('ucg_pubkey') }}': 'ucg_pubkey',
+          '{{ url_for('ucg_peering') }}': 'ucg_peering',
+          '{{ url_for('ucg_peering_keys') }}': 'ucg_peering_keys',
+          '{{ url_for('ucg_peering_peer') }}': 'ucg_peering_peer',
+          '{{ url_for('ucg_peering_peers') }}': 'ucg_peering_peers',
+          '{{ url_for('ucg_peering_peers_upstream') }}': 'ucg_peering_peers_upstream',
+          '{{ url_for('ucg_peering_peers_downstream') }}': 'ucg_peering_peers_downstream',
+          '{{ url_for('ucg_peering_forward') }}': 'ucg_peering_forward',
+          '{{ url_for('ucg_peering_status') }}': 'ucg_peering_status',
+          '{{ url_for('ucg_tht') }}': 'ucg_tht',
+
+          '{{ url_for('hdc_amendments_current') }}': 'hdc_amendments_current',
+          '{{ url_for('hdc_amendments_current_votes') }}': 'hdc_amendments_current_votes',
+          '{{ url_for('hdc_amendments_votes') }}': 'hdc_amendments_votes',
+        };
+
+        var matches = window.location.pathname.match(/^(\/[^?]*)/g);
+        $('#' + urls[matches[0]]).addClass('active');
+      });
+    </script>
+{% endblock %}

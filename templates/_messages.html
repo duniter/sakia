@@ -1,0 +1,12 @@
+{% if messages %}
+  <div class="row">
+    <div class="span12">
+      {% for message in messages %}
+	<div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{message.tags}}{% endif %} fade in">
+	  <a class="close" title="Close" href="#" data-dismiss="alert">&times;</a>
+	  <strong>{{message.tags|title}}:</strong> {{message}}
+	</div>
+      {% endfor %}
+    </div><!-- end span -->
+  </div><!-- end row -->
+{% endif %}

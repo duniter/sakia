@@ -1,0 +1,27 @@
+<div class="navbar navbar-default navbar-static-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+	<span class="icon-bar"></span>
+	<span class="icon-bar"></span>
+	<span class="icon-bar"></span>
+      </button>
+      <a href="#" class="navbar-brand">
+	<span class="label label-default"><strong>uCoin</strong></span>
+      </a>
+    </div>
+    <div class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+	<li id="wallets"><a href="{{ url_for('wallets') }}"><i class="glyphicon glyphicon-briefcase"></i> Wallets</a></li>
+	<li id="api"><a href="{{ url_for('api') }}"><i class="glyphicon glyphicon-cog"></i> API</a></li>
+      </ul>
+      <h4 class="navbar-text pull-right">
+	{% if auth %}
+	  <span class="label label-success">signed responses (secure mode)</span>
+	{% else %}
+	  <span class="label label-warning">unsigned responses (fast mode)</span>
+	{% endif %}
+      </h4>
+    </div>
+  </div>
+</div>

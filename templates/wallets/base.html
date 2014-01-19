@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block section_title %}Wallets{% endblock %}
+
+{% block content %}
+
+<div class="row">
+  <div class="col-lg-3">
+    <div class="list-group" style="background-color: #f7f5fa;">
+      <a id="new" href="{{ url_for('new_wallet') }}" class="list-group-item"><i class="glyphicon glyphicon-plus-sign"></i> New</a>
+      <a id="list" href="{{ url_for('wallets') }}" class="list-group-item"><i class="glyphicon glyphicon-list-alt"></i> Wallet list</a>
+    </div>
+
+    {% if key %}
+    <div class="list-group" style="background-color: #f7f5fa;">
+      <a id="new" href="{{ url_for('new_wallet') }}" class="list-group-item"><i class="glyphicon glyphicon-plus-sign"></i> New</a>
+      <a id="list" href="{{ url_for('wallets') }}" class="list-group-item"><i class="glyphicon glyphicon-list-alt"></i> Wallet list</a>
+    </div>
+    {% endif %}
+  </div>
+  <div class="col-lg-9">
+    {% block sub_content %}{% endblock %}
+  </div>
+</div>
+
+{% endblock %}
+
+{% block foot %}
+    <script type="text/javascript">
+      $('body').ready(function () {
+        var urls = {
+          '/': 'list',
+          '{{ url_for('new_wallet') }}': 'new',
+          '{{ url_for('wallets') }}': 'list',
+        };
+
+        var matches = window.location.pathname.match(/^(\/[^?]*)/g);
+        $('#' + urls[matches[0]]).addClass('active');
+      });
+    </script>
+
+    {% block subfoot %}{% endblock %}
+{% endblock %}

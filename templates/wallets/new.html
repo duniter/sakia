@@ -1,0 +1,115 @@
+{% extends "wallets/base.html" %}
+
+{% block sub_content %}
+<h1><span class="label label-default">Create a new wallet</span></h1>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="panel panel-info">
+      <div class="panel-heading"><h4>Type</h4></div>
+      <div class="panel-body">
+	<div class="btn-group" data-toggle="buttons">
+	  {% for key, checked in [('rsa', True), ('dsa', False)] %}
+	    <label class="btn btn-default btn-lg {% if checked %}active{% endif %}" for="type_{{key}}">
+	      <input checked="checked" id="type_{{key}}" name="type" type="radio" value="{{key}}"/> {{key|upper}}
+	    </label>
+	  {% endfor %}
+	</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="panel panel-info">
+      <div class="panel-heading"><h4>Length</h4></div>
+      <div class="panel-body">
+	<div class="btn-group" data-toggle="buttons">
+	  {% for length, checked in [('1024', False), ('2048', True), ('4096', False)] %}
+	    <label class="btn btn-default btn-lg {% if checked %}active{% endif %}" for="length_{{length}}">
+	      <input checked="checked" id="length_{{length}}" name="length" type="radio" value="{{length}}"/> {{length}}
+	    </label>
+	  {% endfor %}
+	</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="panel panel-info">
+  <div class="panel-heading"><h4>Email</h4></div>
+  <div class="panel-body">
+    <div class="form-group">
+      <input name="email" id="email" class="form-control input-lg"/>
+    </div>
+  </div>
+</div>
+
+<div class="panel panel-info">
+  <div class="panel-heading"><h4>Realm</h4></div>
+  <div class="panel-body">
+    <div class="form-group">
+      <input name="realm" id="realm" class="form-control input-lg"/>
+    </div>
+  </div>
+</div>
+
+<div class="alert alert-info lg"><h3 id="result">Click on "create" in order to create the new key.</h3></div>
+
+<div class="form-group">
+  <button type="button" id="create" class="btn btn-lg btn-primary btn-block" data-loading-text="Loading… It takes a moment…" data-complete-text="Finished! Create a new one." data-error-text="Fix and create" data-toggle="button">Create</button>
+</div>
+
+{% endblock %}
+
+{% block subfoot %}
+<script type=text/javascript>
+    $(function() {
+	var type = $('input[name="type"]');
+	var length = $('input[name="length"]');
+	var email = $('input[name="email"]');
+	var realm = $('input[name="realm"]');
+	var create = $('#create');
+	var result = $('#result');
+
+	var submit_form = function(e) {
+            $(this).button('loading');
+
+	    if (!(email.val())) {
+		email.parent().addClass('has-error');
+		create.button('error');
+		return false;
+	    }
+
+	    if (!(realm.val())) {
+		realm.parent().addClass('has-error');
+		create.button('error');
+		return false;
+	    }
+
+	    $.getJSON($SCRIPT_ROOT + "{{ url_for('new_wallet_create') }}", {
+		type: type.val(),
+		length: length.val(),
+		email: email.val(),
+		realm: realm.val(),
+	    }, function(data) {
+		result.parent().removeClass('alert-info');
+		result.parent().addClass('alert-success');
+		result.text(data.result);
+		email.focus().select();
+                create.button('complete');
+	    });
+
+	    return false;
+	};
+
+	create.bind('click', submit_form);
+
+	$('input[type=text]').bind('keydown', function(e) {
+	    if (e.keyCode == 13) {
+		submit_form(e);
+	    }
+	});
+
+	email.focus();
+    });
+</script>
+{% endblock %}

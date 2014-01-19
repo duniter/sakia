@@ -1,0 +1,18 @@
+<hr/>
+
+{% block footer %}
+  <footer class="footer">
+    <div class="pull-right">
+      {#<a class="tooltip_link" href="http://ask.vegeclic.fr" title="Questions - Réponses"><img src="{% static "ask.png" %}"/></a>
+      <a class="tooltip_link" href="#" title="+33 6 47 78 24 00" alt="+33 6 47 78 24 00"><img src="{% static "telephone.png" %}"/></a>
+      <a class="tooltip_link" href="http://twitter.com/Vegeclic" title="Suivez nous sur twitter"><img src="{% static "twitter.png" %}" /></a>
+      <a class="tooltip_link" href="https://www.facebook.com/Vegeclic" title="Aimez nous sur Facebook"><img src="{% static "facebook.png" %}" /></a>#}
+    </div>
+    <div class="copy">
+      <a class="badge" href="https://github.com/canercandan/ucoin-python-api">ucoin-python-api - version 0.1</a> | Under <a href="http://www.gnu.org/licenses/agpl-3.0.html">GNU Affero General Public License</a>
+    </div>
+    <nav>
+      {% block footernav %}{% endblock %}
+    </nav>
+  </footer>
+{% endblock footer %}

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>{% block page_title %}uCoin - {% block section_title %}{% endblock %}{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    <link href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}" rel="stylesheet" media="screen">
+    <link href="{{ url_for('static', filename='bootstrap/css/bootstrap-theme.min.css') }}" rel="stylesheet" media="screen">
+    <style>body {overflow-y: scroll;}</style>
+
+    <script type="text/javascript">
+      var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+    </script>
+
+    {% block head %}{% endblock %}
+  </head>
+  <body>
+    {% include "nav.html" %}
+
+    {% block header %}{% endblock %}
+
+    <div class="{% block content_class %}container{% endblock %}">
+
+      <div role="main">
+	{% include "_messages.html" %}
+	{% block content %}{% endblock %}
+      </div> <!--/main -->
+
+      {% include "footer.html" %}
+
+    </div> <!--/.container -->
+
+    <!-- JavaScript plugins (requires jQuery) -->
+    {#<script src="http://code.jquery.com/jquery.js"></script>#}
+    <script src="{{ url_for('static', filename='jquery/jquery.min.js') }}"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.min.js') }}"></script>
+
+    <script type="text/javascript">
+      $('body').ready(function () {
+        var urlMenu = {
+          '/': 'wallets',
+          '{{ url_for('wallets') }}': 'wallets',
+          '{{ url_for('api') }}': 'api',
+        };
+
+        var matches = window.location.pathname.match(/^(\/[^\/]*)/g);
+        $('#' + (urlMenu[matches[0]] ? urlMenu[matches[0]] : urlMenu['/'])).addClass('active');
+      });
+    </script>
+
+    {% block foot %}{% endblock %}
+
+  </body>
+</html>

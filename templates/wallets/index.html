@@ -1,0 +1,19 @@
+{% extends "wallets/base.html" %}
+
+{% block sub_content %}
+<h1><span class="label label-default">Wallets</span></h1>
+
+<div class="alert alert-info">
+  Select the wallet you want to use.
+</div>
+
+<div class="list-group">
+  {% for fp,k in settings.list_keys.items() %}
+    <a href="{{ url_for('wallet_detail', pgp_fingerprint=fp) }}" class="list-group-item {% if k.keyid == settings.keyid %}active{% endif %}">
+      <h4 class="list-group-item-heading">{{k.uids.0}}</h4>
+      <p class="list-group-item-text">{{fp}}</p>
+    </a>
+  {% endfor %}
+</div>
+
+{% endblock %}
