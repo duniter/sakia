@@ -76,12 +76,14 @@
 	    if (!(email.val())) {
 		email.parent().addClass('has-error');
 		create.button('error');
+		email.focus().select();
 		return false;
 	    }
 
 	    if (!(realm.val())) {
 		realm.parent().addClass('has-error');
 		create.button('error');
+		realm.focus().select();
 		return false;
 	    }
 

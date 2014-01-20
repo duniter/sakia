@@ -1,0 +1,65 @@
+{% extends "wallets/base.html" %}
+
+{% block sub_content %}
+<h1><span class="label label-default">History</span> <span class="label label-primary">{{key.uids.0|truncate(50)}}</span></h1>
+
+<ul class="nav nav-tabs pull-right">
+  {% for name, color in [("all", "default"), ("transfer", "info"), ("issuance", "success"), ("fusion", "warning")] -%}
+    <li {% if type == name %}class="active"{% endif %}><a href="{{ url_for('wallet_history', pgp_fingerprint=key.fingerprint, type=name) }}"><span class="label label-{{color}}">{{name|title}}</span></a></li>
+  {% endfor -%}
+</ul>
+
+{% for label,data in [("Received", recipient), ("Sent", sender)] -%}
+  <h3>{{label}} transactions</h3>
+
+  <table class="table table-bordered table-hover">
+    <thead>
+      <tr>
+	<th class="col-md-1 text-left">#</th>
+	<th class="col-md-2 text-center">{{"Sender" if label == "Received" else "Recipient" }}</th>
+	<th class="col-md-8 text-center">Comment</th>
+	<th class="col-md-1 text-center">Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in data -%}
+	{% with tx=r.value.transaction -%}
+	  {% if type == "all" or tx.type|lower == type|lower -%}
+	    <tr class="row1 {% if tx.type == 'TRANSFER' %}active{% elif tx.type == 'ISSUANCE' %}success{% else %}warning{% endif %}">
+	      <td>{{tx.number}}</td>
+
+	      <td>
+		{% with reference=tx.sender if label == "Received" else tx.recipient -%}
+		  {% with name=settings.list_keys[reference].uids.0 if settings.list_keys[reference] else "", keyid=reference[-8:] -%}
+		    <a class="tooltip_link" title="{{name}} ({{keyid}})">
+		      {% if reference == key.fingerprint -%}
+			<span class="label label-default">me</span>
+		      {% else -%}
+			<span class="label label-info">{{name|truncate(25) if name else keyid}}</span>
+		      {% endif -%}
+		    </a>
+		  {% endwith -%}
+		{% endwith -%}
+	      </td>
+
+	      <td>
+		<span class="label label-{% if tx.type == 'TRANSFER' %}info{% elif tx.type == 'ISSUANCE' %}success{% else %}warning{% endif %}">{{tx.type|title}}</span>
+		<a class="tooltip_link" title="{{tx.comment|trim}}">{{tx.comment|trim|truncate(150)}}</a>
+	      </td>
+
+	      <td class="text-right">
+		{% with coins=tx.coins|map(attribute="id")|map("compute_coin")|list -%}
+		  <span class="badge alert-{{'success' if label == 'Received' else 'danger'}} tooltip_link" title="{{coins|join(' + ')}}">
+		    {{coins|sum}}
+		  </span>
+		{% endwith -%}
+	      </td>
+	    </tr>
+	  {% endif -%}
+	{% endwith -%}
+      {% endfor -%}
+    </tbody>
+  </table>
+{% endfor -%}
+
+{% endblock %}

@@ -28,6 +28,15 @@ logger = logging.getLogger("cli")
 
 app = Flask(__name__)
 
+@app.template_filter('split')
+def split_filter(s, sep=' '):
+    return s.split(sep)
+
+@app.template_filter('compute_coin')
+def compute_coin_filter(coin):
+    fpr, number, base, power, origin, origin_number = coin.split('-')
+    return int(base)*10**int(power)
+
 def render_prettyprint(template_name, result):
     s = StringIO()
     pprint(result, s)
@@ -67,9 +76,18 @@ VotersCount\t\t%(votersCount)s
 def wallets():
     return render_template('wallets/index.html', settings=ucoin.settings)
 
-@app.route('/wallets/<pgp_fingerprint>')
-def wallet_detail(pgp_fingerprint):
-    return render_template('wallets/detail.html', settings=ucoin.settings, key=ucoin.settings['list_keys'].get(pgp_fingerprint))
+@app.route('/wallets/<pgp_fingerprint>/history')
+@app.route('/wallets/<pgp_fingerprint>/history/<type>')
+def wallet_history(pgp_fingerprint, type='all'):
+    sender = ucoin.hdc.transactions.Sender(pgp_fingerprint).get()
+    recipient = ucoin.hdc.transactions.Recipient(pgp_fingerprint).get()
+
+    return render_template('wallets/history.html',
+                           settings=ucoin.settings,
+                           key=ucoin.settings['list_keys'].get(pgp_fingerprint),
+                           sender=sender,
+                           recipient=recipient,
+                           type=type)
 
 @app.route('/wallets/new')
 def new_wallet():
