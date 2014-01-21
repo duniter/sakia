@@ -97,7 +97,7 @@ def get_sender_transactions(pgp_fingerprint):
     return rv
 
 def get_recipient_transactions(pgp_fingerprint):
-    k = 'sender_transactions_%s' % pgp_fingerprint
+    k = 'recipient_transactions_%s' % pgp_fingerprint
     rv = cache.get(k)
     if rv is None:
         rv = list(ucoin.hdc.transactions.Recipient(pgp_fingerprint).get())
