@@ -10,3 +10,9 @@
 [submodule "static/chartjs"]
 	path = static/chartjs
 	url = git://github.com/nnnick/Chart.js.git
+[submodule "static/typeahead"]
+	path = static/typeahead
+	url = https://github.com/twitter/typeahead.js
+[submodule "static/hogan"]
+	path = static/hogan
+	url = https://github.com/twitter/hogan.js

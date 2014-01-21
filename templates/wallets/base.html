@@ -2,18 +2,26 @@
 
 {% block section_title %}Wallets{% endblock %}
 
+{% block head -%}
+  {% block subhead -%}{% endblock -%}
+{% endblock -%}
+
 {% block content %}
 
 <div class="row">
   <div class="col-lg-3">
     <div class="list-group" style="background-color: #f7f5fa;">
       <a id="new" href="{{ url_for('new_wallet') }}" class="list-group-item"><i class="glyphicon glyphicon-plus-sign"></i> New</a>
-      <a id="list" href="{{ url_for('wallets') }}" class="list-group-item"><i class="glyphicon glyphicon-list-alt"></i> Wallet list</a>
+      <a id="list" href="{{ url_for('wallets') }}" class="list-group-item"><i class="glyphicon glyphicon-credit-card"></i> Wallets</a>
     </div>
 
     {% if key -%}
-      <div class="list-group" style="background-color: #f7f5fa;">
-	<a id="history" href="{{ url_for('wallet_history', pgp_fingerprint=key.fingerprint) }}" class="list-group-item"><i class="glyphicon glyphicon-calendar"></i> History</a>
+      <div class="panel panel-default">
+	<div class="panel-heading">{{key.uids.0}}</div>
+	<div class="list-group" style="background-color: #f7f5fa;">
+	  <a id="history" href="{{ url_for('wallet_history', pgp_fingerprint=key.fingerprint) }}" class="list-group-item"><i class="glyphicon glyphicon-calendar"></i> History</a>
+	  <a id="transfer" href="{{ url_for('wallet_transfer', pgp_fingerprint=key.fingerprint) }}" class="list-group-item"><i class="glyphicon glyphicon-transfer"></i> Transfer</a>
+	</div>
       </div>
     {% endif -%}
   </div>
@@ -35,6 +43,7 @@
 	  {% if key -%}
             '{{ url_for('wallet_history', pgp_fingerprint=key.fingerprint) }}': 'history',
             '{{ url_for('wallet_history', pgp_fingerprint=key.fingerprint, type=type) }}': 'history',
+            '{{ url_for('wallet_transfer', pgp_fingerprint=key.fingerprint) }}': 'transfer',
 	  {% endif -%}
         };
 

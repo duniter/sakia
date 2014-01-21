@@ -8,7 +8,7 @@
 </div>
 
 <div class="list-group">
-  {% for fp,k in settings.list_keys.items() %}
+  {% for fp,k in settings.secret_keys.items() %}
     <a href="{{ url_for('wallet_history', pgp_fingerprint=fp) }}" class="list-group-item {% if k.keyid == settings.keyid %}active{% endif %}">
       <h4 class="list-group-item-heading">{{k.uids.0}}</h4>
       <p class="list-group-item-text">{{fp}}</p>

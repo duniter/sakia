@@ -23,10 +23,12 @@ from collections import OrderedDict
 from merkle import Merkle
 from flask import Flask, request, render_template, jsonify
 from io import StringIO
+from werkzeug.contrib.cache import SimpleCache
+from itertools import combinations, chain
 
 logger = logging.getLogger("cli")
-
 app = Flask(__name__)
+cache = SimpleCache()
 
 @app.template_filter('split')
 def split_filter(s, sep=' '):
@@ -76,19 +78,6 @@ VotersCount\t\t%(votersCount)s
 def wallets():
     return render_template('wallets/index.html', settings=ucoin.settings)
 
-@app.route('/wallets/<pgp_fingerprint>/history')
-@app.route('/wallets/<pgp_fingerprint>/history/<type>')
-def wallet_history(pgp_fingerprint, type='all'):
-    sender = ucoin.hdc.transactions.Sender(pgp_fingerprint).get()
-    recipient = ucoin.hdc.transactions.Recipient(pgp_fingerprint).get()
-
-    return render_template('wallets/history.html',
-                           settings=ucoin.settings,
-                           key=ucoin.settings['list_keys'].get(pgp_fingerprint),
-                           sender=sender,
-                           recipient=recipient,
-                           type=type)
-
 @app.route('/wallets/new')
 def new_wallet():
     return render_template('wallets/new.html', settings=ucoin.settings)
@@ -98,6 +87,176 @@ def new_wallet_create():
     __input = 'Key-Type: %(type)s\nName-Email: %(email)s\nName-Real: %(realm)s\nKey-Length: %(length)s\n%%commit\n' % request.args
     newkey = ucoin.settings['gpg'].gen_key(__input)
     return jsonify(result="Your new key (%s) has been successfully created." % newkey.fingerprint)
+
+def get_sender_transactions(pgp_fingerprint):
+    k = 'sender_transactions_%s' % pgp_fingerprint
+    rv = cache.get(k)
+    if rv is None:
+        rv = list(ucoin.hdc.transactions.Sender(pgp_fingerprint).get())
+        cache.set(k, rv, timeout=5*60)
+    return rv
+
+def get_recipient_transactions(pgp_fingerprint):
+    k = 'sender_transactions_%s' % pgp_fingerprint
+    rv = cache.get(k)
+    if rv is None:
+        rv = list(ucoin.hdc.transactions.Recipient(pgp_fingerprint).get())
+        cache.set(k, rv, timeout=5*60)
+    return rv
+
+def clist(pgp_fingerprint):
+    __list = ucoin.hdc.coins.List(pgp_fingerprint).get()
+    coins = []
+    __sum = 0
+    for c in __list['coins']:
+        for id in c['ids']:
+            n,b,p,t,i = id.split('-')
+            amount = int(b) * 10**int(p)
+            __dict = {'issuer': c['issuer'], 'number': int(n), 'base': int(b), 'power': int(p), 'type': t, 'type_number': int(i), 'amount': amount}
+            coins.append(__dict)
+            __sum += amount
+    return __sum, coins
+
+@app.route('/wallets/<pgp_fingerprint>/history')
+@app.route('/wallets/<pgp_fingerprint>/history/<type>')
+def wallet_history(pgp_fingerprint, type='all'):
+    sender = get_sender_transactions(pgp_fingerprint)
+    recipient = get_recipient_transactions(pgp_fingerprint)
+
+    return render_template('wallets/history.html',
+                           settings=ucoin.settings,
+                           key=ucoin.settings['secret_keys'].get(pgp_fingerprint),
+                           sender=sender,
+                           recipient=recipient,
+                           type=type,
+                           clist=clist(pgp_fingerprint))
+
+def powerset(iterable):
+  xs = list(iterable)
+  return chain.from_iterable( combinations(xs,n) for n in range(len(xs)+1) )
+
+def cget(pgp_fingerprint, values):
+    __list = ucoin.hdc.coins.List(pgp_fingerprint).get()
+    coins = {}
+    for c in __list['coins']:
+        for id in c['ids']:
+            n,b,p,t,i = id.split('-')
+            amount = int(b) * 10**int(p)
+            coins[amount] = {'issuer': c['issuer'], 'number': int(n), 'base': int(b), 'power': int(p), 'type': t, 'type_number': int(i), 'amount': amount}
+
+    issuers = {}
+    for v in values:
+        if v in coins:
+            c = coins[v]
+            issuers[c['issuer']] = issuers.get(c['issuer']) or []
+            issuers[c['issuer']].append(c)
+        else:
+            raise ValueError('You do not have enough coins of value (%d)' % v)
+
+    res = ''
+    for i, issuer in enumerate(issuers):
+        if i > 0: res += ','
+        res += issuer
+        for c in issuers[issuer]:
+            res += ':%(number)d' % c
+
+    return res
+
+def transfer(pgp_fingerprint, recipient, coins, message=''):
+    try:
+        last_tx = ucoin.hdc.transactions.sender.Last(pgp_fingerprint).get()
+    except ValueError:
+        last_tx = None
+
+    __dict = {}
+    __dict.update(ucoin.settings)
+    __dict['version'] = 1
+    __dict['number'] = 0 if not last_tx else last_tx['transaction']['number']+1
+    __dict['previousHash'] = hashlib.sha1(("%(raw)s%(signature)s" % last_tx).encode('ascii')).hexdigest().upper()
+    __dict['type'] = 'TRANSFER'
+    __dict['recipient'] = recipient
+    __dict['message'] = message
+
+    tx = """\
+Version: %(version)d
+Currency: %(currency)s
+Sender: %(fingerprint)s
+Number: %(number)d
+""" % __dict
+
+    if last_tx: tx += "PreviousHash: %(previousHash)s\n" % __dict
+
+    tx += """\
+Recipient: %(recipient)s
+Type: %(type)s
+Coins:
+""" % __dict
+
+    for coin in coins.split(','):
+        data = coin.split(':')
+        issuer = data[0]
+        for number in data[1:]:
+            __dict.update(ucoin.hdc.coins.View(issuer, int(number)).get())
+            tx += '%(id)s, %(transaction)s\n' % __dict
+
+    tx += """\
+Comment:
+%(message)s
+""" % __dict
+
+    tx = tx.replace("\n", "\r\n")
+    txs = ucoin.settings['gpg'].sign(tx, detach=True)
+
+    try:
+        ucoin.hdc.transactions.Process().post(transaction=tx, signature=txs)
+    except ValueError as e:
+        print(e)
+    else:
+        return True
+
+    return False
+
+@app.route('/wallets/<pgp_fingerprint>/transfer', methods=['GET', 'POST',])
+def wallet_transfer(pgp_fingerprint):
+    balance, __clist = clist(pgp_fingerprint)
+    amounts = [x['amount'] for x in __clist]
+    __combinations = list(map(lambda x: (sum(x), x), powerset(amounts)))[1:]
+    __combinations.sort()
+    sums = [x[0] for x in __combinations]
+
+    if request.method == 'GET':
+        return render_template('wallets/transfer.html',
+                               settings=ucoin.settings,
+                               key=ucoin.settings['secret_keys'].get(pgp_fingerprint),
+                               clist=(balance,__clist),
+                               sums=sums)
+
+    amount = request.form.get('amount', type=int)
+    recipient = request.form.get('recipient')
+    message = request.form.get('message', '')
+
+    try:
+        idx = sums.index(amount)
+    except ValueError as e:
+        raise ValueError(e)
+
+    selected_combination = __combinations[idx][1]
+
+    coins = cget(pgp_fingerprint, selected_combination)
+
+    if not transfer(pgp_fingerprint, recipient, coins, message):
+        raise ValueError('transfer error')
+
+    return '%s %s' % (str(selected_combination), recipient)
+
+@app.route('/wallets/public_keys')
+def wallet_public_keys():
+    keys = ucoin.settings['public_keys']
+    for k,v in keys.items():
+        v['value'] = v['fingerprint']
+        v['tokens'] = v['uids']
+        v['name'] = v['uids'][0]
+    return json.dumps(list(keys.values()))
 
 @app.route('/api')
 def api():
@@ -390,14 +549,19 @@ if __name__ == '__main__':
         logger.debug('selected keyid: %s' % ucoin.settings['user'])
         ucoin.settings['gpg'] = gpg = gnupg.GPG(options=['-u %s' % ucoin.settings['user']])
 
-        keys = gpg.list_keys(True)
-        for idx, fp in enumerate(keys.fingerprints):
+        secret_keys = gpg.list_keys(True)
+        public_keys = gpg.list_keys()
+
+        for idx, fp in enumerate(secret_keys.fingerprints):
             if fp[-8:] == ucoin.settings['user']:
-                ucoin.settings.update(keys[idx])
+                ucoin.settings.update(secret_keys[idx])
                 break
 
-        ucoin.settings['list_keys'] = __list_keys = {}
-        for k in keys: __list_keys[k['fingerprint']] = k
+        ucoin.settings['secret_keys'] = __secret_keys = {}
+        ucoin.settings['public_keys'] = __public_keys = {}
+
+        for k in secret_keys: __secret_keys[k['fingerprint']] = k
+        for k in public_keys: __public_keys[k['fingerprint']] = k
     else:
         ucoin.settings['gpg'] = gpg = gnupg.GPG()
 

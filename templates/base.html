@@ -13,7 +13,7 @@
       var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
     </script>
 
-    {% block head %}{% endblock %}
+    {% block head -%}{% endblock -%}
   </head>
   <body>
     {% include "nav.html" %}

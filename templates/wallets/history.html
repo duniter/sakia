@@ -3,11 +3,25 @@
 {% block sub_content %}
 <h1><span class="label label-default">History</span> <span class="label label-primary">{{key.uids.0|truncate(50)}}</span></h1>
 
-<ul class="nav nav-tabs pull-right">
-  {% for name, color in [("all", "default"), ("transfer", "info"), ("issuance", "success"), ("fusion", "warning")] -%}
-    <li {% if type == name %}class="active"{% endif %}><a href="{{ url_for('wallet_history', pgp_fingerprint=key.fingerprint, type=name) }}"><span class="label label-{{color}}">{{name|title}}</span></a></li>
-  {% endfor -%}
-</ul>
+<br/>
+
+<div class="row">
+  {% with coins=clist.1|map(attribute="amount")|list|join(" + ") -%}
+    <div class="col-md-3">
+      <div class="alert alert-info tooltip_link" title="{{coins}}">Account balance: <span class="badge alert-default">{{clist.0}}</span></div>
+    </div>
+    <div class="col-md-2">
+      <div class="alert alert-info">{{coins}}</div>
+    </div>
+  {% endwith %}
+  <div class="col-md-7">
+    <ul class="nav nav-tabs pull-right">
+      {% for name, color in [("all", "default"), ("transfer", "info"), ("issuance", "success"), ("fusion", "warning")] -%}
+	<li {% if type == name %}class="active"{% endif %}><a href="{{ url_for('wallet_history', pgp_fingerprint=key.fingerprint, type=name) }}"><span class="label label-{{color}}">{{name|title}}</span></a></li>
+      {% endfor -%}
+    </ul>
+  </div>
+</div>
 
 {% for label,data in [("Received", recipient), ("Sent", sender)] -%}
   <h3>{{label}} transactions</h3>
@@ -30,7 +44,7 @@
 
 	      <td>
 		{% with reference=tx.sender if label == "Received" else tx.recipient -%}
-		  {% with name=settings.list_keys[reference].uids.0 if settings.list_keys[reference] else "", keyid=reference[-8:] -%}
+		  {% with name=settings.public_keys[reference].uids.0 if settings.public_keys[reference] else "", keyid=reference[-8:] -%}
 		    <a class="tooltip_link" title="{{name}} ({{keyid}})">
 		      {% if reference == key.fingerprint -%}
 			<span class="label label-default">me</span>
