@@ -18,16 +18,22 @@
 #
 
 from pprint import pprint
-import ucoin, json, logging, argparse, sys, gnupg, hashlib, re, datetime as dt
+import\
+    ucoin, json, logging, argparse, sys,\
+    gnupg, hashlib, re, datetime as dt
 from collections import OrderedDict
 from merkle import Merkle
-from flask import Flask, request, render_template, jsonify
+from flask import\
+    Flask, request, render_template,\
+    jsonify, redirect, abort, url_for,\
+    flash
 from io import StringIO
 from werkzeug.contrib.cache import SimpleCache
 from itertools import combinations, chain
 
 logger = logging.getLogger("cli")
 app = Flask(__name__)
+app.secret_key = 'some_secret'
 cache = SimpleCache()
 
 @app.template_filter('split')
@@ -93,6 +99,9 @@ def get_sender_transactions(pgp_fingerprint):
     rv = cache.get(k)
     if rv is None:
         rv = list(ucoin.hdc.transactions.Sender(pgp_fingerprint).get())
+        __dict = {}
+        for item in rv: __dict[item['value']['transaction']['number']] = item['value']['transaction']
+        rv = __dict
         cache.set(k, rv, timeout=5*60)
     return rv
 
@@ -101,6 +110,9 @@ def get_recipient_transactions(pgp_fingerprint):
     rv = cache.get(k)
     if rv is None:
         rv = list(ucoin.hdc.transactions.Recipient(pgp_fingerprint).get())
+        __dict = {}
+        for item in rv: __dict[item['value']['transaction']['number']] = item['value']['transaction']
+        rv = __dict
         cache.set(k, rv, timeout=5*60)
     return rv
 
@@ -130,6 +142,14 @@ def wallet_history(pgp_fingerprint, type='all'):
                            recipient=recipient,
                            type=type,
                            clist=clist(pgp_fingerprint))
+
+@app.route('/wallets/<pgp_fingerprint>/history/refresh')
+@app.route('/wallets/<pgp_fingerprint>/history/refresh/<type>')
+def wallet_history_refresh(pgp_fingerprint, type='all'):
+    k = 'sender_transactions_%s' % pgp_fingerprint; cache.set(k, None)
+    k = 'recipient_transactions_%s' % pgp_fingerprint; cache.set(k, None)
+    flash(u'History refreshed', 'info')
+    return redirect(url_for('wallet_history', pgp_fingerprint=pgp_fingerprint, type=type))
 
 def powerset(iterable):
   xs = list(iterable)
@@ -245,9 +265,11 @@ def wallet_transfer(pgp_fingerprint):
     coins = cget(pgp_fingerprint, selected_combination)
 
     if not transfer(pgp_fingerprint, recipient, coins, message):
-        raise ValueError('transfer error')
+        flash(u'Transfer error', 'error')
+    else:
+        flash(u'Transfer success (%s %s)' % (str(selected_combination), recipient), 'success')
 
-    return '%s %s' % (str(selected_combination), recipient)
+    return redirect(url_for('wallet_transfer', pgp_fingerprint=pgp_fingerprint))
 
 @app.route('/wallets/public_keys')
 def wallet_public_keys():
@@ -513,9 +535,12 @@ if __name__ == '__main__':
 
     def run():
         print('Running...')
+        app.secret_key = ucoin.settings['secret_key']
         app.run(debug=True)
 
-    subparsers.add_parser('run', help='Run the webclient').set_defaults(func=run)
+    sp = subparsers.add_parser('run', help='Run the webclient')
+    sp.add_argument('--secret_key', '-s', help='Pass a secret key used by the server for sessions', default='some_secret')
+    sp.set_defaults(func=run)
 
     args = parser.parse_args()
 

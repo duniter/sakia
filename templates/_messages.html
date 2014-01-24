@@ -1,12 +1,14 @@
-{% if messages %}
-  <div class="row">
-    <div class="span12">
-      {% for message in messages %}
-	<div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{message.tags}}{% endif %} fade in">
-	  <a class="close" title="Close" href="#" data-dismiss="alert">&times;</a>
-	  <strong>{{message.tags|title}}:</strong> {{message}}
-	</div>
-      {% endfor %}
-    </div><!-- end span -->
-  </div><!-- end row -->
-{% endif %}
+{% with messages=get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="row">
+      <div class="span12">
+	{% for category, message in messages %}
+	  <div class="alert alert-{% if category == 'error' %}danger{% else %}{{category}}{% endif %} fade in">
+	    <a class="close" title="Close" href="#" data-dismiss="alert">&times;</a>
+	    <strong>{{category|title}}:</strong> {{message}}
+	  </div>
+	{% endfor %}
+      </div><!-- end span -->
+    </div><!-- end row -->
+  {% endif %}
+{% endwith %}

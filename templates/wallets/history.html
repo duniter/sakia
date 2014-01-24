@@ -16,9 +16,18 @@
   {% endwith %}
   <div class="col-md-7">
     <ul class="nav nav-tabs pull-right">
-      {% for name, color in [("all", "default"), ("transfer", "info"), ("issuance", "success"), ("fusion", "warning")] -%}
-	<li {% if type == name %}class="active"{% endif %}><a href="{{ url_for('wallet_history', pgp_fingerprint=key.fingerprint, type=name) }}"><span class="label label-{{color}}">{{name|title}}</span></a></li>
+      {% for name, color in [("all", "default"), ("transfer", "info"), ("issuance", "success"), ("fusion", "warning"), ("division", "danger")] -%}
+	<li {% if type == name %}class="active"{% endif %}>
+	  <a href="{{ url_for('wallet_history', pgp_fingerprint=key.fingerprint, type=name) }}">
+	    <span class="label label-{{color}}">{{name|title}}</span>
+	  </a>
+	</li>
       {% endfor -%}
+      <li>
+	<a href="{{ url_for('wallet_history_refresh', pgp_fingerprint=key.fingerprint, type=type) }}">
+	  <i class="glyphicon glyphicon-refresh"></i>
+	</a>
+      </li>
     </ul>
   </div>
 </div>
@@ -36,10 +45,10 @@
       </tr>
     </thead>
     <tbody>
-      {% for r in data -%}
-	{% with tx=r.value.transaction -%}
+      {% for number, tx in data.items()|reverse -%}
+	{# {% with tx=r.value.transaction -%} #}
 	  {% if type == "all" or tx.type|lower == type|lower -%}
-	    <tr class="row1 {% if tx.type == 'TRANSFER' %}active{% elif tx.type == 'ISSUANCE' %}success{% else %}warning{% endif %}">
+	    <tr class="row1 {% if tx.type == 'TRANSFER' %}active{% elif tx.type == 'ISSUANCE' %}success{% elif tx.type == 'FUSION' %}warning{% else %}danger{% endif %}">
 	      <td>{{tx.number}}</td>
 
 	      <td>
@@ -57,7 +66,7 @@
 	      </td>
 
 	      <td>
-		<span class="label label-{% if tx.type == 'TRANSFER' %}info{% elif tx.type == 'ISSUANCE' %}success{% else %}warning{% endif %}">{{tx.type|title}}</span>
+		<span class="label label-{% if tx.type == 'TRANSFER' %}info{% elif tx.type == 'ISSUANCE' %}success{% elif tx.type == 'FUSION' %}warning{% else %}danger{% endif %}">{{tx.type|title}}</span>
 		<a class="tooltip_link" title="{{tx.comment|trim}}">{{tx.comment|trim|truncate(150)}}</a>
 	      </td>
 
@@ -70,7 +79,7 @@
 	      </td>
 	    </tr>
 	  {% endif -%}
-	{% endwith -%}
+	{# {% endwith -%} #}
       {% endfor -%}
     </tbody>
   </table>

@@ -15,19 +15,17 @@
     <div class="col-md-3">
       <div class="alert alert-info tooltip_link" title="{{coins}}">Account balance: <span class="badge alert-default">{{clist.0}}</span></div>
     </div>
-    <div class="col-md-2">
+    <div class="col-md-9">
       <div class="alert alert-info">{{coins}}</div>
     </div>
   {% endwith -%}
-  <div class="col-md-7">
-  </div>
 </div>
 
 <form role="form" method="post" action="{{ url_for('wallet_transfer', pgp_fingerprint=key.fingerprint) }}">
   <div class="panel panel-success">
     <div class="panel-heading"><h4>Recipient</h4></div>
     <div class="panel-body">
-      <input class="typeahead" type="text" placeholder="Your recipient" name="recipient"/>
+      <input class="typeahead form-control" type="text" placeholder="Your recipient" name="recipient"/>
     </div>
   </div>
 
@@ -46,6 +44,13 @@
     </div>
     <div class="panel-footer">
       Choose the amount you want to send.
+    </div>
+  </div>
+
+  <div class="panel panel-success">
+    <div class="panel-heading"><h4>Message</h4></div>
+    <div class="panel-body">
+      <textarea class="form-control" name="message" placeholder="Write here a comment" rows="5"></textarea>
     </div>
   </div>
 
