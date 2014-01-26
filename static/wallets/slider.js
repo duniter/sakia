@@ -116,7 +116,7 @@ $(function() {
 
 	    $(this).slider('value', sol);
 	    $(this).siblings().find('.quantity').text(sol);
-	    $(this).siblings().find('.equal').text(sol);
+	    $(this).siblings().find('.equal').text(sol*coin);
 	    $(this).siblings('.input_value').val(sol);
 	});
 
