@@ -13,6 +13,7 @@
     <div class="list-group" style="background-color: #f7f5fa;">
       <a id="new" href="{{ url_for('new_wallet') }}" class="list-group-item"><i class="glyphicon glyphicon-plus-sign"></i> New</a>
       <a id="list" href="{{ url_for('wallets') }}" class="list-group-item"><i class="glyphicon glyphicon-credit-card"></i> Wallets</a>
+      <a id="contacts" href="{{ url_for('wallet_contacts') }}" class="list-group-item"><i class="glyphicon glyphicon-user"></i> Contacts</a>
     </div>
 
     {% if key -%}
@@ -40,6 +41,7 @@
           '/': 'list',
           '{{ url_for('new_wallet') }}': 'new',
           '{{ url_for('wallets') }}': 'list',
+          '{{ url_for('wallet_contacts') }}': 'contacts',
 
 	  {% if key -%}
             '{{ url_for('wallet_history', pgp_fingerprint=key.fingerprint) }}': 'history',

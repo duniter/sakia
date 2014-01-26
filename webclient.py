@@ -30,7 +30,6 @@ from flask import\
     flash
 from io import StringIO
 from werkzeug.contrib.cache import SimpleCache
-from itertools import combinations, chain
 
 logger = logging.getLogger("cli")
 app = Flask(__name__)
@@ -233,27 +232,6 @@ Comment:
 
     return False
 
-def powerset(iterable):
-    xs = list(iterable)
-    return chain.from_iterable( combinations(xs,n) for n in range(len(xs)+1) )
-
-def powerset_bis(iterable, low=0, step=1):
-    xs = list(iterable)
-
-    combins = []
-    sums = []
-    for n in range(low, len(xs)+1, step):
-        for c in combinations(xs,n):
-            __sum = sum(c)
-            if __sum not in sums:
-                combins.append(c)
-                sums.append(__sum)
-
-    res = list(zip(sums, combins))
-    res.sort()
-    return res
-    # return sums, combins
-
 @app.route('/wallets/<pgp_fingerprint>/transfer', methods=['GET', 'POST'])
 def wallet_transfer(pgp_fingerprint):
     balance, __clist = clist(pgp_fingerprint)
@@ -309,6 +287,11 @@ def wallet_public_keys():
         v['tokens'] = v['uids']
         v['name'] = v['uids'][0]
     return json.dumps(list(keys.values()))
+
+@app.route('/wallets/contacts')
+def wallet_contacts():
+    return render_template('wallets/contacts.html',
+                           settings=ucoin.settings)
 
 def issue(pgp_fingerprint, amendment, coins, message=''):
     try:
@@ -379,6 +362,7 @@ Comment:
 def compute_dividend_remainders(pgp_fingerprint):
     remainders = {}
     for am in ucoin.hdc.amendments.List().get():
+        if not am['dividend']: continue
         if not am['dividend']: continue
         dividend_sum = 0
         for x in ucoin.hdc.transactions.sender.issuance.Dividend(pgp_fingerprint, am['number']).get():

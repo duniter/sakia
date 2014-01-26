@@ -1,0 +1,15 @@
+{% extends "wallets/base.html" %}
+
+{% block sub_content %}
+<h1><span class="label label-default">Contacts</span></h1>
+
+<div class="list-group">
+  {% for fp,k in settings.public_keys.items() %}
+    <a href="#" class="list-group-item {% if k.keyid == settings.keyid %}active{% endif %}">
+      <h4 class="list-group-item-heading">{{k.uids.0}}</h4>
+      <p class="list-group-item-text">{{fp}}</p>
+    </a>
+  {% endfor %}
+</div>
+
+{% endblock %}
