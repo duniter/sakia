@@ -21,6 +21,7 @@
 	<div class="list-group" style="background-color: #f7f5fa;">
 	  <a id="history" href="{{ url_for('wallet_history', pgp_fingerprint=key.fingerprint) }}" class="list-group-item"><i class="glyphicon glyphicon-calendar"></i> History</a>
 	  <a id="transfer" href="{{ url_for('wallet_transfer', pgp_fingerprint=key.fingerprint) }}" class="list-group-item"><i class="glyphicon glyphicon-transfer"></i> Transfer</a>
+	  <a id="issuance" href="{{ url_for('wallet_issuance', pgp_fingerprint=key.fingerprint) }}" class="list-group-item"><i class="glyphicon glyphicon-cloud-download"></i> Issuance</a>
 	</div>
       </div>
     {% endif -%}
@@ -44,6 +45,7 @@
             '{{ url_for('wallet_history', pgp_fingerprint=key.fingerprint) }}': 'history',
             '{{ url_for('wallet_history', pgp_fingerprint=key.fingerprint, type=type) }}': 'history',
             '{{ url_for('wallet_transfer', pgp_fingerprint=key.fingerprint) }}': 'transfer',
+            '{{ url_for('wallet_issuance', pgp_fingerprint=key.fingerprint) }}': 'issuance',
 	  {% endif -%}
         };
 

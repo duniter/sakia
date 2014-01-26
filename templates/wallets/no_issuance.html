@@ -1,0 +1,12 @@
+{% extends "wallets/base.html" %}
+
+{% block sub_content %}
+<h1><span class="label label-default">Issue</span> <span class="label label-primary">{{key.uids.0|truncate(50)}}</span></h1>
+
+<br/>
+
+<div class="alert alert-warning">
+  Currently, there is no dividend to issue. Try out this feature later on.
+</div>
+
+{% endblock %}

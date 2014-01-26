@@ -606,7 +606,9 @@ def vote():
         print('Posted vote for Amendment #%d' % r['amendment']['number'])
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='uCoin client.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    common_options = {'formatter_class': argparse.ArgumentDefaultsHelpFormatter}
+
+    parser = argparse.ArgumentParser(description='uCoin client.', **common_options)
 
     levels = OrderedDict([('debug', logging.DEBUG),
                           ('info', logging.INFO),
@@ -631,57 +633,57 @@ if __name__ == '__main__':
 
     subparsers = parser.add_subparsers(help='sub-command help')
 
-    subparsers.add_parser('current', help='Show current amendment of the contract').set_defaults(func=current)
-    subparsers.add_parser('contract', help='List all amendments constituting the contract').set_defaults(func=contract)
+    subparsers.add_parser('current', help='Show current amendment of the contract', **common_options).set_defaults(func=current)
+    subparsers.add_parser('contract', help='List all amendments constituting the contract', **common_options).set_defaults(func=contract)
 
-    sp = subparsers.add_parser('lookup', help='Search for a public key')
+    sp = subparsers.add_parser('lookup', help='Search for a public key', **common_options)
     sp.add_argument('search', help='A value for searching in PGP certificates database. May start with \'0x\' for direct search on PGP fingerprint.')
     sp.set_defaults(func=lookup)
 
-    subparsers.add_parser('peering', help='Show peering informations').set_defaults(func=peering)
-    subparsers.add_parser('pubkey', help='Show pubkey of remote node').set_defaults(func=pubkey)
-    subparsers.add_parser('index', help='List reiceved votes count for each amendment').set_defaults(func=index)
+    subparsers.add_parser('peering', help='Show peering informations', **common_options).set_defaults(func=peering)
+    subparsers.add_parser('pubkey', help='Show pubkey of remote node', **common_options).set_defaults(func=pubkey)
+    subparsers.add_parser('index', help='List reiceved votes count for each amendment', **common_options).set_defaults(func=index)
 
-    sp = subparsers.add_parser('issue', help='Issue new coins')
+    sp = subparsers.add_parser('issue', help='Issue new coins', **common_options)
     sp.add_argument('amendment', type=int, help='amendment number')
     sp.add_argument('coins', nargs='+', help='coins will respect this format [coin_value,number_of_zero_behind]')
     sp.add_argument('--message', '-m', help='write a comment', default='')
     sp.set_defaults(func=issue)
 
-    sp = subparsers.add_parser('transfer', help='Transfers property of coins (coins a read from STDIN)')
+    sp = subparsers.add_parser('transfer', help='Transfers property of coins (coins a read from STDIN)', **common_options)
     sp.add_argument('recipient', help='recipient address')
     sp.add_argument('coins', nargs='?', help='coins to send [coin,...]. If no value has passed, it will be read from STDIN.')
     sp.add_argument('--message', '-m', help='write a comment', default='')
     sp.set_defaults(func=transfer)
 
-    sp = subparsers.add_parser('fusion', help='Fusion coins to make a bigger coin (coins a read from STDIN)')
+    sp = subparsers.add_parser('fusion', help='Fusion coins to make a bigger coin (coins a read from STDIN)', **common_options)
     sp.add_argument('coins', nargs='?', help='coins to fusion [coin,...]. If no value has passed, it will be read from STDIN.')
     sp.add_argument('--message', '-m', help='write a comment', default='')
     sp.set_defaults(func=fusion)
 
-    sp = subparsers.add_parser('host-add', help='Add given key fingerprint to hosts managing transactions of key -u')
+    sp = subparsers.add_parser('host-add', help='Add given key fingerprint to hosts managing transactions of key -u', **common_options)
     sp.add_argument('key', help='key fingerprint')
     sp.set_defaults(func=host_add)
 
-    sp = subparsers.add_parser('host-rm', help='Same as \'host-add\', but remove host instead')
+    sp = subparsers.add_parser('host-rm', help='Same as \'host-add\', but remove host instead', **common_options)
     sp.add_argument('key', help='key fingerprint')
     sp.set_defaults(func=host_rm)
 
-    subparsers.add_parser('host-list', help='Show the list of keys').set_defaults(func=host_list)
+    subparsers.add_parser('host-list', help='Show the list of keys', **common_options).set_defaults(func=host_list)
 
-    sp = subparsers.add_parser('trust-add', help='Add given key fingerprint to hosts key -u trust for receiving transactions')
+    sp = subparsers.add_parser('trust-add', help='Add given key fingerprint to hosts key -u trust for receiving transactions', **common_options)
     sp.add_argument('key', help='key fingerprint')
     sp.set_defaults(func=trust_add)
 
-    sp = subparsers.add_parser('trust-rm', help='Same as \'trust-add\', but remove host instead')
+    sp = subparsers.add_parser('trust-rm', help='Same as \'trust-add\', but remove host instead', **common_options)
     sp.add_argument('key', help='key fingerprint')
     sp.set_defaults(func=trust_rm)
 
-    subparsers.add_parser('trust-list', help='Show the list of keys').set_defaults(func=trust_list)
-    subparsers.add_parser('tht', help='Show THT entry resulting of host-* and trust-* commands').set_defaults(func=tht)
-    subparsers.add_parser('pub-tht', help='Publish THT entry according to data returned by \'trust-list\' and \'host-list\'').set_defaults(func=pub_tht)
+    subparsers.add_parser('trust-list', help='Show the list of keys', **common_options).set_defaults(func=trust_list)
+    subparsers.add_parser('tht', help='Show THT entry resulting of host-* and trust-* commands', **common_options).set_defaults(func=tht)
+    subparsers.add_parser('pub-tht', help='Publish THT entry according to data returned by \'trust-list\' and \'host-list\'', **common_options).set_defaults(func=pub_tht)
 
-    sp = subparsers.add_parser('forge-am', help='Forge an amendment, following currently promoted of given node.')
+    sp = subparsers.add_parser('forge-am', help='Forge an amendment, following currently promoted of given node.', **common_options)
     sp.add_argument('changes', nargs='?', help='[members;voters] changes')
     sp.add_argument('--dividend', '-d', type=int, help='Universal Dividend value')
     sp.add_argument('--power10', '-m', type=int, help='Minimal coin 10 power')
@@ -690,19 +692,19 @@ if __name__ == '__main__':
     sp.add_argument('--stdin', '-C', action='store_true', default=False, help='forge-am will read community changes from STDIN')
     sp.set_defaults(func=forge_am)
 
-    sp = subparsers.add_parser('clist', help='List coins of given user. May be limited by upper amount.')
+    sp = subparsers.add_parser('clist', help='List coins of given user. May be limited by upper amount.', **common_options)
     sp.add_argument('limit', nargs='?', type=int, help='limit value')
     sp.set_defaults(func=clist)
 
-    sp = subparsers.add_parser('cget', help='Get coins for given values in user account.')
+    sp = subparsers.add_parser('cget', help='Get coins for given values in user account.', **common_options)
     sp.add_argument('value', nargs='+', type=int, help='value of the coin you want to select')
     sp.set_defaults(func=cget)
 
-    sp = subparsers.add_parser('send-pubkey', help='Send signed public key [file] to a uCoin server. If -u option is provided, [file] is ommited. If [file] is not provided, it is read from STDIN. Note: [file] may be forged using \'forge-*\' commands.')
+    sp = subparsers.add_parser('send-pubkey', help='Send signed public key [file] to a uCoin server. If -u option is provided, [file] is ommited. If [file] is not provided, it is read from STDIN. Note: [file] may be forged using \'forge-*\' commands.', **common_options)
     sp.add_argument('file', nargs='?', help='signed public key to send')
     sp.set_defaults(func=send_pubkey)
 
-    sp = subparsers.add_parser('vote', help='Signs given amendment [file] and sends it to a uCoin server. If [file] is not provided, it is read from STDIN.')
+    sp = subparsers.add_parser('vote', help='Signs given amendment [file] and sends it to a uCoin server. If [file] is not provided, it is read from STDIN.', **common_options)
     sp.add_argument('file', nargs='?', help='amendment file')
     sp.set_defaults(func=vote)
 

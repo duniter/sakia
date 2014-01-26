@@ -20,7 +20,8 @@
 from pprint import pprint
 import\
     ucoin, json, logging, argparse, sys,\
-    gnupg, hashlib, re, datetime as dt
+    gnupg, hashlib, re, datetime as dt,\
+    webbrowser, math
 from collections import OrderedDict
 from merkle import Merkle
 from flask import\
@@ -151,10 +152,6 @@ def wallet_history_refresh(pgp_fingerprint, type='all'):
     flash(u'History refreshed', 'info')
     return redirect(url_for('wallet_history', pgp_fingerprint=pgp_fingerprint, type=type))
 
-def powerset(iterable):
-  xs = list(iterable)
-  return chain.from_iterable( combinations(xs,n) for n in range(len(xs)+1) )
-
 def cget(pgp_fingerprint, values):
     __list = ucoin.hdc.coins.List(pgp_fingerprint).get()
     coins = {}
@@ -192,7 +189,7 @@ def transfer(pgp_fingerprint, recipient, coins, message=''):
     __dict.update(ucoin.settings)
     __dict['version'] = 1
     __dict['number'] = 0 if not last_tx else last_tx['transaction']['number']+1
-    __dict['previousHash'] = hashlib.sha1(("%(raw)s%(signature)s" % last_tx).encode('ascii')).hexdigest().upper()
+    __dict['previousHash'] = hashlib.sha1(("%(raw)s%(signature)s" % last_tx).encode('ascii')).hexdigest().upper() if last_tx else None
     __dict['type'] = 'TRANSFER'
     __dict['recipient'] = recipient
     __dict['message'] = message
@@ -236,38 +233,71 @@ Comment:
 
     return False
 
-@app.route('/wallets/<pgp_fingerprint>/transfer', methods=['GET', 'POST',])
+def powerset(iterable):
+    xs = list(iterable)
+    return chain.from_iterable( combinations(xs,n) for n in range(len(xs)+1) )
+
+def powerset_bis(iterable, low=0, step=1):
+    xs = list(iterable)
+
+    combins = []
+    sums = []
+    for n in range(low, len(xs)+1, step):
+        for c in combinations(xs,n):
+            __sum = sum(c)
+            if __sum not in sums:
+                combins.append(c)
+                sums.append(__sum)
+
+    res = list(zip(sums, combins))
+    res.sort()
+    return res
+    # return sums, combins
+
+@app.route('/wallets/<pgp_fingerprint>/transfer', methods=['GET', 'POST'])
 def wallet_transfer(pgp_fingerprint):
     balance, __clist = clist(pgp_fingerprint)
-    amounts = [x['amount'] for x in __clist]
-    __combinations = list(map(lambda x: (sum(x), x), powerset(amounts)))[1:]
-    __combinations.sort()
-    sums = [x[0] for x in __combinations]
 
     if request.method == 'GET':
         return render_template('wallets/transfer.html',
                                settings=ucoin.settings,
                                key=ucoin.settings['secret_keys'].get(pgp_fingerprint),
-                               clist=(balance,__clist),
-                               sums=sums)
+                               clist=(balance,__clist))
 
-    amount = request.form.get('amount', type=int)
+    amounts = [x['amount'] for x in __clist]
+    amounts.sort()
+    amounts.reverse()
+
     recipient = request.form.get('recipient')
+    amount = request.form.get('amount', type=int)
     message = request.form.get('message', '')
 
-    try:
-        idx = sums.index(amount)
-    except ValueError as e:
-        raise ValueError(e)
+    if not recipient or not amount:
+        flash('recipient or amount field is missing.', 'error')
+        return redirect(url_for('wallet_transfer', pgp_fingerprint=pgp_fingerprint))
 
-    selected_combination = __combinations[idx][1]
+    if amount > balance:
+        flash('amount is higher than available balance (%d > %d).' % (amount, balance), 'error')
+        return redirect(url_for('wallet_transfer', pgp_fingerprint=pgp_fingerprint))
 
-    coins = cget(pgp_fingerprint, selected_combination)
+    coins = []
+    total = 0
+    for coin in amounts:
+        if total >= amount: break
+        if total+coin <= amount:
+            coins.append(coin)
+            total += coin
+
+    if sum(coins) != amount:
+        flash('this amount cannot be reached with existing coins in your wallet.', 'error')
+        return redirect(url_for('wallet_transfer', pgp_fingerprint=pgp_fingerprint))
+
+    coins = cget(pgp_fingerprint, coins)
 
     if not transfer(pgp_fingerprint, recipient, coins, message):
         flash(u'Transfer error', 'error')
     else:
-        flash(u'Transfer success (%s %s)' % (str(selected_combination), recipient), 'success')
+        flash(u'Transfer succed', 'success')
 
     return redirect(url_for('wallet_transfer', pgp_fingerprint=pgp_fingerprint))
 
@@ -279,6 +309,169 @@ def wallet_public_keys():
         v['tokens'] = v['uids']
         v['name'] = v['uids'][0]
     return json.dumps(list(keys.values()))
+
+def issue(pgp_fingerprint, amendment, coins, message=''):
+    try:
+        last_tx = ucoin.hdc.transactions.sender.Last(pgp_fingerprint).get()
+    except ValueError:
+        last_tx = None
+
+    try:
+        last_issuance = ucoin.hdc.transactions.sender.issuance.Last(pgp_fingerprint).get()
+    except ValueError:
+        last_issuance = None
+
+    __dict = {}
+    __dict.update(ucoin.settings)
+    __dict['version'] = 1
+    __dict['number'] = 0 if not last_tx else last_tx['transaction']['number']+1
+    __dict['previousHash'] = hashlib.sha1(("%(raw)s%(signature)s" % last_tx).encode('ascii')).hexdigest().upper() if last_tx else None
+    __dict['type'] = 'ISSUANCE'
+    __dict['message'] = message
+    __dict['amendment'] = amendment
+
+    tx = """\
+Version: %(version)d
+Currency: %(currency)s
+Sender: %(fingerprint)s
+Number: %(number)d
+""" % __dict
+
+    if last_tx: tx += "PreviousHash: %(previousHash)s\n" % __dict
+
+    tx += """\
+Recipient: %(fingerprint)s
+Type: %(type)s
+Coins:
+""" % __dict
+
+    def get_next_coin_number(coins):
+        number = 0
+        for c in coins:
+            candidate = int(c['id'].split('-')[1])
+            if candidate > number: number = candidate
+        return number+1
+
+    previous_idx = 0 if not last_issuance else get_next_coin_number(last_issuance['transaction']['coins'])
+
+    for idx, coin in enumerate(coins):
+        __dict['idx'] = idx+previous_idx
+        __dict['base'], __dict['power'] = [int(x) for x in coin.split(',')]
+        tx += '%(fingerprint)s-%(idx)d-%(base)d-%(power)d-A-%(amendment)d\n' % __dict
+
+    tx += """\
+Comment:
+%(message)s
+""" % __dict
+
+    tx = tx.replace("\n", "\r\n")
+    txs = ucoin.settings['gpg'].sign(tx, detach=True)
+
+    try:
+        ucoin.hdc.transactions.Process().post(transaction=tx, signature=txs)
+    except ValueError as e:
+        print(e)
+    else:
+        return True
+
+    return False
+
+def compute_dividend_remainders(pgp_fingerprint):
+    remainders = {}
+    for am in ucoin.hdc.amendments.List().get():
+        if not am['dividend']: continue
+        dividend_sum = 0
+        for x in ucoin.hdc.transactions.sender.issuance.Dividend(pgp_fingerprint, am['number']).get():
+            __sum = 0
+            for coin in x['value']['transaction']['coins']:
+                base, power = coin['id'].split('-')[2:4]
+                __sum += int(base) * 10**int(power)
+            dividend_sum += __sum
+
+        if am['dividend'] > dividend_sum:
+            remainders[int(am['number'])] = am['dividend'] - dividend_sum
+    return remainders
+
+@app.route('/wallets/<pgp_fingerprint>/issuance', methods=['GET', 'POST'])
+def wallet_issuance(pgp_fingerprint):
+    k = 'remainders_%s' % pgp_fingerprint
+    remainders = cache.get(k)
+    if remainders is None:
+        remainders = compute_dividend_remainders(pgp_fingerprint)
+        cache.set(k, remainders, timeout=5*60)
+
+    if not remainders:
+        return render_template('wallets/no_issuance.html',
+                               settings=ucoin.settings,
+                               key=ucoin.settings['secret_keys'].get(pgp_fingerprint))
+
+    # remainders = {1:10, 3:80}
+
+    remainder = sum(remainders.values())
+    max_remainder = max(remainders.values()) if remainders.values() else 0
+
+    # flash(remainders, 'info')
+
+    def count_coins(coin):
+        count = 0
+        for r in remainders.values():
+            if r >= coin: count += int(r/coin)
+        return count
+
+    coins = []
+    for power in range(10):
+        for base in [1,2,5]:
+            coin = base*(10**power)
+            if coin > max_remainder: break
+            coins.append((coin,count_coins(coin)))
+
+    if request.method == 'GET':
+        return render_template('wallets/issuance.html',
+                               settings=ucoin.settings,
+                               key=ucoin.settings['secret_keys'].get(pgp_fingerprint),
+                               remainders=remainders, remainder=remainder,
+                               max_remainder=max_remainder, coins=coins)
+
+    quantities = []
+    for coin, count in reversed(coins):
+        qte = request.form.get('coin_%d' % coin, type=int)
+        if qte: quantities.append((coin, qte))
+
+    # flash(str(quantities), 'info')
+
+    issuances = {}
+
+    for am in remainders:
+        # flash('%s %s' % (am, remainders[am]), 'info')
+        issuances[am] = issuance = []
+
+        for i in range(len(quantities)):
+            coin, qte = quantities[i]
+            if not qte: continue
+
+            if coin <= remainders[am]:
+                new_qte = int(remainders[am]/coin)
+                if new_qte > qte: new_qte = qte
+                remainders[am] -= coin*new_qte
+                quantities[i] = (coin,qte-new_qte)
+
+                # flash('%s x %s, remainder: %s' % (coin, new_qte, remainders[am]))
+
+                for i in range(new_qte):
+                    power = int(math.log10(coin))
+                    issuance.append('%d,%d' % (coin/10**power, power))
+
+    # flash(issuances)
+
+    for am, coins in issuances.items():
+        if not issue(pgp_fingerprint, am, coins):
+            flash(u'Issuance error', 'error')
+            break
+
+    flash('The issuance was completed.', 'success')
+    cache.set(k, None)
+
+    return redirect(url_for('wallet_issuance', pgp_fingerprint=pgp_fingerprint))
 
 @app.route('/api')
 def api():
@@ -508,7 +701,9 @@ def hdc_transactions_view_tx(transaction_id):
     return render_prettyprint('api/result.html', ucoin.hdc.transactions.View(transaction_id).get())
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='uCoin webclient.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    common_options = {'formatter_class': argparse.ArgumentDefaultsHelpFormatter}
+
+    parser = argparse.ArgumentParser(description='uCoin webclient.', **common_options)
 
     levels = OrderedDict([('debug', logging.DEBUG),
                           ('info', logging.INFO),
@@ -536,10 +731,13 @@ if __name__ == '__main__':
     def run():
         print('Running...')
         app.secret_key = ucoin.settings['secret_key']
+        if ucoin.settings['browser']:
+            webbrowser.open('http://localhost:5000/')
         app.run(debug=True)
 
-    sp = subparsers.add_parser('run', help='Run the webclient')
+    sp = subparsers.add_parser('run', help='Run the webclient', **common_options)
     sp.add_argument('--secret_key', '-s', help='Pass a secret key used by the server for sessions', default='some_secret')
+    sp.add_argument('--browser', '-b', action='store_true', help='Open it into your favorite browser', default=False)
     sp.set_defaults(func=run)
 
     args = parser.parse_args()

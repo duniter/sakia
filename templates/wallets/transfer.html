@@ -1,7 +1,6 @@
 {% extends "wallets/base.html" %}
 
 {% block subhead -%}
-  <link rel="stylesheet" href="{{ url_for('static', filename='jqueryui/themes/base/jquery.ui.all.css') }}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='wallets/typeahead.css') }}" />
 {% endblock -%}
 
@@ -16,7 +15,7 @@
       <div class="alert alert-info tooltip_link" title="{{coins}}">Account balance: <span class="badge alert-default">{{clist.0}}</span></div>
     </div>
     <div class="col-md-9">
-      <div class="alert alert-info">{{coins}}</div>
+      {# <div class="alert alert-info">{{coins}}</div> #}
     </div>
   {% endwith -%}
 </div>
@@ -27,24 +26,15 @@
     <div class="panel-body">
       <input class="typeahead form-control" type="text" placeholder="Your recipient" name="recipient"/>
     </div>
+    <div class="panel-footer">Type the name, email or fingerprint of your recipient.</div>
   </div>
 
   <div class="panel panel-success">
     <div class="panel-heading"><h4>Amount</h4></div>
-    <div class="panel-body" style="padding: 20px 30px">
-      <div class="one_slide">
-	<div class="row">
-	  <div class="col-md-10" id="amounts-slide"></div>
-	  <div class="col-md-2 input-group" style="padding-left: 20px">
-	    <input type="text" name="amount" id="amount" class="form-control" value="0"/>
-	    <span class="input-group-addon">U</span>
-	  </div>
-	</div>
-      </div>
+    <div class="panel-body">
+      <input class="form-control" type="text" placeholder="0" name="amount" autocomplete="off"/>
     </div>
-    <div class="panel-footer">
-      Choose the amount you want to send.
-    </div>
+    <div class="panel-footer">Choose the amount you want to send.</div>
   </div>
 
   <div class="panel panel-success">
@@ -61,50 +51,8 @@
 {% endblock %}
 
 {% block subfoot %}
-  <script src="{{ url_for('static', filename='jqueryui/ui/jquery.ui.core.js') }}"></script>
-  <script src="{{ url_for('static', filename='jqueryui/ui/jquery.ui.widget.js') }}"></script>
-  <script src="{{ url_for('static', filename='jqueryui/ui/jquery.ui.mouse.js') }}"></script>
-  <script src="{{ url_for('static', filename='jqueryui/ui/jquery.ui.slider.js') }}"></script>
   <script src="{{ url_for('static', filename='typeahead/dist/typeahead.min.js') }}"></script>
   <script src="{{ url_for('static', filename='hogan/web/builds/2.0.0/hogan-2.0.0.min.js') }}"></script>
-
- <script>
-    $(function() {
-	var amounts = [{{ sums|join(",") }}]
-	$('#amounts-slide').slider({
-	    range: 'max',
-	    min: 0,
-	    max: amounts.length-1,
-	    value: 0,
-	    slide: function( event, ui ) {
-		$('#amount')[0].value = amounts[parseInt(ui.value)];
-	    }
-	});
-	$('#amount')[0].value = amounts[parseInt($('#amounts-slide').slider('value'))];
-
-	$('.payment_type_detail').hide();
-
-	$('.radio-select').each(function() {
-	    if ($(this)[0].checked) {
-		$(this).parent().addClass('active');
-		$('#payment_type_' + $(this).val()).show();
-	    }
-	    if ($(this).hasClass('disabled')) {
-		$(this).parent().addClass('disabled');
-	    }
-	});
-
-	$('.radio-select').change(function() {
-	    $('.payment_type_detail').hide();
-	    $('#payment_type_' + $(this).val()).show();
-	});
-    });
-  </script>
-
-  <style>
-    .ui-slider .ui-slider-handle { height: 2.7em; }
-    .ui-slider { height: 2.2em; }
-  </style>
 
   <script>
     $(function() {
@@ -115,6 +63,7 @@
     	        {% raw -%}
     	        '<p class="key-name">{{name}}</p>',
                 '<p class="key-fingerprint">{{fingerprint}}</p>',
+		'<hr/>'
         	{% endraw -%}
 	    ].join(''),
             engine: Hogan,

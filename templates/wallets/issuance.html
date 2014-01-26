@@ -1,0 +1,67 @@
+{% extends "wallets/base.html" %}
+
+{% block subhead -%}
+  <link rel="stylesheet" href="{{ url_for('static', filename='jqueryui/themes/base/jquery.ui.all.css') }}" />
+{% endblock -%}
+
+{% block sub_content %}
+  <h1><span class="label label-default">Issuance</span> <span class="label label-primary">{{key.uids.0|truncate(50)}}</span></h1>
+
+  <br/>
+
+  <div class="form-group">
+    <a class="btn btn-primary btn-lg btn-block tooltip_link" id="random" title="Click here in order to balance the set of coins values"><strong>Suggest</strong></a>
+  </div>
+
+  <form role="form" method="post" action="{{ url_for('wallet_issuance', pgp_fingerprint=key.fingerprint) }}">
+
+    <div id="sliders">
+      <input id="available_total" type="hidden" value="{{remainder}}" />
+
+      {% for coin, count in coins|reverse %}
+	<div class="form-group well">
+	  <div class="row">
+	    <div class="col-md-2">
+	      <span class="badge alert-info">{{coin}} coins</span>
+	    </div>
+	    <div class="col-md-8 slider"></div>
+	    <div class="col-md-2 value_content">
+	      <span class="badge">{{coin}} x <span class="quantity">0</span> = <span class="equal">0</span></span>
+	    </div>
+	    <input class="input_value" id="coin_{{coin}}" name="coin_{{coin}}" type="hidden" value="0" />
+	    <input class="coin_value" type="hidden" value="{{coin}}" />
+	    <input class="max_value" type="hidden" value="{{count}}" />
+	  </div>
+	</div>
+      {% endfor %}
+
+    </div>
+
+    <div class="form-group well text-center">
+      <h4>
+	<span class="label label-info">Total</span>
+	<span id="sliders_total" class="label label-info">0</span>
+
+	<span class="label label-success">Remains</span>
+	<span class="label label-success">+ <span id="remains">{{remainder}}</span></span>
+      </h4>
+    </div>
+
+    <div class="form-group">
+      <button class="btn btn-lg btn-primary btn-block" type="submit">Ready ? Issue</button>
+    </div>
+  </form>
+{% endblock %}
+
+{% block subfoot %}
+  <script src="{{ url_for('static', filename='jqueryui/ui/jquery.ui.core.js') }}"></script>
+  <script src="{{ url_for('static', filename='jqueryui/ui/jquery.ui.widget.js') }}"></script>
+  <script src="{{ url_for('static', filename='jqueryui/ui/jquery.ui.mouse.js') }}"></script>
+  <script src="{{ url_for('static', filename='jqueryui/ui/jquery.ui.slider.js') }}"></script>
+  <script src="{{ url_for('static', filename='wallets/slider.js') }}"></script>
+
+  <style type="text/css">
+    .ui-slider { height: 1.9em; }
+    .ui-slider .ui-slider-handle { height: 2.3em; }
+  </style>
+{% endblock %}
