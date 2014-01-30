@@ -13,15 +13,16 @@ In order to use the API, you have to first install the required dependencies giv
 Here is a fast installation procedure (a bit dirty) we suggest to quickly use this API.
 
 ```bash
-$ cd $HOME
+$ mkdir $HOME/ucoin
+$ cd $HOME/ucoin
 $ git clone git@github.com:canercandan/ucoin-python-api.git
-$ export PYTHONPATH="$HOME/ucoin-python-api:$PYTHONPATH"
+$ export PYTHONPATH="$HOME/ucoin:$PYTHONPATH"
 ```
 
 Thus you are ready to use it with your own python program. Here is an example illustrating how to use it thanks to the python shell:
 
 ```python
-In [1]: import ucoin
+In [1]: import ucoin-python-api as ucoin
 
 In [2]: ucoin.settings['server'] = 'mycurrency.candan.fr'
 
