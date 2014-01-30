@@ -31,6 +31,7 @@ class Transaction(Wrapper):
         self.pgp_fingerprint = pgp_fingerprint
         self.message = message
         self.type = type
+        self.error = None
 
     def __call__(self):
         try:
@@ -66,6 +67,8 @@ Comment:
         tx = tx.replace("\n", "\r\n")
         txs = settings['gpg'].sign(tx, detach=True)
 
+        if self.error: return False
+
         return self.process(tx, txs)
 
     def get_context_data(self):
@@ -74,11 +77,14 @@ Comment:
     def get_message(self, context_data, tx=''):
         return tx
 
+    def get_error(self):
+        return self.error
+
     def process(self, tx, txs):
         try:
             hdc.transactions.Process().post(transaction=tx, signature=txs)
         except ValueError as e:
-            print(e)
+            self.error = str(e)
         else:
             return True
 
@@ -108,12 +114,7 @@ Coins:
 
         return tx
 
-class Issue(Transaction):
-    def __init__(self, pgp_fingerprint, amendment, coins, message=''):
-        super().__init__('ISSUANCE', pgp_fingerprint, message)
-        self.amendment = amendment
-        self.coins = coins
-
+class MonoTransaction(Transaction):
     def get_next_coin_number(self, coins):
         number = 0
         for c in coins:
@@ -122,8 +123,6 @@ class Issue(Transaction):
         return number+1
 
     def get_message(self, context_data, tx=''):
-        context_data['amendment'] = self.amendment
-
         tx += """\
 Recipient: %(fingerprint)s
 Type: %(type)s
@@ -135,12 +134,63 @@ Coins:
         except ValueError:
             last_issuance = None
 
-        previous_idx = 0 if not last_issuance else self.get_next_coin_number(last_issuance['transaction']['coins'])
+        context_data['previous_idx'] = 0 if not last_issuance else self.get_next_coin_number(last_issuance['transaction']['coins'])
+
+        tx += self.get_mono_message(context_data)
+
+        return tx
+
+    def get_mono_message(self, context_data, tx=''):
+        return tx
+
+class Issue(MonoTransaction):
+    def __init__(self, pgp_fingerprint, amendment, coins, message=''):
+        super().__init__('ISSUANCE', pgp_fingerprint, message)
+        self.amendment = amendment
+        self.coins = coins
+
+    def get_mono_message(self, context_data, tx=''):
+        context_data['amendment'] = self.amendment
 
         for idx, coin in enumerate(self.coins):
-            context_data['idx'] = idx+previous_idx
+            context_data['idx'] = idx + context_data['previous_idx']
             context_data['base'], context_data['power'] = [int(x) for x in coin.split(',')]
             tx += '%(fingerprint)s-%(idx)d-%(base)d-%(power)d-A-%(amendment)d\n' % context_data
+
+        return tx
+
+class Fusion(MonoTransaction):
+    def __init__(self, pgp_fingerprint, coins, message=''):
+        super().__init__('FUSION', pgp_fingerprint, message)
+        self.coins = coins
+
+    def get_mono_message(self, context_data, tx=''):
+        context_data['coins'] = self.coins
+
+        coins = []
+        for coin in context_data['coins'].split(','):
+            data = coin.split(':')
+            issuer, numbers = data[0], data[1:]
+            for number in numbers:
+                coins.append(ucoin.hdc.coins.View(issuer, int(number)).get())
+
+        __sum = 0
+        for coin in coins:
+            base, power = coin['id'].split('-')[2:4]
+            __sum += int(base) * 10**int(power)
+
+        m = re.match(r'^(\d)(0*)$', str(__sum))
+
+        if not m:
+            self.error = 'bad sum value %d' % __sum
+            return tx
+
+        context_data['base'], context_data['power'] = int(m.groups()[0]), len(m.groups()[1])
+        tx += '%(fingerprint)s-%(previous_idx)d-%(base)d-%(power)d-F-%(number)d\n' % context_data
+
+        for coin in coins:
+            context_data.update(coin)
+            tx += '%(id)s, %(transaction)s\n' % context_data
 
         return tx
 
@@ -160,12 +210,13 @@ class CoinsGet(CoinsWrapper):
             for id in c['ids']:
                 n,b,p,t,i = id.split('-')
                 amount = int(b) * 10**int(p)
-                coins[amount] = {'issuer': c['issuer'], 'number': int(n), 'base': int(b), 'power': int(p), 'type': t, 'type_number': int(i), 'amount': amount}
+                if amount not in coins: coins[amount] = []
+                coins[amount].append({'issuer': c['issuer'], 'number': int(n), 'base': int(b), 'power': int(p), 'type': t, 'type_number': int(i), 'amount': amount})
 
         issuers = {}
         for v in self.values:
-            if v in coins:
-                c = coins[v]
+            if v in coins and coins[v]:
+                c = coins[v].pop()
                 issuers[c['issuer']] = issuers.get(c['issuer']) or []
                 issuers[c['issuer']].append(c)
             else:
@@ -181,15 +232,23 @@ class CoinsGet(CoinsWrapper):
         return res
 
 class CoinsList(CoinsWrapper):
+    def __init__(self, pgp_fingerprint, limit=None):
+        super().__init__(pgp_fingerprint)
+        self.limit = limit
+
     def __call__(self):
         __list = hdc.coins.List(self.pgp_fingerprint).get()
         coins = []
         __sum = 0
+
         for c in __list['coins']:
             for id in c['ids']:
                 n,b,p,t,i = id.split('-')
                 amount = int(b) * 10**int(p)
                 __dict = {'issuer': c['issuer'], 'number': int(n), 'base': int(b), 'power': int(p), 'type': t, 'type_number': int(i), 'amount': amount}
-                coins.append(__dict)
-                __sum += amount
+
+                if not self.limit or self.limit >= amount:
+                    coins.append(__dict)
+                    __sum += amount
+
         return __sum, coins
