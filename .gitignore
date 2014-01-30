@@ -34,5 +34,3 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
-
-config.json
