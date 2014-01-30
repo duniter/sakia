@@ -2,6 +2,12 @@
 
 A python implementation of [uCoin](https://github.com/c-geek/ucoin) API
 
+## Requirements
+
+In order to use the API, you have to first install the required dependencies given below thanks to pip3:
+ * requests
+ * python-gnupg
+
 ##Installation
 
 Here is a fast installation procedure (a bit dirty) we suggest to quickly use this API.

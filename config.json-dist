@@ -1,6 +1,0 @@
-{
-    "server": "localhost",
-    "port": 8081,
-    "auth": false,
-    "user": ""
-}
