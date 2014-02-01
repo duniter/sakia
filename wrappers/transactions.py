@@ -23,11 +23,12 @@ from . import Wrapper, pks, ucg, hdc, settings
 logger = logging.getLogger("transactions")
 
 class Transaction(Wrapper):
-    def __init__(self, type, pgp_fingerprint, message=''):
+    def __init__(self, type, pgp_fingerprint, message='', peering=None):
         self.pgp_fingerprint = pgp_fingerprint
         self.message = message
         self.type = type
         self.error = None
+        self.peering = peering
 
     def __call__(self):
         try:
@@ -37,6 +38,7 @@ class Transaction(Wrapper):
 
         context_data = {}
         context_data.update(settings)
+        context_data.update(self.peering if self.peering else ucg.Peering().get())
         context_data['version'] = 1
         context_data['number'] = 0 if not last_tx else last_tx['transaction']['number']+1
         context_data['previousHash'] = hashlib.sha1(("%(raw)s%(signature)s" % last_tx).encode('ascii')).hexdigest().upper() if last_tx else None
@@ -54,7 +56,11 @@ Number: %(number)d
 
         if last_tx: tx += "PreviousHash: %(previousHash)s\n" % context_data
 
-        tx += self.get_message(context_data)
+        try:
+            tx += self.get_message(context_data)
+        except ValueError as e:
+            self.error = e
+            return False
 
         tx += """\
 Comment:
@@ -63,8 +69,6 @@ Comment:
 
         tx = tx.replace("\n", "\r\n")
         txs = settings['gpg'].sign(tx, detach=True)
-
-        if self.error: return False
 
         return self.process(tx, txs)
 
@@ -86,6 +90,29 @@ Comment:
             return True
 
         return False
+
+    def parse_coins(self, coins_message):
+        coins = []
+        for coin in coins_message.split(','):
+            data = coin.split(':')
+            issuer, numbers = data[0], data[1:]
+            for number in numbers:
+                view = hdc.coins.View(issuer, int(number)).get()
+                if view['owner'] != self.pgp_fingerprint:
+                    raise ValueError('Trying to divide a coin you do not own (%s)' % view['id'])
+                coins.append(view)
+        return coins
+
+    def get_coins_sum(self, coins):
+        __sum = 0
+        for coin in coins:
+            base, power = coin['id'].split('-')[2:4]
+            __sum += int(base) * 10**int(power)
+        return __sum
+
+    def check_coins_sum(self, __sum):
+        m = re.match(r'^(\d)(0*)$', str(__sum))
+        if not m: raise ValueError('bad sum value %d' % __sum)
 
 class Transfer(Transaction):
     def __init__(self, pgp_fingerprint, recipient, coins, message=''):
@@ -162,31 +189,36 @@ class Fusion(MonoTransaction):
         self.coins = coins
 
     def get_mono_message(self, context_data, tx=''):
-        context_data['coins'] = self.coins
-
-        coins = []
-        for coin in context_data['coins'].split(','):
-            data = coin.split(':')
-            issuer, numbers = data[0], data[1:]
-            for number in numbers:
-                coins.append(ucoin.hdc.coins.View(issuer, int(number)).get())
-
-        __sum = 0
-        for coin in coins:
-            base, power = coin['id'].split('-')[2:4]
-            __sum += int(base) * 10**int(power)
-
-        m = re.match(r'^(\d)(0*)$', str(__sum))
-
-        if not m:
-            self.error = 'bad sum value %d' % __sum
-            return tx
+        coins = self.parse_coins(self.coins)
+        self.check_coins_sum(self.get_coins_sum(coins))
 
         context_data['base'], context_data['power'] = int(m.groups()[0]), len(m.groups()[1])
         tx += '%(fingerprint)s-%(previous_idx)d-%(base)d-%(power)d-F-%(number)d\n' % context_data
 
-        for coin in coins:
-            context_data.update(coin)
-            tx += '%(id)s, %(transaction)s\n' % context_data
+        for coin in self.old_coins: tx += '%(id)s, %(transaction)s\n' % coin
+
+        return tx
+
+class Divide(MonoTransaction):
+    def __init__(self, pgp_fingerprint, old_coins, new_coins, message=''):
+        super().__init__('DIVISION', pgp_fingerprint, message)
+        self.old_coins = old_coins
+        self.new_coins = new_coins
+
+    def get_mono_message(self, context_data, tx=''):
+        old_coins = self.parse_coins(self.old_coins)
+        old_coins_sum = self.get_coins_sum(old_coins)
+
+        new_coins_sum = 0
+        for idx, coin in enumerate(self.new_coins):
+            context_data['idx'] = idx + context_data['previous_idx']
+            context_data['base'], context_data['power'] = [int(x) for x in coin.split(',')]
+            new_coins_sum += context_data['base'] * 10**context_data['power']
+            tx += '%(fingerprint)s-%(idx)d-%(base)d-%(power)d-D-%(number)d\n' % context_data
+
+        if old_coins_sum != new_coins_sum:
+            raise ValueError('Amount of old coins (%d) is not equal to new coins (%d)' % (old_coins_sum, new_coins_sum))
+
+        for coin in self.old_coins: tx += '%(id)s, %(transaction)s\n' % coin
 
         return tx
