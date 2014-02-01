@@ -195,7 +195,7 @@ class Fusion(MonoTransaction):
         context_data['base'], context_data['power'] = int(m.groups()[0]), len(m.groups()[1])
         tx += '%(fingerprint)s-%(previous_idx)d-%(base)d-%(power)d-F-%(number)d\n' % context_data
 
-        for coin in self.old_coins: tx += '%(id)s, %(transaction)s\n' % coin
+        for coin in coins: tx += '%(id)s, %(transaction)s\n' % coin
 
         return tx
 
@@ -219,6 +219,6 @@ class Divide(MonoTransaction):
         if old_coins_sum != new_coins_sum:
             raise ValueError('Amount of old coins (%d) is not equal to new coins (%d)' % (old_coins_sum, new_coins_sum))
 
-        for coin in self.old_coins: tx += '%(id)s, %(transaction)s\n' % coin
+        for coin in old_coins: tx += '%(id)s, %(transaction)s\n' % coin
 
         return tx
