@@ -15,18 +15,18 @@ Here is a fast installation procedure (a bit dirty) we suggest to quickly use th
 ```bash
 $ mkdir $HOME/ucoin
 $ cd $HOME/ucoin
-$ git clone git@github.com:canercandan/ucoin-python-api.git
+$ git clone git@github.com:canercandan/ucoin-python-api.git ucoinpy
 $ export PYTHONPATH="$HOME/ucoin:$PYTHONPATH"
 ```
 
 Thus you are ready to use it with your own python program. Here is an example illustrating how to use it thanks to the python shell:
 
 ```python
-In [1]: import ucoin-python-api as ucoin
+In [1]: import ucoinpy
 
-In [2]: ucoin.settings['server'] = 'mycurrency.candan.fr'
+In [2]: ucoinpy.settings['server'] = 'mycurrency.candan.fr'
 
-In [3]: ucoin.ucg.Peering().get()
+In [3]: ucoinpy.ucg.Peering().get()
 Out[3]:
 {'contract': {'currentNumber': '5',
   'hash': 'FB710AE30F843BF505ABF9DE8CF404B7F35D238A'},
