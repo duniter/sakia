@@ -37,4 +37,4 @@ nosetests.xml
 .settings
 
 # Generated files
-src/cutecoin/gen_ressources/*
+src/cutecoin/gen_resources/*
