@@ -177,9 +177,9 @@ class API:
 
         return response
 
-    def merkle_easy_parser(self, path):
+    def merkle_easy_parser(self, path, begin=None, end=None):
         root = self.requests_get(path, leaves='true').json()
-        for leaf in root['leaves']:
+        for leaf in root['leaves'][begin:end]:
             yield self.requests_get(path, leaf=leaf).json()['leaf']
 
 from . import pks, ucg, hdc, wrappers
