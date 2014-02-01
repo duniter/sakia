@@ -71,34 +71,42 @@ class Last(Base):
 class Sender(Base):
     """GET all the transactions sent by this sender and stored by this node (should contain all transactions of the sender)."""
 
-    def __init__(self, pgp_fingerprint):
+    def __init__(self, pgp_fingerprint, begin=None, end=None):
         """
         Arguments:
         - `pgp_fingerprint`: PGP fingerprint of the key we want to see sent transactions.
+        - `begin`: integer value used by the merkle parser to know when to begin requesting.
+        - `end`: integer value used by the merkle parser to know when to end requesting.
         """
 
         super().__init__()
 
         self.pgp_fingerprint = pgp_fingerprint
+        self.begin = begin
+        self.end = end
 
     def __get__(self, **kwargs):
-        return self.merkle_easy_parser('/sender/%s' % self.pgp_fingerprint)
+        return self.merkle_easy_parser('/sender/%s' % self.pgp_fingerprint, begin=self.begin, end=self.end)
 
 class Recipient(Base):
     """GET all the transactions received for this recipient stored by this node."""
 
-    def __init__(self, pgp_fingerprint):
+    def __init__(self, pgp_fingerprint, begin=None, end=None):
         """
         Arguments:
         - `pgp_fingerprint`: PGP fingerprint of the key we want to see sent transactions.
+        - `begin`: integer value used by the merkle parser to know when to begin requesting.
+        - `end`: integer value used by the merkle parser to know when to end requesting.
         """
 
         super().__init__()
 
         self.pgp_fingerprint = pgp_fingerprint
+        self.begin = begin
+        self.end = end
 
     def __get__(self, **kwargs):
-        return self.merkle_easy_parser('/recipient/%s' % self.pgp_fingerprint)
+        return self.merkle_easy_parser('/recipient/%s' % self.pgp_fingerprint, begin=self.begin, end=self.end)
 
 class View(Base):
     """GET the transaction of given TRANSACTION_ID."""
