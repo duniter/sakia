@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>452</width>
+    <height>400</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string notr="true">CuteCoin</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <item>
+     <widget class="QFrame" name="actionsFrame">
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QTabWidget" name="tabWidget">
+         <property name="currentIndex">
+          <number>0</number>
+         </property>
+         <widget class="QWidget" name="walletsTab">
+          <attribute name="title">
+           <string>Wallets</string>
+          </attribute>
+          <layout class="QHBoxLayout" name="horizontalLayout">
+           <item>
+            <widget class="QListView" name="walletsList"/>
+           </item>
+           <item>
+            <widget class="QListView" name="walletContent"/>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="transactionsTab">
+          <attribute name="title">
+           <string>Transactions</string>
+          </attribute>
+          <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_3">
+             <item>
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>Sent</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QListView" name="transactionsSent"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_2">
+             <item>
+              <widget class="QLabel" name="label_2">
+               <property name="text">
+                <string>Received</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QListView" name="transactionsReceived"/>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="communitiesTab">
+          <attribute name="title">
+           <string>Communities</string>
+          </attribute>
+          <layout class="QHBoxLayout" name="horizontalLayout_4">
+           <item>
+            <widget class="QTabWidget" name="tabWidget_2">
+             <property name="currentIndex">
+              <number>1</number>
+             </property>
+             <widget class="QWidget" name="ucoinTab">
+              <attribute name="title">
+               <string>Ucoin</string>
+              </attribute>
+             </widget>
+             <widget class="QWidget" name="freecoinTab">
+              <attribute name="title">
+               <string>FreeCoin</string>
+              </attribute>
+              <layout class="QHBoxLayout" name="horizontalLayout_5">
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_4">
+                 <item>
+                  <widget class="QLabel" name="label_3">
+                   <property name="text">
+                    <string>Members</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QListView" name="communityMembers"/>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_5">
+                 <item>
+                  <widget class="QLabel" name="label_4">
+                   <property name="text">
+                    <string>Last issuance</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QListView" name="communityIssuance"/>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>452</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuTr_File">
+    <property name="title">
+     <string>Account</string>
+    </property>
+    <addaction name="actionChange_account"/>
+    <addaction name="actionManage_accounts"/>
+    <addaction name="actionConfigure_trustable_nodes"/>
+   </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>Contacts</string>
+    </property>
+    <addaction name="separator"/>
+    <addaction name="actionAdd_a_contact"/>
+   </widget>
+   <addaction name="menuTr_File"/>
+   <addaction name="menuEdit"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionChange_account">
+   <property name="text">
+    <string>Change account</string>
+   </property>
+  </action>
+  <action name="actionManage_accounts">
+   <property name="text">
+    <string>Manage accounts</string>
+   </property>
+  </action>
+  <action name="actionConfigure_trustable_nodes">
+   <property name="text">
+    <string>Configure trustable nodes</string>
+   </property>
+  </action>
+  <action name="actionAdd_a_contact">
+   <property name="text">
+    <string>Add a contact</string>
+   </property>
+  </action>
+  <action name="actionSend_a_message">
+   <property name="text">
+    <string>Send a message</string>
+   </property>
+  </action>
+  <action name="actionSend_money">
+   <property name="text">
+    <string>Send money</string>
+   </property>
+  </action>
+  <action name="actionRemove_contact">
+   <property name="text">
+    <string>Remove contact</string>
+   </property>
+  </action>
+  <action name="actionSend_a_message_2">
+   <property name="text">
+    <string>Send a message</string>
+   </property>
+  </action>
+  <action name="actionSend_money_2">
+   <property name="text">
+    <string>Send money</string>
+   </property>
+  </action>
+  <action name="actionRemove_contact_2">
+   <property name="text">
+    <string>Remove contact</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

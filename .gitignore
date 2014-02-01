@@ -34,3 +34,7 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+.settings
+
+# Generated files
+src/cutecoin/gen_ressources/*
