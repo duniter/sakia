@@ -42,6 +42,7 @@ class Transaction(Wrapper):
         context_data['previousHash'] = hashlib.sha1(("%(raw)s%(signature)s" % last_tx).encode('ascii')).hexdigest().upper() if last_tx else None
         context_data['message'] = self.message
         context_data['type'] = self.type
+        context_data['fingerprint'] = self.pgp_fingerprint
         context_data.update(self.get_context_data())
 
         tx = """\
