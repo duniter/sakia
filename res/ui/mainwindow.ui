@@ -152,8 +152,7 @@
      <string>Account</string>
     </property>
     <addaction name="actionChange_account"/>
-    <addaction name="actionManage_accounts"/>
-    <addaction name="actionConfigure_trustable_nodes"/>
+    <addaction name="actionAdd_account"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
@@ -216,7 +215,32 @@
     <string>Remove contact</string>
    </property>
   </action>
+  <action name="actionAdd_account">
+   <property name="text">
+    <string>Add account</string>
+   </property>
+  </action>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>actionAdd_account</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>openAddAccountDialog()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>225</x>
+     <y>199</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>openAddAccountDialog()</slot>
+ </slots>
 </ui>

@@ -10,7 +10,6 @@ from cutecoin.models.account import Account
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    acc = Account()
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())

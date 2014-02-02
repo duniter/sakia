@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>AddAccountDialog</class>
- <widget class="QDialog" name="AddAccountDialog">
+ <class>AddCommunityDialog</class>
+ <widget class="QDialog" name="AddCommunityDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,53 +11,16 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Add an account</string>
+   <string>Add a community</string>
   </property>
   <property name="modal">
    <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QGroupBox" name="groupBox">
-     <property name="title">
-      <string>Account parameters</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_2">
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout">
-        <item>
-         <widget class="QLabel" name="label">
-          <property name="text">
-           <string>Account name</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="accountName"/>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_2">
-        <item>
-         <widget class="QLabel" name="label_2">
-          <property name="text">
-           <string>PGPKey </string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QComboBox" name="pgpkeyList"/>
-        </item>
-       </layout>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
-      <string>Communities membership</string>
+      <string>Communities nodes</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
@@ -66,16 +29,36 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
-         <widget class="QPushButton" name="addCommunity">
+         <widget class="QLineEdit" name="lineEdit">
           <property name="text">
-           <string>Add a community</string>
+           <string/>
+          </property>
+          <property name="placeholderText">
+           <string>Server</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="lineEdit_2">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="placeholderText">
+           <string>Port</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="checkBox">
+          <property name="text">
+           <string>Auth</string>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QPushButton" name="removeCommunity">
           <property name="text">
-           <string>Remove selected community</string>
+           <string>Add</string>
           </property>
          </widget>
         </item>
@@ -101,7 +84,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>AddAccountDialog</receiver>
+   <receiver>AddCommunityDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -117,7 +100,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>AddAccountDialog</receiver>
+   <receiver>AddCommunityDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -130,24 +113,5 @@
     </hint>
    </hints>
   </connection>
-  <connection>
-   <sender>addCommunity</sender>
-   <signal>clicked()</signal>
-   <receiver>AddAccountDialog</receiver>
-   <slot>openAddCommunityDialog()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>109</x>
-     <y>237</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>149</y>
-    </hint>
-   </hints>
-  </connection>
  </connections>
- <slots>
-  <slot>openAddCommunityDialog()</slot>
- </slots>
 </ui>

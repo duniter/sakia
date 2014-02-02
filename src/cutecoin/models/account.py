@@ -11,12 +11,18 @@ class Account(object):
     classdocs
     '''
 
-    def __init__(self):
+    def __init__(self, pgpKey, name, communities):
         '''
         Constructor
         '''
+        self.pgpKey = pgpKey
+        self.name = name
+        self.communities = communities
         self.transactionNodes = []
         self.trustableNodes = []
+        self.wallets = []
+        self.receivedTransactions = []
+        self.sentTransactions = []
 
     def addTransactionNode(self, node):
         self.transactionNodes.append(node)
