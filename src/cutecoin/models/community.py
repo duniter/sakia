@@ -10,14 +10,14 @@ class Community(object):
     '''
     classdocs
     '''
-
-
     def __init__(self, mainNode, currency):
         '''
         Constructor
         '''
-        self.knowNodes = []
-        self.knowNodes.append(mainNode)
+        self.knownNodes = []
+        self.knownNodes.append(mainNode)
+
+        self.currency = currency
 
     def members(self):
         '''
@@ -27,12 +27,14 @@ class Community(object):
         # TODO : Try connecting with nodes of the list
         # if the first fails
         # Maybe create a method
-        ucoin.settings['server'] = self.knowNodes[0].address
+        ucoin.settings['server'] = self.knowNodes[0].server
         ucoin.settings['port'] = self.knowNodes[0].port
-        ucoin.settings['auth'] = self.knowNodes[0].auth
 
-        members = ucoin.hdc.amendments.view.Members( ucoin.hdc.amendments.Current )
+        members = ucoin.hdc.amendments.view.Members().get()
         return members
+
+    def nodes(self):
+        return self.knownNodes
 
 class CommunitiesManager(object):
     '''
@@ -49,11 +51,11 @@ class CommunitiesManager(object):
             if com.currency == currency:
                 return com
 
-    def addCommunity(self, node):
-        ucoin.settings['server'] = node.address
-        ucoin.settings['port'] = node.port
-        ucoin.settings['auth'] = node.auth
-
-        currentAmendment = ucoin.hdc.amendments.Current.get(self)
+    def addCommunity(self, mainNode):
+        ucoin.settings['server'] = mainNode.server
+        ucoin.settings['port'] = mainNode.port
+        mainNode.downstreamPeers()
+        currentAmendment = ucoin.hdc.amendments.Promoted().get()
         currency = currentAmendment['currency']
-        self.communities.append(Community(node), currency)
+        if self.getCommunity(currency) == None:
+            self.communities.append(Community(mainNode, currency))

@@ -23,6 +23,5 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def openAddAccountDialog(self):
         dialog = AddAccountDialog()
-        print("shoow")
-        dialog.show()
-        print("shoow2")
+        dialog.setData()
+        dialog.exec_()
