@@ -5,7 +5,7 @@ Created on 5 févr. 2014
 '''
 
 
-class NodeTreeItem(object):
+class NodeItem(object):
     def __init__(self, node, mainNodeItem=None):
         self.mainNodeItem = mainNodeItem
         self.nodeText = node.getText()
@@ -37,7 +37,7 @@ class NodeTreeItem(object):
 
         return 0
 
-class MainNodeTreeItem(object):
+class MainNodeItem(object):
     def __init__(self, mainNode, communityItem=None):
         self.communityItem = communityItem
         self.mainNodeText = mainNode.getText()

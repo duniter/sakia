@@ -5,7 +5,7 @@ Created on 5 févr. 2014
 '''
 
 from PyQt5.QtCore import QAbstractItemModel, QModelIndex, Qt
-from cutecoin.models.node.itemModel import NodeTreeItem
+from cutecoin.models.node.itemModel import MainNodeItem, NodeItem
 from cutecoin.models.community.itemModel import CommunityItemModel
 
 class CommunityTreeModel(QAbstractItemModel):
@@ -33,7 +33,7 @@ class CommunityTreeModel(QAbstractItemModel):
 
         item = index.internalPointer()
 
-        return item.data
+        return item.data(0)
 
     def flags(self, index):
         if not index.isValid():
@@ -43,7 +43,7 @@ class CommunityTreeModel(QAbstractItemModel):
 
     def headerData(self, section, orientation, role):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-            return self.rootItem.data
+            return self.rootItem.data(0)
 
         return None
 
@@ -87,12 +87,14 @@ class CommunityTreeModel(QAbstractItemModel):
 
 
     def refreshTreeNodes(self):
+
+        print("root : " + self.rootItem.data(0))
         for mainNode in self.community.knownNodes:
-            mainNodeItem = NodeTreeItem(mainNode, self.rootItem)
-            print("mainNode : " + mainNode.getText())
+            mainNodeItem = MainNodeItem(mainNode, self.rootItem)
+            print("mainNode : " + mainNode.getText() + " / " + mainNodeItem.data(0))
             self.rootItem.appendChild(mainNodeItem)
             for node in mainNode.downstreamPeers():
-                print("\t node : " + node.getText())
-                nodeItem = NodeTreeItem(node, mainNodeItem)
+                nodeItem = NodeItem(node, mainNodeItem)
+                print("\t node : " + node.getText()+ " / " + nodeItem.data(0))
                 mainNodeItem.appendChild(nodeItem)
 

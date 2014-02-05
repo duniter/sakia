@@ -5,10 +5,9 @@ Created on 5 févr. 2014
 '''
 
 from PyQt5.QtCore import QAbstractItemModel, Qt, QModelIndex
-from cutecoin.models.node.itemModel import NodeTreeItem
 from cutecoin.models.account.communities.itemModel import CommunitiesItemModel
 from cutecoin.models.community.itemModel import CommunityItemModel
-from cutecoin.models.node.itemModel import MainNodeTreeItem
+from cutecoin.models.node.itemModel import MainNodeItem, NodeItem
 
 class CommunitiesTreeModel(QAbstractItemModel):
     '''
@@ -93,10 +92,10 @@ class CommunitiesTreeModel(QAbstractItemModel):
             communityItem = CommunityItemModel(community, self)
             self.rootItem.appendChild(communityItem)
             for mainNode in community.knownNodes:
-                mainNodeItem = MainNodeTreeItem(mainNode, communityItem)
+                mainNodeItem = MainNodeItem(mainNode, communityItem)
                 communityItem.appendChild(mainNodeItem)
                 for node in mainNode.downstreamPeers():
-                    nodeItem = NodeTreeItem(node, mainNodeItem)
+                    nodeItem = NodeItem(node, mainNodeItem)
                     mainNodeItem.appendChild(nodeItem)
 
 

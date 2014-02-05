@@ -20,7 +20,7 @@ class CommunityItemModel(object):
         return len(self.mainNodeItems)
 
     def columnCount(self):
-        return len(self.itemData)
+        return 1
 
     def data(self, column):
         try:
