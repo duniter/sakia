@@ -5,10 +5,8 @@ Created on 2 févr. 2014
 '''
 from cutecoin.gen_resources.addCommunityDialog_uic import Ui_AddCommunityDialog
 from PyQt5.QtWidgets import QDialog
-from PyQt5.QtWidgets import QListWidgetItem
-from cutecoin.models.community import CommunitiesManager, Community
+from cutecoin.models.community.treeModel import CommunityTreeModel
 from cutecoin.models.node import MainNode
-import ucoinpy as ucoin
 
 class AddCommunityDialog(QDialog, Ui_AddCommunityDialog):
     '''
@@ -16,15 +14,17 @@ class AddCommunityDialog(QDialog, Ui_AddCommunityDialog):
     '''
 
 
-    def __init__(self):
+    def __init__(self, accountDialog):
         '''
         Constructor
         '''
         super(AddCommunityDialog, self).__init__()
         self.setupUi(self)
+        self.accountDialog = accountDialog
+        self.buttonBox.accepted.connect(self.accountDialog.validAddCommunityDialog)
 
-    def setCommunitiesManager(self, communitiesManager):
-        self.communitiesManager = communitiesManager
+    def setCommunities(self, communities):
+        self.communities = communities
 
     def addCommunity(self):
         '''
@@ -32,6 +32,7 @@ class AddCommunityDialog(QDialog, Ui_AddCommunityDialog):
         '''
         server = self.serverEdit.text()
         port = self.portBox.value()
-        self.communitiesManager.addCommunity(MainNode(server, port))
+        community = self.communities.addCommunity(MainNode(server, port))
+        self.communityView.setModel( CommunityTreeModel(community) )
 
 

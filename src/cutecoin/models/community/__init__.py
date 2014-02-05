@@ -16,7 +16,6 @@ class Community(object):
         '''
         self.knownNodes = []
         self.knownNodes.append(mainNode)
-
         self.currency = currency
 
     def members(self):
@@ -36,26 +35,4 @@ class Community(object):
     def nodes(self):
         return self.knownNodes
 
-class CommunitiesManager(object):
-    '''
-    classdocs
-    '''
-    def __init__(self):
-        '''
-        Constructor
-        '''
-        self.communities = []
 
-    def getCommunity(self, currency):
-        for com in self.communities:
-            if com.currency == currency:
-                return com
-
-    def addCommunity(self, mainNode):
-        ucoin.settings['server'] = mainNode.server
-        ucoin.settings['port'] = mainNode.port
-        mainNode.downstreamPeers()
-        currentAmendment = ucoin.hdc.amendments.Promoted().get()
-        currency = currentAmendment['currency']
-        if self.getCommunity(currency) == None:
-            self.communities.append(Community(mainNode, currency))

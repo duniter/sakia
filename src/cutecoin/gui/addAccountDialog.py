@@ -6,7 +6,9 @@ Created on 2 févr. 2014
 from cutecoin.gen_resources.addAccountDialog_uic import Ui_AddAccountDialog
 from PyQt5.QtWidgets import QDialog
 from cutecoin.gui.addCommunityDialog import AddCommunityDialog
-from cutecoin.models.community import CommunitiesManager
+from cutecoin.models.account.communities import Communities
+from cutecoin.models.account.communities.treeModel import CommunitiesTreeModel
+
 import gnupg
 
 
@@ -23,22 +25,21 @@ class AddAccountDialog(QDialog, Ui_AddAccountDialog):
         # Set up the user interface from Designer.
         super(AddAccountDialog, self).__init__()
         self.setupUi(self)
-
-
-        self.dialog = AddCommunityDialog()
+        self.communities = Communities()
+        self.dialog = AddCommunityDialog(self)
 
     def setData(self):
-        self.communitiesManager = CommunitiesManager()
+        self.communities = Communities()
         gpg = gnupg.GPG()
         availableKeys = gpg.list_keys(True)
         for key in availableKeys:
             self.pgpkeyList.addItem(key['uids'][0])
 
     def openAddCommunityDialog(self):
-        self.dialog.setCommunitiesManager(self.communitiesManager)
+        self.dialog.setCommunities(self.communities)
         self.dialog.exec_()
 
     def validAddCommunityDialog(self):
-        # TODO Show items in tree
-        pass
+        self.communitiesTable.setModel(CommunitiesTreeModel(self.communities))
+
 

@@ -21,6 +21,9 @@ class Node(object):
     def __eq__(self, other):
         return ( self.server == other.server and self.port == other.port )
 
+    def getText(self):
+        return self.server + ":" + str(self.port)
+
 class MainNode(Node):
 
     def downstreamPeers(self):
@@ -30,5 +33,6 @@ class MainNode(Node):
         peers = []
         for peer in ucoin.ucg.peering.peers.DownStream().get()['peers']:
             node = Node(peer['ipv4'], peer['port'])
-            print(node.server + ":" + node.port)
             peers.append(node)
+        return peers
+

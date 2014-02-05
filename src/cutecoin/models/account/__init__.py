@@ -11,13 +11,13 @@ class Account(object):
     classdocs
     '''
 
-    def __init__(self, pgpKey, name, communityManager):
+    def __init__(self, pgpKey, name, communities):
         '''
         Constructor
         '''
         self.pgpKey = pgpKey
         self.name = name
-        self.communityManager = communityManager
+        self.communities = communities
         self.transactionNodes = []
         self.trustableNodes = []
         self.wallets = []
