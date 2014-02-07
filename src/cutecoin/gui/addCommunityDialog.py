@@ -21,7 +21,7 @@ class AddCommunityDialog(QDialog, Ui_AddCommunityDialog):
         super(AddCommunityDialog, self).__init__()
         self.setupUi(self)
         self.accountDialog = accountDialog
-        self.buttonBox.accepted.connect(self.accountDialog.validAddCommunityDialog)
+        self.buttonBox.accepted.connect(self.accountDialog.actionAddCommunity)
 
     def setCommunities(self, communities):
         self.communities = communities

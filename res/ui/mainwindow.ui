@@ -14,7 +14,14 @@
    <string notr="true">CuteCoin</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout_2">
+   <layout class="QVBoxLayout" name="verticalLayout_6">
+    <item>
+     <widget class="QLabel" name="accountNameLabel">
+      <property name="text">
+       <string>Please select an account</string>
+      </property>
+     </widget>
+    </item>
     <item>
      <widget class="QFrame" name="actionsFrame">
       <property name="frameShape">
@@ -26,8 +33,11 @@
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
         <widget class="QTabWidget" name="tabWidget">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>2</number>
          </property>
          <widget class="QWidget" name="walletsTab">
           <attribute name="title">
@@ -153,6 +163,7 @@
     </property>
     <addaction name="actionChange_account"/>
     <addaction name="actionAdd_account"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">

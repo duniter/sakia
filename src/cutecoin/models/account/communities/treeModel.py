@@ -9,6 +9,8 @@ from cutecoin.models.account.communities.itemModel import CommunitiesItemModel
 from cutecoin.models.community.itemModel import CommunityItemModel
 from cutecoin.models.node.itemModel import MainNodeItem, NodeItem
 
+#TODO: Use it somewhere or remove it from the code
+
 class CommunitiesTreeModel(QAbstractItemModel):
     '''
     A Qt abstract item model to display communities in a tree

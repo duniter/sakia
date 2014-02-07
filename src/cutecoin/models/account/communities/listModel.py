@@ -10,12 +10,12 @@ class CommunitiesListModel(QAbstractListModel):
     '''
     A Qt abstract item model to display communities in a tree
     '''
-    def __init__(self, communities, parent=None):
+    def __init__(self, account, parent=None):
         '''
         Constructor
         '''
         super(CommunitiesListModel, self).__init__(parent)
-        self.communities = communities
+        self.communities = account.communities
 
 
     def rowCount(self ,parent):

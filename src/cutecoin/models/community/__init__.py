@@ -23,8 +23,7 @@ class Community(object):
         Listing members of a community
         '''
 
-        # TODO : Try connecting with nodes of the list
-        # if the first fails
+        #TODO: Try connecting with nodes of the list if the first fails
         # Maybe create a method
         ucoin.settings['server'] = self.knowNodes[0].server
         ucoin.settings['port'] = self.knowNodes[0].port
