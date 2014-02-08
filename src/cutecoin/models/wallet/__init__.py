@@ -31,10 +31,8 @@ class Wallet(object):
             value += coin.value()
         return value
 
-    def refreshCoins(self, mainNode, pgpFingerprint):
-        ucoin.settings['server'] = mainNode
-        ucoin.settings['port'] = mainNode
-        dataList = ucoin.hdc.coins.List(pgpFingerprint).get()
+    def refreshCoins(self, community, pgpFingerprint):
+        dataList = community.ucoinRequest(lambda:ucoin.hdc.coins.List(pgpFingerprint).get)
         for issaunces in dataList['coins']:
             issuer = issaunces['issuer']
             for coinsIds in issaunces['ids']:

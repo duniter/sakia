@@ -22,19 +22,17 @@ class Communities(object):
             if com.currency == currency:
                 return com
 
-    #TODO: Check membership
-    def addCommunity(self, mainNode):
-        ucoin.settings['server'] = mainNode.server
-        ucoin.settings['port'] = mainNode.port
-        currentAmendment = ucoin.hdc.amendments.Promoted().get()
-        currency = currentAmendment['currency']
-        community = self.getCommunity(currency)
-        if community == None:
-            community = Community(mainNode, currency)
-            self.communitiesList.append(community)
+    def addCommunity(self, mainNode, accountFingerprint):
+        community = Community(mainNode)
+        self.members = community.ucoinRequest(lambda:ucoin.hdc.amendments.view.Members(community.currentAmendmentId()).get)
 
-        return community
+        #TODO: Check membership
+        for member in self.members:
+            if member['value'] == accountFingerprint:
+                self.communitiesList.append(community)
+                return community
 
+        return None
 
     #TODO: Jsonify this model
     def saveJson(self):

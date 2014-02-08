@@ -7,7 +7,7 @@ Created on 5 févr. 2014
 class CommunityItemModel(object):
     def __init__(self, community, communitiesItem=None):
         self.communitiesItem = communitiesItem
-        self.communityText = community.currency
+        self.communityText = community.name()
         self.mainNodeItems = []
 
     def appendChild(self, item):

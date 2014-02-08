@@ -23,8 +23,7 @@ class Account(object):
         self.wallets = Wallets()
         for community in self.communities.communitiesList:
             wallet = self.wallets.addWallet(community.currency)
-            #TODO: Gerer le cas ou plusieurs noeuds sont presents dans la liste et le 0 ne repond pas
-            wallet.refreshCoins(community.knownNodes[0], self.keyFingerprint())
+            wallet.refreshCoins(community, self.keyFingerprint())
 
         self.receivedTransactions = []
         self.sentTransactions = []
@@ -32,13 +31,19 @@ class Account(object):
     def addWallet(name, currency):
         self.wallets.addWallet(name, currency)
 
-    def keyFingerprint():
+    def keyFingerprint(self):
         gpg = gnupg.GPG()
-        availableKeys = gpg.list_keys(True)
+        availableKeys = gpg.list_keys()
         for k in availableKeys:
-            if k['key_id'] == self.pgpKey:
+            if k['keyid'] == self.pgpKey:
                 return k['fingerprint']
         return ""
+
+    def transactionsReceived(self):
+        pass
+
+    def transactionsSent(self):
+        pass
 
 
 

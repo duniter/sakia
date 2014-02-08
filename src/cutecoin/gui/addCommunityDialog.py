@@ -32,7 +32,7 @@ class AddCommunityDialog(QDialog, Ui_AddCommunityDialog):
         '''
         server = self.serverEdit.text()
         port = self.portBox.value()
-        community = self.account.communities.addCommunity(MainNode(server, port))
+        community = self.account.communities.addCommunity(MainNode(server, port), self.account.keyFingerprint())
         self.account.wallets.addWallet(community.currency)
         self.communityView.setModel( CommunityTreeModel(community) )
 

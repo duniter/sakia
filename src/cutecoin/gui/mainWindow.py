@@ -6,6 +6,7 @@ Created on 1 févr. 2014
 from cutecoin.gen_resources.mainwindow_uic import Ui_MainWindow
 from PyQt5.QtWidgets import QMainWindow
 from cutecoin.gui.addAccountDialog import AddAccountDialog
+from cutecoin.gui.communityTabWidget import CommunityTabWidget
 from cutecoin.models.account.wallets.listModel import WalletsListModel
 from cutecoin.models.wallet.listModel import WalletListModel
 
@@ -47,3 +48,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.accountNameLabel = self.core.currentAccount.name
             self.walletsList.setModel(WalletsListModel(self.core.currentAccount))
             self.walletContent.setModel(WalletListModel(self.core.currentAccount.wallets.walletsList[0]))
+            for community in self.core.currentAccount.communities.communitiesList:
+                self.communitiesTab.addPage(CommunityTabWidget(community), community.name())
+

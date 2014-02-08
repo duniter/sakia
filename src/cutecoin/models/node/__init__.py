@@ -16,6 +16,7 @@ class Node(object):
         '''
         self.server = server
         self.port = port
+        self.available = True
 
 
     def __eq__(self, other):
