@@ -43,7 +43,7 @@ class AddAccountDialog(QDialog, Ui_AddAccountDialog):
         self.account = Account(self.pgpkeyList.currentText(), "", Communities())
 
     def openAddCommunityDialog(self):
-        self.dialog.setCommunities(self.account.communities)
+        self.dialog.setAccount(self.account)
         self.dialog.exec_()
 
     def actionAddCommunity(self):

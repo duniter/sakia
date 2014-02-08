@@ -13,7 +13,7 @@ class Core(object):
         '''
         Constructor
         '''
-        self.account = []
+        self.accounts = []
         self.currentAccount = None
         config.parseArguments(argv)
         AppData().load(self)

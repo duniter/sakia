@@ -6,6 +6,8 @@ Created on 1 févr. 2014
 from cutecoin.gen_resources.mainwindow_uic import Ui_MainWindow
 from PyQt5.QtWidgets import QMainWindow
 from cutecoin.gui.addAccountDialog import AddAccountDialog
+from cutecoin.models.account.wallets.listModel import WalletsListModel
+from cutecoin.models.wallet.listModel import WalletListModel
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     '''
@@ -23,12 +25,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.core = core
 
     def openAddAccountDialog(self):
-        self.dialog = AddAccountDialog()
+        self.dialog = AddAccountDialog(self)
         self.dialog.setData()
         self.dialog.exec_()
 
     def actionAddAccount(self):
+        self.dialog.account.name = self.dialog.accountName.text()
         self.core.addAccount(self.dialog.account)
+        self.refreshMainWindow()
 
     '''
     Refresh main window
@@ -36,6 +40,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     in the window have to be refreshed
     '''
     def refreshMainWindow(self):
-        if self.core.currentAccount != None:
-            #TODO: rafraichissement de la fenetre
-            pass
+        if self.core.currentAccount == None:
+            self.accountTabs.setEnabled(False)
+        else:
+            self.accountTabs.setEnabled(True)
+            self.accountNameLabel = self.core.currentAccount.name
+            self.walletsList.setModel(WalletsListModel(self.core.currentAccount))
+            self.walletContent.setModel(WalletListModel(self.core.currentAccount.wallets.walletsList[0]))

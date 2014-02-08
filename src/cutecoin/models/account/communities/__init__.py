@@ -18,9 +18,11 @@ class Communities(object):
 
     def getCommunity(self, currency):
         for com in self.communitiesList:
+            #TODO: Compare communities by amendment hash instead of currency
             if com.currency == currency:
                 return com
 
+    #TODO: Check membership
     def addCommunity(self, mainNode):
         ucoin.settings['server'] = mainNode.server
         ucoin.settings['port'] = mainNode.port
@@ -32,3 +34,8 @@ class Communities(object):
             self.communitiesList.append(community)
 
         return community
+
+
+    #TODO: Jsonify this model
+    def saveJson(self):
+        pass

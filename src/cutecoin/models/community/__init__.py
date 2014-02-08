@@ -35,3 +35,7 @@ class Community(object):
         return self.knownNodes
 
 
+    #TODO: Jsonify this model
+    def saveJson(self):
+        pass
+

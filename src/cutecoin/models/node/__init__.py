@@ -24,6 +24,7 @@ class Node(object):
     def getText(self):
         return self.server + ":" + str(self.port)
 
+
 class MainNode(Node):
 
     def downstreamPeers(self):
@@ -35,4 +36,8 @@ class MainNode(Node):
             node = Node(peer['ipv4'], peer['port'])
             peers.append(node)
         return peers
+
+    #TODO: Jsonify this model
+    def saveJson(self):
+        pass
 

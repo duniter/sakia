@@ -23,8 +23,8 @@ class AddCommunityDialog(QDialog, Ui_AddCommunityDialog):
         self.accountDialog = accountDialog
         self.buttonBox.accepted.connect(self.accountDialog.actionAddCommunity)
 
-    def setCommunities(self, communities):
-        self.communities = communities
+    def setAccount(self, account):
+        self.account = account
 
     def addCommunity(self):
         '''
@@ -32,7 +32,8 @@ class AddCommunityDialog(QDialog, Ui_AddCommunityDialog):
         '''
         server = self.serverEdit.text()
         port = self.portBox.value()
-        community = self.communities.addCommunity(MainNode(server, port))
+        community = self.account.communities.addCommunity(MainNode(server, port))
+        self.account.wallets.addWallet(community.currency)
         self.communityView.setModel( CommunityTreeModel(community) )
 
 

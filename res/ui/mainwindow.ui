@@ -32,12 +32,12 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <widget class="QTabWidget" name="tabWidget">
+        <widget class="QTabWidget" name="accountTabs">
          <property name="enabled">
           <bool>false</bool>
          </property>
          <property name="currentIndex">
-          <number>2</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="walletsTab">
           <attribute name="title">
@@ -87,56 +87,16 @@
            </item>
           </layout>
          </widget>
-         <widget class="QWidget" name="communitiesTab">
+         <widget class="QWidget" name="communitiesWidget">
           <attribute name="title">
            <string>Communities</string>
           </attribute>
           <layout class="QHBoxLayout" name="horizontalLayout_4">
            <item>
-            <widget class="QTabWidget" name="tabWidget_2">
+            <widget class="QTabWidget" name="communitiesTab">
              <property name="currentIndex">
-              <number>1</number>
+              <number>-1</number>
              </property>
-             <widget class="QWidget" name="ucoinTab">
-              <attribute name="title">
-               <string>Ucoin</string>
-              </attribute>
-             </widget>
-             <widget class="QWidget" name="freecoinTab">
-              <attribute name="title">
-               <string>FreeCoin</string>
-              </attribute>
-              <layout class="QHBoxLayout" name="horizontalLayout_5">
-               <item>
-                <layout class="QVBoxLayout" name="verticalLayout_4">
-                 <item>
-                  <widget class="QLabel" name="label_3">
-                   <property name="text">
-                    <string>Members</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QListView" name="communityMembers"/>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QVBoxLayout" name="verticalLayout_5">
-                 <item>
-                  <widget class="QLabel" name="label_4">
-                   <property name="text">
-                    <string>Last issuance</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QListView" name="communityIssuance"/>
-                 </item>
-                </layout>
-               </item>
-              </layout>
-             </widget>
             </widget>
            </item>
           </layout>

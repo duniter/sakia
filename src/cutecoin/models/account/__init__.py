@@ -5,6 +5,8 @@ Created on 1 févr. 2014
 '''
 
 import ucoinpy as ucoin
+import gnupg
+from cutecoin.models.account.wallets import Wallets
 
 class Account(object):
     '''
@@ -18,16 +20,25 @@ class Account(object):
         self.pgpKey = pgpKey
         self.name = name
         self.communities = communities
-        self.transactionNodes = []
-        self.trustableNodes = []
-        self.wallets = []
+        self.wallets = Wallets()
+        for community in self.communities.communitiesList:
+            wallet = self.wallets.addWallet(community.currency)
+            #TODO: Gerer le cas ou plusieurs noeuds sont presents dans la liste et le 0 ne repond pas
+            wallet.refreshCoins(community.knownNodes[0], self.keyFingerprint())
+
         self.receivedTransactions = []
         self.sentTransactions = []
 
-    def addTransactionNode(self, node):
-        self.transactionNodes.append(node)
+    def addWallet(name, currency):
+        self.wallets.addWallet(name, currency)
 
-    def addTrustableNode(self, node):
-        self.trustableNodes.append(node)
+    def keyFingerprint():
+        gpg = gnupg.GPG()
+        availableKeys = gpg.list_keys(True)
+        for k in availableKeys:
+            if k['key_id'] == self.pgpKey:
+                return k['fingerprint']
+        return ""
+
 
 

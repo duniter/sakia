@@ -5,6 +5,7 @@ Created on 7 févr. 2014
 '''
 import json
 from cutecoin.core import config
+import os
 
 class AppData(object):
     '''
@@ -18,10 +19,10 @@ class AppData(object):
         '''
 
     def load(self, core):
-        json_data=open(config.data['home'])
-        data = json.load(json_data)
-        json_data.close()
-        data['accounts']
+        if (os.path.exists(config.data['home'])):
+            json_data=open(config.data['home'], 'w+')
+            data = json.load(json_data)
+            json_data.close()
 
 
     def save(self, core):
