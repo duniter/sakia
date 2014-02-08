@@ -24,10 +24,8 @@ Thus you are ready to use it with your own python program. Here is an example il
 ```python
 In [1]: import ucoinpy
 
-In [2]: ucoinpy.settings['server'] = 'mycurrency.candan.fr'
-
-In [3]: ucoinpy.ucg.Peering().get()
-Out[3]:
+In [2]: ucoinpy.ucg.Peering(server='mycurrency.candan.fr').get()
+Out[2]:
 {'contract': {'currentNumber': '5',
   'hash': 'FB710AE30F843BF505ABF9DE8CF404B7F35D238A'},
  'currency': 'mycurrency',
