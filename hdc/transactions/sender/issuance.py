@@ -23,19 +23,19 @@ logger = logging.getLogger("ucoin/hdc/transactions/sender/issuance")
 class Base(HDC):
     """Get the received issuance transaction of a PGP key."""
 
-    def __init__(self, pgp_fingerprint):
+    def __init__(self, pgp_fingerprint, server=None, port=None):
         """
         Arguments:
         - `pgp_fingerprint`: PGP fingerprint of the key we want to see sent transactions.
         """
 
-        super().__init__('hdc/transactions/sender/%s/issuance' % pgp_fingerprint)
+        super().__init__('hdc/transactions/sender/%s/issuance' % pgp_fingerprint, server, port)
 
 class Last(Base):
     """GET the last received issuance transaction of a PGP key."""
 
     def __get__(self, **kwargs):
-        return self.requests_get('/last').json()
+        return self.requests_get('/last', **kwargs).json()
 
 class Fusion(Base):
     """GET all fusion transactions sent by this sender and stored by this node (should contain all fusion transactions of the sender)."""
@@ -46,13 +46,13 @@ class Fusion(Base):
 class Dividend(Base):
     """GET all dividend transactions (issuance of new coins) sent by this sender and stored by this node (should contain all dividend transactions of the sender)."""
 
-    def __init__(self, pgp_fingerprint, am_number=None):
+    def __init__(self, pgp_fingerprint, am_number=None, server=None, port=None):
         """
         Arguments:
         - `am_number`: amendment number
         """
 
-        super().__init__(pgp_fingerprint)
+        super().__init__(pgp_fingerprint, server, port)
 
         self.am_number = am_number
 

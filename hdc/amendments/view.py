@@ -21,8 +21,8 @@ from . import HDC, logging
 logger = logging.getLogger("ucoin/hdc/amendments/view")
 
 class View(HDC):
-    def __init__(self, amendment_id):
-        super().__init__('hdc/amendments/view/%s' % amendment_id)
+    def __init__(self, amendment_id, server=None, port=None):
+        super().__init__('hdc/amendments/view/%s' % amendment_id, server, port)
 
 class Members(View):
     """GET the members present in the Community for this amendment."""
@@ -34,7 +34,7 @@ class Self(View):
     """Shows the raw data of the amendment [AMENDMENT_ID]."""
 
     def __get__(self, **kwargs):
-        return self.requests_get('/self').json()
+        return self.requests_get('/self', **kwargs).json()
 
 class Voters(View):
     """GET the voters listed in this amendment."""

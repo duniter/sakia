@@ -23,7 +23,9 @@ from . import Wrapper, pks, ucg, hdc, settings
 logger = logging.getLogger("transactions")
 
 class Transaction(Wrapper):
-    def __init__(self, type, pgp_fingerprint, message='', peering=None):
+    def __init__(self, type, pgp_fingerprint, message='', peering=None, server=None, port=None):
+        super().__init__(server, port)
+
         self.pgp_fingerprint = pgp_fingerprint
         self.message = message
         self.type = type
@@ -32,7 +34,7 @@ class Transaction(Wrapper):
 
     def __call__(self):
         try:
-            last_tx = hdc.transactions.sender.Last(self.pgp_fingerprint).get()
+            last_tx = hdc.transactions.sender.Last(self.pgp_fingerprint, self.server, self.port).get()
         except ValueError:
             last_tx = None
 
@@ -83,7 +85,7 @@ Comment:
 
     def process(self, tx, txs):
         try:
-            hdc.transactions.Process().post(transaction=tx, signature=txs)
+            hdc.transactions.Process(self.server, self.port).post(transaction=tx, signature=txs)
         except ValueError as e:
             self.error = str(e)
         else:
@@ -97,7 +99,7 @@ Comment:
             data = coin.split(':')
             issuer, numbers = data[0], data[1:]
             for number in numbers:
-                view = hdc.coins.View(issuer, int(number)).get()
+                view = hdc.coins.View(issuer, int(number), self.server, self.port).get()
                 if view['owner'] != self.pgp_fingerprint:
                     raise ValueError('Trying to divide a coin you do not own (%s)' % view['id'])
                 coins.append(view)
@@ -115,8 +117,9 @@ Comment:
         if not m: raise ValueError('bad sum value %d' % __sum)
 
 class Transfer(Transaction):
-    def __init__(self, pgp_fingerprint, recipient, coins, message=''):
-        super().__init__('TRANSFER', pgp_fingerprint, message)
+    def __init__(self, pgp_fingerprint, recipient, coins, message='', server=None, port=None):
+        super().__init__('TRANSFER', pgp_fingerprint, message, server, port)
+
         self.recipient = recipient
         self.coins = coins
 
@@ -133,7 +136,7 @@ Coins:
             data = coin.split(':')
             issuer = data[0]
             for number in data[1:]:
-                context_data.update(hdc.coins.View(issuer, int(number)).get())
+                context_data.update(hdc.coins.View(issuer, int(number), self.server, self.port).get())
                 tx += '%(id)s, %(transaction)s\n' % context_data
 
         return tx
@@ -154,7 +157,7 @@ Coins:
 """ % context_data
 
         try:
-            last_issuance = hdc.transactions.sender.issuance.Last(self.pgp_fingerprint).get()
+            last_issuance = hdc.transactions.sender.issuance.Last(self.pgp_fingerprint, self.server, self.port).get()
         except ValueError:
             last_issuance = None
 
@@ -168,8 +171,9 @@ Coins:
         return tx
 
 class Issue(MonoTransaction):
-    def __init__(self, pgp_fingerprint, amendment, coins, message=''):
-        super().__init__('ISSUANCE', pgp_fingerprint, message)
+    def __init__(self, pgp_fingerprint, amendment, coins, message='', server=None, port=None):
+        super().__init__('ISSUANCE', pgp_fingerprint, message, server, port)
+
         self.amendment = amendment
         self.coins = coins
 
@@ -184,8 +188,9 @@ class Issue(MonoTransaction):
         return tx
 
 class Fusion(MonoTransaction):
-    def __init__(self, pgp_fingerprint, coins, message=''):
-        super().__init__('FUSION', pgp_fingerprint, message)
+    def __init__(self, pgp_fingerprint, coins, message='', server=None, port=None):
+        super().__init__('FUSION', pgp_fingerprint, message, server, port)
+
         self.coins = coins
 
     def get_mono_message(self, context_data, tx=''):
@@ -200,8 +205,9 @@ class Fusion(MonoTransaction):
         return tx
 
 class Divide(MonoTransaction):
-    def __init__(self, pgp_fingerprint, old_coins, new_coins, message=''):
-        super().__init__('DIVISION', pgp_fingerprint, message)
+    def __init__(self, pgp_fingerprint, old_coins, new_coins, message='', server=None, port=None):
+        super().__init__('DIVISION', pgp_fingerprint, message, server, port)
+
         self.old_coins = old_coins
         self.new_coins = new_coins
 

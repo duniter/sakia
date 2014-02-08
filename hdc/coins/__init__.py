@@ -21,24 +21,24 @@ from .. import HDC, logging
 logger = logging.getLogger("ucoin/hdc/coins")
 
 class Coins(HDC):
-    def __init__(self, pgp_fingerprint):
-        super().__init__('hdc/coins/%s' % pgp_fingerprint)
+    def __init__(self, pgp_fingerprint, server=None, port=None):
+        super().__init__('hdc/coins/%s' % pgp_fingerprint, server, port)
 
 class List(Coins):
     """GET a list of coins owned by the given [PGP_FINGERPRINT]."""
 
     def __get__(self, **kwargs):
-        return self.requests_get('/list').json()
+        return self.requests_get('/list', **kwargs).json()
 
 class View(Coins):
     """GET the ownership state of the coin [COIN_NUMBER] issued by [PGP_FINGERPRINT]."""
 
-    def __init__(self, pgp_fingerprint, coin_number):
-        super().__init__(pgp_fingerprint)
+    def __init__(self, pgp_fingerprint, coin_number, server=None, port=None):
+        super().__init__(pgp_fingerprint, server, port)
 
         self.coin_number = coin_number
 
     def __get__(self, **kwargs):
-        return self.requests_get('/view/%d' % self.coin_number).json()
+        return self.requests_get('/view/%d' % self.coin_number, **kwargs).json()
 
 from . import view

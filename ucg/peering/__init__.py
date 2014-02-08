@@ -21,8 +21,8 @@ from .. import UCG, logging
 logger = logging.getLogger("ucoin/ucg/peering")
 
 class Base(UCG):
-    def __init__(self):
-        super().__init__('ucg/peering')
+    def __init__(self, server=None, port=None):
+        super().__init__('ucg/peering', server, port)
 
 class Keys(Base):
     """GET PGP keys' fingerprint this node manages, i.e. this node will have transactions history and follow ohter nodes for this history."""
@@ -38,7 +38,7 @@ class Peer(Base):
     def __get__(self, **kwargs):
         """returns peering entry of the node."""
 
-        return self.requests_get('/peer').json()
+        return self.requests_get('/peer', **kwargs).json()
 
 class Peers(Base):
     """GET peering entries of every node inside the currency network."""

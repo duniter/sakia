@@ -23,6 +23,10 @@ from .. import pks, ucg, hdc, settings
 logger = logging.getLogger("wrappers")
 
 class Wrapper:
+    def __init__(self, server=None, port=None):
+        self.server = server
+        self.port = port
+
     def __call__(self):
         pass
 

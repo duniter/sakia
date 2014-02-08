@@ -21,25 +21,25 @@ from .. import API, logging
 logger = logging.getLogger("ucoin/ucg")
 
 class UCG(API):
-    def __init__(self, module='ucg'):
-        super().__init__(module)
+    def __init__(self, module='ucg', server=None, port=None):
+        super().__init__(module, server, port)
 
 class Pubkey(UCG):
     """GET the public key of the peer."""
 
     def __get__(self, **kwargs):
-        return self.requests_get('/pubkey').text
+        return self.requests_get('/pubkey', **kwargs).text
 
 class Peering(UCG):
     """GET peering information about a peer."""
 
     def __get__(self, **kwargs):
-        return self.requests_get('/peering').json()
+        return self.requests_get('/peering', **kwargs).json()
 
 class THT(UCG):
     """GET/POST THT entries."""
 
-    def __init__(self, pgp_fingerprint=None):
+    def __init__(self, pgp_fingerprint=None, server=None, port=None):
         """
         Use the pgp fingerprint parameter in order to fit the result.
 
@@ -47,7 +47,7 @@ class THT(UCG):
         - `pgp_fingerprint`: pgp fingerprint to use as a filter
         """
 
-        super().__init__()
+        super().__init__(server, port)
 
         self.pgp_fingerprint = pgp_fingerprint
 

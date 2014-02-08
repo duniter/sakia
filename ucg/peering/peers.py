@@ -21,13 +21,13 @@ from . import UCG, logging
 logger = logging.getLogger("ucoin/ucg/peering/peers")
 
 class Base(UCG):
-    def __init__(self):
-        super().__init__('ucg/peering/peers')
+    def __init__(self, server=None, port=None):
+        super().__init__('ucg/peering/peers', server, port)
 
 class Stream(Base):
     """GET a list of peers this node is listening to/by for ANY incoming transaction."""
 
-    def __init__(self, request, pgp_fingerprint=None):
+    def __init__(self, request, pgp_fingerprint=None, server=None, port=None):
         """
         Use the pgp fingerprint parameter in order to fit the result.
 
@@ -36,7 +36,7 @@ class Stream(Base):
         - `pgp_fingerprint`: pgp fingerprint to use as a filter
         """
 
-        super().__init__()
+        super().__init__(server, port)
 
         self.request = request
         self.pgp_fingerprint = pgp_fingerprint
@@ -45,14 +45,14 @@ class Stream(Base):
         """returns the corresponding peer list."""
 
         if not self.pgp_fingerprint:
-            return self.requests_get('/%s' % self.request).json()
+            return self.requests_get('/%s' % self.request, **kwargs).json()
 
-        return self.requests_get('/%s/%s' % (self.request, self.pgp_fingerprint)).json()
+        return self.requests_get('/%s/%s' % (self.request, self.pgp_fingerprint), **kwargs).json()
 
 class UpStream(Stream):
     """GET a list of peers this node is listening to for ANY incoming transaction."""
 
-    def __init__(self, pgp_fingerprint=None):
+    def __init__(self, pgp_fingerprint=None, server=None, port=None):
         """
         Use the pgp fingerprint parameter in order to fit the result.
 
@@ -60,12 +60,12 @@ class UpStream(Stream):
         - `pgp_fingerprint`: pgp fingerprint to use as a filter
         """
 
-        super().__init__('upstream', pgp_fingerprint)
+        super().__init__('upstream', pgp_fingerprint, server, port)
 
 class DownStream(Stream):
     """GET a list of peers this node is listening by for ANY incoming transaction."""
 
-    def __init__(self, pgp_fingerprint=None):
+    def __init__(self, pgp_fingerprint=None, server=None, port=None):
         """
         Use the pgp fingerprint parameter in order to fit the result.
 
@@ -73,4 +73,4 @@ class DownStream(Stream):
         - `pgp_fingerprint`: pgp fingerprint to use as a filter
         """
 
-        super().__init__('downstream', pgp_fingerprint)
+        super().__init__('downstream', pgp_fingerprint, server, port)

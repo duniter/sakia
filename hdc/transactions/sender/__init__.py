@@ -23,32 +23,32 @@ logger = logging.getLogger("ucoin/hdc/transactions/sender")
 class Base(HDC):
     """Get the last received transaction of a PGP key."""
 
-    def __init__(self, pgp_fingerprint):
+    def __init__(self, pgp_fingerprint, server=None, port=None):
         """
         Arguments:
         - `pgp_fingerprint`: PGP fingerprint of the key we want to see sent transactions.
         """
 
-        super().__init__('hdc/transactions/sender/%s' % pgp_fingerprint)
+        super().__init__('hdc/transactions/sender/%s' % pgp_fingerprint, server, port)
 
 class Last(Base):
     """Get the last received transaction of a PGP key."""
 
-    def __init__(self, pgp_fingerprint, count=None):
+    def __init__(self, pgp_fingerprint, count=None, server=None, port=None):
         """
         Arguments:
         - `count`: Integer indicating to retrieve the last [COUNT] transactions.
         """
 
-        super().__init__(pgp_fingerprint)
+        super().__init__(pgp_fingerprint, server, port)
 
         self.count = count
 
     def __get__(self, **kwargs):
         if not self.count:
-            return self.requests_get('/last').json()
+            return self.requests_get('/last', **kwargs).json()
 
-        return self.requests_get('/last/%d' % self.count).json()
+        return self.requests_get('/last/%d' % self.count, **kwargs).json()
 
 class Transfer(Base):
     """GET all transfer transactions sent by this sender and stored by this node (should contain all transfert transactions of the sender)."""

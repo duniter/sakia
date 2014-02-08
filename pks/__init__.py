@@ -21,8 +21,8 @@ from .. import API, logging
 logger = logging.getLogger("ucoin/pks")
 
 class PKS(API):
-    def __init__(self, module='pks'):
-        super().__init__(module)
+    def __init__(self, module='pks', server=None, port=None):
+        super().__init__(module, server, port)
 
 class Add(PKS):
     """POST ASCII-armored OpenPGP certificates."""

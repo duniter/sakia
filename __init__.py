@@ -92,7 +92,7 @@ class Response:
 class API:
     """APIRequest is a class used as an interface. The intermediate derivated classes are the modules and the leaf classes are the API requests."""
 
-    def __init__(self, module):
+    def __init__(self, module, server=None, port=None):
         """
         Asks a module in order to create the url used then by derivated classes.
 
@@ -100,7 +100,9 @@ class API:
         - `module`: module name
         """
 
-        self.url = 'http://%s:%d/%s' % (settings['server'], settings['port'], module)
+        self.url = 'http://%s:%d/%s' % (server if server else settings['server'],
+                                        port if port else settings['port'],
+                                        module)
         self.headers = {}
 
         if settings['auth']:

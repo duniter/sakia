@@ -23,16 +23,19 @@ from . import Wrapper, pks, ucg, hdc, settings
 logger = logging.getLogger("coins")
 
 class Coins(Wrapper):
-    def __init__(self, pgp_fingerprint):
+    def __init__(self, pgp_fingerprint, server=None, port=None):
+        super().__init__(server, port)
+
         self.pgp_fingerprint = pgp_fingerprint
 
 class Get(Coins):
-    def __init__(self, pgp_fingerprint, values):
-        super().__init__(pgp_fingerprint)
+    def __init__(self, pgp_fingerprint, values, server=None, port=None):
+        super().__init__(pgp_fingerprint, server, port)
+
         self.values = values
 
     def __call__(self):
-        __list = hdc.coins.List(self.pgp_fingerprint).get()
+        __list = hdc.coins.List(self.pgp_fingerprint, self.server, self.port).get()
         coins = {}
         for c in __list['coins']:
             for id in c['ids']:
@@ -60,12 +63,13 @@ class Get(Coins):
         return res
 
 class List(Coins):
-    def __init__(self, pgp_fingerprint, limit=None):
-        super().__init__(pgp_fingerprint)
+    def __init__(self, pgp_fingerprint, limit=None, server=None, port=None):
+        super().__init__(pgp_fingerprint, server, port)
+
         self.limit = limit
 
     def __call__(self):
-        __list = hdc.coins.List(self.pgp_fingerprint).get()
+        __list = hdc.coins.List(self.pgp_fingerprint, self.server, self.port).get()
         coins = []
         __sum = 0
 

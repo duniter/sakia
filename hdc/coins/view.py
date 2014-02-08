@@ -21,11 +21,11 @@ from . import HDC, logging
 logger = logging.getLogger("ucoin/hdc/coins/view")
 
 class Base(HDC):
-    def __init__(self, pgp_fingerprint, coin_number):
-        super().__init__('hdc/coins/%s/view/%d' % (pgp_fingerprint, coin_number))
+    def __init__(self, pgp_fingerprint, coin_number, server=None, port=None):
+        super().__init__('hdc/coins/%s/view/%d' % (pgp_fingerprint, coin_number), server, port)
 
 class History(Base):
     """GET a transaction history of the coin [COIN_NUMBER] issued by [PGP_FINGERPRINT]."""
 
     def __get__(self, **kwargs):
-        return self.requests_get('/history').json()
+        return self.requests_get('/history', **kwargs).json()
