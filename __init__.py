@@ -100,9 +100,10 @@ class API:
         - `module`: module name
         """
 
-        self.url = 'http://%s:%d/%s' % (server if server else settings['server'],
-                                        port if port else settings['port'],
-                                        module)
+        self.module = module
+        self.server = server
+        self.port = port
+
         self.headers = {}
 
         if settings['auth']:
@@ -116,7 +117,10 @@ class API:
         - `path`: the request path
         """
 
-        return self.url + path
+        url = 'http://%s:%d/%s' % (self.server if self.server else settings['server'],
+                                   self.port if self.port else settings['port'],
+                                   self.module)
+        return url + path
 
     def get(self, **kwargs):
         """wrapper of overloaded __get__ method."""
