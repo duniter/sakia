@@ -24,7 +24,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QListView" name="communityMembers_2"/>
+      <widget class="QListView" name="communityMembersList"/>
      </item>
     </layout>
    </item>
@@ -38,7 +38,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QListView" name="listView"/>
+      <widget class="QListView" name="issuancesList"/>
      </item>
     </layout>
    </item>

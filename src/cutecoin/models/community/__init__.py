@@ -7,6 +7,7 @@ Created on 1 févr. 2014
 import ucoinpy as ucoin
 import hashlib
 import json
+import logging
 
 class Community(object):
     '''
@@ -27,7 +28,10 @@ class Community(object):
         '''
         Listing members of a community
         '''
-        members = self.ucoinRequest(lambda : self.ucoinInstance.hdc.amendments.view.Members().get)
+        membersList = self.ucoinRequest(lambda : self.ucoinInstance.hdc.amendments.view.Members(self.currentAmendmentId()).get)
+        members = []
+        for m in membersList:
+            members.append(m['value'])
         return members
 
     def ucoinRequest(self, request):
@@ -35,7 +39,7 @@ class Community(object):
             if node.available == True:
                 self.ucoinInstance.settings['server'] = node.server
                 self.ucoinInstance.settings['port'] = node.port
-                print("Trying to connect to : " + node.getText())
+                logging.debug("Trying to connect to : " + node.getText())
                 return (request())()
 
         raise RuntimeError("Cannot connect to any node")
@@ -45,8 +49,7 @@ class Community(object):
         currentAmendment = self.ucoinRequest(lambda:ucoin.hdc.amendments.Current().get)
         currentAmendmentHash = hashlib.sha1(currentAmendment['raw'].encode('utf-8')).hexdigest().upper()
         amendmentId = str(currentAmendment["number"]) + "-" + currentAmendmentHash
-        #TODO: Distinct debug logging and info logging for a -d parameter
-        print("Amendment : " + amendmentId)
+        logging.debug("Amendment : " + amendmentId)
         return amendmentId
 
     def name(self):

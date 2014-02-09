@@ -26,7 +26,6 @@ class AddAccountDialog(QDialog, Ui_AddAccountDialog):
         # Set up the user interface from Designer.
         super(AddAccountDialog, self).__init__()
         self.setupUi(self)
-        self.dialog = AddCommunityDialog(self)
         self.mainWindow = mainWindow
 
         self.buttonBox.accepted.connect(self.mainWindow.actionAddAccount)
@@ -40,15 +39,16 @@ class AddAccountDialog(QDialog, Ui_AddAccountDialog):
             self.gpgKeysList.addItem(key['uids'][0])
 
         self.account = Account(availableKeys[0]['keyid'], "", Communities())
-        self.gpgKeysList.setEnabled()
+        self.gpgKeysList.setEnabled(True)
         self.gpgKeysList.currentIndexChanged[int].connect(self.keyChanged)
+        self.communityDialog = AddCommunityDialog(self)
 
     def openAddCommunityDialog(self):
-        self.dialog.setAccount(self.account)
-        self.dialog.exec_()
+        self.communityDialog.setAccount(self.account)
+        self.communityDialog.exec_()
 
     def actionAddCommunity(self):
-        self.gpgKeysList.setDisabled()
+        self.gpgKeysList.setEnabled(False)
         self.gpgKeysList.disconnect()
         self.communitiesList.setModel(CommunitiesListModel(self.account))
 

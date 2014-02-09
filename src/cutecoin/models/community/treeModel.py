@@ -7,6 +7,7 @@ Created on 5 févr. 2014
 from PyQt5.QtCore import QAbstractItemModel, QModelIndex, Qt
 from cutecoin.models.node.itemModel import MainNodeItem, NodeItem
 from cutecoin.models.community.itemModel import CommunityItemModel
+import logging
 
 class CommunityTreeModel(QAbstractItemModel):
     '''
@@ -87,14 +88,13 @@ class CommunityTreeModel(QAbstractItemModel):
 
 
     def refreshTreeNodes(self):
-
-        print("root : " + self.rootItem.data(0))
+        logging.debug("root : " + self.rootItem.data(0))
         for mainNode in self.community.knownNodes:
             mainNodeItem = MainNodeItem(mainNode, self.rootItem)
-            print("mainNode : " + mainNode.getText() + " / " + mainNodeItem.data(0))
+            logging.debug("mainNode : " + mainNode.getText() + " / " + mainNodeItem.data(0))
             self.rootItem.appendChild(mainNodeItem)
             for node in mainNode.downstreamPeers():
                 nodeItem = NodeItem(node, mainNodeItem)
-                print("\t node : " + node.getText()+ " / " + nodeItem.data(0))
+                logging.debug("\t node : " + node.getText()+ " / " + nodeItem.data(0))
                 mainNodeItem.appendChild(nodeItem)
 

@@ -6,6 +6,7 @@ Created on 1 févr. 2014
 
 import ucoinpy as ucoin
 import gnupg
+import logging
 from cutecoin.models.account.wallets import Wallets
 
 class Account(object):
@@ -34,9 +35,9 @@ class Account(object):
     def keyFingerprint(self):
         gpg = gnupg.GPG()
         availableKeys = gpg.list_keys()
-        print(self.gpgKey)
+        logging.debug(self.gpgKey)
         for k in availableKeys:
-            print(k)
+            logging.debug(k)
             if k['keyid'] == self.gpgKey:
                 return k['fingerprint']
         return ""

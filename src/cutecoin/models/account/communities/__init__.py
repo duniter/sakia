@@ -5,6 +5,8 @@ Created on 5 févr. 2014
 '''
 import ucoinpy as ucoin
 from cutecoin.models.community import Community
+from cutecoin.core.exceptions import NotMemberOfCommunityError
+import logging
 
 class Communities(object):
     '''
@@ -16,23 +18,23 @@ class Communities(object):
         '''
         self.communitiesList = []
 
-    def getCommunity(self, currency):
+    def getCommunity(self, amendmentId):
         for com in self.communitiesList:
-            #TODO: Compare communities by amendment hash instead of currency
-            if com.currency == currency:
+            if com.currentAmendmentId() == amendmentId:
                 return com
 
-    def addCommunity(self, mainNode, accountFingerprint):
+    def addCommunity(self, mainNode, keyFingerprint):
         community = Community(mainNode)
         self.members = community.ucoinRequest(lambda:ucoin.hdc.amendments.view.Members(community.currentAmendmentId()).get)
 
-        print(accountFingerprint)
+        logging.debug("Account fingerprint : " + keyFingerprint)
         for member in self.members:
-            print(member)
-            if member['value'] == accountFingerprint:
+            logging.debug(member)
+            if member['value'] == keyFingerprint:
                 self.communitiesList.append(community)
                 return community
 
+        raise NotMemberOfCommunityError(keyFingerprint, community.currency + "-" + community.currentAmendmentId())
         return None
 
     #TODO: Jsonify this model

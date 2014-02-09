@@ -26,13 +26,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.core = core
 
     def openAddAccountDialog(self):
-        self.dialog = AddAccountDialog(self)
-        self.dialog.setData()
-        self.dialog.exec_()
+        self.addAccountDialog = AddAccountDialog(self)
+        self.addAccountDialog.setData()
+        self.addAccountDialog.exec_()
 
     def actionAddAccount(self):
-        self.dialog.account.name = self.dialog.accountName.text()
-        self.core.addAccount(self.dialog.account)
+        self.addAccountDialog.account.name = self.addAccountDialog.accountName.text()
+        self.core.addAccount(self.addAccountDialog.account)
         self.refreshMainWindow()
 
     '''
@@ -49,7 +49,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.walletsList.setModel(WalletsListModel(self.core.currentAccount))
             self.walletContent.setModel(WalletListModel(self.core.currentAccount.wallets.walletsList[0]))
             for community in self.core.currentAccount.communities.communitiesList:
-                self.communitiesTab.addPage(CommunityTabWidget(community), community.name())
+                self.communitiesTab.addTab(CommunityTabWidget(community), community.name())
             #TODO: self.transactionsReceived.setModel()
             #TODO: self.transactionsSent.setModel()
 

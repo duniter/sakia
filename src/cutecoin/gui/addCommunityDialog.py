@@ -4,9 +4,10 @@ Created on 2 févr. 2014
 @author: inso
 '''
 from cutecoin.gen_resources.addCommunityDialog_uic import Ui_AddCommunityDialog
-from PyQt5.QtWidgets import QDialog
+from PyQt5.QtWidgets import QDialog, QErrorMessage
 from cutecoin.models.community.treeModel import CommunityTreeModel
 from cutecoin.models.node import MainNode
+from cutecoin.core.exceptions import NotMemberOfCommunityError
 
 class AddCommunityDialog(QDialog, Ui_AddCommunityDialog):
     '''
@@ -32,8 +33,14 @@ class AddCommunityDialog(QDialog, Ui_AddCommunityDialog):
         '''
         server = self.serverEdit.text()
         port = self.portBox.value()
-        community = self.account.communities.addCommunity(MainNode(server, port), self.account.keyFingerprint())
-        self.account.wallets.addWallet(community.currency)
-        self.communityView.setModel( CommunityTreeModel(community) )
+        #TODO: Manage case where account is not member of the community
+        #An error must be displayed and the community must not be added
+        try:
+            community = self.account.communities.addCommunity(MainNode(server, port), self.account.keyFingerprint())
+            self.account.wallets.addWallet(community.currency)
+            self.communityView.setModel( CommunityTreeModel(community) )
+        except NotMemberOfCommunityError as e:
+            QErrorMessage(self).showMessage(e.message)
+
 
 
