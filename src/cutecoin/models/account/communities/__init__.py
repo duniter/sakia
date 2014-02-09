@@ -26,8 +26,9 @@ class Communities(object):
         community = Community(mainNode)
         self.members = community.ucoinRequest(lambda:ucoin.hdc.amendments.view.Members(community.currentAmendmentId()).get)
 
-        #TODO: Check membership
+        print(accountFingerprint)
         for member in self.members:
+            print(member)
             if member['value'] == accountFingerprint:
                 self.communitiesList.append(community)
                 return community

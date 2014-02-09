@@ -10,11 +10,12 @@ class Transaction(object):
     '''
 
 
-    def __init__(self, value, sender, receiver, currency):
+    def __init__(self, senderFingerprint, increment):
         '''
         Constructor
         '''
-        self.value = value
-        self.sender = sender
-        self.receiver = receiver
-        self.currency = currency
+        self.senderFingerprint = senderFingerprint
+        self.increment = increment
+
+    def transactionID(self):
+        return self.senderFingerprint + "-" + self.increment

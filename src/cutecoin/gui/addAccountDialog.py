@@ -29,7 +29,6 @@ class AddAccountDialog(QDialog, Ui_AddAccountDialog):
         self.dialog = AddCommunityDialog(self)
         self.mainWindow = mainWindow
 
-
         self.buttonBox.accepted.connect(self.mainWindow.actionAddAccount)
 
         self.setData()
@@ -38,15 +37,23 @@ class AddAccountDialog(QDialog, Ui_AddAccountDialog):
         gpg = gnupg.GPG()
         availableKeys = gpg.list_keys(True)
         for key in availableKeys:
-            self.pgpkeyList.addItem(key['uids'][0])
+            self.gpgKeysList.addItem(key['uids'][0])
 
-        self.account = Account(self.pgpkeyList.currentText(), "", Communities())
+        self.account = Account(availableKeys[0]['keyid'], "", Communities())
+        self.gpgKeysList.setEnabled()
+        self.gpgKeysList.currentIndexChanged[int].connect(self.keyChanged)
 
     def openAddCommunityDialog(self):
         self.dialog.setAccount(self.account)
         self.dialog.exec_()
 
     def actionAddCommunity(self):
+        self.gpgKeysList.setDisabled()
+        self.gpgKeysList.disconnect()
         self.communitiesList.setModel(CommunitiesListModel(self.account))
 
+    def keyChanged(self, keyIndex):
+        gpg = gnupg.GPG()
+        availableKeys = gpg.list_keys(True)
+        self.account.gpgKey = availableKeys[keyIndex]['keyid']
 

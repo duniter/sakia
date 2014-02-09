@@ -13,11 +13,11 @@ class Account(object):
     classdocs
     '''
 
-    def __init__(self, pgpKey, name, communities):
+    def __init__(self, gpgKey, name, communities):
         '''
         Constructor
         '''
-        self.pgpKey = pgpKey
+        self.gpgKey = gpgKey
         self.name = name
         self.communities = communities
         self.wallets = Wallets()
@@ -34,8 +34,10 @@ class Account(object):
     def keyFingerprint(self):
         gpg = gnupg.GPG()
         availableKeys = gpg.list_keys()
+        print(self.gpgKey)
         for k in availableKeys:
-            if k['keyid'] == self.pgpKey:
+            print(k)
+            if k['keyid'] == self.gpgKey:
                 return k['fingerprint']
         return ""
 

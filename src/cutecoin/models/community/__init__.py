@@ -43,8 +43,9 @@ class Community(object):
 
     def currentAmendmentId(self):
         currentAmendment = self.ucoinRequest(lambda:ucoin.hdc.amendments.Current().get)
-        currentAmendmentHash = hashlib.sha1(json.dumps(currentAmendment).encode('utf-8')).hexdigest()
+        currentAmendmentHash = hashlib.sha1(currentAmendment['raw'].encode('utf-8')).hexdigest().upper()
         amendmentId = str(currentAmendment["number"]) + "-" + currentAmendmentHash
+        #TODO: Distinct debug logging and info logging for a -d parameter
         print("Amendment : " + amendmentId)
         return amendmentId
 

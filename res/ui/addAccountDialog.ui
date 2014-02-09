@@ -47,7 +47,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="pgpkeyList"/>
+         <widget class="QComboBox" name="gpgKeysList"/>
         </item>
        </layout>
       </item>
@@ -149,5 +149,6 @@
  </connections>
  <slots>
   <slot>openAddCommunityDialog()</slot>
+  <slot>keyChanged(int)</slot>
  </slots>
 </ui>

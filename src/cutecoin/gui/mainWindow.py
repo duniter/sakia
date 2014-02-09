@@ -50,4 +50,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.walletContent.setModel(WalletListModel(self.core.currentAccount.wallets.walletsList[0]))
             for community in self.core.currentAccount.communities.communitiesList:
                 self.communitiesTab.addPage(CommunityTabWidget(community), community.name())
+            #TODO: self.transactionsReceived.setModel()
+            #TODO: self.transactionsSent.setModel()
+
 
