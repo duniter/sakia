@@ -9,6 +9,8 @@ from cutecoin.gui.addAccountDialog import AddAccountDialog
 from cutecoin.gui.communityTabWidget import CommunityTabWidget
 from cutecoin.models.account.wallets.listModel import WalletsListModel
 from cutecoin.models.wallet.listModel import WalletListModel
+from cutecoin.models.transaction.sentListModel import SentListModel
+from cutecoin.models.transaction.receivedListModel import ReceivedListModel
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     '''
@@ -35,6 +37,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.core.addAccount(self.addAccountDialog.account)
         self.refreshMainWindow()
 
+    def save(self):
+        self.core.save()
+
     '''
     Refresh main window
     When the selected account changes, all the widgets
@@ -50,7 +55,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.walletContent.setModel(WalletListModel(self.core.currentAccount.wallets.walletsList[0]))
             for community in self.core.currentAccount.communities.communitiesList:
                 self.communitiesTab.addTab(CommunityTabWidget(community), community.name())
-            #TODO: self.transactionsReceived.setModel()
-            #TODO: self.transactionsSent.setModel()
+            self.transactionsSent.setModel(SentListModel(self.core.currentAccount))
+            self.transactionsReceived.setModel(ReceivedListModel(self.core.currentAccount))
 
 

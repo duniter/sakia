@@ -16,8 +16,6 @@ class Node(object):
         '''
         self.server = server
         self.port = port
-        self.available = True
-
 
     def __eq__(self, other):
         return ( self.server == other.server and self.port == other.port )
@@ -27,7 +25,6 @@ class Node(object):
 
 
 class MainNode(Node):
-
     def downstreamPeers(self):
         ucoin.settings['server'] = self.server
         ucoin.settings['port'] = self.port
@@ -38,7 +35,7 @@ class MainNode(Node):
             peers.append(node)
         return peers
 
-    #TODO: Jsonify this model
-    def saveJson(self):
-        pass
+    def jsonify(self):
+        return {'server' : self.server,
+                'port' : self.port}
 

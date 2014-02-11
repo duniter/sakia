@@ -4,31 +4,29 @@ Created on 5 févr. 2014
 @author: inso
 '''
 
-from cutecoin.models.person import factory
+import ucoinpy as ucoin
+import logging
 from PyQt5.QtCore import QAbstractListModel, Qt
 
-class MembersListModel(QAbstractListModel):
+class SentListModel(QAbstractListModel):
     '''
     A Qt abstract item model to display communities in a tree
     '''
-    def __init__(self, community, parent=None):
+    def __init__(self, account, parent=None):
         '''
         Constructor
         '''
-        super(MembersListModel, self).__init__(parent)
-        fingerprints = community.membersFingerprints()
-        self.members = []
-        for f in fingerprints:
-            self.members.append(factory.createPerson(f, community))
+        super(SentListModel, self).__init__(parent)
+        self.transactions = account.transactionsSent()
 
     def rowCount(self ,parent):
-        return len(self.members)
+        return len(self.transactions)
 
     def data(self,index,role):
 
         if role == Qt.DisplayRole:
             row=index.row()
-            value = self.members[row].name
+            value = self.transactions[row].getSendText()
             return value
 
     def flags(self,index):

@@ -13,40 +13,43 @@ class Community(object):
     '''
     classdocs
     '''
-    def __init__(self, mainNode):
+    def __init__(self):
         '''
         Constructor
         '''
         self.knownNodes = []
-        self.knownNodes.append(mainNode)
-        self.ucoinInstance = ucoin
+        self.currency = ""
 
-        currentAmendment = self.ucoinRequest(lambda : self.ucoinInstance.hdc.amendments.Current().get)
-        self.currency = currentAmendment['currency']
-
-    def members(self):
+    def membersFingerprints(self):
         '''
         Listing members of a community
         '''
-        membersList = self.ucoinRequest(lambda : self.ucoinInstance.hdc.amendments.view.Members(self.currentAmendmentId()).get)
+        fingerprints = self.ucoinRequest(ucoin.hdc.amendments.view.Members(self.amendmentId()))
         members = []
-        for m in membersList:
-            members.append(m['value'])
+        for f in fingerprints:
+            members.append(f['value'])
         return members
 
-    def ucoinRequest(self, request):
+    def issuances(self):
+        '''
+        Listing issuances the accounted emitted
+        '''
+        #TODO:Return issuances
+        #issuances = self.ucoinRequest(ucoin.hdc.amendments.view.Members(amendmentId)
+        return []
+
+    def ucoinRequest(self, request, get_args={}):
         for node in self.knownNodes:
-            if node.available == True:
-                self.ucoinInstance.settings['server'] = node.server
-                self.ucoinInstance.settings['port'] = node.port
                 logging.debug("Trying to connect to : " + node.getText())
-                return (request())()
+                request.server = node.server
+                request.port = node.port
+                return request.get(**get_args)
 
         raise RuntimeError("Cannot connect to any node")
 
 
-    def currentAmendmentId(self):
-        currentAmendment = self.ucoinRequest(lambda:ucoin.hdc.amendments.Current().get)
+    def amendmentId(self):
+        currentAmendment = self.ucoinRequest(ucoin.hdc.amendments.Current())
         currentAmendmentHash = hashlib.sha1(currentAmendment['raw'].encode('utf-8')).hexdigest().upper()
         amendmentId = str(currentAmendment["number"]) + "-" + currentAmendmentHash
         logging.debug("Amendment : " + amendmentId)
@@ -55,7 +58,14 @@ class Community(object):
     def name(self):
         return self.currency
 
-    #TODO: Jsonify this model
-    def saveJson(self):
-        pass
+    def jsonifyNodesList(self):
+        data = []
+        for node in self.knownNodes:
+            data.append(node.jsonify())
+        return data
+
+    def jsonify(self):
+        data = {'nodes' : self.jsonifyNodesList(),
+                'currency' : self.currency}
+        return data
 

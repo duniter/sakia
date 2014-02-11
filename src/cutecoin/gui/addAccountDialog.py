@@ -6,7 +6,7 @@ Created on 2 févr. 2014
 from cutecoin.gen_resources.addAccountDialog_uic import Ui_AddAccountDialog
 from PyQt5.QtWidgets import QDialog
 from cutecoin.gui.addCommunityDialog import AddCommunityDialog
-from cutecoin.models.account import Account
+from cutecoin.models.account import factory
 from cutecoin.models.account.communities import Communities
 from cutecoin.models.account.communities.listModel import CommunitiesListModel
 
@@ -36,11 +36,11 @@ class AddAccountDialog(QDialog, Ui_AddAccountDialog):
         gpg = gnupg.GPG()
         availableKeys = gpg.list_keys(True)
         for key in availableKeys:
-            self.gpgKeysList.addItem(key['uids'][0])
+            self.pgpKeysList.addItem(key['uids'][0])
 
-        self.account = Account(availableKeys[0]['keyid'], "", Communities())
-        self.gpgKeysList.setEnabled(True)
-        self.gpgKeysList.currentIndexChanged[int].connect(self.keyChanged)
+        self.account = factory.createAccount(availableKeys[0]['keyid'], "", Communities())
+        self.pgpKeysList.setEnabled(True)
+        self.pgpKeysList.currentIndexChanged[int].connect(self.keyChanged)
         self.communityDialog = AddCommunityDialog(self)
 
     def openAddCommunityDialog(self):
@@ -48,12 +48,12 @@ class AddAccountDialog(QDialog, Ui_AddAccountDialog):
         self.communityDialog.exec_()
 
     def actionAddCommunity(self):
-        self.gpgKeysList.setEnabled(False)
-        self.gpgKeysList.disconnect()
+        self.pgpKeysList.setEnabled(False)
+        self.pgpKeysList.disconnect()
         self.communitiesList.setModel(CommunitiesListModel(self.account))
 
     def keyChanged(self, keyIndex):
         gpg = gnupg.GPG()
         availableKeys = gpg.list_keys(True)
-        self.account.gpgKey = availableKeys[keyIndex]['keyid']
+        self.account.pgpKeyId = availableKeys[keyIndex]['keyid']
 

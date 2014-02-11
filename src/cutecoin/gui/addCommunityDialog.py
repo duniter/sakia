@@ -33,8 +33,6 @@ class AddCommunityDialog(QDialog, Ui_AddCommunityDialog):
         '''
         server = self.serverEdit.text()
         port = self.portBox.value()
-        #TODO: Manage case where account is not member of the community
-        #An error must be displayed and the community must not be added
         try:
             community = self.account.communities.addCommunity(MainNode(server, port), self.account.keyFingerprint())
             self.account.wallets.addWallet(community.currency)

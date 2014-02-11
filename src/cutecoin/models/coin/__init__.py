@@ -13,10 +13,7 @@ class Coin(object):
     '''
 
 
-    def __init__(self, ownerFingerprint, coin_id):
-        '''
-        Constructor
-        '''
+    def __init__(self, coin_id):
         # Regex to parse the coin id
         regex = "/^([A-Z\d]{40})-(\d+)-(\d)-(\d+)-((A|F|D)-\d+))$/"
         m = re.search(regex, coin_id)
@@ -25,7 +22,6 @@ class Coin(object):
         self.base = int(m.group(2))
         self.power = int(m.group(3))
         self.origin = m.group(4)
-        self.ownerFingerprint = ownerFingerprint
 
     def value(self):
         return math.pow(self.base, self.power)
@@ -36,3 +32,5 @@ class Coin(object):
             + str(self.base) + "-" \
             + str(self.power) + "-" \
             + self.origin
+
+

@@ -47,7 +47,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="gpgKeysList"/>
+         <widget class="QComboBox" name="pgpKeysList"/>
         </item>
        </layout>
       </item>

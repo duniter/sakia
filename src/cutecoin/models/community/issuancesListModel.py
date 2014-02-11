@@ -20,7 +20,7 @@ class IssuancesListModel(QAbstractListModel):
 
 
     def rowCount(self ,parent):
-        return len(self.issuanes)
+        return len(self.issuances)
 
     def data(self,index,role):
 
