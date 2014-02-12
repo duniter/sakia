@@ -5,14 +5,14 @@ Created on 2 févr. 2014
 '''
 from PyQt5.QtWidgets import QWidget
 from cutecoin.models.community.membersListModel import MembersListModel
-from cutecoin.models.community.issuancesListModel import IssuancesListModel
+from cutecoin.models.transaction.issuancesListModel import IssuancesListModel
 from cutecoin.gen_resources.communityTabWidget_uic import Ui_CommunityTabWidget
 
 class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
     '''
     classdocs
     '''
-    def __init__(self, community):
+    def __init__(self, account, community):
         '''
         Constructor
         '''
@@ -20,7 +20,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         self.setupUi(self)
         self.community = community
         self.communityMembersList.setModel(MembersListModel(community))
-        self.issuancesList.setModel(IssuancesListModel(community))
+        self.issuancesList.setModel(IssuancesListModel(account, community))
 
 
 

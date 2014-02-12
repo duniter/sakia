@@ -8,7 +8,8 @@ import ucoinpy as ucoin
 
 class Person(object):
     '''
-    classdocs
+    A person with a name, a fingerprint and an email
+    Created by the person.factory
     '''
 
 

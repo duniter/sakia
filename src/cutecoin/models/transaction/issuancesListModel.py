@@ -10,14 +10,12 @@ class IssuancesListModel(QAbstractListModel):
     '''
     A Qt abstract item model to display communities in a tree
     '''
-    def __init__(self, community, parent=None):
+    def __init__(self, account, community, parent=None):
         '''
         Constructor
         '''
         super(IssuancesListModel, self).__init__(parent)
-        #TODO: Manage issuances
-        self.issuances = []
-
+        self.issuances = account.lastIssuances(community)
 
     def rowCount(self ,parent):
         return len(self.issuances)

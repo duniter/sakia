@@ -63,7 +63,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def refreshMainWindow(self):
         self.menuChange_account.clear()
         signalMapper = QSignalMapper(self)
-        
+
         for account in self.core.accounts:
             action = QAction(account.name, self)
             self.menuChange_account.addAction(action)
@@ -79,7 +79,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.walletsList.setModel(WalletsListModel(self.core.currentAccount))
             self.walletContent.setModel(WalletListModel(self.core.currentAccount.wallets.walletsList[0]))
             for community in self.core.currentAccount.communities.communitiesList:
-                self.communitiesTab.addTab(CommunityTabWidget(community), community.name())
+                communityTab = CommunityTabWidget(self.core.currentAccount, community)
+                self.communitiesTab.addTab(communityTab, community.name())
             self.transactionsSent.setModel(SentListModel(self.core.currentAccount))
             self.transactionsReceived.setModel(ReceivedListModel(self.core.currentAccount))
 

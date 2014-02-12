@@ -13,13 +13,11 @@ class Transaction(object):
     A transaction which can be a transfer or an issuance.
     At the moment the difference is not made
     '''
-    def __init__(self, senderFingerprint, increment, community):
-        self.increment = increment
-        self.community = community
-        self.sender = factory.createPerson(senderFingerprint, community)
-        ucoinTransactionView = ucoin.hdc.transactions.View(self.transactionID())
-        trxData = self.community.ucoinRequest(ucoinTransactionView)
-        self.recipient = factory.createPerson(trxData['transaction']['recipient'], community)
+    def __init__(self):
+        self.increment = 0
+        self.community = ""
+        self.sender = None
+        self.recipient = None
 
     def value(self):
         value = 0
@@ -36,8 +34,32 @@ class Transaction(object):
     def transactionID(self):
         return self.senderFingerprint + "-" + self.increment
 
+
+
+class Transfer(Transaction):
+    '''
+    A received transaction
+    '''
+    def __init__(self):
+        super(Transfer).__init__()
+
     def getReceivedText(self):
         return str(self.value) + " " + self.currency + " from " + self.sender.name
 
     def getSentText(self):
         return str(self.value) + " " + self.currency + " from " + self.recipient.name
+
+
+class Issuance(Transaction):
+    '''
+    An issuance
+    '''
+    def __init__(self):
+        super(Issuance).__init__()
+
+    def getText(self):
+        return str(self.value) + " " + self.currency
+
+
+
+

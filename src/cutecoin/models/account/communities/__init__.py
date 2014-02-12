@@ -18,14 +18,6 @@ class Communities(object):
         '''
         self.communitiesList = []
 
-    def getCommunity(self, amendmentId):
-        '''
-        Get a community thanks to its amendmentId
-        '''
-        for com in self.communitiesList:
-            if com.amendmentId() == amendmentId:
-                return com
-
     def addCommunity(self, mainNode, keyFingerprint):
         '''
         Add a community with a mainNode and the pgpFingerprint of the account

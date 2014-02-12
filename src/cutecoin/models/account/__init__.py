@@ -10,7 +10,7 @@ import logging
 import json
 from cutecoin.models.account.wallets import Wallets
 from cutecoin.models.account.communities import Communities
-from cutecoin.models.transaction import Transaction
+from cutecoin.models.transaction import factory as trxFactory
 
 class Account(object):
     '''
@@ -45,8 +45,7 @@ class Account(object):
         for community in self.communities.communitiesList:
             transactionsData = community.ucoinRequest(ucoin.hdc.transactions.Recipient(self.keyFingerprint()))
             for trxData in transactionsData:
-                logging.debug(trxData)
-                #received.append(Transaction(trxData['sender'], trxData['number']))
+                received.append(trxFactory.createTransaction(trxData['sender'], trxData['number']))
         return received
 
     def transactionsSent(self):
@@ -54,9 +53,18 @@ class Account(object):
         for community in self.communities.communitiesList:
             transactionsData = community.ucoinRequest(ucoin.hdc.transactions.sender.Last(self.keyFingerprint(), 20))
             for trxData in transactionsData:
-                logging.debug(trxData)
-                #sent.append(Transaction(trxData['sender'], trxData['number']))
+                # Small bug in ucoinpy library
+                if not isinstance(trxData, str):
+                    sent.append(trxFactory.createTransaction(trxData['sender'], trxData['number']))
         return sent
+
+    def lastIssuances(self, community):
+        issuances = []
+        if community in self.communities.communitiesList:
+            issuancesData = community.ucoinRequest(ucoin.hdc.transactions.sender.Issuance(self.keyFingerprint()))
+            for issuance in issuancesData:
+                issuances.append(trxFactory.createTransaction(issuance['sender'], issuance['number']))
+        return issuances
 
     def jsonify(self):
         data = {'name' : self.name,

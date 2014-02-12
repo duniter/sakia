@@ -32,14 +32,6 @@ class Community(object):
             members.append(f['value'])
         return members
 
-    def issuances(self, accountFingerprint):
-        '''
-        Listing issuances the accounted emitted
-        '''
-        #TODO:Return issuances
-        #issuances = self.ucoinRequest(ucoin.hdc.transactions.sender.Issuance())
-        return []
-
     def ucoinRequest(self, request, get_args={}):
         for node in self.knownNodes:
                 logging.debug("Trying to connect to : " + node.getText())
@@ -56,6 +48,15 @@ class Community(object):
         amendmentId = str(currentAmendment["number"]) + "-" + currentAmendmentHash
         logging.debug("Amendment : " + amendmentId)
         return amendmentId
+
+    def __eq__(self, other):
+        currentAmendment = self.ucoinRequest(ucoin.hdc.amendments.Current())
+        currentAmendmentHash = hashlib.sha1(currentAmendment['raw'].encode('utf-8')).hexdigest().upper()
+
+        otherAmendment = other.ucoinRequest(ucoin.hdc.amendments.Current())
+        otherAmendmentHash = hashlib.sha1(otherAmendment['raw'].encode('utf-8')).hexdigest().upper()
+
+        return (otherAmendmentHash == currentAmendmentHash)
 
     def name(self):
         return self.currency
