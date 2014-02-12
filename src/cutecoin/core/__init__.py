@@ -4,17 +4,20 @@ Created on 1 févr. 2014
 @author: inso
 '''
 
+import os
+import logging
+import json
+
 from cutecoin.core import config
 from cutecoin.core.exceptions import KeyAlreadyUsed
-
-import json
-from cutecoin.core import config
 from cutecoin.models.account import factory
-import os
 
 
 class Core(object):
-
+    '''
+    Managing core application datas :
+    Accounts list and general configuration
+    '''
     def __init__(self, argv):
         '''
         Constructor
@@ -24,8 +27,11 @@ class Core(object):
         config.parseArguments(argv)
         self.load()
 
-    def getAccounts(self):
-        return self.accounts
+    def getAccount(self, name):
+        for a in self.accounts:
+            logging.debug('Name : ' + a.name + '/' + name)
+            if name == a.name:
+                return a
 
     def addAccount(self, account):
         for a in self.accounts:
@@ -40,20 +46,22 @@ class Core(object):
 
 
     def load(self):
-        if (os.path.exists(config.data['home'])):
-            json_data=open(config.data['home'], 'w+')
+        if not os.path.exists(config.parameters['home']):
+            logging.info("Creating home directory")
+            os.makedirs((config.parameters['home']))
+
+        if (os.path.exists(config.parameters['data'])  \
+            and os.path.isfile(config.parameters['data'])):
+            json_data=open(config.parameters['data'], 'r')
             data = json.load(json_data)
             json_data.close()
 
             for accountData in data['localAccounts']:
                 self.accounts.append(factory.loadAccount(accountData))
 
-
     def save(self):
-        with open(config.data['home'], 'w+') as outfile:
+        with open(config.parameters['data'], 'w') as outfile:
             json.dump(self.jsonify(), outfile, indent = 4, sort_keys=True)
-
-
 
 
     def jsonifyAccounts(self):

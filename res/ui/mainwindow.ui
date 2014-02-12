@@ -121,7 +121,12 @@
     <property name="title">
      <string>Account</string>
     </property>
-    <addaction name="actionChange_account"/>
+    <widget class="QMenu" name="menuChange_account">
+     <property name="title">
+      <string>Change account</string>
+     </property>
+    </widget>
+    <addaction name="menuChange_account"/>
     <addaction name="actionAdd_account"/>
     <addaction name="separator"/>
     <addaction name="actionSave"/>
@@ -138,11 +143,6 @@
    <addaction name="menuEdit"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionChange_account">
-   <property name="text">
-    <string>Change account</string>
-   </property>
-  </action>
   <action name="actionManage_accounts">
    <property name="text">
     <string>Manage accounts</string>
@@ -203,6 +203,11 @@
     <string>Quit</string>
    </property>
   </action>
+  <action name="actionAccount">
+   <property name="text">
+    <string>Account</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections>
@@ -229,8 +234,8 @@
    <slot>save()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>225</x>
-     <y>199</y>
+     <x>-1</x>
+     <y>-1</y>
     </hint>
     <hint type="destinationlabel">
      <x>225</x>

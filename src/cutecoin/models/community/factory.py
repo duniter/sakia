@@ -18,7 +18,7 @@ def createCommunity(mainNode):
 def loadCommunity(jsonData):
     community = Community()
     for nodeData in jsonData['nodes']:
-        community.knownNodes.append(MainNode(jsonData['server'], jsonData['port']))
+        community.knownNodes.append(MainNode(nodeData['server'], nodeData['port']))
     community.currency = jsonData['currency']
     return community
 

@@ -45,7 +45,7 @@ class KeyAlreadyUsed(Error):
         Constructor
         '''
         super(KeyAlreadyUsed, self) \
-            .__init("Cannot add account " + newAccount.name + " : " \
+            .__init__("Cannot add account " + newAccount.name + " : " \
                     " the pgpKey " + keyId + " is already used by " + foundAccount.name)
 
 

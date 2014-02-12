@@ -10,7 +10,8 @@ from cutecoin.models.coin import Coin
 
 class Wallet(object):
     '''
-    classdocs
+    A wallet is list of coins.
+    It's only used to sort coins.
     '''
 
 

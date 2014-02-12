@@ -8,7 +8,7 @@ import ucoinpy as ucoin
 
 class Node(object):
     '''
-    classdocs
+    A ucoin node
     '''
     def __init__(self, server, port):
         '''
@@ -25,6 +25,10 @@ class Node(object):
 
 
 class MainNode(Node):
+    '''
+    MainNode is a node the community is reading to get informations.
+    The account sends data one of the community main nodes.
+    '''
     def downstreamPeers(self):
         ucoin.settings['server'] = self.server
         ucoin.settings['port'] = self.port

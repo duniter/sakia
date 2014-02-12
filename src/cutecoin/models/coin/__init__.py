@@ -9,7 +9,7 @@ import math
 
 class Coin(object):
     '''
-    classdocs
+    A coin parsing a regex to read its value
     '''
 
 

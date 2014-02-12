@@ -15,7 +15,9 @@ class Community(object):
     '''
     def __init__(self):
         '''
-        Constructor
+        A community is a group of nodes using the same currency.
+        They are all using the same amendment and are syncing their datas.
+        An account is a member of a community if he is a member of the current amendment.
         '''
         self.knownNodes = []
         self.currency = ""
@@ -30,12 +32,12 @@ class Community(object):
             members.append(f['value'])
         return members
 
-    def issuances(self):
+    def issuances(self, accountFingerprint):
         '''
         Listing issuances the accounted emitted
         '''
         #TODO:Return issuances
-        #issuances = self.ucoinRequest(ucoin.hdc.amendments.view.Members(amendmentId)
+        #issuances = self.ucoinRequest(ucoin.hdc.transactions.sender.Issuance())
         return []
 
     def ucoinRequest(self, request, get_args={}):

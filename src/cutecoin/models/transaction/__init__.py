@@ -10,7 +10,8 @@ from cutecoin.models.person import factory
 
 class Transaction(object):
     '''
-    classdocs
+    A transaction which can be a transfer or an issuance.
+    At the moment the difference is not made
     '''
     def __init__(self, senderFingerprint, increment, community):
         self.increment = increment

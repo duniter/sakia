@@ -6,7 +6,13 @@ Created on 7 févr. 2014
 
 import logging
 from optparse import OptionParser
-data = { 'home' : '~/.cutecoin'}
+import os.path
+
+
+home = os.path.expanduser("~")
+
+parameters = { 'home' : home + '/.config/cutecoin/',
+         'data' : home + '/.config/cutecoin/' 'data'}
 
 def parseArguments(argv):
     parser = OptionParser()
@@ -20,7 +26,7 @@ def parseArguments(argv):
                   help="Print DEBUG messages to stdout")
 
 
-    parser.add_option("--home", dest="home", default="~/.cutecoin",
+    parser.add_option("--home", dest="home", default=parameters['home'],
                   help="Set another home for cutecoin.")
 
     (options, args) = parser.parse_args(argv)
@@ -32,6 +38,6 @@ def parseArguments(argv):
     else:
         logging.getLogger().propagate = False
 
-    data['home'] = options.home
+    parameters['home'] = options.home
 
     pass

@@ -8,8 +8,6 @@ from cutecoin.models.person import Person
 import ucoinpy as ucoin
 
 def createPerson(pgpFingerprint, community):
-        #TODO: Raise an exception and display a popup if member isnt found
-        #Maybe generate a person whose name is the fingerprint, and email is 'unknown'
         keys = community.ucoinRequest(ucoin.pks.Lookup(),
                                           get_args={'search':"0x"+pgpFingerprint, 'op':'index'})['keys']
         if len(keys) > 0:

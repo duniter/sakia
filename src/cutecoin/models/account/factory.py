@@ -32,5 +32,5 @@ def loadAccount(jsonData):
         account.communities.communitiesList.append(communityFactory.loadCommunity(communityData))
     account.wallets = Wallets()
     for walletData in jsonData['wallets']:
-        account.wallets.walletsList.append(walletFactory.loadWallet(jsonData))
+        account.wallets.walletsList.append(walletFactory.loadWallet(walletData))
     return account
