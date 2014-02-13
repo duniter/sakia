@@ -35,7 +35,7 @@ class AddCommunityDialog(QDialog, Ui_AddCommunityDialog):
         port = self.portBox.value()
         try:
             community = self.account.communities.addCommunity(MainNode(server, port), self.account.keyFingerprint())
-            self.account.wallets.addWallet(community.currency)
+            self.account.wallets.addWallet(community)
             self.communityView.setModel( CommunityTreeModel(community) )
         except NotMemberOfCommunityError as e:
             QErrorMessage(self).showMessage(e.message)

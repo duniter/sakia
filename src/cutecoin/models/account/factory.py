@@ -28,9 +28,8 @@ def loadAccount(jsonData):
     account.pgpKeyId = jsonData['pgpKeyId']
     account.name = jsonData['name']
     account.communities = Communities()
-    for communityData in jsonData['communities']:
-        account.communities.communitiesList.append(communityFactory.loadCommunity(communityData))
     account.wallets = Wallets()
-    for walletData in jsonData['wallets']:
-        account.wallets.walletsList.append(walletFactory.loadWallet(walletData))
+
+    for communityData in jsonData['communities']:
+        account.communities.communitiesList.append(communityFactory.loadCommunity(communityData, account))
     return account

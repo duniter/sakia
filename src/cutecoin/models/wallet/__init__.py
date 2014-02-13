@@ -20,11 +20,12 @@ class Wallet(object):
         Constructor
         '''
         self.coins = []
-        self.currency = ""
+        self.community = None
+        self.name = "Main Wallet"
 
 
     def __eq__(self, other):
-        return ( self.currency == other.currency )
+        return ( self.community == other.community )
 
     def value(self):
         value = 0
@@ -32,8 +33,8 @@ class Wallet(object):
             value += coin.value()
         return value
 
-    def refreshCoins(self, community, pgpFingerprint):
-        dataList = community.ucoinRequest(lambda : ucoin.hdc.coins.List, ctor_args={'pgp_fingerprint':pgpFingerprint})
+    def refreshCoins(self, pgpFingerprint):
+        dataList = self.community.ucoinRequest(lambda : ucoin.hdc.coins.List, ctor_args={'pgp_fingerprint':pgpFingerprint})
         for issaunces in dataList['coins']:
             issuer = issaunces['issuer']
             for coinsIds in issaunces['ids']:
@@ -42,7 +43,7 @@ class Wallet(object):
                 self.coins.append(coin)
 
     def getText(self):
-        return str(self.value()) + " " + self.currency
+        return self.name + " : " + str(self.value()) + " " + self.community.currency
 
     def jsonifyCoinsList(self):
         data = []
@@ -52,6 +53,6 @@ class Wallet(object):
 
     def jsonify(self):
         return {'coins': self.jsonifyCoinsList(),
-                'currency': self.currency}
+                'name': self.name}
 
 

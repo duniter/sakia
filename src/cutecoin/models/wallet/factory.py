@@ -6,16 +6,16 @@ Created on 11 févr. 2014
 from cutecoin.models.wallet import Wallet
 from cutecoin.models.coin import Coin
 
-def createWallet(currency):
+def createWallet(community):
     wallet = Wallet()
-    wallet.currency = currency
+    wallet.community = community
     return wallet
 
 
-def loadWallet(jsonData):
+def loadWallet(jsonData, community):
     wallet = Wallet()
     for coinData in jsonData['coins']:
         wallet.coins.append(Coin(coinData['coin']))
-    wallet.currency = jsonData['currency']
+    wallet.community = community
     return wallet
 

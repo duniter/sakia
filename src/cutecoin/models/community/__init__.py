@@ -67,8 +67,9 @@ class Community(object):
             data.append(node.jsonify())
         return data
 
-    def jsonify(self):
+    def jsonify(self, wallets):
         data = {'nodes' : self.jsonifyNodesList(),
-                'currency' : self.currency}
+                'currency' : self.currency,
+                'wallets' : wallets.jsonify(self)}
         return data
 

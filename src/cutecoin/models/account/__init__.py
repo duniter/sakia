@@ -69,8 +69,7 @@ class Account(object):
     def jsonify(self):
         data = {'name' : self.name,
                 'pgpKeyId' : self.pgpKeyId,
-                'communities' : self.communities.jsonify(),
-                'wallets' : self.wallets.jsonify()}
+                'communities' : self.communities.jsonify(self.wallets)}
         return data
 
 

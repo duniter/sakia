@@ -37,13 +37,13 @@ class Communities(object):
         raise NotMemberOfCommunityError(keyFingerprint, community.currency + "-" + community.amendmentId())
 
 
-    def jsonify(self):
+    def jsonify(self, wallets):
         '''
         Return the list of communities in a key:value form.
         '''
         data = []
         for community in self.communitiesList:
-            data.append(community.jsonify())
+            data.append(community.jsonify(wallets))
         return data
 
 

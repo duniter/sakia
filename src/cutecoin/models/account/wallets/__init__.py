@@ -37,12 +37,13 @@ class Wallets(object):
                 return w
         return None
 
-    def jsonify(self):
+    def jsonify(self, community):
         '''
         Return the list of wallets in a key:value form.
         '''
+        communityWallets = [w for w in self.walletsList if w.community == community]
         data = []
-        for wallet in self.walletsList:
+        for wallet in communityWallets:
             data.append(wallet.jsonify())
         return data
 

@@ -5,6 +5,7 @@ Created on 11 févr. 2014
 '''
 from cutecoin.models.community import Community
 from cutecoin.models.node import MainNode
+from cutecoin.models.wallet import factory
 import ucoinpy as ucoin
 
 def createCommunity(mainNode):
@@ -15,10 +16,12 @@ def createCommunity(mainNode):
     return community
 
 
-def loadCommunity(jsonData):
+def loadCommunity(jsonData, account):
     community = Community()
     for nodeData in jsonData['nodes']:
         community.knownNodes.append(MainNode(nodeData['server'], nodeData['port']))
     community.currency = jsonData['currency']
+    for walletsData in jsonData['wallets']:
+        account.wallets.walletsList.append(factory.loadWallet(walletsData, community))
     return community
 
