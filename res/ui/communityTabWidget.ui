@@ -33,7 +33,14 @@
      <item>
       <widget class="QLabel" name="label_2">
        <property name="text">
-        <string>Last issuance</string>
+        <string>Last issuances</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="issuanceButton">
+       <property name="text">
+        <string>Issue money</string>
        </property>
       </widget>
      </item>
@@ -45,5 +52,25 @@
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>issuanceButton</sender>
+   <signal>clicked()</signal>
+   <receiver>CommunityTabWidget</receiver>
+   <slot>openIssuanceDialog()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>296</x>
+     <y>42</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>openIssuanceDialog()</slot>
+ </slots>
 </ui>

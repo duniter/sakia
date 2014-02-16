@@ -34,6 +34,7 @@ class AddAccountDialog(QDialog, Ui_AddAccountDialog):
 
     def setData(self):
         gpg = gnupg.GPG()
+        self.pgpKeysList.clear()
         availableKeys = gpg.list_keys(True)
         for key in availableKeys:
             self.pgpKeysList.addItem(key['uids'][0])

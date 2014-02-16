@@ -7,6 +7,7 @@ Created on 7 févr. 2014
 import logging
 from optparse import OptionParser
 import os.path
+import gnupg
 
 
 home = os.path.expanduser("~")
@@ -37,6 +38,9 @@ def parseArguments(argv):
         logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
     else:
         logging.getLogger().propagate = False
+
+    logger = logging.getLogger("gnupg")
+    logger.setLevel(logging.INFO)
 
     parameters['home'] = options.home
 

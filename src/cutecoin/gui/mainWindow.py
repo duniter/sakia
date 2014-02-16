@@ -78,6 +78,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.accountNameLabel.setText("Current account : " + self.core.currentAccount.name)
             self.walletsList.setModel(WalletsListModel(self.core.currentAccount))
             self.walletContent.setModel(WalletListModel(self.core.currentAccount.wallets.walletsList[0]))
+            self.communitiesTab.clear()
             for community in self.core.currentAccount.communities.communitiesList:
                 communityTab = CommunityTabWidget(self.core.currentAccount, community)
                 self.communitiesTab.addTab(communityTab, community.name())

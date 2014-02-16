@@ -3,11 +3,15 @@ Created on 11 févr. 2014
 
 @author: inso
 '''
+
+import logging
+
 from cutecoin.models.account import Account
 from cutecoin.models.account.wallets import Wallets
 from cutecoin.models.account.communities import Communities
 from cutecoin.models.wallet import factory as walletFactory
 from cutecoin.models.community import factory as communityFactory
+
 
 def createAccount(pgpKeyId, name, communities):
     '''
@@ -29,7 +33,6 @@ def loadAccount(jsonData):
     account.name = jsonData['name']
     account.communities = Communities()
     account.wallets = Wallets()
-
     for communityData in jsonData['communities']:
         account.communities.communitiesList.append(communityFactory.loadCommunity(communityData, account))
     return account

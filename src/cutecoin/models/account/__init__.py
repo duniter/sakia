@@ -66,6 +66,20 @@ class Account(object):
                 issuances.append(trxFactory.createTransaction(issuance['sender'], issuance['number']))
         return issuances
 
+    def issuedLastDividend(self, community):
+        currentAmendmentNumber = community.amendmentNumber()
+
+        if community in self.communities.communitiesList:
+            dividendsData = community.ucoinRequest(ucoin.hdc.transactions.sender.issuance.Dividend(self.keyFingerprint(), currentAmendmentNumber))
+            for dividend in dividendsData:
+                # Small bug in ucoinpy library
+                if not isinstance(dividend, str):
+                    return True
+
+        return False
+
+
+
     def jsonify(self):
         data = {'name' : self.name,
                 'pgpKeyId' : self.pgpKeyId,

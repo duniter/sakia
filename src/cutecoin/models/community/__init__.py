@@ -61,6 +61,21 @@ class Community(object):
     def name(self):
         return self.currency
 
+    def dividend(self):
+        currentAmendment = self.ucoinRequest(ucoin.hdc.amendments.Current())
+        return currentAmendment['dividend']
+
+    def coinMinimalPower(self):
+        currentAmendment = self.ucoinRequest(ucoin.hdc.amendments.Current())
+        if 'coinMinimalPower' in currentAmendment.keys():
+            return currentAmendment['coinMinimalPower']
+        else:
+            return 0
+
+    def amendmentNumber(self):
+        currentAmendment = self.ucoinRequest(ucoin.hdc.amendments.Current())
+        return currentAmendment['number']
+
     def jsonifyNodesList(self):
         data = []
         for node in self.knownNodes:

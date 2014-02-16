@@ -56,6 +56,9 @@ class Issuance(Transaction):
     '''
     def __init__(self):
         super(Issuance).__init__()
+        
+    def amendmentNumber(self):
+        self.community.ucoinRequest(ucoin.hdc.transactions.View(self.sender.pgpFingerprint + "-" + self.increment))
 
     def getText(self):
         return str(self.value) + " " + self.currency
