@@ -4,7 +4,7 @@ Created on 7 févr. 2014
 @author: inso
 '''
 
-from cutecoin.models.wallet import factory
+from cutecoin.models.wallet import Wallet
 
 class Wallets(object):
     '''
@@ -22,7 +22,7 @@ class Wallets(object):
         This wallet must not already be present in the account,
         it means the wallet must have a different name or a different currency.
         '''
-        wallet = factory.createWallet(currency)
+        wallet = Wallet.create(currency)
         if wallet not in self.walletsList:
             self.walletsList.append(wallet)
         else:

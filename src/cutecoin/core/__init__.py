@@ -10,7 +10,7 @@ import json
 
 from cutecoin.core import config
 from cutecoin.core.exceptions import KeyAlreadyUsed
-from cutecoin.models.account import factory
+from cutecoin.models.account import Account
 
 
 class Core(object):
@@ -57,7 +57,7 @@ class Core(object):
             json_data.close()
 
             for accountData in data['localAccounts']:
-                self.accounts.append(factory.loadAccount(accountData))
+                self.accounts.append(Account.load(accountData))
 
     def save(self):
         with open(config.parameters['data'], 'w') as outfile:

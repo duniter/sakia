@@ -5,9 +5,10 @@ Created on 12 févr. 2014
 '''
 import ucoinpy as ucoin
 
-from cutecoin.models.person import factory
+from cutecoin.models.person import Person
 from cutecoin.models.transaction import Transfer, Issuance
 
+#TODO: Passer par des factory + pythonic
 def createTransaction(senderFingerprint, increment, community):
     transactionId = senderFingerprint + "-" + str(increment)
     ucoinTransactionView = ucoin.hdc.transactions.View(transactionId)
@@ -21,7 +22,7 @@ def createTransaction(senderFingerprint, increment, community):
     if transaction != None:
         transaction.increment = increment
         transaction.community = community
-        transaction.sender = factory.createPerson(senderFingerprint, community)
-        transaction.recipient = factory.createPerson(ucoinTransaction['recipient'], community)
+        transaction.sender = Person.create(senderFingerprint, community)
+        transaction.recipient = Person.create(ucoinTransaction['recipient'], community)
 
     return transaction

@@ -4,7 +4,7 @@ Created on 5 févr. 2014
 @author: inso
 '''
 
-from cutecoin.models.person import factory
+from cutecoin.models.person import Person
 from PyQt5.QtCore import QAbstractListModel, Qt
 
 class MembersListModel(QAbstractListModel):
@@ -19,7 +19,7 @@ class MembersListModel(QAbstractListModel):
         fingerprints = community.membersFingerprints()
         self.members = []
         for f in fingerprints:
-            self.members.append(factory.createPerson(f, community))
+            self.members.append(Person.create(f, community))
 
     def rowCount(self ,parent):
         return len(self.members)

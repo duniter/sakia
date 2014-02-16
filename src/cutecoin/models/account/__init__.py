@@ -10,7 +10,8 @@ import logging
 import json
 from cutecoin.models.account.wallets import Wallets
 from cutecoin.models.account.communities import Communities
-from cutecoin.models.transaction import factory as trxFactory
+from cutecoin.models.community import Community
+from cutecoin.models.transaction import factory
 
 class Account(object):
     '''
@@ -18,14 +19,39 @@ class Account(object):
     Each account has only one pgpKey, and a key can
     be locally referenced by only one account.
     '''
-    def __init__(self):
+    def __init__(self, pgpKeyId, name, communities, wallets):
         '''
         Constructor
         '''
-        self.pgpKeyId = ""
-        self.name = ""
-        self.communities = Communities()
-        self.wallets = Wallets()
+        self.pgpKeyId = pgpKeyId
+        self.name = name
+        self.communities = communities
+        self.wallets = wallets
+
+    @classmethod
+    def create(cls, pgpKeyId, name, communities):
+        '''
+        Constructor
+        '''
+        wallets = Wallets()
+        account = cls(pgpKeyId, name, communities, wallets)
+        for community in account.communities.communitiesList:
+            wallet = account.wallets.addWallet(community.currency)
+            wallet.refreshCoins(community, account.keyFingerprint())
+        return account
+
+    @classmethod
+    def load(cls, jsonData):
+        pgpKeyId = jsonData['pgpKeyId']
+        name = jsonData['name']
+        communities = Communities()
+        wallets = Wallets()
+        account = cls(pgpKeyId, name, communities, wallets)
+
+        for communityData in jsonData['communities']:
+            account.communities.communitiesList.append(Community.load(communityData, account))
+
+        return account
 
     def addWallet(name, currency):
         self.wallets.addWallet(name, currency)

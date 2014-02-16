@@ -4,7 +4,7 @@ Created on 5 févr. 2014
 @author: inso
 '''
 import ucoinpy as ucoin
-from cutecoin.models.community import factory
+from cutecoin.models.community import Community
 from cutecoin.core.exceptions import NotMemberOfCommunityError
 import logging
 
@@ -24,7 +24,7 @@ class Communities(object):
         Check if the pgpFingerprint is present in the community members list
         If its not, the account isnt added and an error is raised.
         '''
-        community = factory.createCommunity(mainNode)
+        community = Community.create(mainNode)
         members = community.ucoinRequest(ucoin.hdc.amendments.view.Members(community.amendmentId()))
 
         logging.debug("Account fingerprint : " + keyFingerprint)

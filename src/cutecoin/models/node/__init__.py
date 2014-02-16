@@ -39,6 +39,11 @@ class MainNode(Node):
             peers.append(node)
         return peers
 
+    def use(self, request):
+        request.server = self.server
+        request.port = self.port
+        return request
+
     def jsonify(self):
         return {'server' : self.server,
                 'port' : self.port}

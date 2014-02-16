@@ -6,7 +6,7 @@ Created on 2 févr. 2014
 from cutecoin.gen_resources.addAccountDialog_uic import Ui_AddAccountDialog
 from PyQt5.QtWidgets import QDialog
 from cutecoin.gui.addCommunityDialog import AddCommunityDialog
-from cutecoin.models.account import factory
+from cutecoin.models.account import Account
 from cutecoin.models.account.communities import Communities
 from cutecoin.models.account.communities.listModel import CommunitiesListModel
 
@@ -39,7 +39,7 @@ class AddAccountDialog(QDialog, Ui_AddAccountDialog):
         for key in availableKeys:
             self.pgpKeysList.addItem(key['uids'][0])
 
-        self.account = factory.createAccount(availableKeys[0]['keyid'], "", Communities())
+        self.account = Account.create(availableKeys[0]['keyid'], "", Communities())
         self.pgpKeysList.setEnabled(True)
         self.pgpKeysList.currentIndexChanged[int].connect(self.keyChanged)
         self.communityDialog = AddCommunityDialog(self)

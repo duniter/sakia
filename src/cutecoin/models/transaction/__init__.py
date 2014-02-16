@@ -6,7 +6,6 @@ Created on 1 févr. 2014
 
 import ucoinpy as ucoin
 from cutecoin.models.coin import Coin
-from cutecoin.models.person import factory
 
 class Transaction(object):
     '''
