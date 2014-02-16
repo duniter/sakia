@@ -11,17 +11,24 @@ class Coin(object):
     '''
     A coin parsing a regex to read its value
     '''
+    def __init__(self, issuer, number, base, power, origin):
+        self.issuer = issuer
+        self.number = number
+        self.base = base
+        self.power = power
+        self.origin = origin
 
-
-    def __init__(self, coin_id):
+    @classmethod
+    def fromId(cls, coin_id):
         # Regex to parse the coin id
         regex = "/^([A-Z\d]{40})-(\d+)-(\d)-(\d+)-((A|F|D)-\d+))$/"
         m = re.search(regex, coin_id)
-        self.issuer = m.group(0)
-        self.number = int(m.group(1))
-        self.base = int(m.group(2))
-        self.power = int(m.group(3))
-        self.origin = m.group(4)
+        issuer = m.group(0)
+        number = int(m.group(1))
+        base = int(m.group(2))
+        power = int(m.group(3))
+        origin = m.group(4)
+        return cls(issuer, number, base, power, origin)
 
     def value(self):
         return math.pow(self.base, self.power)
@@ -32,5 +39,3 @@ class Coin(object):
             + str(self.base) + "-" \
             + str(self.power) + "-" \
             + self.origin
-
-

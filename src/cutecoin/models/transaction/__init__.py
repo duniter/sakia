@@ -23,7 +23,7 @@ class Transaction(object):
         value = 0
         trxData = self.community.ucoinRequest(ucoin.hdc.transactions.View(self.sender.pgpFingerprint + "-" + self.increment))
         for coin in trxData['transaction']['coins']:
-            value += Coin(coin[id]).value()
+            value += Coin.fromId(coin[id]).value()
         return value
 
     def currency(self):
@@ -56,7 +56,7 @@ class Issuance(Transaction):
     '''
     def __init__(self):
         super(Issuance).__init__()
-        
+
     def amendmentNumber(self):
         self.community.ucoinRequest(ucoin.hdc.transactions.View(self.sender.pgpFingerprint + "-" + self.increment))
 

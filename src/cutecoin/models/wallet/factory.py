@@ -15,7 +15,7 @@ def createWallet(community):
 def loadWallet(jsonData, community):
     wallet = Wallet()
     for coinData in jsonData['coins']:
-        wallet.coins.append(Coin(coinData['coin']))
+        wallet.coins.append(Coin.fromId(coinData['coin']))
     wallet.community = community
     return wallet
 

@@ -9,6 +9,8 @@ from math import pow
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QFrame, QSlider, QLabel, QDialogButtonBox
 from PyQt5.QtCore import Qt, QSignalMapper
 
+from cutecoin.models.coin import Coin
+
 from cutecoin.gen_resources.issuanceDialog_uic import Ui_IssuanceDialog
 
 class IssuanceDialog(QDialog, Ui_IssuanceDialog):
@@ -81,6 +83,13 @@ class IssuanceDialog(QDialog, Ui_IssuanceDialog):
         else:
             self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(True)
 
+    def actionIssueCoins(self):
+        coins = []
+        n = 0
+        for slider in self.sliders:
+            coins.append(str(slider.value())+","+str(n))
+            n += 1
+        self.issuer.issueDividend(self.community, coins)
 
 
 

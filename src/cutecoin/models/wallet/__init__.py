@@ -39,7 +39,7 @@ class Wallet(object):
             issuer = issaunces['issuer']
             for coinsIds in issaunces['ids']:
                 shortened_id = coinsIds
-                coin = Coin(pgpFingerprint, issuer+"-"+shortened_id)
+                coin = Coin.fromId(pgpFingerprint, issuer+"-"+shortened_id)
                 self.coins.append(coin)
 
     def getText(self):

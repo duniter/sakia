@@ -78,7 +78,11 @@ class Account(object):
 
         return False
 
-
+    def issueDividend(self, community, coins):
+        if community in self.communities.communitiesList:
+            ucoin.settings['gpg'] = gnupg.GPG()
+            issuance = ucoin.wrappers.transactions.Issue(self.keyFingerprint(), community.amendmentNumber(), coins)
+            return issuance()
 
     def jsonify(self):
         data = {'name' : self.name,
