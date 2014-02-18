@@ -19,13 +19,13 @@ Qt Client for [Ucoin](http://www.ucoin.io) project.
 ### Done (master branch)
   * Accounts management
   * Communities viewing
+  * Coins issuance
 
 ### Work in progress (dev branch)
   * Wallets viewing
 
 ### Todo
   * Transfer
-  * Coins issuance
   * Coins issuance policies
   * Contacts and messaging
   * Voting 
