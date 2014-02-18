@@ -23,9 +23,9 @@ from . import Wrapper, pks, ucg, hdc, settings
 logger = logging.getLogger("transactions")
 
 class Transaction(Wrapper):
-    def __init__(self, type, pgp_fingerprint, message='', peering=None, server=None, port=None):
+    def __init__(self, type, pgp_fingerprint, message='', keyid=None, peering=None, server=None, port=None):
         super().__init__(server, port)
-
+        self.keyid = keyid
         self.pgp_fingerprint = pgp_fingerprint
         self.message = message
         self.type = type
@@ -70,7 +70,7 @@ Comment:
 """ % context_data
 
         tx = tx.replace("\n", "\r\n")
-        txs = settings['gpg'].sign(tx, detach=True)
+        txs = settings['gpg'].sign(tx, keyid=self.keyid, detach=True)
 
         return self.process(tx, txs)
 
@@ -117,8 +117,8 @@ Comment:
         if not m: raise ValueError('bad sum value %d' % __sum)
 
 class Transfer(Transaction):
-    def __init__(self, pgp_fingerprint, recipient, coins, message='', server=None, port=None):
-        super().__init__('TRANSFER', pgp_fingerprint, message, server, port)
+    def __init__(self, pgp_fingerprint, recipient, coins, message='', keyid=None, server=None, port=None):
+        super().__init__('TRANSFER', pgp_fingerprint, message, keyid, server, port)
 
         self.recipient = recipient
         self.coins = coins
@@ -171,8 +171,8 @@ Coins:
         return tx
 
 class Issue(MonoTransaction):
-    def __init__(self, pgp_fingerprint, amendment, coins, message='', server=None, port=None):
-        super().__init__('ISSUANCE', pgp_fingerprint, message, server, port)
+    def __init__(self, pgp_fingerprint, amendment, coins, message='', keyid=None, server=None, port=None):
+        super().__init__('ISSUANCE', pgp_fingerprint, message, keyid, server, port)
 
         self.amendment = amendment
         self.coins = coins
@@ -188,8 +188,8 @@ class Issue(MonoTransaction):
         return tx
 
 class Fusion(MonoTransaction):
-    def __init__(self, pgp_fingerprint, coins, message='', server=None, port=None):
-        super().__init__('FUSION', pgp_fingerprint, message, server, port)
+    def __init__(self, pgp_fingerprint, coins, message='', keyid=None, server=None, port=None):
+        super().__init__('FUSION', pgp_fingerprint, message, keyid, server, port)
 
         self.coins = coins
 
@@ -205,8 +205,8 @@ class Fusion(MonoTransaction):
         return tx
 
 class Divide(MonoTransaction):
-    def __init__(self, pgp_fingerprint, old_coins, new_coins, message='', server=None, port=None):
-        super().__init__('DIVISION', pgp_fingerprint, message, server, port)
+    def __init__(self, pgp_fingerprint, old_coins, new_coins, message='', keyid=None, server=None, port=None):
+        super().__init__('DIVISION', pgp_fingerprint, message, keyid, server, port)
 
         self.old_coins = old_coins
         self.new_coins = new_coins
