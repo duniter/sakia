@@ -20,13 +20,13 @@ class Transaction(object):
 
     def value(self):
         value = 0
-        trxData = self.community.ucoinRequest(ucoin.hdc.transactions.View(self.sender.pgpFingerprint + "-" + self.increment))
+        trxData = self.community.ucoinRequest(ucoin.hdc.transactions.View(self.sender.fingerprint + "-" + str(self.increment)))
         for coin in trxData['transaction']['coins']:
-            value += Coin.fromId(coin[id]).value()
+            value += Coin.fromId(coin['id']).value()
         return value
 
     def currency(self):
-        trxData = self.community.ucoinRequest(ucoin.hdc.transactions.View(self.sender.pgpFingerprint + "-" + self.increment))
+        trxData = self.community.ucoinRequest(ucoin.hdc.transactions.View(self.sender.fingerprint + "-" + str(self.increment)))
         currency = trxData['transaction']['currency']
         return currency
 
@@ -43,10 +43,10 @@ class Transfer(Transaction):
         super(Transfer).__init__()
 
     def getReceivedText(self):
-        return str(self.value) + " " + self.currency + " from " + self.sender.name
+        return str(self.value()) + " " + self.currency() + " from " + self.sender.name
 
     def getSentText(self):
-        return str(self.value) + " " + self.currency + " from " + self.recipient.name
+        return str(self.value()) + " " + self.currency() + " from " + self.recipient.name
 
 
 class Issuance(Transaction):
@@ -57,10 +57,10 @@ class Issuance(Transaction):
         super(Issuance).__init__()
 
     def amendmentNumber(self):
-        self.community.ucoinRequest(ucoin.hdc.transactions.View(self.sender.pgpFingerprint + "-" + self.increment))
+        self.community.ucoinRequest(ucoin.hdc.transactions.View(self.sender.fingerprint + "-" + str(self.increment)))
 
     def getText(self):
-        return str(self.value) + " " + self.currency
+        return str(self.value()) + " " + self.currency()
 
 
 

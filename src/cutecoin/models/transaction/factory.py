@@ -11,7 +11,7 @@ from cutecoin.models.transaction import Transfer, Issuance
 #TODO: Passer par des factory + pythonic
 def createTransaction(senderFingerprint, increment, community):
     transactionId = senderFingerprint + "-" + str(increment)
-    ucoinTransactionView = ucoin.hdc.transactions.View(transactionId)
+    ucoinTransactionView = community.ucoinRequest(ucoin.hdc.transactions.View(transactionId))
     ucoinTransaction = ucoinTransactionView['transaction']
     transaction = None
     if ucoinTransaction['type']  == 'TRANSFER':

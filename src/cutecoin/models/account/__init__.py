@@ -71,7 +71,7 @@ class Account(object):
         for community in self.communities.communitiesList:
             transactionsData = community.ucoinRequest(ucoin.hdc.transactions.Recipient(self.keyFingerprint()))
             for trxData in transactionsData:
-                received.append(trxFactory.createTransaction(trxData['sender'], trxData['number']))
+                received.append(factory.createTransaction(trxData['value']['transaction']['sender'], trxData['value']['transaction']['number'], community))
         return received
 
     def transactionsSent(self):
@@ -81,7 +81,7 @@ class Account(object):
             for trxData in transactionsData:
                 # Small bug in ucoinpy library
                 if not isinstance(trxData, str):
-                    sent.append(trxFactory.createTransaction(trxData['sender'], trxData['number']))
+                    sent.append(factory.createTransaction(trxData['value']['transaction']['sender'], trxData['value']['transaction']['number'], community))
         return sent
 
     def lastIssuances(self, community):
@@ -89,7 +89,8 @@ class Account(object):
         if community in self.communities.communitiesList:
             issuancesData = community.ucoinRequest(ucoin.hdc.transactions.sender.Issuance(self.keyFingerprint()))
             for issuance in issuancesData:
-                issuances.append(trxFactory.createTransaction(issuance['sender'], issuance['number']))
+                logging.debug(issuance)
+                issuances.append(factory.createTransaction(issuance['value']['transaction']['sender'], issuance['value']['transaction']['number'], community))
         return issuances
 
     def issuedLastDividend(self, community):
@@ -106,8 +107,8 @@ class Account(object):
 
     def issueDividend(self, community, coins):
         if community in self.communities.communitiesList:
-            ucoin.settings['gpg'] = gnupg.GPG()
-            issuance = ucoin.wrappers.transactions.Issue(self.keyFingerprint(), community.amendmentNumber(), coins)
+            logging.debug(coins)
+            issuance = ucoin.wrappers.transactions.Issue(self.keyFingerprint(), community.amendmentNumber(), coins, keyId=self.pgpKeyId)
             return issuance()
 
     def jsonify(self):

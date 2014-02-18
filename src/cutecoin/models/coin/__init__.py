@@ -6,6 +6,7 @@ Created on 2 févr. 2014
 
 import re
 import math
+import logging
 
 class Coin(object):
     '''
@@ -21,17 +22,17 @@ class Coin(object):
     @classmethod
     def fromId(cls, coin_id):
         # Regex to parse the coin id
-        regex = "/^([A-Z\d]{40})-(\d+)-(\d)-(\d+)-((A|F|D)-\d+))$/"
+        regex = "^([A-Z\d]{40})-(\d+)-(\d)-(\d+)-((A|F|D)-\d+)$"
         m = re.search(regex, coin_id)
-        issuer = m.group(0)
-        number = int(m.group(1))
-        base = int(m.group(2))
-        power = int(m.group(3))
-        origin = m.group(4)
+        issuer = m.group(1)
+        number = int(m.group(2))
+        base = int(m.group(3))
+        power = int(m.group(4))
+        origin = m.group(5)
         return cls(issuer, number, base, power, origin)
 
     def value(self):
-        return math.pow(self.base, self.power)
+        return self.base*math.pow(10, self.power)
 
     def getId(self):
         return self.issuer + "-" \

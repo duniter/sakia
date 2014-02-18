@@ -8,6 +8,7 @@ import logging
 from optparse import OptionParser
 import os.path
 import gnupg
+import ucoinpy as ucoin
 
 
 home = os.path.expanduser("~")
@@ -39,6 +40,8 @@ def parseArguments(argv):
     else:
         logging.getLogger().propagate = False
 
+
+    ucoin.settings['gpg'] = gnupg.GPG()
     logger = logging.getLogger("gnupg")
     logger.setLevel(logging.INFO)
 

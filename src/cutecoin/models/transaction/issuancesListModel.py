@@ -24,7 +24,7 @@ class IssuancesListModel(QAbstractListModel):
 
         if role == Qt.DisplayRole:
             row=index.row()
-            value = self.issuances[row]
+            value = self.issuances[row].getText()
             return value
 
     def flags(self,index):
