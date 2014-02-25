@@ -42,9 +42,10 @@ class Community(object):
         community = cls(knownNodes)
 
         for walletsData in jsonData['wallets']:
-            account.wallets.walletsList.append(Wallet.load(walletsData, community))
+            wallet = Wallet.load(walletsData, community)
+            wallet.refreshCoins(account.keyFingerprint())
+            account.wallets.walletsList.append(wallet)
         return community
-
 
 
     def membersFingerprints(self):

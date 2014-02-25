@@ -139,8 +139,15 @@
     <addaction name="separator"/>
     <addaction name="actionAdd_a_contact"/>
    </widget>
+   <widget class="QMenu" name="menuActions">
+    <property name="title">
+     <string>Actions</string>
+    </property>
+    <addaction name="actionTransfer_money"/>
+   </widget>
    <addaction name="menuTr_File"/>
    <addaction name="menuEdit"/>
+   <addaction name="menuActions"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionManage_accounts">
@@ -208,6 +215,11 @@
     <string>Account</string>
    </property>
   </action>
+  <action name="actionTransfer_money">
+   <property name="text">
+    <string>Transfer money</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections>
@@ -259,9 +271,26 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionTransfer_money</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>openTransferMoneyDialog()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>248</x>
+     <y>218</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>openAddAccountDialog()</slot>
   <slot>save()</slot>
+  <slot>openTransferMoneyDialog()</slot>
  </slots>
 </ui>

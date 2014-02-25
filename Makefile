@@ -6,11 +6,11 @@ RESOURCE_DIR = res/ui
 COMPILED_DIR = src/cutecoin/gen_resources
  
 #UI files to compile
-UI_FILES = mainwindow.ui addAccountDialog.ui addCommunityDialog.ui communityTabWidget.ui issuanceDialog.ui
+UI_FILES = mainwindow.ui addAccountDialog.ui addCommunityDialog.ui communityTabWidget.ui issuanceDialog.ui transferDialog.ui
 #Qt resource files to compile
 RESOURCES = 
  
-#pyuic4 and pyrcc4 binaries
+#pyuic5 and pyrcc5 binaries
 PYUIC = pyuic5
 PYRCC = pyrcc5
  

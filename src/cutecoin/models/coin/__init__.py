@@ -31,6 +31,9 @@ class Coin(object):
         origin = m.group(5)
         return cls(issuer, number, base, power, origin)
 
+    def __eq__(self, other):
+        return self.getId() == other.getId()
+
     def value(self):
         return self.base*math.pow(10, self.power)
 
