@@ -9,6 +9,7 @@ from PyQt5.QtCore import QSignalMapper
 from cutecoin.gui.addAccountDialog import AddAccountDialog
 from cutecoin.gui.transferMoneyDialog import TransferMoneyDialog
 from cutecoin.gui.communityTabWidget import CommunityTabWidget
+from cutecoin.gui.addContactDialog import AddContactDialog
 from cutecoin.models.account.wallets.listModel import WalletsListModel
 from cutecoin.models.wallet.listModel import WalletListModel
 from cutecoin.models.transaction.sentListModel import SentListModel
@@ -57,8 +58,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
     def openTransferMoneyDialog(self):
-        transferMoneyDialog = TransferMoneyDialog(self.core.currentAccount)
-        transferMoneyDialog.exec_()
+        TransferMoneyDialog(self.core.currentAccount).exec_()
+
+    def openAddContactDialog(self):
+        AddContactDialog(self.core.currentAccount).exec_()
 
     '''
     Refresh main window

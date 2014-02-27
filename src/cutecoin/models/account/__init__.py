@@ -19,7 +19,7 @@ class Account(object):
     Each account has only one pgpKey, and a key can
     be locally referenced by only one account.
     '''
-    def __init__(self, pgpKeyId, name, communities, wallets):
+    def __init__(self, pgpKeyId, name, communities, wallets, contacts):
         '''
         Constructor
         '''
@@ -27,6 +27,7 @@ class Account(object):
         self.name = name
         self.communities = communities
         self.wallets = wallets
+        self.contacts = contacts
 
     @classmethod
     def create(cls, pgpKeyId, name, communities):
@@ -34,7 +35,7 @@ class Account(object):
         Constructor
         '''
         wallets = Wallets()
-        account = cls(pgpKeyId, name, communities, wallets)
+        account = cls(pgpKeyId, name, communities, wallets, [])
         for community in account.communities.communitiesList:
             wallet = account.wallets.addWallet(community.currency)
             wallet.refreshCoins(community, account.keyFingerprint())
@@ -46,7 +47,12 @@ class Account(object):
         name = jsonData['name']
         communities = Communities()
         wallets = Wallets()
-        account = cls(pgpKeyId, name, communities, wallets)
+        contacts = []
+
+        for contactData in jsonData['contacts']:
+            contacts.append(Person.fromJson(contactData))
+
+        account = cls(pgpKeyId, name, communities, wallets, contacts)
 
         for communityData in jsonData['communities']:
             account.communities.communitiesList.append(Community.load(communityData, account))
@@ -55,6 +61,9 @@ class Account(object):
 
     def addWallet(name, currency):
         self.wallets.addWallet(name, currency)
+
+    def addContact(person):
+        self.contacts.append(person)
 
     def keyFingerprint(self):
         gpg = gnupg.GPG()

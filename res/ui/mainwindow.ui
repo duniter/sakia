@@ -37,7 +37,7 @@
           <bool>false</bool>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>2</number>
          </property>
          <widget class="QWidget" name="walletsTab">
           <attribute name="title">
@@ -287,10 +287,27 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionAdd_a_contact</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>openAddContactDialog()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>248</x>
+     <y>218</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>openAddAccountDialog()</slot>
   <slot>save()</slot>
   <slot>openTransferMoneyDialog()</slot>
+  <slot>openAddContactDialog()</slot>
  </slots>
 </ui>
