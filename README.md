@@ -20,12 +20,16 @@ Qt Client for [Ucoin](http://www.ucoin.io) project.
   * Accounts management
   * Communities viewing
   * Coins issuance
+  * Coins Transfer
 
 ### Work in progress (dev branch)
-  * Wallets viewing
+  * Contacts management
+  * Account THT management
 
 ### Todo
-  * Transfer
   * Coins issuance policies
   * Contacts and messaging
-  * Voting 
+  * Separating the 3 roles : Voter, Member, Random guy. Differnt rights for different roles :
+    * A voter should be able to access the voting UI of the community (+member and random guy rights)
+    * A member should be able to issue money (+random guy rights)
+    * A random guy should be able to send and receive money
