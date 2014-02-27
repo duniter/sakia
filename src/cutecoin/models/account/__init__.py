@@ -95,14 +95,12 @@ class Account(object):
 
     def issuedLastDividend(self, community):
         currentAmendmentNumber = community.amendmentNumber()
-
         if community in self.communities.communitiesList:
             dividendsData = community.ucoinRequest(ucoin.hdc.transactions.sender.issuance.Dividend(self.keyFingerprint(), currentAmendmentNumber))
             for dividend in dividendsData:
                 # Small bug in ucoinpy library
                 if not isinstance(dividend, str):
                     return True
-
         return False
 
     def issueDividend(self, community, coins):
@@ -112,7 +110,7 @@ class Account(object):
             return issuance()
 
     def transferCoins(self, node, recipient, coins, message):
-        transfer = ucoin.wrappers.transactions.Transfer(self.keyFingerprint(), recipient.fingerprint, coins, message, keyid=self.pgpKeyId, server=node.server, port=node.port)
+        transfer = ucoin.wrappers.transactions.RawTransfer(self.keyFingerprint(), recipient.fingerprint, coins, message, keyid=self.pgpKeyId, server=node.server, port=node.port)
         return transfer()
 
     def jsonify(self):

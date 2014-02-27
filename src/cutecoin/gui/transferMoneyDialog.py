@@ -62,7 +62,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         pass
 
     def accept(self):
-        sentCoins = self.listView_coinsSent.model().toString()
+        sentCoins = self.listView_coinsSent.model().toList()
         recipient = None
 
         if self.radio_keyFingerprint.isChecked():
