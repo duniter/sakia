@@ -47,12 +47,12 @@ class Wallet(object):
         return value
 
     def refreshCoins(self, pgpFingerprint):
-        dataList = self.community.ucoinRequest(lambda : ucoin.hdc.coins.List, ctor_args={'pgp_fingerprint':pgpFingerprint})
+        dataList = self.community.ucoinRequest(ucoin.hdc.coins.List({'pgp_fingerprint':pgpFingerprint}))
         for issaunces in dataList['coins']:
             issuer = issaunces['issuer']
             for coinsIds in issaunces['ids']:
                 shortened_id = coinsIds
-                coin = Coin.fromId(pgpFingerprint, issuer+"-"+shortened_id)
+                coin = Coin.fromId(issuer+"-"+shortened_id)
                 self.coins.append(coin)
 
     def getText(self):

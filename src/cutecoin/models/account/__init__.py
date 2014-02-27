@@ -111,6 +111,10 @@ class Account(object):
             issuance = ucoin.wrappers.transactions.Issue(self.keyFingerprint(), community.amendmentNumber(), coins, keyId=self.pgpKeyId)
             return issuance()
 
+    def transferCoins(self, node, recipient, coins, message):
+        transfer = ucoin.wrappers.transactions.Transfer(self.keyFingerprint(), recipient.fingerprint, coins, message, keyid=self.pgpKeyId, server=node.server, port=node.port)
+        return transfer()
+
     def jsonify(self):
         data = {'name' : self.name,
                 'pgpKeyId' : self.pgpKeyId,

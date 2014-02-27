@@ -22,7 +22,7 @@ def createTransaction(senderFingerprint, increment, community):
     if transaction != None:
         transaction.increment = increment
         transaction.community = community
-        transaction.sender = Person.create(senderFingerprint, community)
-        transaction.recipient = Person.create(ucoinTransaction['recipient'], community)
+        transaction.sender = Person.lookup(senderFingerprint, community)
+        transaction.recipient = Person.lookup(ucoinTransaction['recipient'], community)
 
     return transaction

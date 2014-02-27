@@ -42,11 +42,9 @@ class Transfer(Transaction):
     def __init__(self):
         super(Transfer).__init__()
 
-    def getReceivedText(self):
+    def getText(self):
         return str(self.value()) + " " + self.currency() + " from " + self.sender.name
 
-    def getSentText(self):
-        return str(self.value()) + " " + self.currency() + " from " + self.recipient.name
 
 
 class Issuance(Transaction):

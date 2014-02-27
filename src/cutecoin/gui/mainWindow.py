@@ -7,6 +7,7 @@ from cutecoin.gen_resources.mainwindow_uic import Ui_MainWindow
 from PyQt5.QtWidgets import QMainWindow, QAction, QErrorMessage
 from PyQt5.QtCore import QSignalMapper
 from cutecoin.gui.addAccountDialog import AddAccountDialog
+from cutecoin.gui.transferMoneyDialog import TransferMoneyDialog
 from cutecoin.gui.communityTabWidget import CommunityTabWidget
 from cutecoin.models.account.wallets.listModel import WalletsListModel
 from cutecoin.models.wallet.listModel import WalletListModel
@@ -54,6 +55,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         logging.info('Changing account to ' + self.core.currentAccount.name)
         self.refreshMainWindow()
 
+
+    def openTransferMoneyDialog(self):
+        transferMoneyDialog = TransferMoneyDialog(self.core.currentAccount)
+        transferMoneyDialog.exec_()
 
     '''
     Refresh main window

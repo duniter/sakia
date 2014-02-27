@@ -19,7 +19,7 @@ class MembersListModel(QAbstractListModel):
         fingerprints = community.membersFingerprints()
         self.members = []
         for f in fingerprints:
-            self.members.append(Person.create(f, community))
+            self.members.append(Person.lookup(f, community))
 
     def rowCount(self ,parent):
         return len(self.members)

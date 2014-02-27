@@ -22,8 +22,9 @@ class Person(object):
         self.fingerprint = fingerprint
         self.email = email
 
+
     @classmethod
-    def create(cls, pgpFingerprint, community):
+    def lookup(cls, pgpFingerprint, community):
         '''
         Create a person from the pgpFingerprint found in a community
         '''
