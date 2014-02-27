@@ -34,7 +34,7 @@ class Transaction(Wrapper):
 
     def __call__(self):
         try:
-            last_tx = hdc.transactions.sender.Last(self.pgp_fingerprint, self.server, self.port).get()
+            last_tx = hdc.transactions.sender.Last(self.pgp_fingerprint, server=self.server, port=self.port).get()
         except ValueError:
             last_tx = None
 
@@ -118,7 +118,7 @@ Comment:
 
 class Transfer(Transaction):
     def __init__(self, pgp_fingerprint, recipient, coins, message='', keyid=None, server=None, port=None):
-        super().__init__('TRANSFER', pgp_fingerprint, message, keyid, server, port)
+        super().__init__('TRANSFER', pgp_fingerprint, message, keyid=keyid, server=server, port=port)
 
         self.recipient = recipient
         self.coins = coins
@@ -133,11 +133,11 @@ Coins:
 """ % context_data
 
         for coin in self.coins.split(','):
-            data = coin.split(':')
+            data = coin.split('-')
             issuer = data[0]
-            for number in data[1:]:
-                context_data.update(hdc.coins.View(issuer, int(number), self.server, self.port).get())
-                tx += '%(id)s, %(transaction)s\n' % context_data
+            number = data[1]
+            context_data.update(hdc.coins.View(issuer, int(number), self.server, self.port).get())
+            tx += '%(id)s, %(transaction)s\n' % context_data
 
         return tx
 
@@ -172,7 +172,7 @@ Coins:
 
 class Issue(MonoTransaction):
     def __init__(self, pgp_fingerprint, amendment, coins, message='', keyid=None, server=None, port=None):
-        super().__init__('ISSUANCE', pgp_fingerprint, message, keyid, server, port)
+        super().__init__('ISSUANCE', pgp_fingerprint, message, keyid=keyid, server=server, port=port)
 
         self.amendment = amendment
         self.coins = coins
@@ -189,7 +189,7 @@ class Issue(MonoTransaction):
 
 class Fusion(MonoTransaction):
     def __init__(self, pgp_fingerprint, coins, message='', keyid=None, server=None, port=None):
-        super().__init__('FUSION', pgp_fingerprint, message, keyid, server, port)
+        super().__init__('FUSION', pgp_fingerprint, message, keyid=keyid, server=server, port=port)
 
         self.coins = coins
 
@@ -206,7 +206,7 @@ class Fusion(MonoTransaction):
 
 class Divide(MonoTransaction):
     def __init__(self, pgp_fingerprint, old_coins, new_coins, message='', keyid=None, server=None, port=None):
-        super().__init__('DIVISION', pgp_fingerprint, message, keyid, server, port)
+        super().__init__('DIVISION', pgp_fingerprint, message, keyid=keyid, server=server, port=port)
 
         self.old_coins = old_coins
         self.new_coins = new_coins
