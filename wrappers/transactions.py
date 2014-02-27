@@ -133,13 +133,39 @@ Coins:
 """ % context_data
 
         for coin in self.coins.split(','):
-            data = coin.split('-')
+            data = coin.split(':')
             issuer = data[0]
-            number = data[1]
-            context_data.update(hdc.coins.View(issuer, int(number), self.server, self.port).get())
+
+            for number in data[1:]:
+                context_data.update(hdc.coins.View(issuer, int(number), self.server, self.port).get())
+                tx += '%(id)s, %(transaction)s\n' % context_data
+        return tx
+
+
+class RawTransfer(Transaction):
+    def __init__(self, pgp_fingerprint, recipient, coins, message='', keyid=None, server=None, port=None):
+        super().__init__('TRANSFER', pgp_fingerprint, message, keyid=keyid, server=server, port=port)
+
+        self.recipient = recipient
+        self.coins = coins
+
+    def get_message(self, context_data, tx=''):
+        context_data['recipient'] = self.recipient
+
+        tx += """\
+Recipient: %(recipient)s
+Type: %(type)s
+Coins:
+""" % context_data
+
+        for coin in self.coins:
+            print(coin)
+            data = coin.split('-')
+            context_data.update(hdc.coins.View(data[0], int(data[1]), self.server, self.port).get())
             tx += '%(id)s, %(transaction)s\n' % context_data
 
         return tx
+
 
 class MonoTransaction(Transaction):
     def get_next_coin_number(self, coins):
