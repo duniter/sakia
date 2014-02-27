@@ -159,7 +159,6 @@ Coins:
 """ % context_data
 
         for coin in self.coins:
-            print(coin)
             data = coin.split('-')
             context_data.update(hdc.coins.View(data[0], int(data[1]), self.server, self.port).get())
             tx += '%(id)s, %(transaction)s\n' % context_data
