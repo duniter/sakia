@@ -26,7 +26,7 @@ class SentListModel(QAbstractListModel):
 
         if role == Qt.DisplayRole:
             row=index.row()
-            value = self.transactions[row].getSendText()
+            value = self.transactions[row].getText()
             return value
 
     def flags(self,index):

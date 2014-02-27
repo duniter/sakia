@@ -62,24 +62,24 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         pass
 
     def accept(self):
-        sentCoins = self.listView_coinsSent.model().coins
-        receiver = None
+        sentCoins = self.listView_coinsSent.model().toString()
+        recipient = None
 
-        if self.radio_keyFingerprint.toggled():
-            receiver = Person(self.edit_keyFingerprint.text(), "", "")
+        if self.radio_keyFingerprint.isChecked():
+            recipient = Person("", self.edit_keyFingerprint.text(), "")
         else:
             #TODO: Manage contacts
-            receiver = Person(self.edit_keyFingerprint.text(), "", "")
+            recipient = Person("", self.edit_keyFingerprint.text(), "")
 
-        if self.radio_nodeAddress.toggled():
-            node = Node(self.edit_nodeAddress, self.edit_port)
+        if self.radio_nodeAddress.isChecked():
+            node = Node(self.edit_nodeAddress.text(), int(self.edit_port.text()))
         else:
             #TODO: Manage trusted nodes
-            node = Node(self.edit_nodeAddress, self.edit_port)
+            node = Node(self.edit_nodeAddress.text(), int(self.edit_port.text()))
 
+        message = self.edit_message.text()
         #TODO: Transfer money, and validate the window if no error happened
-
-        self.sender.transferCoins(sentCoins)
+        print(self.sender.transferCoins(node, recipient, sentCoins, message))
 
     def changeDisplayedWallet(self, index):
         wallet = self.sender.wallets.walletsList[index]
@@ -90,6 +90,17 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         self.listView_coinsSent.setModel(coinsSentModel)
         walletCoinsModel = CoinsListModel(list(wallet.coins))
         self.listView_wallet.setModel(walletCoinsModel)
+
+    def recipientModeChanged(self, fingerprintToggled):
+        self.edit_keyFingerprint.setEnabled(fingerprintToggled)
+        self.comboBox_contact.setEnabled(not fingerprintToggled)
+
+    def transferModeChanged(self, nodeAddressToggled):
+        self.edit_nodeAddress.setEnabled(nodeAddressToggled)
+        self.comboBox_trustedNode.setEnabled(not nodeAddressToggled)
+
+
+
 
 
 

@@ -32,7 +32,7 @@
         <item>
          <widget class="QLineEdit" name="edit_keyFingerprint">
           <property name="inputMask">
-           <string>&gt;NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN</string>
+           <string/>
           </property>
           <property name="text">
            <string/>
@@ -186,7 +186,7 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="QLineEdit" name="lineEdit">
+           <widget class="QLineEdit" name="edit_message">
             <property name="placeholderText">
              <string>A message</string>
             </property>
