@@ -4,7 +4,7 @@ Created on 2 févr. 2014
 @author: inso
 '''
 import logging
-
+import re
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox
 
 
@@ -16,21 +16,29 @@ class AddContactDialog(QDialog, Ui_AddContactDialog):
     '''
     classdocs
     '''
-    def __init__(self, account):
+    def __init__(self, account, parent=None):
         '''
         Constructor
         '''
         super(AddContactDialog, self).__init__()
         self.setupUi(self)
+        self.account = account
+        self.mainWindow = parent
+        self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
 
 
     def accept(self):
-        #TODO: Add a contact on acceptance
-        pass
+        name = self.edit_name.text()
+        fingerprint = self.edit_fingerprint.text()
+        email = self.edit_email.text()
+        self.account.addContact(Person(name, fingerprint, email))
+        self.mainWindow.menu_contactsList.addAction(name)
+        self.close()
 
     def nameEdited(self, newName):
         self.buttonBox.button(QDialogButtonBox.Ok).setEnabled( len(newName) > 0 )
 
     def fingerprintEdited(self, newFingerprint):
-        self.buttonBox.button(QDialogButtonBox.Ok).setEnabled( len(newFingerprint) == 32 )
+        pattern = re.compile("([A-Z]|[0-9])+")
+        self.buttonBox.button(QDialogButtonBox.Ok).setEnabled( pattern.match(newFingerprint) is not None )
 

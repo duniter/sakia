@@ -46,7 +46,13 @@ class Person(object):
         Create a person from json data
         '''
         name = jsonPerson['name']
-        pgpFingerprint = jsonPerson['fingerprint']
+        fingerprint = jsonPerson['fingerprint']
         email = jsonPerson['email']
-        return cls(name, pgpFingerprint, email)
+        return cls(name, fingerprint, email)
+
+    def jsonify(self):
+        data = {'name' : self.name,
+                'fingerprint' : self.fingerprint,
+                'email' : self.email}
+        return data
 

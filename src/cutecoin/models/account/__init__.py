@@ -12,6 +12,7 @@ from cutecoin.models.account.wallets import Wallets
 from cutecoin.models.account.communities import Communities
 from cutecoin.models.community import Community
 from cutecoin.models.transaction import factory
+from cutecoin.models.person import Person
 
 class Account(object):
     '''
@@ -59,10 +60,10 @@ class Account(object):
 
         return account
 
-    def addWallet(name, currency):
+    def addWallet(self, name, currency):
         self.wallets.addWallet(name, currency)
 
-    def addContact(person):
+    def addContact(self, person):
         self.contacts.append(person)
 
     def keyFingerprint(self):
@@ -121,13 +122,20 @@ class Account(object):
             return issuance()
 
     def transferCoins(self, node, recipient, coins, message):
-        transfer = ucoin.wrappers.transactions.Transfer(self.keyFingerprint(), recipient.fingerprint, coins, message, keyid=self.pgpKeyId, server=node.server, port=node.port)
+        transfer = ucoin.wrappers.transactions.RawTransfer(self.keyFingerprint(), recipient.fingerprint, coins, message, keyid=self.pgpKeyId, server=node.server, port=node.port)
         return transfer()
+
+    def jsonifyContacts(self):
+        data = []
+        for p in self.contacts:
+            data.append(p.jsonify())
+        return data
 
     def jsonify(self):
         data = {'name' : self.name,
                 'pgpKeyId' : self.pgpKeyId,
-                'communities' : self.communities.jsonify(self.wallets)}
+                'communities' : self.communities.jsonify(self.wallets),
+                'contacts' : self.jsonifyContacts()}
         return data
 
 

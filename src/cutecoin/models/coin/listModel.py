@@ -29,9 +29,8 @@ class CoinsListModel(QAbstractListModel):
     def flags(self,index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled
 
-    def toString(self):
+    def toList(self):
         coinsList = []
         for c in self.coins:
             coinsList.append(c.getId())
-        coinsStr = ",".join(coinsList)
-        return coinsStr
+        return coinsList

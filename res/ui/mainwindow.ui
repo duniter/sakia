@@ -117,7 +117,7 @@
      <height>20</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuTr_File">
+   <widget class="QMenu" name="menu_account">
     <property name="title">
      <string>Account</string>
     </property>
@@ -132,12 +132,19 @@
     <addaction name="actionSave"/>
     <addaction name="actionQuit"/>
    </widget>
-   <widget class="QMenu" name="menuEdit">
+   <widget class="QMenu" name="menu_contacts">
     <property name="title">
      <string>Contacts</string>
     </property>
+    <widget class="QMenu" name="menu_contactsList">
+     <property name="title">
+      <string>Contacts</string>
+     </property>
+     <addaction name="separator"/>
+    </widget>
     <addaction name="separator"/>
     <addaction name="actionAdd_a_contact"/>
+    <addaction name="menu_contactsList"/>
    </widget>
    <widget class="QMenu" name="menuActions">
     <property name="title">
@@ -145,8 +152,8 @@
     </property>
     <addaction name="actionTransfer_money"/>
    </widget>
-   <addaction name="menuTr_File"/>
-   <addaction name="menuEdit"/>
+   <addaction name="menu_account"/>
+   <addaction name="menu_contacts"/>
    <addaction name="menuActions"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>

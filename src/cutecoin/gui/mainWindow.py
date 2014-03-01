@@ -45,7 +45,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.core.addAccount(self.addAccountDialog.account)
         except KeyAlreadyUsed as e:
             QErrorMessage(self).showMessage(e.message)
-
         self.refreshMainWindow()
 
     def save(self):
@@ -61,7 +60,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         TransferMoneyDialog(self.core.currentAccount).exec_()
 
     def openAddContactDialog(self):
-        AddContactDialog(self.core.currentAccount).exec_()
+        AddContactDialog(self.core.currentAccount, self).exec_()
 
     '''
     Refresh main window
@@ -86,10 +85,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.accountNameLabel.setText("Current account : " + self.core.currentAccount.name)
             self.walletsList.setModel(WalletsListModel(self.core.currentAccount))
             self.walletContent.setModel(WalletListModel(self.core.currentAccount.wallets.walletsList[0]))
+
             self.communitiesTab.clear()
             for community in self.core.currentAccount.communities.communitiesList:
                 communityTab = CommunityTabWidget(self.core.currentAccount, community)
                 self.communitiesTab.addTab(communityTab, community.name())
+
+            self.menu_contactsList.clear()
+            for contact in self.core.currentAccount.contacts:
+                self.menu_contactsList.addAction(contact.name)
+
             self.transactionsSent.setModel(SentListModel(self.core.currentAccount))
             self.transactionsReceived.setModel(ReceivedListModel(self.core.currentAccount))
 
