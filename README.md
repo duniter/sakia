@@ -33,3 +33,5 @@ Qt Client for [Ucoin](http://www.ucoin.io) project.
     * A voter should be able to access the voting UI of the community (+member and random guy rights)
     * A member should be able to issue money (+random guy rights)
     * A random guy should be able to send and receive money
+
+#TODO: Setuptools to build cutecoin automatically

@@ -126,6 +126,7 @@
       <string>Change account</string>
      </property>
     </widget>
+    <addaction name="actionConfigure_parameters"/>
     <addaction name="menuChange_account"/>
     <addaction name="actionAdd_account"/>
     <addaction name="separator"/>
@@ -227,6 +228,11 @@
     <string>Transfer money</string>
    </property>
   </action>
+  <action name="actionConfigure_parameters">
+   <property name="text">
+    <string>Configure</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections>
@@ -310,11 +316,28 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionConfigure_parameters</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>openConfigureAccountDialog()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>36</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>248</x>
+     <y>218</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>openAddAccountDialog()</slot>
   <slot>save()</slot>
   <slot>openTransferMoneyDialog()</slot>
   <slot>openAddContactDialog()</slot>
+  <slot>openConfigureAccountDialog()</slot>
  </slots>
 </ui>
