@@ -35,8 +35,8 @@ class Core(object):
 
     def addAccount(self, account):
         for a in self.accounts:
-            if a.pgpKeyId == account.pgpKeyId:
-                raise KeyAlreadyUsed(account, account.pgpKeyId, a)
+            if a.keyId == account.keyId:
+                raise KeyAlreadyUsed(account, account.keyId, a)
 
         self.accounts.append(account)
         self.currentAccount = account

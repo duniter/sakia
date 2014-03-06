@@ -7,6 +7,7 @@ from cutecoin.gen_resources.mainwindow_uic import Ui_MainWindow
 from PyQt5.QtWidgets import QMainWindow, QAction, QErrorMessage
 from PyQt5.QtCore import QSignalMapper
 from cutecoin.gui.addAccountDialog import AddAccountDialog
+from cutecoin.gui.configureAccountDialog import ConfigureAccountDialog
 from cutecoin.gui.transferMoneyDialog import TransferMoneyDialog
 from cutecoin.gui.communityTabWidget import CommunityTabWidget
 from cutecoin.gui.addContactDialog import AddContactDialog
@@ -40,7 +41,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.addAccountDialog.exec_()
 
     def actionAddAccount(self):
-        self.addAccountDialog.account.name = self.addAccountDialog.accountName.text()
+        self.addAccountDialog.account.name = self.addAccountDialog.edit_accountName.text()
         try:
             self.core.addAccount(self.addAccountDialog.account)
         except KeyAlreadyUsed as e:
@@ -55,12 +56,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         logging.info('Changing account to ' + self.core.currentAccount.name)
         self.refreshMainWindow()
 
-
     def openTransferMoneyDialog(self):
         TransferMoneyDialog(self.core.currentAccount).exec_()
 
     def openAddContactDialog(self):
         AddContactDialog(self.core.currentAccount, self).exec_()
+
+    def openConfigureAccountDialog(self):
+        ConfigureAccountDialog(self).exec_()
 
     '''
     Refresh main window

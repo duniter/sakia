@@ -16,27 +16,27 @@ from cutecoin.models.person import Person
 
 class Account(object):
     '''
-    An account is specific to a pgpKey.
-    Each account has only one pgpKey, and a key can
+    An account is specific to a key.
+    Each account has only one key, and a key can
     be locally referenced by only one account.
     '''
-    def __init__(self, pgpKeyId, name, communities, wallets, contacts):
+    def __init__(self, keyId, name, communities, wallets, contacts):
         '''
         Constructor
         '''
-        self.pgpKeyId = pgpKeyId
+        self.keyId = keyId
         self.name = name
         self.communities = communities
         self.wallets = wallets
         self.contacts = contacts
 
     @classmethod
-    def create(cls, pgpKeyId, name, communities):
+    def create(cls, keyId, name, communities):
         '''
         Constructor
         '''
         wallets = Wallets()
-        account = cls(pgpKeyId, name, communities, wallets, [])
+        account = cls(keyId, name, communities, wallets, [])
         for community in account.communities.communitiesList:
             wallet = account.wallets.addWallet(community.currency)
             wallet.refreshCoins(community, account.keyFingerprint())
@@ -44,7 +44,7 @@ class Account(object):
 
     @classmethod
     def load(cls, jsonData):
-        pgpKeyId = jsonData['pgpKeyId']
+        keyId = jsonData['keyId']
         name = jsonData['name']
         communities = Communities()
         wallets = Wallets()
@@ -53,7 +53,7 @@ class Account(object):
         for contactData in jsonData['contacts']:
             contacts.append(Person.fromJson(contactData))
 
-        account = cls(pgpKeyId, name, communities, wallets, contacts)
+        account = cls(keyId, name, communities, wallets, contacts)
 
         for communityData in jsonData['communities']:
             account.communities.communitiesList.append(Community.load(communityData, account))
@@ -69,10 +69,10 @@ class Account(object):
     def keyFingerprint(self):
         gpg = gnupg.GPG()
         availableKeys = gpg.list_keys()
-        logging.debug(self.pgpKeyId)
+        logging.debug(self.keyId)
         for k in availableKeys:
             logging.debug(k)
-            if k['keyid'] == self.pgpKeyId:
+            if k['keyid'] == self.keyId:
                 return k['fingerprint']
         return ""
 
@@ -133,7 +133,7 @@ class Account(object):
 
     def jsonify(self):
         data = {'name' : self.name,
-                'pgpKeyId' : self.pgpKeyId,
+                'keyId' : self.keyId,
                 'communities' : self.communities.jsonify(self.wallets),
                 'contacts' : self.jsonifyContacts()}
         return data

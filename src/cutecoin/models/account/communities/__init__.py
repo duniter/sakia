@@ -20,8 +20,8 @@ class Communities(object):
 
     def addCommunity(self, mainNode, keyFingerprint):
         '''
-        Add a community with a mainNode and the pgpFingerprint of the account
-        Check if the pgpFingerprint is present in the community members list
+        Add a community with a mainNode and the fingerprint of the account
+        Check if the fingerprint is present in the community members list
         If its not, the account isnt added and an error is raised.
         '''
         community = Community.create(mainNode)

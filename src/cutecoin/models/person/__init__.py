@@ -24,12 +24,12 @@ class Person(object):
 
 
     @classmethod
-    def lookup(cls, pgpFingerprint, community):
+    def lookup(cls, fingerprint, community):
         '''
-        Create a person from the pgpFingerprint found in a community
+        Create a person from the fngerprint found in a community
         '''
         keys = community.ucoinRequest(ucoin.pks.Lookup(),
-                                          get_args={'search':"0x"+pgpFingerprint, 'op':'index'})['keys']
+                                          get_args={'search':"0x"+fingerprint, 'op':'index'})['keys']
         if len(keys) > 0:
             json = keys[0]['key']
             name = json['name']
@@ -37,7 +37,7 @@ class Person(object):
             email = json['email']
             return cls(name, fingerprint, email)
         else:
-            raise PersonNotFoundError(pgpFingerprint, "pgpFingerprint", community)
+            raise PersonNotFoundError(fingerprint, "fingerprint", community)
         return None
 
     @classmethod
