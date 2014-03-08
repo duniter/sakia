@@ -24,9 +24,9 @@ class Node(object):
         return self.server + ":" + str(self.port)
 
 
-class MainNode(Node):
+class TrustedNode(Node):
     '''
-    MainNode is a node the community is reading to get informations.
+    TrustedNode is a node the community is reading to get informations.
     The account sends data one of the community main nodes.
     '''
     def downstreamPeers(self):

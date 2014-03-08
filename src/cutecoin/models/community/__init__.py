@@ -9,20 +9,20 @@ import hashlib
 import json
 import logging
 
-from cutecoin.models.node import MainNode
+from cutecoin.models.node import TrustedNode
 from cutecoin.models.wallet import Wallet
 
 class Community(object):
     '''
     classdocs
     '''
-    def __init__(self, knownNodes):
+    def __init__(self, trustedNodes):
         '''
         A community is a group of nodes using the same currency.
         They are all using the same amendment and are syncing their datas.
         An account is a member of a community if he is a member of the current amendment.
         '''
-        self.knownNodes = knownNodes
+        self.trustedNodes = trustedNodes
         currentAmendment = self.ucoinRequest(ucoin.hdc.amendments.Current())
         self.currency = currentAmendment['currency']
 
@@ -37,7 +37,7 @@ class Community(object):
     def load(cls, jsonData, account):
         knownNodes = []
         for nodeData in jsonData['nodes']:
-            knownNodes.append(MainNode(nodeData['server'], nodeData['port']))
+            knownNodes.append(TrustedNode(nodeData['server'], nodeData['port']))
 
         community = cls(knownNodes)
 
@@ -59,7 +59,7 @@ class Community(object):
         return members
 
     def ucoinRequest(self, request, get_args={}):
-        for node in self.knownNodes:
+        for node in self.trustedNodes:
                 logging.debug("Trying to connect to : " + node.getText())
                 request = node.use(request)
                 return request.get(**get_args)
@@ -103,7 +103,7 @@ class Community(object):
 
     def jsonifyNodesList(self):
         data = []
-        for node in self.knownNodes:
+        for node in self.trustedNodes:
             data.append(node.jsonify())
         return data
 

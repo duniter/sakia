@@ -3,7 +3,6 @@ Created on 2 févr. 2014
 
 @author: inso
 '''
-import logging
 import re
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox
 

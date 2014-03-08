@@ -89,7 +89,7 @@ class CommunityTreeModel(QAbstractItemModel):
 
     def refreshTreeNodes(self):
         logging.debug("root : " + self.rootItem.data(0))
-        for mainNode in self.community.knownNodes:
+        for mainNode in self.community.trustedNodes:
             mainNodeItem = MainNodeItem(mainNode, self.rootItem)
             logging.debug("mainNode : " + mainNode.getText() + " / " + mainNodeItem.data(0))
             self.rootItem.appendChild(mainNodeItem)

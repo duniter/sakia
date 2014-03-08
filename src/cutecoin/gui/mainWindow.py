@@ -6,7 +6,6 @@ Created on 1 févr. 2014
 from cutecoin.gen_resources.mainwindow_uic import Ui_MainWindow
 from PyQt5.QtWidgets import QMainWindow, QAction, QErrorMessage
 from PyQt5.QtCore import QSignalMapper
-from cutecoin.gui.addAccountDialog import AddAccountDialog
 from cutecoin.gui.configureAccountDialog import ConfigureAccountDialog
 from cutecoin.gui.transferMoneyDialog import TransferMoneyDialog
 from cutecoin.gui.communityTabWidget import CommunityTabWidget
@@ -36,7 +35,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.refreshMainWindow()
 
     def openAddAccountDialog(self):
-        self.addAccountDialog = AddAccountDialog(self)
+        self.addAccountDialog = ConfigureAccountDialog(None)
+        self.addAccountDialog.buttonBox.accepted.connect(self.actionAddAccount)
         self.addAccountDialog.setData()
         self.addAccountDialog.exec_()
 
@@ -63,7 +63,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         AddContactDialog(self.core.currentAccount, self).exec_()
 
     def openConfigureAccountDialog(self):
-        ConfigureAccountDialog(self).exec_()
+        ConfigureAccountDialog(self.core.currentAccount).exec_()
 
     '''
     Refresh main window
