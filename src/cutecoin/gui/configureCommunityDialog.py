@@ -22,6 +22,11 @@ class ConfigureCommunityDialog(QDialog, Ui_CommunityConfigurationDialog):
         super(ConfigureCommunityDialog, self).__init__()
         self.setupUi(self)
         self.community = community
+        if self.community is None:
+            self.setWindowTitle("Add a community")
+        else:
+            self.setWindowTitle("Configure community " + self.community.currency)
+        self.setData()
 
     def setData(self):
         if self.community is not None:

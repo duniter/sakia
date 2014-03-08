@@ -164,9 +164,9 @@
   </connection>
   <connection>
    <sender>list_communities</sender>
-   <signal>clicked(QModelIndex)</signal>
+   <signal>doubleClicked(QModelIndex)</signal>
    <receiver>AccountConfigurationDialog</receiver>
-   <slot>actionEditCommunity()</slot>
+   <slot>openEditCommunityDialog(QModelIndex)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>199</x>
@@ -183,6 +183,6 @@
   <slot>openAddCommunityDialog()</slot>
   <slot>keyChanged(int)</slot>
   <slot>actionRemoveCommunity()</slot>
-  <slot>actionEditCommunity()</slot>
+  <slot>openEditCommunityDialog(QModelIndex)</slot>
  </slots>
 </ui>

@@ -54,7 +54,6 @@ class ConfigureAccountDialog(QDialog, Ui_AccountConfigurationDialog):
 
     def openAddCommunityDialog(self):
         dialog = ConfigureCommunityDialog(None)
-        dialog.setWindowTitle("Add a community")
         dialog.buttonBox.accepted.connect(self.actionAddCommunity)
         dialog.setAccount(self.account)
         dialog.exec_()
@@ -69,8 +68,14 @@ class ConfigureAccountDialog(QDialog, Ui_AccountConfigurationDialog):
         pass
 
     def actionEditCommunity(self):
-        #TODO: Edit selected community
-        pass
+        self.list_communities.setModel(CommunitiesListModel(self.account))
+
+    def openEditCommunityDialog(self, index):
+        community = self.account.communities.communitiesList[index.row()]
+        dialog = ConfigureCommunityDialog(community)
+        dialog.buttonBox.accepted.connect(self.actionEditCommunity)
+        dialog.setAccount(self.account)
+        dialog.exec_()
 
     def keyChanged(self, keyIndex):
         gpg = gnupg.GPG()
