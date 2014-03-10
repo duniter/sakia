@@ -24,7 +24,11 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
-       <widget class="QTreeView" name="communityView"/>
+       <widget class="QTreeView" name="communityView">
+        <property name="contextMenuPolicy">
+         <enum>Qt::CustomContextMenu</enum>
+        </property>
+       </widget>
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -125,8 +129,25 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>communityView</sender>
+   <signal>customContextMenuRequested(QPoint)</signal>
+   <receiver>CommunityConfigurationDialog</receiver>
+   <slot>showContextMenu(QPoint)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>128</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>addNode()</slot>
+  <slot>showContextMenu(QPoint)</slot>
  </slots>
 </ui>

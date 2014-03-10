@@ -4,7 +4,7 @@ Created on 8 mars 2014
 @author: inso
 '''
 from cutecoin.gen_resources.communityConfigurationDialog_uic import Ui_CommunityConfigurationDialog
-from PyQt5.QtWidgets import QDialog, QErrorMessage
+from PyQt5.QtWidgets import QDialog, QErrorMessage, QMenu
 from cutecoin.models.community.treeModel import CommunityTreeModel
 from cutecoin.models.node import TrustedNode
 from cutecoin.core.exceptions import NotMemberOfCommunityError
@@ -51,6 +51,20 @@ class ConfigureCommunityDialog(QDialog, Ui_CommunityConfigurationDialog):
         else:
             self.community.addTrustedNode( TrustedNode(server, port ))
             self.communityView.setModel( CommunityTreeModel(self.community ))
+
+    def showContextMenu(self, point):
+        menu = QMenu()
+        action = menu.addAction("Delete", self.removeNode)
+        if self.community is not None:
+            if len(self.community.trustedNodes) == 1:
+                action.setEnabled(False)
+        menu.exec_(self.communityView.mapToGlobal(point))
+
+    def removeNode(self):
+        for index in self.communityView.selectedIndexes():
+            self.community.trustedNodes.pop(index.row())
+
+        self.communityView.setModel( CommunityTreeModel(self.community ))
 
     def accept(self):
         self.close()
