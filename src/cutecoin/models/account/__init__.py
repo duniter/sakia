@@ -60,6 +60,12 @@ class Account(object):
 
         return account
 
+    def __eq__(self, other):
+        if other is not None:
+            return other.keyId == self.keyId
+        else:
+            return False
+
     def addWallet(self, name, currency):
         self.wallets.addWallet(name, currency)
 

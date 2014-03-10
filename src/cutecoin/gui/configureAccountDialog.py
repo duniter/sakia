@@ -6,7 +6,8 @@ Created on 6 mars 2014
 from cutecoin.gen_resources.accountConfigurationDialog_uic import Ui_AccountConfigurationDialog
 from cutecoin.gui.configureCommunityDialog import ConfigureCommunityDialog
 from cutecoin.models.account.communities.listModel import CommunitiesListModel
-from PyQt5.QtWidgets import QDialog
+from cutecoin.core.exceptions import KeyAlreadyUsed
+from PyQt5.QtWidgets import QDialog, QErrorMessage
 from cutecoin.models.account import Account
 from cutecoin.models.account import Communities
 import gnupg
@@ -18,7 +19,7 @@ class ConfigureAccountDialog(QDialog, Ui_AccountConfigurationDialog):
     '''
 
 
-    def __init__(self, account):
+    def __init__(self, core, account):
         '''
         Constructor
         '''
@@ -26,6 +27,7 @@ class ConfigureAccountDialog(QDialog, Ui_AccountConfigurationDialog):
         super(ConfigureAccountDialog, self).__init__()
         self.setupUi(self)
         self.account = account
+        self.core = core
         if self.account is None:
             self.setWindowTitle("New account")
         else:
@@ -64,8 +66,12 @@ class ConfigureAccountDialog(QDialog, Ui_AccountConfigurationDialog):
         self.list_communities.setModel(CommunitiesListModel(self.account))
 
     def actionRemoveCommunity(self):
-        #TODO:Remove selected community
-        pass
+        for index in self.list_communities.selectedIndexes():
+            community = self.account.communities.communitiesList[ index.row() ]
+            self.account.wallets.removeAllWalletsOf(community)
+            self.account.communities.communitiesList.pop(index.row())
+
+        self.list_communities.setModel( CommunitiesListModel(self.account ))
 
     def actionEditCommunity(self):
         self.list_communities.setModel(CommunitiesListModel(self.account))
@@ -81,4 +87,14 @@ class ConfigureAccountDialog(QDialog, Ui_AccountConfigurationDialog):
         gpg = gnupg.GPG()
         availableKeys = gpg.list_keys(True)
         self.account.keyId = availableKeys[keyIndex]['keyid']
+
+    def accept(self):
+        if self.account not in self.core.accounts:
+            self.account.name = self.edit_accountName.text()
+            try:
+                self.core.addAccount(self.account)
+            except KeyAlreadyUsed as e:
+                QErrorMessage(self).showMessage(e.message)
+        self.close()
+
 

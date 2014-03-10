@@ -37,6 +37,12 @@ class Wallets(object):
                 return w
         return None
 
+    def removeAllWalletsOf(self, community):
+        for wallet in self.walletsList:
+            if wallet.community == community:
+                self.walletsList.remove(wallet)
+
+
     def jsonify(self, community):
         '''
         Return the list of wallets in a key:value form.

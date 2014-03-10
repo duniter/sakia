@@ -4,7 +4,7 @@ Created on 1 févr. 2014
 @author: inso
 '''
 from cutecoin.gen_resources.mainwindow_uic import Ui_MainWindow
-from PyQt5.QtWidgets import QMainWindow, QAction, QErrorMessage
+from PyQt5.QtWidgets import QMainWindow, QAction, QErrorMessage, QDialogButtonBox
 from PyQt5.QtCore import QSignalMapper
 from cutecoin.gui.configureAccountDialog import ConfigureAccountDialog
 from cutecoin.gui.transferMoneyDialog import TransferMoneyDialog
@@ -14,7 +14,6 @@ from cutecoin.models.account.wallets.listModel import WalletsListModel
 from cutecoin.models.wallet.listModel import WalletListModel
 from cutecoin.models.transaction.sentListModel import SentListModel
 from cutecoin.models.transaction.receivedListModel import ReceivedListModel
-from cutecoin.core.exceptions import KeyAlreadyUsed
 
 import logging
 
@@ -35,18 +34,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.refreshMainWindow()
 
     def openAddAccountDialog(self):
-        self.addAccountDialog = ConfigureAccountDialog(None)
-        self.addAccountDialog.buttonBox.accepted.connect(self.actionAddAccount)
-        self.addAccountDialog.setData()
-        self.addAccountDialog.exec_()
+        dialog = ConfigureAccountDialog(self.core, None)
+        dialog.buttonBox.button(QDialogButtonBox.Ok).clicked.connect(self.refreshMainWindow)
+        dialog.exec_()
 
-    def actionAddAccount(self):
-        self.addAccountDialog.account.name = self.addAccountDialog.edit_accountName.text()
-        try:
-            self.core.addAccount(self.addAccountDialog.account)
-        except KeyAlreadyUsed as e:
-            QErrorMessage(self).showMessage(e.message)
-        self.refreshMainWindow()
 
     def save(self):
         self.core.save()
@@ -63,7 +54,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         AddContactDialog(self.core.currentAccount, self).exec_()
 
     def openConfigureAccountDialog(self):
-        ConfigureAccountDialog(self.core.currentAccount).exec_()
+        dialog = ConfigureAccountDialog(self.core, self.core.currentAccount)
+        dialog.buttonBox.button(QDialogButtonBox.Ok).clicked.connect(self.refreshMainWindow)
+        dialog.exec_()
 
     '''
     Refresh main window
@@ -87,7 +80,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.accountTabs.setEnabled(True)
             self.accountNameLabel.setText("Current account : " + self.core.currentAccount.name)
             self.walletsList.setModel(WalletsListModel(self.core.currentAccount))
-            self.walletContent.setModel(WalletListModel(self.core.currentAccount.wallets.walletsList[0]))
 
             self.communitiesTab.clear()
             for community in self.core.currentAccount.communities.communitiesList:
@@ -100,4 +92,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             self.transactionsSent.setModel(SentListModel(self.core.currentAccount))
             self.transactionsReceived.setModel(ReceivedListModel(self.core.currentAccount))
+
+
+    def refreshWalletContent(self, index):
+        if index.isValid():
+            currentWallet = self.core.currentAccount.wallets.walletsList[index.row()]
+            self.walletContent.setModel(WalletListModel(currentWallet))
+        else:
+            self.walletContent.setModel(WalletListModel([]))
 

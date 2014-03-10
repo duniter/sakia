@@ -25,7 +25,6 @@ class MembersListModel(QAbstractListModel):
         return len(self.members)
 
     def data(self,index,role):
-
         if role == Qt.DisplayRole:
             row=index.row()
             value = self.members[row].name

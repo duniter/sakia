@@ -37,7 +37,7 @@
           <bool>false</bool>
          </property>
          <property name="currentIndex">
-          <number>2</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="walletsTab">
           <attribute name="title">
@@ -323,8 +323,24 @@
    <slot>openConfigureAccountDialog()</slot>
    <hints>
     <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
      <x>248</x>
-     <y>36</y>
+     <y>218</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>walletsList</sender>
+   <signal>clicked(QModelIndex)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>refreshWalletContent(QModelIndex)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>137</x>
+     <y>240</y>
     </hint>
     <hint type="destinationlabel">
      <x>248</x>
@@ -339,5 +355,7 @@
   <slot>openTransferMoneyDialog()</slot>
   <slot>openAddContactDialog()</slot>
   <slot>openConfigureAccountDialog()</slot>
+  <slot>refreshMainWindow()</slot>
+  <slot>refreshWalletContent(QModelIndex)</slot>
  </slots>
 </ui>

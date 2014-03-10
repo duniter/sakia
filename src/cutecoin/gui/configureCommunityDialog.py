@@ -71,3 +71,4 @@ class ConfigureCommunityDialog(QDialog, Ui_CommunityConfigurationDialog):
 
 
 
+
