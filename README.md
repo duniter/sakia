@@ -34,3 +34,10 @@ Qt Client for [Ucoin](http://www.ucoin.io) project.
     * A voter should be able to access the voting UI of the community (+member and random guy rights)
     * A member should be able to issue money (+random guy rights)
     * A random guy should be able to send and receive money
+
+### How to install
+
+  * Install [python3](http://www.python.org/downloads/), [cx_freeze](http://cx-freeze.sourceforge.net/) and [pyqt5](http://www.riverbankcomputing.co.uk/software/pyqt/download5)
+  * Run qmake in cutecoin folder
+  * Run "python setup.py build" in cutecoin folder (Note : only tested on linux)
+  * The executable is generated in "build" folder
