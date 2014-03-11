@@ -37,7 +37,8 @@ Qt Client for [Ucoin](http://www.ucoin.io) project.
 
 ### How to install
 
+  * On Windows, install cygwin. On linux, make sure "make" command is available.
   * Install [python3](http://www.python.org/downloads/), [cx_freeze](http://cx-freeze.sourceforge.net/) and [pyqt5](http://www.riverbankcomputing.co.uk/software/pyqt/download5)
-  * Run qmake in cutecoin folder
+  * Run make in cutecoin folder
   * Run "python setup.py build" in cutecoin folder (Note : only tested on linux)
   * The executable is generated in "build" folder
