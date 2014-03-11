@@ -21,6 +21,7 @@ Qt Client for [Ucoin](http://www.ucoin.io) project.
   * Communities viewing
   * Coins issuance
   * Coins Transfer
+  * cx_freeze deployment
 
 ### Work in progress (dev branch)
   * Contacts management

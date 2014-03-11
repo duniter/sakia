@@ -6,7 +6,7 @@ Created on 2 févr. 2014
 import logging
 from math import pow
 
-from PyQt5.QtWidgets import QDialog,QFrame, QSlider, QLabel, QDialogButtonBox
+from PyQt5.QtWidgets import QDialog,QFrame, QSlider, QLabel, QDialogButtonBox, QErrorMessage
 from PyQt5.QtCore import Qt, QSignalMapper
 
 
@@ -30,6 +30,9 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         self.sender = sender
         for wallet in sender.wallets.walletsList:
             self.comboBox_wallets.addItem(wallet.getText())
+
+        for contact in sender.contacts:
+            self.comboBox_contact.addItem(contact.name)
 
         self.refreshTransaction(sender.wallets.walletsList[0])
 
@@ -68,8 +71,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         if self.radio_keyFingerprint.isChecked():
             recipient = Person("", self.edit_keyFingerprint.text(), "")
         else:
-            #TODO: Manage contacts
-            recipient = Person("", self.edit_keyFingerprint.text(), "")
+            recipient = self.sender.contacts[self.comboBox_contact.currentIndex()]
 
         if self.radio_nodeAddress.isChecked():
             node = Node(self.edit_nodeAddress.text(), int(self.edit_port.text()))
@@ -79,7 +81,10 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
 
         message = self.edit_message.text()
         #TODO: Transfer money, and validate the window if no error happened
-        print(self.sender.transferCoins(node, recipient, sentCoins, message))
+        if self.sender.transferCoins(node, recipient, sentCoins, message):
+            self.close()
+        else:
+            QErrorMessage(self).showMessage("Cannot transfer coins.")
 
     def changeDisplayedWallet(self, index):
         wallet = self.sender.wallets.walletsList[index]

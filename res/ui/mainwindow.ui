@@ -117,7 +117,7 @@
      <height>20</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuTr_File">
+   <widget class="QMenu" name="menu_account">
     <property name="title">
      <string>Account</string>
     </property>
@@ -126,18 +126,26 @@
       <string>Change account</string>
      </property>
     </widget>
+    <addaction name="actionConfigure_parameters"/>
     <addaction name="menuChange_account"/>
     <addaction name="actionAdd_account"/>
     <addaction name="separator"/>
     <addaction name="actionSave"/>
     <addaction name="actionQuit"/>
    </widget>
-   <widget class="QMenu" name="menuEdit">
+   <widget class="QMenu" name="menu_contacts">
     <property name="title">
      <string>Contacts</string>
     </property>
+    <widget class="QMenu" name="menu_contactsList">
+     <property name="title">
+      <string>Contacts</string>
+     </property>
+     <addaction name="separator"/>
+    </widget>
     <addaction name="separator"/>
     <addaction name="actionAdd_a_contact"/>
+    <addaction name="menu_contactsList"/>
    </widget>
    <widget class="QMenu" name="menuActions">
     <property name="title">
@@ -145,8 +153,8 @@
     </property>
     <addaction name="actionTransfer_money"/>
    </widget>
-   <addaction name="menuTr_File"/>
-   <addaction name="menuEdit"/>
+   <addaction name="menu_account"/>
+   <addaction name="menu_contacts"/>
    <addaction name="menuActions"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -220,6 +228,11 @@
     <string>Transfer money</string>
    </property>
   </action>
+  <action name="actionConfigure_parameters">
+   <property name="text">
+    <string>Configure</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections>
@@ -287,10 +300,62 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionAdd_a_contact</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>openAddContactDialog()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>248</x>
+     <y>218</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionConfigure_parameters</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>openConfigureAccountDialog()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>248</x>
+     <y>218</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>walletsList</sender>
+   <signal>clicked(QModelIndex)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>refreshWalletContent(QModelIndex)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>137</x>
+     <y>240</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>248</x>
+     <y>218</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>openAddAccountDialog()</slot>
   <slot>save()</slot>
   <slot>openTransferMoneyDialog()</slot>
+  <slot>openAddContactDialog()</slot>
+  <slot>openConfigureAccountDialog()</slot>
+  <slot>refreshMainWindow()</slot>
+  <slot>refreshWalletContent(QModelIndex)</slot>
  </slots>
 </ui>

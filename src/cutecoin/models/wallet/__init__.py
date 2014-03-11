@@ -46,8 +46,9 @@ class Wallet(object):
             value += coin.value()
         return value
 
-    def refreshCoins(self, pgpFingerprint):
-        dataList = self.community.ucoinRequest(ucoin.hdc.coins.List({'pgp_fingerprint':pgpFingerprint}))
+    #TODO: Refresh coins when changing current account
+    def refreshCoins(self, fingerprint):
+        dataList = self.community.ucoinRequest(ucoin.hdc.coins.List({'pgp_fingerprint':fingerprint}))
         for issaunces in dataList['coins']:
             issuer = issaunces['issuer']
             for coinsIds in issaunces['ids']:

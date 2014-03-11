@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>AddAccountDialog</class>
- <widget class="QDialog" name="AddAccountDialog">
+ <class>AccountConfigurationDialog</class>
+ <widget class="QDialog" name="AccountConfigurationDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -33,7 +33,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="accountName"/>
+         <widget class="QLineEdit" name="edit_accountName"/>
         </item>
        </layout>
       </item>
@@ -47,7 +47,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="pgpKeysList"/>
+         <widget class="QComboBox" name="combo_keysList"/>
         </item>
        </layout>
       </item>
@@ -61,19 +61,23 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
-       <widget class="QListView" name="communitiesList"/>
+       <widget class="QListView" name="list_communities">
+        <property name="contextMenuPolicy">
+         <enum>Qt::DefaultContextMenu</enum>
+        </property>
+       </widget>
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
-         <widget class="QPushButton" name="addCommunity">
+         <widget class="QPushButton" name="button_addCommunity">
           <property name="text">
            <string>Add a community</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="removeCommunity">
+         <widget class="QPushButton" name="button_removeCommunity">
           <property name="text">
            <string>Remove selected community</string>
           </property>
@@ -101,7 +105,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>AddAccountDialog</receiver>
+   <receiver>AccountConfigurationDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -117,7 +121,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>AddAccountDialog</receiver>
+   <receiver>AccountConfigurationDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -131,9 +135,9 @@
    </hints>
   </connection>
   <connection>
-   <sender>addCommunity</sender>
+   <sender>button_addCommunity</sender>
    <signal>clicked()</signal>
-   <receiver>AddAccountDialog</receiver>
+   <receiver>AccountConfigurationDialog</receiver>
    <slot>openAddCommunityDialog()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -146,9 +150,43 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>button_removeCommunity</sender>
+   <signal>clicked()</signal>
+   <receiver>AccountConfigurationDialog</receiver>
+   <slot>actionRemoveCommunity()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>290</x>
+     <y>237</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>list_communities</sender>
+   <signal>doubleClicked(QModelIndex)</signal>
+   <receiver>AccountConfigurationDialog</receiver>
+   <slot>openEditCommunityDialog(QModelIndex)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>180</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>openAddCommunityDialog()</slot>
   <slot>keyChanged(int)</slot>
+  <slot>actionRemoveCommunity()</slot>
+  <slot>openEditCommunityDialog(QModelIndex)</slot>
  </slots>
 </ui>

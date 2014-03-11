@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>AddCommunityDialog</class>
- <widget class="QDialog" name="AddCommunityDialog">
+ <class>CommunityConfigurationDialog</class>
+ <widget class="QDialog" name="CommunityConfigurationDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -24,7 +24,11 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
-       <widget class="QTreeView" name="communityView"/>
+       <widget class="QTreeView" name="communityView">
+        <property name="contextMenuPolicy">
+         <enum>Qt::CustomContextMenu</enum>
+        </property>
+       </widget>
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -80,7 +84,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>AddCommunityDialog</receiver>
+   <receiver>CommunityConfigurationDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -96,7 +100,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>AddCommunityDialog</receiver>
+   <receiver>CommunityConfigurationDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -112,8 +116,8 @@
   <connection>
    <sender>addButton</sender>
    <signal>clicked()</signal>
-   <receiver>AddCommunityDialog</receiver>
-   <slot>addCommunity()</slot>
+   <receiver>CommunityConfigurationDialog</receiver>
+   <slot>addNode()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>337</x>
@@ -125,8 +129,25 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>communityView</sender>
+   <signal>customContextMenuRequested(QPoint)</signal>
+   <receiver>CommunityConfigurationDialog</receiver>
+   <slot>showContextMenu(QPoint)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>128</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
-  <slot>addCommunity()</slot>
+  <slot>addNode()</slot>
+  <slot>showContextMenu(QPoint)</slot>
  </slots>
 </ui>

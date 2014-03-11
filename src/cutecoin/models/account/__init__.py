@@ -12,29 +12,31 @@ from cutecoin.models.account.wallets import Wallets
 from cutecoin.models.account.communities import Communities
 from cutecoin.models.community import Community
 from cutecoin.models.transaction import factory
+from cutecoin.models.person import Person
 
 class Account(object):
     '''
-    An account is specific to a pgpKey.
-    Each account has only one pgpKey, and a key can
+    An account is specific to a key.
+    Each account has only one key, and a key can
     be locally referenced by only one account.
     '''
-    def __init__(self, pgpKeyId, name, communities, wallets):
+    def __init__(self, keyId, name, communities, wallets, contacts):
         '''
         Constructor
         '''
-        self.pgpKeyId = pgpKeyId
+        self.keyId = keyId
         self.name = name
         self.communities = communities
         self.wallets = wallets
+        self.contacts = contacts
 
     @classmethod
-    def create(cls, pgpKeyId, name, communities):
+    def create(cls, keyId, name, communities):
         '''
         Constructor
         '''
         wallets = Wallets()
-        account = cls(pgpKeyId, name, communities, wallets)
+        account = cls(keyId, name, communities, wallets, [])
         for community in account.communities.communitiesList:
             wallet = account.wallets.addWallet(community.currency)
             wallet.refreshCoins(community, account.keyFingerprint())
@@ -42,27 +44,41 @@ class Account(object):
 
     @classmethod
     def load(cls, jsonData):
-        pgpKeyId = jsonData['pgpKeyId']
+        keyId = jsonData['keyId']
         name = jsonData['name']
         communities = Communities()
         wallets = Wallets()
-        account = cls(pgpKeyId, name, communities, wallets)
+        contacts = []
+
+        for contactData in jsonData['contacts']:
+            contacts.append(Person.fromJson(contactData))
+
+        account = cls(keyId, name, communities, wallets, contacts)
 
         for communityData in jsonData['communities']:
             account.communities.communitiesList.append(Community.load(communityData, account))
 
         return account
 
-    def addWallet(name, currency):
+    def __eq__(self, other):
+        if other is not None:
+            return other.keyId == self.keyId
+        else:
+            return False
+
+    def addWallet(self, name, currency):
         self.wallets.addWallet(name, currency)
+
+    def addContact(self, person):
+        self.contacts.append(person)
 
     def keyFingerprint(self):
         gpg = gnupg.GPG()
         availableKeys = gpg.list_keys()
-        logging.debug(self.pgpKeyId)
+        logging.debug(self.keyId)
         for k in availableKeys:
             logging.debug(k)
-            if k['keyid'] == self.pgpKeyId:
+            if k['keyid'] == self.keyId:
                 return k['fingerprint']
         return ""
 
@@ -113,10 +129,17 @@ class Account(object):
         transfer = ucoin.wrappers.transactions.RawTransfer(self.keyFingerprint(), recipient.fingerprint, coins, message, keyid=self.pgpKeyId, server=node.server, port=node.port)
         return transfer()
 
+    def jsonifyContacts(self):
+        data = []
+        for p in self.contacts:
+            data.append(p.jsonify())
+        return data
+
     def jsonify(self):
         data = {'name' : self.name,
-                'pgpKeyId' : self.pgpKeyId,
-                'communities' : self.communities.jsonify(self.wallets)}
+                'keyId' : self.keyId,
+                'communities' : self.communities.jsonify(self.wallets),
+                'contacts' : self.jsonifyContacts()}
         return data
 
 
