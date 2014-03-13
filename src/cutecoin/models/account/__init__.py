@@ -125,6 +125,41 @@ class Account(object):
             issuance = ucoin.wrappers.transactions.Issue(self.keyFingerprint(), community.amendmentNumber(), coins, keyId=self.pgpKeyId)
             return issuance()
 
+    def tht(self, community):
+        if community in self.communities.communitiesList:
+            tht = community.ucoinRequest(ucoin.ucg.tht(self.keyFingerprint()))
+            return tht['entries']
+        return None
+
+    def updateTrustsAndHosters(self, community):
+        if community in self.communities.communitiesList:
+            hostersFg = community.hosters()
+            trustsFg = community.trusts()
+            for trust in community.trusts():
+                peering = trust.peering()
+                trustsFg.append(peering['Fingerprint'])
+            for hoster in community.hosters():
+                peering = hoster.peering()
+                hostersFg.append(peering['Fingerprint'])
+            entry = {
+                'version' : '1',
+                'currency' : community.currency,
+                'fingerprint' : self.fingerprint(),
+                'hosters' : self.hostersFg,
+                'trusts' : self.trustsFg
+            }
+            jsonEntry = json.dump(entry, indent = 2)
+            gpg = gnupg.GPG()
+            signature = gpg.sign(jsonEntry, keyId=self.keyid, detach=True)
+
+            dataPost = {
+                'entry' : entry,
+                'signature' : signature
+            }
+
+            community.ucoinPost(ucoin.ucg.tht(self.keyFingerprint()), json.dump(dataPost, indent=2))
+
+
     def transferCoins(self, node, recipient, coins, message):
         transfer = ucoin.wrappers.transactions.RawTransfer(self.keyFingerprint(), recipient.fingerprint, coins, message, keyid=self.pgpKeyId, server=node.server, port=node.port)
         return transfer()

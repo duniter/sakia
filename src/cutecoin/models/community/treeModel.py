@@ -23,29 +23,41 @@ class CommunityTreeModel(QAbstractItemModel):
         self.refreshTreeNodes()
 
     def columnCount(self, parent):
-        return 1
+        return 3
 
     def data(self, index, role):
         if not index.isValid():
             return None
 
-        if role != Qt.DisplayRole:
-            return None
-
         item = index.internalPointer()
 
-        return item.data(0)
+
+        if role == Qt.DisplayRole and index.column() == 0:
+            return item.data(0)
+        elif role == Qt.CheckStateRole and index.column() == 1:
+            return Qt.Checked if item.trust else Qt.Unchecked
+        elif role == Qt.CheckStateRole and index.column() == 2:
+            return Qt.Checked if item.hoster else Qt.Unchecked
+
+
+        return None
 
     def flags(self, index):
         if not index.isValid():
             return Qt.NoItemFlags
 
-        return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+        if index.column() == 0:
+            return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+        else:
+            return Qt.ItemIsEnabled  | Qt.ItemIsSelectable | Qt.ItemIsUserCheckable
 
     def headerData(self, section, orientation, role):
-        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-            return self.rootItem.data(0)
-
+        if orientation == Qt.Horizontal and role == Qt.DisplayRole and section == 0:
+            return self.rootItem.data(0) + " nodes"
+        elif orientation == Qt.Horizontal and role == Qt.DisplayRole and section == 1:
+            return "Trust"
+        elif orientation == Qt.Horizontal and role == Qt.DisplayRole and section == 2:
+            return "Hoster"
         return None
 
     def index(self, row, column, parent):
@@ -86,10 +98,24 @@ class CommunityTreeModel(QAbstractItemModel):
 
         return parentItem.childCount()
 
+    def setData(self, index, value, role=Qt.EditRole):
+        if index.column() == 0:
+            return False
+
+        if role == Qt.EditRole:
+            return False
+        if role == Qt.CheckStateRole:
+            item = index.internalPointer()
+            if index.column() == 1:
+                item.trust = value
+            elif index.column() == 2:
+                item.host = value
+            self.dataChanged.emit(index, index)
+            return True
 
     def refreshTreeNodes(self):
         logging.debug("root : " + self.rootItem.data(0))
-        for mainNode in self.community.trustedNodes:
+        for mainNode in self.community.nodes:
             mainNodeItem = MainNodeItem(mainNode, self.rootItem)
             logging.debug("mainNode : " + mainNode.getText() + " / " + mainNodeItem.data(0))
             self.rootItem.appendChild(mainNodeItem)

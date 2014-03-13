@@ -1,5 +1,7 @@
 @startuml
 
+#TODO: Rework UML with all informations gathered lately
+
 class Account {
 	pgpkey
 }

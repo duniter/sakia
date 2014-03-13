@@ -9,6 +9,8 @@ class NodeItem(object):
     def __init__(self, node, mainNodeItem=None):
         self.mainNodeItem = mainNodeItem
         self.nodeText = node.getText()
+        self.trust = node.trust
+        self.hoster = node.hoster
 
     def appendChild(self, item):
         pass
@@ -34,13 +36,14 @@ class NodeItem(object):
     def row(self):
         if self.mainNodeItem:
             return self.mainNodeItem.nodeItems.index(self)
-
         return 0
 
 class MainNodeItem(object):
     def __init__(self, mainNode, communityItem=None):
         self.communityItem = communityItem
         self.mainNodeText = mainNode.getText()
+        self.trust = mainNode.trust
+        self.hoster = mainNode.hoster
         self.nodeItems = []
 
     def appendChild(self, nodeItem):
@@ -69,3 +72,5 @@ class MainNodeItem(object):
             return self.communityItem.mainNodeItems.index(self)
 
         return 0
+
+

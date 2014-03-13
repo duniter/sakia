@@ -7,10 +7,14 @@ from cutecoin.gen_resources.accountConfigurationDialog_uic import Ui_AccountConf
 from cutecoin.gui.configureCommunityDialog import ConfigureCommunityDialog
 from cutecoin.models.account.communities.listModel import CommunitiesListModel
 from cutecoin.core.exceptions import KeyAlreadyUsed
-from PyQt5.QtWidgets import QDialog, QErrorMessage
 from cutecoin.models.account import Account
 from cutecoin.models.account import Communities
+from cutecoin.models.node import Node
+
+from PyQt5.QtWidgets import QDialog, QErrorMessage, QInputDialog
+
 import gnupg
+import re
 
 
 class ConfigureAccountDialog(QDialog, Ui_AccountConfigurationDialog):
@@ -55,10 +59,16 @@ class ConfigureAccountDialog(QDialog, Ui_AccountConfigurationDialog):
         self.edit_accountName.setText(self.account.name)
 
     def openAddCommunityDialog(self):
-        dialog = ConfigureCommunityDialog(None)
-        dialog.buttonBox.accepted.connect(self.actionAddCommunity)
-        dialog.setAccount(self.account)
-        dialog.exec_()
+
+        text, ok = QInputDialog.getText(self, 'Add a community',
+            'Enter a main node address you trust :')
+
+        if ok:
+            server, port = text.split(':')[0], int(text.split(':')[1])
+
+            dialog = ConfigureCommunityDialog(self.account, None, Node(server, port))
+            dialog.buttonBox.accepted.connect(self.actionAddCommunity)
+            dialog.exec_()
 
     def actionAddCommunity(self):
         self.combo_keysList.setEnabled(False)
@@ -78,7 +88,7 @@ class ConfigureAccountDialog(QDialog, Ui_AccountConfigurationDialog):
 
     def openEditCommunityDialog(self, index):
         community = self.account.communities.communitiesList[index.row()]
-        dialog = ConfigureCommunityDialog(community)
+        dialog = ConfigureCommunityDialog(self.account, community)
         dialog.buttonBox.accepted.connect(self.actionEditCommunity)
         dialog.setAccount(self.account)
         dialog.exec_()
