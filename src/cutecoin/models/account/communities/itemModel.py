@@ -4,26 +4,28 @@ Created on 5 févr. 2014
 @author: inso
 '''
 
-class CommunitiesItemModel(object):
-    def __init__(self, account):
-        self.communitiesText = account.pgpKey
-        self.communityItems = []
 
-    def appendChild(self, communityItem):
-        self.communityItems.append(communityItem)
+class CommunitiesItemModel(object):
+
+    def __init__(self, account):
+        self.communities_text = account.key
+        self.community_items = []
+
+    def appendChild(self, community_item):
+        self.community_items.append(community_item)
 
     def child(self, row):
         return self.communityItems[row]
 
     def childCount(self):
-        return len(self.communityItems)
+        return len(self.community_items)
 
     def columnCount(self):
         return 1
 
     def data(self, column):
         try:
-            return self.communitiesText
+            return self.communities_text
         except IndexError:
             return None
 

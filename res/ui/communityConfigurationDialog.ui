@@ -24,7 +24,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
-       <widget class="QTreeView" name="communityView">
+       <widget class="QTreeView" name="tree_nodes">
         <property name="contextMenuPolicy">
          <enum>Qt::CustomContextMenu</enum>
         </property>
@@ -33,7 +33,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
-         <widget class="QLineEdit" name="serverEdit">
+         <widget class="QLineEdit" name="server_edit">
           <property name="text">
            <string/>
           </property>
@@ -43,7 +43,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="portBox">
+         <widget class="QSpinBox" name="port_box">
           <property name="minimum">
            <number>1025</number>
           </property>
@@ -56,7 +56,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="addButton">
+         <widget class="QPushButton" name="add_button">
           <property name="text">
            <string>Add</string>
           </property>
@@ -68,7 +68,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QDialogButtonBox" name="buttonBox">
+    <widget class="QDialogButtonBox" name="button_box">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
@@ -82,7 +82,7 @@
  <resources/>
  <connections>
   <connection>
-   <sender>buttonBox</sender>
+   <sender>button_box</sender>
    <signal>accepted()</signal>
    <receiver>CommunityConfigurationDialog</receiver>
    <slot>accept()</slot>
@@ -98,7 +98,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>buttonBox</sender>
+   <sender>button_box</sender>
    <signal>rejected()</signal>
    <receiver>CommunityConfigurationDialog</receiver>
    <slot>reject()</slot>
@@ -114,10 +114,10 @@
    </hints>
   </connection>
   <connection>
-   <sender>addButton</sender>
+   <sender>add_button</sender>
    <signal>clicked()</signal>
    <receiver>CommunityConfigurationDialog</receiver>
-   <slot>addNode()</slot>
+   <slot>add_node()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>337</x>
@@ -130,7 +130,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>communityView</sender>
+   <sender>tree_nodes</sender>
    <signal>customContextMenuRequested(QPoint)</signal>
    <receiver>CommunityConfigurationDialog</receiver>
    <slot>showContextMenu(QPoint)</slot>
@@ -147,7 +147,7 @@
   </connection>
  </connections>
  <slots>
-  <slot>addNode()</slot>
+  <slot>add_node()</slot>
   <slot>showContextMenu(QPoint)</slot>
  </slots>
 </ui>

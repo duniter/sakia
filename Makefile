@@ -6,7 +6,7 @@ RESOURCE_DIR = res/ui
 COMPILED_DIR = src/cutecoin/gen_resources
  
 #UI files to compile
-UI_FILES = mainwindow.ui accountConfigurationDialog.ui communityConfigurationDialog.ui communityTabWidget.ui issuanceDialog.ui transferDialog.ui addContactDialog.ui communityParametersWidget.ui
+UI_FILES = mainwindow.ui accountConfigurationDialog.ui communityConfigurationDialog.ui communityTabWidget.ui issuanceDialog.ui transferDialog.ui addContactDialog.ui 
 #Qt resource files to compile
 RESOURCES = 
  

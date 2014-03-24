@@ -109,7 +109,7 @@
    <sender>edit_fingerprint</sender>
    <signal>textChanged(QString)</signal>
    <receiver>AddContactDialog</receiver>
-   <slot>fingerprintEdited()</slot>
+   <slot>fingerprint_edited()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>145</x>
@@ -125,7 +125,7 @@
    <sender>edit_name</sender>
    <signal>textChanged(QString)</signal>
    <receiver>AddContactDialog</receiver>
-   <slot>nameEdited()</slot>
+   <slot>name_edited()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>129</x>
@@ -139,7 +139,7 @@
   </connection>
  </connections>
  <slots>
-  <slot>nameEdited()</slot>
-  <slot>fingerprintEdited()</slot>
+  <slot>name_edited()</slot>
+  <slot>fingerprint_edited()</slot>
  </slots>
 </ui>

@@ -23,7 +23,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="QRadioButton" name="radio_keyFingerprint">
+         <widget class="QRadioButton" name="radio_key_fingerprint">
           <property name="text">
            <string>Recipient fingerprint</string>
           </property>
@@ -33,7 +33,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="edit_keyFingerprint">
+         <widget class="QLineEdit" name="edit_key_fingerprint">
           <property name="inputMask">
            <string/>
           </property>
@@ -57,7 +57,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="comboBox_contact">
+         <widget class="QComboBox" name="combo_contact">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -77,7 +77,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
-         <widget class="QRadioButton" name="radio_nodeAddress">
+         <widget class="QRadioButton" name="radio_node_address">
           <property name="text">
            <string>Node</string>
           </property>
@@ -87,7 +87,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="edit_nodeAddress">
+         <widget class="QLineEdit" name="edit_node_address">
           <property name="inputMask">
            <string/>
           </property>
@@ -121,14 +121,14 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_4">
         <item>
-         <widget class="QRadioButton" name="radio_trustedNode">
+         <widget class="QRadioButton" name="radio_trusted_node">
           <property name="text">
            <string>Trusted node</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="comboBox_trustedNode">
+         <widget class="QComboBox" name="combo_trusted_node">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -156,10 +156,10 @@
            <number>6</number>
           </property>
           <item>
-           <widget class="QComboBox" name="comboBox_wallets"/>
+           <widget class="QComboBox" name="combo_wallets"/>
           </item>
           <item>
-           <widget class="QListView" name="listView_wallet"/>
+           <widget class="QListView" name="list_wallet"/>
           </item>
          </layout>
         </item>
@@ -169,7 +169,7 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="QPushButton" name="button_manageCoins">
+           <widget class="QPushButton" name="button_manage_coins">
             <property name="text">
              <string>Manage wallet coins</string>
             </property>
@@ -207,7 +207,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QListView" name="listView_coinsSent">
+           <widget class="QListView" name="list_coins_sent">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
               <horstretch>0</horstretch>
@@ -251,7 +251,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QDialogButtonBox" name="buttonBox">
+    <widget class="QDialogButtonBox" name="button_box">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
@@ -265,7 +265,7 @@
  <resources/>
  <connections>
   <connection>
-   <sender>buttonBox</sender>
+   <sender>button_box</sender>
    <signal>accepted()</signal>
    <receiver>TransferMoneyDialog</receiver>
    <slot>accept()</slot>
@@ -281,7 +281,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>buttonBox</sender>
+   <sender>button_box</sender>
    <signal>rejected()</signal>
    <receiver>TransferMoneyDialog</receiver>
    <slot>reject()</slot>
@@ -300,7 +300,7 @@
    <sender>button_add</sender>
    <signal>clicked()</signal>
    <receiver>TransferMoneyDialog</receiver>
-   <slot>addCoinsToTransfer()</slot>
+   <slot>add_coins_to_transfer()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>201</x>
@@ -316,7 +316,7 @@
    <sender>button_remove</sender>
    <signal>clicked()</signal>
    <receiver>TransferMoneyDialog</receiver>
-   <slot>removeCoinsFromTransfer()</slot>
+   <slot>remove_coins_from_transfer()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>201</x>
@@ -329,10 +329,10 @@
    </hints>
   </connection>
   <connection>
-   <sender>button_manageCoins</sender>
+   <sender>button_manage_coins</sender>
    <signal>clicked()</signal>
    <receiver>TransferMoneyDialog</receiver>
-   <slot>openManageWalletCoins()</slot>
+   <slot>open_manage_wallet_coins()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>201</x>
@@ -345,10 +345,10 @@
    </hints>
   </connection>
   <connection>
-   <sender>comboBox_wallets</sender>
+   <sender>combo_wallets</sender>
    <signal>currentIndexChanged(int)</signal>
    <receiver>TransferMoneyDialog</receiver>
-   <slot>changeDisplayedWallet()</slot>
+   <slot>change_displayed_wallet(int)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>82</x>
@@ -361,10 +361,10 @@
    </hints>
   </connection>
   <connection>
-   <sender>radio_keyFingerprint</sender>
+   <sender>radio_key_fingerprint</sender>
    <signal>toggled(bool)</signal>
    <receiver>TransferMoneyDialog</receiver>
-   <slot>recipientModeChanged(bool)</slot>
+   <slot>recipient_mode_changed(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>87</x>
@@ -377,10 +377,10 @@
    </hints>
   </connection>
   <connection>
-   <sender>radio_nodeAddress</sender>
+   <sender>radio_node_address</sender>
    <signal>toggled(bool)</signal>
    <receiver>TransferMoneyDialog</receiver>
-   <slot>transferModeChanged(bool)</slot>
+   <slot>transfer_mode_changed(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>70</x>
@@ -394,11 +394,11 @@
   </connection>
  </connections>
  <slots>
-  <slot>addCoinsToTransfer()</slot>
-  <slot>removeCoinsFromTransfer()</slot>
-  <slot>openManageWalletCoins()</slot>
-  <slot>changeDisplayedWallet(int)</slot>
-  <slot>transferModeChanged(bool)</slot>
-  <slot>recipientModeChanged(bool)</slot>
+  <slot>add_coins_to_transfer()</slot>
+  <slot>remove_coins_from_transfer()</slot>
+  <slot>open_manage_wallet_coins()</slot>
+  <slot>change_displayed_wallet(int)</slot>
+  <slot>transfer_mode_changed(bool)</slot>
+  <slot>recipient_mode_changed(bool)</slot>
  </slots>
 </ui>

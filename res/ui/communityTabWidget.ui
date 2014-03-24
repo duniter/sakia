@@ -24,7 +24,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QListView" name="communityMembersList"/>
+      <widget class="QListView" name="list_community_members"/>
      </item>
     </layout>
    </item>
@@ -38,14 +38,14 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="issuanceButton">
+      <widget class="QPushButton" name="button_issuance">
        <property name="text">
         <string>Issue money</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QListView" name="issuancesList"/>
+      <widget class="QListView" name="list_issuances"/>
      </item>
     </layout>
    </item>
@@ -54,10 +54,10 @@
  <resources/>
  <connections>
   <connection>
-   <sender>issuanceButton</sender>
+   <sender>button_issuance</sender>
    <signal>clicked()</signal>
    <receiver>CommunityTabWidget</receiver>
-   <slot>openIssuanceDialog()</slot>
+   <slot>open_issuance_dialog()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>296</x>
@@ -71,6 +71,6 @@
   </connection>
  </connections>
  <slots>
-  <slot>openIssuanceDialog()</slot>
+  <slot>open_issuance_dialog()</slot>
  </slots>
 </ui>

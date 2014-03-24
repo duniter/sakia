@@ -17,11 +17,12 @@ from cutecoin.models.transaction.receivedListModel import ReceivedListModel
 
 import logging
 
+
 class MainWindow(QMainWindow, Ui_MainWindow):
+
     '''
     classdocs
     '''
-
 
     def __init__(self, core):
         '''
@@ -31,31 +32,34 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super(MainWindow, self).__init__()
         self.setupUi(self)
         self.core = core
-        self.refreshMainWindow()
+        self.refresh()
 
-    def openAddAccountDialog(self):
+    def open_add_account_dialog(self):
         dialog = ConfigureAccountDialog(self.core, None)
-        dialog.buttonBox.button(QDialogButtonBox.Ok).clicked.connect(self.refreshMainWindow)
+        dialog.button_box.button(
+            QDialogButtonBox.Ok).clicked.connect(
+            self.refreshMainWindow)
         dialog.exec_()
-
 
     def save(self):
         self.core.save()
 
-    def actionChangeAccount(self, accountName):
-        self.core.currentAccount = self.core.getAccount(accountName)
-        logging.info('Changing account to ' + self.core.currentAccount.name)
-        self.refreshMainWindow()
+    def action_change_account(self, account_name):
+        self.core.current_account = self.core.get_account(account_name)
+        logging.info('Changing account to ' + self.core.current_account.name)
+        self.refresh()
 
-    def openTransferMoneyDialog(self):
-        TransferMoneyDialog(self.core.currentAccount).exec_()
+    def open_transfer_money_dialog(self):
+        TransferMoneyDialog(self.core.current_account).exec_()
 
-    def openAddContactDialog(self):
-        AddContactDialog(self.core.currentAccount, self).exec_()
+    def open_add_contact_dialog(self):
+        AddContactDialog(self.core.current_account, self).exec_()
 
-    def openConfigureAccountDialog(self):
-        dialog = ConfigureAccountDialog(self.core, self.core.currentAccount)
-        dialog.buttonBox.button(QDialogButtonBox.Ok).clicked.connect(self.refreshMainWindow)
+    def open_configure_account_dialog(self):
+        dialog = ConfigureAccountDialog(self.core, self.core.current_account)
+        dialog.button_box.button(
+            QDialogButtonBox.Ok).clicked.connect(
+            self.refresh)
         dialog.exec_()
 
     '''
@@ -63,41 +67,51 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     When the selected account changes, all the widgets
     in the window have to be refreshed
     '''
-    def refreshMainWindow(self):
-        self.menuChange_account.clear()
-        signalMapper = QSignalMapper(self)
+
+    def refresh(self):
+        self.menu_change_account.clear()
+        signal_mapper = QSignalMapper(self)
 
         for account in self.core.accounts:
             action = QAction(account.name, self)
-            self.menuChange_account.addAction(action)
-            signalMapper.setMapping(action, account.name)
-            action.triggered.connect(signalMapper.map)
-            signalMapper.mapped[str].connect(self.actionChangeAccount)
+            self.menu_change_account.addAction(action)
+            signal_mapper.setMapping(action, account.name)
+            action.triggered.connect(signal_mapper.map)
+            signal_mapper.mapped[str].connect(self.action_change_account)
 
-        if self.core.currentAccount == None:
-            self.accountTabs.setEnabled(False)
+        if self.core.current_account is None:
+            self.tabs_account.setEnabled(False)
         else:
-            self.accountTabs.setEnabled(True)
-            self.accountNameLabel.setText("Current account : " + self.core.currentAccount.name)
-            self.walletsList.setModel(WalletsListModel(self.core.currentAccount))
+            self.tabs_account.setEnabled(True)
+            self.label_account_name.setText(
+                "Current account : " +
+                self.core.current_account.name)
+            self.list_wallets.setModel(
+                WalletsListModel(
+                    self.core.current_account))
 
-            self.communitiesTab.clear()
-            for community in self.core.currentAccount.communities.communitiesList:
-                communityTab = CommunityTabWidget(self.core.currentAccount, community)
-                self.communitiesTab.addTab(communityTab, community.name())
+            self.tabs_communities.clear()
+            for community in self.core.current_account.communities.communities_list:
+                tab_community = CommunityTabWidget(
+                    self.core.current_account,
+                    community)
+                self.tabs_communities.addTab(tab_community, community.name())
 
-            self.menu_contactsList.clear()
-            for contact in self.core.currentAccount.contacts:
-                self.menu_contactsList.addAction(contact.name)
+            self.menu_contacts_list.clear()
+            for contact in self.core.current_account.contacts:
+                self.menu_contacts_list.addAction(contact.name)
 
-            self.transactionsSent.setModel(SentListModel(self.core.currentAccount))
-            self.transactionsReceived.setModel(ReceivedListModel(self.core.currentAccount))
+            self.list_transactions_sent.setModel(
+                SentListModel(
+                    self.core.current_account))
+            self.list_transactions_received.setModel(
+                ReceivedListModel(
+                    self.core.current_account))
 
-
-    def refreshWalletContent(self, index):
+    def refresh_wallet_content(self, index):
         if index.isValid():
-            currentWallet = self.core.currentAccount.wallets.walletsList[index.row()]
-            self.walletContent.setModel(WalletListModel(currentWallet))
+            current_wallet = self.core.current_account.wallets.wallets_list[
+                index.row()]
+            self.list_wallet_content.setModel(WalletListModel(current_wallet))
         else:
-            self.walletContent.setModel(WalletListModel([]))
-
+            self.list_wallet_content.setModel(WalletListModel([]))

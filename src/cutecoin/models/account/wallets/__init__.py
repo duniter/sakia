@@ -6,29 +6,32 @@ Created on 7 févr. 2014
 
 from cutecoin.models.wallet import Wallet
 
+
 class Wallets(object):
+
     '''
     The list of the wallets owned by an account.
     '''
+
     def __init__(self):
         '''
         Constructor
         '''
-        self.walletsList = []
+        self.wallets_list = []
 
-    def addWallet(self, currency):
+    def add_wallet(self, currency):
         '''
         Create a new wallet of a specific currency.
         This wallet must not already be present in the account,
         it means the wallet must have a different name or a different currency.
         '''
         wallet = Wallet.create(currency)
-        if wallet not in self.walletsList:
-            self.walletsList.append(wallet)
+        if wallet not in self.walletslist:
+            self.wallets_list.append(wallet)
         else:
-            return self.walletsList.get(wallet)
+            return self.wallets_list.get(wallet)
 
-    def getWallet(self, wallet):
+    def get_wallet(self, wallet):
         '''
         Look for a wallet in the wallets list.
         '''
@@ -37,19 +40,18 @@ class Wallets(object):
                 return w
         return None
 
-    def removeAllWalletsOf(self, community):
-        for wallet in self.walletsList:
+    def remove_all_wallets_of(self, community):
+        for wallet in self.wallets_list:
             if wallet.community == community:
-                self.walletsList.remove(wallet)
-
+                self.wallets_list.remove(wallet)
 
     def jsonify(self, community):
         '''
         Return the list of wallets in a key:value form.
         '''
-        communityWallets = [w for w in self.walletsList if w.community == community]
+        community_wallets = [
+            w for w in self.wallets_list if w.community == community]
         data = []
-        for wallet in communityWallets:
+        for wallet in community_wallets:
             data.append(wallet.jsonify())
         return data
-

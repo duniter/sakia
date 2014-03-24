@@ -11,10 +11,13 @@ from cutecoin.models.person import Person
 
 from cutecoin.gen_resources.addContactDialog_uic import Ui_AddContactDialog
 
+
 class AddContactDialog(QDialog, Ui_AddContactDialog):
+
     '''
     classdocs
     '''
+
     def __init__(self, account, parent=None):
         '''
         Constructor
@@ -22,22 +25,23 @@ class AddContactDialog(QDialog, Ui_AddContactDialog):
         super(AddContactDialog, self).__init__()
         self.setupUi(self)
         self.account = account
-        self.mainWindow = parent
-        self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
-
+        self.main_window = parent
+        self.button_box.button(QDialogButtonBox.Ok).setEnabled(False)
 
     def accept(self):
         name = self.edit_name.text()
         fingerprint = self.edit_fingerprint.text()
         email = self.edit_email.text()
         self.account.addContact(Person(name, fingerprint, email))
-        self.mainWindow.menu_contactsList.addAction(name)
+        self.main_window.menu_contactsList.addAction(name)
         self.close()
 
-    def nameEdited(self, newName):
-        self.buttonBox.button(QDialogButtonBox.Ok).setEnabled( len(newName) > 0 )
+    def name_edited(self, new_name):
+        name_ok = len(new_name) > 0
+        self.button_box.button(QDialogButtonBox.Ok).setEnabled(name_ok)
 
-    def fingerprintEdited(self, newFingerprint):
+    def fingerprint_edited(self, new_fingerprint):
         pattern = re.compile("([A-Z]|[0-9])+")
-        self.buttonBox.button(QDialogButtonBox.Ok).setEnabled( pattern.match(newFingerprint) is not None )
-
+        self.button_box.button(
+            QDialogButtonBox.Ok).setEnabled(
+            pattern.match(new_fingerprint) is not None)

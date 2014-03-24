@@ -11,10 +11,13 @@ from cutecoin.models.transaction.issuancesListModel import IssuancesListModel
 from cutecoin.gui.issuanceDialog import IssuanceDialog
 from cutecoin.gen_resources.communityTabWidget_uic import Ui_CommunityTabWidget
 
+
 class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
+
     '''
     classdocs
     '''
+
     def __init__(self, account, community):
         '''
         Constructor
@@ -23,16 +26,15 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         self.setupUi(self)
         self.community = community
         self.account = account
-        self.communityMembersList.setModel(MembersListModel(community))
-        self.issuancesList.setModel(IssuancesListModel(account, community))
-        if self.account.issuedLastDividend(community):
-            self.issuanceButton.setEnabled(False)
+        #TODO: Rename to list:
+        self.list_community_members.setModel(MembersListModel(community))
+        self.list_issuances.setModel(IssuancesListModel(account, community))
+        if self.account.issued_last_dividend(community):
+            self.button_issuance.setEnabled(False)
         else:
-            self.issuanceButton.setEnabled(True)
+            self.button_issuance.setEnabled(True)
 
-    def openIssuanceDialog(self):
+    def open_issuance_dialog(self):
         logging.debug("Display dialog")
-        issuanceDialog = IssuanceDialog(self.account, self.community)
-        issuanceDialog.exec_()
-
-
+        dialog = IssuanceDialog(self.account, self.community)
+        dialog.exec_()

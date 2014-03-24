@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_6">
     <item>
-     <widget class="QLabel" name="accountNameLabel">
+     <widget class="QLabel" name="label_account_name">
       <property name="text">
        <string>Please select an account</string>
       </property>
@@ -32,27 +32,27 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <widget class="QTabWidget" name="accountTabs">
+        <widget class="QTabWidget" name="tabs_account">
          <property name="enabled">
           <bool>false</bool>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>2</number>
          </property>
-         <widget class="QWidget" name="walletsTab">
+         <widget class="QWidget" name="tab_wallets">
           <attribute name="title">
            <string>Wallets</string>
           </attribute>
           <layout class="QHBoxLayout" name="horizontalLayout">
            <item>
-            <widget class="QListView" name="walletsList"/>
+            <widget class="QListView" name="list_wallets"/>
            </item>
            <item>
-            <widget class="QListView" name="walletContent"/>
+            <widget class="QListView" name="list_wallet_content"/>
            </item>
           </layout>
          </widget>
-         <widget class="QWidget" name="transactionsTab">
+         <widget class="QWidget" name="tab_transactions">
           <attribute name="title">
            <string>Transactions</string>
           </attribute>
@@ -67,7 +67,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QListView" name="transactionsSent"/>
+              <widget class="QListView" name="list_transactions_sent"/>
              </item>
             </layout>
            </item>
@@ -81,19 +81,19 @@
               </widget>
              </item>
              <item>
-              <widget class="QListView" name="transactionsReceived"/>
+              <widget class="QListView" name="list_transactions_received"/>
              </item>
             </layout>
            </item>
           </layout>
          </widget>
-         <widget class="QWidget" name="communitiesWidget">
+         <widget class="QWidget" name="tab_communities">
           <attribute name="title">
            <string>Communities</string>
           </attribute>
           <layout class="QHBoxLayout" name="horizontalLayout_4">
            <item>
-            <widget class="QTabWidget" name="communitiesTab">
+            <widget class="QTabWidget" name="tabs_communities">
              <property name="currentIndex">
               <number>-1</number>
              </property>
@@ -121,33 +121,33 @@
     <property name="title">
      <string>Account</string>
     </property>
-    <widget class="QMenu" name="menuChange_account">
+    <widget class="QMenu" name="menu_change_account">
      <property name="title">
       <string>Change account</string>
      </property>
     </widget>
-    <addaction name="actionConfigure_parameters"/>
-    <addaction name="menuChange_account"/>
-    <addaction name="actionAdd_account"/>
+    <addaction name="action_configure_parameters"/>
+    <addaction name="menu_change_account"/>
+    <addaction name="action_add_account"/>
     <addaction name="separator"/>
-    <addaction name="actionSave"/>
-    <addaction name="actionQuit"/>
+    <addaction name="action_save"/>
+    <addaction name="action_quit"/>
    </widget>
    <widget class="QMenu" name="menu_contacts">
     <property name="title">
      <string>Contacts</string>
     </property>
-    <widget class="QMenu" name="menu_contactsList">
+    <widget class="QMenu" name="menu_contacts_list">
      <property name="title">
       <string>Contacts</string>
      </property>
      <addaction name="separator"/>
     </widget>
     <addaction name="separator"/>
-    <addaction name="actionAdd_a_contact"/>
-    <addaction name="menu_contactsList"/>
+    <addaction name="action_add_a_contact"/>
+    <addaction name="menu_contacts_list"/>
    </widget>
-   <widget class="QMenu" name="menuActions">
+   <widget class="QMenu" name="menu_actions">
     <property name="title">
      <string>Actions</string>
     </property>
@@ -155,7 +155,7 @@
    </widget>
    <addaction name="menu_account"/>
    <addaction name="menu_contacts"/>
-   <addaction name="menuActions"/>
+   <addaction name="menu_actions"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionManage_accounts">
@@ -168,7 +168,7 @@
     <string>Configure trustable nodes</string>
    </property>
   </action>
-  <action name="actionAdd_a_contact">
+  <action name="action_add_a_contact">
    <property name="text">
     <string>Add a contact</string>
    </property>
@@ -203,17 +203,17 @@
     <string>Remove contact</string>
    </property>
   </action>
-  <action name="actionAdd_account">
+  <action name="action_add_account">
    <property name="text">
     <string>Add account</string>
    </property>
   </action>
-  <action name="actionSave">
+  <action name="action_save">
    <property name="text">
     <string>Save</string>
    </property>
   </action>
-  <action name="actionQuit">
+  <action name="action_quit">
    <property name="text">
     <string>Quit</string>
    </property>
@@ -228,7 +228,7 @@
     <string>Transfer money</string>
    </property>
   </action>
-  <action name="actionConfigure_parameters">
+  <action name="action_configure_parameters">
    <property name="text">
     <string>Configure</string>
    </property>
@@ -237,10 +237,10 @@
  <resources/>
  <connections>
   <connection>
-   <sender>actionAdd_account</sender>
+   <sender>action_add_account</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
-   <slot>openAddAccountDialog()</slot>
+   <slot>open_add_account_dialog()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -253,7 +253,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>actionSave</sender>
+   <sender>action_save</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
    <slot>save()</slot>
@@ -269,7 +269,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>actionQuit</sender>
+   <sender>action_quit</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
    <slot>close()</slot>
@@ -288,7 +288,7 @@
    <sender>actionTransfer_money</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
-   <slot>openTransferMoneyDialog()</slot>
+   <slot>open_transfer_money_dialog()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -301,10 +301,10 @@
    </hints>
   </connection>
   <connection>
-   <sender>actionAdd_a_contact</sender>
+   <sender>action_add_a_contact</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
-   <slot>openAddContactDialog()</slot>
+   <slot>open_add_contact_dialog()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -317,10 +317,10 @@
    </hints>
   </connection>
   <connection>
-   <sender>actionConfigure_parameters</sender>
+   <sender>action_configure_parameters</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
-   <slot>openConfigureAccountDialog()</slot>
+   <slot>open_configure_account_dialog()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -333,10 +333,10 @@
    </hints>
   </connection>
   <connection>
-   <sender>walletsList</sender>
+   <sender>list_wallets</sender>
    <signal>clicked(QModelIndex)</signal>
    <receiver>MainWindow</receiver>
-   <slot>refreshWalletContent(QModelIndex)</slot>
+   <slot>refresh_wallet_content(QModelIndex)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>137</x>
@@ -350,12 +350,12 @@
   </connection>
  </connections>
  <slots>
-  <slot>openAddAccountDialog()</slot>
+  <slot>open_add_account_dialog()</slot>
   <slot>save()</slot>
-  <slot>openTransferMoneyDialog()</slot>
-  <slot>openAddContactDialog()</slot>
-  <slot>openConfigureAccountDialog()</slot>
-  <slot>refreshMainWindow()</slot>
-  <slot>refreshWalletContent(QModelIndex)</slot>
+  <slot>open_transfer_money_dialog()</slot>
+  <slot>open_add_contact_dialog()</slot>
+  <slot>open_configure_account_dialog()</slot>
+  <slot>refresh_main_window()</slot>
+  <slot>refresh_wallet_content(QModelIndex)</slot>
  </slots>
 </ui>

@@ -8,10 +8,13 @@ import re
 import math
 import logging
 
+
 class Coin(object):
+
     '''
     A coin parsing a regex to read its value
     '''
+
     def __init__(self, issuer, number, base, power, origin):
         self.issuer = issuer
         self.number = number
@@ -20,7 +23,7 @@ class Coin(object):
         self.origin = origin
 
     @classmethod
-    def fromId(cls, coin_id):
+    def from_id(cls, coin_id):
         # Regex to parse the coin id
         regex = "^([A-Z\d]{40})-(\d+)-(\d)-(\d+)-((A|F|D)-\d+)$"
         m = re.search(regex, coin_id)
@@ -32,12 +35,12 @@ class Coin(object):
         return cls(issuer, number, base, power, origin)
 
     def __eq__(self, other):
-        return self.getId() == other.getId()
+        return self.get_id() == other.get_id()
 
     def value(self):
-        return self.base*math.pow(10, self.power)
+        return self.base * math.pow(10, self.power)
 
-    def getId(self):
+    def get_id(self):
         return self.issuer + "-" \
             + str(self.number) + "-" \
             + str(self.base) + "-" \

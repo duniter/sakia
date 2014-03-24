@@ -6,6 +6,7 @@ Created on 5 févr. 2014
 
 
 class NodeItem(object):
+
     def __init__(self, node, mainNodeItem=None):
         self.mainNodeItem = mainNodeItem
         self.nodeText = node.getText()
@@ -38,39 +39,39 @@ class NodeItem(object):
             return self.mainNodeItem.nodeItems.index(self)
         return 0
 
-class MainNodeItem(object):
-    def __init__(self, mainNode, communityItem=None):
-        self.communityItem = communityItem
-        self.mainNodeText = mainNode.getText()
-        self.trust = mainNode.trust
-        self.hoster = mainNode.hoster
-        self.nodeItems = []
 
-    def appendChild(self, nodeItem):
-        self.nodeItems.append(nodeItem)
+class MainNodeItem(object):
+
+    def __init__(self, main_node, community_item=None):
+        self.community_item = community_item
+        self.main_node_text = main_node.getText()
+        self.trust = main_node.trust
+        self.hoster = main_node.hoster
+        self.node_items = []
+
+    def appendChild(self, node_item):
+        self.node_items.append(node_item)
 
     def child(self, row):
-        return self.nodeItems[row]
+        return self.node_items[row]
 
     def childCount(self):
-        return len(self.nodeItems)
+        return len(self.node_items)
 
     def columnCount(self):
         return 1
 
     def data(self, column):
         try:
-            return self.mainNodeText
+            return self.main_node_text
         except IndexError:
             return None
 
     def parent(self):
-        return self.communityItem
+        return self.community_item
 
     def row(self):
-        if self.communityItem:
-            return self.communityItem.mainNodeItems.index(self)
+        if self.community_item:
+            return self.community_item.main_node_items.index(self)
 
         return 0
-
-

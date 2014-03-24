@@ -9,18 +9,21 @@ from cutecoin.models.node.itemModel import MainNodeItem, NodeItem
 from cutecoin.models.community.itemModel import CommunityItemModel
 import logging
 
+
 class CommunityTreeModel(QAbstractItemModel):
+
     '''
     A Qt abstract item model to display nodes of a community
     '''
+
     def __init__(self, community):
         '''
         Constructor
         '''
         super(CommunityTreeModel, self).__init__(None)
         self.community = community
-        self.rootItem = CommunityItemModel(self.community)
-        self.refreshTreeNodes()
+        self.root_item = CommunityItemModel(self.community)
+        self.refresh_tree_nodes()
 
     def columnCount(self, parent):
         return 3
@@ -31,14 +34,12 @@ class CommunityTreeModel(QAbstractItemModel):
 
         item = index.internalPointer()
 
-
         if role == Qt.DisplayRole and index.column() == 0:
             return item.data(0)
         elif role == Qt.CheckStateRole and index.column() == 1:
             return Qt.Checked if item.trust else Qt.Unchecked
         elif role == Qt.CheckStateRole and index.column() == 2:
             return Qt.Checked if item.hoster else Qt.Unchecked
-
 
         return None
 
@@ -49,11 +50,11 @@ class CommunityTreeModel(QAbstractItemModel):
         if index.column() == 0:
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable
         else:
-            return Qt.ItemIsEnabled  | Qt.ItemIsSelectable | Qt.ItemIsUserCheckable
+            return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsUserCheckable
 
     def headerData(self, section, orientation, role):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole and section == 0:
-            return self.rootItem.data(0) + " nodes"
+            return self.root_item.data(0) + " nodes"
         elif orientation == Qt.Horizontal and role == Qt.DisplayRole and section == 1:
             return "Trust"
         elif orientation == Qt.Horizontal and role == Qt.DisplayRole and section == 2:
@@ -65,13 +66,13 @@ class CommunityTreeModel(QAbstractItemModel):
             return QModelIndex()
 
         if not parent.isValid():
-            parentItem = self.rootItem
+            parent_item = self.root_item
         else:
-            parentItem = parent.internalPointer()
+            parent_item = parent.internalPointer()
 
-        childItem = parentItem.child(row)
-        if childItem:
-            return self.createIndex(row, column, childItem)
+        child_item = parent_item.child(row)
+        if child_item:
+            return self.createIndex(row, column, child_item)
         else:
             return QModelIndex()
 
@@ -79,24 +80,24 @@ class CommunityTreeModel(QAbstractItemModel):
         if not index.isValid():
             return QModelIndex()
 
-        childItem = index.internalPointer()
-        parentItem = childItem.parent()
+        child_item = index.internalPointer()
+        parent_item = child_item.parent()
 
-        if parentItem == self.rootItem:
+        if parent_item == self.root_item:
             return QModelIndex()
 
-        return self.createIndex(parentItem.row(), 0, parentItem)
+        return self.createIndex(parent_item.row(), 0, parent_item)
 
     def rowCount(self, parent):
         if parent.column() > 0:
             return 0
 
         if not parent.isValid():
-            parentItem = self.rootItem
+            parent_item = self.root_item
         else:
-            parentItem = parent.internalPointer()
+            parent_item = parent.internalPointer()
 
-        return parentItem.childCount()
+        return parent_item.childCount()
 
     def setData(self, index, value, role=Qt.EditRole):
         if index.column() == 0:
@@ -110,17 +111,24 @@ class CommunityTreeModel(QAbstractItemModel):
                 item.trust = value
             elif index.column() == 2:
                 item.host = value
-            self.dataChanged.emit(index, index)
+            self.data_changed.emit(index, index)
             return True
 
-    def refreshTreeNodes(self):
-        logging.debug("root : " + self.rootItem.data(0))
-        for mainNode in self.community.nodes:
-            mainNodeItem = MainNodeItem(mainNode, self.rootItem)
-            logging.debug("mainNode : " + mainNode.getText() + " / " + mainNodeItem.data(0))
-            self.rootItem.appendChild(mainNodeItem)
-            for node in mainNode.downstreamPeers():
-                nodeItem = NodeItem(node, mainNodeItem)
-                logging.debug("\t node : " + node.getText()+ " / " + nodeItem.data(0))
-                mainNodeItem.appendChild(nodeItem)
-
+    def refresh_tree_nodes(self):
+        logging.debug("root : " + self.root_item.data(0))
+        for main_node in self.community.nodes:
+            main_node_item = MainNodeItem(main_node, self.root_item)
+            logging.debug(
+                "mainNode : " +
+                main_node.getText() +
+                " / " +
+                main_node_item.data(0))
+            self.root_item.appendChild(main_node_item)
+            for node in main_node.downstream_peers():
+                node_item = NodeItem(node, main_node_item)
+                logging.debug(
+                    "\t node : " +
+                    node.getText() +
+                    " / " +
+                    node_item.data(0))
+                main_node_item.appendChild(node_item)

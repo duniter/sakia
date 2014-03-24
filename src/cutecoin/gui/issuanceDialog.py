@@ -13,11 +13,12 @@ from cutecoin.models.coin import Coin
 
 from cutecoin.gen_resources.issuanceDialog_uic import Ui_IssuanceDialog
 
+
 class IssuanceDialog(QDialog, Ui_IssuanceDialog):
+
     '''
     classdocs
     '''
-
 
     def __init__(self, issuer, community):
         '''
@@ -28,23 +29,24 @@ class IssuanceDialog(QDialog, Ui_IssuanceDialog):
         self.issuer = issuer
         self.community = community
         self.dividend = self.community.dividend()
-        self.coinMinimalPower = self.community.coinMinimalPower()
-        self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
+        self.coin_minimal_power = self.community.coin_minimal_power()
+        self.button_box.button(QDialogButtonBox.Ok).setEnabled(False)
 
         self.sliders = []
-        self.slidersLabels = []
-        maxCoinPower = 1
-        nMax = 0
-        # We look for the power of 10 which is directly higher than the dividend
-        while maxCoinPower < self.dividend:
-            maxCoinPower = pow(10, nMax)
-            nMax += 1
+        self.sliders_labels = []
+        max_coin_power = 1
+        nmax = 0
+        # We look for the power of 10 which is directly higher than the
+        # dividend
+        while max_coin_power < self.dividend:
+            max_coin_power = pow(10, nmax)
+            nmax += 1
 
         # N max is the power just before the one we found
 
-        logging.debug("Pow max : " + str(nMax))
+        logging.debug("Pow max : " + str(nmax))
 
-        for i in range(self.coinMinimalPower, nMax):
+        for i in range(self.coinMinimalPower, nmax):
             self.generateSliderFrame(i)
 
     def generateSliderFrame(self, n):
@@ -57,41 +59,36 @@ class IssuanceDialog(QDialog, Ui_IssuanceDialog):
         slider = QSlider(Qt.Horizontal, frame)
         slider.setMinimum(0)
         slider.setMaximum(9)
-        slider.valueChanged.connect(self.refreshTotal)
+        slider.valueChanged.connect(self.refresh_total)
 
         frame.layout().addWidget(slider)
 
         label.setText("0 coins of " + str(pow(10, n)))
 
-
-        self.slidersLabels.append(label)
+        self.sliders_labels.append(label)
         self.sliders.append(slider)
 
         self.layout().insertWidget(n, frame)
 
-    def refreshTotal(self):
+    def refresh_total(self):
         n = 0
         total = 0
         for slider in self.sliders:
-            self.slidersLabels[n].setText(str(slider.value()) + " coins of " + str(pow(10, n)))
-            self.totalLabel.setText("Total : " + str(total))
-            total += slider.value()*pow(10, n)
+            self.sliders_labels[n].setText(
+                str(slider.value()) + " coins of " + str(pow(10, n)))
+            self.total_label.setText("Total : " + str(total))
+            total += slider.value() * pow(10, n)
             n += 1
-        self.totalLabel.setText("Total : " + str(total))
+        self.total_label.setText("Total : " + str(total))
         if total != self.dividend:
-            self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
+            self.button_box.button(QDialogButtonBox.Ok).setEnabled(False)
         else:
-            self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(True)
+            self.button_box.button(QDialogButtonBox.Ok).setEnabled(True)
 
-    def actionIssueCoins(self):
+    def action_issue_coins(self):
         coins = []
         n = 0
         for slider in self.sliders:
-            coins.append(str(slider.value())+","+str(n))
+            coins.append(str(slider.value()) + "," + str(n))
             n += 1
-        self.issuer.issueDividend(self.community, coins)
-
-
-
-
-
+        self.issuer.issue_dividend(self.community, coins)

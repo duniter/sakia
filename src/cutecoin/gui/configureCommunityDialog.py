@@ -3,19 +3,21 @@ Created on 8 mars 2014
 
 @author: inso
 '''
+import logging
 from cutecoin.gen_resources.communityConfigurationDialog_uic import Ui_CommunityConfigurationDialog
-from PyQt5.QtWidgets import QDialog, QErrorMessage, QMenu
+from PyQt5.QtWidgets import QDialog, QErrorMessage, QMenu, QMessageBox
 from cutecoin.models.community.treeModel import CommunityTreeModel
 from cutecoin.models.node import Node
 from cutecoin.core.exceptions import NotMemberOfCommunityError
 
+
 class ConfigureCommunityDialog(QDialog, Ui_CommunityConfigurationDialog):
+
     '''
     classdocs
     '''
 
-
-    def __init__(self, account, community, defaultNode=None):
+    def __init__(self, account, community, default_node=None):
         '''
         Constructor
         '''
@@ -26,28 +28,39 @@ class ConfigureCommunityDialog(QDialog, Ui_CommunityConfigurationDialog):
         if self.community is None:
             self.setWindowTitle("Add a community")
             try:
-                defaultNode.trust = True
-                defaultNode.hoster = True
-                self.community = self.account.communities.addCommunity(defaultNode, self.account.keyFingerprint())
-                self.account.wallets.addWallet(self.community)
-                self.communityView.setModel( CommunityTreeModel(self.community) )
-                #TODO: Ask for THT pull
+                default_node.trust = True
+                default_node.hoster = True
+                self.community = self.account.communities.add_community(
+                    default_node,
+                    self.account.key_fingerprint())
+                self.account.wallets.add_wallet(self.community)
+                self.community_view.set_model(CommunityTreeModel(self.community))
+                # TODO: Ask for THT pull
+                msg_box = QMessageBox()
+                msg_box.setText("Add a community")
+                msg_box.setInformativeText(
+                    "Would you like to existing THT from this community ?")
+                msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+                msg_box.exec_()
+                if msg_box.clickedButton() == QMessageBox.Yes:
+                    self.account.pull_tht(self.community)
             except NotMemberOfCommunityError as e:
                 QErrorMessage(self).showMessage(e.message)
         else:
-            self.setWindowTitle("Configure community " + self.community.currency)
-            #TODO: Ask for THT push
-            self.communityView.setModel( CommunityTreeModel(self.community))
+            self.setWindowTitle(
+                "Configure community " +
+                self.community.currency)
+            self.tree_nodes.setModel(CommunityTreeModel(self.community))
 
-    def addNode(self):
+    def add_node(self):
         '''
         Add node slot
         '''
-        server = self.serverEdit.text()
-        port = self.portBox.value()
+        server = self.edit_server.text()
+        port = self.box_port.value()
         if self.community is not None:
             self.community.nodes.append(Node(server, port, trust=True))
-            self.communityView.setModel( CommunityTreeModel(self.community ))
+            self.tree_nodes.setModel(CommunityTreeModel(self.community))
 
     def showContextMenu(self, point):
         menu = QMenu()
@@ -55,18 +68,22 @@ class ConfigureCommunityDialog(QDialog, Ui_CommunityConfigurationDialog):
         if self.community is not None:
             if len(self.community.nodes) == 1:
                 action.setEnabled(False)
-        menu.exec_(self.communityView.mapToGlobal(point))
+        menu.exec_(self.tree_nodes.mapToGlobal(point))
 
-    def removeNode(self):
-        for index in self.communityView.selectedIndexes():
+    def remove_node(self):
+        for index in self.community_view.selectedIndexes():
             self.community.nodes.pop(index.row())
 
-        self.communityView.setModel( CommunityTreeModel(self.community ))
+        self.tree_nodes.setModel(CommunityTreeModel(self.community))
 
     def accept(self):
-        #TODO: Ask for THT push
+        reply = QMessageBox.question(
+            self,
+            "Trusts and hosters changed",
+            "Would you like to push THT to the community ?",
+            QMessageBox.Yes | QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            logging.debug("Yes clicked")
+            self.account.push_tht(self.community)
+
         self.close()
-
-
-
-

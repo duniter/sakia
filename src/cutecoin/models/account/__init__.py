@@ -13,170 +13,217 @@ from cutecoin.models.account.communities import Communities
 from cutecoin.models.community import Community
 from cutecoin.models.transaction import factory
 from cutecoin.models.person import Person
+from cutecoin.core.exceptions import CommunityNotFoundError
+
 
 class Account(object):
+
     '''
     An account is specific to a key.
     Each account has only one key, and a key can
     be locally referenced by only one account.
     '''
-    def __init__(self, keyId, name, communities, wallets, contacts):
+
+    def __init__(self, keyid, name, communities, wallets, contacts):
         '''
         Constructor
         '''
-        self.keyId = keyId
+        self.keyid = keyid
         self.name = name
         self.communities = communities
         self.wallets = wallets
         self.contacts = contacts
 
     @classmethod
-    def create(cls, keyId, name, communities):
+    def create(cls, keyid, name, communities):
         '''
         Constructor
         '''
         wallets = Wallets()
-        account = cls(keyId, name, communities, wallets, [])
-        for community in account.communities.communitiesList:
-            wallet = account.wallets.addWallet(community.currency)
-            wallet.refreshCoins(community, account.keyFingerprint())
+        account = cls(keyid, name, communities, wallets, [])
+        for community in account.communities.communities_list:
+            wallet = account.wallets.add_wallet(community.currency)
+            wallet.refresh_coins(community, account.key_fingerprint())
         return account
 
     @classmethod
-    def load(cls, jsonData):
-        keyId = jsonData['keyId']
-        name = jsonData['name']
+    def load(cls, json_data):
+        keyid = json_data['keyid']
+        name = json_data['name']
         communities = Communities()
         wallets = Wallets()
         contacts = []
 
-        for contactData in jsonData['contacts']:
-            contacts.append(Person.fromJson(contactData))
+        for contact_data in json_data['contacts']:
+            contacts.append(Person.from_json(contact_data))
 
-        account = cls(keyId, name, communities, wallets, contacts)
+        account = cls(keyid, name, communities, wallets, contacts)
 
-        for communityData in jsonData['communities']:
-            account.communities.communitiesList.append(Community.load(communityData, account))
+        for community_data in json_data['communities']:
+            account.communities.communities_list.append(
+                Community.load(
+                    community_data,
+                    account))
 
         return account
 
     def __eq__(self, other):
         if other is not None:
-            return other.keyId == self.keyId
+            return other.keyid == self.keyid
         else:
             return False
 
-    def addWallet(self, name, currency):
-        self.wallets.addWallet(name, currency)
+    def add_wallet(self, name, currency):
+        self.wallets.add_wallet(name, currency)
 
-    def addContact(self, person):
+    def add_contact(self, person):
         self.contacts.append(person)
 
-    def keyFingerprint(self):
+    def key_fingerprint(self):
         gpg = gnupg.GPG()
-        availableKeys = gpg.list_keys()
-        logging.debug(self.keyId)
-        for k in availableKeys:
+        available_keys = gpg.list_keys()
+        logging.debug(self.keyid)
+        for k in available_keys:
             logging.debug(k)
-            if k['keyid'] == self.keyId:
+            if k['keyid'] == self.keyid:
                 return k['fingerprint']
         return ""
 
-    def transactionsReceived(self):
+    def transactions_received(self):
         received = []
-        for community in self.communities.communitiesList:
-            transactionsData = community.ucoinRequest(ucoin.hdc.transactions.Recipient(self.keyFingerprint()))
-            for trxData in transactionsData:
-                received.append(factory.createTransaction(trxData['value']['transaction']['sender'], trxData['value']['transaction']['number'], community))
+        for community in self.communities.communities_list:
+            transactions_data = community.ucoin_request(
+                ucoin.hdc.transactions.Recipient(
+                    self.key_fingerprint()))
+            for trxData in transactions_data:
+                received.append(
+                    factory.create_transaction(
+                        trxData['value']['transaction']['sender'],
+                        trxData['value']['transaction']['number'],
+                        community))
         return received
 
-    def transactionsSent(self):
+    def transactions_sent(self):
         sent = []
-        for community in self.communities.communitiesList:
-            transactionsData = community.ucoinRequest(ucoin.hdc.transactions.sender.Last(self.keyFingerprint(), 20))
-            for trxData in transactionsData:
+        for community in self.communities.communities_list:
+            transactions_data = community.ucoin_request(
+                ucoin.hdc.transactions.sender.Last(
+                    self.key_fingerprint(),
+                    20))
+            for trx_data in transactions_data:
                 # Small bug in ucoinpy library
-                if not isinstance(trxData, str):
-                    sent.append(factory.createTransaction(trxData['value']['transaction']['sender'], trxData['value']['transaction']['number'], community))
+                if not isinstance(trx_data, str):
+                    sent.append(
+                        factory.create_transaction(
+                            trxData['value']['transaction']['sender'],
+                            trxData['value']['transaction']['number'],
+                            community))
         return sent
 
-    def lastIssuances(self, community):
+    def last_issuances(self, community):
         issuances = []
-        if community in self.communities.communitiesList:
-            issuancesData = community.ucoinRequest(ucoin.hdc.transactions.sender.Issuance(self.keyFingerprint()))
-            for issuance in issuancesData:
+        if community in self.communities.communities_list:
+            issuances_data = community.ucoin_request(
+                ucoin.hdc.transactions.sender.Issuance(
+                    self.key_fingerprint()))
+            for issuance in issuances_data:
                 logging.debug(issuance)
-                issuances.append(factory.createTransaction(issuance['value']['transaction']['sender'], issuance['value']['transaction']['number'], community))
+                issuances.append(
+                    factory.create_transaction(
+                        issuance['value']['transaction']['sender'],
+                        issuance['value']['transaction']['number'],
+                        community))
         return issuances
 
-    def issuedLastDividend(self, community):
-        currentAmendmentNumber = community.amendmentNumber()
-        if community in self.communities.communitiesList:
-            dividendsData = community.ucoinRequest(ucoin.hdc.transactions.sender.issuance.Dividend(self.keyFingerprint(), currentAmendmentNumber))
-            for dividend in dividendsData:
+    def issued_last_dividend(self, community):
+        current_amendment_number = community.amendment_number()
+        if community in self.communities.communities_list:
+            dividends_data = community.ucoin_request(
+                ucoin.hdc.transactions.sender.issuance.Dividend(
+                    self.key_fingerprint(),
+                    current_amendment_number))
+            for dividend in dividends_data:
                 # Small bug in ucoinpy library
                 if not isinstance(dividend, str):
                     return True
         return False
 
-    def issueDividend(self, community, coins):
-        if community in self.communities.communitiesList:
+    def issue_dividend(self, community, coins):
+        if community in self.communities.communities_list:
             logging.debug(coins)
-            issuance = ucoin.wrappers.transactions.Issue(self.keyFingerprint(), community.amendmentNumber(), coins, keyId=self.pgpKeyId)
+            issuance = ucoin.wrappers.transactions.Issue(
+                self.key_fingerprint(),
+                community.amendment_number(),
+                coins,
+                keyid=self.keyid)
             return issuance()
 
     def tht(self, community):
-        if community in self.communities.communitiesList:
-            tht = community.ucoinRequest(ucoin.ucg.tht(self.keyFingerprint()))
+        if community in self.communities.communities_list:
+            tht = community.ucoinRequest(ucoin.ucg.tht(self.key_fingerprint()))
             return tht['entries']
         return None
 
-    def updateTrustsAndHosters(self, community):
-        if community in self.communities.communitiesList:
-            hostersFg = community.hosters()
-            trustsFg = community.trusts()
+    def push_tht(self, community):
+        if community in self.communities.communities_list:
+            hosters_fg = []
+            trusts_fg = []
             for trust in community.trusts():
                 peering = trust.peering()
-                trustsFg.append(peering['Fingerprint'])
+                logging.debug(peering)
+                trusts_fg.append(peering['fingerprint'])
             for hoster in community.hosters():
+                logging.debug(peering)
                 peering = hoster.peering()
-                hostersFg.append(peering['Fingerprint'])
+                hosters_fg.append(peering['fingerprint'])
             entry = {
-                'version' : '1',
-                'currency' : community.currency,
-                'fingerprint' : self.fingerprint(),
-                'hosters' : self.hostersFg,
-                'trusts' : self.trustsFg
+                'version': '1',
+                'currency': community.currency,
+                'fingerprint': self.key_fingerprint(),
+                'hosters': hosters_fg,
+                'trusts': trusts_fg
             }
-            jsonEntry = json.dump(entry, indent = 2)
+            logging.debug(entry)
+            json_entry = json.JSONEncoder(indent=2).encode(entry)
             gpg = gnupg.GPG()
-            signature = gpg.sign(jsonEntry, keyId=self.keyid, detach=True)
+            signature = gpg.sign(json_entry, keyid=self.keyid, clearsign=True)
 
             dataPost = {
-                'entry' : entry,
-                'signature' : signature
+                'entry': entry,
+                'signature': str(signature)
             }
 
-            community.ucoinPost(ucoin.ucg.tht(self.keyFingerprint()), json.dump(dataPost, indent=2))
+            community.ucoin_post(
+                ucoin.ucg.THT(
+                    pgp_fingerprint=self.key_fingerprint()),
+                dataPost)
+        else:
+            raise CommunityNotFoundError(self.keyid, community.amendment_id())
 
+    def pull_tht(self, community):
+        if community in self.communities.communities_list:
+            community.pull_tht(self.key_fingerprint())
 
-    def transferCoins(self, node, recipient, coins, message):
-        transfer = ucoin.wrappers.transactions.RawTransfer(self.keyFingerprint(), recipient.fingerprint, coins, message, keyid=self.pgpKeyId, server=node.server, port=node.port)
+    def transfer_coins(self, node, recipient, coins, message):
+        transfer = ucoin.wrappers.transactions.RawTransfer(
+            self.key_fingerprint(),
+            recipient.fingerprint,
+            coins,
+            message,
+            keyid=self.keyid,
+            server=node.server,
+            port=node.port)
         return transfer()
 
-    def jsonifyContacts(self):
+    def jsonify_contacts(self):
         data = []
         for p in self.contacts:
             data.append(p.jsonify())
         return data
 
     def jsonify(self):
-        data = {'name' : self.name,
-                'keyId' : self.keyId,
-                'communities' : self.communities.jsonify(self.wallets),
-                'contacts' : self.jsonifyContacts()}
+        data = {'name': self.name,
+                'keyId': self.keyid,
+                'communities': self.communities.jsonify(self.wallets),
+                'contacts': self.jsonify_contacts()}
         return data
-
-
-
-

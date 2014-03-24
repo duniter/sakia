@@ -8,12 +8,13 @@ import ucoinpy as ucoin
 import gnupg
 from cutecoin.models.coin import Coin
 
+
 class Wallet(object):
+
     '''
     A wallet is list of coins.
     It's only used to sort coins.
     '''
-
 
     def __init__(self, coins, community):
         '''
@@ -23,22 +24,19 @@ class Wallet(object):
         self.community = community
         self.name = "Main Wallet"
 
-
     @classmethod
     def create(cls, community):
         return cls([], community)
 
     @classmethod
-    def load(cls, jsonData, community):
+    def load(cls, json_data, community):
         coins = []
-        for coinData in jsonData['coins']:
-            coins.append(Coin.fromId(coinData['coin']))
+        for coinData in json_data['coins']:
+            coins.append(Coin.from_id(coinData['coin']))
         return cls(coins, community)
 
-
-
     def __eq__(self, other):
-        return ( self.community == other.community )
+        return (self.community == other.community)
 
     def value(self):
         value = 0
@@ -46,27 +44,27 @@ class Wallet(object):
             value += coin.value()
         return value
 
-    #TODO: Refresh coins when changing current account
+    # TODO: Refresh coins when changing current account
     def refreshCoins(self, fingerprint):
-        dataList = self.community.ucoinRequest(ucoin.hdc.coins.List({'pgp_fingerprint':fingerprint}))
-        for issaunces in dataList['coins']:
+        data_list = self.community.ucoin_request(
+            ucoin.hdc.coins.List({'pgp_fingerprint': fingerprint}))
+        for issaunces in data_list['coins']:
             issuer = issaunces['issuer']
-            for coinsIds in issaunces['ids']:
-                shortened_id = coinsIds
-                coin = Coin.fromId(issuer+"-"+shortened_id)
+            for coins_ids in issaunces['ids']:
+                shortened_id = coins_ids
+                coin = Coin.from_id(issuer + "-" + shortened_id)
                 self.coins.append(coin)
 
     def getText(self):
-        return self.name + " : " + str(self.value()) + " " + self.community.currency
+        return self.name + " : " + \
+            str(self.value()) + " " + self.community.currency
 
     def jsonifyCoinsList(self):
         data = []
         for coin in self.coins:
-            data.append({'coin' : coin.getId()})
+            data.append({'coin': coin.get_id()})
         return data
 
     def jsonify(self):
-        return {'coins': self.jsonifyCoinsList(),
+        return {'coins': self.jsonify_coins_list(),
                 'name': self.name}
-
-

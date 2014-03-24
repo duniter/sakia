@@ -6,10 +6,13 @@ Created on 1 févr. 2014
 
 import ucoinpy as ucoin
 
+
 class Node(object):
+
     '''
     A ucoin node using BMA protocol
     '''
+
     def __init__(self, server, port, trust=False, hoster=False):
         '''
         Constructor
@@ -20,7 +23,7 @@ class Node(object):
         self.hoster = hoster
 
     def __eq__(self, other):
-        return ( self.server == other.server and self.port == other.port )
+        return (self.server == other.server and self.port == other.port)
 
     def getText(self):
         return self.server + ":" + str(self.port)
@@ -29,7 +32,8 @@ class Node(object):
         TrustedNode is a node the community is reading to get informations.
         The account sends data one of the community main nodes.
     '''
-    def downstreamPeers(self):
+
+    def downstream_peers(self):
         ucoin.settings['server'] = self.server
         ucoin.settings['port'] = self.port
 
@@ -40,7 +44,6 @@ class Node(object):
 
         return peers
 
-    #TODO: Peering is not json format. Parse it differently
     def peering(self):
         request = ucoin.ucg.peering.Peer()
         self.use(request)
@@ -57,8 +60,7 @@ class Node(object):
         return request
 
     def jsonify(self):
-        return {'server' : self.server,
-                'port' : self.port,
-                'trust':self.trust,
-                'hoster':self.hoster}
-
+        return {'server': self.server,
+                'port': self.port,
+                'trust': self.trust,
+                'hoster': self.hoster}

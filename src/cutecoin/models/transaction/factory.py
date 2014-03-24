@@ -8,21 +8,26 @@ import ucoinpy as ucoin
 from cutecoin.models.person import Person
 from cutecoin.models.transaction import Transfer, Issuance
 
-#TODO: Passer par des factory + pythonic
-def createTransaction(senderFingerprint, increment, community):
-    transactionId = senderFingerprint + "-" + str(increment)
-    ucoinTransactionView = community.ucoinRequest(ucoin.hdc.transactions.View(transactionId))
-    ucoinTransaction = ucoinTransactionView['transaction']
+# TODO: Passer par des factory + pythonic
+
+
+def create_transaction(sender_fingerprint, increment, community):
+    transaction_id = sender_fingerprint + "-" + str(increment)
+    ucoin_transaction_view = community.ucoin_request(
+        ucoin.hdc.transactions.View(transaction_id))
+    ucoin_transaction = ucoin_transaction_view['transaction']
     transaction = None
-    if ucoinTransaction['type']  == 'TRANSFER':
+    if ucoin_transaction['type'] == 'TRANSFER':
         transaction = Transfer()
-    elif ucoinTransaction['type']  == 'ISSUANCE':
+    elif ucoin_transaction['type'] == 'ISSUANCE':
         transaction = Issuance()
 
-    if transaction != None:
+    if transaction is not None:
         transaction.increment = increment
         transaction.community = community
-        transaction.sender = Person.lookup(senderFingerprint, community)
-        transaction.recipient = Person.lookup(ucoinTransaction['recipient'], community)
+        transaction.sender = Person.lookup(sender_fingerprint, community)
+        transaction.recipient = Person.lookup(
+            ucoin_transaction['recipient'],
+            community)
 
     return transaction
