@@ -31,10 +31,9 @@ class ConfigureCommunityDialog(QDialog, Ui_CommunityConfigurationDialog):
                 default_node.trust = True
                 default_node.hoster = True
                 self.community = self.account.communities.add_community(
-                    default_node,
-                    self.account.key_fingerprint())
+                    default_node)
                 self.account.wallets.add_wallet(self.community)
-                self.community_view.set_model(CommunityTreeModel(self.community))
+                self.tree_nodes.setModel(CommunityTreeModel(self.community))
                 # TODO: Ask for THT pull
                 msg_box = QMessageBox()
                 msg_box.setText("Add a community")
@@ -71,7 +70,7 @@ class ConfigureCommunityDialog(QDialog, Ui_CommunityConfigurationDialog):
         menu.exec_(self.tree_nodes.mapToGlobal(point))
 
     def remove_node(self):
-        for index in self.community_view.selectedIndexes():
+        for index in self.tree_nodes.selectedIndexes():
             self.community.nodes.pop(index.row())
 
         self.tree_nodes.setModel(CommunityTreeModel(self.community))

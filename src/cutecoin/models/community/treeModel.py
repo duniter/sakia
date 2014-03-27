@@ -5,7 +5,7 @@ Created on 5 févr. 2014
 '''
 
 from PyQt5.QtCore import QAbstractItemModel, QModelIndex, Qt
-from cutecoin.models.node.itemModel import MainNodeItem, NodeItem
+from cutecoin.models.node.itemModel import NodeItem
 from cutecoin.models.community.itemModel import CommunityItemModel
 import logging
 
@@ -111,24 +111,24 @@ class CommunityTreeModel(QAbstractItemModel):
                 item.trust = value
             elif index.column() == 2:
                 item.host = value
-            self.data_changed.emit(index, index)
+            self.dataChanged.emit(index, index)
             return True
 
     def refresh_tree_nodes(self):
         logging.debug("root : " + self.root_item.data(0))
-        for main_node in self.community.nodes:
-            main_node_item = MainNodeItem(main_node, self.root_item)
+        for node in self.community.network.nodes:
+            node_item = NodeItem(node, self.root_item)
             logging.debug(
                 "mainNode : " +
-                main_node.getText() +
+                node.getText() +
                 " / " +
-                main_node_item.data(0))
-            self.root_item.appendChild(main_node_item)
-            for node in main_node.downstream_peers():
-                node_item = NodeItem(node, main_node_item)
+                node_item.data(0))
+            self.root_item.appendChild(node_item)
+            for node in node.downstream_peers():
+                child_node_item = NodeItem(node, node_item)
                 logging.debug(
                     "\t node : " +
                     node.getText() +
                     " / " +
-                    node_item.data(0))
-                main_node_item.appendChild(node_item)
+                    child_node_item.data(0))
+                node_item.appendChild(child_node_item)

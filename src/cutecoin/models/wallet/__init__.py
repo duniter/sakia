@@ -46,7 +46,7 @@ class Wallet(object):
 
     # TODO: Refresh coins when changing current account
     def refreshCoins(self, fingerprint):
-        data_list = self.community.ucoin_request(
+        data_list = self.community.network.request(
             ucoin.hdc.coins.List({'pgp_fingerprint': fingerprint}))
         for issaunces in data_list['coins']:
             issuer = issaunces['issuer']
@@ -59,7 +59,7 @@ class Wallet(object):
         return self.name + " : " + \
             str(self.value()) + " " + self.community.currency
 
-    def jsonifyCoinsList(self):
+    def jsonify_coins_list(self):
         data = []
         for coin in self.coins:
             data.append({'coin': coin.get_id()})

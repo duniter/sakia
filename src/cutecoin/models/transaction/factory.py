@@ -13,13 +13,13 @@ from cutecoin.models.transaction import Transfer, Issuance
 
 def create_transaction(sender_fingerprint, increment, community):
     transaction_id = sender_fingerprint + "-" + str(increment)
-    ucoin_transaction_view = community.ucoin_request(
+    transaction_view = community.network.request(
         ucoin.hdc.transactions.View(transaction_id))
-    ucoin_transaction = ucoin_transaction_view['transaction']
+    transaction_data = transaction_view['transaction']
     transaction = None
-    if ucoin_transaction['type'] == 'TRANSFER':
+    if transaction_data['type'] == 'TRANSFER':
         transaction = Transfer()
-    elif ucoin_transaction['type'] == 'ISSUANCE':
+    elif transaction_data['type'] == 'ISSUANCE':
         transaction = Issuance()
 
     if transaction is not None:
@@ -27,7 +27,7 @@ def create_transaction(sender_fingerprint, increment, community):
         transaction.community = community
         transaction.sender = Person.lookup(sender_fingerprint, community)
         transaction.recipient = Person.lookup(
-            ucoin_transaction['recipient'],
+            transaction_data['recipient'],
             community)
 
     return transaction

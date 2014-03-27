@@ -43,7 +43,7 @@ class Account(object):
         account = cls(keyid, name, communities, wallets, [])
         for community in account.communities.communities_list:
             wallet = account.wallets.add_wallet(community.currency)
-            wallet.refresh_coins(community, account.key_fingerprint())
+            wallet.refresh_coins(community, account.fingerprint())
         return account
 
     @classmethod
@@ -79,7 +79,7 @@ class Account(object):
     def add_contact(self, person):
         self.contacts.append(person)
 
-    def key_fingerprint(self):
+    def fingerprint(self):
         gpg = gnupg.GPG()
         available_keys = gpg.list_keys()
         logging.debug(self.keyid)
@@ -92,9 +92,9 @@ class Account(object):
     def transactions_received(self):
         received = []
         for community in self.communities.communities_list:
-            transactions_data = community.ucoin_request(
+            transactions_data = community.network.request(
                 ucoin.hdc.transactions.Recipient(
-                    self.key_fingerprint()))
+                    self.fingerprint()))
             for trxData in transactions_data:
                 received.append(
                     factory.create_transaction(
@@ -106,9 +106,9 @@ class Account(object):
     def transactions_sent(self):
         sent = []
         for community in self.communities.communities_list:
-            transactions_data = community.ucoin_request(
+            transactions_data = community.network.request(
                 ucoin.hdc.transactions.sender.Last(
-                    self.key_fingerprint(),
+                    self.fingerprint(),
                     20))
             for trx_data in transactions_data:
                 # Small bug in ucoinpy library
@@ -123,9 +123,9 @@ class Account(object):
     def last_issuances(self, community):
         issuances = []
         if community in self.communities.communities_list:
-            issuances_data = community.ucoin_request(
+            issuances_data = community.network.request(
                 ucoin.hdc.transactions.sender.Issuance(
-                    self.key_fingerprint()))
+                    self.fingerprint()))
             for issuance in issuances_data:
                 logging.debug(issuance)
                 issuances.append(
@@ -138,9 +138,9 @@ class Account(object):
     def issued_last_dividend(self, community):
         current_amendment_number = community.amendment_number()
         if community in self.communities.communities_list:
-            dividends_data = community.ucoin_request(
+            dividends_data = community.network.request(
                 ucoin.hdc.transactions.sender.issuance.Dividend(
-                    self.key_fingerprint(),
+                    self.fingerprint(),
                     current_amendment_number))
             for dividend in dividends_data:
                 # Small bug in ucoinpy library
@@ -152,15 +152,26 @@ class Account(object):
         if community in self.communities.communities_list:
             logging.debug(coins)
             issuance = ucoin.wrappers.transactions.Issue(
-                self.key_fingerprint(),
+                self.fingerprint(),
                 community.amendment_number(),
                 coins,
                 keyid=self.keyid)
             return issuance()
 
+    def transfer_coins(self, node, recipient, coins, message):
+        transfer = ucoin.wrappers.transactions.RawTransfer(
+            self.fingerprint(),
+            recipient.fingerprint,
+            coins,
+            message,
+            keyid=self.keyid,
+            server=node.server,
+            port=node.port)
+        return transfer()
+
     def tht(self, community):
         if community in self.communities.communities_list:
-            tht = community.ucoinRequest(ucoin.ucg.tht(self.key_fingerprint()))
+            tht = community.ucoinRequest(ucoin.ucg.tht(self.fingerprint()))
             return tht['entries']
         return None
 
@@ -168,18 +179,18 @@ class Account(object):
         if community in self.communities.communities_list:
             hosters_fg = []
             trusts_fg = []
-            for trust in community.trusts():
+            for trust in community.network.trusts():
                 peering = trust.peering()
                 logging.debug(peering)
                 trusts_fg.append(peering['fingerprint'])
-            for hoster in community.hosters():
+            for hoster in community.network.hosters():
                 logging.debug(peering)
                 peering = hoster.peering()
                 hosters_fg.append(peering['fingerprint'])
             entry = {
                 'version': '1',
                 'currency': community.currency,
-                'fingerprint': self.key_fingerprint(),
+                'fingerprint': self.fingerprint(),
                 'hosters': hosters_fg,
                 'trusts': trusts_fg
             }
@@ -193,27 +204,24 @@ class Account(object):
                 'signature': str(signature)
             }
 
-            community.ucoin_post(
+            community.network.post(
                 ucoin.ucg.THT(
-                    pgp_fingerprint=self.key_fingerprint()),
+                    pgp_fingerprint=self.fingerprint()),
                 dataPost)
         else:
             raise CommunityNotFoundError(self.keyid, community.amendment_id())
 
     def pull_tht(self, community):
         if community in self.communities.communities_list:
-            community.pull_tht(self.key_fingerprint())
+            community.pull_tht(self.fingerprint())
+        else:
+            raise CommunityNotFoundError(self.keyid, community.amendment_id())
 
-    def transfer_coins(self, node, recipient, coins, message):
-        transfer = ucoin.wrappers.transactions.RawTransfer(
-            self.key_fingerprint(),
-            recipient.fingerprint,
-            coins,
-            message,
-            keyid=self.keyid,
-            server=node.server,
-            port=node.port)
-        return transfer()
+    def quality(self, community):
+        if community in self.communities.communities_list:
+            return community.person_quality(self.fingerprint())
+        else:
+            raise CommunityNotFoundError(self.keyid, community.amendment_id())
 
     def jsonify_contacts(self):
         data = []
@@ -223,7 +231,7 @@ class Account(object):
 
     def jsonify(self):
         data = {'name': self.name,
-                'keyId': self.keyid,
+                'keyid': self.keyid,
                 'communities': self.communities.jsonify(self.wallets),
                 'contacts': self.jsonify_contacts()}
         return data

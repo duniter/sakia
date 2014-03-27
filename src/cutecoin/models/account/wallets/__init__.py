@@ -26,7 +26,7 @@ class Wallets(object):
         it means the wallet must have a different name or a different currency.
         '''
         wallet = Wallet.create(currency)
-        if wallet not in self.walletslist:
+        if wallet not in self.wallets_list:
             self.wallets_list.append(wallet)
         else:
             return self.wallets_list.get(wallet)

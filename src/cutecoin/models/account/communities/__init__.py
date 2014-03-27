@@ -21,35 +21,21 @@ class Communities(object):
         '''
         self.communities_list = []
 
-    def add_community(self, main_node, key_fingerprint):
+    def add_community(self, main_node):
         '''
-        Add a community with a mainNode and the fingerprint of the account
-        Check if the fingerprint is present in the community members list
-        If its not, the account isnt added and an error is raised.
+        Add a community with a mainNode
         '''
         community = Community.create(main_node)
-        members = community.ucoin_request(
-            ucoin.hdc.amendments.view.Members(
-                community.amendment_id()))
-
-        logging.debug("Account fingerprint : " + key_fingerprint)
-        for member in members:
-            logging.debug(member)
-            if member['value'] == key_fingerprint:
-                self.communities_list.append(community)
-                return community
-
-        raise NotMemberOfCommunityError(
-            key_fingerprint,
-            community.currency +
-            "-" +
-            community.amendment_id())
+        if community not in self.communities_list:
+            self.communities_list.append(community)
+            return community
+        return None
 
     def jsonify(self, wallets):
         '''
         Return the list of communities in a key:value form.
         '''
         data = []
-        for community in self.communitiesList:
+        for community in self.communities_list:
             data.append(community.jsonify(wallets))
         return data

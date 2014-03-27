@@ -37,7 +37,7 @@ class Core(object):
 
     def add_account(self, account):
         for a in self.accounts:
-            if a.keyId == account.keyId:
+            if a.keyid == account.keyid:
                 raise KeyAlreadyUsed(account, account.keyid, a)
 
         self.accounts.append(account)

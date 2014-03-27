@@ -10,6 +10,7 @@ import json
 import logging
 from cutecoin.models.node import Node
 from cutecoin.models.wallet import Wallet
+from cutecoin.models.community.network import CommunityNetwork
 
 
 class Community(object):
@@ -18,21 +19,21 @@ class Community(object):
     classdocs
     '''
 
-    def __init__(self, nodes):
+    def __init__(self, network):
         '''
         A community is a group of nodes using the same currency.
         They are all using the same amendment and are syncing their datas.
         An account is a member of a community if he is a member of the current amendment.
         '''
-        self.nodes = nodes
-        current_amendment = self.ucoin_request(ucoin.hdc.amendments.Current())
+        self.network = network
+        current_amendment = self.network.request(ucoin.hdc.amendments.Current())
         self.currency = current_amendment['currency']
 
     @classmethod
     def create(cls, main_node):
         nodes = []
         nodes.append(main_node)
-        return cls(nodes)
+        return cls(CommunityNetwork(nodes))
 
     @classmethod
     def load(cls, json_data, account):
@@ -45,103 +46,41 @@ class Community(object):
                     node_data['trust'],
                     node_data['hoster']))
 
-        community = cls(known_nodes)
+        community = cls(CommunityNetwork(known_nodes))
 
         for wallets_data in json_data['wallets']:
             wallet = Wallet.load(wallets_data, community)
-            wallet.refreshCoins(account.key_fingerprint())
+            wallet.refreshCoins(account.fingerprint())
             account.wallets.wallets_list.append(wallet)
         return community
 
-    # TODO: Check if its working
-    def _search_node_by_fingerprint(self, node_fg, next_node, traversed_nodes=[]):
-        next_fg = next_node.peering()['fingerprint']
-        if next_fg not in traversed_nodes:
-            traversed_nodes.append(next_fg)
-            if node_fg == next_fg:
-                return next_node
-            else:
-                for peer in next_node.peers():
-                    # Look for next node informations
-                    found = self._searchTrustAddresses(
-                        node_fg, Node(
-                            peer['ipv4'], int(
-                                peer['port'])), traversed_nodes)
-                    if found is not None:
-                        return found
-        return None
+    def name(self):
+        return self.currency
 
-    def get_nodes_in_peering(self, fingerprints):
-        nodes = []
-        for node_fg in fingerprints:
-            nodes.append(
-                self._search_node_by_fingerprint(
-                    node_fg,
-                    self.trusts()[0]))
-        return nodes
+    def __eq__(self, other):
+        current_amendment = self.network.request(ucoin.hdc.amendments.Current())
+        current_amendment_hash = hashlib.sha1(
+            current_amendment['raw'].encode('utf-8')).hexdigest().upper()
 
-    def pull_tht(self, fingerprint):
-        tht = self.ucoin_request(ucoin.ucg.THT(fingerprint))
-        nodes = []
-        nodes.append(self.trusts()[0])
-        # We add trusts to the node list
-        for node_fg in tht['trusts']:
-            nodes.append(
-                self._search_node_by_fingerprint(
-                    node_fg,
-                    self.trusts()[0]))
-        # We look in hosters lists
-        for node_fg in tht['hosters']:
-            # If the node was already added as a trust
-            if node_fg in tht['trusts']:
-                found_nodes = [
-                    node for node in nodes if node.peering()['fingerprint'] == node_fg]
-                if len(found_nodes) == 1:
-                    found_nodes[0].hoster = True
-                else:
-                    # not supposed to happen
-                    pass
-            # Else we add it
-            else:
-                nodes.append(
-                    self._search_node_by_fingerprint(
-                        node_fg,
-                        self.trusts()[0]))
+        other_amendment = other.network.request(ucoin.hdc.amendments.Current())
+        other_amendment_hash = hashlib.sha1(
+            other_amendment['raw'].encode('utf-8')).hexdigest().upper()
 
-    def trusts(self):
-        return [node for node in self.nodes if node.trust]
+        return (other_amendment_hash == current_amendment_hash)
 
-    def hosters(self):
-        return [node for node in self.nodes if node.trust]
+    def dividend(self):
+        current_amendment = self.network.request(ucoin.hdc.amendments.Current())
+        return current_amendment['dividend']
 
-    def members_fingerprints(self):
-        '''
-        Listing members of a community
-        '''
-        fingerprints = self.ucoin_request(
-            ucoin.hdc.amendments.view.Members(
-                self.amendment_id()))
-        members = []
-        for f in fingerprints:
-            members.append(f['value'])
-        return members
-
-    def ucoin_request(self, request, get_args={}):
-        for node in self.trusts():
-            logging.debug("Trying to connect to : " + node.getText())
-            request = node.use(request)
-            return request.get(**get_args)
-        raise RuntimeError("Cannot connect to any node")
-
-    def ucoin_post(self, request, get_args={}):
-        for node in self.hosters():
-            logging.debug("Trying to connect to : " + node.getText())
-            request = node.use(request)
-            return request.post(**get_args)
-        raise RuntimeError("Cannot connect to any node")
+    def coin_minimal_power(self):
+        current_amendment = self.network.request(ucoin.hdc.amendments.Current())
+        if 'coinMinimalPower' in current_amendment.keys():
+            return current_amendment['coinMinimalPower']
+        else:
+            return 0
 
     def amendment_id(self):
-        current_amendment = self.ucoin_request(ucoin.hdc.amendments.Current())
+        current_amendment = self.network.request(ucoin.hdc.amendments.Current())
         current_amendment_hash = hashlib.sha1(
             current_amendment['raw'].encode('utf-8')).hexdigest().upper()
         amendment_id = str(
@@ -149,43 +88,50 @@ class Community(object):
         logging.debug("Amendment : " + amendment_id)
         return amendment_id
 
-    def __eq__(self, other):
-        current_amendment = self.ucoin_request(ucoin.hdc.amendments.Current())
-        current_amendment_hash = hashlib.sha1(
-            current_amendment['raw'].encode('utf-8')).hexdigest().upper()
-
-        other_amendment = other.ucoin_request(ucoin.hdc.amendments.Current())
-        other_amendment_hash = hashlib.sha1(
-            other_amendment['raw'].encode('utf-8')).hexdigest().upper()
-
-        return (other_amendment_hash == current_amendment_hash)
-
-    def name(self):
-        return self.currency
-
-    def dividend(self):
-        current_amendment = self.ucoin_request(ucoin.hdc.amendments.Current())
-        return current_amendment['dividend']
-
-    def coin_minimal_power(self):
-        current_amendment = self.ucoin_request(ucoin.hdc.amendments.Current())
-        if 'coinMinimalPower' in current_amendment.keys():
-            return current_amendment['coinMinimalPower']
-        else:
-            return 0
-
     def amendment_number(self):
-        current_amendment = self.ucoin_request(ucoin.hdc.amendments.Current())
+        current_amendment = self.network.request(ucoin.hdc.amendments.Current())
         return current_amendment['number']
+
+    def person_quality(self, fingerprint):
+        if (fingerprint in self.voters_fingerprints()):
+            return "voter"
+        elif (fingerprint in self.members_fingerprints()):
+            return "member"
+        else:
+            return "nothing"
+
+    def members_fingerprints(self):
+        '''
+        Listing members of a community
+        '''
+        fingerprints = self.network.request(
+            ucoin.hdc.amendments.view.Members(
+                self.amendment_id()))
+        members = []
+        for f in fingerprints:
+            members.append(f['value'])
+        return members
+
+    def voters_fingerprints(self):
+        '''
+        Listing members of a community
+        '''
+        fingerprints = self.network.request(
+            ucoin.hdc.amendments.view.Voters(
+                self.amendment_id()))
+        voters = []
+        for f in fingerprints:
+            voters.append(f['value'])
+        return voters
 
     def jsonify_nodes_list(self):
         data = []
-        for node in self.nodes:
+        for node in self.network.nodes:
             data.append(node.jsonify())
         return data
 
     def jsonify(self, wallets):
-        data = {'nodes': self.jsonify_nodeslist(),
+        data = {'nodes': self.jsonify_nodes_list(),
                 'currency': self.currency,
                 'wallets': wallets.jsonify(self)}
         return data

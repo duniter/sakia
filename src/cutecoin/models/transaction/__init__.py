@@ -23,14 +23,14 @@ class Transaction(object):
 
     def value(self):
         value = 0
-        trx_data = self.community.ucoin_request(
+        trx_data = self.community.network.request(
             ucoin.hdc.transactions.View(self.sender.fingerprint + "-" + str(self.increment)))
         for coin in trx_data['transaction']['coins']:
             value += Coin.from_id(coin['id']).value()
         return value
 
     def currency(self):
-        trx_data = self.community.ucoin_request(
+        trx_data = self.community.network.request(
             ucoin.hdc.transactions.View(self.sender.fingerprint + "-" + str(self.increment)))
         currency = trx_data['transaction']['currency']
         return currency
@@ -63,7 +63,7 @@ class Issuance(Transaction):
         super(Issuance).__init__()
 
     def amendmentNumber(self):
-        self.community.ucoin_request(
+        self.community.network.request(
             ucoin.hdc.transactions.View(self.sender.fingerprint + "-" + str(self.increment)))
 
     def getText(self):

@@ -28,7 +28,7 @@ class Person(object):
         '''
         Create a person from the fngerprint found in a community
         '''
-        keys = community.ucoin_request(
+        keys = community.network.request(
             ucoin.pks.Lookup(),
             get_args={
                 'search': "0x" +

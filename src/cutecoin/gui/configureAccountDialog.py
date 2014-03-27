@@ -49,7 +49,7 @@ class ConfigureAccountDialog(QDialog, Ui_AccountConfigurationDialog):
                 "",
                 Communities())
             self.combo_keys_list.currentIndexChanged[
-                int].connect(self.keyChanged)
+                int].connect(self.key_changed)
 
         for index, key in enumerate(available_keys):
             self.combo_keys_list.addItem(key['uids'][0])
@@ -73,7 +73,7 @@ class ConfigureAccountDialog(QDialog, Ui_AccountConfigurationDialog):
                 Node(
                     server,
                     port))
-            dialog.button_box.accepted.connect(self.actionAddCommunity)
+            dialog.button_box.accepted.connect(self.action_add_community)
             dialog.exec_()
 
     def action_add_community(self):

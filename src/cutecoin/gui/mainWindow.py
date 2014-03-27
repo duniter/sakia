@@ -38,7 +38,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog = ConfigureAccountDialog(self.core, None)
         dialog.button_box.button(
             QDialogButtonBox.Ok).clicked.connect(
-            self.refreshMainWindow)
+            self.refresh)
         dialog.exec_()
 
     def save(self):
@@ -95,7 +95,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 tab_community = CommunityTabWidget(
                     self.core.current_account,
                     community)
-                self.tabs_communities.addTab(tab_community, community.name())
+                quality = self.core.current_account.quality(community)
+                self.tabs_communities.addTab(tab_community, quality +
+                                                     " in " + community.name())
 
             self.menu_contacts_list.clear()
             for contact in self.core.current_account.contacts:
