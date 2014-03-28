@@ -36,6 +36,7 @@ Qt Client for [Ucoin](http://www.ucoin.io) project.
     * A random guy should be able to send and receive money
 
 ### How to install
+  * __git clone --recursive https://github.com/Insoleet/cutecoin.git__ or if you already have clone the git, do __git submodule update --init --recursive__
   * Note : On Windows, it seems that PyQt5 works best with 32 bits version of Python.
   * Install [python3.3](https://www.python.org/download/releases/3.3.5), [cx_freeze for python 3.3](http://cx-freeze.sourceforge.net/) and [pyqt5](http://www.riverbankcomputing.co.uk/software/pyqt/download5), and [pip](http://www.pip-installer.org/en/latest/)
   * On Windows, make sure folders for python3 and pyqt5 binaries are in your $PATH
