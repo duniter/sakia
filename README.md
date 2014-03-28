@@ -38,8 +38,8 @@ Qt Client for [Ucoin](http://www.ucoin.io) project.
 ### How to install
   * Note : On Windows, it seems that PyQt5 works best with 32 bits version of Python.
   * Install [python3.3](https://www.python.org/download/releases/3.3.5), [cx_freeze for python 3.3](http://cx-freeze.sourceforge.net/) and [pyqt5](http://www.riverbankcomputing.co.uk/software/pyqt/download5), and [pip](http://www.pip-installer.org/en/latest/)
-  * On Windows, make sure python3 and pyqt5 are in your $PATH
-  * Install with pip : python-gnupg
-  * Run "python gen_resources.py" in cutecoin folder
-  * Run "python setup.py build" in cutecoin folder
-  * The executable is generated in "build" folder
+  * On Windows, make sure folders for python3 and pyqt5 binaries are in your $PATH
+  * Run __pip install python-gnupg__ and __pip install requests__
+  * Run __python gen_resources.py__ in cutecoin folder
+  * Run __python setup.py build__ in cutecoin folder
+  * The executable is generated in "build" folder, named "__init__"
