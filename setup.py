@@ -3,22 +3,23 @@
 
 # source d'inspiration: http://wiki.wxpython.org/cx_freeze
 
-import sys, os
+import sys, os, subprocess, multiprocessing
 from cx_Freeze import setup, Executable
 
 #############################################################################
 # preparation des options
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'lib')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
+
 print(sys.path)
-includes = ["sip", "re", "json", "logging", "hashlib", "os", "urllib", "ucoinpy"]
+includes = ["sip", "re", "json", "logging", "hashlib", "os", "urllib", "ucoinpy", "requests"]
 excludes = []
 packages = ["gnupg"]
 
 options = {"path": sys.path,
            "includes": includes,
            "excludes": excludes,
-           "packages": packages
+           "packages": packages,
            }
 
 #############################################################################
