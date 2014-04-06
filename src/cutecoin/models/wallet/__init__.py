@@ -45,7 +45,7 @@ class Wallet(object):
         return value
 
     # TODO: Refresh coins when changing current account
-    def refreshCoins(self, fingerprint):
+    def refresh_coins(self, fingerprint):
         data_list = self.community.network.request(
             ucoin.hdc.coins.List({'pgp_fingerprint': fingerprint}))
         for issaunces in data_list['coins']:
@@ -55,7 +55,7 @@ class Wallet(object):
                 coin = Coin.from_id(issuer + "-" + shortened_id)
                 self.coins.append(coin)
 
-    def getText(self):
+    def get_text(self):
         return self.name + " : " + \
             str(self.value()) + " " + self.community.currency
 

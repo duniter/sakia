@@ -7,7 +7,6 @@ import logging
 from math import pow
 
 from PyQt5.QtWidgets import QDialog, QFrame, QSlider, QLabel, QDialogButtonBox, QErrorMessage
-from PyQt5.QtCore import Qt, QSignalMapper
 
 
 from cutecoin.models.coin import Coin
