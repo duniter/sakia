@@ -14,20 +14,17 @@ origin = "A-2"
 def coin_id_regex():
     return re.compile("^([A-Z\d]{40})-(\d+)-(\d)-(\d+)-((A|F|D)-\d+)$")
 
-@pytest.mark.order1
-class Test_Coin:
 
+class Test_Coin:
     def test_coin_init(self, coin_id_regex):
         coin = Coin(issuer, number, base, power, origin)
         assert coin_id_regex.match(coin.get_id()) is not None
 
-
     def test_coin_from_id(self, coin_id_regex):
-        coin_id = issuer + "-" + number + "-" + base + "-" + power + "-" + origin
+        coin_id = issuer + "-" + str(number) + "-" + str(base) + "-" + str(power) + "-" + origin
         coin = Coin.from_id(coin_id)
         assert coin is not None
         assert coin_id_regex.match(coin.get_id()) is not None
-
 
     def test_coin_value(self):
         coin = Coin(issuer, number, base, power, origin)

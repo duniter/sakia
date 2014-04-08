@@ -7,7 +7,7 @@ from cutecoin.models.community import Community
 
 @pytest.fixture
 def mock_lookup_get():
-        mock_get = Mock(spec = ucoin.pks.Lookup.__get__)
+        mock_get = Mock(spec=ucoin.pks.Lookup.__get__)
         mock_get.return_value = [
         {
           "signature": "-----BEGIN PGP SIGNATURE----- ... -----END PGP SIGNATURE-----",
@@ -33,15 +33,14 @@ def mock_lookup_get():
         }]
         return mock_get
 
+
 #TODO: Lookup for person after community was tested
 class Test_Person():
     def test_person_lookup(self, monkeypatch):
         pass
-        
 
     def test_person_jsonify(self):
         pass
-
 
     def test_person_from_json(self):
         pass
