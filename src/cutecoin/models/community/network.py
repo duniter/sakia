@@ -22,14 +22,14 @@ class CommunityNetwork(object):
     def request(self, request, get_args={}):
         for node in self.trusts():
             logging.debug("Trying to connect to : " + node.getText())
-            request = node.use(request)
+            node.use(request)
             return request.get(**get_args)
         raise RuntimeError("Cannot connect to any node")
 
     def post(self, request, get_args={}):
         for node in self.hosters():
             logging.debug("Trying to connect to : " + node.getText())
-            request = node.use(request)
+            node.use(request)
             return request.post(**get_args)
         raise RuntimeError("Cannot connect to any node")
 

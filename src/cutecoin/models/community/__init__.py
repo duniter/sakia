@@ -26,6 +26,9 @@ class Community(object):
         An account is a member of a community if he is a member of the current amendment.
         '''
         self.network = network
+        print(self.network)
+        print(self.network.request)
+        print(self.network.request(ucoin.hdc.amendments.Current()))
         current_amendment = self.network.request(ucoin.hdc.amendments.Current())
         self.currency = current_amendment['currency']
 
@@ -70,12 +73,12 @@ class Community(object):
 
     def dividend(self):
         current_amendment = self.network.request(ucoin.hdc.amendments.Current())
-        return current_amendment['dividend']
+        return int(current_amendment['dividend'])
 
     def coin_minimal_power(self):
         current_amendment = self.network.request(ucoin.hdc.amendments.Current())
         if 'coinMinimalPower' in current_amendment.keys():
-            return current_amendment['coinMinimalPower']
+            return int(current_amendment['coinMinimalPower'])
         else:
             return 0
 
@@ -90,7 +93,7 @@ class Community(object):
 
     def amendment_number(self):
         current_amendment = self.network.request(ucoin.hdc.amendments.Current())
-        return current_amendment['number']
+        return int(current_amendment['number'])
 
     def person_quality(self, fingerprint):
         if (fingerprint in self.voters_fingerprints()):
@@ -106,7 +109,7 @@ class Community(object):
         '''
         fingerprints = self.network.request(
             ucoin.hdc.amendments.view.Members(
-                self.amendment_id()))
+                amendment_id=self.amendment_id()))
         members = []
         for f in fingerprints:
             members.append(f['value'])
@@ -118,7 +121,7 @@ class Community(object):
         '''
         fingerprints = self.network.request(
             ucoin.hdc.amendments.view.Voters(
-                self.amendment_id()))
+                amendment_id=self.amendment_id()))
         voters = []
         for f in fingerprints:
             voters.append(f['value'])
