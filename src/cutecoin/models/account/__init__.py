@@ -42,8 +42,8 @@ class Account(object):
         wallets = Wallets()
         account = cls(keyid, name, communities, wallets, [])
         for community in account.communities.communities_list:
-            wallet = account.wallets.add_wallet(community.currency)
-            wallet.refresh_coins(community, account.fingerprint())
+            wallet = account.wallets.add_wallet(community)
+            wallet.refresh_coins(account.fingerprint())
         return account
 
     @classmethod
@@ -73,9 +73,6 @@ class Account(object):
         else:
             return False
 
-    def add_wallet(self, name, currency):
-        self.wallets.add_wallet(name, currency)
-
     def add_contact(self, person):
         self.contacts.append(person)
 
@@ -95,11 +92,11 @@ class Account(object):
             transactions_data = community.network.request(
                 ucoin.hdc.transactions.Recipient(
                     self.fingerprint()))
-            for trxData in transactions_data:
+            for trx_data in transactions_data:
                 received.append(
                     factory.create_transaction(
-                        trxData['value']['transaction']['sender'],
-                        trxData['value']['transaction']['number'],
+                        trx_data['value']['transaction']['sender'],
+                        trx_data['value']['transaction']['number'],
                         community))
         return received
 
@@ -115,8 +112,8 @@ class Account(object):
                 if not isinstance(trx_data, str):
                     sent.append(
                         factory.create_transaction(
-                            trxData['value']['transaction']['sender'],
-                            trxData['value']['transaction']['number'],
+                            trx_data['value']['transaction']['sender'],
+                            trx_data['value']['transaction']['number'],
                             community))
         return sent
 

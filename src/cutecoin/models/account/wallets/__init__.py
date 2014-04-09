@@ -19,15 +19,16 @@ class Wallets(object):
         '''
         self.wallets_list = []
 
-    def add_wallet(self, currency):
+    def add_wallet(self, community):
         '''
         Create a new wallet of a specific currency.
         This wallet must not already be present in the account,
         it means the wallet must have a different name or a different currency.
         '''
-        wallet = Wallet.create(currency)
+        wallet = Wallet.create(community)
         if wallet not in self.wallets_list:
             self.wallets_list.append(wallet)
+            return wallet
         else:
             return self.wallets_list.get(wallet)
 
@@ -35,7 +36,7 @@ class Wallets(object):
         '''
         Look for a wallet in the wallets list.
         '''
-        for w in self.walletsLists:
+        for w in self.wallets_list:
             if w == wallet:
                 return w
         return None

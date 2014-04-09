@@ -26,9 +26,6 @@ class Community(object):
         An account is a member of a community if he is a member of the current amendment.
         '''
         self.network = network
-        print(self.network)
-        print(self.network.request)
-        print(self.network.request(ucoin.hdc.amendments.Current()))
         current_amendment = self.network.request(ucoin.hdc.amendments.Current())
         self.currency = current_amendment['currency']
 

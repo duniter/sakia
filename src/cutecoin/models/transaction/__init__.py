@@ -35,7 +35,7 @@ class Transaction(object):
         currency = trx_data['transaction']['currency']
         return currency
 
-    def transactionID(self):
+    def transaction_id(self):
         return self.sender_fingerprint + "-" + self.increment
 
 
@@ -48,7 +48,7 @@ class Transfer(Transaction):
     def __init__(self):
         super(Transfer).__init__()
 
-    def getText(self):
+    def get_text(self):
         return str(self.value()) + " " + self.currency() + \
             " from " + self.sender.name
 
@@ -62,9 +62,9 @@ class Issuance(Transaction):
     def __init__(self):
         super(Issuance).__init__()
 
-    def amendmentNumber(self):
+    def amendment_number(self):
         self.community.network.request(
             ucoin.hdc.transactions.View(self.sender.fingerprint + "-" + str(self.increment)))
 
-    def getText(self):
+    def get_text(self):
         return str(self.value()) + " " + self.currency()

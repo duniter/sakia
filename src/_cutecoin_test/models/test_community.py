@@ -5,6 +5,9 @@ from cutecoin.models.community import Community
 from cutecoin.models.community import Node
 
 
+
+amendment_hash =  "3682F828EFB1A1AFF45ACC6DDBB2BAD100DCD605"
+
 def patch_amendment_current_get(*args, **kwargs):
     return {
     "version": "1",
@@ -23,9 +26,23 @@ def patch_amendment_current_get(*args, **kwargs):
     "membersChanges": [
     "+31A6302161AC8F5938969E85399EB3415C237F93"
     ],
-    "raw": "Version: 1\r\n...+31A6302161AC8F5938969E85399EB3415C237F93\r\n"
+    "raw": """Version: 1
+Currency: beta_brousouf
+Number: 2
+Dividend: 100
+CoinMinimalPower: 0
+PreviousHash: 0F45DFDA214005250D4D2CBE4C7B91E60227B0E5
+MembersRoot: F92B6F81C85200250EE51783F5F9F6ACA57A9AFF
+MembersCount: 4
+MembersChanges:
++31A6302161AC8F5938969E85399EB3415C237F93
+VotersRoot: DC7A9229DFDABFB9769789B7BFAE08048BCB856F
+VotersCount: 2
+VotersChanges:
+-C73882B64B7E72237A2F460CE9CAB76D19A8651E
+"""
     }
-
+	
 
 def patch_amendments_members_get(*args, **kwargs):
     return iter([{
@@ -60,7 +77,7 @@ def mock_node():
 
     mock = Mock(spec=Node, trust=True, hoster=True,
                 server="192.168.100.10", port=3800)
-    mock.getText.return_value = "Mock node"
+    mock.get_text.return_value = "Mock node"
     mock.use = node_use
     return mock
 
@@ -84,8 +101,11 @@ class Test_Community():
         community = Community.create(mock_node)
         assert community.coin_minimal_power() == 0
 
-    def test_community_amendment_id(self, monkeypatch):
-        pass
+    def test_community_amendment_id(self, monkeypatch, mock_node):
+        monkeypatch.setattr(ucoin.hdc.amendments.Current,
+                            '__get__', patch_amendment_current_get)
+        community = Community.create(mock_node)
+        assert community.amendment_id() == "2-"+amendment_hash.upper()
 
     def test_community_amendment_number(self, monkeypatch, mock_node):
         monkeypatch.setattr(ucoin.hdc.amendments.Current,

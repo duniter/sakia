@@ -1,11 +1,10 @@
 import pytest
 import ucoinpy as ucoin
-from mock import Mock, patch
+from mock import Mock, MagicMock, patch
 from cutecoin.models.wallet import Wallet
 from cutecoin.models.community import Community, CommunityNetwork
 
 
-@pytest.fixture
 def mock_community():
     def community_request(request):
         if type(request) is ucoin.hdc.coins.List:
@@ -22,23 +21,27 @@ def mock_community():
             }
         else:
                 assert 0
+            
+    def community_eq(mock1, mock2):
+            return mock1.amendment_id() == mock2.amendment_id()
+                
     mock_network = Mock(spec=CommunityNetwork, request=community_request)
-    community = Mock(spec=Community, network=mock_network)
+    community = MagicMock(spec=Community, network=mock_network, __eq__=community_eq)
 
     return community
 
 
 class Test_Wallet:
-    def test_wallet_create(self, mock_community):
-        wallet = Wallet([], mock_community)
+    def test_wallet_create(self,):
+        wallet = Wallet([], mock_community())
         assert wallet is not None
 
     #TODO: Test json
     def test_wallet_load(self):
         pass
 
-    def test_wallet_value(self, mock_community):
-        wallet = Wallet([], mock_community)
+    def test_wallet_value(self):
+        wallet = Wallet([], mock_community())
         assert wallet.value() == 0
         wallet.refresh_coins("86F7E437FAA5A7FCE15D1DDCB9EAEAEA377667B8")
         assert wallet.value() == 640
@@ -46,6 +49,27 @@ class Test_Wallet:
 
     def test_wallet_get_text(self):
         pass
+        
+    def test_eq(self):
+        mock1 = mock_community()
+        mock1.amendment_id.return_value = "2-AMENDMENTTEST"
+        mock2 = mock_community()
+        mock2.amendment_id.return_value =  "2-AMENDMENTTEST"
+        wallet1 = Wallet([], mock1)
+        wallet2 = Wallet([], mock2)
+
+        assert wallet1 == wallet2
+        
+    def test_not_eq(self):
+        mock1 = mock_community()
+        mock1.amendment_id.return_value = "2-AMENDMENTTEST"
+        mock2 = mock_community()
+        mock2.amendment_id.return_value =  "1-AMENDMENTTEST"
+        wallet1 = Wallet([], mock1)
+        wallet2 = Wallet([], mock2)
+
+        assert wallet1 != wallet2
+        
 
     def test_wallet_jsonify(self):
         pass

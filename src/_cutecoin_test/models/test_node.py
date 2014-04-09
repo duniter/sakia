@@ -58,5 +58,5 @@ class Test_Node():
         assert peering["port"] == str(3800)
 
     #TODO: Test node json
-    def test_node_jsonify(self, monkeypatch):
+    def test_node_jsonify(self):
         pass

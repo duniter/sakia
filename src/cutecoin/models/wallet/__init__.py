@@ -48,9 +48,9 @@ class Wallet(object):
     def refresh_coins(self, fingerprint):
         data_list = self.community.network.request(
             ucoin.hdc.coins.List({'pgp_fingerprint': fingerprint}))
-        for issaunces in data_list['coins']:
-            issuer = issaunces['issuer']
-            for coins_ids in issaunces['ids']:
+        for issuances in data_list['coins']:
+            issuer = issuances['issuer']
+            for coins_ids in issuances['ids']:
                 shortened_id = coins_ids
                 coin = Coin.from_id(issuer + "-" + shortened_id)
                 self.coins.append(coin)

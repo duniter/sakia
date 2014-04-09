@@ -25,7 +25,7 @@ class Node(object):
     def __eq__(self, other):
         return (self.server == other.server and self.port == other.port)
 
-    def getText(self):
+    def get_text(self):
         return self.server + ":" + str(self.port)
 
     '''
