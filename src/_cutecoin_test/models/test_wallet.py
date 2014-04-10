@@ -70,6 +70,10 @@ class Test_Wallet:
 
         assert wallet1 != wallet2
         
-
-    def test_wallet_jsonify(self):
-        pass
+    def test_wallet_jsonify(self, monkeypatch):
+        wallet = Wallet([], mock_community())
+        wallet.refresh_coins("86F7E437FAA5A7FCE15D1DDCB9EAEAEA377667B8")
+        json = wallet.jsonify()
+        wallet2 = Wallet.load(json, mock_community())
+        same_coins = [coin1 for coin1, coin2 in zip(wallet.coins, wallet2.coins) if coin1 == coin2]
+        assert len(same_coins) == len(wallet.coins) and len(same_coins) == len(wallet2.coins) 

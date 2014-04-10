@@ -71,5 +71,3 @@ class Test_Wallets:
         assert wallets.get_wallet(mock_wallet1) is None
         assert wallets.get_wallet(mock_wallet2) is not None
 
-    def test_wallets_jsonify(self):
-        pass

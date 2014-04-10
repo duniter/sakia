@@ -38,6 +38,14 @@ def patch_peer_get(*args, **kwargs):
     "port": "3800",
     "signature": "-----BEGIN PGP SIGNATURE----- ... -----END PGP SIGNATURE-----"
     }
+    
+def patch_downstream_get(*args, **kwargs):
+    return {
+      "peers": [
+        {"key": "SOME_KEY_FINGERPRINT", "dns": "name.example1.com", "ipv4": "11.11.11.11", "ipv6": "1A01:E35:2421:4BE0:CDBC:C04E:A7AB:ECF1", "port": 8881},
+        {"key": "SOME_KEY_FINGERPRINT", "dns": "name.example2.com", "ipv4": "11.11.11.12", "ipv6": "1A01:E35:2421:4BE0:CDBC:C04E:A7AB:ECF2", "port": 8882}
+      ]
+    }
 
 
 class Test_Node():
@@ -57,6 +65,20 @@ class Test_Node():
         assert peering["ipv4"] == "192.168.100.10"
         assert peering["port"] == str(3800)
 
-    #TODO: Test node json
-    def test_node_jsonify(self):
-        pass
+    def test_eq(self, monkeypatch):
+        node1 = Node("192.168.100.12", 3800)
+        node2 = Node("192.168.100.13", 3800)
+        node3 = Node("192.168.100.12", 3801)
+        node4 = Node("192.168.100.12", 3800)
+
+        assert node1 != node2
+        assert node1 != node3
+        assert node1 == node4
+        
+    def test_downstream(self, monkeypatch):
+        monkeypatch.setattr(ucoin.ucg.peering.peers.DownStream, '__get__', patch_downstream_get)
+        node = Node("192.168.100.12", 3800)
+        downstream = node.downstream_peers()
+        assert downstream[0].server == "11.11.11.11" and downstream[0].port == 8881
+        assert downstream[1].server == "11.11.11.12" and downstream[1].port == 8882
+    

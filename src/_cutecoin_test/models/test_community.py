@@ -3,6 +3,9 @@ from mock import Mock
 import ucoinpy as ucoin
 from cutecoin.models.community import Community
 from cutecoin.models.community import Node
+from cutecoin.models.account.wallets import Wallets
+from cutecoin.models.account import Account
+from cutecoin.models.node import Node
 
 
 
@@ -154,8 +157,15 @@ class Test_Community():
         assert "3F871197FAB029D8669EF85E82457A1587CA0ED9C" not in community.voters_fingerprints()
 
     #TODO: Test community json
-    def test_community_to_json(self):
-        pass
-
-    def test_community_from_json(self):
-        pass
+    def test_community_jsonify(self, monkeypatch):
+        monkeypatch.setattr(ucoin.hdc.amendments.Current,
+                            '__get__', patch_amendment_current_get)
+        main_node = Node(trust=True, hoster=True,
+                server="192.168.100.10", port=3800)
+        community = Community.create(main_node)
+        wallets = Wallets()
+        json = community.jsonify(wallets)
+        account = Mock(spec=Account)
+        community2 = Community.load(json, account)
+        
+        assert community2.network.nodes[0].server == community.network.nodes[0].server

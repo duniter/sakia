@@ -55,8 +55,10 @@ class Test_Person():
         assert person.fingerprint == "2E69197FAB029D8669EF85E82457A1587CA0ED9C"
         assert person.email == "mistertest2@testmail.com"
 
-    def test_person_jsonify(self):
-        pass
-
-    def test_person_from_json(self):
-        pass
+    def test_person_jsonify(self, monkeypatch, mock_community):
+        person = Person.lookup("2E69197FAB029D8669EF85E82457A1587CA0ED9C", mock_community)
+        json = person.jsonify()
+        person2 = Person.from_json(json)
+        assert person2.name == person.name
+        assert person2.fingerprint == person.fingerprint
+        assert person2.email == person.email
