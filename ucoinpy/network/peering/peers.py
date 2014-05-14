@@ -15,14 +15,14 @@
 # Authors:
 # Caner Candan <caner@candan.fr>, http://caner.candan.fr
 #
+from .. import Network
+from .. import logging
 
-from . import UCG, logging
+logger = logging.getLogger("ucoin/network/peering/peers")
 
-logger = logging.getLogger("ucoin/ucg/peering/peers")
-
-class Base(UCG):
+class Base(Network):
     def __init__(self, server=None, port=None):
-        super().__init__('ucg/peering/peers', server, port)
+        super().__init__('network/peering/peers', server, port)
 
 class Stream(Base):
     """GET a list of peers this node is listening to/by for ANY incoming transaction."""
@@ -41,13 +41,6 @@ class Stream(Base):
         self.request = request
         self.pgp_fingerprint = pgp_fingerprint
 
-    def __get__(self, **kwargs):
-        """returns the corresponding peer list."""
-
-        if not self.pgp_fingerprint:
-            return self.requests_get('/%s' % self.request, **kwargs).json()
-
-        return self.requests_get('/%s/%s' % (self.request, self.pgp_fingerprint), **kwargs).json()
 
 class UpStream(Stream):
     """GET a list of peers this node is listening to for ANY incoming transaction."""
@@ -62,6 +55,11 @@ class UpStream(Stream):
 
         super().__init__('upstream', pgp_fingerprint, server, port)
 
+    def __get__(self, **kwargs):
+        """returns the corresponding peer list."""
+
+        return self.requests_get('/upstream/%s' % (self.request, self.pgp_fingerprint), **kwargs).json()
+
 class DownStream(Stream):
     """GET a list of peers this node is listening by for ANY incoming transaction."""
 
@@ -74,3 +72,8 @@ class DownStream(Stream):
         """
 
         super().__init__('downstream', pgp_fingerprint, server, port)
+
+    def __get__(self, **kwargs):
+        """returns the corresponding peer list."""
+
+        return self.requests_get('/downstream/%s' % (self.request, self.pgp_fingerprint), **kwargs).json()

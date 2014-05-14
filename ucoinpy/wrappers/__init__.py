@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,16 +17,18 @@
 # Caner Candan <caner@candan.fr>, http://caner.candan.fr
 #
 
-from . import HDC, logging
+import logging
+from .. import pks, hdc, settings
+import network
 
-logger = logging.getLogger("ucoin/hdc/coins/view")
+logger = logging.getLogger("wrappers")
 
-class Base(HDC):
-    def __init__(self, pgp_fingerprint, coin_number, server=None, port=None):
-        super().__init__('hdc/coins/%s/view/%d' % (pgp_fingerprint, coin_number), server, port)
+class Wrapper:
+    def __init__(self, server=None, port=None):
+        self.server = server
+        self.port = port
 
-class History(Base):
-    """GET a transaction history of the coin [COIN_NUMBER] issued by [PGP_FINGERPRINT]."""
+    def __call__(self):
+        pass
 
-    def __get__(self, **kwargs):
-        return self.requests_get('/history', **kwargs).json()
+from . import transactions, coins

@@ -16,13 +16,16 @@
 # Caner Candan <caner@candan.fr>, http://caner.candan.fr
 #
 
-from .. import API, logging
+from .. import API
+from .. import logging
 
 logger = logging.getLogger("ucoin/pks")
+
 
 class PKS(API):
     def __init__(self, module='pks', server=None, port=None):
         super().__init__(module, server, port)
+
 
 class Add(PKS):
     """POST ASCII-armored OpenPGP certificates."""
@@ -32,6 +35,7 @@ class Add(PKS):
         assert 'keysign' in kwargs
 
         return self.requests_post('/add', **kwargs)
+
 
 class Lookup(PKS):
     """Allows to search for OpenPGP certificates, according to HKP draft."""
@@ -45,6 +49,7 @@ class Lookup(PKS):
         if kwargs['op'] == 'get': return r.text
 
         return r.json()
+
 
 class All(PKS):
     """GET all the received public keys."""

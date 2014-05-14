@@ -16,28 +16,33 @@
 # Caner Candan <caner@candan.fr>, http://caner.candan.fr
 #
 
-from .. import API, logging
+from .. import API
+from .. import logging
 
 logger = logging.getLogger("ucoin/ucg")
 
-class UCG(API):
+
+class Network(API):
     def __init__(self, module='ucg', server=None, port=None):
         super().__init__(module, server, port)
 
-class Pubkey(UCG):
+
+class Pubkey(Network):
     """GET the public key of the peer."""
 
     def __get__(self, **kwargs):
         return self.requests_get('/pubkey', **kwargs).text
 
-class Peering(UCG):
+
+class Peering(Network):
     """GET peering information about a peer."""
 
     def __get__(self, **kwargs):
         return self.requests_get('/peering', **kwargs).json()
 
-class THT(UCG):
-    """GET/POST THT entries."""
+
+class Wallet(Network):
+    """GET/POST Wallet entries."""
 
     def __init__(self, pgp_fingerprint=None, server=None, port=None):
         """
@@ -53,14 +58,15 @@ class THT(UCG):
 
     def __get__(self, **kwargs):
         if not self.pgp_fingerprint:
-            return self.merkle_easy_parser('/tht')
+            return self.merkle_easy_parser('/wallet')
 
-        return self.merkle_easy_parser('/tht/%s' % self.pgp_fingerprint).json()
+        return self.merkle_easy_parser('/wallet/%s'
+                                       % self.pgp_fingerprint).json()
 
     def __post__(self, **kwargs):
         assert 'entry' in kwargs
         assert 'signature' in kwargs
 
-        return self.requests_post('/tht', **kwargs)
+        return self.requests_post('/wallet', **kwargs)
 
 from . import peering

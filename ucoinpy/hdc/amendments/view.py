@@ -16,19 +16,16 @@
 # Caner Candan <caner@candan.fr>, http://caner.candan.fr
 #
 
-from . import HDC, logging
+from .. import HDC
+from .. import logging
 
 logger = logging.getLogger("ucoin/hdc/amendments/view")
+
 
 class View(HDC):
     def __init__(self, amendment_id, server=None, port=None):
         super().__init__('hdc/amendments/view/%s' % amendment_id, server, port)
 
-class Members(View):
-    """GET the members present in the Community for this amendment."""
-
-    def __get__(self, **kwargs):
-        return self.merkle_easy_parser('/members')
 
 class Self(View):
     """Shows the raw data of the amendment [AMENDMENT_ID]."""
@@ -36,17 +33,9 @@ class Self(View):
     def __get__(self, **kwargs):
         return self.requests_get('/self', **kwargs).json()
 
-class Voters(View):
-    """GET the voters listed in this amendment."""
-
-    def __get__(self, **kwargs):
-        return self.merkle_easy_parser('/voters')
 
 class Signatures(View):
-    """GET the signatures of the Community listed in this amendment.
-
-    This URL should give the same result as hdc/amendments/votes/[PREVIOUS_AMENDEMENT_ID] if all votes present in this URL were taken in count as signatures for this AMENDMENT_ID.
-    """
+    """GET the signatures of the Community listed in this amendment."""
 
     def __get__(self, **kwargs):
         return self.merkle_easy_parser('/signatures')

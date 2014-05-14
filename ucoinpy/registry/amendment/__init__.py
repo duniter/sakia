@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,21 +12,26 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-# Authors:
-# Caner Candan <caner@candan.fr>, http://caner.candan.fr
-#
 
-import logging
-from .. import pks, ucg, hdc, settings
+from .. import Registry
+from .. import logging
 
-logger = logging.getLogger("wrappers")
+logger = logging.getLogger("ucoin/registry")
 
-class Wrapper:
+
+class Base(Registry):
     def __init__(self, server=None, port=None):
-        self.server = server
-        self.port = port
+        super().__init__('registry/amendment', server, port)
 
-    def __call__(self):
-        pass
 
-from . import transactions, coins
+class Vote(Base):
+
+    """GET the vote of current node for given amendment number
+    (both amendment + signature).
+    Such vote may be used by any node to broadcast the whole network."""
+
+    def __init__(self, am_number=None, server=None, port=None):
+        super().__init__(server, port)
+
+    def __get__(self, **kwargs):
+        return self.merkle_easy_parser('/%s/vote' % self.am_number)

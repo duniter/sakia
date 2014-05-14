@@ -18,11 +18,14 @@
 
 __all__ = ['api']
 
-__author__      = 'Caner Candan'
-__version__     = '0.0.1'
-__nonsense__    = 'uCoin'
+__author__ = 'uCoin team'
+__version__ = '0.2'
+__nonsense__ = 'uCoin'
 
-import requests, logging, gnupg, json
+import requests
+import logging
+import gnupg
+import json
 
 settings = {
     'server': 'localhost',
@@ -31,6 +34,7 @@ settings = {
 }
 
 logger = logging.getLogger("ucoin")
+
 
 class Response:
     """Wrapper of requests.Response class in order to verify signed message."""
@@ -66,11 +70,13 @@ class Response:
 
     def split_n_verify(self, response):
         """
-        Split the signed message thanks to the boundary value got in content-type header.
+        Split the signed message thanks to the boundary
+        value got in content-type header.
 
         returns a tuple with the status, the clear message and the signature.
 
-        `response`: the response returns by requests.get() needed to access to headers and response content.
+        `response`: the response returns by requests.get() needed
+        to access to headers and response content.
         """
 
         begin = '-----BEGIN PGP SIGNATURE-----'
@@ -89,12 +95,16 @@ class Response:
 
         return (bool(settings['gpg'].verify(clearsigned)), clear, signed)
 
+
 class API:
-    """APIRequest is a class used as an interface. The intermediate derivated classes are the modules and the leaf classes are the API requests."""
+    """APIRequest is a class used as an interface.
+    The intermediate derivated classes are the modules
+    and the leaf classes are the API requests."""
 
     def __init__(self, module, server=None, port=None):
         """
-        Asks a module in order to create the url used then by derivated classes.
+        Asks a module in order to create the url
+         used then by derivated classes.
 
         Arguments:
         - `module`: module name
@@ -117,8 +127,10 @@ class API:
         - `path`: the request path
         """
 
-        url = 'http://%s:%d/%s' % (self.server if self.server else settings['server'],
-                                   self.port if self.port else settings['port'],
+        url = 'http://%s:%d/%s' % (self.server if self.server
+                                                else settings['server'],
+                                   self.port if self.port
+                                                else settings['port'],
                                    self.module)
         return url + path
 
@@ -159,12 +171,15 @@ class API:
         response = None
 
         if not settings.get('auth'):
-            response = requests.get(self.reverse_url(path), params=kwargs, headers=self.headers)
+            response = requests.get(self.reverse_url(path), params=kwargs,
+                                    headers=self.headers)
         else:
-            response = Response(requests.get(self.reverse_url(path), params=kwargs, headers=self.headers))
+            response = Response(requests.get(self.reverse_url(path),
+                                             params=kwargs, headers=self.headers))
 
         if response.status_code != 200:
-            raise ValueError('status code != 200 => %d (%s)' % (response.status_code, response.text))
+            raise ValueError('status code != 200 => %d (%s)'
+                             % (response.status_code, response.text))
 
         return response
 
@@ -176,10 +191,12 @@ class API:
         - `path`: the request path
         """
 
-        response = requests.post(self.reverse_url(path), data=kwargs, headers=self.headers)
+        response = requests.post(self.reverse_url(path),
+                                 data=kwargs, headers=self.headers)
 
         if response.status_code != 200:
-            raise ValueError('status code != 200 => %d (%s)' % (response.status_code, response.text))
+            raise ValueError('status code != 200 => %d (%s)'
+                             % (response.status_code, response.text))
 
         return response
 
@@ -188,4 +205,7 @@ class API:
         for leaf in root['leaves'][begin:end]:
             yield self.requests_get(path, leaf=leaf).json()['leaf']
 
-from . import pks, ucg, hdc, wrappers
+from . import pks
+from . import hdc
+from . import wrappers
+from . import network

@@ -16,9 +16,11 @@
 # Caner Candan <caner@candan.fr>, http://caner.candan.fr
 #
 
-from .. import HDC, logging
+from ... import HDC
+from ... import logging
 
 logger = logging.getLogger("ucoin/hdc/transactions/sender")
+
 
 class Base(HDC):
     """Get the last received transaction of a PGP key."""
@@ -26,40 +28,53 @@ class Base(HDC):
     def __init__(self, pgp_fingerprint, server=None, port=None):
         """
         Arguments:
-        - `pgp_fingerprint`: PGP fingerprint of the key we want to see sent transactions.
+        - `pgp_fingerprint`: PGP fingerprint of the key
+         we want to see sent transactions.
         """
 
-        super().__init__('hdc/transactions/sender/%s' % pgp_fingerprint, server, port)
+        super().__init__('hdc/transactions/sender/%s' % pgp_fingerprint,
+                          server, port)
+
 
 class Last(Base):
     """Get the last received transaction of a PGP key."""
 
-    def __init__(self, pgp_fingerprint, count=None, server=None, port=None):
+    def __init__(self, pgp_fingerprint, count=None, from_=None,
+                server=None, port=None):
         """
         Arguments:
-        - `count`: Integer indicating to retrieve the last [COUNT] transactions.
+        - `count`: Integer indicating to retrieve the last [COUNT] transactions
         """
 
         super().__init__(pgp_fingerprint, server, port)
 
         self.count = count
+        self.from_ = from_
 
     def __get__(self, **kwargs):
         if not self.count:
             return self.requests_get('/last', **kwargs).json()
 
-        return self.requests_get('/last/%d' % self.count, **kwargs).json()
+        if not self.from_:
+            return self.request_get('/last/%d' % self.count, **kwargs).json()
 
-class Transfer(Base):
-    """GET all transfer transactions sent by this sender and stored by this node (should contain all transfert transactions of the sender)."""
+        return self.requests_get('/last/%d/%d' % (self.count, self.from_),
+                                  **kwargs).json()
+
+
+class View(Base):
+    """GET the transaction of given TRANSACTION_ID."""
+
+    def __init__(self, pgp_fingerprint, tx_number,
+                  server=None, port=None):
+        """
+        Arguments:
+        - `count`: Integer indicating to retrieve the last [COUNT] transactions
+        """
+
+        super().__init__(pgp_fingerprint, server, port)
+
+        self.tx_number = tx_number
 
     def __get__(self, **kwargs):
-        return self.merkle_easy_parser('/transfert')
-
-class Issuance(Base):
-    """GET all issuance transactions (forged coins) sent by this sender and stored by this node (should contain all issuance transactions of the sender)."""
-
-    def __get__(self, **kwargs):
-        return self.merkle_easy_parser('/issuance')
-
-from . import issuance
+        return self.requests_get('/view/%d' % self.tx_number, **kwargs).json()

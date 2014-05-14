@@ -14,31 +14,18 @@
 #
 # Authors:
 # Caner Candan <caner@candan.fr>, http://caner.candan.fr
-#
+#networkfrom .. import UCG, logging
 
-from .. import UCG, logging
+from .. import Network
+from .. import logging
 
-logger = logging.getLogger("ucoin/ucg/peering")
+logger = logging.getLogger("ucoin/network/peering")
 
-class Base(UCG):
+
+class Base(Network):
     def __init__(self, server=None, port=None):
-        super().__init__('ucg/peering', server, port)
+        super().__init__('network/peering', server, port)
 
-class Keys(Base):
-    """GET PGP keys' fingerprint this node manages, i.e. this node will have transactions history and follow ohter nodes for this history."""
-
-    def __get__(self, **kwargs):
-        """creates a generator with one transaction per iteration."""
-
-        return self.merkle_easy_parser('/keys')
-
-class Peer(Base):
-    """GET the peering informations of this node."""
-
-    def __get__(self, **kwargs):
-        """returns peering entry of the node."""
-
-        return self.requests_get('/peer', **kwargs).json()
 
 class Peers(Base):
     """GET peering entries of every node inside the currency network."""

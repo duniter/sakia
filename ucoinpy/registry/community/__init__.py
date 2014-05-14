@@ -12,16 +12,27 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-# Authors:
-# Caner Candan <caner@candan.fr>, http://caner.candan.fr
-#
 
-from .. import API, logging
+from .. import Registry
+from .. import logging
 
-logger = logging.getLogger("ucoin/hdc")
+logger = logging.getLogger("ucoin/registry")
 
-class HDC(API):
-    def __init__(self, module='hdc', server=None, port=None):
-        super().__init__(module, server, port)
 
-from . import amendments, coins, transactions
+class Base(Registry):
+    def __init__(self, server=None, port=None):
+        super().__init__('registry/community', server, port)
+
+
+class Members(Base):
+    """GET the members present in the Community for this amendment."""
+
+    def __get__(self, **kwargs):
+        return self.merkle_easy_parser('/members')
+
+
+class Voters(Base):
+    """GET the voters listed in this amendment."""
+
+    def __get__(self, **kwargs):
+        return self.merkle_easy_parser('/voters')

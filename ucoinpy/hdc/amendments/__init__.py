@@ -17,16 +17,19 @@
 #
 
 from .. import HDC
-import logging
+from .. import logging
 
 logger = logging.getLogger("ucoin/hdc/amendments")
+
 
 class Base(HDC):
     def __init__(self, server=None, port=None):
         super().__init__('hdc/amendments', server, port)
 
+
 class Promoted(Base):
-    """GET the current promoted amendment (amendment which received enough votes to be accepted)."""
+    """GET the current promoted amendment (amendment
+    which received enough votes to be accepted)."""
 
     def __init__(self, number=None, server=None, port=None):
         """
@@ -46,54 +49,17 @@ class Promoted(Base):
 
         return self.requests_get('/promoted/%d' % self.number, **kwargs).json()
 
-class Current(Promoted):
-    """Alias of amendments/promoted."""
-
-    pass
-
-class List(Base):
-    """GET the list of amendments through the previousHash value."""
-
-    def __get__(self, **kwargs):
-        """creates a generator with one amendment per iteration."""
-
-        current = self.requests_get('/promoted', **kwargs).json()
-        yield current
-
-        while 'previousHash' in current and current['previousHash']:
-            current = self.requests_get('/promoted/%d' % (current['number']-1), **kwargs).json()
-            yield current
-
-class CurrentVotes(Base):
-    """GET the votes that legitimate the current amendment."""
-
-    def __get__(self, **kwargs):
-        return self.merkle_easy_parser('/current/votes')
 
 class Votes(Base):
     """GET an index of votes received by this node."""
 
-    def __init__(self, amendment_id=None, server=None, port=None):
-        """
-        Uses amendment_id to fit the result.
-
-        Arguments:
-        - `amendment_id`: amendment id
-        """
-
-        super().__init__(server, port)
-
-        self.amendment_id = amendment_id
-
     def __get__(self, **kwargs):
-        if not self.amendment_id:
-            return self.requests_get('/votes', **kwargs).json()
-
-        return self.merkle_easy_parser('/votes/%s' % self.amendment_id)
+        return self.requests_get('/votes', **kwargs).json()
 
     def __post__(self, **kwargs):
         assert 'amendment' in kwargs
         assert 'signature' in kwargs
+        assert 'peer' in kwargs
 
         return self.requests_post('/votes', **kwargs).json()
 
