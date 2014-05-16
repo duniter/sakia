@@ -209,3 +209,4 @@ from . import pks
 from . import hdc
 from . import wrappers
 from . import network
+from . import registry
