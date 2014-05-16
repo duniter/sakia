@@ -1,3 +1,0 @@
-[submodule "lib/ucoinpy"]
-	path = lib/ucoinpy
-	url = https://github.com/Insoleet/ucoin-python-api.git 
