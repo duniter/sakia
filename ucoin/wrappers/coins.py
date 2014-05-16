@@ -18,7 +18,7 @@
 #
 
 import logging
-from . import Wrapper, pks, ucg, hdc, settings
+from . import Wrapper, pks, network, hdc, settings
 
 logger = logging.getLogger("coins")
 
