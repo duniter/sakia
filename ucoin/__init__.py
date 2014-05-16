@@ -19,7 +19,7 @@
 __all__ = ['api']
 
 __author__ = 'uCoin team'
-__version__ = '0.2'
+__version__ = '0.8.2'
 __nonsense__ = 'uCoin'
 
 import requests
