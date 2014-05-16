@@ -4,7 +4,7 @@ Created on 1 févr. 2014
 @author: inso
 '''
 
-import ucoinpy as ucoin
+import ucoin
 import hashlib
 import json
 import logging
@@ -26,7 +26,7 @@ class Community(object):
         An account is a member of a community if he is a member of the current amendment.
         '''
         self.network = network
-        current_amendment = self.network.request(ucoin.hdc.amendments.Current())
+        current_amendment = self.network.request(ucoin.hdc.amendments.Promoted())
         self.currency = current_amendment['currency']
 
     @classmethod
@@ -58,29 +58,29 @@ class Community(object):
         return self.currency
 
     def __eq__(self, other):
-        current_amendment = self.network.request(ucoin.hdc.amendments.Current())
+        current_amendment = self.network.request(ucoin.hdc.amendments.Promoted())
         current_amendment_hash = hashlib.sha1(
             current_amendment['raw'].encode('utf-8')).hexdigest().upper()
 
-        other_amendment = other.network.request(ucoin.hdc.amendments.Current())
+        other_amendment = other.network.request(ucoin.hdc.amendments.Promoted())
         other_amendment_hash = hashlib.sha1(
             other_amendment['raw'].encode('utf-8')).hexdigest().upper()
 
         return (other_amendment_hash == current_amendment_hash)
 
     def dividend(self):
-        current_amendment = self.network.request(ucoin.hdc.amendments.Current())
+        current_amendment = self.network.request(ucoin.hdc.amendments.Promoted())
         return int(current_amendment['dividend'])
 
     def coin_minimal_power(self):
-        current_amendment = self.network.request(ucoin.hdc.amendments.Current())
+        current_amendment = self.network.request(ucoin.hdc.amendments.Promoted())
         if 'coinMinimalPower' in current_amendment.keys():
             return int(current_amendment['coinMinimalPower'])
         else:
             return 0
 
     def amendment_id(self):
-        current_amendment = self.network.request(ucoin.hdc.amendments.Current())
+        current_amendment = self.network.request(ucoin.hdc.amendments.Promoted())
         current_amendment_hash = hashlib.sha1(
             current_amendment['raw'].encode('utf-8')).hexdigest().upper()
         amendment_id = str(
@@ -89,7 +89,7 @@ class Community(object):
         return amendment_id
 
     def amendment_number(self):
-        current_amendment = self.network.request(ucoin.hdc.amendments.Current())
+        current_amendment = self.network.request(ucoin.hdc.amendments.Promoted())
         return int(current_amendment['number'])
 
     def person_quality(self, fingerprint):
@@ -105,7 +105,7 @@ class Community(object):
         Listing members of a community
         '''
         fingerprints = self.network.request(
-            ucoin.hdc.amendments.view.Members(
+            ucoin.registry.community.Members(
                 amendment_id=self.amendment_id()))
         members = []
         for f in fingerprints:
@@ -117,7 +117,7 @@ class Community(object):
         Listing members of a community
         '''
         fingerprints = self.network.request(
-            ucoin.hdc.amendments.view.Voters(
+            ucoin.registry.community.Voters(
                 amendment_id=self.amendment_id()))
         voters = []
         for f in fingerprints:

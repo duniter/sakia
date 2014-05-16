@@ -8,7 +8,7 @@ import logging
 from optparse import OptionParser
 import os.path
 import gnupg
-import ucoinpy as ucoin
+import ucoin
 
 
 home = os.path.expanduser("~")

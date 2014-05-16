@@ -4,7 +4,7 @@ Created on 27 mars 2014
 @author: inso
 '''
 from cutecoin.models.node import Node
-import ucoinpy as ucoin
+import ucoin
 import logging
 
 class CommunityNetwork(object):
@@ -60,6 +60,14 @@ class CommunityNetwork(object):
                     self.trusts()[0]))
         return nodes
 
+    def trusts(self):
+        return [node for node in self.nodes if node.trust]
+
+    def hosters(self):
+        return [node for node in self.nodes if node.hoster]
+
+#TODO: Manager in Wallets
+"""
     def pull_tht(self, fingerprint):
         tht = self.network.request(ucoin.ucg.THT(fingerprint))
         nodes = []
@@ -87,9 +95,4 @@ class CommunityNetwork(object):
                     self._search_node_by_fingerprint(
                         node_fg,
                         self.trusts()[0]))
-
-    def trusts(self):
-        return [node for node in self.nodes if node.trust]
-
-    def hosters(self):
-        return [node for node in self.nodes if node.hoster]
+"""

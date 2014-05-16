@@ -4,8 +4,9 @@ Created on 1 févr. 2014
 @author: inso
 '''
 
-import ucoinpy as ucoin
+import ucoin
 from cutecoin.models.coin import Coin
+from cutecoin.models.person import Person
 
 
 class Transaction(object):
@@ -15,56 +16,40 @@ class Transaction(object):
     At the moment the difference is not made
     '''
 
-    def __init__(self):
-        self.increment = 0
-        self.community = ""
-        self.sender = None
-        self.recipient = None
+    def __init__(self, sender, tx_number, community, recipient):
+        self.tx_number = tx_number
+        self.community = community
+        self.sender = sender
+        self.recipient = recipient
+
+    @classmethod
+    def create(cls, pgp_fingerprint, tx_number, community):
+        transaction_view = community.network.request(
+            ucoin.hdc.transactions.sender.View(pgp_fingerprint, tx_number))
+        transaction_data = transaction_view['transaction']
+
+        sender = Person.lookup(pgp_fingerprint, community)
+        recipient = Person.lookup(
+            transaction_data['recipient'],
+            community)
+
+        return cls(Transaction(sender, tx_number, community, recipient))
 
     def value(self):
         value = 0
         trx_data = self.community.network.request(
-            ucoin.hdc.transactions.View(self.sender.fingerprint + "-" + str(self.increment)))
+            ucoin.hdc.transactions.sender.View(self.sender.fingerprint,
+                                               self.tx_number))
         for coin in trx_data['transaction']['coins']:
             value += Coin.from_id(coin['id']).value()
         return value
 
     def currency(self):
         trx_data = self.community.network.request(
-            ucoin.hdc.transactions.View(self.sender.fingerprint + "-" + str(self.increment)))
+            ucoin.hdc.transactions.sender.View(self.sender.fingerprint,
+                                        self.tx_number))
         currency = trx_data['transaction']['currency']
         return currency
 
     def transaction_id(self):
         return self.sender_fingerprint + "-" + self.increment
-
-
-class Transfer(Transaction):
-
-    '''
-    A received transaction
-    '''
-
-    def __init__(self):
-        super(Transfer).__init__()
-
-    def get_text(self):
-        return str(self.value()) + " " + self.currency() + \
-            " from " + self.sender.name
-
-
-class Issuance(Transaction):
-
-    '''
-    An issuance
-    '''
-
-    def __init__(self):
-        super(Issuance).__init__()
-
-    def amendment_number(self):
-        self.community.network.request(
-            ucoin.hdc.transactions.View(self.sender.fingerprint + "-" + str(self.increment)))
-
-    def get_text(self):
-        return str(self.value()) + " " + self.currency()

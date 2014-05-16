@@ -36,3 +36,6 @@ class Amendment(Registry):
 
     def __get__(self, **kwargs):
         return self.requests_get('/amendment', **kwargs).json()
+
+from . import amendment
+from . import community

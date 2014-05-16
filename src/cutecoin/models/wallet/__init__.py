@@ -4,7 +4,7 @@ Created on 1 févr. 2014
 @author: inso
 '''
 
-import ucoinpy as ucoin
+import ucoin
 import gnupg
 from cutecoin.models.coin import Coin
 

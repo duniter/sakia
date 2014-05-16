@@ -4,14 +4,14 @@ Created on 1 févr. 2014
 @author: inso
 '''
 
-import ucoinpy as ucoin
+import ucoin
 import gnupg
 import logging
 import json
 from cutecoin.models.account.wallets import Wallets
 from cutecoin.models.account.communities import Communities
 from cutecoin.models.community import Community
-from cutecoin.models.transaction import factory
+from cutecoin.models.transaction import Transaction
 from cutecoin.models.person import Person
 from cutecoin.core.exceptions import CommunityNotFoundError
 
@@ -94,7 +94,7 @@ class Account(object):
                     self.fingerprint()))
             for trx_data in transactions_data:
                 received.append(
-                    factory.create_transaction(
+                    Transaction.create(
                         trx_data['value']['transaction']['sender'],
                         trx_data['value']['transaction']['number'],
                         community))
@@ -111,49 +111,11 @@ class Account(object):
                 # Small bug in ucoinpy library
                 if not isinstance(trx_data, str):
                     sent.append(
-                        factory.create_transaction(
+                        Transaction.create(
                             trx_data['value']['transaction']['sender'],
                             trx_data['value']['transaction']['number'],
                             community))
         return sent
-
-    def last_issuances(self, community):
-        issuances = []
-        if community in self.communities.communities_list:
-            issuances_data = community.network.request(
-                ucoin.hdc.transactions.sender.Issuance(
-                    self.fingerprint()))
-            for issuance in issuances_data:
-                logging.debug(issuance)
-                issuances.append(
-                    factory.create_transaction(
-                        issuance['value']['transaction']['sender'],
-                        issuance['value']['transaction']['number'],
-                        community))
-        return issuances
-
-    def issued_last_dividend(self, community):
-        current_amendment_number = community.amendment_number()
-        if community in self.communities.communities_list:
-            dividends_data = community.network.request(
-                ucoin.hdc.transactions.sender.issuance.Dividend(
-                    self.fingerprint(),
-                    current_amendment_number))
-            for dividend in dividends_data:
-                # Small bug in ucoinpy library
-                if not isinstance(dividend, str):
-                    return True
-        return False
-
-    def issue_dividend(self, community, coins):
-        if community in self.communities.communities_list:
-            logging.debug(coins)
-            issuance = ucoin.wrappers.transactions.Issue(
-                self.fingerprint(),
-                community.amendment_number(),
-                coins,
-                keyid=self.keyid)
-            return issuance()
 
     def transfer_coins(self, node, recipient, coins, message):
         transfer = ucoin.wrappers.transactions.RawTransfer(
@@ -166,10 +128,12 @@ class Account(object):
             port=node.port)
         return transfer()
 
+    #TODO: Adapt to new WHT
     def tht(self, community):
         if community in self.communities.communities_list:
-            tht = community.ucoinRequest(ucoin.ucg.tht(self.fingerprint()))
-            return tht['entries']
+            #tht = community.ucoinRequest(ucoin.wallets.tht(self.fingerprint()))
+            #return tht['entries']
+            return None
         return None
 
     def push_tht(self, community):
@@ -201,10 +165,10 @@ class Account(object):
                 'signature': str(signature)
             }
 
-            community.network.post(
-                ucoin.ucg.THT(
-                    pgp_fingerprint=self.fingerprint()),
-                dataPost)
+            #community.network.post(
+            #    ucoin.ucg.THT(
+            #        pgp_fingerprint=self.fingerprint()),
+            #    dataPost)
         else:
             raise CommunityNotFoundError(self.keyid, community.amendment_id())
 

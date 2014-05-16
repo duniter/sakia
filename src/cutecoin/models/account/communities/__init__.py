@@ -5,7 +5,7 @@ Created on 5 févr. 2014
 '''
 from cutecoin.models.community import Community
 from cutecoin.core.exceptions import NotMemberOfCommunityError
-import ucoinpy as ucoin
+import ucoin
 import logging
 
 

@@ -4,7 +4,7 @@ Created on 11 févr. 2014
 @author: inso
 '''
 
-import ucoinpy as ucoin
+import ucoin
 from cutecoin.core.exceptions import PersonNotFoundError
 
 

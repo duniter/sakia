@@ -4,7 +4,7 @@ Created on 1 févr. 2014
 @author: inso
 '''
 
-import ucoinpy as ucoin
+import ucoin
 
 
 class Node(object):
@@ -38,19 +38,19 @@ class Node(object):
         ucoin.settings['port'] = self.port
 
         peers = []
-        for peer in ucoin.ucg.peering.peers.DownStream().get()['peers']:
+        for peer in ucoin.network.peering.peers.DownStream().get()['peers']:
             node = Node(peer['ipv4'], peer['port'])
             peers.append(node)
 
         return peers
 
     def peering(self):
-        request = ucoin.ucg.peering.Peer()
+        request = ucoin.network.Peering()
         self.use(request)
         return request.get()
 
     def peers(self):
-        request = ucoin.ucg.peering.Peers()
+        request = ucoin.network.peering.Peers()
         self.use(request)
         return request.get()
 
