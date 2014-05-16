@@ -17,8 +17,8 @@
 # Caner Candan <caner@candan.fr>, http://caner.candan.fr
 #
 
-import hashlib, logging
-from . import Wrapper, pks, ucg, hdc, settings
+import hashlib, logging, re
+from . import Wrapper, pks, network, hdc, registry, settings
 
 logger = logging.getLogger("transactions")
 
@@ -40,7 +40,7 @@ class Transaction(Wrapper):
 
         context_data = {}
         context_data.update(settings)
-        context_data.update(self.peering if self.peering else ucg.Peering().get())
+        context_data.update(self.peering if self.peering else network.Peering().get())
         context_data['version'] = 1
         context_data['number'] = 0 if not last_tx else last_tx['transaction']['number']+1
         context_data['previousHash'] = hashlib.sha1(("%(raw)s%(signature)s" % last_tx).encode('ascii')).hexdigest().upper() if last_tx else None
@@ -99,7 +99,7 @@ Comment:
             data = coin.split(':')
             issuer, numbers = data[0], data[1:]
             for number in numbers:
-                view = hdc.coins.View(issuer, int(number), self.server, self.port).get()
+                view = hdc.coins.view.Owner(issuer, int(number), self.server, self.port).get()
                 if view['owner'] != self.pgp_fingerprint:
                     raise ValueError('Trying to divide a coin you do not own (%s)' % view['id'])
                 coins.append(view)
@@ -137,7 +137,7 @@ Coins:
             issuer = data[0]
 
             for number in data[1:]:
-                context_data.update(hdc.coins.View(issuer, int(number), self.server, self.port).get())
+                context_data.update(hdc.coins.view.Owner(issuer, int(number), self.server, self.port).get())
                 tx += '%(id)s, %(transaction)s\n' % context_data
         return tx
 
@@ -160,7 +160,7 @@ Coins:
 
         for coin in self.coins:
             data = coin.split('-')
-            context_data.update(hdc.coins.View(data[0], int(data[1]), self.server, self.port).get())
+            context_data.update(hdc.coins.view.Owner(data[0], int(data[1]), self.server, self.port).get())
             tx += '%(id)s, %(transaction)s\n' % context_data
 
         return tx
@@ -182,7 +182,7 @@ Coins:
 """ % context_data
 
         try:
-            last_issuance = hdc.transactions.sender.issuance.Last(self.pgp_fingerprint, self.server, self.port).get()
+            last_issuance = hdc.transactions.sender.Last(self.pgp_fingerprint, self.server, self.port).get()
         except ValueError:
             last_issuance = None
 
@@ -193,63 +193,4 @@ Coins:
         return tx
 
     def get_mono_message(self, context_data, tx=''):
-        return tx
-
-class Issue(MonoTransaction):
-    def __init__(self, pgp_fingerprint, amendment, coins, message='', keyid=None, server=None, port=None):
-        super().__init__('ISSUANCE', pgp_fingerprint, message, keyid=keyid, server=server, port=port)
-
-        self.amendment = amendment
-        self.coins = coins
-
-    def get_mono_message(self, context_data, tx=''):
-        context_data['amendment'] = self.amendment
-
-        for idx, coin in enumerate(self.coins):
-            context_data['idx'] = idx + context_data['previous_idx']
-            context_data['base'], context_data['power'] = [int(x) for x in coin.split(',')]
-            tx += '%(fingerprint)s-%(idx)d-%(base)d-%(power)d-A-%(amendment)d\n' % context_data
-
-        return tx
-
-class Fusion(MonoTransaction):
-    def __init__(self, pgp_fingerprint, coins, message='', keyid=None, server=None, port=None):
-        super().__init__('FUSION', pgp_fingerprint, message, keyid=keyid, server=server, port=port)
-
-        self.coins = coins
-
-    def get_mono_message(self, context_data, tx=''):
-        coins = self.parse_coins(self.coins)
-        self.check_coins_sum(self.get_coins_sum(coins))
-
-        context_data['base'], context_data['power'] = int(m.groups()[0]), len(m.groups()[1])
-        tx += '%(fingerprint)s-%(previous_idx)d-%(base)d-%(power)d-F-%(number)d\n' % context_data
-
-        for coin in coins: tx += '%(id)s, %(transaction)s\n' % coin
-
-        return tx
-
-class Divide(MonoTransaction):
-    def __init__(self, pgp_fingerprint, old_coins, new_coins, message='', keyid=None, server=None, port=None):
-        super().__init__('DIVISION', pgp_fingerprint, message, keyid=keyid, server=server, port=port)
-
-        self.old_coins = old_coins
-        self.new_coins = new_coins
-
-    def get_mono_message(self, context_data, tx=''):
-        old_coins = self.parse_coins(self.old_coins)
-        old_coins_sum = self.get_coins_sum(old_coins)
-
-        new_coins_sum = 0
-        for idx, coin in enumerate(self.new_coins):
-            context_data['idx'] = idx + context_data['previous_idx']
-            context_data['base'], context_data['power'] = [int(x) for x in coin.split(',')]
-            new_coins_sum += context_data['base'] * 10**context_data['power']
-            tx += '%(fingerprint)s-%(idx)d-%(base)d-%(power)d-D-%(number)d\n' % context_data
-
-        if old_coins_sum != new_coins_sum:
-            raise ValueError('Amount of old coins (%d) is not equal to new coins (%d)' % (old_coins_sum, new_coins_sum))
-
-        for coin in old_coins: tx += '%(id)s, %(transaction)s\n' % coin
-
         return tx

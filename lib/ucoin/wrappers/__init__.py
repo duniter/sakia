@@ -18,8 +18,7 @@
 #
 
 import logging
-from .. import pks, hdc, settings
-import network
+from .. import pks, hdc, network, registry, settings
 
 logger = logging.getLogger("wrappers")
 
