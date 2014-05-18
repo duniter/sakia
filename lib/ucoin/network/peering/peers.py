@@ -27,7 +27,7 @@ class Base(Network):
 class Stream(Base):
     """GET a list of peers this node is listening to/by for ANY incoming transaction."""
 
-    def __init__(self, request, pgp_fingerprint=None, server=None, port=None):
+    def __init__(self, request, pgp_fingerprint, server=None, port=None):
         """
         Use the pgp fingerprint parameter in order to fit the result.
 
@@ -45,7 +45,7 @@ class Stream(Base):
 class UpStream(Stream):
     """GET a list of peers this node is listening to for ANY incoming transaction."""
 
-    def __init__(self, pgp_fingerprint=None, server=None, port=None):
+    def __init__(self, pgp_fingerprint, server=None, port=None):
         """
         Use the pgp fingerprint parameter in order to fit the result.
 
@@ -63,7 +63,7 @@ class UpStream(Stream):
 class DownStream(Stream):
     """GET a list of peers this node is listening by for ANY incoming transaction."""
 
-    def __init__(self, pgp_fingerprint=None, server=None, port=None):
+    def __init__(self, pgp_fingerprint, server=None, port=None):
         """
         Use the pgp fingerprint parameter in order to fit the result.
 
