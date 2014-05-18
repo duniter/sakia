@@ -27,7 +27,7 @@ class Base(Network):
 class Stream(Base):
     """GET a list of peers this node is listening to/by for ANY incoming transaction."""
 
-    def __init__(self, request, pgp_fingerprint, server=None, port=None):
+    def __init__(self, request, pgp_fingerprint=None, server=None, port=None):
         """
         Use the pgp fingerprint parameter in order to fit the result.
 
@@ -41,11 +41,18 @@ class Stream(Base):
         self.request = request
         self.pgp_fingerprint = pgp_fingerprint
 
+    def __get__(self, **kwargs):
+        """returns the corresponding peer list."""
+        if self.pgp_fingerprint is None:
+            return self.requests_get('/%s' % (self.request), **kwargs).json()
+        else:
+            return self.requests_get('/%s/%s' % (self.request, self.pgp_fingerprint), **kwargs).json()
+
 
 class UpStream(Stream):
     """GET a list of peers this node is listening to for ANY incoming transaction."""
 
-    def __init__(self, pgp_fingerprint, server=None, port=None):
+    def __init__(self, pgp_fingerprint=None, server=None, port=None):
         """
         Use the pgp fingerprint parameter in order to fit the result.
 
@@ -55,15 +62,11 @@ class UpStream(Stream):
 
         super().__init__('upstream', pgp_fingerprint, server, port)
 
-    def __get__(self, **kwargs):
-        """returns the corresponding peer list."""
-
-        return self.requests_get('/%s/%s' % (self.request, self.pgp_fingerprint), **kwargs).json()
 
 class DownStream(Stream):
     """GET a list of peers this node is listening by for ANY incoming transaction."""
 
-    def __init__(self, pgp_fingerprint, server=None, port=None):
+    def __init__(self, pgp_fingerprint=None, server=None, port=None):
         """
         Use the pgp fingerprint parameter in order to fit the result.
 
@@ -72,8 +75,3 @@ class DownStream(Stream):
         """
 
         super().__init__('downstream', pgp_fingerprint, server, port)
-
-    def __get__(self, **kwargs):
-        """returns the corresponding peer list."""
-
-        return self.requests_get('/%s/%s' % (self.request, self.pgp_fingerprint), **kwargs).json()
