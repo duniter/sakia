@@ -58,7 +58,7 @@ class UpStream(Stream):
     def __get__(self, **kwargs):
         """returns the corresponding peer list."""
 
-        return self.requests_get('/upstream/%s' % (self.request, self.pgp_fingerprint), **kwargs).json()
+        return self.requests_get('/%s/%s' % (self.request, self.pgp_fingerprint), **kwargs).json()
 
 class DownStream(Stream):
     """GET a list of peers this node is listening by for ANY incoming transaction."""
@@ -76,4 +76,4 @@ class DownStream(Stream):
     def __get__(self, **kwargs):
         """returns the corresponding peer list."""
 
-        return self.requests_get('/downstream/%s' % (self.request, self.pgp_fingerprint), **kwargs).json()
+        return self.requests_get('/%s/%s' % (self.request, self.pgp_fingerprint), **kwargs).json()
