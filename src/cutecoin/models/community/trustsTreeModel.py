@@ -10,7 +10,7 @@ from cutecoin.models.community.itemModel import CommunityItemModel
 import logging
 
 
-class CommunityTreeModel(QAbstractItemModel):
+class CommunityTrustsTreeModel(QAbstractItemModel):
 
     '''
     A Qt abstract item model to display nodes of a community
@@ -20,13 +20,13 @@ class CommunityTreeModel(QAbstractItemModel):
         '''
         Constructor
         '''
-        super(CommunityTreeModel, self).__init__(None)
+        super(CommunityTrustsTreeModel, self).__init__(None)
         self.community = community
         self.root_item = CommunityItemModel(self.community)
         self.refresh_tree_nodes()
 
     def columnCount(self, parent):
-        return 1
+        return 3
 
     def data(self, index, role):
         if not index.isValid():
@@ -36,6 +36,10 @@ class CommunityTreeModel(QAbstractItemModel):
 
         if role == Qt.DisplayRole and index.column() == 0:
             return item.data(0)
+        elif role == Qt.CheckStateRole and index.column() == 1:
+            return Qt.Checked if item.trust else Qt.Unchecked
+        elif role == Qt.CheckStateRole and index.column() == 2:
+            return Qt.Checked if item.hoster else Qt.Unchecked
 
         return None
 
@@ -45,10 +49,16 @@ class CommunityTreeModel(QAbstractItemModel):
 
         if index.column() == 0:
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+        else:
+            return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsUserCheckable
 
     def headerData(self, section, orientation, role):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole and section == 0:
             return self.root_item.data(0) + " nodes"
+        elif orientation == Qt.Horizontal and role == Qt.DisplayRole and section == 1:
+            return "Trust"
+        elif orientation == Qt.Horizontal and role == Qt.DisplayRole and section == 2:
+            return "Hoster"
         return None
 
     def index(self, row, column, parent):
@@ -91,6 +101,17 @@ class CommunityTreeModel(QAbstractItemModel):
 
     def setData(self, index, value, role=Qt.EditRole):
         if index.column() == 0:
+            return False
+
+        if role == Qt.EditRole:
+            return False
+        if role == Qt.CheckStateRole:
+            item = index.internalPointer()
+            if index.column() == 1:
+                item.trust = value
+            elif index.column() == 2:
+                item.host = value
+            self.dataChanged.emit(index, index)
             return True
 
     def refresh_tree_nodes(self):
@@ -99,7 +120,7 @@ class CommunityTreeModel(QAbstractItemModel):
             node_item = NodeItem(node, self.root_item)
             logging.debug(
                 "mainNode : " +
-                node.get_text() +
+                node.getText() +
                 " / " +
                 node_item.data(0))
             self.root_item.appendChild(node_item)
@@ -107,7 +128,7 @@ class CommunityTreeModel(QAbstractItemModel):
                 child_node_item = NodeItem(node, node_item)
                 logging.debug(
                     "\t node : " +
-                    node.get_text() +
+                    node.getText() +
                     " / " +
                     child_node_item.data(0))
                 node_item.appendChild(child_node_item)

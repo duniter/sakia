@@ -138,7 +138,7 @@
    <sender>button_add_community</sender>
    <signal>clicked()</signal>
    <receiver>AccountConfigurationDialog</receiver>
-   <slot>open_add_community_dialog()</slot>
+   <slot>open_process_add_community()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>109</x>
@@ -170,7 +170,7 @@
    <sender>list_communities</sender>
    <signal>doubleClicked(QModelIndex)</signal>
    <receiver>AccountConfigurationDialog</receiver>
-   <slot>open_edit_community_dialog(QModelIndex)</slot>
+   <slot>open_process_edit_community(QModelIndex)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>199</x>
@@ -184,9 +184,9 @@
   </connection>
  </connections>
  <slots>
-  <slot>open_add_community_dialog()</slot>
+  <slot>open_process_add_community()</slot>
   <slot>key_changed(int)</slot>
   <slot>action_remove_community()</slot>
-  <slot>open_edit_community_dialog(QModelIndex)</slot>
+  <slot>open_process_edit_community(QModelIndex)</slot>
  </slots>
 </ui>

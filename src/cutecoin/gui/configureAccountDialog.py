@@ -4,9 +4,9 @@ Created on 6 mars 2014
 @author: inso
 '''
 from cutecoin.gen_resources.accountConfigurationDialog_uic import Ui_AccountConfigurationDialog
-from cutecoin.gui.configureCommunityDialog import ConfigureCommunityDialog
+from cutecoin.gui.processConfigureCommunity import ProcessConfigureCommunity
 from cutecoin.models.account.communities.listModel import CommunitiesListModel
-from cutecoin.core.exceptions import KeyAlreadyUsed
+from cutecoin.tools.exceptions import KeyAlreadyUsed
 from cutecoin.models.account import Account
 from cutecoin.models.account import Communities
 from cutecoin.models.node import Node
@@ -59,21 +59,8 @@ class ConfigureAccountDialog(QDialog, Ui_AccountConfigurationDialog):
         self.list_communities.setModel(CommunitiesListModel(self.account))
         self.edit_account_name.setText(self.account.name)
 
-    def open_add_community_dialog(self):
-
-        text, ok = QInputDialog.getText(
-            self, 'Add a community', 'Enter a main node address you trust :')
-
-        if ok:
-            server, port = text.split(':')[0], int(text.split(':')[1])
-
-            dialog = ConfigureCommunityDialog(
-                self.account,
-                None,
-                Node(
-                    server,
-                    port))
-            dialog.button_box.accepted.connect(self.action_add_community)
+    def open_process_add_community(self):
+            dialog = ProcessConfigureCommunity(self.account, None)
             dialog.exec_()
 
     def action_add_community(self):
@@ -92,9 +79,9 @@ class ConfigureAccountDialog(QDialog, Ui_AccountConfigurationDialog):
     def action_edit_community(self):
         self.list_communities.setModel(CommunitiesListModel(self.account))
 
-    def open_edit_community_dialog(self, index):
+    def open_process_edit_community(self, index):
         community = self.account.communities.communities_list[index.row()]
-        dialog = ConfigureCommunityDialog(self.account, community)
+        dialog = ProcessConfigureCommunity(self.account, community)
         dialog.button_box.accepted.connect(self.action_edit_community)
         dialog.exec_()
 

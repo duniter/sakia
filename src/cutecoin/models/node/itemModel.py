@@ -9,7 +9,7 @@ class NodeItem(object):
 
     def __init__(self, main_node, community_item=None):
         self.community_item = community_item
-        self.main_node_text = main_node.getText()
+        self.main_node_text = main_node.get_text()
         self.trust = main_node.trust
         self.hoster = main_node.hoster
         self.node_items = []

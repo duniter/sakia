@@ -5,7 +5,7 @@ Created on 11 févr. 2014
 '''
 
 import ucoin
-from cutecoin.core.exceptions import PersonNotFoundError
+from cutecoin.tools.exceptions import PersonNotFoundError
 
 
 class Person(object):

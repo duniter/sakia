@@ -9,7 +9,7 @@ import logging
 import json
 
 from cutecoin.core import config
-from cutecoin.core.exceptions import KeyAlreadyUsed
+from cutecoin.tools.exceptions import KeyAlreadyUsed
 from cutecoin.models.account import Account
 
 

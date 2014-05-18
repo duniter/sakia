@@ -4,7 +4,6 @@ Created on 5 févr. 2014
 @author: inso
 '''
 from cutecoin.models.community import Community
-from cutecoin.core.exceptions import NotMemberOfCommunityError
 import ucoin
 import logging
 
