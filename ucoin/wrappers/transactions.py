@@ -22,6 +22,7 @@ from . import Wrapper, pks, network, hdc, registry, settings
 
 logger = logging.getLogger("transactions")
 
+
 class Transaction(Wrapper):
     def __init__(self, type, pgp_fingerprint, message='', keyid=None, peering=None, server=None, port=None):
         super().__init__(server, port)
