@@ -1,5 +1,5 @@
 import pytest
-import ucoinpy as ucoin
+import ucoin
 from cutecoin.models.account.communities import Communities
 
 

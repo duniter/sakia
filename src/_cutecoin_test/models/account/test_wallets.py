@@ -1,10 +1,9 @@
 import pytest
-import ucoinpy as ucoin
+import ucoin
 from mock import Mock, MagicMock
 from cutecoin.models.wallet import Wallet
 from cutecoin.models.account.wallets import Wallets
 from cutecoin.models.community import Community, CommunityNetwork
-
 
 
 def mock_community():
@@ -23,20 +22,19 @@ def mock_community():
             }
         else:
                 assert 0
-                
+
     mock_network = Mock(spec=CommunityNetwork, request=community_request)
     community = MagicMock(spec=Community, network=mock_network)
 
     return community
-    
-    
+
+
 def mock_wallet():
     def wallet_eq(mock1, mock2):
         return mock1.community == mock2.community
     mock_wallet = MagicMock(spec=Wallet, __eq__=wallet_eq)
-    
-    
-#TODO: Test wallets
+
+
 class Test_Wallets:
     def test_wallets_add_wallet(self):
         wallets = Wallets()
@@ -53,7 +51,7 @@ class Test_Wallets:
         wallets = Wallets()
         wallets.wallets_list.append(mock_wallet1)
         wallets.wallets_list.append(mock_wallet2)
-        
+
         assert wallets.get_wallet(mock_wallet1) is not None
         assert wallets.get_wallet(mock_wallet2) is not None
         assert wallets.get_wallet(mock_wallet3) is None
@@ -66,7 +64,7 @@ class Test_Wallets:
         wallets = Wallets()
         wallets.wallets_list.append(mock_wallet1)
         wallets.wallets_list.append(mock_wallet2)
-        
+
         wallets.remove_all_wallets_of(mock1)
         assert wallets.get_wallet(mock_wallet1) is None
         assert wallets.get_wallet(mock_wallet2) is not None

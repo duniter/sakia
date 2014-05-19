@@ -120,7 +120,7 @@ class CommunityTrustsTreeModel(QAbstractItemModel):
             node_item = NodeItem(node, self.root_item)
             logging.debug(
                 "mainNode : " +
-                node.getText() +
+                node.get_text() +
                 " / " +
                 node_item.data(0))
             self.root_item.appendChild(node_item)
@@ -128,7 +128,7 @@ class CommunityTrustsTreeModel(QAbstractItemModel):
                 child_node_item = NodeItem(node, node_item)
                 logging.debug(
                     "\t node : " +
-                    node.getText() +
+                    node.get_text() +
                     " / " +
                     child_node_item.data(0))
                 node_item.appendChild(child_node_item)

@@ -19,7 +19,7 @@ class Wallet(object):
     It's only used to sort coins.
     '''
 
-    def __init__(self, fingerprint, coins, community, name="Main Wallet"):
+    def __init__(self, fingerprint, coins, community, name):
         '''
         Constructor
         '''
@@ -29,8 +29,8 @@ class Wallet(object):
         self.name = name
 
     @classmethod
-    def create(cls, community):
-        return cls([], community)
+    def create(cls, fingerprint, community, name):
+        return cls(fingerprint, [], community, name)
 
     @classmethod
     def load(cls, json_data, community):

@@ -19,13 +19,13 @@ class Wallets(object):
         '''
         self.wallets_list = []
 
-    def add_wallet(self, community):
+    def add_wallet(self, fingerprint, community, name="Main Wallet"):
         '''
         Create a new wallet of a specific currency.
         This wallet must not already be present in the account,
         it means the wallet must have a different name or a different currency.
         '''
-        wallet = Wallet.create(community)
+        wallet = Wallet.create(fingerprint, community, name)
         if wallet not in self.wallets_list:
             self.wallets_list.append(wallet)
             return wallet

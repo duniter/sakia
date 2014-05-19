@@ -16,7 +16,60 @@ from PyQt5.QtWidgets import QDialog, QErrorMessage, QInputDialog
 import gnupg
 
 
-class ConfigureAccountDialog(QDialog, Ui_AccountConfigurationDialog):
+class Step():
+    def __init__(self, config_dialog, previous_step=None, next_step=None):
+        self.previous_step = previous_step
+        self.next_step = next_step
+        self.config_dialog = config_dialog
+
+
+class StepPageInit(Step):
+    '''
+    First step when adding a community
+    '''
+    def __init__(self, config_dialog):
+        super().__init__(config_dialog)
+
+    def is_valid(self):
+        return True
+
+    def process_next(self):
+        pass
+
+    def display_page(self):
+        self.config_dialog.button_previous.setEnabled(False)
+
+
+class StepPageCommunities(Step):
+    '''
+    First step when adding a community
+    '''
+    def __init__(self, config_dialog):
+        super().__init__(config_dialog)
+
+    def is_valid(self):
+        return True
+
+    def process_next(self):
+        '''
+        We create the community
+        '''
+        server = self.config_dialog.lineedit_server.text()
+        port = self.config_dialog.spinbox_port.value()
+        default_node = Node(server, port, trust=True, hoster=True)
+        account = self.config_dialog.account
+        self.config_dialog.community = account.communities.add_community(
+            default_node)
+        #TODO: Get existing Wallet from ucoin node
+        account.wallets.add_wallet(account.fingerprint,
+                                   self.config_dialog.community)
+
+    def display_page(self):
+        self.config_dialog.button_previous.setEnabled(False)
+        self.config_dialog.button_next.setText("Ok")
+
+
+class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
     '''
     classdocs
     '''
@@ -26,10 +79,14 @@ class ConfigureAccountDialog(QDialog, Ui_AccountConfigurationDialog):
         Constructor
         '''
         # Set up the user interface from Designer.
-        super(ConfigureAccountDialog, self).__init__()
+        super(ProcessConfigureAccount, self).__init__()
         self.setupUi(self)
         self.account = account
         self.core = core
+        step_init = StepPageInit(self)
+        step_communities = StepPageCommunities(self)
+        step_init.next_step = step_communities
+        self.step = step_init
         if self.account is None:
             self.setWindowTitle("New account")
         else:
@@ -61,6 +118,7 @@ class ConfigureAccountDialog(QDialog, Ui_AccountConfigurationDialog):
 
     def open_process_add_community(self):
             dialog = ProcessConfigureCommunity(self.account, None)
+            dialog.accepted.connect(self.action_add_community)
             dialog.exec_()
 
     def action_add_community(self):
@@ -89,6 +147,24 @@ class ConfigureAccountDialog(QDialog, Ui_AccountConfigurationDialog):
         gpg = gnupg.GPG()
         available_keys = gpg.list_keys(True)
         self.account.keyid = available_keys[key_index]['keyid']
+
+    def next(self):
+        if self.step.next_step is not None:
+            if self.step.is_valid():
+                self.step.process_next()
+                self.step = self.step.next_step
+                next_index = self.stacked_pages.currentIndex() + 1
+                self.stacked_pages.setCurrentIndex(next_index)
+                self.step.display_page()
+        else:
+            self.accepted.emit()
+
+    def previous(self):
+        if self.step.previous_step is not None:
+            self.step = self.step.previous_step
+            previous_index = self.stacked_pages.currentIndex() - 1
+            self.stacked_pages.setCurrentIndex(previous_index)
+            self.step.display_page()
 
     def accept(self):
         if self.account not in self.core.accounts:

@@ -24,5 +24,4 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         self.setupUi(self)
         self.community = community
         self.account = account
-        #TODO: Rename to list:
         self.list_community_members.setModel(MembersListModel(community))

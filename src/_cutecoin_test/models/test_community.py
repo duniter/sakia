@@ -1,6 +1,6 @@
 import pytest
 from mock import Mock
-import ucoinpy as ucoin
+import ucoin
 from cutecoin.models.community import Community
 from cutecoin.models.community import Node
 from cutecoin.models.account.wallets import Wallets
@@ -11,7 +11,7 @@ from cutecoin.models.node import Node
 
 amendment_hash =  "3682F828EFB1A1AFF45ACC6DDBB2BAD100DCD605"
 
-def patch_amendment_current_get(*args, **kwargs):
+def patch_amendment_Promoted_get(*args, **kwargs):
     return {
     "version": "1",
     "currency": "beta_brousouf",
@@ -45,7 +45,7 @@ VotersChanges:
 -C73882B64B7E72237A2F460CE9CAB76D19A8651E
 """
     }
-	
+
 
 def patch_amendments_members_get(*args, **kwargs):
     return iter([{
@@ -87,41 +87,41 @@ def mock_node():
 
 class Test_Community():
     def test_community_create(self, monkeypatch, mock_node):
-        monkeypatch.setattr(ucoin.hdc.amendments.Current,
-                            '__get__', patch_amendment_current_get)
+        monkeypatch.setattr(ucoin.hdc.amendments.Promoted,
+                            '__get__', patch_amendment_Promoted_get)
         community = Community.create(mock_node)
         assert community is not None
 
     def test_community_dividend(self, monkeypatch, mock_node):
-        monkeypatch.setattr(ucoin.hdc.amendments.Current,
-                            '__get__', patch_amendment_current_get)
+        monkeypatch.setattr(ucoin.hdc.amendments.Promoted,
+                            '__get__', patch_amendment_Promoted_get)
         community = Community.create(mock_node)
         assert community.dividend() == 100
 
     def test_community_coin_minimal_power(self, monkeypatch, mock_node):
-        monkeypatch.setattr(ucoin.hdc.amendments.Current,
-                            '__get__', patch_amendment_current_get)
+        monkeypatch.setattr(ucoin.hdc.amendments.Promoted,
+                            '__get__', patch_amendment_Promoted_get)
         community = Community.create(mock_node)
         assert community.coin_minimal_power() == 0
 
     def test_community_amendment_id(self, monkeypatch, mock_node):
-        monkeypatch.setattr(ucoin.hdc.amendments.Current,
-                            '__get__', patch_amendment_current_get)
+        monkeypatch.setattr(ucoin.hdc.amendments.Promoted,
+                            '__get__', patch_amendment_Promoted_get)
         community = Community.create(mock_node)
         assert community.amendment_id() == "2-"+amendment_hash.upper()
 
     def test_community_amendment_number(self, monkeypatch, mock_node):
-        monkeypatch.setattr(ucoin.hdc.amendments.Current,
-                            '__get__', patch_amendment_current_get)
+        monkeypatch.setattr(ucoin.hdc.amendments.Promoted,
+                            '__get__', patch_amendment_Promoted_get)
         community = Community.create(mock_node)
         assert community.amendment_number() == 2
 
     def test_community_person_quality(self, monkeypatch, mock_node):
-        monkeypatch.setattr(ucoin.hdc.amendments.Current,
-                            '__get__', patch_amendment_current_get)
-        monkeypatch.setattr(ucoin.hdc.amendments.view.Members,
+        monkeypatch.setattr(ucoin.hdc.amendments.Promoted,
+                            '__get__', patch_amendment_Promoted_get)
+        monkeypatch.setattr(ucoin.registry.community.Members,
                             '__get__', patch_amendments_members_get)
-        monkeypatch.setattr(ucoin.hdc.amendments.view.Voters,
+        monkeypatch.setattr(ucoin.registry.community.Voters,
                             '__get__', patch_amendments_voters_get)
         community = Community.create(mock_node)
         assert community.person_quality("2E69197FAB029D8669EF85E82457A1587CA0ED9C") == "voter"
@@ -130,11 +130,11 @@ class Test_Community():
         assert community.person_quality("3F871197FAB029D8669EF85E82457A1587CA0ED9C") == "nothing"
 
     def test_community_members_fingerprint(self, monkeypatch, mock_node):
-        monkeypatch.setattr(ucoin.hdc.amendments.Current,
-                            '__get__', patch_amendment_current_get)
-        monkeypatch.setattr(ucoin.hdc.amendments.view.Members,
+        monkeypatch.setattr(ucoin.hdc.amendments.Promoted,
+                            '__get__', patch_amendment_Promoted_get)
+        monkeypatch.setattr(ucoin.registry.community.Members,
                             '__get__', patch_amendments_members_get)
-        monkeypatch.setattr(ucoin.hdc.amendments.view.Voters,
+        monkeypatch.setattr(ucoin.registry.community.Voters,
                             '__get__', patch_amendments_voters_get)
         community = Community.create(mock_node)
 
@@ -144,11 +144,11 @@ class Test_Community():
         assert "3F871197FAB029D8669EF85E82457A1587CA0ED9C"  not in community.members_fingerprints()
 
     def test_community_voters_fingerprint(self, monkeypatch, mock_node):
-        monkeypatch.setattr(ucoin.hdc.amendments.Current,
-                            '__get__', patch_amendment_current_get)
-        monkeypatch.setattr(ucoin.hdc.amendments.view.Members,
+        monkeypatch.setattr(ucoin.registry.community.Members,
+                            '__get__', patch_amendment_Promoted_get)
+        monkeypatch.setattr(ucoin.registry.community.Members,
                             '__get__', patch_amendments_members_get)
-        monkeypatch.setattr(ucoin.hdc.amendments.view.Voters,
+        monkeypatch.setattr(ucoin.registry.community.Voters,
                             '__get__', patch_amendments_voters_get)
         community = Community.create(mock_node)
 
@@ -156,10 +156,9 @@ class Test_Community():
         assert "3F870197FAB029D8669EF85E82457A1587CA0ED9C" in community.voters_fingerprints()
         assert "3F871197FAB029D8669EF85E82457A1587CA0ED9C" not in community.voters_fingerprints()
 
-    #TODO: Test community json
     def test_community_jsonify(self, monkeypatch):
-        monkeypatch.setattr(ucoin.hdc.amendments.Current,
-                            '__get__', patch_amendment_current_get)
+        monkeypatch.setattr(ucoin.hdc.amendments.Promoted,
+                            '__get__', patch_amendment_Promoted_get)
         main_node = Node(trust=True, hoster=True,
                 server="192.168.100.10", port=3800)
         community = Community.create(main_node)
@@ -167,5 +166,5 @@ class Test_Community():
         json = community.jsonify(wallets)
         account = Mock(spec=Account)
         community2 = Community.load(json, account)
-        
+
         assert community2.network.nodes[0].server == community.network.nodes[0].server

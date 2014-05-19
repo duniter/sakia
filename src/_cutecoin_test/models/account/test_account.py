@@ -1,5 +1,5 @@
 import pytest
-import ucoinpy as ucoin
+import ucoin
 import gnupg
 from mock import Mock
 from cutecoin.models.account import Account
@@ -103,7 +103,7 @@ def patch_transactions_sent_get(*arg, **kwargs):
       }
     }])
 
-    
+
 def patch_transactions_view_get(*arg, **kwargs):
     return {
         "signature": "-----BEGIN PGP SIGNATURE----- ... -----END PGP SIGNATURE-----",
@@ -131,7 +131,7 @@ def patch_transactions_view_get(*arg, **kwargs):
         "comment": "Too much coins ! Making big one."
         }
     }
-    
+
 def patch_transactions_issuances_get(*arg, **kwargs):
     return iter([{
       "hash": "2E69197FAB029D8669EF85E82457A1587CA0ED9C",
@@ -168,12 +168,12 @@ def mock_gpg():
         'fingerprint': '2E69197FAB029D8669EF85E82457A1587CA0ED9C',
         'uids': [u'Mister Test <mister_test@testmail.com>'],
         'expires': u'',
-        'length': u'1024', 
+        'length': u'1024',
         'algo': u'17',
         'date': u'1221156445',
         'type': u'pub'
         }]
-    
+
     mock = Mock(spec=gnupg.GPG)
     instance = mock.return_value
     instance.list_keys = gpg_list_keys
@@ -187,10 +187,6 @@ def mock_community():
             return patch_transactions_recipient_get()
         elif type(request) is ucoin.hdc.transactions.sender.Last:
             return patch_transactions_sent_get()
-        elif type(request) is ucoin.hdc.transactions.View:
-            return patch_transactions_view_get()
-        elif type(request) is ucoin.hdc.transactions.sender.Issuance:
-            return patch_transactions_issuances_get()
         elif type(request) is ucoin.hdc.coins.List:
             return {
             "owner": "2E69197FAB029D8669EF85E82457A1587CA0ED9C",
@@ -202,7 +198,7 @@ def mock_community():
               "issuer": "2E69197FAB029D8669EF85E82457A1587CA0ED9C",
               "ids": ["10-1-2-F-14"]
             }]
-            }    
+            }
         elif type(request) == ucoin.pks.Lookup:
             return user_keys[ get_args['search'] ]
         else:
@@ -218,13 +214,12 @@ def mock_communities():
     mock = Mock(spec=Communities, communities_list=[])
     return mock
 
-    
-#TODO: Test account
+
 class Test_Account:
     def test_account_create1(self, mock_communities):
         account = Account.create("25500A07", "TestUser", mock_communities)
         assert account is not None
-        
+
     def test_account_create2(self, monkeypatch, mock_communities, mock_community):
         monkeypatch.setattr(gnupg, 'GPG', mock_gpg)
         mock_communities.communities_list=[mock_community]
@@ -255,12 +250,6 @@ class Test_Account:
         account = Account.create("25500A07", "TestUser", mock_communities)
         assert len(account.transactions_sent()) == 1
         assert sum( trx.value() for trx in account.transactions_sent()) == 200
-
-    def test_account_last_issuances(self, monkeypatch, mock_community, mock_communities):
-        monkeypatch.setattr(gnupg, 'GPG', mock_gpg)
-        mock_communities.communities_list=[mock_community]
-        account = Account.create("25500A07", "TestUser", mock_communities)
-        assert len(account.last_issuances(mock_community)) == 1
 
     def test_account_issued_last_dividend(self):
         pass

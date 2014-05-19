@@ -1,5 +1,5 @@
 import pytest
-import ucoinpy as ucoin
+import ucoin
 from mock import Mock, MagicMock, patch
 from cutecoin.models.wallet import Wallet
 from cutecoin.models.community import Community, CommunityNetwork
@@ -21,10 +21,10 @@ def mock_community():
             }
         else:
                 assert 0
-            
+
     def community_eq(mock1, mock2):
             return mock1.amendment_id() == mock2.amendment_id()
-                
+
     mock_network = Mock(spec=CommunityNetwork, request=community_request)
     community = MagicMock(spec=Community, network=mock_network, __eq__=community_eq)
 
@@ -49,7 +49,7 @@ class Test_Wallet:
 
     def test_wallet_get_text(self):
         pass
-        
+
     def test_eq(self):
         mock1 = mock_community()
         mock1.amendment_id.return_value = "2-AMENDMENTTEST"
@@ -59,7 +59,7 @@ class Test_Wallet:
         wallet2 = Wallet([], mock2)
 
         assert wallet1 == wallet2
-        
+
     def test_not_eq(self):
         mock1 = mock_community()
         mock1.amendment_id.return_value = "2-AMENDMENTTEST"
@@ -69,11 +69,11 @@ class Test_Wallet:
         wallet2 = Wallet([], mock2)
 
         assert wallet1 != wallet2
-        
+
     def test_wallet_jsonify(self, monkeypatch):
         wallet = Wallet([], mock_community())
         wallet.refresh_coins("86F7E437FAA5A7FCE15D1DDCB9EAEAEA377667B8")
         json = wallet.jsonify()
         wallet2 = Wallet.load(json, mock_community())
         same_coins = [coin1 for coin1, coin2 in zip(wallet.coins, wallet2.coins) if coin1 == coin2]
-        assert len(same_coins) == len(wallet.coins) and len(same_coins) == len(wallet2.coins) 
+        assert len(same_coins) == len(wallet.coins) and len(same_coins) == len(wallet2.coins)
