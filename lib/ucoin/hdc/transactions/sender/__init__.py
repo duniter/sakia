@@ -56,7 +56,7 @@ class Last(Base):
             return self.requests_get('/last', **kwargs).json()
 
         if not self.from_:
-            return self.request_get('/last/%d' % self.count, **kwargs).json()
+            return self.requests_get('/last/%d' % self.count, **kwargs).json()
 
         return self.requests_get('/last/%d/%d' % (self.count, self.from_),
                                   **kwargs).json()
