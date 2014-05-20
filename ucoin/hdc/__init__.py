@@ -23,7 +23,7 @@ logger = logging.getLogger("ucoin/hdc")
 
 
 class HDC(API):
-    def __init__(self, module='hdc', server=None, port=None):
+    def __init__(self, server=None, port=None, module='hdc'):
         super().__init__(module, server, port)
 
 from . import amendments, coins, transactions

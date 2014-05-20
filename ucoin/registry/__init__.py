@@ -21,7 +21,7 @@ logger = logging.getLogger("ucoin/registry")
 
 class Registry(API):
     def __init__(self, module='registry', server=None, port=None):
-        super().__init__(module, server, port)
+        super().__init__(module=module, server, port)
 
 
 class Parameters(Registry):
