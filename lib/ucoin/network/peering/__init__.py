@@ -24,7 +24,7 @@ logger = logging.getLogger("ucoin/network/peering")
 
 class Base(Network):
     def __init__(self, server=None, port=None):
-        super().__init__(module='network/peering', server, port)
+        super().__init__(module='network/peering', server=server, port=port)
 
 
 class Peers(Base):
