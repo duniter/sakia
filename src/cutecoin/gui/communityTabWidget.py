@@ -24,4 +24,5 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         self.setupUi(self)
         self.community = community
         self.account = account
-        self.list_community_members.setModel(MembersListModel(community))
+        wallets = account.wallets.community_wallets(community.currency)
+        self.list_community_members.setModel(MembersListModel(community, wallets))

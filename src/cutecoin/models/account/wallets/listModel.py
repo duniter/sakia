@@ -21,12 +21,12 @@ class WalletsListModel(QAbstractListModel):
         self.wallets = account.wallets
 
     def rowCount(self, parent):
-        return len(self.wallets.wallets_list)
+        return len(self.wallets)
 
     def data(self, index, role):
         if role == Qt.DisplayRole:
             row = index.row()
-            value = self.wallets.wallets_list[row].getText()
+            value = self.wallets[row].get_text()
             return value
 
     def flags(self, index):

@@ -8,7 +8,8 @@ from cutecoin.gui.processConfigureCommunity import ProcessConfigureCommunity
 from cutecoin.models.account.communities.listModel import CommunitiesListModel
 from cutecoin.tools.exceptions import KeyAlreadyUsed
 from cutecoin.models.account import Account
-from cutecoin.models.account import Communities
+from cutecoin.models.account.communities import Communities
+from cutecoin.models.account.wallets import Wallets
 from cutecoin.models.node import Node
 
 from PyQt5.QtWidgets import QDialog, QErrorMessage, QInputDialog
@@ -104,7 +105,8 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
             self.account = Account.create(
                 available_keys[0]['keyid'],
                 "",
-                Communities())
+                Communities(),
+                Wallets())
             self.combo_keys_list.currentIndexChanged[
                 int].connect(self.key_changed)
 
@@ -157,7 +159,7 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
                 self.stacked_pages.setCurrentIndex(next_index)
                 self.step.display_page()
         else:
-            self.accepted.emit()
+            self.accept()
 
     def previous(self):
         if self.step.previous_step is not None:
@@ -173,4 +175,5 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
                 self.core.add_account(self.account)
             except KeyAlreadyUsed as e:
                 QErrorMessage(self).showMessage(e.message)
+        self.accepted.emit()
         self.close()

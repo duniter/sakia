@@ -49,8 +49,8 @@ class Test_Wallets:
         mock_wallet2 = Mock(spec=Wallet, community=mock2)
         mock_wallet3 = Mock(spec=Wallet, community=mock3)
         wallets = Wallets()
-        wallets.wallets_list.append(mock_wallet1)
-        wallets.wallets_list.append(mock_wallet2)
+        wallets._wallets_list.append(mock_wallet1)
+        wallets._wallets_list.append(mock_wallet2)
 
         assert wallets.get_wallet(mock_wallet1) is not None
         assert wallets.get_wallet(mock_wallet2) is not None
@@ -62,8 +62,8 @@ class Test_Wallets:
         mock_wallet1 = Mock(spec=Wallet, community=mock1)
         mock_wallet2 = Mock(spec=Wallet, community=mock2)
         wallets = Wallets()
-        wallets.wallets_list.append(mock_wallet1)
-        wallets.wallets_list.append(mock_wallet2)
+        wallets._wallets_list.append(mock_wallet1)
+        wallets._wallets_list.append(mock_wallet2)
 
         wallets.remove_all_wallets_of(mock1)
         assert wallets.get_wallet(mock_wallet1) is None

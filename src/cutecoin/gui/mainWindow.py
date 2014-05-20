@@ -108,8 +108,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def refresh_wallet_content(self, index):
         if index.isValid():
-            current_wallet = self.core.current_account.wallets.wallets_list[
-                index.row()]
+            current_wallet = self.core.current_account.wallets[index.row()]
             self.list_wallet_content.setModel(WalletListModel(current_wallet))
         else:
             self.list_wallet_content.setModel(WalletListModel([]))

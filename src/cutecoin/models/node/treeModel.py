@@ -5,24 +5,23 @@ Created on 5 févr. 2014
 '''
 
 from PyQt5.QtCore import QAbstractItemModel, QModelIndex, Qt
-from cutecoin.models.node.itemModel import NodeItem
-from cutecoin.models.community.itemModel import CommunityItemModel
+from cutecoin.models.node.itemModel import NodeItem, RootItem
 import logging
 
 
-class CommunityTreeModel(QAbstractItemModel):
+class NodesTreeModel(QAbstractItemModel):
 
     '''
     A Qt abstract item model to display nodes of a community
     '''
 
-    def __init__(self, community):
+    def __init__(self, nodes, community_name):
         '''
         Constructor
         '''
-        super(CommunityTreeModel, self).__init__(None)
-        self.community = community
-        self.root_item = CommunityItemModel(self.community)
+        super(NodesTreeModel, self).__init__(None)
+        self.nodes = nodes
+        self.root_item = RootItem(community_name)
         self.refresh_tree_nodes()
 
     def columnCount(self, parent):
@@ -95,7 +94,7 @@ class CommunityTreeModel(QAbstractItemModel):
 
     def refresh_tree_nodes(self):
         logging.debug("root : " + self.root_item.data(0))
-        for node in self.community.network.nodes:
+        for node in self.nodes:
             node_item = NodeItem(node, self.root_item)
             logging.debug(
                 "mainNode : " +

@@ -46,8 +46,7 @@ class PersonNotFoundError(Error):
             class_type +
             " in " +
             type +
-            " not present in community " +
-            community.name)
+            " not found ")
 
 
 class CommunityNotFoundError(Error):
@@ -68,7 +67,8 @@ class CommunityNotFoundError(Error):
 class KeyAlreadyUsed(Error):
 
     '''
-    Exception raised trying to add an account using a key already used for another account.
+    Exception raised trying to add an account using
+    a key already used for another account.
     '''
 
     def __init__(self, new_account, keyid, found_account):

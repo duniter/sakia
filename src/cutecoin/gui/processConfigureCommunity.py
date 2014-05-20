@@ -6,8 +6,8 @@ Created on 8 mars 2014
 import ucoin
 from cutecoin.gen_resources.communityConfigurationDialog_uic import Ui_CommunityConfigurationDialog
 from PyQt5.QtWidgets import QDialog, QMenu, QMessageBox
-from cutecoin.models.community.treeModel import CommunityTreeModel
-from cutecoin.models.community.trustsTreeModel import CommunityTrustsTreeModel
+from cutecoin.models.node.treeModel import NodesTreeModel
+from cutecoin.models.wallet.trustsTreeModel import TrustsTreeModel
 from cutecoin.models.node import Node
 from cutecoin.gui.walletTabWidget import WalletTabWidget
 
@@ -45,11 +45,8 @@ class StepPageInit(Step):
         port = self.config_dialog.spinbox_port.value()
         default_node = Node(server, port, trust=True, hoster=True)
         account = self.config_dialog.account
-        self.config_dialog.community = account.communities.add_community(
-            default_node)
-        #TODO: Get existing Wallet from ucoin node
-        account.wallets.add_wallet(account.fingerprint,
-                                   self.config_dialog.community)
+        self.config_dialog.community = account.add_community(default_node)
+        self.config_dialog.nodes.append(default_node)
 
     def display_page(self):
         self.config_dialog.button_previous.setEnabled(False)
@@ -70,7 +67,8 @@ class StepPageAddNodes(Step):
         pass
 
     def display_page(self):
-        tree_model = CommunityTreeModel(self.config_dialog.community)
+        tree_model = NodesTreeModel(self.config_dialog.nodes,
+                                    self.config_dialog.community.name())
         self.config_dialog.tree_nodes.setModel(tree_model)
         self.config_dialog.button_previous.setEnabled(False)
         self.config_dialog.button_next.setText("Next")
@@ -89,14 +87,14 @@ class StepPageSetWallets(Step):
 
     def display_page(self):
         self.config_dialog.tabs_wallets.clear()
-        for wallet in self.config_dialog.account.wallets.wallets_list:
+        for wallet in self.config_dialog.account.wallets:
             wallet_tab = WalletTabWidget(self.config_dialog.account,
                                          self.config_dialog.community)
             self.config_dialog.tabs_wallets.addTab(wallet_tab, wallet.name)
+            tree_model = TrustsTreeModel(wallet,
+                                         self.config_dialog.community.name())
+            wallet_tab.trusts_tree_view.setModel(tree_model)
 
-        tree_model = CommunityTrustsTreeModel(self.config_dialog.community)
-        current_tab = self.config_dialog.tabs_wallets.currentWidget()
-        current_tab.trusts_tree_view.setModel(tree_model)
         self.config_dialog.button_previous.setEnabled(True)
         self.config_dialog.button_next.setText("Ok")
 
@@ -105,7 +103,6 @@ class StepPageSetWallets(Step):
 
 
 class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
-
     '''
     Dialog to configure or add a community
     '''
@@ -119,6 +116,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         self.community = community
         self.account = account
         self.step = None
+        self.nodes = []
 
         step_init = StepPageInit(self)
         step_add_nodes = StepPageAddNodes(self)
@@ -160,16 +158,18 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         '''
         Add node slot
         '''
-        server = self.edit_server.text()
-        port = self.box_port.value()
+        server = self.lineedit_server.text()
+        port = self.spinbox_port.value()
         if self.community is not None:
-            self.community.nodes.append(Node(server, port, trust=True))
-            self.tree_nodes.setModel(CommunityTreeModel(self.community))
+            self.nodes.append(Node(server, port, trust=True))
+            self.tree_nodes.setModel(NodesTreeModel(self.community,
+                                                    self.nodes))
 
     def showContextMenu(self, point):
-        menu = QMenu()
-        action = menu.addAction("Delete", self.removeNode)
-        if self.community is not None:
-            if len(self.community.nodes) == 1:
-                action.setEnabled(False)
-        menu.exec_(self.tree_nodes.mapToGlobal(point))
+        if self.stacked_pages.currentIndex() == 1:
+            menu = QMenu()
+            action = menu.addAction("Delete", self.removeNode)
+            if self.community is not None:
+                if len(self.nodes) == 1:
+                    action.setEnabled(False)
+            menu.exec_(self.mapToGlobal(point))

@@ -16,28 +16,28 @@ class Transaction(object):
     At the moment the difference is not made
     '''
 
-    def __init__(self, sender, tx_number, community, recipient):
+    def __init__(self, sender, tx_number, wallet, recipient):
         self.tx_number = tx_number
-        self.community = community
+        self.wallet = wallet
         self.sender = sender
         self.recipient = recipient
 
     @classmethod
-    def create(cls, pgp_fingerprint, tx_number, community):
-        transaction_view = community.network.request(
+    def create(cls, pgp_fingerprint, tx_number, wallet):
+        transaction_view = wallet.request(
             ucoin.hdc.transactions.sender.View(pgp_fingerprint, tx_number))
         transaction_data = transaction_view['transaction']
 
-        sender = Person.lookup(pgp_fingerprint, community)
+        sender = Person.lookup(pgp_fingerprint, wallet)
         recipient = Person.lookup(
             transaction_data['recipient'],
-            community)
+            wallet)
 
-        return cls(Transaction(sender, tx_number, community, recipient))
+        return cls(Transaction(sender, tx_number, wallet, recipient))
 
     def value(self):
         value = 0
-        trx_data = self.community.network.request(
+        trx_data = self.wallet.request(
             ucoin.hdc.transactions.sender.View(self.sender.fingerprint,
                                                self.tx_number))
         for coin in trx_data['transaction']['coins']:
@@ -45,7 +45,7 @@ class Transaction(object):
         return value
 
     def currency(self):
-        trx_data = self.community.network.request(
+        trx_data = self.wallet.request(
             ucoin.hdc.transactions.sender.View(self.sender.fingerprint,
                                         self.tx_number))
         currency = trx_data['transaction']['currency']

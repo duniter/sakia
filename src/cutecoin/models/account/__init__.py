@@ -35,15 +35,11 @@ class Account(object):
         self.contacts = contacts
 
     @classmethod
-    def create(cls, keyid, name, communities):
+    def create(cls, keyid, name, communities, wallets):
         '''
         Constructor
         '''
-        wallets = Wallets()
         account = cls(keyid, name, communities, wallets, [])
-        for community in account.communities.communities_list:
-            wallet = account.wallets.add_wallet(community)
-            wallet.refresh_coins(account.fingerprint())
         return account
 
     @classmethod
@@ -76,6 +72,17 @@ class Account(object):
     def add_contact(self, person):
         self.contacts.append(person)
 
+    def add_community(self, default_node):
+        promoted = ucoin.hdc.amendments.Promoted()
+        default_node.use(promoted)
+        amendment_data = promoted.get()
+        currency = amendment_data['currency']
+        community = self.communities.add_community(currency)
+        self.wallets.add_wallet(self.fingerprint(),
+                                   currency,
+                                   default_node)
+        return community
+
     def fingerprint(self):
         gpg = gnupg.GPG()
         available_keys = gpg.list_keys()
@@ -85,37 +92,6 @@ class Account(object):
             if k['keyid'] == self.keyid:
                 return k['fingerprint']
         return ""
-
-    def transactions_received(self):
-        received = []
-        for community in self.communities.communities_list:
-            transactions_data = community.network.request(
-                ucoin.hdc.transactions.Recipient(
-                    self.fingerprint()))
-            for trx_data in transactions_data:
-                received.append(
-                    Transaction.create(
-                        trx_data['value']['transaction']['sender'],
-                        trx_data['value']['transaction']['number'],
-                        community))
-        return received
-
-    def transactions_sent(self):
-        sent = []
-        for community in self.communities.communities_list:
-            transactions_data = community.network.request(
-                ucoin.hdc.transactions.sender.Last(
-                    self.fingerprint(),
-                    20))
-            for trx_data in transactions_data:
-                # Small bug in ucoinpy library
-                if not isinstance(trx_data, str):
-                    sent.append(
-                        Transaction.create(
-                            trx_data['value']['transaction']['sender'],
-                            trx_data['value']['transaction']['number'],
-                            community))
-        return sent
 
     def transfer_coins(self, node, recipient, coins, message):
         transfer = ucoin.wrappers.transactions.RawTransfer(
@@ -128,9 +104,24 @@ class Account(object):
             port=node.port)
         return transfer()
 
+    def transactions_received(self):
+        received = []
+        for w in self.wallets:
+            for r in w.transactions_received():
+                received.append(r)
+        return received
+
+    def transactions_sent(self):
+        sent = []
+        for w in self.wallets:
+            for t in w.transactions_sent():
+                sent.append(t)
+        return sent
+
     def quality(self, community):
         if community in self.communities.communities_list:
-            return community.person_quality(self.fingerprint())
+            wallets = self.wallets.community_wallets(community.currency)
+            return community.person_quality(wallets, self.fingerprint())
         else:
             raise CommunityNotFoundError(self.keyid, community.amendment_id())
 

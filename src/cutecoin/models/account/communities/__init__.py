@@ -20,11 +20,11 @@ class Communities(object):
         '''
         self.communities_list = []
 
-    def add_community(self, main_node):
+    def add_community(self, wallets):
         '''
         Add a community with a mainNode
         '''
-        community = Community.create(main_node)
+        community = Community.create(wallets)
         if community not in self.communities_list:
             self.communities_list.append(community)
             return community

@@ -24,11 +24,11 @@ class Person(object):
         self.email = email
 
     @classmethod
-    def lookup(cls, fingerprint, community):
+    def lookup(cls, fingerprint, wallet):
         '''
         Create a person from the fngerprint found in a community
         '''
-        keys = community.network.request(
+        keys = wallet.request(
             ucoin.pks.Lookup(),
             get_args={
                 'search': "0x" +
@@ -41,7 +41,7 @@ class Person(object):
             email = json['email']
             return cls(name, fingerprint, email)
         else:
-            raise PersonNotFoundError(fingerprint, "fingerprint", community)
+            raise PersonNotFoundError(fingerprint, "fingerprint", wallet)
         return None
 
     @classmethod

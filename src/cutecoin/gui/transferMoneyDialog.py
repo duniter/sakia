@@ -30,13 +30,13 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         super(TransferMoneyDialog, self).__init__()
         self.setupUi(self)
         self.sender = sender
-        for wallet in sender.wallets.wallets_list:
+        for wallet in sender.wallets:
             self.combo_wallets.addItem(wallet.getText())
 
         for contact in sender.contacts:
             self.combo_contact.addItem(contact.name)
 
-        self.refresh_transaction(sender.wallets.wallets_list[0])
+        self.refresh_transaction(sender.wallets[0])
 
     def remove_coins_from_transfer(self):
         selection = self.list_coins_sent.selectedIndexes()
@@ -93,7 +93,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
             QErrorMessage(self).showMessage("Cannot transfer coins.")
 
     def change_displayed_wallet(self, index):
-        wallet = self.sender.wallets.wallets_list[index]
+        wallet = self.sender.wallets[index]
         self.refresh_transaction(wallet)
 
     def refresh_transaction(self, wallet):
