@@ -159,7 +159,7 @@ class Test_Community():
     def test_community_jsonify(self, monkeypatch):
         monkeypatch.setattr(ucoin.hdc.amendments.Promoted,
                             '__get__', patch_amendment_Promoted_get)
-        main_node = Node(trust=True, hoster=True,
+        main_node = Node.create(trust=True, hoster=True,
                 server="192.168.100.10", port=3800)
         community = Community.create(main_node)
         wallets = Wallets()

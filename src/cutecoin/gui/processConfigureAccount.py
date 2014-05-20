@@ -57,7 +57,7 @@ class StepPageCommunities(Step):
         '''
         server = self.config_dialog.lineedit_server.text()
         port = self.config_dialog.spinbox_port.value()
-        default_node = Node(server, port, trust=True, hoster=True)
+        default_node = Node.create(server, port, trust=True, hoster=True)
         account = self.config_dialog.account
         self.config_dialog.community = account.communities.add_community(
             default_node)
@@ -105,8 +105,8 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
             self.account = Account.create(
                 available_keys[0]['keyid'],
                 "",
-                Communities(),
-                Wallets())
+                Communities.create(),
+                Wallets.create())
             self.combo_keys_list.currentIndexChanged[
                 int].connect(self.key_changed)
 
@@ -140,7 +140,7 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         self.list_communities.setModel(CommunitiesListModel(self.account))
 
     def open_process_edit_community(self, index):
-        community = self.account.communities.communities_list[index.row()]
+        community = self.account.communities[index.row()]
         dialog = ProcessConfigureCommunity(self.account, community)
         dialog.button_box.accepted.connect(self.action_edit_community)
         dialog.exec_()

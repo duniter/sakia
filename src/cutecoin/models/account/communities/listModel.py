@@ -21,13 +21,13 @@ class CommunitiesListModel(QAbstractListModel):
         self.communities = account.communities
 
     def rowCount(self, parent):
-        return len(self.communities.communities_list)
+        return len(self.communities)
 
     def data(self, index, role):
 
         if role == Qt.DisplayRole:
             row = index.row()
-            value = self.communities.communities_list[row].name()
+            value = self.communities[row].name()
             return value
 
     def flags(self, index):

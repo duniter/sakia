@@ -46,21 +46,15 @@ class Account(object):
     def load(cls, json_data):
         keyid = json_data['keyid']
         name = json_data['name']
-        communities = Communities()
-        wallets = Wallets()
         contacts = []
 
         for contact_data in json_data['contacts']:
             contacts.append(Person.from_json(contact_data))
 
+        wallets = Wallets.load(json_data['wallets'])
+        communities = Communities.load(json_data['communities'])
+
         account = cls(keyid, name, communities, wallets, contacts)
-
-        for community_data in json_data['communities']:
-            account.communities.communities_list.append(
-                Community.load(
-                    community_data,
-                    account))
-
         return account
 
     def __eq__(self, other):
@@ -119,7 +113,7 @@ class Account(object):
         return sent
 
     def quality(self, community):
-        if community in self.communities.communities_list:
+        if community in self.communities:
             wallets = self.wallets.community_wallets(community.currency)
             return community.person_quality(wallets, self.fingerprint())
         else:
@@ -134,6 +128,7 @@ class Account(object):
     def jsonify(self):
         data = {'name': self.name,
                 'keyid': self.keyid,
-                'communities': self.communities.jsonify(self.wallets),
+                'communities': self.communities.jsonify(),
+                'wallets': self.wallets.jsonify(),
                 'contacts': self.jsonify_contacts()}
         return data

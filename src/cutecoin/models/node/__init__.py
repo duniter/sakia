@@ -13,7 +13,7 @@ class Node(object):
     A ucoin node using BMA protocol
     '''
 
-    def __init__(self, server, port, trust=False, hoster=False):
+    def __init__(self, server, port, trust, hoster):
         '''
         Constructor
         '''
@@ -21,6 +21,18 @@ class Node(object):
         self.port = port
         self.trust = trust
         self.hoster = hoster
+
+    @classmethod
+    def create(cls, server, port, trust=False, hoster=False):
+        return cls(server, port, trust, hoster)
+
+    @classmethod
+    def load(cls, json_data):
+        server = json_data['server']
+        port = json_data['port']
+        trust = json_data['trust']
+        hoster = json_data['hoster']
+        return cls(server, port, trust, hoster)
 
     def __eq__(self, other):
         return (self.server == other.server and self.port == other.port)
@@ -39,7 +51,7 @@ class Node(object):
 
         peers = []
         for peer in ucoin.network.peering.peers.DownStream().get()['peers']:
-            node = Node(peer['ipv4'], peer['port'])
+            node = Node.create(peer['ipv4'], peer['port'])
             peers.append(node)
 
         return peers

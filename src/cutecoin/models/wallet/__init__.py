@@ -40,12 +40,17 @@ class Wallet(object):
     @classmethod
     def load(cls, json_data):
         coins = []
-        for coinData in json_data['coins']:
-            coins.append(Coin.from_id(coinData['coin']))
+        nodes = []
+        for coin_data in json_data['coins']:
+            coins.append(Coin.from_id(coin_data['coin']))
+
+        for node_data in json_data['nodes']:
+            nodes.append(Node.load(node_data))
+
         fingerprint = json_data['fingerprint']
         name = json_data['name']
         currency = json_data['currency']
-        return cls(fingerprint, coins, currency, name)
+        return cls(fingerprint, coins, currency, nodes, name)
 
     def __eq__(self, other):
         return (self.community == other.community)
@@ -134,7 +139,7 @@ class Wallet(object):
                 for peer in next_node.peers():
                     # Look for next node informations
                     found = self._search_node_by_fingerprint(
-                        node_fg, Node(
+                        node_fg, Node.create(
                             peer['ipv4'], int(
                                 peer['port'])), traversed_nodes)
                     if found is not None:
@@ -180,9 +185,15 @@ class Wallet(object):
             data.append({'coin': coin.get_id()})
         return data
 
+    def jsonify_nodes_list(self):
+        data = []
+        for node in self.nodes:
+            data.append(node.jsonify())
+        return data
+
     def jsonify(self):
-        #TODO: Jsonify nodes
         return {'coins': self.jsonify_coins_list(),
                 'fingerprint': self.fingerprint,
                 'name': self.name,
-                'currency': self.currency}
+                'currency': self.currency,
+                'nodes': self.jsonify_nodes_list()}

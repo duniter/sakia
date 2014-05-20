@@ -87,7 +87,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     self.core.current_account))
 
             self.tabs_communities.clear()
-            for community in self.core.current_account.communities.communities_list:
+            for community in self.core.current_account.communities:
                 tab_community = CommunityTabWidget(
                     self.core.current_account,
                     community)

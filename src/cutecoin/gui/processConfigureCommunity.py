@@ -43,7 +43,7 @@ class StepPageInit(Step):
         '''
         server = self.config_dialog.lineedit_server.text()
         port = self.config_dialog.spinbox_port.value()
-        default_node = Node(server, port, trust=True, hoster=True)
+        default_node = Node.create(server, port, trust=True, hoster=True)
         account = self.config_dialog.account
         self.config_dialog.community = account.add_community(default_node)
         self.config_dialog.nodes.append(default_node)
@@ -161,7 +161,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         server = self.lineedit_server.text()
         port = self.spinbox_port.value()
         if self.community is not None:
-            self.nodes.append(Node(server, port, trust=True))
+            self.nodes.append(Node.create(server, port, trust=True))
             self.tree_nodes.setModel(NodesTreeModel(self.community,
                                                     self.nodes))
 

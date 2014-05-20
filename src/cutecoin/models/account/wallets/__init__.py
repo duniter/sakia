@@ -14,11 +14,22 @@ class Wallets(object):
     The list of the wallets owned by an account.
     '''
 
-    def __init__(self, _wallets_list=[]):
+    def __init__(self, wallets_list):
         '''
         Constructor
         '''
-        self._wallets_list = _wallets_list
+        self._wallets_list = wallets_list
+
+    @classmethod
+    def create(cls):
+        return cls([])
+
+    @classmethod
+    def load(cls, json_data):
+        wallets_list = []
+        for wallet_data in json_data:
+            wallets_list.append(Wallet.load(wallet_data))
+        return cls(wallets_list)
 
     def __iter__(self):
         return self._wallets_list.__iter__()
@@ -51,17 +62,6 @@ class Wallets(object):
     def community_wallets(self, currency):
         return Wallets([w for w in self._wallets_list if w.currency == currency])
 
-    def jsonify(self, community):
-        '''
-        Return the list of wallets in a key:value form.
-        '''
-        community_wallets = [
-            w for w in self._wallets_list if w.community == community]
-        data = []
-        for wallet in community_wallets:
-            data.append(wallet.jsonify())
-        return data
-
     def request(self, request, get_args={}):
         for wallet in self._wallets_list:
             try:
@@ -77,3 +77,12 @@ class Wallets(object):
             except:
                 pass
             return response
+
+    def jsonify(self):
+        '''
+        Return the list of wallets in a key:value form.
+        '''
+        data = []
+        for wallet in self._wallets_list:
+            data.append(wallet.jsonify())
+        return data

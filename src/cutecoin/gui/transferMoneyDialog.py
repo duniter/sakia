@@ -31,7 +31,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         self.setupUi(self)
         self.sender = sender
         for wallet in sender.wallets:
-            self.combo_wallets.addItem(wallet.getText())
+            self.combo_wallets.addItem(wallet.get_text())
 
         for contact in sender.contacts:
             self.combo_contact.addItem(contact.name)
@@ -76,12 +76,12 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
                 self.combo_contact.currentIndex()]
 
         if self.radio_node_address.isChecked():
-            node = Node(
+            node = Node.create(
                 self.edit_node_address.text(), int(
                     self.edit_port.text()))
         else:
             # TODO: Manage trusted nodes
-            node = Node(
+            node = Node.create(
                 self.edit_node_address.text(), int(
                     self.edit_port.text()))
 
