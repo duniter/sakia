@@ -72,7 +72,7 @@ class Account(object):
         amendment_data = promoted.get()
         currency = amendment_data['currency']
         community = self.communities.add_community(currency)
-        self.wallets.add_wallet(self.fingerprint(),
+        self.wallets.add_wallet(self.keyid,
                                    currency,
                                    default_node)
         return community

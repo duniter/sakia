@@ -8,6 +8,7 @@ import ucoin
 import logging
 import gnupg
 import json
+import time
 from cutecoin.models.coin import Coin
 from cutecoin.models.node import Node
 from cutecoin.models.transaction import Transaction
@@ -21,21 +22,23 @@ class Wallet(object):
     It's only used to sort coins.
     '''
 
-    def __init__(self, fingerprint, coins, currency, nodes, name):
+    def __init__(self, keyid, coins, currency,
+                 nodes, required_trusts, name):
         '''
         Constructor
         '''
         self.coins = coins
-        self.fingerprint = fingerprint
+        self.keyid = keyid
         self.currency = currency
         self.name = name
         self.nodes = nodes
+        self.required_trusts = required_trusts
 
     @classmethod
-    def create(cls, fingerprint, currency, node, name):
+    def create(cls, keyid, currency, node, required_trusts, name):
         node.trust = True
         node.hoster = True
-        return cls(fingerprint, [], currency, [node], name)
+        return cls(keyid, [], currency, [node], required_trusts, name)
 
     @classmethod
     def load(cls, json_data):
@@ -47,10 +50,11 @@ class Wallet(object):
         for node_data in json_data['nodes']:
             nodes.append(Node.load(node_data))
 
-        fingerprint = json_data['fingerprint']
+        keyid = json_data['keyid']
         name = json_data['name']
         currency = json_data['currency']
-        return cls(fingerprint, coins, currency, nodes, name)
+        required_trusts = json_data['required_trusts']
+        return cls(keyid, coins, currency, nodes, required_trusts, name)
 
     def __eq__(self, other):
         return (self.community == other.community)
@@ -64,7 +68,7 @@ class Wallet(object):
     def transactions_received(self):
         received = []
         transactions_data = self.request(
-            ucoin.hdc.transactions.Recipient(self.fingerprint))
+            ucoin.hdc.transactions.Recipient(self.fingerprint()))
         for trx_data in transactions_data:
             received.append(
                 Transaction.create(
@@ -77,7 +81,7 @@ class Wallet(object):
         sent = []
         transactions_data = self.request(
             ucoin.hdc.transactions.sender.Last(
-                self.fingerprint, 20))
+                self.fingerprint(), 20))
         for trx_data in transactions_data:
             # Small bug in ucoinpy library
             if not isinstance(trx_data, str):
@@ -95,7 +99,7 @@ class Wallet(object):
         except ValueError:
             return None
 
-    def push_wht(self, community):
+    def push_wht(self):
         hosters_fg = []
         trusts_fg = []
         for trust in self.trusts():
@@ -106,27 +110,29 @@ class Wallet(object):
             logging.debug(peering)
             peering = hoster.peering()
             hosters_fg.append(peering['fingerprint'])
-        entry = {
-            'version': '1',
-            'currency': self.currency,
-            'issuer': self.fingerprint(),
-            'requiredTrusts': self.required_trusts,
-            'hosters': hosters_fg,
-            'trusts': trusts_fg
-        }
-        logging.debug(entry)
-        json_entry = json.JSONEncoder(indent=2).encode(entry)
+        wht_message = '''Version: 1
+Currency: %s
+Key: %s
+Date: %s
+RequiredTrusts: %d
+Hosters:
+''' % (self.currency, self.fingerprint(), int(time.time()),
+       self.required_trusts)
+        for hoster in hosters_fg:
+            wht_message += '''%s\n''' % hoster
+        wht_message += '''Trusts:\n'''
+        for trust in trusts_fg:
+            wht_message += '''%s\n''' % trust
+
+        wht_message = wht_message.replace("\n", "\r\n")
         gpg = gnupg.GPG()
-        signature = gpg.sign(json_entry, keyid=self.keyid, clearsign=True)
+        signature = gpg.sign(wht_message, keyid=self.keyid, detach=True)
 
-        dataPost = {
-            'entry': entry,
-            'signature': str(signature)
-        }
+        data_post = {'entry': wht_message,
+                     'signature': str(signature)}
+        logging.debug(data_post)
 
-        self.post(ucoin.network.Wallet(
-                pgp_fingerprint=self.fingerprint()),
-            dataPost)
+        self.post(ucoin.network.Wallet(), data_post)
 
     # TODO: Check if its working
     def _search_node_by_fingerprint(self, node_fg, next_node, traversed_nodes=[]):
@@ -175,6 +181,16 @@ class Wallet(object):
     def hosters(self):
         return [node for node in self.nodes if node.hoster]
 
+    def fingerprint(self):
+        gpg = gnupg.GPG()
+        available_keys = gpg.list_keys()
+        logging.debug(self.keyid)
+        for k in available_keys:
+            logging.debug(k)
+            if k['keyid'] == self.keyid:
+                return k['fingerprint']
+        return ""
+
     def get_text(self):
         return self.name + " : " + \
             str(self.value()) + " " + self.currency
@@ -193,7 +209,7 @@ class Wallet(object):
 
     def jsonify(self):
         return {'coins': self.jsonify_coins_list(),
-                'fingerprint': self.fingerprint,
+                'fingerprint': self.fingerprint(),
                 'name': self.name,
                 'currency': self.currency,
                 'nodes': self.jsonify_nodes_list()}

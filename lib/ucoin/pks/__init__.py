@@ -24,7 +24,7 @@ logger = logging.getLogger("ucoin/pks")
 
 class PKS(API):
     def __init__(self, module='pks', server=None, port=None):
-        super().__init__(module=module, server, port)
+        super().__init__(module=module, server=server, port=port)
 
 
 class Add(PKS):

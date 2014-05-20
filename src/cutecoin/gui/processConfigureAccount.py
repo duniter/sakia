@@ -62,12 +62,14 @@ class StepPageCommunities(Step):
         self.config_dialog.community = account.communities.add_community(
             default_node)
         #TODO: Get existing Wallet from ucoin node
-        account.wallets.add_wallet(account.fingerprint,
+        account.wallets.add_wallet(account.keyid,
                                    self.config_dialog.community)
 
     def display_page(self):
         self.config_dialog.button_previous.setEnabled(False)
         self.config_dialog.button_next.setText("Ok")
+        list_model = CommunitiesListModel(self.config_dialog.account)
+        self.config_dialog.list_communities.setModel(list_model)
 
 
 class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
@@ -88,6 +90,7 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         step_communities = StepPageCommunities(self)
         step_init.next_step = step_communities
         self.step = step_init
+        self.step.display_page()
         if self.account is None:
             self.setWindowTitle("New account")
         else:
@@ -119,9 +122,9 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         self.edit_account_name.setText(self.account.name)
 
     def open_process_add_community(self):
-            dialog = ProcessConfigureCommunity(self.account, None)
-            dialog.accepted.connect(self.action_add_community)
-            dialog.exec_()
+        dialog = ProcessConfigureCommunity(self.account, None)
+        dialog.accepted.connect(self.action_add_community)
+        dialog.exec_()
 
     def action_add_community(self):
         self.combo_keys_list.setEnabled(False)
@@ -142,7 +145,7 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
     def open_process_edit_community(self, index):
         community = self.account.communities[index.row()]
         dialog = ProcessConfigureCommunity(self.account, community)
-        dialog.button_box.accepted.connect(self.action_edit_community)
+        dialog.accepted.connect(self.action_edit_community)
         dialog.exec_()
 
     def key_changed(self, key_index):

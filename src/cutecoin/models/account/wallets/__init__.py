@@ -46,13 +46,15 @@ class Wallets(object):
     def __getitem__(self, key):
         return self._wallets_list[key]
 
-    def add_wallet(self, fingerprint, community, node, name="Main Wallet"):
+    def add_wallet(self, keyid, community, node,
+                   required_trusts=1, name="Main Wallet"):
         '''
         Create a new wallet of a specific currency.
         This wallet must not already be present in the account,
         it means the wallet must have a different name or a different currency.
         '''
-        wallet = Wallet.create(fingerprint, community, node, name)
+        wallet = Wallet.create(keyid, community, node,
+                               required_trusts, name)
         if wallet not in self._wallets_list:
             self._wallets_list.append(wallet)
             return wallet

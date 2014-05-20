@@ -144,8 +144,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
                 self.stacked_pages.setCurrentIndex(next_index)
                 self.step.display_page()
         else:
-            self.accepted.emit()
-            self.close()
+            self.accept()
 
     def previous(self):
         if self.step.previous_step is not None:
@@ -165,6 +164,10 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
             self.tree_nodes.setModel(NodesTreeModel(self.community,
                                                     self.nodes))
 
+    def required_trusts_changed(self, value):
+        wallet = self.account.wallets[self.tabs_wallets.currentIndex()]
+        wallet.required_trusts = value
+
     def showContextMenu(self, point):
         if self.stacked_pages.currentIndex() == 1:
             menu = QMenu()
@@ -173,3 +176,10 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
                 if len(self.nodes) == 1:
                     action.setEnabled(False)
             menu.exec_(self.mapToGlobal(point))
+
+    def accept(self):
+        for wallet in self.account.wallets:
+            wallet.push_wht()
+
+        self.accepted.emit()
+        self.close()
