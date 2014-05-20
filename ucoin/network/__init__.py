@@ -24,7 +24,7 @@ logger = logging.getLogger("ucoin/network")
 
 class Network(API):
     def __init__(self, module='network', server=None, port=None):
-        super().__init__(module=module, server, port)
+        super().__init__(module=module, server=server, port=port)
 
 
 class Pubkey(Network):
