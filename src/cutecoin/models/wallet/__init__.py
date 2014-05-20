@@ -93,11 +93,8 @@ class Wallet(object):
         return sent
 
     def pull_wht(self):
-        try:
-            wht = self.request(ucoin.network.Wallet(self.fingerprint()))
-            return wht['entries']
-        except ValueError:
-            return None
+        wht = self.request(ucoin.network.Wallet(self.fingerprint()))
+        return wht['entry']
 
     def push_wht(self):
         hosters_fg = []
@@ -145,9 +142,9 @@ Hosters:
                 for peer in next_node.peers():
                     # Look for next node informations
                     found = self._search_node_by_fingerprint(
-                        node_fg, Node.create(
-                            peer['ipv4'], int(
-                                peer['port'])), traversed_nodes)
+                        node_fg,
+                        Node.from_endpoints(peer['value']['endpoints']),
+                        traversed_nodes)
                     if found is not None:
                         return found
         return None
@@ -155,10 +152,12 @@ Hosters:
     def get_nodes_in_peering(self, fingerprints):
         nodes = []
         for node_fg in fingerprints:
-            nodes.append(
-                self._search_node_by_fingerprint(
+            node = self._search_node_by_fingerprint(
                     node_fg,
-                    self.trusts()[0]))
+                    self.trusts()[0])
+            if node is not None:
+                nodes.append(node)
+            #TODO: Check that one trust exists
         return nodes
 
     def request(self, request, get_args={}):

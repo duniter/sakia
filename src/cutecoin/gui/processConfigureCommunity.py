@@ -46,7 +46,6 @@ class StepPageInit(Step):
         default_node = Node.create(server, port, trust=True, hoster=True)
         account = self.config_dialog.account
         self.config_dialog.community = account.add_community(default_node)
-        self.config_dialog.nodes.append(default_node)
 
     def display_page(self):
         self.config_dialog.button_previous.setEnabled(False)
@@ -67,6 +66,12 @@ class StepPageAddNodes(Step):
         pass
 
     def display_page(self):
+        # We add already known nodes to the displayed list
+        for wallet in self.config_dialog.account.wallets:
+            for node in wallet.nodes:
+                if node not in self.config_dialog.nodes:
+                    self.config_dialog.nodes.append(node)
+
         tree_model = NodesTreeModel(self.config_dialog.nodes,
                                     self.config_dialog.community.name())
         self.config_dialog.tree_nodes.setModel(tree_model)
@@ -134,6 +139,8 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         else:
             self.step = step_init
             self.setWindowTitle("Add a community")
+
+        self.step.display_page()
 
     def next(self):
         if self.step.next_step is not None:

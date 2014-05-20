@@ -50,11 +50,19 @@ class Wallets(object):
                    required_trusts=1, name="Main Wallet"):
         '''
         Create a new wallet of a specific currency.
-        This wallet must not already be present in the account,
-        it means the wallet must have a different name or a different currency.
         '''
         wallet = Wallet.create(keyid, community, node,
                                required_trusts, name)
+        # We try to add already present nodes to the wallet
+        try:
+            present_nodes = wallet.get_nodes_in_peering(wallet.pull_wht())
+        except ValueError:
+            present_nodes = []
+
+        for present_node in present_nodes:
+            if present_node not in wallet.nodes:
+                wallet.nodes.append(present_node)
+
         if wallet not in self._wallets_list:
             self._wallets_list.append(wallet)
             return wallet

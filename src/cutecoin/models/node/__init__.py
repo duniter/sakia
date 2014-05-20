@@ -5,6 +5,7 @@ Created on 1 févr. 2014
 '''
 
 import ucoin
+import re
 
 
 class Node(object):
@@ -25,6 +26,16 @@ class Node(object):
     @classmethod
     def create(cls, server, port, trust=False, hoster=False):
         return cls(server, port, trust, hoster)
+
+    @classmethod
+    def from_endpoints(cls, endpoints):
+        #TODO: Manage multiple endpoints
+        for endpoint in endpoints:
+            bma_endpoints = re.compile('^BASIC_MERKLED_API( ([a-z_][a-z0-9-_.]+))?( ([0-9.]+))?( ([0-9a-f:]+))?( ([0-9]+))$')
+            m = bma_endpoints.match(endpoint)
+            server = m.group(4)
+            port = int(m.group(8))
+        return cls(server, port, False, False)
 
     @classmethod
     def load(cls, json_data):
