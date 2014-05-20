@@ -52,7 +52,7 @@ class Wallet(Network):
         - `pgp_fingerprint`: pgp fingerprint to use as a filter
         """
 
-        super().__init__(server, port)
+        super().__init__(server=server, port=port)
 
         self.pgp_fingerprint = pgp_fingerprint
 
