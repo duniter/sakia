@@ -61,7 +61,7 @@ class Wallet(Network):
             return self.merkle_easy_parser('/wallet')
 
         return self.merkle_easy_parser('/wallet/%s'
-                                       % self.pgp_fingerprint).json()
+                                       % self.pgp_fingerprint)
 
     def __post__(self, **kwargs):
         assert 'entry' in kwargs
