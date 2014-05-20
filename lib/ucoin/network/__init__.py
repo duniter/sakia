@@ -19,11 +19,11 @@
 from .. import API
 from .. import logging
 
-logger = logging.getLogger("ucoin/ucg")
+logger = logging.getLogger("ucoin/network")
 
 
 class Network(API):
-    def __init__(self, module='ucg', server=None, port=None):
+    def __init__(self, module='network', server=None, port=None):
         super().__init__(module, server, port)
 
 
