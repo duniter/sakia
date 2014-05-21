@@ -73,12 +73,19 @@ class Community(object):
         return int(current_amendment['number'])
 
     def person_quality(self, wallets, fingerprint):
-        if (fingerprint in self.voters_fingerprints(wallets)):
-            return "voter"
-        elif (fingerprint in self.members_fingerprints(wallets)):
-            return "member"
+        quality = 'nothing'
+        voter_req = ucoin.registry.community.voters.Current(fingerprint)
+        data = wallets.request(voter_req)
+        if data:
+            quality = 'voter'
         else:
-            return "nothing"
+            member_req = ucoin.registry.community.members.Current(fingerprint)
+            data = wallets.request(member_req)
+            if data:
+                membership = data['membership']
+                if membership['membership'] == 'IN':
+                    quality = 'member'
+        return quality
 
     def members_fingerprints(self, wallets):
         '''
@@ -87,7 +94,6 @@ class Community(object):
         memberships = wallets.request(
             ucoin.registry.community.Members())
         members = []
-        print(memberships)
         for m in memberships:
             members.append(m['membership']['issuer'])
         return members

@@ -3,13 +3,9 @@ Created on 2 févr. 2014
 
 @author: inso
 '''
-import logging
-from math import pow
-
-from PyQt5.QtWidgets import QDialog, QFrame, QSlider, QLabel, QDialogButtonBox, QErrorMessage
+from PyQt5.QtWidgets import QDialog, QErrorMessage
 
 
-from cutecoin.models.coin import Coin
 from cutecoin.models.person import Person
 from cutecoin.models.node import Node
 from cutecoin.models.coin.listModel import CoinsListModel
@@ -30,13 +26,17 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         super(TransferMoneyDialog, self).__init__()
         self.setupUi(self)
         self.sender = sender
+        self.wallet = sender.wallets[0]
         for wallet in sender.wallets:
             self.combo_wallets.addItem(wallet.get_text())
+
+        for trust in wallet.trusts():
+            self.combo_trusted_node.addItem(trust.get_text())
 
         for contact in sender.contacts:
             self.combo_contact.addItem(contact.name)
 
-        self.refresh_transaction(sender.wallets[0])
+        self.refresh_transaction()
 
     def remove_coins_from_transfer(self):
         selection = self.list_coins_sent.selectedIndexes()
@@ -47,26 +47,27 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
             coin = sent_coins[selected.row()]
             sent_coins.remove(coin)
             wallet_coins.append(coin)
-        self.list_wallet.setModel(CoinsListModel(wallet_coins))
-        self.list_coins_sent.setModel(CoinsListModel(new_wallet))
+        self.list_wallet.setModel(CoinsListModel(self.wallet, wallet_coins))
+        self.list_coins_sent.setModel(CoinsListModel(self.wallet, new_wallet))
 
     def add_coins_to_transfer(self):
         selection = self.list_wallet.selectedIndexes()
         wallet_coins = self.list_wallet.model().coins
         sent_coins = self.list_coins_sent.model().coins
-        new_wallet = wallet_coins
+        new_wallet_coins = wallet_coins
         for selected in selection:
             coin = wallet_coins[selected.row()]
-            new_wallet.remove(coin)
+            new_wallet_coins.remove(coin)
             sent_coins.append(coin)
-        self.list_wallet.setModel(CoinsListModel(new_wallet))
-        self.list_coins_sent.setModel(CoinsListModel(sent_coins))
+        self.list_wallet.setModel(CoinsListModel(self.wallet,
+                                                 new_wallet_coins))
+        self.list_coins_sent.setModel(CoinsListModel(self.wallet, sent_coins))
 
     def open_manage_wallet_coins(self):
         pass
 
     def accept(self):
-        sent_coins = self.list_coins_sent.model().toList()
+        sent_coins = self.list_coins_sent.model().to_list()
         recipient = None
 
         if self.radio_key_fingerprint.isChecked():
@@ -78,28 +79,28 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         if self.radio_node_address.isChecked():
             node = Node.create(
                 self.edit_node_address.text(), int(
-                    self.edit_port.text()))
+                    self.spinbox_port.text()))
         else:
             # TODO: Manage trusted nodes
-            node = Node.create(
-                self.edit_node_address.text(), int(
-                    self.edit_port.text()))
+            node = self.wallet.trusts()[self.combo_trusted_node.currentIndex()]
 
         message = self.edit_message.text()
         # TODO: Transfer money, and validate the window if no error happened
-        if self.sender.transfer_coins(node, recipient, sent_coins, message):
-            self.close()
+        error = self.wallet.transfer_coins(node, recipient, sent_coins, message)
+        if error:
+            QErrorMessage(self).showMessage("Cannot transfer coins " + error)
         else:
-            QErrorMessage(self).showMessage("Cannot transfer coins.")
+            self.close()
 
     def change_displayed_wallet(self, index):
-        wallet = self.sender.wallets[index]
-        self.refresh_transaction(wallet)
+        self.wallet = self.sender.wallets[index]
+        self.refresh_transaction()
 
-    def refresh_transaction(self, wallet):
-        coins_sent_model = CoinsListModel([])
+    def refresh_transaction(self):
+        coins_sent_model = CoinsListModel(self.wallet, [])
         self.list_coins_sent.setModel(coins_sent_model)
-        wallet_coins_model = CoinsListModel(list(wallet.coins))
+        wallet_coins_model = CoinsListModel(self.wallet,
+                                            list(self.wallet.coins))
         self.list_wallet.setModel(wallet_coins_model)
 
     def recipient_mode_changed(self, fingerprint_toggled):

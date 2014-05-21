@@ -18,7 +18,7 @@ class Communities(object):
         '''
         Constructor
         '''
-        self._communities_list = []
+        self._communities_list = _communities_list
 
     @classmethod
     def create(cls):

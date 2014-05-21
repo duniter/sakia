@@ -29,7 +29,7 @@ class ReceivedListModel(QAbstractListModel):
 
         if role == Qt.DisplayRole:
             row = index.row()
-            value = self.transactions[row].get_text()
+            value = self.transactions[row].get_receiver_text()
             return value
 
     def flags(self, index):

@@ -104,15 +104,12 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="edit_port">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
+         <widget class="QSpinBox" name="spinbox_port">
+          <property name="maximum">
+           <number>99999</number>
           </property>
-          <property name="placeholderText">
-           <string>Port</string>
+          <property name="value">
+           <number>8081</number>
           </property>
          </widget>
         </item>

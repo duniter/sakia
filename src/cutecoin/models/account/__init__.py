@@ -30,6 +30,7 @@ class Account(object):
         self.keyid = keyid
         self.name = name
         self.communities = communities
+        print(len(communities))
         self.wallets = wallets
         self.contacts = contacts
 
@@ -85,17 +86,6 @@ class Account(object):
             if k['keyid'] == self.keyid:
                 return k['fingerprint']
         return ""
-
-    def transfer_coins(self, node, recipient, coins, message):
-        transfer = ucoin.wrappers.transactions.RawTransfer(
-            self.fingerprint(),
-            recipient.fingerprint,
-            coins,
-            message,
-            keyid=self.keyid,
-            server=node.server,
-            port=node.port)
-        return transfer()
 
     def transactions_received(self):
         received = []

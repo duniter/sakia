@@ -24,12 +24,12 @@ class Wallet(object):
     It's only used to sort coins.
     '''
 
-    def __init__(self, keyid, coins, currency,
+    def __init__(self, keyid, currency,
                  nodes, required_trusts, name):
         '''
         Constructor
         '''
-        self.coins = coins
+        self.coins = []
         self.keyid = keyid
         self.currency = currency
         self.name = name
@@ -41,14 +41,11 @@ class Wallet(object):
     def create(cls, keyid, currency, node, required_trusts, name):
         node.trust = True
         node.hoster = True
-        return cls(keyid, [], currency, [node], required_trusts, name)
+        return cls(keyid, currency, [node], required_trusts, name)
 
     @classmethod
     def load(cls, json_data):
-        coins = []
         nodes = []
-        for coin_data in json_data['coins']:
-            coins.append(Coin.from_id(coin_data['coin']))
 
         for node_data in json_data['nodes']:
             nodes.append(Node.load(node_data))
@@ -57,7 +54,7 @@ class Wallet(object):
         name = json_data['name']
         currency = json_data['currency']
         required_trusts = json_data['required_trusts']
-        return cls(keyid, coins, currency, nodes, required_trusts, name)
+        return cls(keyid, currency, nodes, required_trusts, name)
 
     def __eq__(self, other):
         return (self.community == other.community)
@@ -70,11 +67,26 @@ class Wallet(object):
 
     #TODO: Enhance this code. Loading the amendment each time we load a coin is bad
     def refresh_coins(self):
+        self.coins = []
         coins_list_request = ucoin.hdc.coins.List(self.fingerprint())
         data = self.request(coins_list_request)
         for coin_data in data['coins']:
             coin = Coin.from_id(self, coin_data)
             self.coins.append(coin)
+
+    def transfer_coins(self, node, recipient, coins, message):
+        transfer = ucoin.wrappers.transactions.RawTransfer(
+            self.fingerprint(),
+            recipient.fingerprint,
+            coins,
+            message,
+            keyid=self.keyid,
+            server=node.server,
+            port=node.port)
+
+        result = transfer()
+        if result is False:
+            return transfer.error
 
     def transactions_received(self):
         received = []
@@ -93,19 +105,22 @@ class Wallet(object):
         transactions_data = self.request(
             ucoin.hdc.transactions.sender.Last(
                 self.fingerprint(), 20))
-        for trx_data in transactions_data:
+        for trx_data in transactions_data['transactions']:
             # Small bug in ucoinpy library
             if not isinstance(trx_data, str):
                 sent.append(
                     Transaction.create(
-                        trx_data['value']['transaction']['sender'],
-                        trx_data['value']['transaction']['number'],
+                        trx_data['sender'],
+                        trx_data['number'],
                         self))
         return sent
 
     def pull_wht(self):
         wht = self.request(ucoin.network.Wallet(self.fingerprint()))
-        return wht['entry']
+        if wht is None:
+            return []
+        else:
+            return wht['entry']
 
     def push_wht(self):
         hosters_fg = []
@@ -172,18 +187,28 @@ Hosters:
         return nodes
 
     def request(self, request, get_args={}):
+        data = None
         for node in self.trusts():
             logging.debug("Trying to connect to : " + node.get_text())
             node.use(request)
-            return request.get(**get_args)
-        raise RuntimeError("Cannot connect to any node")
+            try:
+                data = request.get(**get_args)
+            except:
+                continue
+            return data
+        return None
 
     def post(self, request, get_args={}):
+        data = None
         for node in self.hosters():
             logging.debug("Trying to connect to : " + node.get_text())
             node.use(request)
-            return request.post(**get_args)
-        raise RuntimeError("Cannot connect to any node")
+            try:
+                data = request.post(**get_args)
+            except:
+                continue
+            return data
+        return None
 
     def trusts(self):
         return [node for node in self.nodes if node.trust]
@@ -227,7 +252,7 @@ Hosters:
         return data
 
     def jsonify(self):
-        return {'coins': self.jsonify_coins_list(),
+        return {'required_trusts': self.required_trusts,
                 'keyid': self.keyid,
                 'name': self.name,
                 'currency': self.currency,

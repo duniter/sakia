@@ -18,7 +18,8 @@ class WalletListModel(QAbstractListModel):
         Constructor
         '''
         super(WalletListModel, self).__init__(parent)
-        self.coins = wallet.coins
+        self.coins = list(wallet.coins)
+        self.wallet = wallet
 
     def rowCount(self, parent):
         return len(self.coins)
@@ -26,7 +27,7 @@ class WalletListModel(QAbstractListModel):
     def data(self, index, role):
         if role == Qt.DisplayRole:
             row = index.row()
-            value = str(self.coins[row].value())
+            value = str(self.coins[row].value(self.wallet))
             return value
 
     def flags(self, index):

@@ -54,9 +54,8 @@ class Wallets(object):
         wallet = Wallet.create(keyid, community, node,
                                required_trusts, name)
         # We try to add already present nodes to the wallet
-        try:
-            present_nodes = wallet.get_nodes_in_peering(wallet.pull_wht())
-        except ValueError:
+        present_nodes = wallet.get_nodes_in_peering(wallet.pull_wht())
+        if present_nodes is None:
             present_nodes = []
 
         for present_node in present_nodes:
@@ -73,11 +72,12 @@ class Wallets(object):
         return Wallets([w for w in self._wallets_list if w.currency == currency])
 
     def request(self, request, get_args={}):
+        response = None
         for wallet in self._wallets_list:
             try:
                 response = wallet.request(request, get_args)
             except:
-                pass
+                continue
             return response
 
     def post(self, request, get_args={}):
@@ -85,7 +85,7 @@ class Wallets(object):
             try:
                 response = wallet.post(request, get_args)
             except:
-                pass
+                continue
             return response
 
     def jsonify(self):

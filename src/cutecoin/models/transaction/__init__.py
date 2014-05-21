@@ -33,7 +33,7 @@ class Transaction(object):
             transaction_data['recipient'],
             wallet)
 
-        return cls(Transaction(sender, tx_number, wallet, recipient))
+        return cls(sender, tx_number, wallet, recipient)
 
     def value(self):
         value = 0
@@ -41,7 +41,8 @@ class Transaction(object):
             ucoin.hdc.transactions.sender.View(self.sender.fingerprint,
                                                self.tx_number))
         for coin in trx_data['transaction']['coins']:
-            value += Coin.from_id(coin['id']).value()
+            coin = coin.split(':')[0]
+            value += Coin.from_id(self.wallet, coin).value(self.wallet)
         return value
 
     def currency(self):
@@ -53,3 +54,9 @@ class Transaction(object):
 
     def transaction_id(self):
         return self.sender_fingerprint + "-" + self.increment
+
+    def get_receiver_text(self):
+        return str(self.value()) + " from " + self.sender.name
+
+    def get_sender_text(self):
+        return str(self.value()) + " to " + self.recipient.name

@@ -32,8 +32,8 @@ class AddContactDialog(QDialog, Ui_AddContactDialog):
         name = self.edit_name.text()
         fingerprint = self.edit_fingerprint.text()
         email = self.edit_email.text()
-        self.account.addContact(Person(name, fingerprint, email))
-        self.main_window.menu_contactsList.addAction(name)
+        self.account.add_contact(Person(name, fingerprint, email))
+        self.main_window.menu_contacts_list.addAction(name)
         self.close()
 
     def name_edited(self, new_name):
