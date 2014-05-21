@@ -35,7 +35,7 @@ class Wallet(object):
         self.name = name
         self.nodes = nodes
         self.required_trusts = required_trusts
-        self.coin_algo = None
+        self.amendments_cache = {}
 
     @classmethod
     def create(cls, keyid, currency, node, required_trusts, name):
@@ -65,27 +65,16 @@ class Wallet(object):
     def value(self):
         value = 0
         for coin in self.coins:
-            value += coin.value(self.coin_algo)
+            value += coin.value(self)
         return value
 
+    #TODO: Enhance this code. Loading the amendment each time we load a coin is bad
     def refresh_coins(self):
         coins_list_request = ucoin.hdc.coins.List(self.fingerprint())
         data = self.request(coins_list_request)
         for coin_data in data['coins']:
-            coin = Coin.from_id(coin_data)
+            coin = Coin.from_id(self, coin_data)
             self.coins.append(coin)
-        node_parameters = self.request(ucoin.registry.Parameters())
-
-        if 'CoinAlgo' in node_parameters:
-            coin_algo_name = node_parameters['CoinAlgo']
-        else:
-            coin_algo_name = 'Base2Draft'
-
-        try:
-            module = importlib.import_module("cutecoin.models.coin.algorithm")
-            self.coin_algo = module.getattr(module, coin_algo_name)
-        except AttributeError:
-            raise AlgorithmNotImplemented(coin_algo_name)
 
     def transactions_received(self):
         received = []
@@ -201,6 +190,15 @@ Hosters:
 
     def hosters(self):
         return [node for node in self.nodes if node.hoster]
+
+    def get_amendment(self, am_number):
+        if am_number in self.amendments_cache:
+            return self.amendments_cache[am_number]
+        else:
+            amendment_req = ucoin.hdc.amendments.Promoted(am_number)
+            new_am = self.request(amendment_req)
+            self.amendments_cache[am_number] = new_am
+            return new_am
 
     def fingerprint(self):
         gpg = gnupg.GPG()

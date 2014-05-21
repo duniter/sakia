@@ -60,7 +60,7 @@ class AlgorithmNotImplemented(Error):
         Constructor
         '''
         super(AlgorithmNotImplemented, self) \
-            .__init("Algorithm " + algo_name + " not implemented.")
+            .__init__("Algorithm " + algo_name + " not implemented.")
 
 
 class KeyAlreadyUsed(Error):
@@ -79,8 +79,7 @@ class KeyAlreadyUsed(Error):
             self) .__init__(
             "Cannot add account " +
             new_account.name +
-            " : "
-            " the pgpKey " +
+            " : the pgpKey " +
             keyid +
             " is already used by " +
             found_account.name)

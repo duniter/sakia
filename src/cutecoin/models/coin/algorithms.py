@@ -6,6 +6,7 @@ Created on 21 mai 2014
 
 import math
 
+
 class Algorithm(object):
     '''
     classdocs
@@ -16,18 +17,18 @@ class Algorithm(object):
         '''
         self.parameters = parameters
 
-    def coin_value(self, amendement, coin_number):
+    def __call__(self, amendment, coin_number):
         pass
 
 
 class Base2Draft(Algorithm):
 
     def __init__(self, parameters):
-        super.__init__(parameters)
+        super().__init__(parameters)
 
-    def coin_value(self, amendment, coin_number):
-        coin_base = amendment['CoinBase']
-        coins_list = amendment['CoinsList']
+    def __call__(self, amendment, coin_number):
+        coin_base = amendment['coinBase']
+        coins_list = amendment['coinList']
         i = 0
         while coin_number > coins_list[i]:
             coin_number -= coins_list[i]

@@ -7,7 +7,8 @@ Created on 2 févr. 2014
 import re
 import math
 import logging
-import ucoin
+import importlib
+from cutecoin.tools.exceptions import AlgorithmNotImplemented
 
 
 class Coin(object):
@@ -22,7 +23,7 @@ class Coin(object):
         self.coin_number = coin_number
 
     @classmethod
-    def from_id(cls, coin_id):
+    def from_id(cls, wallet, coin_id):
         # Regex to parse the coin id
         regex = "^([A-Z\d]{40})-(\d+)-(\d+)$"
         m = re.search(regex, coin_id)
@@ -35,9 +36,20 @@ class Coin(object):
         return self.get_id() == other.get_id()
 
     def value(self, wallet):
-        amendment_request = ucoin.hdc.amendments.view.Self(self.am_number)
-        amendment = wallet.request(amendment_request)
-        return wallet.coin_algo(amendment, self.coin_number)
+        amendment = wallet.get_amendment(self.am_number)
+        if 'CoinAlgo' in amendment:
+            coin_algo_name = self.amendment['CoinAlgo']
+        else:
+            coin_algo_name = 'Base2Draft'
+
+        try:
+            module = importlib.import_module("cutecoin.models.coin.algorithms")
+            coin_algo_class = getattr(module, coin_algo_name)
+            coin_algo = coin_algo_class({})
+        except AttributeError:
+            raise AlgorithmNotImplemented(coin_algo_name)
+
+        return coin_algo(amendment, self.coin_number)
 
     def get_id(self):
         return self.issuer + "-" \
