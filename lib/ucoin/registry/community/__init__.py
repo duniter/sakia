@@ -36,3 +36,6 @@ class Voters(Base):
 
     def __get__(self, **kwargs):
         return self.merkle_easy_parser('/voters')
+
+from . import members
+from . import voters
