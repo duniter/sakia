@@ -19,26 +19,22 @@ Qt Client for [Ucoin](http://www.ucoin.io) project.
 ### Done (master branch)
   * Accounts management
   * Communities viewing
-  * Coins issuance
   * Coins Transfer
   * cx_freeze deployment
-
-### Work in progress (dev branch)
+  * Wallet management (no multiple wallets yet)
   * Contacts management
-  * Account THT management
 
 ### Todo
-  * Coins issuance policies
-  * Contacts and messaging
-  * Separating the 3 roles : Voter, Member, Random guy. Differnt rights for different roles :
-    * A voter should be able to access the voting UI of the community (+member and random guy rights)
-    * A member should be able to issue money (+random guy rights)
-    * A random guy should be able to send and receive money
+  * Joining a community, publishing keys
+  * Multiple wallets management
+  * More user-friendly coins transfer
+  * Cutecoin keyring
 
 ### How to install
-  * __git clone --recursive https://github.com/Insoleet/cutecoin.git__ or if you already have clone the git, do __git submodule update --init --recursive__
+  * __git clone --recursive https://github.com/Insoleet/cutecoin.git__
   * Note : On Windows, it seems that PyQt5 works best with 32 bits version of Python.
   * Install [python3.3](https://www.python.org/download/releases/3.3.5), [cx_freeze for python 3.3](http://cx-freeze.sourceforge.net/) and [pyqt5](http://www.riverbankcomputing.co.uk/software/pyqt/download5), and [pip](http://www.pip-installer.org/en/latest/)
+  * On Linux, deployment works with python3.4 too
   * On Windows, make sure folders for python3 and pyqt5 binaries are in your $PATH
   * Run __pip install python-gnupg__ and __pip install requests__
   * Run __python gen_resources.py__ in cutecoin folder

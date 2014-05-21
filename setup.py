@@ -12,7 +12,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'lib')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 
 print(sys.path)
-includes = ["sip", "re", "json", "logging", "hashlib", "os", "urllib", "ucoinpy", "requests"]
+includes = ["sip", "re", "json", "logging", "hashlib", "os", "urllib", "ucoin", "requests"]
 excludes = []
 packages = ["gnupg"]
 
@@ -39,7 +39,7 @@ target = Executable(
 # creation du setup
 setup(
     name = "cutecoin",
-    version = "0.3.0",
+    version = "0.4.0",
     description = "UCoin client",
     author = "Inso",
     options = {"build_exe": options},
