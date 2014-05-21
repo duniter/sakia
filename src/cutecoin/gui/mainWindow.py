@@ -82,9 +82,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.label_account_name.setText(
                 "Current account : " +
                 self.core.current_account.name)
-            self.list_wallets.setModel(
-                WalletsListModel(
-                    self.core.current_account))
+
+            for wallet in self.core.current_account.wallets:
+                wallet.refresh_coins()
+
+            wallets_list_model = WalletsListModel(self.core.current_account)
+            self.list_wallets.setModel(wallets_list_model)
 
             self.tabs_communities.clear()
             for community in self.core.current_account.communities:

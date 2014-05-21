@@ -7,6 +7,7 @@ Created on 2 févr. 2014
 import re
 import math
 import logging
+import ucoin
 
 
 class Coin(object):
@@ -15,34 +16,30 @@ class Coin(object):
     A coin parsing a regex to read its value
     '''
 
-    def __init__(self, issuer, number, base, power, origin):
+    def __init__(self, issuer, am_number, coin_number):
         self.issuer = issuer
-        self.number = number
-        self.base = base
-        self.power = power
-        self.origin = origin
+        self.am_number = am_number
+        self.coin_number = coin_number
 
     @classmethod
     def from_id(cls, coin_id):
         # Regex to parse the coin id
-        regex = "^([A-Z\d]{40})-(\d+)-(\d)-(\d+)-((A|F|D)-\d+)$"
+        regex = "^([A-Z\d]{40})-(\d+)-(\d+)$"
         m = re.search(regex, coin_id)
         issuer = m.group(1)
-        number = int(m.group(2))
-        base = int(m.group(3))
-        power = int(m.group(4))
-        origin = m.group(5)
-        return cls(issuer, number, base, power, origin)
+        am_number = int(m.group(2))
+        power = int(m.group(3))
+        return cls(issuer, am_number, power)
 
     def __eq__(self, other):
         return self.get_id() == other.get_id()
 
-    def value(self):
-        return self.base * math.pow(10, self.power)
+    def value(self, wallet):
+        amendment_request = ucoin.hdc.amendments.view.Self(self.am_number)
+        amendment = wallet.request(amendment_request)
+        return wallet.coin_algo(amendment, self.coin_number)
 
     def get_id(self):
         return self.issuer + "-" \
-            + str(self.number) + "-" \
-            + str(self.base) + "-" \
-            + str(self.power) + "-" \
-            + self.origin
+            + str(self.am_number) + "-" \
+            + str(self.coin_number)

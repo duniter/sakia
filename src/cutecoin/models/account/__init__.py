@@ -13,7 +13,6 @@ from cutecoin.models.account.communities import Communities
 from cutecoin.models.community import Community
 from cutecoin.models.transaction import Transaction
 from cutecoin.models.person import Person
-from cutecoin.tools.exceptions import CommunityNotFoundError
 
 
 class Account(object):
@@ -113,11 +112,8 @@ class Account(object):
         return sent
 
     def quality(self, community):
-        if community in self.communities:
-            wallets = self.wallets.community_wallets(community.currency)
-            return community.person_quality(wallets, self.fingerprint())
-        else:
-            raise CommunityNotFoundError(self.keyid, community.amendment_id())
+        wallets = self.wallets.community_wallets(community.currency)
+        return community.person_quality(wallets, self.fingerprint())
 
     def jsonify_contacts(self):
         data = []

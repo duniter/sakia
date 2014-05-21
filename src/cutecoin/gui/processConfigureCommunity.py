@@ -185,6 +185,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
             menu.exec_(self.mapToGlobal(point))
 
     def accept(self):
+        #TODO: Push wht only if changed
         for wallet in self.account.wallets:
             wallet.push_wht()
 

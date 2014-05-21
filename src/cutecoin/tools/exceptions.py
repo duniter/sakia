@@ -49,19 +49,18 @@ class PersonNotFoundError(Error):
             " not found ")
 
 
-class CommunityNotFoundError(Error):
+class AlgorithmNotImplemented(Error):
 
     '''
-    Exception raised when looking for community in an account list
+    Exception raised when a coin uses an algorithm not known
     '''
 
-    def __init__(self, keyid, amendmentid):
+    def __init__(self, algo_name):
         '''
         Constructor
         '''
-        super(CommunityNotFoundError, self) \
-            .__init("Community with amendment " + amendmentid
-                    + " not found in account " + keyid)
+        super(AlgorithmNotImplemented, self) \
+            .__init("Algorithm " + algo_name + " not implemented.")
 
 
 class KeyAlreadyUsed(Error):

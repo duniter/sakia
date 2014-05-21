@@ -9,10 +9,12 @@ import logging
 import gnupg
 import json
 import time
+import importlib
 from cutecoin.models.coin import Coin
+from cutecoin.models.coin import algorithms
 from cutecoin.models.node import Node
 from cutecoin.models.transaction import Transaction
-from cutecoin.tools.exceptions import CommunityNotFoundError
+from cutecoin.tools.exceptions import AlgorithmNotImplemented
 
 
 class Wallet(object):
@@ -33,6 +35,7 @@ class Wallet(object):
         self.name = name
         self.nodes = nodes
         self.required_trusts = required_trusts
+        self.coin_algo = None
 
     @classmethod
     def create(cls, keyid, currency, node, required_trusts, name):
@@ -62,8 +65,27 @@ class Wallet(object):
     def value(self):
         value = 0
         for coin in self.coins:
-            value += coin.value()
+            value += coin.value(self.coin_algo)
         return value
+
+    def refresh_coins(self):
+        coins_list_request = ucoin.hdc.coins.List(self.fingerprint())
+        data = self.request(coins_list_request)
+        for coin_data in data['coins']:
+            coin = Coin.from_id(coin_data)
+            self.coins.append(coin)
+        node_parameters = self.request(ucoin.registry.Parameters())
+
+        if 'CoinAlgo' in node_parameters:
+            coin_algo_name = node_parameters['CoinAlgo']
+        else:
+            coin_algo_name = 'Base2Draft'
+
+        try:
+            module = importlib.import_module("cutecoin.models.coin.algorithm")
+            self.coin_algo = module.getattr(module, coin_algo_name)
+        except AttributeError:
+            raise AlgorithmNotImplemented(coin_algo_name)
 
     def transactions_received(self):
         received = []
@@ -208,7 +230,7 @@ Hosters:
 
     def jsonify(self):
         return {'coins': self.jsonify_coins_list(),
-                'fingerprint': self.fingerprint(),
+                'keyid': self.keyid,
                 'name': self.name,
                 'currency': self.currency,
                 'nodes': self.jsonify_nodes_list()}
