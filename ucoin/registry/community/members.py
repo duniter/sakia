@@ -14,13 +14,13 @@
 #
 #
 
-from .. import Registry
+from . import Base
 from .. import logging
 
 logger = logging.getLogger("ucoin/registry/community")
 
 
-class Current(Registry):
+class Current(Base):
     """GET the last valid membership document for member pgp_fingerprint"""
 
     def __init__(self, pgp_fingerprint=None, server=None, port=None):
@@ -40,7 +40,7 @@ class Current(Registry):
                                  **kwargs).json()
 
 
-class History(Registry):
+class History(Base):
     """GET the all received and stored membership documents"""
 
     def __init__(self, pgp_fingerprint=None, server=None, port=None):

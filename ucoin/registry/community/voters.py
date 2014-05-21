@@ -14,16 +14,10 @@
 #
 #
 
-from .. import Registry
+from . import Base
 from .. import logging
 
 logger = logging.getLogger("ucoin/registry/community")
-
-
-class Base(Registry):
-    def __init__(self, server=None, port=None):
-        super().__init__('hdc/registry/community', server, port)
-
 
 class Current(Base):
     """GET the last valid membership document for member pgp_fingerprint"""
@@ -36,7 +30,7 @@ class Current(Base):
         - `number`: amendment number
         """
 
-        super().__init__(server, port)
+        super().__init__(server=server, port=port)
 
         self.pgp_fingerprint = pgp_fingerprint
 
@@ -56,7 +50,7 @@ class History(Base):
         - `number`: amendment number
         """
 
-        super().__init__(server, port)
+        super().__init__(server=server, port=port)
 
         self.pgp_fingerprint = pgp_fingerprint
 
