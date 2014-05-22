@@ -124,9 +124,9 @@ Coins:
 
         for coin in self.coins:
             tx += '%s' % coin
-            context_data.update(hdc.coins.view.Owner(coin, self.server, self.port).get())
-            if 'transaction' in context_data:
-                tx += ':%(transaction)s\n' % context_data
+            ownership = hdc.coins.view.Owner(coin, self.server, self.port).get()
+            if 'transaction' in ownership:
+                tx += ':%(transaction)s\n' % ownership
             else:
                 tx += "\n"
 
