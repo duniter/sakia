@@ -98,3 +98,6 @@ Comment:
 
         tx = tx.replace("\n", "\r\n")
         return tx
+
+    def get_error(self):
+        return self.error
