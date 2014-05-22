@@ -42,7 +42,7 @@ target = Executable(
 # creation du setup
 setup(
     name = "cutecoin",
-    version = "0.4.0",
+    version = "0.4.1",
     description = "UCoin client",
     author = "Inso",
     options = {"build_exe": options},
