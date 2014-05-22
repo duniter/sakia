@@ -24,15 +24,26 @@ logger = logging.getLogger("transactions")
 
 
 class Transaction(Wrapper):
-    def __init__(self, pgp_fingerprint, message='', keyid=None, peering=None, server=None, port=None):
+    def __init__(self, pgp_fingerprint, recipient, coins, message='', keyid=None, peering=None, server=None, port=None):
         super().__init__(server, port)
         self.keyid = keyid
         self.pgp_fingerprint = pgp_fingerprint
         self.message = message
         self.error = None
         self.peering = peering
+        self.recipient = recipient
+        self.coins = coins
+        self.coins.sort()
 
     def __call__(self):
+        tx = self.get_message()
+        txs = settings['gpg'].sign(tx, keyid=self.keyid, detach=True)
+        return (tx, txs)
+
+    def get_context_data(self):
+        return {}
+
+    def get_message(self):
         try:
             last_tx = hdc.transactions.sender.Last(count=1, pgp_fingerprint=self.pgp_fingerprint,
                                                    server=self.server, port=self.port).get()
@@ -55,6 +66,7 @@ class Transaction(Wrapper):
         context_data['previousHash'] = previous_hash
         context_data['message'] = self.message
         context_data['fingerprint'] = self.pgp_fingerprint
+        context_data['recipient'] = self.recipient
         context_data.update(self.get_context_data())
 
         tx = """\
@@ -66,56 +78,6 @@ Number: %(number)d
 
         if last_tx: tx += "PreviousHash: %(previousHash)s\n" % context_data
 
-        try:
-            tx += self.get_message(context_data)
-        except ValueError as e:
-            self.error = e
-            return False
-
-        tx += """\
-Comment:
-%(message)s""" % context_data
-
-        tx = tx.replace("\n", "\r\n")
-        print(self.keyid)
-        print(tx)
-        txs = settings['gpg'].sign(tx, keyid=self.keyid, detach=True)
-        print(txs)
-        print(tx)
-        return self.process(tx, txs)
-
-    def get_context_data(self):
-        return {}
-
-    def get_message(self, context_data, tx=''):
-        return tx
-
-    def get_error(self):
-        return self.error
-
-    def process(self, tx, txs):
-        try:
-            hdc.transactions.Process(self.server, self.port).post(transaction=tx, signature=txs)
-        except ValueError as e:
-            self.error = str(e)
-        else:
-            return True
-
-        return False
-
-
-class RawTransfer(Transaction):
-    def __init__(self, pgp_fingerprint, recipient, coins, message='',
-                 keyid=None, server=None, port=None):
-        super().__init__(pgp_fingerprint, message,
-                         keyid=keyid, server=server, port=port)
-
-        self.recipient = recipient
-        self.coins = coins
-        self.coins.sort()
-
-    def get_message(self, context_data, tx=''):
-        context_data['recipient'] = self.recipient
 
         tx += """\
 Recipient: %(recipient)s
@@ -131,4 +93,14 @@ Coins:
                 tx += "\n"
 
         return tx
+
+        tx += """\
+Comment:
+%(message)s""" % context_data
+
+        tx = tx.replace("\n", "\r\n")
+        return tx
+
+    def get_error(self):
+        return self.error
 
