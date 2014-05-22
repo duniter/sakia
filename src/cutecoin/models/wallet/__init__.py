@@ -85,7 +85,11 @@ class Wallet(object):
             server=self.trusts()[0].server,
             port=self.trusts()[0].port)
 
-        wht_request = ucoin.network.Wallet(recipient.fingerprint)
+        try:
+            wht_request = ucoin.network.Wallet(recipient.fingerprint)
+        except ValueError as e:
+            return str(e)
+
         recipient_wht = self.request(wht_request)
         nodes = self.get_nodes_in_peering(recipient_wht['entry']['trusts'])
         nodes += [h for h in self.hosters() if h not in nodes]
@@ -195,18 +199,15 @@ Hosters:
         return nodes
 
     def request(self, request, get_args={}):
-        error = None
         for node in self.trusts():
             logging.debug("Trying to connect to : " + node.get_text())
             node.use(request)
             try:
                 data = request.get(**get_args)
                 return data
-            except ValueError as e:
-                error = str(e)
             except:
                 continue
-        return error
+        return None
 
     def post(self, request, get_args={}):
         error = None
@@ -214,12 +215,11 @@ Hosters:
             logging.debug("Trying to connect to : " + node.get_text())
             node.use(request)
             try:
-                data = request.post(**get_args)
+                request.post(**get_args)
             except ValueError as e:
                 error = str(e)
             except:
                 continue
-            return data
         return error
 
     def broadcast(self, nodes, request, get_args={}):

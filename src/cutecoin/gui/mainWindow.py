@@ -79,8 +79,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if self.core.current_account is None:
             self.tabs_account.setEnabled(False)
+            self.menu_contacts.setEnabled(False)
+            self.menu_actions.setEnabled(False)
         else:
             self.tabs_account.setEnabled(True)
+            self.menu_contacts.setEnabled(True)
+            self.menu_actions.setEnabled(True)
             self.label_account_name.setText(
                 "Current account : " +
                 self.core.current_account.name)

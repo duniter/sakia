@@ -27,7 +27,6 @@ Qt Client for [Ucoin](http://www.ucoin.io) project.
 ### Todo
   * Joining a community, publishing keys
   * Multiple wallets management
-  * More user-friendly coins transfer
   * Cutecoin keyring
 
 ### How to install
