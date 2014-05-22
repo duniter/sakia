@@ -6,6 +6,7 @@ Created on 2 févr. 2014
 from PyQt5.QtWidgets import QDialog, QErrorMessage
 
 
+import ucoin
 from cutecoin.models.person import Person
 from cutecoin.models.node import Node
 from cutecoin.models.coin.listModel import CoinsListModel
@@ -26,12 +27,10 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         super(TransferMoneyDialog, self).__init__()
         self.setupUi(self)
         self.sender = sender
+        self.recipient_trusts = []
         self.wallet = sender.wallets[0]
         for wallet in sender.wallets:
             self.combo_wallets.addItem(wallet.get_text())
-
-        for trust in wallet.trusts():
-            self.combo_trusted_node.addItem(trust.get_text())
 
         for contact in sender.contacts:
             self.combo_contact.addItem(contact.name)
@@ -64,17 +63,9 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
             recipient = self.sender.contacts[
                 self.combo_contact.currentIndex()]
 
-        if self.radio_node_address.isChecked():
-            node = Node.create(
-                self.edit_node_address.text(), int(
-                    self.spinbox_port.text()))
-        else:
-            # TODO: Manage trusted nodes
-            node = self.wallet.trusts()[self.combo_trusted_node.currentIndex()]
-
         message = self.edit_message.text()
-        # TODO: Transfer money, and validate the window if no error happened
-        error = self.wallet.transfer_coins(node, recipient, sent_coins, message)
+        # TODO: All nodes trusted by recipient
+        error = self.wallet.transfer_coins(recipient, sent_coins, message)
         if error:
             QErrorMessage(self).showMessage("Cannot transfer coins " + error)
         else:

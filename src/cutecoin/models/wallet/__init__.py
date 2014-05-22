@@ -74,19 +74,25 @@ class Wallet(object):
             coin = Coin.from_id(self, coin_data)
             self.coins.append(coin)
 
-    def transfer_coins(self, node, recipient, coins, message):
-        transfer = ucoin.wrappers.transactions.RawTransfer(
+    def transfer_coins(self, recipient, coins, message):
+        #TODO: Do my own wrapper
+        transfer = ucoin.wrappers.transactions.Transaction(
             self.fingerprint(),
             recipient.fingerprint,
             coins,
             message,
             keyid=self.keyid,
-            server=node.server,
-            port=node.port)
+            server=self.trusts()[0].server,
+            port=self.trusts()[0].port)
 
-        result = transfer()
-        if result is False:
-            return transfer.error
+        wht_request = ucoin.network.Wallet(recipient.fingerprint)
+        recipient_wht = self.request(wht_request)
+        nodes = self.get_nodes_in_peering(recipient_wht['entry']['trusts'])
+        nodes += [h for h in self.hosters() if h not in nodes]
+        result = self.broadcast(nodes,
+                                ucoin.hdc.transactions.Process(), transfer())
+        if result:
+            return result
 
     def transactions_received(self):
         received = []
@@ -160,6 +166,7 @@ Hosters:
     # TODO: Check if its working
     def _search_node_by_fingerprint(self, node_fg, next_node, traversed_nodes=[]):
         next_fg = next_node.peering()['fingerprint']
+        print(traversed_nodes)
         if next_fg not in traversed_nodes:
             traversed_nodes.append(next_fg)
             if node_fg == next_fg:
@@ -180,35 +187,53 @@ Hosters:
         for node_fg in fingerprints:
             node = self._search_node_by_fingerprint(
                     node_fg,
-                    self.trusts()[0])
+                    self.trusts()[0],
+                    [])
             if node is not None:
                 nodes.append(node)
             #TODO: Check that one trust exists
         return nodes
 
     def request(self, request, get_args={}):
-        data = None
+        error = None
         for node in self.trusts():
             logging.debug("Trying to connect to : " + node.get_text())
             node.use(request)
             try:
                 data = request.get(**get_args)
+                return data
+            except ValueError as e:
+                error = str(e)
             except:
                 continue
-            return data
-        return None
+        return error
 
     def post(self, request, get_args={}):
-        data = None
+        error = None
         for node in self.hosters():
             logging.debug("Trying to connect to : " + node.get_text())
             node.use(request)
             try:
                 data = request.post(**get_args)
+            except ValueError as e:
+                error = str(e)
             except:
                 continue
             return data
-        return None
+        return error
+
+    def broadcast(self, nodes, request, get_args={}):
+        error = None
+        for node in nodes:
+            logging.debug("Trying to connect to : " + node.get_text())
+            node.use(request)
+            try:
+                request.post(**get_args)
+            except ValueError as e:
+                error = str(e)
+            except:
+                continue
+        return error
 
     def trusts(self):
         return [node for node in self.nodes if node.trust]
