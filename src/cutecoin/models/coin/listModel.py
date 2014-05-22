@@ -18,23 +18,65 @@ class CoinsListModel(QAbstractListModel):
         Constructor
         '''
         super(CoinsListModel, self).__init__(parent)
-        self.coins = coins
+        self.sorted_coins = {}
+        self.coin_values = set()
+        for c in coins:
+            value = c.value(wallet)
+
+            if value not in self.sorted_coins:
+                self.sorted_coins[value] = []
+
+            self.sorted_coins[value] += [c]
+            self.coin_values.update([value])
+
+        self.ordered_values = list(self.coin_values)
+        self.ordered_values.sort()
         self.wallet = wallet
 
     def rowCount(self, parent):
-        return len(self.coins)
+        return len(self.ordered_values)
 
     def data(self, index, role):
         if role == Qt.DisplayRole:
             row = index.row()
-            value = str(self.coins[row].value(self.wallet))
-            return value
+            coins_list = self.sorted_coins[self.ordered_values[row]]
+
+            text = """%d coins of %d""" % (len(coins_list),
+                                           self.ordered_values[row])
+            return text
 
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled
 
+    def remove_coins(self, index, number):
+        removed = []
+        value = self.ordered_values[index.row()]
+        removed += self.sorted_coins[value][-number:]
+        self.sorted_coins[value] = self.sorted_coins[value][:-number]
+        self.dataChanged.emit(index, index, [Qt.DisplayRole])
+        return removed
+
+    def add_coins(self, coins):
+        for c in coins:
+            value = c.value(self.wallet)
+            if value not in self.sorted_coins:
+                self.sorted_coins[value] = []
+            self.sorted_coins[value] += [c]
+            self.coin_values.update([value])
+            self.ordered_values = list(self.coin_values)
+            self.ordered_values.sort()
+        self.layoutChanged.emit()
+
     def to_list(self):
         coins_list = []
-        for c in self.coins:
-            coins_list.append(c.get_id())
+        for value in self.coin_values:
+            for coin in self.sorted_coins[value]:
+                coins_list.append(coin.get_id())
         return coins_list
+
+    def total(self):
+        total = 0
+        for value in self.coin_values:
+            for coin in self.sorted_coins[value]:
+                total += coin.value(self.wallet)
+        return total

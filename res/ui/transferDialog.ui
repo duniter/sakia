@@ -21,11 +21,11 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout">
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <widget class="QRadioButton" name="radio_key_fingerprint">
+         <widget class="QRadioButton" name="radio_contact">
           <property name="text">
-           <string>Recipient fingerprint</string>
+           <string>Contact</string>
           </property>
           <property name="checked">
            <bool>true</bool>
@@ -33,7 +33,31 @@
          </widget>
         </item>
         <item>
+         <widget class="QComboBox" name="combo_contact">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QRadioButton" name="radio_key_fingerprint">
+          <property name="text">
+           <string>Recipient fingerprint</string>
+          </property>
+          <property name="checked">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QLineEdit" name="edit_key_fingerprint">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="inputMask">
            <string/>
           </property>
@@ -42,24 +66,6 @@
           </property>
           <property name="placeholderText">
            <string>Key fingerprint</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_2">
-        <item>
-         <widget class="QRadioButton" name="radio_contact">
-          <property name="text">
-           <string>Contact</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QComboBox" name="combo_contact">
-          <property name="enabled">
-           <bool>false</bool>
           </property>
          </widget>
         </item>
@@ -75,11 +81,11 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
         <item>
-         <widget class="QRadioButton" name="radio_node_address">
+         <widget class="QRadioButton" name="radio_trusted_node">
           <property name="text">
-           <string>Node</string>
+           <string>Trusted node</string>
           </property>
           <property name="checked">
            <bool>true</bool>
@@ -87,7 +93,31 @@
          </widget>
         </item>
         <item>
+         <widget class="QComboBox" name="combo_trusted_node">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="QRadioButton" name="radio_node_address">
+          <property name="text">
+           <string>Node</string>
+          </property>
+          <property name="checked">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QLineEdit" name="edit_node_address">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="inputMask">
            <string/>
           </property>
@@ -105,29 +135,14 @@
         </item>
         <item>
          <widget class="QSpinBox" name="spinbox_port">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="maximum">
            <number>99999</number>
           </property>
           <property name="value">
            <number>8081</number>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_4">
-        <item>
-         <widget class="QRadioButton" name="radio_trusted_node">
-          <property name="text">
-           <string>Trusted node</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QComboBox" name="combo_trusted_node">
-          <property name="enabled">
-           <bool>false</bool>
           </property>
          </widget>
         </item>
@@ -165,13 +180,6 @@
           <property name="rightMargin">
            <number>0</number>
           </property>
-          <item>
-           <widget class="QPushButton" name="button_manage_coins">
-            <property name="text">
-             <string>Manage wallet coins</string>
-            </property>
-           </widget>
-          </item>
           <item>
            <widget class="QPushButton" name="button_add">
             <property name="text">
@@ -318,22 +326,6 @@
     <hint type="sourcelabel">
      <x>201</x>
      <y>373</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>244</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>button_manage_coins</sender>
-   <signal>clicked()</signal>
-   <receiver>TransferMoneyDialog</receiver>
-   <slot>open_manage_wallet_coins()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>201</x>
-     <y>281</y>
     </hint>
     <hint type="destinationlabel">
      <x>199</x>

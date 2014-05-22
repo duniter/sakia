@@ -40,31 +40,19 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
 
     def remove_coins_from_transfer(self):
         selection = self.list_coins_sent.selectedIndexes()
-        wallet_coins = self.list_wallet.model().coins
-        sent_coins = self.list_coins_sent.model().coins
-        new_wallet = sent_coins
-        for selected in selection:
-            coin = sent_coins[selected.row()]
-            sent_coins.remove(coin)
-            wallet_coins.append(coin)
-        self.list_wallet.setModel(CoinsListModel(self.wallet, wallet_coins))
-        self.list_coins_sent.setModel(CoinsListModel(self.wallet, new_wallet))
+        for select in selection:
+            coins = self.list_coins_sent.model().remove_coins(select, 1)
+            self.list_wallet.model().add_coins(coins)
+        self.label_total.setText("Total : %d" %
+                                 self.list_coins_sent.model().total())
 
     def add_coins_to_transfer(self):
         selection = self.list_wallet.selectedIndexes()
-        wallet_coins = self.list_wallet.model().coins
-        sent_coins = self.list_coins_sent.model().coins
-        new_wallet_coins = wallet_coins
-        for selected in selection:
-            coin = wallet_coins[selected.row()]
-            new_wallet_coins.remove(coin)
-            sent_coins.append(coin)
-        self.list_wallet.setModel(CoinsListModel(self.wallet,
-                                                 new_wallet_coins))
-        self.list_coins_sent.setModel(CoinsListModel(self.wallet, sent_coins))
-
-    def open_manage_wallet_coins(self):
-        pass
+        for select in selection:
+            coins = self.list_wallet.model().remove_coins(select, 1)
+            self.list_coins_sent.model().add_coins(coins)
+        self.label_total.setText("Total : %d"
+                                 % self.list_coins_sent.model().total())
 
     def accept(self):
         sent_coins = self.list_coins_sent.model().to_list()
@@ -90,6 +78,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         if error:
             QErrorMessage(self).showMessage("Cannot transfer coins " + error)
         else:
+            self.accepted.emit()
             self.close()
 
     def change_displayed_wallet(self, index):

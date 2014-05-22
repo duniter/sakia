@@ -6,15 +6,19 @@ Created on 7 févr. 2014
 
 import logging
 from optparse import OptionParser
-import os.path
-import gnupg
+from os import environ
 import ucoin
+import gnupg
 
 
-home = os.path.expanduser("~")
+if "XDG_CONFIG_HOME" in environ:
+    config_path = environ["XDG_CONFIG_HOME"]
+else:
+    config_path = environ["HOME"] + "/.config"
 
-parameters = {'home': home + '/.config/cutecoin/',
-              'data': home + '/.config/cutecoin/' 'data'}
+
+parameters = {'home': config_path + '/cutecoin/',
+              'data': config_path + '/cutecoin/' 'data'}
 
 
 def parse_arguments(argv):

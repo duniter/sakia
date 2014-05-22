@@ -4,14 +4,14 @@ Created on 1 févr. 2014
 @author: inso
 '''
 from cutecoin.gen_resources.mainwindow_uic import Ui_MainWindow
-from PyQt5.QtWidgets import QMainWindow, QAction, QErrorMessage, QDialogButtonBox
-from PyQt5.QtCore import QSignalMapper
+from PyQt5.QtWidgets import QMainWindow, QAction
+from PyQt5.QtCore import QSignalMapper, QModelIndex
 from cutecoin.gui.processConfigureAccount import ProcessConfigureAccount
 from cutecoin.gui.transferMoneyDialog import TransferMoneyDialog
 from cutecoin.gui.communityTabWidget import CommunityTabWidget
 from cutecoin.gui.addContactDialog import AddContactDialog
 from cutecoin.models.account.wallets.listModel import WalletsListModel
-from cutecoin.models.wallet.listModel import WalletListModel
+from cutecoin.models.coin.listModel import CoinsListModel
 from cutecoin.models.transaction.sentListModel import SentListModel
 from cutecoin.models.transaction.receivedListModel import ReceivedListModel
 
@@ -48,14 +48,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.refresh()
 
     def open_transfer_money_dialog(self):
-        TransferMoneyDialog(self.core.current_account).exec_()
+        dialog = TransferMoneyDialog(self.core.current_account)
+        dialog.accepted.connect(self.refresh_wallets)
+        dialog.exec_()
 
     def open_add_contact_dialog(self):
         AddContactDialog(self.core.current_account, self).exec_()
 
     def open_configure_account_dialog(self):
         dialog = ProcessConfigureAccount(self.core, self.core.current_account)
-        dialog.accepted.connect(self.refresh)
+        dialog.accepted.connect(self.refresh_wallets)
         dialog.exec_()
 
     '''
@@ -83,11 +85,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 "Current account : " +
                 self.core.current_account.name)
 
-            for wallet in self.core.current_account.wallets:
-                wallet.refresh_coins()
-
-            wallets_list_model = WalletsListModel(self.core.current_account)
-            self.list_wallets.setModel(wallets_list_model)
+            self.refresh_wallets()
 
             self.tabs_communities.clear()
             for community in self.core.current_account.communities:
@@ -109,9 +107,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 ReceivedListModel(
                     self.core.current_account))
 
+    def refresh_wallets(self):
+        for wallet in self.core.current_account.wallets:
+            wallet.refresh_coins()
+
+        wallets_list_model = WalletsListModel(self.core.current_account)
+        self.list_wallets.setModel(wallets_list_model)
+        self.refresh_wallet_content(QModelIndex())
+
     def refresh_wallet_content(self, index):
         if index.isValid():
             current_wallet = self.core.current_account.wallets[index.row()]
-            self.list_wallet_content.setModel(WalletListModel(current_wallet))
+            self.list_wallet_content.setModel(CoinsListModel(current_wallet, current_wallet.coins))
         else:
-            self.list_wallet_content.setModel(WalletListModel([]))
+            self.list_wallet_content.setModel(CoinsListModel(None, []))
