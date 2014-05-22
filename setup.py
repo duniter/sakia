@@ -25,11 +25,14 @@ options = {"path": sys.path,
 #############################################################################
 # preparation des cibles
 base = None
+file_type=""
 if sys.platform == "win32":
     base = "Win32GUI"
+    file_type=".exe"
 
 target = Executable(
     script = "src/cutecoin/__init__.py",
+    targetName="cutecoin"+file_type,
     base = base,
     compress = True,
     icon = None,
