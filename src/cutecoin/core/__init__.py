@@ -7,6 +7,7 @@ Created on 1 févr. 2014
 import os
 import logging
 import json
+import gnupg
 
 from cutecoin.core import config
 from cutecoin.tools.exceptions import KeyAlreadyUsed
@@ -45,6 +46,9 @@ class Core(object):
 
     def del_account(self, account):
         self.accounts.remove(account)
+
+    def change_current_account(self, account):
+        self.current_account = account
 
     def load(self):
         if not os.path.exists(config.parameters['home']):

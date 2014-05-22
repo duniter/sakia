@@ -4,6 +4,7 @@ Created on 6 mars 2014
 @author: inso
 '''
 from cutecoin.gen_resources.accountConfigurationDialog_uic import Ui_AccountConfigurationDialog
+from cutecoin.gui.generateKeyDialog import GenerateKeyDialog
 from cutecoin.gui.processConfigureCommunity import ProcessConfigureCommunity
 from cutecoin.models.account.communities.listModel import CommunitiesListModel
 from cutecoin.tools.exceptions import KeyAlreadyUsed
@@ -11,8 +12,9 @@ from cutecoin.models.account import Account
 from cutecoin.models.account.communities import Communities
 from cutecoin.models.account.wallets import Wallets
 from cutecoin.models.node import Node
+from cutecoin.core import config
 
-from PyQt5.QtWidgets import QDialog, QErrorMessage, QInputDialog
+from PyQt5.QtWidgets import QDialog, QErrorMessage, QFileDialog, QMessageBox
 
 import gnupg
 
@@ -35,10 +37,42 @@ class StepPageInit(Step):
         return True
 
     def process_next(self):
-        pass
+        if self.config_dialog.account is None:
+            self.config_dialog.account = Account.create(
+                self.config_dialog.edit_account_name.text(),
+                Communities.create(),
+                Wallets.create(),
+                config.parameters)
+        else:
+            name = self.config_dialog.edit_account_name.text()
+            self.config_dialog.account.name = name
+
+    def display_page(self):
+        if self.config_dialog.account is not None:
+            self.config_dialog.edit_account_name.setText(self.config_dialog.account.name)
+            model = CommunitiesListModel(self.config_dialog.account)
+            self.config_dialog.list_communities.setModel(model)
+
+        self.config_dialog.button_previous.setEnabled(False)
+
+
+class StepPageGPG(Step):
+    '''
+    First step when adding a community
+    '''
+    def __init__(self, config_dialog):
+        super().__init__(config_dialog)
+
+    def is_valid(self):
+        return self.config_dialog.account.keyid != ''
+
+    def process_next(self):
+        model = CommunitiesListModel(self.config_dialog.account)
+        self.config_dialog.list_communities.setModel(model)
 
     def display_page(self):
         self.config_dialog.button_previous.setEnabled(False)
+        self.config_dialog.button_next.setEnabled(False)
 
 
 class StepPageCommunities(Step):
@@ -64,6 +98,7 @@ class StepPageCommunities(Step):
         #TODO: Get existing Wallet from ucoin node
         account.wallets.add_wallet(account.keyid,
                                    self.config_dialog.community)
+        self.config_dialog.refresh()
 
     def display_page(self):
         self.config_dialog.button_previous.setEnabled(False)
@@ -87,39 +122,18 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         self.account = account
         self.core = core
         step_init = StepPageInit(self)
+        step_gpg = StepPageGPG(self)
         step_communities = StepPageCommunities(self)
-        step_init.next_step = step_communities
+        step_init.next_step = step_gpg
+        step_gpg.next_step = step_communities
         self.step = step_init
         self.step.display_page()
         if self.account is None:
             self.setWindowTitle("New account")
         else:
+            self.stacked_pages.removeWidget(self.stacked_pages.widget(1))
+            step_init.next_step = step_communities
             self.setWindowTitle("Configure " + self.account.name)
-            self.combo_keys_list.setEnabled(False)
-
-        self.set_data()
-
-    def set_data(self):
-        gpg = gnupg.GPG()
-        self.combo_keys_list.clear()
-        available_keys = gpg.list_keys(True)
-
-        if self.account is None:
-            self.account = Account.create(
-                available_keys[0]['keyid'],
-                "",
-                Communities.create(),
-                Wallets.create())
-            self.combo_keys_list.currentIndexChanged[
-                int].connect(self.key_changed)
-
-        for index, key in enumerate(available_keys):
-            self.combo_keys_list.addItem(key['uids'][0])
-            if (key['keyid']) == self.account.keyid:
-                self.combo_keys_list.setCurrentIndex(index)
-
-        self.list_communities.setModel(CommunitiesListModel(self.account))
-        self.edit_account_name.setText(self.account.name)
 
     def open_process_add_community(self):
         dialog = ProcessConfigureCommunity(self.account, None)
@@ -127,8 +141,6 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         dialog.exec_()
 
     def action_add_community(self):
-        self.combo_keys_list.setEnabled(False)
-        self.combo_keys_list.disconnect()
         self.list_communities.setModel(CommunitiesListModel(self.account))
 
     def action_remove_community(self):
@@ -148,10 +160,35 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         dialog.accepted.connect(self.action_edit_community)
         dialog.exec_()
 
-    def key_changed(self, key_index):
-        gpg = gnupg.GPG()
-        available_keys = gpg.list_keys(True)
-        self.account.keyid = available_keys[key_index]['keyid']
+    def open_generate_key(self):
+        dialog = GenerateKeyDialog(self.account, self)
+        dialog.exec_()
+
+    def open_import_key(self):
+        keyfile = QFileDialog.getOpenFileName(self,
+                                              "Choose a secret key",
+                                              "",
+                                              "All key files (*.asc);; Any file (*)")
+        keyfile = keyfile[0]
+        key = open(keyfile).read()
+        result = self.account.gpg.import_keys(key)
+        if result.count == 0:
+            QErrorMessage(self).showMessage("Bad key file")
+        else:
+            QMessageBox.information(self, "Key import", "Key " +
+                                    result.fingerprints[0] + " has been imported",
+                            QMessageBox.Ok)
+            if self.account.keyid is not '':
+                self.account.gpg.delete_keys(self.account.keyid)
+
+            secret_keys = self.account.gpg.list_keys(True)
+            for k in secret_keys:
+                if k['fingerprint'] == result.fingerprints[0]:
+                    self.account.keyid = k['keyid']
+
+            self.label_fingerprint.setText("Key : " + result.fingerprints[0])
+            self.edit_secretkey_path.setText(keyfile)
+            self.button_next.setEnabled(True)
 
     def next(self):
         if self.step.next_step is not None:

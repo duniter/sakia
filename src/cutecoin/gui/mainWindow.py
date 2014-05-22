@@ -113,7 +113,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def refresh_wallets(self):
         for wallet in self.core.current_account.wallets:
-            wallet.refresh_coins()
+            wallet.refresh_coins(self.core.current_account.gpg)
 
         wallets_list_model = WalletsListModel(self.core.current_account)
         self.list_wallets.setModel(wallets_list_model)

@@ -9,6 +9,7 @@ import logging
 import gnupg
 import json
 import time
+import hashlib
 import importlib
 from cutecoin.models.coin import Coin
 from cutecoin.models.coin import algorithms
@@ -66,24 +67,72 @@ class Wallet(object):
         return value
 
     #TODO: Enhance this code. Loading the amendment each time we load a coin is bad
-    def refresh_coins(self):
+    def refresh_coins(self, gpg):
         self.coins = []
-        coins_list_request = ucoin.hdc.coins.List(self.fingerprint())
+        coins_list_request = ucoin.hdc.coins.List(self.fingerprint(gpg))
         data = self.request(coins_list_request)
         for coin_data in data['coins']:
             coin = Coin.from_id(self, coin_data)
             self.coins.append(coin)
 
-    def transfer_coins(self, recipient, coins, message):
-        #TODO: Do my own wrapper
-        transfer = ucoin.wrappers.transactions.Transaction(
-            self.fingerprint(),
-            recipient.fingerprint,
-            coins,
-            message,
-            keyid=self.keyid,
-            server=self.trusts()[0].server,
-            port=self.trusts()[0].port)
+    def transfer_coins(self, recipient, coins, message, gpg):
+        coins.sort()
+        try:
+            lasttx_req = ucoin.hdc.transactions.sender.Last(count=1,
+                                                            pgp_fingerprint=self.fingerprint())
+            last_tx = self.request(lasttx_req)
+            last_tx = last_tx['transactions'][0]
+            txview_req = ucoin.hdc.transactions.sender.View(self.fingerprint(),
+                                                            tx_number=last_tx['number'])
+            last_tx = self.request(txview_req)
+        except ValueError:
+            last_tx = None
+
+        if last_tx:
+            previous_hash = hashlib.sha1(("%s%s" % (last_tx['raw'],
+                                                    last_tx['transaction']['signature'])
+                                          ).encode('ascii')).hexdigest().upper()
+        else:
+            previous_hash = None
+
+        context_data = {}
+        context_data['currency'] = self.currency
+        context_data['version'] = 1
+        context_data['number'] = 0 if not last_tx else last_tx['transaction']['number']+1
+        context_data['previousHash'] = previous_hash
+        context_data['message'] = message
+        context_data['fingerprint'] = self.fingerprint()
+        context_data['recipient'] = recipient.fingerprint
+        tx = """\
+Version: %(version)d
+Currency: %(currency)s
+Sender: %(fingerprint)s
+Number: %(number)d
+""" % context_data
+
+        if last_tx:
+            tx += "PreviousHash: %(previousHash)s\n" % context_data
+
+        tx += """\
+Recipient: %(recipient)s
+Coins:
+""" % context_data
+
+        for coin in coins:
+            tx += '%s' % coin
+            ownership_req = ucoin.hdc.coins.view.Owner(coin)
+            ownership = self.request(ownership_req)
+            if 'transaction' in ownership:
+                tx += ':%(transaction)s\n' % ownership
+            else:
+                tx += "\n"
+
+        tx += """\
+Comment:
+%(message)s""" % context_data
+
+        tx = tx.replace("\n", "\r\n")
+        txs = gpg.sign(tx, keyid=self.keyid, detach=True)
 
         try:
             wht_request = ucoin.network.Wallet(recipient.fingerprint)
@@ -94,14 +143,15 @@ class Wallet(object):
         nodes = self.get_nodes_in_peering(recipient_wht['entry']['trusts'])
         nodes += [h for h in self.hosters() if h not in nodes]
         result = self.broadcast(nodes,
-                                ucoin.hdc.transactions.Process(), transfer())
+                                ucoin.hdc.transactions.Process(),
+                                {'transaction': tx, 'signature': str(txs)})
         if result:
             return result
 
-    def transactions_received(self):
+    def transactions_received(self, gpg):
         received = []
         transactions_data = self.request(
-            ucoin.hdc.transactions.Recipient(self.fingerprint()))
+            ucoin.hdc.transactions.Recipient(self.fingerprint(gpg)))
         for trx_data in transactions_data:
             received.append(
                 Transaction.create(
@@ -110,11 +160,11 @@ class Wallet(object):
                     self))
         return received
 
-    def transactions_sent(self):
+    def transactions_sent(self, gpg):
         sent = []
         transactions_data = self.request(
             ucoin.hdc.transactions.sender.Last(
-                self.fingerprint(), 20))
+                self.fingerprint(gpg), 20))
         for trx_data in transactions_data['transactions']:
             # Small bug in ucoinpy library
             if not isinstance(trx_data, str):
@@ -125,14 +175,14 @@ class Wallet(object):
                         self))
         return sent
 
-    def pull_wht(self):
-        wht = self.request(ucoin.network.Wallet(self.fingerprint()))
+    def pull_wht(self, gpg):
+        wht = self.request(ucoin.network.Wallet(self.fingerprint(gpg)))
         if wht is None:
             return []
         else:
             return wht['entry']
 
-    def push_wht(self):
+    def push_wht(self, gpg):
         hosters_fg = []
         trusts_fg = []
         for trust in self.trusts():
@@ -149,7 +199,7 @@ Key: %s
 Date: %s
 RequiredTrusts: %d
 Hosters:
-''' % (self.currency, self.fingerprint(), int(time.time()),
+''' % (self.currency, self.fingerprint(gpg), int(time.time()),
        self.required_trusts)
         for hoster in hosters_fg:
             wht_message += '''%s\n''' % hoster
@@ -158,7 +208,6 @@ Hosters:
             wht_message += '''%s\n''' % trust
 
         wht_message = wht_message.replace("\n", "\r\n")
-        gpg = gnupg.GPG()
         signature = gpg.sign(wht_message, keyid=self.keyid, detach=True)
 
         data_post = {'entry': wht_message,
@@ -170,7 +219,6 @@ Hosters:
     # TODO: Check if its working
     def _search_node_by_fingerprint(self, node_fg, next_node, traversed_nodes=[]):
         next_fg = next_node.peering()['fingerprint']
-        print(traversed_nodes)
         if next_fg not in traversed_nodes:
             traversed_nodes.append(next_fg)
             if node_fg == next_fg:
@@ -250,8 +298,7 @@ Hosters:
             self.amendments_cache[am_number] = new_am
             return new_am
 
-    def fingerprint(self):
-        gpg = gnupg.GPG()
+    def fingerprint(self, gpg):
         available_keys = gpg.list_keys()
         logging.debug(self.keyid)
         for k in available_keys:

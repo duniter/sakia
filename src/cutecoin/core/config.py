@@ -21,7 +21,7 @@ else:
     config_path = path.dirname(__file__)
 
 parameters = {'home': config_path + '/cutecoin/',
-              'data': config_path + '/cutecoin/' 'data'}
+              'data': config_path + '/cutecoin/' + 'data'}
 
 
 def parse_arguments(argv):
@@ -34,9 +34,6 @@ def parse_arguments(argv):
     parser.add_option("-d", "--debug",
                       action="store_true", dest="debug", default=False,
                       help="Print DEBUG messages to stdout")
-
-    parser.add_option("--home", dest="home", default=parameters['home'],
-                      help="Set another home for cutecoin.")
 
     (options, args) = parser.parse_args(argv)
 
@@ -54,7 +51,5 @@ def parse_arguments(argv):
     ucoin.settings['gpg'] = gnupg.GPG()
     logger = logging.getLogger("gnupg")
     logger.setLevel(logging.INFO)
-
-    parameters['home'] = options.home
 
     pass

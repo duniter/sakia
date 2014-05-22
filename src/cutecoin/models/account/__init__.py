@@ -23,7 +23,8 @@ class Account(object):
     be locally referenced by only one account.
     '''
 
-    def __init__(self, keyid, name, communities, wallets, contacts):
+    def __init__(self, keyid, name, communities, wallets, contacts,
+                 keyring, secret_keyring):
         '''
         Constructor
         '''
@@ -33,19 +34,28 @@ class Account(object):
         print(len(communities))
         self.wallets = wallets
         self.contacts = contacts
+        self.keyring = keyring
+        self.secret_keyring = secret_keyring
+        self.gpg = gnupg.GPG(keyring=self.keyring,
+                    secret_keyring=self.secret_keyring)
 
     @classmethod
-    def create(cls, keyid, name, communities, wallets):
+    def create(cls, name, communities, wallets, confpath):
         '''
         Constructor
         '''
-        account = cls(keyid, name, communities, wallets, [])
+        keyring = confpath['home'] + name + "_keyring"
+        secret_keyring = confpath['home'] + name + "_secretkeyring"
+        account = cls('', name, communities, wallets, [],
+                      keyring, secret_keyring)
         return account
 
     @classmethod
     def load(cls, json_data):
         keyid = json_data['keyid']
         name = json_data['name']
+        keyring = json_data['keyring']
+        secret_keyring = json_data['secret_keyring']
         contacts = []
 
         for contact_data in json_data['contacts']:
@@ -54,7 +64,8 @@ class Account(object):
         wallets = Wallets.load(json_data['wallets'])
         communities = Communities.load(json_data['communities'])
 
-        account = cls(keyid, name, communities, wallets, contacts)
+        account = cls(keyid, name, communities, wallets, contacts,
+                      keyring, secret_keyring)
         return account
 
     def __eq__(self, other):
@@ -72,14 +83,14 @@ class Account(object):
         amendment_data = promoted.get()
         currency = amendment_data['currency']
         community = self.communities.add_community(currency)
-        self.wallets.add_wallet(self.keyid,
+        self.wallets.add_wallet(self.gpg,
+                                self.keyid,
                                    currency,
                                    default_node)
         return community
 
     def fingerprint(self):
-        gpg = gnupg.GPG()
-        available_keys = gpg.list_keys()
+        available_keys = self.gpg.list_keys()
         logging.debug(self.keyid)
         for k in available_keys:
             logging.debug(k)
@@ -90,14 +101,14 @@ class Account(object):
     def transactions_received(self):
         received = []
         for w in self.wallets:
-            for r in w.transactions_received():
+            for r in w.transactions_received(self.gpg):
                 received.append(r)
         return received
 
     def transactions_sent(self):
         sent = []
         for w in self.wallets:
-            for t in w.transactions_sent():
+            for t in w.transactions_sent(self.gpg):
                 sent.append(t)
         return sent
 
@@ -116,5 +127,7 @@ class Account(object):
                 'keyid': self.keyid,
                 'communities': self.communities.jsonify(),
                 'wallets': self.wallets.jsonify(),
-                'contacts': self.jsonify_contacts()}
+                'contacts': self.jsonify_contacts(),
+                'keyring': self.keyring,
+                'secret_keyring': self.secret_keyring}
         return data

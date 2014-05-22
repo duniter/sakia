@@ -187,7 +187,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
     def accept(self):
         #TODO: Push wht only if changed
         for wallet in self.account.wallets:
-            wallet.push_wht()
+            wallet.push_wht(self.account.gpg)
 
         self.accepted.emit()
         self.close()

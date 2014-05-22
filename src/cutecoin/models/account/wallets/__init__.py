@@ -46,7 +46,7 @@ class Wallets(object):
     def __getitem__(self, key):
         return self._wallets_list[key]
 
-    def add_wallet(self, keyid, community, node,
+    def add_wallet(self, gpg, keyid, community, node,
                    required_trusts=1, name="Main Wallet"):
         '''
         Create a new wallet of a specific currency.
@@ -54,7 +54,7 @@ class Wallets(object):
         wallet = Wallet.create(keyid, community, node,
                                required_trusts, name)
         # We try to add already present nodes to the wallet
-        present_nodes = wallet.get_nodes_in_peering(wallet.pull_wht())
+        present_nodes = wallet.get_nodes_in_peering(wallet.pull_wht(gpg))
         if present_nodes is None:
             present_nodes = []
 
