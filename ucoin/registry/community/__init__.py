@@ -31,7 +31,7 @@ class Members(Base):
         return self.merkle_easy_parser('/members')
 
     def __post__(self, **kwargs):
-        assert 'entry' in kwargs
+        assert 'membership' in kwargs
         assert 'signature' in kwargs
 
         return self.requests_post('/members', **kwargs)
@@ -44,7 +44,7 @@ class Voters(Base):
         return self.merkle_easy_parser('/voters')
 
     def __post__(self, **kwargs):
-        assert 'entry' in kwargs
+        assert 'voting' in kwargs
         assert 'signature' in kwargs
 
         return self.requests_post('/voters', **kwargs)
