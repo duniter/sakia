@@ -30,12 +30,25 @@ class Members(Base):
     def __get__(self, **kwargs):
         return self.merkle_easy_parser('/members')
 
+    def __post__(self, **kwargs):
+        assert 'entry' in kwargs
+        assert 'signature' in kwargs
+
+        return self.requests_post('/members', **kwargs)
+
 
 class Voters(Base):
     """GET the voters listed in this amendment."""
 
     def __get__(self, **kwargs):
         return self.merkle_easy_parser('/voters')
+
+    def __post__(self, **kwargs):
+        assert 'entry' in kwargs
+        assert 'signature' in kwargs
+
+        return self.requests_post('/voters', **kwargs)
+
 
 from . import members
 from . import voters
