@@ -7,16 +7,10 @@ from cutecoin.gen_resources.accountConfigurationDialog_uic import Ui_AccountConf
 from cutecoin.gui.generateKeyDialog import GenerateKeyDialog
 from cutecoin.gui.processConfigureCommunity import ProcessConfigureCommunity
 from cutecoin.models.account.communities.listModel import CommunitiesListModel
-from cutecoin.tools.exceptions import KeyAlreadyUsed
-from cutecoin.models.account import Account
-from cutecoin.models.account.communities import Communities
-from cutecoin.models.account.wallets import Wallets
+from cutecoin.tools.exceptions import KeyAlreadyUsed, Error
 from cutecoin.models.node import Node
-from cutecoin.core import config
 
 from PyQt5.QtWidgets import QDialog, QErrorMessage, QFileDialog, QMessageBox
-
-import gnupg
 
 
 class Step():
@@ -38,11 +32,8 @@ class StepPageInit(Step):
 
     def process_next(self):
         if self.config_dialog.account is None:
-            self.config_dialog.account = Account.create(
-                self.config_dialog.edit_account_name.text(),
-                Communities.create(),
-                Wallets.create(),
-                config.parameters)
+            name = self.config_dialog.edit_account_name.text()
+            self.config_dialog.account = self.config_dialog.core.create_account(name)
         else:
             name = self.config_dialog.edit_account_name.text()
             self.config_dialog.account.name = name
@@ -193,11 +184,15 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
     def next(self):
         if self.step.next_step is not None:
             if self.step.is_valid():
-                self.step.process_next()
-                self.step = self.step.next_step
-                next_index = self.stacked_pages.currentIndex() + 1
-                self.stacked_pages.setCurrentIndex(next_index)
-                self.step.display_page()
+                try:
+                    self.step.process_next()
+                    self.step = self.step.next_step
+                    next_index = self.stacked_pages.currentIndex() + 1
+                    self.stacked_pages.setCurrentIndex(next_index)
+                    self.step.display_page()
+                except Error as e:
+                    QErrorMessage(self).showMessage(e.message)
+
         else:
             self.accept()
 
@@ -215,5 +210,6 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
                 self.core.add_account(self.account)
             except KeyAlreadyUsed as e:
                 QErrorMessage(self).showMessage(e.message)
+        self.core.save(self.account)
         self.accepted.emit()
         self.close()

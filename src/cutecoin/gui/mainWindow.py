@@ -4,12 +4,13 @@ Created on 1 févr. 2014
 @author: inso
 '''
 from cutecoin.gen_resources.mainwindow_uic import Ui_MainWindow
-from PyQt5.QtWidgets import QMainWindow, QAction
+from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog
 from PyQt5.QtCore import QSignalMapper, QModelIndex
 from cutecoin.gui.processConfigureAccount import ProcessConfigureAccount
 from cutecoin.gui.transferMoneyDialog import TransferMoneyDialog
 from cutecoin.gui.communityTabWidget import CommunityTabWidget
 from cutecoin.gui.addContactDialog import AddContactDialog
+from cutecoin.gui.importAccountDialog import ImportAccountDialog
 from cutecoin.models.account.wallets.listModel import WalletsListModel
 from cutecoin.models.coin.listModel import CoinsListModel
 from cutecoin.models.transaction.sentListModel import SentListModel
@@ -38,9 +39,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog = ProcessConfigureAccount(self.core, None)
         dialog.accepted.connect(self.refresh)
         dialog.exec_()
-
-    def save(self):
-        self.core.save()
 
     def action_change_account(self, account_name):
         self.core.current_account = self.core.get_account(account_name)
@@ -122,6 +120,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def refresh_wallet_content(self, index):
         if index.isValid():
             current_wallet = self.core.current_account.wallets[index.row()]
-            self.list_wallet_content.setModel(CoinsListModel(current_wallet, current_wallet.coins))
+            self.list_wallet_content.setModel(CoinsListModel(current_wallet,
+                                                             current_wallet.coins))
         else:
             self.list_wallet_content.setModel(CoinsListModel(None, []))
+
+    def import_account(self):
+        dialog = ImportAccountDialog(self.core, self)
+        dialog.accepted.connect(self.refresh)
+        dialog.exec_()
+
+    def export_account(self):
+        selected_file = QFileDialog.getSaveFileName(self,
+                                          "Export an account",
+                                          "",
+                                          "All account files (*.acc)")
+        path = ""
+        if selected_file[0][-4:] == ".acc":
+            path = selected_file[0]
+        else:
+            path = selected_file[0] + ".acc"
+        self.core.export_account(path, self.core.current_account)

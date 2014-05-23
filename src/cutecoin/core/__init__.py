@@ -7,11 +7,14 @@ Created on 1 févr. 2014
 import os
 import logging
 import json
+import tarfile
 import gnupg
 
 from cutecoin.core import config
-from cutecoin.tools.exceptions import KeyAlreadyUsed
+from cutecoin.tools.exceptions import NameAlreadyExists, BadAccountFile
 from cutecoin.models.account import Account
+from cutecoin.models.account.communities import Communities
+from cutecoin.models.account.wallets import Wallets
 
 
 class Core(object):
@@ -36,13 +39,22 @@ class Core(object):
             if name == a.name:
                 return a
 
-    def add_account(self, account):
+    def create_account(self, name):
         for a in self.accounts:
-            if a.keyid == account.keyid:
-                raise KeyAlreadyUsed(account, account.keyid, a)
+            if a.name == name:
+                raise NameAlreadyExists(name)
 
+        account_path = os.path.join(config.parameters['home'], name)
+        if not os.path.exists(account_path):
+            logging.info("Creating account directory")
+            os.makedirs(account_path)
+        account = Account.create(name,
+                                 Communities.create(),
+                                 Wallets.create(),
+                                 config.parameters)
         self.accounts.append(account)
         self.current_account = account
+        return account
 
     def del_account(self, account):
         self.accounts.remove(account)
@@ -61,19 +73,55 @@ class Core(object):
             data = json.load(json_data)
             json_data.close()
 
-            for accountData in data['localAccounts']:
-                self.accounts.append(Account.load(accountData))
+            for account_name in data['local_accounts']:
+                account_path = os.path.join(config.parameters['home'],
+                                            account_name, 'properties')
+                json_data = open(account_path, 'r')
+                data = json.load(json_data)
+                self.accounts.append(Account.load(data))
 
-    def save(self):
+    def save(self, account):
         with open(config.parameters['data'], 'w') as outfile:
             json.dump(self.jsonify(), outfile, indent=4, sort_keys=True)
+
+        account_path = os.path.join(config.parameters['home'],
+                                    account.name, 'properties')
+        with open(account_path, 'w') as outfile:
+            json.dump(account.jsonify(), outfile, indent=4, sort_keys=True)
+
+    def import_account(self, file, name):
+        with tarfile.open(file, "r") as tar:
+            path = os.path.join(config.parameters['home'],
+                                name)
+            for obj in ["properties", "keyring", "secretkeyring"]:
+                try:
+                    tar.getmember(obj)
+                except KeyError:
+                    raise BadAccountFile(file)
+                    return
+            tar.extractall(path)
+
+        account_path = os.path.join(config.parameters['home'],
+                                    name, 'properties')
+        json_data = open(account_path, 'r')
+        data = json.load(json_data)
+        account = Account.load(data)
+        self.accounts.append(account)
+        self.save(account)
+
+    def export_account(self, file, account):
+        with tarfile.open(file, "w") as tar:
+            for file in ["properties", "keyring", "secretkeyring"]:
+                path = os.path.join(config.parameters['home'],
+                                    account.name, file)
+                tar.add(path, file)
 
     def jsonify_accounts(self):
         data = []
         for account in self.accounts:
-            data.append(account.jsonify())
+            data.append(account.name)
         return data
 
     def jsonify(self):
-        data = {'localAccounts': self.jsonify_accounts()}
+        data = {'local_accounts': self.jsonify_accounts()}
         return data

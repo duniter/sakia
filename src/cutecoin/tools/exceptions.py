@@ -83,3 +83,39 @@ class KeyAlreadyUsed(Error):
             keyid +
             " is already used by " +
             found_account.name)
+
+
+class NameAlreadyExists(Error):
+
+    '''
+    Exception raised trying to add an account using
+    a key already used for another account.
+    '''
+
+    def __init__(self, account):
+        '''
+        Constructor
+        '''
+        super(
+            KeyAlreadyUsed,
+            self) .__init__(
+            "Cannot add account " +
+            account.name +
+            " the name already exists")
+
+
+class BadAccountFile(Error):
+
+    '''
+    Exception raised trying to add an account using
+    a key already used for another account.
+    '''
+
+    def __init__(self, path):
+        '''
+        Constructor
+        '''
+        super(
+            BadAccountFile,
+            self) .__init__(
+            "File " + path + " is not an account file")

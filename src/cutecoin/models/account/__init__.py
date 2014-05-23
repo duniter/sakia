@@ -8,6 +8,7 @@ import ucoin
 import gnupg
 import logging
 import json
+import os
 from cutecoin.models.account.wallets import Wallets
 from cutecoin.models.account.communities import Communities
 from cutecoin.models.community import Community
@@ -44,8 +45,8 @@ class Account(object):
         '''
         Constructor
         '''
-        keyring = confpath['home'] + name + "_keyring"
-        secret_keyring = confpath['home'] + name + "_secretkeyring"
+        keyring = os.path.join(confpath['home'], name, "keyring")
+        secret_keyring = os.path.join(confpath['home'], name, "secretkeyring")
         account = cls('', name, communities, wallets, [],
                       keyring, secret_keyring)
         return account
