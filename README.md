@@ -11,8 +11,6 @@ Qt Client for [Ucoin](http://www.ucoin.io) project.
   * Multi-wallets
   * Contacts messaging
   * User-friendly coins transfer
-  * On-the-fly and automatic coins fusion and divisions for transactions
-  * Coins issuance policies : minimal space, minimal changes
   * Community membership management via a voting interface
 
 ## Current state
@@ -27,7 +25,6 @@ Qt Client for [Ucoin](http://www.ucoin.io) project.
 ### Todo
   * Joining a community, publishing keys
   * Multiple wallets management
-  * Cutecoin keyring
 
 ### How to install
   * __git clone --recursive https://github.com/Insoleet/cutecoin.git__
