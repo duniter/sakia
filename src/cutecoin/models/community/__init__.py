@@ -8,6 +8,7 @@ import ucoin
 import hashlib
 import json
 import logging
+import time
 from cutecoin.models.node import Node
 from cutecoin.models.account.wallets import Wallets
 
@@ -71,6 +72,42 @@ class Community(object):
     def amendment_number(self, wallets):
         current_amendment = wallets.request(ucoin.hdc.amendments.Promoted())
         return int(current_amendment['number'])
+
+    def send_pubkey(self, account, wallets):
+        ascii_key = account.gpg.export_keys(account.keyid)
+        ascii_key = ascii_key.replace("\n", "\r\n")
+        signature = account.gpg.sign(ascii_key, keyid=account.keyid, detach=True)
+        print(ascii_key)
+        print(signature)
+        try:
+            wallets.post(ucoin.pks.Add(),
+                         {'keytext': ascii_key,
+                          'keysign': signature})
+        except ValueError as e:
+            return str(e)
+
+    def send_membership(self, account, wallets, membership):
+        context_data = {'version': 1,
+                        'currency': self.currency,
+                        'fingerprint': account.fingerprint(),
+                        'date': int(time.time()),
+                        'membership': membership
+                        }
+        message = """Version: %(version)d
+Currency: %(currency)s
+Registry: MEMBERSHIP
+Issuer: %(fingerprint)s
+Date: %(date)s
+Membership: %(membership)s
+""" % context_data
+
+        message = message.replace("\n", "\r\n")
+        signature = account.gpg.sign(message, keyid=account.keyid, detach=True)
+        try:
+            wallets.post(ucoin.registry.community.Members(),
+                    {'membership': message, 'signature': signature})
+        except ValueError as e:
+            return str(e)
 
     def person_quality(self, wallets, fingerprint):
         quality = 'nothing'

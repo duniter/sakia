@@ -113,6 +113,18 @@ class Account(object):
                 sent.append(t)
         return sent
 
+    def send_pubkey(self, community):
+        wallets = self.wallets.community_wallets(community.currency)
+        return community.send_pubkey(self, wallets)
+
+    def send_membership_in(self, community):
+        wallets = self.wallets.community_wallets(community.currency)
+        return community.send_membership(self, wallets, "IN")
+
+    def send_membership_out(self, community):
+        wallets = self.wallets.community_wallets(community.currency)
+        return community.send_membership(self, wallets, "OUT")
+
     def quality(self, community):
         wallets = self.wallets.community_wallets(community.currency)
         return community.person_quality(wallets, self.fingerprint())

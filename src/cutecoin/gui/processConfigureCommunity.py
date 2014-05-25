@@ -185,9 +185,17 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
             menu.exec_(self.mapToGlobal(point))
 
     def accept(self):
+        result = self.account.send_pubkey(self.community)
+        if result:
+            QMessageBox.critical(self, "Pubkey publishing error",
+                              result)
+
         #TODO: Push wht only if changed
         for wallet in self.account.wallets:
-            wallet.push_wht(self.account.gpg)
+            result = wallet.push_wht(self.account.gpg)
+            if result:
+                QMessageBox.critical(self, "Wallet publishing error",
+                                  result)
 
         self.accepted.emit()
         self.close()
