@@ -23,7 +23,7 @@
    <item>
     <widget class="QStackedWidget" name="stacked_pages">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="page_init">
       <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -271,5 +271,6 @@
   <slot>check()</slot>
   <slot>next()</slot>
   <slot>previous()</slot>
+  <slot>current_wallet_changed(int)</slot>
  </slots>
 </ui>

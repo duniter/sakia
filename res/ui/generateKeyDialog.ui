@@ -22,9 +22,9 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
+    <layout class="QHBoxLayout" name="layout_name">
      <item>
-      <widget class="QLabel" name="label_3">
+      <widget class="QLabel" name="label_name">
        <property name="text">
         <string>Your name</string>
        </property>
@@ -46,9 +46,9 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_4">
+    <layout class="QHBoxLayout" name="layout_password">
      <item>
-      <widget class="QLabel" name="label_4">
+      <widget class="QLabel" name="label_password">
        <property name="text">
         <string>Passphrase</string>
        </property>
@@ -64,9 +64,9 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <layout class="QHBoxLayout" name="layout_password_bis">
      <item>
-      <widget class="QLabel" name="label_2">
+      <widget class="QLabel" name="label_password_bis">
        <property name="text">
         <string>Type it again</string>
        </property>

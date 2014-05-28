@@ -46,9 +46,11 @@ class Node(object):
         return cls(server, port, trust, hoster)
 
     def __eq__(self, other):
-        hash = ucoin.network.Peering(self.server, self.port).get()['fingerprint']
-        other_hash = ucoin.network.Peering(other.server, other.port).get()['fingerprint']
-        return (self.hash == other.hash)
+        hash = ucoin.network.Peering(server=self.server,
+                                     port=self.port).get()['fingerprint']
+        other_hash = ucoin.network.Peering(server=other.server,
+                                           port=other.port).get()['fingerprint']
+        return (hash == other_hash)
 
     def get_text(self):
         return self.server + ":" + str(self.port)

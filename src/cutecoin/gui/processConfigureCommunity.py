@@ -5,7 +5,9 @@ Created on 8 mars 2014
 '''
 import ucoin
 from cutecoin.gen_resources.communityConfigurationDialog_uic import Ui_CommunityConfigurationDialog
-from PyQt5.QtWidgets import QDialog, QMenu, QMessageBox
+from PyQt5.QtWidgets import QDialog, QMenu, QMessageBox, QWidget, QAction
+from PyQt5.QtCore import QSignalMapper
+from cutecoin.gui.processCreateWallet import ProcessCreateWallet
 from cutecoin.models.node.treeModel import NodesTreeModel
 from cutecoin.models.wallet.trustsTreeModel import TrustsTreeModel
 from cutecoin.models.node import Node
@@ -92,16 +94,25 @@ class StepPageSetWallets(Step):
 
     def display_page(self):
         self.config_dialog.tabs_wallets.clear()
+        signal_mapper = QSignalMapper(self.config_dialog)
         for wallet in self.config_dialog.account.wallets:
             wallet_tab = WalletTabWidget(self.config_dialog.account,
                                          self.config_dialog.community)
             self.config_dialog.tabs_wallets.addTab(wallet_tab, wallet.name)
             tree_model = TrustsTreeModel(wallet,
                                          self.config_dialog.community.name())
+            signal_mapper.setMapping(tree_model, wallet.name)
+            tree_model.dataChanged.connect(signal_mapper.map)
             wallet_tab.trusts_tree_view.setModel(tree_model)
+            wallet_tab.spinbox_trusts.setValue(wallet.required_trusts)
+            wallet_tab.spinbox_trusts.valueChanged.connect(self.config_dialog.required_trusts_changed)
+
+        self.config_dialog.tabs_wallets.addTab(QWidget(), "+")
 
         self.config_dialog.button_previous.setEnabled(True)
         self.config_dialog.button_next.setText("Ok")
+        changed_slot = self.config_dialog.current_wallet_changed
+        self.config_dialog.tabs_wallets.currentChanged.connect(changed_slot)
 
     def process_next(self):
         pass
@@ -122,6 +133,10 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         self.account = account
         self.step = None
         self.nodes = []
+        self.wallet_edit = {}
+
+        for w in self.account.wallets:
+            self.wallet_edit[w.name] = False
 
         step_init = StepPageInit(self)
         step_add_nodes = StepPageAddNodes(self)
@@ -171,8 +186,21 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
             self.tree_nodes.setModel(NodesTreeModel(self.community,
                                                     self.nodes))
 
+    def current_wallet_changed(self, index):
+        if index == (self.tabs_wallets.count() - 1):
+            wallet_parameters = ProcessCreateWallet(self.account,
+                                                    self.community)
+            wallet_parameters.accepted.connect(self.add_wallet)
+            wallet_parameters.exec_()
+
+    def add_wallet(self):
+        self.wallet_edit[self.account.wallets[-1].name] = True
+        self.tabs_wallets.disconnect()
+        self.step.display_page()
+
     def required_trusts_changed(self, value):
         wallet = self.account.wallets[self.tabs_wallets.currentIndex()]
+        self.wallet_edit[self.account.wallets[-1].name] = True
         wallet.required_trusts = value
 
     def showContextMenu(self, point):
@@ -184,6 +212,9 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
                     action.setEnabled(False)
             menu.exec_(self.mapToGlobal(point))
 
+    def wallet_edited(self, name):
+        self.wallet_edit[name] = True
+
     def accept(self):
         result = self.account.send_pubkey(self.community)
         if result:
@@ -192,10 +223,11 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
 
         #TODO: Push wht only if changed
         for wallet in self.account.wallets:
-            result = wallet.push_wht(self.account.gpg)
-            if result:
-                QMessageBox.critical(self, "Wallet publishing error",
-                                  result)
+            if self.wallet_edit[wallet.name]:
+                result = wallet.push_wht(self.account.gpg)
+                if result:
+                    QMessageBox.critical(self, "Wallet publishing error",
+                                      result)
 
         self.accepted.emit()
         self.close()

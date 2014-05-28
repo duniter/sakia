@@ -4,7 +4,7 @@ Created on 6 mars 2014
 @author: inso
 '''
 from cutecoin.gen_resources.accountConfigurationDialog_uic import Ui_AccountConfigurationDialog
-from cutecoin.gui.generateKeyDialog import GenerateKeyDialog
+from cutecoin.gui.generateAccountKeyDialog import GenerateAccountKeyDialog
 from cutecoin.gui.processConfigureCommunity import ProcessConfigureCommunity
 from cutecoin.models.account.communities.listModel import CommunitiesListModel
 from cutecoin.tools.exceptions import KeyAlreadyUsed, Error
@@ -151,8 +151,8 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         dialog.accepted.connect(self.action_edit_community)
         dialog.exec_()
 
-    def open_generate_key(self):
-        dialog = GenerateKeyDialog(self.account, self)
+    def open_generate_account_key(self):
+        dialog = GenerateAccountKeyDialog(self.account, self)
         dialog.exec_()
 
     def open_import_key(self):

@@ -58,15 +58,15 @@ class Wallet(object):
         return cls(keyid, currency, nodes, required_trusts, name)
 
     def __eq__(self, other):
-        return (self.community == other.community)
+        return (self.keyid == other.keyid)
 
+    #TODO: Relative and quantitative value
     def value(self):
         value = 0
         for coin in self.coins:
             value += coin.value(self)
         return value
 
-    #TODO: Enhance this code. Loading the amendment each time we load a coin is bad
     def refresh_coins(self, gpg):
         self.coins = []
         coins_list_request = ucoin.hdc.coins.List(self.fingerprint(gpg))

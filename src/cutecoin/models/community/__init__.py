@@ -76,13 +76,10 @@ class Community(object):
     def send_pubkey(self, account, wallets):
         ascii_key = account.gpg.export_keys(account.keyid)
         ascii_key = ascii_key.replace("\n", "\r\n")
-        signature = account.gpg.sign(ascii_key, keyid=account.keyid, detach=True)
-        print(ascii_key)
-        print(signature)
+        #signature = account.gpg.sign(ascii_key, keyid=account.keyid, detach=True)
         try:
             wallets.post(ucoin.pks.Add(),
-                         {'keytext': ascii_key,
-                          'keysign': signature})
+                         {'keytext': ascii_key})
         except ValueError as e:
             return str(e)
 

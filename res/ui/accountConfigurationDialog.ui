@@ -104,7 +104,11 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_5">
              <item>
-              <widget class="QLineEdit" name="edit_secretkey_path"/>
+              <widget class="QLineEdit" name="edit_secretkey_path">
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
+              </widget>
              </item>
              <item>
               <widget class="QPushButton" name="button_import">
@@ -346,7 +350,7 @@
    <sender>button_generate</sender>
    <signal>clicked()</signal>
    <receiver>AccountConfigurationDialog</receiver>
-   <slot>open_generate_key()</slot>
+   <slot>open_generate_account_key()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>224</x>
@@ -367,6 +371,6 @@
   <slot>next()</slot>
   <slot>previous()</slot>
   <slot>open_import_key()</slot>
-  <slot>open_generate_key()</slot>
+  <slot>open_generate_account_key()</slot>
  </slots>
 </ui>
