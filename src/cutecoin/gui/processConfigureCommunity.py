@@ -60,7 +60,6 @@ class StepPageAddNodes(Step):
     def __init__(self, config_dialog):
         super().__init__(config_dialog)
 
-    #TODO: Check page validity
     def is_valid(self):
         return True
 
@@ -88,7 +87,6 @@ class StepPageSetWallets(Step):
     def __init__(self, config_dialog):
         super().__init__(config_dialog)
 
-    #TODO: Check page validity
     def is_valid(self):
         return True
 
@@ -221,7 +219,6 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
             QMessageBox.critical(self, "Pubkey publishing error",
                               result)
 
-        #TODO: Push wht only if changed
         for wallet in self.account.wallets:
             if self.wallet_edit[wallet.name]:
                 result = wallet.push_wht(self.account.gpg)

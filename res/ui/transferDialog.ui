@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>489</height>
+    <height>486</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -69,13 +69,6 @@
           </property>
          </widget>
         </item>
-        <item>
-         <widget class="QPushButton" name="button_get_trusts">
-          <property name="text">
-           <string>Get trusts nodes</string>
-          </property>
-         </widget>
-        </item>
        </layout>
       </item>
      </layout>
@@ -103,7 +96,14 @@
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="combo_wallets"/>
+         <widget class="QComboBox" name="combo_wallets">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>30</height>
+           </size>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
@@ -199,7 +199,7 @@
            <item>
             <widget class="QLabel" name="label_total">
              <property name="text">
-              <string>Total money transfered : 0 </string>
+              <string/>
              </property>
             </widget>
            </item>

@@ -86,7 +86,6 @@ class StepPageCommunities(Step):
         account = self.config_dialog.account
         self.config_dialog.community = account.communities.add_community(
             default_node)
-        #TODO: Get existing Wallet from ucoin node
         account.wallets.add_wallet(account.keyid,
                                    self.config_dialog.community)
         self.config_dialog.refresh()

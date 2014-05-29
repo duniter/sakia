@@ -52,7 +52,6 @@ class StepPageKey(Step):
     def __init__(self, config_dialog):
         super().__init__(config_dialog)
 
-    #TODO: Check page validity
     def is_valid(self):
         return self.config_dialog.keyid != ''
 
@@ -70,7 +69,6 @@ class StepPageNode(Step):
     def __init__(self, config_dialog):
         super().__init__(config_dialog)
 
-    #TODO: Check page validity
     def is_valid(self):
         address = self.config_dialog.edit_address.text()
         port = self.config_dialog.spinbox_port.value()

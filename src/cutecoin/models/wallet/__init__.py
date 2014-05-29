@@ -11,6 +11,7 @@ import json
 import time
 import hashlib
 import importlib
+from decimal import Decimal
 from cutecoin.models.coin import Coin
 from cutecoin.models.coin import algorithms
 from cutecoin.models.node import Node
@@ -60,7 +61,12 @@ class Wallet(object):
     def __eq__(self, other):
         return (self.keyid == other.keyid)
 
-    #TODO: Relative and quantitative value
+    def relative_value(self):
+        value = self.value()
+        amendment = self.get_amendment(None)
+        relative_value = value / float(amendment['dividend'])
+        return relative_value
+
     def value(self):
         value = 0
         for coin in self.coins:
@@ -295,7 +301,8 @@ Hosters:
         else:
             amendment_req = ucoin.hdc.amendments.Promoted(am_number)
             new_am = self.request(amendment_req)
-            self.amendments_cache[am_number] = new_am
+            number = int(new_am['number'])
+            self.amendments_cache[number] = new_am
             return new_am
 
     def fingerprint(self, gpg):
@@ -308,8 +315,10 @@ Hosters:
         return ""
 
     def get_text(self):
-        return self.name + " : " + \
-            str(self.value()) + " " + self.currency
+        return "%s : \n \
+%d %s \n \
+%.2f UD" % (self.name, self.value(), self.currency,
+                          self.relative_value())
 
     def jsonify_coins_list(self):
         data = []

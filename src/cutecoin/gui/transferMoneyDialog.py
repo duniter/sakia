@@ -42,16 +42,22 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         for select in selection:
             coins = self.list_coins_sent.model().remove_coins(select, 1)
             self.list_wallet.model().add_coins(coins)
-        self.label_total.setText("Total : %d" %
-                                 self.list_coins_sent.model().total())
+        self.refresh_total()
 
     def add_coins_to_transfer(self):
         selection = self.list_wallet.selectedIndexes()
         for select in selection:
             coins = self.list_wallet.model().remove_coins(select, 1)
             self.list_coins_sent.model().add_coins(coins)
-        self.label_total.setText("Total : %d"
-                                 % self.list_coins_sent.model().total())
+        self.refresh_total()
+
+    def refresh_total(self):
+        dividend = self.wallet.get_amendment(None)['dividend']
+        total = self.list_coins_sent.model().total()
+        relative_total = total / int(dividend)
+        self.label_total.setText("Total : \n \
+%d %s \n \
+%.2f UD" % (total, self.wallet.currency, relative_total))
 
     def accept(self):
         sent_coins = self.list_coins_sent.model().to_list()
@@ -64,7 +70,6 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
                 self.combo_contact.currentIndex()]
 
         message = self.edit_message.text()
-        # TODO: All nodes trusted by recipient
         error = self.wallet.transfer_coins(recipient, sent_coins, message)
         if error:
             QErrorMessage(self).showMessage("Cannot transfer coins " + error)

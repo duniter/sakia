@@ -38,7 +38,7 @@ class Coin(object):
     def value(self, wallet):
         amendment = wallet.get_amendment(self.am_number)
         if 'CoinAlgo' in amendment:
-            coin_algo_name = self.amendment['CoinAlgo']
+            coin_algo_name = amendment['CoinAlgo']
         else:
             coin_algo_name = 'Base2Draft'
 
