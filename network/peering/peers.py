@@ -21,13 +21,13 @@ from . import Network, logging
 logger = logging.getLogger("ucoin/network/peering/peers")
 
 class Base(Network):
-    def __init__(self, server=None, port=None):
-        super().__init__('network/peering/peers', server, port)
+    def __init__(self, connection_handler):
+        super().__init__(connection_handler, 'network/peering/peers')
 
 class Stream(Base):
     """GET a list of peers this node is listening to/by for ANY incoming transaction."""
 
-    def __init__(self, request, pgp_fingerprint=None, server=None, port=None):
+    def __init__(self, connection_handler, request, pgp_fingerprint=None):
         """
         Use the pgp fingerprint parameter in order to fit the result.
 
@@ -36,7 +36,7 @@ class Stream(Base):
         - `pgp_fingerprint`: pgp fingerprint to use as a filter
         """
 
-        super().__init__(server, port)
+        super().__init__(connection_handler)
 
         self.request = request
         self.pgp_fingerprint = pgp_fingerprint
@@ -52,7 +52,7 @@ class Stream(Base):
 class UpStream(Stream):
     """GET a list of peers this node is listening to for ANY incoming transaction."""
 
-    def __init__(self, pgp_fingerprint=None, server=None, port=None):
+    def __init__(self, connection_handler, pgp_fingerprint=None):
         """
         Use the pgp fingerprint parameter in order to fit the result.
 
@@ -60,12 +60,12 @@ class UpStream(Stream):
         - `pgp_fingerprint`: pgp fingerprint to use as a filter
         """
 
-        super().__init__('upstream', pgp_fingerprint, server, port)
+        super().__init__(connection_handler, 'upstream', pgp_fingerprint)
 
 class DownStream(Stream):
     """GET a list of peers this node is listening by for ANY incoming transaction."""
 
-    def __init__(self, pgp_fingerprint=None, server=None, port=None):
+    def __init__(self, connection_handler, pgp_fingerprint=None):
         """
         Use the pgp fingerprint parameter in order to fit the result.
 
@@ -73,4 +73,4 @@ class DownStream(Stream):
         - `pgp_fingerprint`: pgp fingerprint to use as a filter
         """
 
-        super().__init__('downstream', pgp_fingerprint, server, port)
+        super().__init__(connection_handler, 'downstream', pgp_fingerprint)

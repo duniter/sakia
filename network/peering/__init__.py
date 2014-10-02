@@ -21,8 +21,8 @@ from .. import Network, logging
 logger = logging.getLogger("ucoin/network/peering")
 
 class Base(Network):
-    def __init__(self, server=None, port=None):
-        super().__init__('network/peering', server, port)
+    def __init__(self, connection_handler):
+        super().__init__(connection_handler, 'network/peering')
 
 class Keys(Base):
     """GET PGP keys' fingerprint this node manages, i.e. this node will have transactions history and follow ohter nodes for this history."""

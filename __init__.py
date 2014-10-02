@@ -24,90 +24,39 @@ __nonsense__    = 'uCoin'
 
 import requests, logging, pylibscrypt, json
 
-settings = {
-    'server': 'localhost',
-    'port': 8081,
-    'auth': False,
-}
-
 logger = logging.getLogger("ucoin")
 
-class Response:
-    """Wrapper of requests.Response class in order to verify signed message."""
+class ConnectionHandler:
+    """Helper class used by other API classes to ease passing server connection information."""
 
-    def __init__(self, response):
+    def __init__(self, server, port):
         """
         Arguments:
-        - `self`:
-        - `response`:
+        - `server`: server hostname
+        - `port`: port number
         """
 
-        self.response = response
-        self.status_code = response.status_code
-        self.headers = response.headers
+        self.server = server
+        self.port = port
 
-        if settings.get('auth'):
-            self.verified, clear, self.signature = self.split_n_verify(response)
-
-            if not self.verified:
-                raise ValueError('bad signature verification')
-
-            self.text = self.clear_text = clear
-            self.content = self.clear_content = self.text.encode('ascii')
-        else:
-            self.text = response.text
-            self.content = response.content
-
-    def json(self):
-        if not settings.get('auth'):
-            return self.response.json()
-
-        return json.loads(self.text)
-
-    def split_n_verify(self, response):
-        """
-        Split the signed message thanks to the boundary value got in content-type header.
-
-        returns a tuple with the status, the clear message and the signature.
-
-        `response`: the response returns by requests.get() needed to access to headers and response content.
-        """
-
-        begin = '-----BEGIN PGP SIGNATURE-----'
-        end = '-----END PGP SIGNATURE-----'
-        boundary_pattern = 'boundary='
-
-        content_type = response.headers['content-type']
-        boundary = content_type[content_type.index(boundary_pattern)+len(boundary_pattern):]
-        boundary = boundary[:boundary.index(';')].strip()
-
-        data = [x.strip() for x in response.text.split('--%s' % boundary)]
-
-        clear = data[1]
-        signed = data[2][data[2].index(begin):]
-        clearsigned = '-----BEGIN PGP SIGNED MESSAGE-----\nHash: SHA1\n\n%s\n%s' % (clear, signed)
-
-        return (bool(settings['gpg'].verify(clearsigned)), clear, signed)
+    def __str__(self):
+        return 'connection info: %s:%d' % (self.server, self.port)
 
 class API:
     """APIRequest is a class used as an interface. The intermediate derivated classes are the modules and the leaf classes are the API requests."""
 
-    def __init__(self, module, server=None, port=None):
+    def __init__(self, connection_handler, module):
         """
         Asks a module in order to create the url used then by derivated classes.
 
         Arguments:
         - `module`: module name
+        - `connection_handler`: connection handler
         """
 
         self.module = module
-        self.server = server
-        self.port = port
-
+        self.connection_handler = connection_handler
         self.headers = {}
-
-        if settings['auth']:
-            self.headers['Accept'] = 'multipart/signed'
 
     def reverse_url(self, path):
         """
@@ -117,9 +66,9 @@ class API:
         - `path`: the request path
         """
 
-        url = 'http://%s:%d/%s' % (self.server if self.server else settings['server'],
-                                   self.port if self.port else settings['port'],
-                                   self.module)
+        server, port = self.connection_handler.server, self.connection_handler.port
+
+        url = 'http://%s:%d/%s' % (server, port, self.module)
         return url + path
 
     def get(self, **kwargs):
@@ -156,12 +105,7 @@ class API:
         - `path`: the request path
         """
 
-        response = None
-
-        if not settings.get('auth'):
-            response = requests.get(self.reverse_url(path), params=kwargs, headers=self.headers)
-        else:
-            response = Response(requests.get(self.reverse_url(path), params=kwargs, headers=self.headers))
+        response = requests.get(self.reverse_url(path), params=kwargs, headers=self.headers)
 
         if response.status_code != 200:
             raise ValueError('status code != 200 => %d (%s)' % (response.status_code, response.text))
@@ -188,4 +132,4 @@ class API:
         for leaf in root['leaves'][begin:end]:
             yield self.requests_get(path, leaf=leaf).json()['leaf']
 
-from . import pks, network, hdc, wrappers
+from . import network, blockchain

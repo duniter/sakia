@@ -18,49 +18,47 @@
 
 from .. import API, logging
 
-logger = logging.getLogger("ucoin/network")
+logger = logging.getLogger("ucoin/blockchain")
 
-class Network(API):
-    def __init__(self, connection_handler, module='network'):
+class Blockchain(API):
+    def __init__(self, connection_handler, module='blockchain'):
         super().__init__(connection_handler, module)
 
-class Pubkey(Network):
-    """GET the public key of the peer."""
+class Parameters(Blockchain):
+    """GET the blockchain parameters used by this node."""
 
     def __get__(self, **kwargs):
-        return self.requests_get('/pubkey', **kwargs).text
+        return self.requests_get('/parameters', **kwargs).json()
 
-class Peering(Network):
-    """GET peering information about a peer."""
+class Membership(Blockchain):
+    """POST a Membership document."""
 
-    def __get__(self, **kwargs):
-        return self.requests_get('/peering', **kwargs).json()
+    def __post__(self, **kwargs):
+        assert 'membership' in kwargs
 
-class THT(Network):
-    """GET/POST THT entries."""
+        return self.requests_post('/membership', **kwargs).json()
 
-    def __init__(self, connection_handler, pgp_fingerprint=None):
+class Block(Blockchain):
+    """GET/POST a block from/to the blockchain."""
+
+    def __init__(self, connection_handler, number=None):
         """
-        Use the pgp fingerprint parameter in order to fit the result.
+        Use the number parameter in order to select a block number.
 
         Arguments:
-        - `pgp_fingerprint`: pgp fingerprint to use as a filter
+        - `number`: block number to select
         """
 
         super().__init__(connection_handler)
 
-        self.pgp_fingerprint = pgp_fingerprint
+        self.number = number
 
     def __get__(self, **kwargs):
-        if not self.pgp_fingerprint:
-            return self.merkle_easy_parser('/tht')
-
-        return self.merkle_easy_parser('/tht/%s' % self.pgp_fingerprint).json()
+        assert self.number is not None
+        return self.requests_get('/block/%d' % self.number, **kwargs).json()
 
     def __post__(self, **kwargs):
-        assert 'entry' in kwargs
+        assert 'block' in kwargs
         assert 'signature' in kwargs
 
-        return self.requests_post('/tht', **kwargs)
-
-from . import peering
+        return self.requests_post('/block', **kwargs).json()
