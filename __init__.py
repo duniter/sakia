@@ -22,7 +22,8 @@ __author__      = 'Caner Candan'
 __version__     = '0.10.0'
 __nonsense__    = 'uCoin'
 
-import requests, logging, pylibscrypt, json
+import requests, logging, json
+# import pylibscrypt
 
 logger = logging.getLogger("ucoin")
 
@@ -132,4 +133,4 @@ class API:
         for leaf in root['leaves'][begin:end]:
             yield self.requests_get(path, leaf=leaf).json()['leaf']
 
-from . import network, blockchain
+from . import network, blockchain, tx
