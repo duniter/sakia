@@ -24,43 +24,10 @@ class Network(API):
     def __init__(self, connection_handler, module='network'):
         super().__init__(connection_handler, module)
 
-class Pubkey(Network):
-    """GET the public key of the peer."""
-
-    def __get__(self, **kwargs):
-        return self.requests_get('/pubkey', **kwargs).text
-
 class Peering(Network):
     """GET peering information about a peer."""
 
     def __get__(self, **kwargs):
         return self.requests_get('/peering', **kwargs).json()
-
-class THT(Network):
-    """GET/POST THT entries."""
-
-    def __init__(self, connection_handler, pgp_fingerprint=None):
-        """
-        Use the pgp fingerprint parameter in order to fit the result.
-
-        Arguments:
-        - `pgp_fingerprint`: pgp fingerprint to use as a filter
-        """
-
-        super().__init__(connection_handler)
-
-        self.pgp_fingerprint = pgp_fingerprint
-
-    def __get__(self, **kwargs):
-        if not self.pgp_fingerprint:
-            return self.merkle_easy_parser('/tht')
-
-        return self.merkle_easy_parser('/tht/%s' % self.pgp_fingerprint).json()
-
-    def __post__(self, **kwargs):
-        assert 'entry' in kwargs
-        assert 'signature' in kwargs
-
-        return self.requests_post('/tht', **kwargs)
 
 from . import peering

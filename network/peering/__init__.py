@@ -24,22 +24,6 @@ class Base(Network):
     def __init__(self, connection_handler):
         super().__init__(connection_handler, 'network/peering')
 
-class Keys(Base):
-    """GET PGP keys' fingerprint this node manages, i.e. this node will have transactions history and follow ohter nodes for this history."""
-
-    def __get__(self, **kwargs):
-        """creates a generator with one transaction per iteration."""
-
-        return self.merkle_easy_parser('/keys')
-
-class Peer(Base):
-    """GET the peering informations of this node."""
-
-    def __get__(self, **kwargs):
-        """returns peering entry of the node."""
-
-        return self.requests_get('/peer', **kwargs).json()
-
 class Peers(Base):
     """GET peering entries of every node inside the currency network."""
 
@@ -53,15 +37,6 @@ class Peers(Base):
         assert 'signature' in kwargs
 
         return self.requests_post('/peers', **kwargs).json()
-
-class Forward(Base):
-    """POST a network forward document to this node in order to be sent back incoming transactions."""
-
-    def __post__(self, **kwargs):
-        assert 'forward' in kwargs
-        assert 'signature' in kwargs
-
-        return self.requests_post('/forward', **kwargs).json()
 
 class Status(Base):
     """POST a network status document to this node in order notify of its status."""
