@@ -16,13 +16,13 @@
 # Caner Candan <caner@candan.fr>, http://caner.candan.fr
 #
 
-from . import UCG, logging
+from . import Network, logging
 
-logger = logging.getLogger("ucoin/ucg/peering/peers")
+logger = logging.getLogger("ucoin/network/peering/peers")
 
-class Base(UCG):
+class Base(Network):
     def __init__(self, server=None, port=None):
-        super().__init__('ucg/peering/peers', server, port)
+        super().__init__('network/peering/peers', server, port)
 
 class Stream(Base):
     """GET a list of peers this node is listening to/by for ANY incoming transaction."""

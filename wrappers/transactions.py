@@ -18,7 +18,7 @@
 #
 
 import hashlib, logging
-from . import Wrapper, pks, ucg, hdc, settings
+from . import Wrapper, pks, network, hdc, settings
 
 logger = logging.getLogger("transactions")
 
@@ -40,7 +40,7 @@ class Transaction(Wrapper):
 
         context_data = {}
         context_data.update(settings)
-        context_data.update(self.peering if self.peering else ucg.Peering().get())
+        context_data.update(self.peering if self.peering else network.Peering().get())
         context_data['version'] = 1
         context_data['number'] = 0 if not last_tx else last_tx['transaction']['number']+1
         context_data['previousHash'] = hashlib.sha1(("%(raw)s%(signature)s" % last_tx).encode('ascii')).hexdigest().upper() if last_tx else None

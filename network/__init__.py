@@ -18,25 +18,25 @@
 
 from .. import API, logging
 
-logger = logging.getLogger("ucoin/ucg")
+logger = logging.getLogger("ucoin/network")
 
-class UCG(API):
-    def __init__(self, module='ucg', server=None, port=None):
+class Network(API):
+    def __init__(self, module='network', server=None, port=None):
         super().__init__(module, server, port)
 
-class Pubkey(UCG):
+class Pubkey(Network):
     """GET the public key of the peer."""
 
     def __get__(self, **kwargs):
         return self.requests_get('/pubkey', **kwargs).text
 
-class Peering(UCG):
+class Peering(Network):
     """GET peering information about a peer."""
 
     def __get__(self, **kwargs):
         return self.requests_get('/peering', **kwargs).json()
 
-class THT(UCG):
+class THT(Network):
     """GET/POST THT entries."""
 
     def __init__(self, pgp_fingerprint=None, server=None, port=None):

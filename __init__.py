@@ -19,10 +19,10 @@
 __all__ = ['api']
 
 __author__      = 'Caner Candan'
-__version__     = '0.0.1'
+__version__     = '0.9.0'
 __nonsense__    = 'uCoin'
 
-import requests, logging, gnupg, json
+import requests, logging, pylibscrypt, json
 
 settings = {
     'server': 'localhost',
@@ -188,4 +188,4 @@ class API:
         for leaf in root['leaves'][begin:end]:
             yield self.requests_get(path, leaf=leaf).json()['leaf']
 
-from . import pks, ucg, hdc, wrappers
+from . import pks, network, hdc, wrappers

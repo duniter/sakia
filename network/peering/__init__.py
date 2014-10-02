@@ -16,13 +16,13 @@
 # Caner Candan <caner@candan.fr>, http://caner.candan.fr
 #
 
-from .. import UCG, logging
+from .. import Network, logging
 
-logger = logging.getLogger("ucoin/ucg/peering")
+logger = logging.getLogger("ucoin/network/peering")
 
-class Base(UCG):
+class Base(Network):
     def __init__(self, server=None, port=None):
-        super().__init__('ucg/peering', server, port)
+        super().__init__('network/peering', server, port)
 
 class Keys(Base):
     """GET PGP keys' fingerprint this node manages, i.e. this node will have transactions history and follow ohter nodes for this history."""
@@ -55,7 +55,7 @@ class Peers(Base):
         return self.requests_post('/peers', **kwargs).json()
 
 class Forward(Base):
-    """POST a UCG forward document to this node in order to be sent back incoming transactions."""
+    """POST a network forward document to this node in order to be sent back incoming transactions."""
 
     def __post__(self, **kwargs):
         assert 'forward' in kwargs
@@ -64,7 +64,7 @@ class Forward(Base):
         return self.requests_post('/forward', **kwargs).json()
 
 class Status(Base):
-    """POST a UCG status document to this node in order notify of its status."""
+    """POST a network status document to this node in order notify of its status."""
 
     def __post__(self, **kwargs):
         assert 'status' in kwargs
