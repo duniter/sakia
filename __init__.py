@@ -19,7 +19,7 @@
 __all__ = ['api']
 
 __author__      = 'Caner Candan'
-__version__     = '0.9.0'
+__version__     = '0.10.0'
 __nonsense__    = 'uCoin'
 
 import requests, logging, pylibscrypt, json
