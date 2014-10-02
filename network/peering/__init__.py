@@ -46,5 +46,3 @@ class Status(Base):
         assert 'signature' in kwargs
 
         return self.requests_post('/status', **kwargs).json()
-
-from . import peers
