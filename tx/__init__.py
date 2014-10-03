@@ -22,7 +22,7 @@ logger = logging.getLogger("ucoin/tx")
 
 class Tx(API):
     def __init__(self, connection_handler, module='tx'):
-        super().__init__(connection_handler, module)
+        super(Tx, self).__init__(connection_handler, module)
 
 class Process(Tx):
     """POST a transaction."""

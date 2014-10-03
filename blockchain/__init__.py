@@ -22,7 +22,7 @@ logger = logging.getLogger("ucoin/blockchain")
 
 class Blockchain(API):
     def __init__(self, connection_handler, module='blockchain'):
-        super().__init__(connection_handler, module)
+        super(Blockchain, self).__init__(connection_handler, module)
 
 class Parameters(Blockchain):
     """GET the blockchain parameters used by this node."""
@@ -49,7 +49,7 @@ class Block(Blockchain):
         - `number`: block number to select
         """
 
-        super().__init__(connection_handler)
+        super(Block, self).__init__(connection_handler)
 
         self.number = number
 
@@ -62,3 +62,28 @@ class Block(Blockchain):
         assert 'signature' in kwargs
 
         return self.requests_post('/block', **kwargs).json()
+
+class Current(Blockchain):
+    """GET, same as block/[number], but return last accepted block."""
+
+    def __get__(self, **kwargs):
+        return self.requests_get('/current', **kwargs).json()
+
+class Hardship(Blockchain):
+    """GET hardship level for given member's fingerprint for writing next block."""
+
+    def __init__(self, connection_handler, fingerprint):
+        """
+        Use the number parameter in order to select a block number.
+
+        Arguments:
+        - `fingerprint`: member fingerprint
+        """
+
+        super(Hardship, self).__init__(connection_handler)
+
+        self.fingerprint = fingerprint
+
+    def __get__(self, **kwargs):
+        assert self.fingerprint is not None
+        return self.requests_get('/hardship/%s' % self.fingerprint.upper(), **kwargs).json()

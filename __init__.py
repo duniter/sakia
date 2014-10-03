@@ -27,7 +27,7 @@ import requests, logging, json
 
 logger = logging.getLogger("ucoin")
 
-class ConnectionHandler:
+class ConnectionHandler(object):
     """Helper class used by other API classes to ease passing server connection information."""
 
     def __init__(self, server, port):
@@ -43,7 +43,7 @@ class ConnectionHandler:
     def __str__(self):
         return 'connection info: %s:%d' % (self.server, self.port)
 
-class API:
+class API(object):
     """APIRequest is a class used as an interface. The intermediate derivated classes are the modules and the leaf classes are the API requests."""
 
     def __init__(self, connection_handler, module):

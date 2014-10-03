@@ -22,7 +22,7 @@ logger = logging.getLogger("ucoin/network/peering")
 
 class Base(Network):
     def __init__(self, connection_handler):
-        super().__init__(connection_handler, 'network/peering')
+        super(Base, self).__init__(connection_handler, 'network/peering')
 
 class Peers(Base):
     """GET peering entries of every node inside the currency network."""
