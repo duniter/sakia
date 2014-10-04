@@ -1,10 +1,10 @@
 #ucoin-python-api
 
-A python implementation of [uCoin](https://github.com/c-geek/ucoin) API
+A python implementation of [uCoin](https://github.com/ucoin-io/ucoin) API
 
 ## Requirements
 
-In order to use the API, you have to first install the required dependencies given below thanks to pip3:
+In order to use the API, you have to first install the required dependencies given below thanks to pip:
  * requests
 
 ##Installation
@@ -48,4 +48,4 @@ Out[3]:
  'membersCount': 4}
 ```
 
-Please take a look at the document [HTTP API](https://github.com/c-geek/ucoin/blob/master/doc/HTTP_API.md) to learn about the API.
+Please take a look at the document [HTTP API](https://github.com/ucoin-io/ucoin/blob/master/doc/HTTP_API.md) to learn about the API.
