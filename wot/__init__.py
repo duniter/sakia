@@ -49,12 +49,3 @@ class Lookup(WOT):
         assert self.search is not None
 
         return self.requests_get('/lookup/%s' % self.search, **kwargs).json()
-
-
-class All(WOT):
-    """GET all the received public keys."""
-
-    def __get__(self, **kwargs):
-        """creates a generator with one public key per iteration."""
-
-        return self.merkle_easy_parser('/all')

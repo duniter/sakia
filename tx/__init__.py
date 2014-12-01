@@ -36,3 +36,9 @@ class Process(Tx):
         return self.requests_post('/process', **kwargs).json()
 
 
+class Sources(Tx):
+    """Get transaction sources."""
+
+    def __get__(self, **kwargs):
+        assert self.pubkey is not None
+        return self.requests_get('/sources/%d' % self.pubkey, **kwargs).json()
