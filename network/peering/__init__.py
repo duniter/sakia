@@ -20,9 +20,11 @@ from .. import Network, logging
 
 logger = logging.getLogger("ucoin/network/peering")
 
+
 class Base(Network):
     def __init__(self, connection_handler):
         super(Base, self).__init__(connection_handler, 'network/peering')
+
 
 class Peers(Base):
     """GET peering entries of every node inside the currency network."""
@@ -37,6 +39,7 @@ class Peers(Base):
         assert 'signature' in kwargs
 
         return self.requests_post('/peers', **kwargs).json()
+
 
 class Status(Base):
     """POST a network status document to this node in order notify of its status."""

@@ -20,9 +20,11 @@ from .. import API, logging
 
 logger = logging.getLogger("ucoin/wot")
 
+
 class WOT(API):
     def __init__(self, connection_handler, module='wot'):
         super(WOT, self).__init__(connection_handler, module)
+
 
 class Add(WOT):
     """POST Public key data."""
@@ -33,6 +35,7 @@ class Add(WOT):
         assert 'other' in kwargs
 
         return self.requests_post('/add', **kwargs).json()
+
 
 class Lookup(WOT):
     """GET Public key data."""
@@ -46,6 +49,7 @@ class Lookup(WOT):
         assert self.search is not None
 
         return self.requests_get('/lookup/%s' % self.search, **kwargs).json()
+
 
 class All(WOT):
     """GET all the received public keys."""

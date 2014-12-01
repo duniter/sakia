@@ -20,15 +20,18 @@ from .. import API, logging
 
 logger = logging.getLogger("ucoin/blockchain")
 
+
 class Blockchain(API):
     def __init__(self, connection_handler, module='blockchain'):
         super(Blockchain, self).__init__(connection_handler, module)
+
 
 class Parameters(Blockchain):
     """GET the blockchain parameters used by this node."""
 
     def __get__(self, **kwargs):
         return self.requests_get('/parameters', **kwargs).json()
+
 
 class Membership(Blockchain):
     """POST a Membership document."""
@@ -37,6 +40,7 @@ class Membership(Blockchain):
         assert 'membership' in kwargs
 
         return self.requests_post('/membership', **kwargs).json()
+
 
 class Block(Blockchain):
     """GET/POST a block from/to the blockchain."""
@@ -63,11 +67,13 @@ class Block(Blockchain):
 
         return self.requests_post('/block', **kwargs).json()
 
+
 class Current(Blockchain):
     """GET, same as block/[number], but return last accepted block."""
 
     def __get__(self, **kwargs):
         return self.requests_get('/current', **kwargs).json()
+
 
 class Hardship(Blockchain):
     """GET hardship level for given member's fingerprint for writing next block."""
