@@ -12,43 +12,40 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+# Authors:
+# Caner Candan <caner@candan.fr>, http://caner.candan.fr
+#
 
-from .. import Registry
-from .. import logging
+from .. import Network, logging
 
-logger = logging.getLogger("ucoin/registry")
-
-
-class Base(Registry):
-    def __init__(self, server=None, port=None):
-        super().__init__('registry/community', server, port)
+logger = logging.getLogger("ucoin/network/peering")
 
 
-class Members(Base):
-    """GET the members present in the Community for this amendment."""
-
-    def __get__(self, **kwargs):
-        return self.merkle_easy_parser('/members')
-
-    def __post__(self, **kwargs):
-        assert 'membership' in kwargs
-        assert 'signature' in kwargs
-
-        return self.requests_post('/members', **kwargs)
+class Base(Network):
+    def __init__(self, connection_handler):
+        super(Base, self).__init__(connection_handler, 'network/peering')
 
 
-class Voters(Base):
-    """GET the voters listed in this amendment."""
+class Peers(Base):
+    """GET peering entries of every node inside the currency network."""
 
     def __get__(self, **kwargs):
-        return self.merkle_easy_parser('/voters')
+        """creates a generator with one peering entry per iteration."""
+
+        return self.merkle_easy_parser('/peers')
 
     def __post__(self, **kwargs):
-        assert 'voting' in kwargs
+        assert 'entry' in kwargs
         assert 'signature' in kwargs
 
-        return self.requests_post('/voters', **kwargs)
+        return self.requests_post('/peers', **kwargs).json()
 
 
-from . import members
-from . import voters
+class Status(Base):
+    """POST a network status document to this node in order notify of its status."""
+
+    def __post__(self, **kwargs):
+        assert 'status' in kwargs
+        assert 'signature' in kwargs
+
+        return self.requests_post('/status', **kwargs).json()

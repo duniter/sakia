@@ -16,14 +16,20 @@
 # Caner Candan <caner@candan.fr>, http://caner.candan.fr
 #
 
-from .. import API
-from .. import logging
+from .. import API, logging
 
-logger = logging.getLogger("ucoin/hdc")
+logger = logging.getLogger("ucoin/network")
 
 
-class HDC(API):
-    def __init__(self, module='hdc', server=None, port=None):
-        super().__init__(module=module, server=server, port=port)
+class Network(API):
+    def __init__(self, connection_handler, module='network'):
+        super(Network, self).__init__(connection_handler, module)
 
-from . import amendments, coins, transactions
+
+class Peering(Network):
+    """GET peering information about a peer."""
+
+    def __get__(self, **kwargs):
+        return self.requests_get('/peering', **kwargs).json()
+
+from . import peering

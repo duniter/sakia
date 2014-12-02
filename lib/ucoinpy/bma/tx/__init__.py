@@ -12,26 +12,33 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+# Authors:
+# Caner Candan <caner@candan.fr>, http://caner.candan.fr
+#
 
-from .. import Registry
-from .. import logging
+from .. import API, logging
 
-logger = logging.getLogger("ucoin/registry")
-
-
-class Base(Registry):
-    def __init__(self, server=None, port=None):
-        super().__init__('registry/amendment', server, port)
+logger = logging.getLogger("ucoin/tx")
 
 
-class Vote(Base):
+class Tx(API):
+    def __init__(self, connection_handler, module='tx'):
+        super(Tx, self).__init__(connection_handler, module)
 
-    """GET the vote of current node for given amendment number
-    (both amendment + signature).
-    Such vote may be used by any node to broadcast the whole network."""
 
-    def __init__(self, am_number=None, server=None, port=None):
-        super().__init__(server, port)
+class Process(Tx):
+    """POST a transaction."""
+
+    def __post__(self, **kwargs):
+        assert 'transaction' in kwargs
+        assert 'signature' in kwargs
+
+        return self.requests_post('/process', **kwargs).json()
+
+
+class Sources(Tx):
+    """Get transaction sources."""
 
     def __get__(self, **kwargs):
-        return self.merkle_easy_parser('/%s/vote' % self.am_number)
+        assert self.pubkey is not None
+        return self.requests_get('/sources/%d' % self.pubkey, **kwargs).json()

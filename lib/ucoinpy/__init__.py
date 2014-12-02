@@ -15,27 +15,3 @@
 # Authors:
 # Caner Candan <caner@candan.fr>, http://caner.candan.fr
 #
-
-from .. import HDC
-from .. import logging
-
-logger = logging.getLogger("ucoin/hdc/amendments/view")
-
-
-class View(HDC):
-    def __init__(self, amendment_id, server=None, port=None):
-        super().__init__('hdc/amendments/view/%s' % amendment_id, server, port)
-
-
-class Self(View):
-    """Shows the raw data of the amendment [AMENDMENT_ID]."""
-
-    def __get__(self, **kwargs):
-        return self.requests_get('/self', **kwargs).json()
-
-
-class Signatures(View):
-    """GET the signatures of the Community listed in this amendment."""
-
-    def __get__(self, **kwargs):
-        return self.merkle_easy_parser('/signatures')
