@@ -49,3 +49,29 @@ class Lookup(WOT):
         assert self.search is not None
 
         return self.requests_get('/lookup/%s' % self.search, **kwargs).json()
+
+class CertifiersOf(WOT):
+    """GET Certification data over a member."""
+
+    def __init__(self, connection_handler, search, module='wot'):
+        super(WOT, self).__init__(connection_handler, module)
+
+        self.search = search
+
+    def __get__(self, **kwargs):
+        assert self.search is not None
+
+        return self.requests_get('/certifiers-of/%s' % self.search, **kwargs).json()
+
+class CertifiedBy(WOT):
+    """GET Certification data from a member."""
+
+    def __init__(self, connection_handler, search, module='wot'):
+        super(WOT, self).__init__(connection_handler, module)
+
+        self.search = search
+
+    def __get__(self, **kwargs):
+        assert self.search is not None
+
+        return self.requests_get('/certified-by/%s' % self.search, **kwargs).json()
