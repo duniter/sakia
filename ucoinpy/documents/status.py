@@ -29,6 +29,11 @@ class Status(Document):
         self.sender = sender
         self.recipient = recipient
 
+    @classmethod
+    def from_raw(cls, raw):
+        #TODO : Parsing
+        return cls()
+
     def content(self):
         return '''
 Version: {0}

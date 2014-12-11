@@ -9,11 +9,8 @@ from ..key import Base58Encoder
 
 
 class Document:
-    def __init__(self, timestamp):
-        self.timestamp = timestamp
-
-    def ts(self):
-        return "META:TS:{0}".format(self.timestamp)
+    def __init__(self, version):
+        self.version = version
 
     def content(self):
         return ""
