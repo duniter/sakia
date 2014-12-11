@@ -29,7 +29,7 @@ class Peer(Document):
         self.pubkey = pubkey
         self.blockid = blockid
         self.endpoints = endpoints
-        
+
     @classmethod
     def from_raw(cls, raw):
         #TODO : Parsing
@@ -59,22 +59,22 @@ class Endpoint():
     def from_inline(inline):
         for api in MANAGED_API:
             if (inline.startswith(api)):
-                return Endpoint.parse_line(inline, api)
-
-    @staticmethod
-    def parse_line(self, inline, api):
-        if (api == "BASIC_MERKLED_API"):
-            bma_endpoints = re.compile('^BASIC_MERKLED_API( ([a-z_][a-z0-9-_.]+))?( ([0-9.]+))?( ([0-9a-f:]+))?( ([0-9]+))$')
-            m = bma_endpoints.match(inline)
-            server = m.group(2)
-            ipv4 = m.group(4)
-            ipv6 = m.group(6)
-            port = int(m.group(8))
-            return BMAEndpoint(server, ipv4, ipv6, port)
-        return None
+                if (api == "BASIC_MERKLED_API"):
+                    return BMAEndpoint.from_inline(inline)
 
 
 class BMAEndpoint(Endpoint):
+    re_inline = re.compile('^BASIC_MERKLED_API( ([a-z_][a-z0-9-_.]+))?( ([0-9.]+))?( ([0-9a-f:]+))?( ([0-9]+))$')
+
+    @classmethod
+    def from_inline(cls, inline):
+        m = BMAEndpoint.re_inline.match(inline)
+        server = m.group(2)
+        ipv4 = m.group(4)
+        ipv6 = m.group(6)
+        port = int(m.group(8))
+        return cls(server, ipv4, ipv6, port)
+
     def __init__(self, server, ipv4, ipv6, port):
         self.server = server
         self.ipv4 = ipv4
