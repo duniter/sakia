@@ -10,8 +10,8 @@ class SelfCertification(Document):
     '''
     A document discribing a self certification.
     '''
-
-    def __init__(self, identifier):
+    def __init__(self, ts, identifier):
+        super(ts)
         self.identifier = identifier
 
     def uid(self):
