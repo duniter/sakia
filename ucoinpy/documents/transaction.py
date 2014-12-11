@@ -38,6 +38,10 @@ SIGNATURES
         self.comment = comment
 
     @classmethod
+    def from_compact(cls, compact):
+        return None
+
+    @classmethod
     def from_raw(cls, raw):
         #TODO : Parsing
         return cls()

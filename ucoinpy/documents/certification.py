@@ -11,18 +11,22 @@ class SelfCertification(Document):
     A document discribing a self certification.
     '''
     def __init__(self, ts, identifier):
-        super(ts)
         self.identifier = identifier
-        self.timestamp = timestamp
-        
+        self.timestamp = ts
+
+    @classmethod
+    def from_inline(cls, inline):
+        #TODO : Parsing
+        return cls()
+
     @classmethod
     def from_raw(cls, raw):
         #TODO : Parsing
         return cls()
 
-     def ts(self):
+    def ts(self):
         return "META:TS:{0}".format(self.timestamp)
-        
+
     def uid(self):
         return "UID:{0}".format(self.identifier)
 
@@ -42,7 +46,10 @@ class Certification(Document):
         self.selfcert = selfcert
         self.blockid = blockid
 
-        
+    @classmethod
+    def from_inline(cls, inline):
+        return cls()
+
     @classmethod
     def from_raw(cls, raw):
         #TODO : Parsing
