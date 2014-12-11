@@ -93,3 +93,59 @@ class Hardship(Blockchain):
     def __get__(self, **kwargs):
         assert self.fingerprint is not None
         return self.requests_get('/hardship/%s' % self.fingerprint.upper(), **kwargs).json()
+
+
+class Newcomers(Blockchain):
+    """GET, return block numbers containing newcomers."""
+
+    def __get__(self, **kwargs):
+        return self.requests_get('/with/newcomers', **kwargs).json()
+
+
+class Certifications(Blockchain):
+    """GET, return block numbers containing certifications."""
+
+    def __get__(self, **kwargs):
+        return self.requests_get('/with/certs', **kwargs).json()
+
+
+class Joiners(Blockchain):
+    """GET, return block numbers containing joiners."""
+
+    def __get__(self, **kwargs):
+        return self.requests_get('/with/joiners', **kwargs).json()
+
+
+class Actives(Blockchain):
+    """GET, return block numbers containing actives."""
+
+    def __get__(self, **kwargs):
+        return self.requests_get('/with/actives', **kwargs).json()
+
+
+class Leavers(Blockchain):
+    """GET, return block numbers containing leavers."""
+
+    def __get__(self, **kwargs):
+        return self.requests_get('/with/leavers', **kwargs).json()
+
+
+class Excluded(Blockchain):
+    """GET, return block numbers containing excluded."""
+
+    def __get__(self, **kwargs):
+        return self.requests_get('/with/excluded', **kwargs).json()
+
+
+class UD(Blockchain):
+    """GET, return block numbers containing universal dividend."""
+
+    def __get__(self, **kwargs):
+        return self.requests_get('/with/ud', **kwargs).json()
+
+
+class TX(Blockchain):
+    """GET, return block numbers containing transactions."""
+
+    def __get__(self, **kwargs):
+        return self.requests_get('/with/tx', **kwargs).json()
