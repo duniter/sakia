@@ -13,12 +13,21 @@ class SelfCertification(Document):
     def __init__(self, ts, identifier):
         super(ts)
         self.identifier = identifier
+        self.timestamp = timestamp
+        
+    @classmethod
+    def from_raw(cls, raw):
+        #TODO : Parsing
+        return cls()
 
+     def ts(self):
+        return "META:TS:{0}".format(self.timestamp)
+        
     def uid(self):
         return "UID:{0}".format(self.identifier)
 
     def content(self):
-        return "{0}\n{1}".format(self.uid(), self.timestamp())
+        return "{0}\n{1}".format(self.uid(), self.ts())
 
 
 class Certification(Document):
@@ -33,8 +42,14 @@ class Certification(Document):
         self.selfcert = selfcert
         self.blockid = blockid
 
-    def timestamp(self):
+        
+    @classmethod
+    def from_raw(cls, raw):
+        #TODO : Parsing
+        return cls()
+
+    def ts(self):
         return "META:TS:{0}".format(self.blockid)
 
     def content(self):
-        return "{0}\n{1}".format(self.selfcert.content(), self.timestamp())
+        return "{0}\n{1}".format(self.selfcert.content(), self.ts())

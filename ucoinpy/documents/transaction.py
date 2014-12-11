@@ -37,6 +37,11 @@ SIGNATURES
         self.outputs = outputs
         self.comment = comment
 
+    @classmethod
+    def from_raw(cls, raw):
+        #TODO : Parsing
+        return cls()
+
     def content(self):
         doc = """
 Version: {0}

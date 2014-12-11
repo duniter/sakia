@@ -32,6 +32,14 @@ class Membership(object):
         self.userid = userid
         self.cert_ts = cert_ts
 
+        
+    @classmethod
+    def from_raw(cls, raw):
+        #TODO : Parsing
+        return cls()
+
+        
+        
     def content(self):
         return """
 Version: {0}

@@ -75,7 +75,67 @@ BOTTOM_SIGNATURE
         self.excluded = excluded
         self.certifications = certifications
         self.transactions = transactions
-
+        
+    @classmethod
+    def from_raw(cls, raw):
+        #TODO : Parsing
+        lines = raw.splitlines(True)
+        
+        n = 0
+        version_re = re.compile("Version: ([0-9]+)\n") 
+        version = version_re.match(lines[n])
+        n = 1
+        currency_re = re.compile("Currency: ([0-9a-zA-Z_\-]+)\n"
+        currency = currency_re.match(lines[n])
+        
+        n = 2
+        noonce_re = re.compile("Nonce: ([0-9]+)\n") 
+        noonce = nonce_re.match(lines[n])
+        
+        n = 3
+        number_re = re.compile("Number: ([0-9]+)\n") 
+        number = number_re.match(lines[n])
+        
+        n = 4
+        powmin_re = re.compile("PoWMin: ([0-9]+)\n") 
+        powmin = powmin.match(lines[n])        
+        
+        n = 5
+        time_re = re.compile("Time: ([0-9]+)\n") 
+        time = time.match(lines[n]) 
+        
+        n = 6
+        mediantime_re = re.compile("MedianTime: ([0-9]+)\n") 
+        mediantime = mediantime_re.match(line[n])
+        
+        n = 7
+        ud_re = re.compile("UniversalDividend: ([0-9]+)\n") 
+        ud = ud_re.match(line[n])
+        
+        n = 8
+        issuer_re = re.compile("Issuer: ([1-9A-Za-z][^OIl]{43,45})\n")
+        issuer = issuer_re.match(line[n])
+        
+        n = 9
+        previoushash_re = re.compile("PreviousHash: ([0-9a-fA-F]{5,40})\n")
+        prev_hash = previoushash_re.match(line[n])
+        
+        n = 10
+        previousissuer_re = re.compile("PreviousIssuer: ([1-9A-Za-z][^OIl]{43,45})\n")
+        prev_issuer = previousissuer_re.match(line[n])
+        
+        parameters = ""
+        members_count = ""
+        identities = ""
+        joiners = ""
+        actives = ""
+        leavers = ""
+        excluded = ""
+        certifications = ""
+        transactions = ""
+        
+        return cls([])
+        
     def content(self):
         doc = """
 Version: {0}
