@@ -29,6 +29,11 @@ class Peer(Document):
         self.pubkey = pubkey
         self.blockid = blockid
         self.endpoints = endpoints
+        
+    @classmethod
+    def from_raw(cls, raw):
+        #TODO : Parsing
+        return cls()
 
     def content(self):
         doc = """
