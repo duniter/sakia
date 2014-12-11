@@ -50,6 +50,7 @@ class Lookup(WOT):
 
         return self.requests_get('/lookup/%s' % self.search, **kwargs).json()
 
+
 class CertifiersOf(WOT):
     """GET Certification data over a member."""
 
@@ -63,6 +64,7 @@ class CertifiersOf(WOT):
 
         return self.requests_get('/certifiers-of/%s' % self.search, **kwargs).json()
 
+
 class CertifiedBy(WOT):
     """GET Certification data from a member."""
 
@@ -75,3 +77,13 @@ class CertifiedBy(WOT):
         assert self.search is not None
 
         return self.requests_get('/certified-by/%s' % self.search, **kwargs).json()
+
+
+class Members(WOT):
+    """GET List all current members of the Web of Trust."""
+
+    def __init__(self, connection_handler, module='wot'):
+        super(WOT, self).__init__(connection_handler, module)
+
+    def __get__(self, **kwargs):
+        return self.requests_get('/members', **kwargs).json()
