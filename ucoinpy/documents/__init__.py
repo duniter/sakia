@@ -9,7 +9,10 @@ from ..key import Base58Encoder
 
 
 class Document:
-    RE_VERSION = re.compile("Version: ([0-9]+)\n")
+    re_version = re.compile("Version: ([0-9]+)\n")
+    re_currency = re.compile("Currency: ([^\n]+)\n")
 
-    def __init__(self, version):
+    def __init__(self, version, currency, signatures):
         self.version = version
+        self.currency = currency
+        self.signatures = signatures

@@ -7,7 +7,6 @@ import pytest
 from ucoinpy.documents.block import Block
 from mock import Mock
 
-
 raw_block = "Version: 1\nType: \
 Block\nCurrency: zeta_brouzouf\n\
 Nonce: 45079\nNumber: 15\nPoWMin: 4\n\

@@ -78,12 +78,11 @@ BOTTOM_SIGNATURE
                  mediantime, ud, issuer, prev_hash, prev_issuer,
                  parameters, members_count, identities, joiners,
                  actives, leavers, excluded, certifications,
-                 transactions, sign):
+                 transactions, signature):
         '''
         Constructor
         '''
-        super(version)
-        self.currency = currency
+        super(version, currency, [signature])
         self.noonce = noonce
         self.number = number
         self.powmin = powmin
@@ -102,13 +101,10 @@ BOTTOM_SIGNATURE
         self.excluded = excluded
         self.certifications = certifications
         self.transactions = transactions
-        self.sign = sign
 
     @classmethod
     def from_raw(cls, raw):
-        #TODO : Parsing
         lines = raw.splitlines(True)
-
         n = 0
 
         version = Block.re_version.match(lines[n]).group(1)
@@ -170,50 +166,56 @@ BOTTOM_SIGNATURE
                 identities.append(selfcert)
                 lines = lines + 1
 
-        if Block.re_joiners.match(lines[n]) is not None:
+        if Block.re_joiners.match(lines[n]):
+            lines = lines + 1
             while Block.re_actives.match(lines[n]) is None:
                 membership = Membership.from_inline(version, currency, "IN", lines[n])
                 joiners.append(membership)
                 lines = lines + 1
 
-        if Block.re_actives.match(lines[n]) is not None:
+        if Block.re_actives.match(lines[n]):
+            lines = lines + 1
             while Block.re_leavers.match(lines[n]) is None:
                 membership = Membership.from_inline(version, currency, "IN", lines[n])
                 actives.append(membership)
                 lines = lines + 1
 
-        if Block.re_leavers.match(lines[n]) is not None:
+        if Block.re_leavers.match(lines[n]):
+            lines = lines + 1
             while Block.re_excluded.match(lines[n]) is None:
                 membership = Membership.from_inline(version, currency, "OUT", lines[n])
                 leavers.append(membership)
                 lines = lines + 1
 
-        if Block.re_excluded.match(lines[n]) is not None:
+        if Block.re_excluded.match(lines[n]):
+            lines = lines + 1
             while Block.re_certifications.match(lines[n]) is None:
                 membership = Membership.from_inline(version, currency, "OUT", lines[n])
                 excluded.append(membership)
                 lines = lines + 1
 
-        if Block.re_certifications.match(lines[n]) is not None:
+        if Block.re_certifications.match(lines[n]):
+            lines = lines + 1
             while Block.re_transactions.match(lines[n]) is None:
                 certification = Certification.from_inline(version, lines[n])
                 certifications.append(certification)
                 lines = lines + 1
 
-        if Block.re_transactions.match(lines[n]) is not None:
-            while Block.re_transactions.match(lines[n]) is None:
+        if Block.re_transactions.match(lines[n]):
+            lines = lines + 1
+            while Block.re_sign.match(lines[n]) is None:
                 transaction = Transaction.from_compact(version, lines[n])
                 transactions.append(transaction)
                 lines = lines + 1
 
-        sign = Block.re_sign.match(lines[n])
+        signature = Block.re_sign.match(lines[n])
         n = n + 1
 
         return cls(version, currency, noonce, number, powmin, time,
                    mediantime, ud, issuer, prev_hash, prev_issuer,
                    parameters, members_count, identities, joiners,
                    actives, leavers, excluded, certifications,
-                   transactions, sign)
+                   transactions, signature)
 
     def raw(self):
         doc = """
@@ -231,7 +233,7 @@ PreviousHash: {9}
 PreviousIssuer: {10}
 Parameters: {11}
 MembersCount: {12}
-Identities:""".format(PROTOCOL_VERSION,
+Identities:""".format(self.version,
                       self.currency,
                       self.noonce,
                       self.number,
@@ -272,4 +274,4 @@ Identities:""".format(PROTOCOL_VERSION,
         for transaction in self.transactions:
             doc += "{0}\n".format(transaction.inline())
 
-        doc += self.sign
+        doc += self.signatures[0]

@@ -19,11 +19,11 @@ class Status(Document):
     To: RECIPIENT
     '''
 
-    def __init__(self, currency, status, blockid, sender, recipient):
+    def __init__(self, version, currency, status, blockid, sender, recipient, signature):
         '''
         Constructor
         '''
-        self.currency = currency
+        super(version, currency, [signature])
         self.status = status
         self.blockid = blockid
         self.sender = sender
@@ -34,7 +34,7 @@ class Status(Document):
         #TODO : Parsing
         return cls()
 
-    def content(self):
+    def raw(self):
         return '''
 Version: {0}
 Type: Status
@@ -43,5 +43,6 @@ Status: {2}
 Block: {3}
 From: {4}
 To: {5}
-'''.format(PROTOCOL_VERSION, self.currency, self.status,
-           self.blockid, self.sender, self.recipient)
+{6}
+'''.format(self.version, self.currency, self.status,
+           self.blockid, self.sender, self.recipient, self.signatures[0])

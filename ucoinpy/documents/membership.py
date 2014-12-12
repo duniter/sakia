@@ -27,38 +27,36 @@ class Membership(Document):
     ([0-9]+):([0-9a-fA-F]{5,40}):([0-9]+):([^\n]+)\n")
 
     def __init__(self, version, currency, issuer, block_number, block_hash,
-                 membership_type, userid, cert_ts, sign):
+                 membership_type, userid, cert_ts, signature):
         '''
         Constructor
         '''
-        super(version)
-        self.currency = currency
+        super(version, currency, [signature])
         self.issuer = issuer
         self.block_number = block_number
         self.block_hash = block_hash
         self.membership_type = membership_type
         self.userid = userid
         self.cert_ts = cert_ts
-        self.sign = sign
 
     @classmethod
     def from_inline(cls, version, currency, type, inline):
         data = Membership.re_inline.match(inline)
         issuer = data.group(1)
-        sign = data.group(2)
+        signature = data.group(2)
         block_number = data.group(3)
         block_hash = data.group(4)
         cert_ts = data.group(5)
         userid = data.group(6)
         return cls(version, currency, issuer, block_number,
-                   block_hash, type, userid, cert_ts, sign)
+                   block_hash, type, userid, cert_ts, signature)
 
     @classmethod
     def from_raw(cls, raw):
         #TODO : Parsing
         return cls()
 
-    def content(self):
+    def raw(self):
         return """
 Version: {0}
 Type: Membership
@@ -67,13 +65,15 @@ Issuer: {2}
 Block: {3}-{4}
 Membership: {5}
 UserID: {6}
-CertTS: {7}""".format(PROTOCOL_VERSION,
+CertTS: {7}
+{8}""".format(self.version,
                       self.currency,
                       self.issuer,
                       self.block_number, self.block_hash,
                       self.membership_type,
                       self.userid,
-                      self.cert_ts)
+                      self.cert_ts,
+                      self.signatures[0])
 
     def inline(self):
         return "{0}:{1}:{2}:{3}".format(self.issuer,

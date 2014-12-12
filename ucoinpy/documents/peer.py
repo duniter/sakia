@@ -24,7 +24,8 @@ class Peer(Document):
     [...]
     """
 
-    def __init__(self, currency, pubkey, blockid, endpoints):
+    def __init__(self, version, pubkey, blockid, endpoints, signature):
+        super(version, currency, [signature])
         self.currency = currency
         self.pubkey = pubkey
         self.blockid = blockid
@@ -35,7 +36,7 @@ class Peer(Document):
         #TODO : Parsing
         return cls()
 
-    def content(self):
+    def raw(self):
         doc = """
 Version: {0}
 Type: Peer
@@ -43,10 +44,12 @@ Currency: {1}
 PublicKey: {2}
 Block: {3}
 Endpoints:
-""".format(PROTOCOL_VERSION, self.currency, self.pubkey, self.blockid)
+""".format(self.version, self.currency, self.pubkey, self.blockid)
 
         for endpoint in self.endpoints:
             doc += "{0}\n".format(endpoint.inline())
+         
+        doc += "{0}\n".format(self.signatures[0])
         return doc
 
 
