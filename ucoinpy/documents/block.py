@@ -6,6 +6,11 @@ Created on 2 déc. 2014
 
 from .. import PROTOCOL_VERSION
 from . import Document
+from .certification import SelfCertification, Certification
+from .membership import Membership
+from .transaction import Transaction
+
+import re
 
 
 class Block(Document):
@@ -48,14 +53,36 @@ COMPACT_TRANSACTION
 BOTTOM_SIGNATURE
     '''
 
-    def __init__(self, currency, noonce, number, powmin, time,
+    re_type = re.compile("Type: (Block)\n")
+    re_noonce = re.compile("Nonce: ([0-9]+)\n")
+    re_number = re.compile("Number: ([0-9]+)\n")
+    re_powmin = re.compile("PoWMin: ([0-9]+)\n")
+    re_time = re.compile("Time: ([0-9]+)\n")
+    re_mediantime = re.compile("MedianTime: ([0-9]+)\n")
+    re_universaldividend = re.compile("UniversalDividend: ([0-9]+)\n")
+    re_issuer = re.compile("Issuer: ([1-9A-Za-z][^OIl]{43,45})\n")
+    re_previoushash = re.compile("PreviousHash: ([0-9a-fA-F]{5,40})\n")
+    re_previousissuer = re.compile("PreviousIssuer: ([1-9A-Za-z][^OIl]{43,45})\n")
+    re_parameters = re.compile("Parameters: ([0-9]+\.[0-9]+)(:[0-9]+){10}\n")
+    re_memberscount = re.compile("MembersCount: ([0-9]+)\n")
+    re_identities = re.compile("Identities:\n")
+    re_joiners = re.compile("Joiners:\n")
+    re_actives = re.compile("Actives:\n")
+    re_leavers = re.compile("Leavers:\n")
+    re_excluded = re.compile("Excluded:\n")
+    re_certifications = re.compile("Certifications:\n")
+    re_transactions = re.compile("Transactions:\n")
+    re_sign = re.compile("([A-Za-z0-9+/]+)")
+
+    def __init__(self, version, currency, noonce, number, powmin, time,
                  mediantime, ud, issuer, prev_hash, prev_issuer,
                  parameters, members_count, identities, joiners,
                  actives, leavers, excluded, certifications,
-                 transactions):
+                 transactions, sign):
         '''
         Constructor
         '''
+        super(version)
         self.currency = currency
         self.noonce = noonce
         self.number = number
@@ -75,69 +102,120 @@ BOTTOM_SIGNATURE
         self.excluded = excluded
         self.certifications = certifications
         self.transactions = transactions
-        
+        self.sign = sign
+
     @classmethod
     def from_raw(cls, raw):
         #TODO : Parsing
         lines = raw.splitlines(True)
-        
+
         n = 0
-        version_re = re.compile("Version: ([0-9]+)\n") 
-        version = version_re.match(lines[n])
-        n = 1
-        currency_re = re.compile("Currency: ([0-9a-zA-Z_\-]+)\n"
-        currency = currency_re.match(lines[n])
-        
-        n = 2
-        noonce_re = re.compile("Nonce: ([0-9]+)\n") 
-        noonce = nonce_re.match(lines[n])
-        
-        n = 3
-        number_re = re.compile("Number: ([0-9]+)\n") 
-        number = number_re.match(lines[n])
-        
-        n = 4
-        powmin_re = re.compile("PoWMin: ([0-9]+)\n") 
-        powmin = powmin.match(lines[n])        
-        
-        n = 5
-        time_re = re.compile("Time: ([0-9]+)\n") 
-        time = time.match(lines[n]) 
-        
-        n = 6
-        mediantime_re = re.compile("MedianTime: ([0-9]+)\n") 
-        mediantime = mediantime_re.match(line[n])
-        
-        n = 7
-        ud_re = re.compile("UniversalDividend: ([0-9]+)\n") 
-        ud = ud_re.match(line[n])
-        
-        n = 8
-        issuer_re = re.compile("Issuer: ([1-9A-Za-z][^OIl]{43,45})\n")
-        issuer = issuer_re.match(line[n])
-        
-        n = 9
-        previoushash_re = re.compile("PreviousHash: ([0-9a-fA-F]{5,40})\n")
-        prev_hash = previoushash_re.match(line[n])
-        
-        n = 10
-        previousissuer_re = re.compile("PreviousIssuer: ([1-9A-Za-z][^OIl]{43,45})\n")
-        prev_issuer = previousissuer_re.match(line[n])
-        
-        n = 11
-        parameters = ""
-        members_count = ""
-        identities = ""
-        joiners = ""
-        actives = ""
-        leavers = ""
-        excluded = ""
-        certifications = ""
-        transactions = ""
-        
-        return cls([])
-        
-    def content(self):
+
+        version = Block.re_version.match(lines[n]).group(1)
+        n = n + 1
+
+        type = Block.re_type.match(lines[n]).group(1)
+        n = n + 1
+
+        currency = Block.re_currency.match(lines[n]).group(1)
+        n = n + 1
+
+        noonce = int(Block.re_noonce.match(lines[n])).group(1)
+        n = n + 1
+
+        number = int(Block.re_number.match(lines[n])).group(1)
+        n = n + 1
+
+        powmin = int(Block.re_powmin.match(lines[n])).group(1)
+        n = n + 1
+
+        time = int(Block.re_time.match(lines[n])).group(1)
+        n = n + 1
+
+        mediantime = int(Block.re_mediantime.match(lines[n])).group(1)
+        n = n + 1
+
+        ud = Block.re_universaldividend.match(lines[n]).group(1)
+        if ud is not None:
+            ud = int(ud)
+            n = n + 1
+
+        issuer = Block.re_issuer.match(lines[n]).group(1)
+        n = n + 1
+
+        prev_hash = Block.re_previoushash.match(lines[n]).group(1)
+        n = n + 1()
+
+        prev_issuer = Block.re_previousissuer.match(lines[n]).group(1)
+        n = n + 1
+
+        if number == 0:
+            parameters = Block.re_parameters.match(lines[n]).group(1)
+            n = n + 1
+
+        members_count = int(Block.re_memberscount.match(lines[n])).group(1)
+        n = n + 1
+
+        identities = []
+        joiners = []
+        actives = []
+        leavers = []
+        excluded = []
+        certifications = []
+        transactions = []
+
+        if Block.re_identities.match(lines[n]) is not None:
+            while Block.re_joiners.match(lines[n]) is None:
+                selfcert = SelfCertification.from_inline(version, lines[n])
+                identities.append(selfcert)
+                lines = lines + 1
+
+        if Block.re_joiners.match(lines[n]) is not None:
+            while Block.re_actives.match(lines[n]) is None:
+                membership = Membership.from_inline(version, currency, "IN", lines[n])
+                joiners.append(membership)
+                lines = lines + 1
+
+        if Block.re_actives.match(lines[n]) is not None:
+            while Block.re_leavers.match(lines[n]) is None:
+                membership = Membership.from_inline(version, currency, "IN", lines[n])
+                actives.append(membership)
+                lines = lines + 1
+
+        if Block.re_leavers.match(lines[n]) is not None:
+            while Block.re_excluded.match(lines[n]) is None:
+                membership = Membership.from_inline(version, currency, "OUT", lines[n])
+                leavers.append(membership)
+                lines = lines + 1
+
+        if Block.re_excluded.match(lines[n]) is not None:
+            while Block.re_certifications.match(lines[n]) is None:
+                membership = Membership.from_inline(version, currency, "OUT", lines[n])
+                excluded.append(membership)
+                lines = lines + 1
+
+        if Block.re_certifications.match(lines[n]) is not None:
+            while Block.re_transactions.match(lines[n]) is None:
+                certification = Certification.from_inline(version, lines[n])
+                certifications.append(certification)
+                lines = lines + 1
+
+        if Block.re_transactions.match(lines[n]) is not None:
+            while Block.re_transactions.match(lines[n]) is None:
+                transaction = Transaction.from_compact(version, lines[n])
+                transactions.append(transaction)
+                lines = lines + 1
+
+        sign = Block.re_sign.match(lines[n])
+        n = n + 1
+
+        return cls(version, currency, noonce, number, powmin, time,
+                   mediantime, ud, issuer, prev_hash, prev_issuer,
+                   parameters, members_count, identities, joiners,
+                   actives, leavers, excluded, certifications,
+                   transactions, sign)
+
+    def raw(self):
         doc = """
 Version: {0}
 Type: Block
@@ -193,3 +271,5 @@ Identities:""".format(PROTOCOL_VERSION,
         doc += "Transactions:\n"
         for transaction in self.transactions:
             doc += "{0}\n".format(transaction.inline())
+
+        doc += self.sign

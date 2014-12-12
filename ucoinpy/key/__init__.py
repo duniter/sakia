@@ -5,6 +5,25 @@ Ucoin public and private keys
 '''
 
 import base58
+import base64
+import scrypt
+from nacl.signing import SigningKey as NaclSigningKey
+
+
+SEED_LENGTH = 32  # Length of the key
+crypto_sign_BYTES = 64
+SCRYPT_PARAMS = {'N': 4096,
+                 'r': 16,
+                 'p': 1
+                 }
+
+
+class SigningKey(NaclSigningKey):
+    def __init__(self, password, salt):
+        seed = scrypt.hash(password, salt,
+                    SCRYPT_PARAMS['N'], SCRYPT_PARAMS['r'], SCRYPT_PARAMS['p'],
+                    SEED_LENGTH)
+        seedb64 = base64.b64encode(seed)
 
 
 class Base58Encoder(object):
