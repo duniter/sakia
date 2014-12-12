@@ -124,6 +124,7 @@ BOTTOM_SIGNATURE
         previousissuer_re = re.compile("PreviousIssuer: ([1-9A-Za-z][^OIl]{43,45})\n")
         prev_issuer = previousissuer_re.match(line[n])
         
+        n = 11
         parameters = ""
         members_count = ""
         identities = ""
