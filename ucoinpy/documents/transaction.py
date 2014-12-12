@@ -5,12 +5,12 @@ Created on 2 déc. 2014
 '''
 
 from . import Document
-from .. import PROTOCOL_VERSION
+import re
 
 
 class Transaction(Document):
     '''
-Document format : 
+Document format :
 Version: VERSION
 Type: Transaction
 Currency: CURRENCY_NAME
@@ -27,7 +27,7 @@ Comment: COMMENT
 ...
 
 
-Compact format : 
+Compact format :
 TX:VERSION:NB_ISSUERS:NB_INPUTS:NB_OUTPUTS:HAS_COMMENT
 PUBLIC_KEY:INDEX
 ...
@@ -47,7 +47,8 @@ SIGNATURE
     re_outputs = re.compile("Outputs:\n")
     re_pubkey = re.compile("([1-9A-Za-z][^OIl]{43,45})\n")
 
-    def __init__(self, version, currency, issuers, inputs, outputs, signatures):
+    def __init__(self, version, currency, issuers, inputs, outputs,
+                 comment, signatures):
         '''
         Constructor
         '''
@@ -59,57 +60,58 @@ SIGNATURE
 
     @classmethod
     def from_compact(cls, currency, number, compact):
-        lines = raw.splitlines(True)
+        lines = compact.splitlines(True)
         n = 0
-        
-        header_data = re_header.match(lines[n])
+
+        header_data = Transaction.re_header.match(lines[n])
         version = header_data.group(2)
         issuers_num = int(header_data.group(3))
         inputs_num = int(header_data.group(3))
         outputs_num = int(header_data.group(3))
         n = n + 1
-        
+
         issuers = []
         inputs = []
         outputs = []
         signatures = []
-        
+
         for i in range(0, issuers_num):
-            issuer = re_pubkey.match(lines[n]).group(1)
+            issuer = Transaction.re_pubkey.match(lines[n]).group(1)
             issuers.append(issuer)
             n = n + 1
-        
+
         for i in range(0, inputs_num):
             input = InputSource.from_compact(lines[n])
             inputs.append(issuer)
             n = n + 1
-            
+
         for i in range(0, outputs_num):
             output = OutputSource.from_inline(lines[n])
             outputs.append(output)
             n = n + 1
-            
+
         return cls(version, currency, issuers, inputs, outputs, signatures)
 
 
     @classmethod
     def from_raw(cls, raw):
+        lines = raw.splitlines(True)
         n = 0
-        
+
         version = Transaction.re_version.match(lines[n]).group(1)
         n = n + 1
-        
-        type = Transaction.re_type.match(lines[n]).group(1)
+
+        Transaction.re_type.match(lines[n]).group(1)
         n = n + 1
-        
+
         currency = Transaction.re_currency.match(lines[n]).group(1)
         n = n + 1
-        
+
         issuers = []
         inputs = []
         outputs = []
         signatures = []
-        
+
         if Transaction.re_issuers.match(lines[n]):
             lines = lines + 1
             while Transaction.re_inputs.match(lines[n]) is None:
@@ -120,8 +122,8 @@ SIGNATURE
         if Transaction.re_inputs.match(lines[n]):
             lines = lines + 1
             while Transaction.re_outputs.match(lines[n]) is None:
-                input = InputSource.from_compact(number, lines[n])
-                inputs.append(input)
+                input_source = InputSource.from_inline(lines[n])
+                inputs.append(input_source)
                 lines = lines + 1
 
         if Transaction.re_outputs.match(lines[n]) is not None:
@@ -129,14 +131,13 @@ SIGNATURE
                 output = OutputSource.from_inline(lines[n])
                 outputs.append(output)
                 lines = lines + 1
-        
-        
+
         if Transaction.re_sign.match(lines[n]) is not None:
             while n < lines.len:
-                sign = re_sign.match(lines[n]).group(1)
+                sign = Transaction.re_sign.match(lines[n]).group(1)
                 signatures.append(sign)
                 lines = lines + 1
-            
+
         return cls(version, currency, issuers, inputs, outputs, signatures)
 
     def raw(self):
@@ -165,7 +166,7 @@ COMMENT:
 
         for signature in self.signatures:
             doc += "{0}\n".format(signature)
-        
+
         return doc
 
     def compact(self):
@@ -199,28 +200,32 @@ COMMENT
 
         return doc
 
+
 class SimpleTransaction(Transaction):
     '''
 As transaction class, but for only one issuer.
 ...
     '''
-    def __init__(self, version, currency, issuer, single_input, outputs, comment, signature):
+    def __init__(self, version, currency, issuer,
+                 single_input, outputs, comment, signature):
         '''
         Constructor
         '''
-        super(version, currency, [issuer], [single_input], outputs, comment, [signature])
+        super(version, currency, [issuer], [single_input],
+              outputs, comment, [signature])
 
 
 class InputSource():
     '''
     A Transaction INPUT
-    
-    Compact : 
+
+    Compact :
     INDEX:SOURCE:FINGERPRINT:AMOUNT
     '''
-    re_inline = re.compile("([0-9]+):(D|T):([0-9]+):([0-9a-fA-F]{5,40}):([0-9]+)")
+    re_inline = re.compile("([0-9]+):(D|T):([0-9]+):\
+    ([0-9a-fA-F]{5,40}):([0-9]+)")
     re_compact = re.compile("([0-9]+):(D|T):([0-9a-fA-F]{5,40}):([0-9]+)")
-    
+
     def __init__(self, index, source, number, txhash, amount):
         self.index = index
         self.source = source
@@ -230,24 +235,23 @@ class InputSource():
 
     @classmethod
     def from_inline(cls, inline):
-        data = re_inline.match(inline)
+        data = InputSource.re_inline.match(inline)
         index = data.group(1)
         source = data.group(2)
         number = data.group(3)
         txhash = data.group(4)
-        amount = data;group(5)
+        amount = data.group(5)
         return cls(data, index, source, number, txhash, amount)
-     
-     @classmethod
-     def from_compact(cls, number, compact):
-        data = re_compact.match(inline)
+
+    @classmethod
+    def from_compact(cls, number, compact):
+        data = InputSource.re_compact.match(compact)
         index = data.group(1)
         source = data.group(2)
         txhash = data.group(3)
-        amount = data;group(4)
+        amount = data.group(4)
         return cls(data, index, source, number, txhash, amount)
-     
-        
+
     def inline(self):
         return "{0}:{1}:{2}:{3}:{4}".format(self.index,
                                             self.source,
@@ -267,13 +271,14 @@ class OutputSource():
     A Transaction OUTPUT
     '''
     re_inline = "([1-9A-Za-z][^OIl]{43,45}):([0-9]+)"
+
     def __init__(self, pubkey, amount):
         self.pubkey = pubkey
         self.amount = amount
-    
-    @lassmethod
+
+    @classmethod
     def from_inline(cls, inline):
-        data = re_inline.match(inline)
+        data = OutputSource.re_inline.match(inline)
         pubkey = data.group(1)
         amount = data.group(2)
         return cls(pubkey, amount)

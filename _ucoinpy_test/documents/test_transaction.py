@@ -25,24 +25,24 @@ class Test_Transaction:
         assert tx.issuers.len == 1
         assert tx.inputs.len == 1
         assert tx.outputs.len == 3
-        
+
         assert tx.inputs[0].index == 0
         assert tx.inputs[0].source == 'T'
         assert tx.inputs[0].number == 65
         assert tx.inputs[0].pubkey == "D717FEC1993554F8EAE4CEA88DE5FBB6887CFAE8"
         assert tx.inputs[0].amount == 4
-        
+
         assert tx.inputs[1].index == 0
         assert tx.inputs[1].source == 'T'
         assert tx.inputs[1].number == 77
         assert tx.inputs[1].pubkey == "F80993776FB55154A60B3E58910C942A347964AD"
         assert tx.inputs[1].amount == 15
-        
+
         assert tx.inputs[2].index == 0
         assert tx.inputs[2].source == 'D'
         assert tx.inputs[2].number == 88
         assert tx.inputs[2].pubkey == "F4A47E39BC2A20EE69DCD5CAB0A9EB3C92FD8F7B"
         assert tx.inputs[2].amount == 11
-        
+
         assert tx.outputs[0].pubkey == "BYfWYFrsyjpvpFysgu19rGK3VHBkz4MqmQbNyEuVU64g"
         assert tx.outputs[1].amount == 30

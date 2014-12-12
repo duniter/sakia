@@ -24,9 +24,8 @@ class Peer(Document):
     [...]
     """
 
-    def __init__(self, version, pubkey, blockid, endpoints, signature):
+    def __init__(self, version, currency, pubkey, blockid, endpoints, signature):
         super(version, currency, [signature])
-        self.currency = currency
         self.pubkey = pubkey
         self.blockid = blockid
         self.endpoints = endpoints
@@ -48,7 +47,7 @@ Endpoints:
 
         for endpoint in self.endpoints:
             doc += "{0}\n".format(endpoint.inline())
-         
+
         doc += "{0}\n".format(self.signatures[0])
         return doc
 
