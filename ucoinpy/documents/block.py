@@ -74,7 +74,6 @@ BOTTOM_SIGNATURE
     re_excluded = re.compile("Excluded:\n")
     re_certifications = re.compile("Certifications:\n")
     re_transactions = re.compile("Transactions:\n")
-    re_sign = re.compile("([A-Za-z0-9+/]+)")
 
     def __init__(self, version, currency, noonce, number, powmin, time,
                  mediantime, ud, issuer, prev_hash, prev_issuer,
@@ -84,7 +83,10 @@ BOTTOM_SIGNATURE
         '''
         Constructor
         '''
-        super(Block, self).__init__(version, currency, [signature])
+        if signature:
+            super().__init__(version, currency, [signature])
+        else:
+            super().__init__(version, currency, [])
         self.noonce = noonce
         self.number = number
         self.powmin = powmin
@@ -105,14 +107,14 @@ BOTTOM_SIGNATURE
         self.transactions = transactions
 
     @classmethod
-    def from_raw(cls, raw):
+    def from_signed_raw(cls, raw, signature=None):
         lines = raw.splitlines(True)
         n = 0
 
         version = int(Block.re_version.match(lines[n]).group(1))
         n = n + 1
 
-        doctype = Block.re_type.match(lines[n]).group(1)
+        Block.re_type.match(lines[n]).group(1)
         n = n + 1
 
         currency = Block.re_currency.match(lines[n]).group(1)
@@ -211,16 +213,12 @@ BOTTOM_SIGNATURE
 
         if Block.re_transactions.match(lines[n]):
             n = n + 1
-            while n < len(lines) and not Block.re_sign.match(lines[n]):
+            while not Block.re_signature.match(lines[n]):
                 transaction = Transaction.from_compact(version, lines[n])
                 transactions.append(transaction)
                 n = n + 1
 
-        signature = None
-        if n < len(lines):
-            signature = Block.re_sign.match(lines[n])
-
-        n = n + 1
+        signature = Block.re_signature.match(lines[n]).group(1)
 
         return cls(version, currency, noonce, number, powmin, time,
                    mediantime, ud, issuer, prev_hash, prev_issuer,
@@ -229,8 +227,7 @@ BOTTOM_SIGNATURE
                    transactions, signature)
 
     def raw(self):
-        doc = """
-Version: {0}
+        doc = """Version: {0}
 Type: Block
 Currency: {1}
 Nonce: {2}
@@ -238,26 +235,28 @@ Number: {3}
 PoWMin: {4}
 Time: {5}
 MedianTime: {6}
-UniversalDividend: {7}
-Issuer: {8}
-PreviousHash: {9}
-PreviousIssuer: {10}
-Parameters: {11}
-MembersCount: {12}
-Identities:""".format(self.version,
+""".format(self.version,
                       self.currency,
                       self.noonce,
                       self.number,
                       self.powmin,
                       self.time,
-                      self.mediantime,
-                      self.ud,
-                      self.issuer,
-                      self.prev_hash,
-                      self.prev_issuer,
-                      self.parameters,
-                      self.members_count)
+                      self.mediantime)
+        if self.ud:
+            doc += "UniversalDividend: {0}\n".format(self.ud)
 
+        doc += "Issuer: {0}\n".format(self.issuer)
+
+        if self.number == 0:
+            str_params = ":".join(self.parameters)
+            doc += "Parameters: {0}\n".format(str_params)
+        else:
+            doc += "PreviousHash: {0}\n\
+PreviousIssuer: {1}\n".format(self.prev_hash, self.prev_issuer)
+
+        doc += "MembersCount: {0}\n".format(self.members_count)
+
+        doc += "Identities:\n"
         for identity in self.identities:
             doc += "{0}\n".format(identity.inline())
 
@@ -274,7 +273,7 @@ Identities:""".format(self.version,
             doc += "{0]\n".format(leaver.inline())
 
         doc += "Excluded:\n"
-        for exclude in self.exclude:
+        for exclude in self.excluded:
             doc += "{0}\n".format(exclude.inline())
 
         doc += "Certifications:\n"
@@ -285,4 +284,4 @@ Identities:""".format(self.version,
         for transaction in self.transactions:
             doc += "{0}\n".format(transaction.inline())
 
-        doc += self.signatures[0]
+        return doc

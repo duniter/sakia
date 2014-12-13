@@ -45,6 +45,8 @@ SIGNATURE
     re_issuers = re.compile("Issuers:\n")
     re_inputs = re.compile("Inputs:\n")
     re_outputs = re.compile("Outputs:\n")
+    re_compact_comment = re.compile("-----@@@-----([^\n]+)\n")
+    re_comment = re.compile("Comment: ([^\n]+)\n")
     re_pubkey = re.compile("([1-9A-Za-z][^OIl]{42,45})\n")
 
     def __init__(self, version, currency, issuers, inputs, outputs,
@@ -52,7 +54,11 @@ SIGNATURE
         '''
         Constructor
         '''
-        super().__init__(version, currency, signatures)
+        if signatures:
+            super().__init__(version, currency, signatures)
+        else:
+            super().__init__(version, currency, [])
+
         self.issuers = issuers
         self.inputs = inputs
         self.outputs = outputs
@@ -90,10 +96,19 @@ SIGNATURE
             outputs.append(output_source)
             n = n + 1
 
-        return cls(version, currency, issuers, inputs, outputs, None, signatures)
+        comment = None
+        if Transaction.re_comment.match(lines[n]):
+            comment = Transaction.re_compact_comment.match(lines[n]).group(1)
+            n = n + 1
+
+        while n < len(lines):
+            signatures.append(Transaction.re_signature.match(lines[n]).group(1))
+            n = n + 1
+
+        return cls(version, currency, issuers, inputs, outputs, comment, signatures)
 
     @classmethod
-    def from_raw(cls, raw):
+    def from_signed_raw(cls, raw):
         lines = raw.splitlines(True)
         n = 0
 
@@ -126,10 +141,12 @@ SIGNATURE
                 lines = lines + 1
 
         if Transaction.re_outputs.match(lines[n]) is not None:
-            while Transaction.re_sign.match(lines[n]) is None:
+            while not Transaction.re_comment.match(lines[n]):
                 output = OutputSource.from_inline(lines[n])
                 outputs.append(output)
                 lines = lines + 1
+
+        comment = Transaction.re_comment.match(lines[n]).group(1)
 
         if Transaction.re_sign.match(lines[n]) is not None:
             while n < lines.len:
@@ -137,7 +154,8 @@ SIGNATURE
                 signatures.append(sign)
                 lines = lines + 1
 
-        return cls(version, currency, issuers, inputs, outputs, signatures)
+        return cls(version, currency, issuers, inputs, outputs,
+                   comment, signatures)
 
     def raw(self):
         doc = """
@@ -240,15 +258,6 @@ class InputSource():
         number = int(data.group(3))
         txhash = data.group(4)
         amount = int(data.group(5))
-        return cls(index, source, number, txhash, amount)
-
-    @classmethod
-    def from_compact(cls, number, compact):
-        data = InputSource.re_compact.match(compact)
-        index = int(data.group(1))
-        source = data.group(2)
-        txhash = data.group(3)
-        amount = int(data.group(4))
         return cls(index, source, number, txhash, amount)
 
     def inline(self):

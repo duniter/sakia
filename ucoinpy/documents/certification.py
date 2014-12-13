@@ -14,12 +14,17 @@ class SelfCertification(Document):
     '''
 
     re_inline = re.compile("([1-9A-Za-z][^OIl]{42,45}):([A-Za-z0-9+/]+(?:=|==)?):([0-9]+):([^\n]+)\n")
+    re_uid = re.compile("UID:([^\n]+)\n")
+    re_timestamp = re.compile("META:TS:([0-9]+)\n")
 
-    def __init__(self, version, currency, pubkey, ts, identifier, signature):
-        super().__init__(version, currency, [signature])
+    def __init__(self, version, currency, pubkey, ts, uid, signature):
+        if signature:
+            super().__init__(version, currency, [signature])
+        else:
+            super().__init__(version, currency, [])
         self.pubkey = pubkey
         self.timestamp = ts
-        self.identifier = identifier
+        self.uid = uid
 
     @classmethod
     def from_inline(cls, version, currency, inline):
@@ -27,22 +32,16 @@ class SelfCertification(Document):
         pubkey = selfcert_data.group(1)
         signature = selfcert_data.group(2)
         ts = int(selfcert_data.group(3))
-        identifier = selfcert_data.group(4)
-        return cls(version, currency, pubkey, ts, identifier, signature)
-
-    @classmethod
-    def from_raw(cls, raw):
-        #TODO : Parsing
-        return cls()
-
-    def ts(self):
-        return "META:TS:{0}".format(self.timestamp)
-
-    def uid(self):
-        return "UID:{0}".format(self.identifier)
+        uid = selfcert_data.group(4)
+        return cls(version, currency, pubkey, ts, uid, signature)
 
     def raw(self):
-        return "{0}\n{1}\n{2}".format(self.uid(), self.ts(), self.signatures[0])
+        return """UID:{0}
+META:TS:{1}""".format(self.uid(), self.ts())
+
+    def inline(self):
+        return "{0}:{1}:{2}:{3}".format(self.pubkey, self.signatures[0],
+                                    self.timestamp, self.uid)
 
 
 class Certification(Document):
@@ -52,6 +51,7 @@ class Certification(Document):
 
     re_inline = re.compile("([1-9A-Za-z][^OIl]{42,45}):\
 ([1-9A-Za-z][^OIl]{42,45}):([0-9]+):([A-Za-z0-9+/]+(?:=|==)?)\n")
+    re_timestamp = re.compile("META:TS:([0-9]+)-([0-9a-fA-F]{5,40})\n")
 
     def __init__(self, version, currency, pubkey_from, pubkey_to,
                  blockhash, blocknumber, signature):
@@ -76,8 +76,11 @@ class Certification(Document):
         return cls(version, currency, pubkey_from, pubkey_to,
                    blockhash, blocknumber, signature)
 
-    def ts(self):
-        return "META:TS:{0}-{1}".format(self.blockhash, self.blocknumber)
-
     def raw(self, selfcert):
-        return "{0}\n{1}\n{2}".format(selfcert.raw(), self.ts(), self.signatures[0])
+        return """{0}
+META:TS:{1}-{2}""".format(selfcert.signed_raw(), self.blockhash, self.blocknumber)
+
+    def inline(self):
+        return "{0}:{1}:{2}:{3}".format(self.pubkey_from, self.pubkey_to,
+                                        self.blocknumber, self.signatures[0])
+

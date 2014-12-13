@@ -24,16 +24,54 @@ class Peer(Document):
     [...]
     """
 
-    def __init__(self, version, currency, pubkey, blockid, endpoints, signature):
-        super().__init__(version, currency, [signature])
+    re_type = re.compile("Type: (Peer)")
+    re_pubkey = re.compile("PublicKey: ([1-9A-Za-z][^OIl]{42,45})\n")
+    re_block = re.compile("Block: ([0-9]+-[0-9a-fA-F]{5,40})\n")
+    re_endpoints = re.compile("Endpoints:\n")
+
+    def __init__(self, version, currency, pubkey, blockid,
+                 endpoints, signature):
+        if signature:
+            super().__init__(version, currency, [signature])
+        else:
+            super().__init__(version, currency, [])
+
         self.pubkey = pubkey
         self.blockid = blockid
         self.endpoints = endpoints
 
     @classmethod
-    def from_raw(cls, raw):
-        #TODO : Parsing
-        return cls()
+    def from_signed_raw(cls, raw):
+        lines = raw.splitlines(True)
+        n = 0
+
+        version = int(Peer.re_version.match(lines[n]).group(1))
+        n = n + 1
+
+        Peer.re_type.match(lines[n]).group(1)
+        n = n + 1
+
+        currency = Peer.re_currency.match(lines[n]).group(1)
+        n = n + 1
+
+        pubkey = Peer.re_pubkey.match(lines[n]).group(1)
+        n = n + 1
+
+        blockid = Peer.re_block.match(lines[n]).group(1)
+        n = n + 1
+
+        Peer.re_endpoints.match(lines[n])
+        n = n + 1
+
+        endpoints = []
+        while not Peer.re_signature.match(lines[n]):
+            endpoint = Endpoint.from_inline(lines[n])
+            endpoints.append(endpoint)
+            n = n + 1
+
+        signature = Peer.re_signature.match(lines[n]).group(1)
+
+        return cls(version, currency, pubkey, blockid, endpoints, signature)
 
     def raw(self):
         doc = """
@@ -63,18 +101,32 @@ class Endpoint():
             if (inline.startswith(api)):
                 if (api == "BASIC_MERKLED_API"):
                     return BMAEndpoint.from_inline(inline)
+        return UnknownEndpoint.from_inline(inline)
+
+
+class UnknownEndpoint(Endpoint):
+
+    def __init__(self, api, properties):
+        self.api = api
+        self.properties = properties
+
+    @classmethod
+    def from_inline(cls, inline):
+        api = inline.split()[0]
+        properties = inline.split()[1:]
+        return cls(api, properties)
 
 
 class BMAEndpoint(Endpoint):
-    re_inline = re.compile('^BASIC_MERKLED_API( ([a-z_][a-z0-9-_.]+))?( ([0-9.]+))?( ([0-9a-f:]+))?( ([0-9]+))$')
+    re_inline = re.compile('^BASIC_MERKLED_API(?: ([a-z_][a-z0-9-_.]+))?(?: ([0-9.]+))?(?: ([0-9a-f:]+))?(?: ([0-9]+))$')
 
     @classmethod
     def from_inline(cls, inline):
         m = BMAEndpoint.re_inline.match(inline)
-        server = m.group(2)
-        ipv4 = m.group(4)
-        ipv6 = m.group(6)
-        port = int(m.group(8))
+        server = m.group(1)
+        ipv4 = m.group(2)
+        ipv6 = m.group(3)
+        port = int(m.group(4))
         return cls(server, ipv4, ipv6, port)
 
     def __init__(self, server, ipv4, ipv6, port):

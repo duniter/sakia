@@ -48,3 +48,5 @@ class Test_Transaction:
 
         assert tx.outputs[0].pubkey == "BYfWYFrsyjpvpFysgu19rGK3VHBkz4MqmQbNyEuVU64g"
         assert tx.outputs[0].amount == 30
+
+        assert tx.signatures[0] == "42yQm4hGTJYWkPg39hQAUgP6S6EQ4vTfXdJuxKEHL1ih6YHiDL2hcwrFgBHjXLRgxRhj2VNVqqc6b4JayKqTE14r"

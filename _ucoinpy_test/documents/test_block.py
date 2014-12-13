@@ -7,15 +7,27 @@ import pytest
 from ucoinpy.documents.block import Block
 from mock import Mock
 
-raw_block = "Version: 1\nType: \
-Block\nCurrency: zeta_brouzouf\n\
-Nonce: 45079\nNumber: 15\nPoWMin: 4\n\
-Time: 1418083330\nMedianTime: 1418080208\n\
-Issuer: HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk\n\
-PreviousHash: 0000E73C340601ACA1AD5AAA5B5E56B03E178EF8\n\
-PreviousIssuer: HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk\n\
-MembersCount: 4\nIdentities:\nJoiners:\nActives:\nLeavers:\n\
-Excluded:\nCertifications:\nTransactions:\n"
+raw_block = """Version: 1
+Type: Block
+Currency: zeta_brouzouf
+Nonce: 45079
+Number: 15
+PoWMin: 4
+Time: 1418083330
+MedianTime: 1418080208
+Issuer: HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk
+PreviousHash: 0000E73C340601ACA1AD5AAA5B5E56B03E178EF8
+PreviousIssuer: HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk
+MembersCount: 4
+Identities:
+Joiners:
+Actives:
+Leavers:
+Excluded:
+Certifications:
+Transactions:
+42yQm4hGTJYWkPg39hQAUgP6S6EQ4vTfXdJuxKEHL1ih6YHiDL2hcwrFgBHjXLRgxRhj2VNVqqc6b4JayKqTE14r
+"""
 
 
 raw_block_zero = """Version: 1
@@ -56,12 +68,13 @@ HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk:RdrHvL179Rw62UuyBrqy2M1crx7RPajaViB
 RdrHvL179Rw62UuyBrqy2M1crx7RPajaViBatS59EGS:9fx25FmeBDJcikZLWxK5HuzKNbY6MaWYXoK1ajteE42Y:0:90w2HrbdsKIc6YJq3Ksa4sSgjpYSMM05+UuowAlYjrk1ixHIyWyg5odyZPRwO50aiIyUsbikoOWsMc3G8ob/Cg==
 HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk:9fx25FmeBDJcikZLWxK5HuzKNbY6MaWYXoK1ajteE42Y:0:28lv0p8EPHpVgAMiPvXvIe5lMvYJxwko2tv5bPO4voHRHSaDcTz5BR7Oe69S6wjANIEAMfebXiFMqZdj+mWRAA==
 Transactions:
+42yQm4hGTJYWkPg39hQAUgP6S6EQ4vTfXdJuxKEHL1ih6YHiDL2hcwrFgBHjXLRgxRhj2VNVqqc6b4JayKqTE14r
 """
 
 
 class Test_Block:
     def test_fromraw(self):
-        block = Block.from_raw(raw_block)
+        block = Block.from_signed_raw(raw_block)
         assert block.version == 1
         assert block.currency == "zeta_brouzouf"
         assert block.noonce == 45079
@@ -81,8 +94,8 @@ class Test_Block:
         assert block.certifications == []
         assert block.transactions == []
 
-    def test_from_raw_block_zero(self):
-        block = Block.from_raw(raw_block_zero)
+    def test_from_signed_raw_block_zero(self):
+        block = Block.from_signed_raw(raw_block_zero)
         assert block.version == 1
         assert block.currency == "zeta_brouzouf"
         assert block.noonce == 2125
@@ -101,3 +114,53 @@ class Test_Block:
         assert block.excluded == []
         assert len(block.certifications) == 12
         assert block.transactions == []
+
+    def test_to_raw_from_signed_raw(self):
+        block = Block.from_signed_raw(raw_block)
+        rendered_raw = block.signed_raw()
+        from_rendered_raw = Block.from_signed_raw(rendered_raw)
+
+        assert from_rendered_raw.version == 1
+        assert from_rendered_raw.currency == "zeta_brouzouf"
+        assert from_rendered_raw.noonce == 45079
+        assert from_rendered_raw.number == 15
+        assert from_rendered_raw.powmin == 4
+        assert from_rendered_raw.time == 1418083330
+        assert from_rendered_raw.mediantime == 1418080208
+        assert from_rendered_raw.issuer == "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk"
+        assert from_rendered_raw.prev_hash == "0000E73C340601ACA1AD5AAA5B5E56B03E178EF8"
+        assert from_rendered_raw.prev_issuer == "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk"
+        assert from_rendered_raw.members_count == 4
+        assert from_rendered_raw.identities == []
+        assert from_rendered_raw.joiners == []
+        assert from_rendered_raw.actives == []
+        assert from_rendered_raw.leavers == []
+        assert from_rendered_raw.excluded == []
+        assert from_rendered_raw.certifications == []
+        assert from_rendered_raw.transactions == []
+
+    def test_to_raw_from_signed_raw_zero(self):
+        block = Block.from_signed_raw(raw_block_zero)
+        rendered_raw = block.signed_raw()
+        from_rendered_raw = block.from_signed_raw(rendered_raw)
+
+        assert from_rendered_raw.version == 1
+        assert from_rendered_raw.currency == "zeta_brouzouf"
+        assert from_rendered_raw.noonce == 2125
+        assert from_rendered_raw.number == 0
+        assert from_rendered_raw.powmin == 3
+        assert from_rendered_raw.time == 1418077277
+        assert from_rendered_raw.mediantime == 1418077277
+        assert from_rendered_raw.issuer == "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk"
+        assert from_rendered_raw.parameters == ('0.01','302400','100','5259600','2629800','3','5',
+                                    '2629800','3','11','600','10','20','0.67')
+        assert from_rendered_raw.members_count == 4
+        assert len(from_rendered_raw.identities) == 4
+        assert len(from_rendered_raw.joiners) == 4
+        assert from_rendered_raw.actives == []
+        assert from_rendered_raw.leavers == []
+        assert from_rendered_raw.excluded == []
+        assert len(from_rendered_raw.certifications) == 12
+        assert from_rendered_raw.transactions == []
+
+

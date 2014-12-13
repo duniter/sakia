@@ -33,13 +33,13 @@ class Test_SelfCertification:
         assert selfcert.pubkey == "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk"
         assert selfcert.signatures[0] == "h/H8tDIEbfA4yxMQcvfOXVDQhi1sUa9qYtPKrM59Bulv97ouwbAvAsEkC1Uyit1IOpeAV+CQQs4IaAyjE8F1Cw=="
         assert selfcert.timestamp == 1416335620
-        assert selfcert.identifier == "cgeek"
+        assert selfcert.uid == "cgeek"
 
         selfcert = SelfCertification.from_inline(version, currency, selfcert_inlines[1])
         assert selfcert.pubkey == "RdrHvL179Rw62UuyBrqy2M1crx7RPajaViBatS59EGS"
         assert selfcert.signatures[0] == "Ah55O8cvdkGS4at6AGOKUjy+wrFwAq8iKRJ5xLIb6Xdi3M8WfGOUdMjwZA6GlSkdtlMgEhQPm+r2PMebxKrCBg=="
         assert selfcert.timestamp == 1416428323
-        assert selfcert.identifier == "vit"
+        assert selfcert.uid == "vit"
 
     def test_certifications(self):
         version = 1
