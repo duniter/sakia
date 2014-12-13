@@ -45,14 +45,14 @@ SIGNATURE
     re_issuers = re.compile("Issuers:\n")
     re_inputs = re.compile("Inputs:\n")
     re_outputs = re.compile("Outputs:\n")
-    re_pubkey = re.compile("([1-9A-Za-z][^OIl]{43,45})\n")
+    re_pubkey = re.compile("([1-9A-Za-z][^OIl]{42,45})\n")
 
     def __init__(self, version, currency, issuers, inputs, outputs,
                  comment, signatures):
         '''
         Constructor
         '''
-        super(version, currency, signatures)
+        super().__init__(version, currency, signatures)
         self.issuers = issuers
         self.inputs = inputs
         self.outputs = outputs
@@ -64,10 +64,10 @@ SIGNATURE
         n = 0
 
         header_data = Transaction.re_header.match(lines[n])
-        version = header_data.group(2)
-        issuers_num = int(header_data.group(3))
+        version = int(header_data.group(1))
+        issuers_num = int(header_data.group(2))
         inputs_num = int(header_data.group(3))
-        outputs_num = int(header_data.group(3))
+        outputs_num = int(header_data.group(4))
         n = n + 1
 
         issuers = []
@@ -81,17 +81,16 @@ SIGNATURE
             n = n + 1
 
         for i in range(0, inputs_num):
-            input = InputSource.from_compact(lines[n])
-            inputs.append(issuer)
+            input_source = InputSource.from_inline(lines[n])
+            inputs.append(input_source)
             n = n + 1
 
         for i in range(0, outputs_num):
-            output = OutputSource.from_inline(lines[n])
-            outputs.append(output)
+            output_source = OutputSource.from_inline(lines[n])
+            outputs.append(output_source)
             n = n + 1
 
-        return cls(version, currency, issuers, inputs, outputs, signatures)
-
+        return cls(version, currency, issuers, inputs, outputs, None, signatures)
 
     @classmethod
     def from_raw(cls, raw):
@@ -211,7 +210,7 @@ As transaction class, but for only one issuer.
         '''
         Constructor
         '''
-        super(version, currency, [issuer], [single_input],
+        super().__init__(version, currency, [issuer], [single_input],
               outputs, comment, [signature])
 
 
@@ -223,8 +222,8 @@ class InputSource():
     INDEX:SOURCE:FINGERPRINT:AMOUNT
     '''
     re_inline = re.compile("([0-9]+):(D|T):([0-9]+):\
-    ([0-9a-fA-F]{5,40}):([0-9]+)")
-    re_compact = re.compile("([0-9]+):(D|T):([0-9a-fA-F]{5,40}):([0-9]+)")
+([0-9a-fA-F]{5,40}):([0-9]+)\n")
+    re_compact = re.compile("([0-9]+):(D|T):([0-9a-fA-F]{5,40}):([0-9]+)\n")
 
     def __init__(self, index, source, number, txhash, amount):
         self.index = index
@@ -236,21 +235,21 @@ class InputSource():
     @classmethod
     def from_inline(cls, inline):
         data = InputSource.re_inline.match(inline)
-        index = data.group(1)
+        index = int(data.group(1))
         source = data.group(2)
-        number = data.group(3)
+        number = int(data.group(3))
         txhash = data.group(4)
-        amount = data.group(5)
-        return cls(data, index, source, number, txhash, amount)
+        amount = int(data.group(5))
+        return cls(index, source, number, txhash, amount)
 
     @classmethod
     def from_compact(cls, number, compact):
         data = InputSource.re_compact.match(compact)
-        index = data.group(1)
+        index = int(data.group(1))
         source = data.group(2)
         txhash = data.group(3)
-        amount = data.group(4)
-        return cls(data, index, source, number, txhash, amount)
+        amount = int(data.group(4))
+        return cls(index, source, number, txhash, amount)
 
     def inline(self):
         return "{0}:{1}:{2}:{3}:{4}".format(self.index,
@@ -270,7 +269,7 @@ class OutputSource():
     '''
     A Transaction OUTPUT
     '''
-    re_inline = "([1-9A-Za-z][^OIl]{43,45}):([0-9]+)"
+    re_inline = re.compile("([1-9A-Za-z][^OIl]{42,45}):([0-9]+)")
 
     def __init__(self, pubkey, amount):
         self.pubkey = pubkey
@@ -280,7 +279,7 @@ class OutputSource():
     def from_inline(cls, inline):
         data = OutputSource.re_inline.match(inline)
         pubkey = data.group(1)
-        amount = data.group(2)
+        amount = int(data.group(2))
         return cls(pubkey, amount)
 
     def inline(self):

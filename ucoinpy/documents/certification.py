@@ -13,22 +13,22 @@ class SelfCertification(Document):
     A document discribing a self certification.
     '''
 
-    re_inline = re.compile("([1-9A-Za-z][^OIl]{43,45}):([A-Za-z0-9+/]+):([0-9]+):([^\n]+)\n")
+    re_inline = re.compile("([1-9A-Za-z][^OIl]{42,45}):([A-Za-z0-9+/]+(?:=|==)?):([0-9]+):([^\n]+)\n")
 
     def __init__(self, version, currency, pubkey, ts, identifier, signature):
-        super(version, currency, [signature])
+        super().__init__(version, currency, [signature])
         self.pubkey = pubkey
         self.timestamp = ts
         self.identifier = identifier
 
     @classmethod
-    def from_inline(cls, version, inline):
+    def from_inline(cls, version, currency, inline):
         selfcert_data = SelfCertification.re_inline.match(inline)
         pubkey = selfcert_data.group(1)
         signature = selfcert_data.group(2)
-        ts = selfcert_data.group(3)
+        ts = int(selfcert_data.group(3))
         identifier = selfcert_data.group(4)
-        return cls(version, pubkey, ts, identifier, signature)
+        return cls(version, currency, pubkey, ts, identifier, signature)
 
     @classmethod
     def from_raw(cls, raw):
@@ -50,29 +50,30 @@ class Certification(Document):
     A document describing a certification.
     '''
 
-    re_inline = re.compile("([1-9A-Za-z][^OIl]{43,45}):\
-    ([A-Za-z0-9+/]+)(==)?:([0-9]+):([0-9a-fA-F]{5,40}):\
-    ([0-9]+):([^\n]+)\n")
+    re_inline = re.compile("([1-9A-Za-z][^OIl]{42,45}):\
+([1-9A-Za-z][^OIl]{42,45}):([0-9]+):([A-Za-z0-9+/]+(?:=|==)?)\n")
 
     def __init__(self, version, currency, pubkey_from, pubkey_to,
                  blockhash, blocknumber, signature):
         '''
         Constructor
         '''
-        super(version, currency, signature)
+        super().__init__(version, currency, [signature])
         self.pubkey_from = pubkey_from
         self.pubkey_to = pubkey_to
         self.blockhash = blockhash
         self.blocknumber = blocknumber
 
     @classmethod
-    def from_inline(cls, version, blockhash, inline):
+    def from_inline(cls, version, currency, blockhash, inline):
         cert_data = Certification.re_inline.match(inline)
         pubkey_from = cert_data.group(1)
         pubkey_to = cert_data.group(2)
-        blocknumber = cert_data.group(3)
+        blocknumber = int(cert_data.group(3))
+        if blocknumber == 0:
+            blockhash = "DA39A3EE5E6B4B0D3255BFEF95601890AFD80709"
         signature = cert_data.group(4)
-        return cls(version, pubkey_from, pubkey_to,
+        return cls(version, currency, pubkey_from, pubkey_to,
                    blockhash, blocknumber, signature)
 
     def ts(self):

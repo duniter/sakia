@@ -60,10 +60,12 @@ BOTTOM_SIGNATURE
     re_time = re.compile("Time: ([0-9]+)\n")
     re_mediantime = re.compile("MedianTime: ([0-9]+)\n")
     re_universaldividend = re.compile("UniversalDividend: ([0-9]+)\n")
-    re_issuer = re.compile("Issuer: ([1-9A-Za-z][^OIl]{43,45})\n")
+    re_issuer = re.compile("Issuer: ([1-9A-Za-z][^OIl]{42,45})\n")
     re_previoushash = re.compile("PreviousHash: ([0-9a-fA-F]{5,40})\n")
-    re_previousissuer = re.compile("PreviousIssuer: ([1-9A-Za-z][^OIl]{43,45})\n")
-    re_parameters = re.compile("Parameters: ([0-9]+\.[0-9]+)(:[0-9]+){10}\n")
+    re_previousissuer = re.compile("PreviousIssuer: ([1-9A-Za-z][^OIl]{42,45})\n")
+    re_parameters = re.compile("Parameters: ([0-9]+\.[0-9]+):([0-9]+):([0-9]+):([0-9]+):\
+([0-9]+):([0-9]+):([0-9]+):([0-9]+):([0-9]+):([0-9]+):([0-9]+):([0-9]+):([0-9]+):\
+([0-9]+\.[0-9]+)\n")
     re_memberscount = re.compile("MembersCount: ([0-9]+)\n")
     re_identities = re.compile("Identities:\n")
     re_joiners = re.compile("Joiners:\n")
@@ -82,7 +84,7 @@ BOTTOM_SIGNATURE
         '''
         Constructor
         '''
-        super(version, currency, [signature])
+        super(Block, self).__init__(version, currency, [signature])
         self.noonce = noonce
         self.number = number
         self.powmin = powmin
@@ -107,49 +109,53 @@ BOTTOM_SIGNATURE
         lines = raw.splitlines(True)
         n = 0
 
-        version = Block.re_version.match(lines[n]).group(1)
+        version = int(Block.re_version.match(lines[n]).group(1))
         n = n + 1
 
-        type = Block.re_type.match(lines[n]).group(1)
+        doctype = Block.re_type.match(lines[n]).group(1)
         n = n + 1
 
         currency = Block.re_currency.match(lines[n]).group(1)
         n = n + 1
 
-        noonce = int(Block.re_noonce.match(lines[n])).group(1)
+        noonce = int(Block.re_noonce.match(lines[n]).group(1))
         n = n + 1
 
-        number = int(Block.re_number.match(lines[n])).group(1)
+        number = int(Block.re_number.match(lines[n]).group(1))
         n = n + 1
 
-        powmin = int(Block.re_powmin.match(lines[n])).group(1)
+        powmin = int(Block.re_powmin.match(lines[n]).group(1))
         n = n + 1
 
-        time = int(Block.re_time.match(lines[n])).group(1)
+        time = int(Block.re_time.match(lines[n]).group(1))
         n = n + 1
 
-        mediantime = int(Block.re_mediantime.match(lines[n])).group(1)
+        mediantime = int(Block.re_mediantime.match(lines[n]).group(1))
         n = n + 1
 
-        ud = Block.re_universaldividend.match(lines[n]).group(1)
+        ud = Block.re_universaldividend.match(lines[n])
         if ud is not None:
-            ud = int(ud)
+            ud = int(ud.group(1))
             n = n + 1
 
         issuer = Block.re_issuer.match(lines[n]).group(1)
         n = n + 1
 
-        prev_hash = Block.re_previoushash.match(lines[n]).group(1)
-        n = n + 1()
-
-        prev_issuer = Block.re_previousissuer.match(lines[n]).group(1)
-        n = n + 1
-
-        if number == 0:
-            parameters = Block.re_parameters.match(lines[n]).group(1)
+        prev_hash = None
+        prev_issuer = None
+        if number > 0:
+            prev_hash = Block.re_previoushash.match(lines[n]).group(1)
             n = n + 1
 
-        members_count = int(Block.re_memberscount.match(lines[n])).group(1)
+            prev_issuer = Block.re_previousissuer.match(lines[n]).group(1)
+            n = n + 1
+
+        parameters = None
+        if number == 0:
+            parameters = Block.re_parameters.match(lines[n]).groups()
+            n = n + 1
+
+        members_count = int(Block.re_memberscount.match(lines[n]).group(1))
         n = n + 1
 
         identities = []
@@ -161,54 +167,59 @@ BOTTOM_SIGNATURE
         transactions = []
 
         if Block.re_identities.match(lines[n]) is not None:
+            n = n + 1
             while Block.re_joiners.match(lines[n]) is None:
-                selfcert = SelfCertification.from_inline(version, lines[n])
+                selfcert = SelfCertification.from_inline(version, currency, lines[n])
                 identities.append(selfcert)
-                lines = lines + 1
+                n = n + 1
 
         if Block.re_joiners.match(lines[n]):
-            lines = lines + 1
+            n = n + 1
             while Block.re_actives.match(lines[n]) is None:
                 membership = Membership.from_inline(version, currency, "IN", lines[n])
                 joiners.append(membership)
-                lines = lines + 1
+                n = n + 1
 
         if Block.re_actives.match(lines[n]):
-            lines = lines + 1
+            n = n + 1
             while Block.re_leavers.match(lines[n]) is None:
                 membership = Membership.from_inline(version, currency, "IN", lines[n])
                 actives.append(membership)
-                lines = lines + 1
+                n = n + 1
 
         if Block.re_leavers.match(lines[n]):
-            lines = lines + 1
+            n = n + 1
             while Block.re_excluded.match(lines[n]) is None:
                 membership = Membership.from_inline(version, currency, "OUT", lines[n])
                 leavers.append(membership)
-                lines = lines + 1
+                n = n + 1
 
         if Block.re_excluded.match(lines[n]):
-            lines = lines + 1
+            n = n + 1
             while Block.re_certifications.match(lines[n]) is None:
                 membership = Membership.from_inline(version, currency, "OUT", lines[n])
                 excluded.append(membership)
-                lines = lines + 1
+                n = n + 1
 
         if Block.re_certifications.match(lines[n]):
-            lines = lines + 1
+            n = n + 1
             while Block.re_transactions.match(lines[n]) is None:
-                certification = Certification.from_inline(version, lines[n])
+                certification = Certification.from_inline(version, currency,
+                                                          prev_hash, lines[n])
                 certifications.append(certification)
-                lines = lines + 1
+                n = n + 1
 
         if Block.re_transactions.match(lines[n]):
-            lines = lines + 1
-            while Block.re_sign.match(lines[n]) is None:
+            n = n + 1
+            while n < len(lines) and not Block.re_sign.match(lines[n]):
                 transaction = Transaction.from_compact(version, lines[n])
                 transactions.append(transaction)
-                lines = lines + 1
+                n = n + 1
 
-        signature = Block.re_sign.match(lines[n])
+        signature = None
+        if n < len(lines):
+            signature = Block.re_sign.match(lines[n])
+
         n = n + 1
 
         return cls(version, currency, noonce, number, powmin, time,

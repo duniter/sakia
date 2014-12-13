@@ -19,11 +19,12 @@ class Status(Document):
     To: RECIPIENT
     '''
 
-    def __init__(self, version, currency, status, blockid, sender, recipient, signature):
+    def __init__(self, version, currency, status, blockid, sender,
+                 recipient, signature):
         '''
         Constructor
         '''
-        super(version, currency, [signature])
+        super().__init__(version, currency, [signature])
         self.status = status
         self.blockid = blockid
         self.sender = sender

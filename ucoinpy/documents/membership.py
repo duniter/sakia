@@ -23,15 +23,15 @@ class Membership(Document):
     '''
 
     # PUBLIC_KEY:SIGNATURE:NUMBER:HASH:TIMESTAMP:USER_ID
-    re_inline = re.compile("([1-9A-Za-z][^OIl]{43,45}):([A-Za-z0-9+/]+):\
-    ([0-9]+):([0-9a-fA-F]{5,40}):([0-9]+):([^\n]+)\n")
+    re_inline = re.compile("([1-9A-Za-z][^OIl]{42,45}):([A-Za-z0-9+/]+(?:=|==)?):\
+([0-9]+):([0-9a-fA-F]{5,40}):([0-9]+):([^\n]+)\n")
 
     def __init__(self, version, currency, issuer, block_number, block_hash,
                  membership_type, userid, cert_ts, signature):
         '''
         Constructor
         '''
-        super(version, currency, [signature])
+        super().__init__(version, currency, [signature])
         self.issuer = issuer
         self.block_number = block_number
         self.block_hash = block_hash
@@ -40,7 +40,7 @@ class Membership(Document):
         self.cert_ts = cert_ts
 
     @classmethod
-    def from_inline(cls, version, currency, type, inline):
+    def from_inline(cls, version, currency, membership_type, inline):
         data = Membership.re_inline.match(inline)
         issuer = data.group(1)
         signature = data.group(2)
@@ -49,7 +49,7 @@ class Membership(Document):
         cert_ts = data.group(5)
         userid = data.group(6)
         return cls(version, currency, issuer, block_number,
-                   block_hash, type, userid, cert_ts, signature)
+                   block_hash, membership_type, userid, cert_ts, signature)
 
     @classmethod
     def from_raw(cls, raw):
