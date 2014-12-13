@@ -3,13 +3,12 @@ Created on 8 mars 2014
 
 @author: inso
 '''
-import ucoin
+
+from ucoinpy.api import bma
 from cutecoin.gen_resources.communityConfigurationDialog_uic import Ui_CommunityConfigurationDialog
 from PyQt5.QtWidgets import QDialog, QMenu, QMessageBox, QWidget, QAction
 from PyQt5.QtCore import QSignalMapper
-from cutecoin.gui.processCreateWallet import ProcessCreateWallet
 from cutecoin.models.node.treeModel import NodesTreeModel
-from cutecoin.models.wallet.trustsTreeModel import TrustsTreeModel
 from cutecoin.models.node import Node
 from cutecoin.gui.walletTabWidget import WalletTabWidget
 
@@ -32,7 +31,7 @@ class StepPageInit(Step):
         server = self.config_dialog.lineedit_server.text()
         port = self.config_dialog.spinbox_port.value()
         try:
-            ucoin.network.Peering(server, port)
+            bma.network.Peering(server, port)
         except:
             QMessageBox.critical(self, "Server error",
                               "Cannot get node peering")
@@ -45,7 +44,7 @@ class StepPageInit(Step):
         '''
         server = self.config_dialog.lineedit_server.text()
         port = self.config_dialog.spinbox_port.value()
-        default_node = Node.create(server, port, trust=True, hoster=True)
+        default_node = Node.create(server, port)
         account = self.config_dialog.account
         self.config_dialog.community = account.add_community(default_node)
 
@@ -68,11 +67,9 @@ class StepPageAddNodes(Step):
 
     def display_page(self):
         # We add already known nodes to the displayed list
-        for wallet in self.config_dialog.account.wallets:
-            for node in wallet.nodes:
-                if node not in self.config_dialog.nodes:
-                    self.config_dialog.nodes.append(node)
-
+        for node in self.config_dialog.community.nodes:
+            if node not in self.config_dialog.nodes:
+                self.config_dialog.nodes.append(node)
         tree_model = NodesTreeModel(self.config_dialog.nodes,
                                     self.config_dialog.community.name())
         self.config_dialog.tree_nodes.setModel(tree_model)
@@ -93,17 +90,6 @@ class StepPageSetWallets(Step):
     def display_page(self):
         self.config_dialog.tabs_wallets.clear()
         signal_mapper = QSignalMapper(self.config_dialog)
-        for wallet in self.config_dialog.account.wallets:
-            wallet_tab = WalletTabWidget(self.config_dialog.account,
-                                         self.config_dialog.community)
-            self.config_dialog.tabs_wallets.addTab(wallet_tab, wallet.name)
-            tree_model = TrustsTreeModel(wallet,
-                                         self.config_dialog.community.name())
-            signal_mapper.setMapping(tree_model, wallet.name)
-            tree_model.dataChanged.connect(signal_mapper.map)
-            wallet_tab.trusts_tree_view.setModel(tree_model)
-            wallet_tab.spinbox_trusts.setValue(wallet.required_trusts)
-            wallet_tab.spinbox_trusts.valueChanged.connect(self.config_dialog.required_trusts_changed)
 
         self.config_dialog.tabs_wallets.addTab(QWidget(), "+")
 
@@ -184,22 +170,10 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
             self.tree_nodes.setModel(NodesTreeModel(self.community,
                                                     self.nodes))
 
-    def current_wallet_changed(self, index):
-        if index == (self.tabs_wallets.count() - 1):
-            wallet_parameters = ProcessCreateWallet(self.account,
-                                                    self.community)
-            wallet_parameters.accepted.connect(self.add_wallet)
-            wallet_parameters.exec_()
-
     def add_wallet(self):
         self.wallet_edit[self.account.wallets[-1].name] = True
         self.tabs_wallets.disconnect()
         self.step.display_page()
-
-    def required_trusts_changed(self, value):
-        wallet = self.account.wallets[self.tabs_wallets.currentIndex()]
-        self.wallet_edit[self.account.wallets[-1].name] = True
-        wallet.required_trusts = value
 
     def showContextMenu(self, point):
         if self.stacked_pages.currentIndex() == 1:

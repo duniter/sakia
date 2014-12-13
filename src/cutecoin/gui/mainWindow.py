@@ -12,7 +12,6 @@ from cutecoin.gui.communityTabWidget import CommunityTabWidget
 from cutecoin.gui.addContactDialog import AddContactDialog
 from cutecoin.gui.importAccountDialog import ImportAccountDialog
 from cutecoin.models.account.wallets.listModel import WalletsListModel
-from cutecoin.models.coin.listModel import CoinsListModel
 from cutecoin.models.transaction.sentListModel import SentListModel
 from cutecoin.models.transaction.receivedListModel import ReceivedListModel
 

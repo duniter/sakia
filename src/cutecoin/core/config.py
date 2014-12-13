@@ -7,7 +7,6 @@ Created on 7 févr. 2014
 import logging
 from optparse import OptionParser
 from os import environ, path
-import ucoin
 import gnupg
 
 
@@ -47,9 +46,5 @@ def parse_arguments(argv):
             level=logging.INFO)
     else:
         logging.getLogger().propagate = False
-
-    ucoin.settings['gpg'] = gnupg.GPG()
-    logger = logging.getLogger("gnupg")
-    logger.setLevel(logging.INFO)
 
     pass

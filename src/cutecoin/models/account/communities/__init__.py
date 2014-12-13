@@ -4,7 +4,6 @@ Created on 5 févr. 2014
 @author: inso
 '''
 from cutecoin.models.community import Community
-import ucoin
 import logging
 
 
@@ -55,6 +54,23 @@ class Communities(object):
             self._communities_list.append(community)
             return community
         return None
+
+    def request(self, request, get_args={}):
+        response = None
+        for community in self._communities_list:
+            try:
+                response = community.request(request, get_args)
+            except:
+                continue
+            return response
+
+    def post(self, request, get_args={}):
+        for community in self._communities_list:
+            try:
+                response = community.post(request, get_args)
+            except:
+                continue
+            return response
 
     def jsonify(self):
         '''

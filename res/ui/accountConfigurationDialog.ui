@@ -20,7 +20,7 @@
    <item>
     <widget class="QStackedWidget" name="stacked_pages">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="page_init">
       <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -102,30 +102,32 @@
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_6">
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_5">
-             <item>
-              <widget class="QLineEdit" name="edit_secretkey_path">
-               <property name="readOnly">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="button_import">
-               <property name="text">
-                <string>Import a secret key</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
+            <layout class="QHBoxLayout" name="horizontalLayout_5"/>
            </item>
            <item>
-            <widget class="QLabel" name="label_4">
-             <property name="text">
-              <string>OR</string>
+            <widget class="QLineEdit" name="edit_email">
+             <property name="placeholderText">
+              <string>Your email</string>
              </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="edit_password">
+             <property name="echoMode">
+              <enum>QLineEdit::Password</enum>
+             </property>
+             <property name="placeholderText">
+              <string>Your password</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="edit_password_repeat">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="placeholderText">
+              <string>Please repeat your password</string>
              </property>
             </widget>
            </item>
@@ -323,22 +325,6 @@
     <hint type="sourcelabel">
      <x>49</x>
      <y>278</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>149</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>button_import</sender>
-   <signal>clicked()</signal>
-   <receiver>AccountConfigurationDialog</receiver>
-   <slot>open_import_key()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>312</x>
-     <y>175</y>
     </hint>
     <hint type="destinationlabel">
      <x>199</x>

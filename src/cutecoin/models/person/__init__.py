@@ -4,7 +4,7 @@ Created on 11 févr. 2014
 @author: inso
 '''
 
-import ucoin
+from ucoinpy.api import bma
 from cutecoin.tools.exceptions import PersonNotFoundError
 
 
@@ -15,33 +15,18 @@ class Person(object):
     Created by the person.factory
     '''
 
-    def __init__(self, name, fingerprint, email):
+    def __init__(self, name, pubkey):
         '''
         Constructor
         '''
         self.name = name
-        self.fingerprint = fingerprint
-        self.email = email
+        self.pubkey = pubkey
 
     @classmethod
-    def lookup(cls, fingerprint, wallet):
+    def lookup(cls, pubkey, community):
         '''
         Create a person from the fngerprint found in a community
         '''
-        keys = wallet.request(
-            ucoin.pks.Lookup(),
-            get_args={
-                'search': "0x" +
-                fingerprint,
-                'op': 'index'})['keys']
-        if len(keys) > 0:
-            json = keys[0]['key']
-            name = json['name']
-            fingerprint = json['fingerprint']
-            email = json['email']
-            return cls(name, fingerprint, email)
-        else:
-            raise PersonNotFoundError(fingerprint, "fingerprint", wallet)
         return None
 
     @classmethod
@@ -50,12 +35,10 @@ class Person(object):
         Create a person from json data
         '''
         name = json_person['name']
-        fingerprint = json_person['fingerprint']
-        email = json_person['email']
-        return cls(name, fingerprint, email)
+        pubkey = json_person['pubkey']
+        return cls(name, pubkey)
 
     def jsonify(self):
         data = {'name': self.name,
-                'fingerprint': self.fingerprint,
-                'email': self.email}
+                'pubkey': self.pubkey}
         return data

@@ -73,13 +73,6 @@ class Core(object):
             data = json.load(json_data)
             json_data.close()
 
-            for account_name in data['local_accounts']:
-                account_path = os.path.join(config.parameters['home'],
-                                            account_name, 'properties')
-                json_data = open(account_path, 'r')
-                data = json.load(json_data)
-                self.accounts.append(Account.load(data))
-
     def save(self, account):
         with open(config.parameters['data'], 'w') as outfile:
             json.dump(self.jsonify(), outfile, indent=4, sort_keys=True)

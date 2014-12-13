@@ -4,8 +4,8 @@ Created on 1 févr. 2014
 @author: inso
 '''
 
-import ucoin
-import gnupg
+from ucoinpy.api import bma
+from ucoinpy.key import SigningKey
 import logging
 import json
 import os
@@ -24,39 +24,29 @@ class Account(object):
     be locally referenced by only one account.
     '''
 
-    def __init__(self, keyid, name, communities, wallets, contacts,
-                 keyring, secret_keyring):
+    def __init__(self, key, name, communities, wallets, contacts):
         '''
         Constructor
         '''
-        self.keyid = keyid
+        self.key = key
         self.name = name
         self.communities = communities
-        print(len(communities))
         self.wallets = wallets
         self.contacts = contacts
-        self.keyring = keyring
-        self.secret_keyring = secret_keyring
-        self.gpg = gnupg.GPG(keyring=self.keyring,
-                    secret_keyring=self.secret_keyring)
 
     @classmethod
     def create(cls, name, communities, wallets, confpath):
         '''
         Constructor
         '''
-        keyring = os.path.join(confpath['home'], name, "keyring")
-        secret_keyring = os.path.join(confpath['home'], name, "secretkeyring")
-        account = cls('', name, communities, wallets, [],
-                      keyring, secret_keyring)
+        account = cls(None, name, communities, wallets, [])
         return account
 
     @classmethod
-    def load(cls, json_data):
-        keyid = json_data['keyid']
+    def load(cls, passwd, json_data):
+        salt = json_data['salt']
+
         name = json_data['name']
-        keyring = json_data['keyring']
-        secret_keyring = json_data['secret_keyring']
         contacts = []
 
         for contact_data in json_data['contacts']:
@@ -65,8 +55,7 @@ class Account(object):
         wallets = Wallets.load(json_data['wallets'])
         communities = Communities.load(json_data['communities'])
 
-        account = cls(keyid, name, communities, wallets, contacts,
-                      keyring, secret_keyring)
+        account = cls(SigningKey(passwd, salt), name, communities, wallets, contacts)
         return account
 
     def __eq__(self, other):
@@ -79,55 +68,35 @@ class Account(object):
         self.contacts.append(person)
 
     def add_community(self, default_node):
-        promoted = ucoin.hdc.amendments.Promoted()
-        default_node.use(promoted)
-        amendment_data = promoted.get()
+        current = bma.blockchain.Current(default_node.connection_handler())
+        amendment_data = current.get()
         currency = amendment_data['currency']
-        community = self.communities.add_community(currency)
-        self.wallets.add_wallet(self.gpg,
-                                self.keyid,
-                                   currency,
-                                   default_node)
+        community = self.communities.add_community(currency, default_node)
+        self.wallets.add_wallet(currency)
         return community
-
-    def fingerprint(self):
-        available_keys = self.gpg.list_keys()
-        logging.debug(self.keyid)
-        for k in available_keys:
-            logging.debug(k)
-            if k['keyid'] == self.keyid:
-                return k['fingerprint']
-        return ""
 
     def transactions_received(self):
         received = []
         for w in self.wallets:
-            for r in w.transactions_received(self.gpg):
+            for r in w.transactions_received():
                 received.append(r)
         return received
 
     def transactions_sent(self):
         sent = []
         for w in self.wallets:
-            for t in w.transactions_sent(self.gpg):
+            for t in w.transactions_sent():
                 sent.append(t)
         return sent
 
     def send_pubkey(self, community):
-        wallets = self.wallets.community_wallets(community.currency)
-        return community.send_pubkey(self, wallets)
+        return community.send_pubkey(self)
 
     def send_membership_in(self, community):
-        wallets = self.wallets.community_wallets(community.currency)
-        return community.send_membership(self, wallets, "IN")
+        return community.send_membership(self, "IN")
 
     def send_membership_out(self, community):
-        wallets = self.wallets.community_wallets(community.currency)
-        return community.send_membership(self, wallets, "OUT")
-
-    def quality(self, community):
-        wallets = self.wallets.community_wallets(community.currency)
-        return community.person_quality(wallets, self.fingerprint())
+        return community.send_membership(self, "OUT")
 
     def jsonify_contacts(self):
         data = []
@@ -137,10 +106,8 @@ class Account(object):
 
     def jsonify(self):
         data = {'name': self.name,
-                'keyid': self.keyid,
+                'salt': self.salt,
                 'communities': self.communities.jsonify(),
                 'wallets': self.wallets.jsonify(),
-                'contacts': self.jsonify_contacts(),
-                'keyring': self.keyring,
-                'secret_keyring': self.secret_keyring}
+                'contacts': self.jsonify_contacts()}
         return data

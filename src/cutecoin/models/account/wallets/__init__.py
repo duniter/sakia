@@ -67,27 +67,6 @@ class Wallets(object):
             return wallet
         else:
             return self._wallets_list.get(wallet)
-
-    def community_wallets(self, currency):
-        return Wallets([w for w in self._wallets_list if w.currency == currency])
-
-    def request(self, request, get_args={}):
-        response = None
-        for wallet in self._wallets_list:
-            try:
-                response = wallet.request(request, get_args)
-            except:
-                continue
-            return response
-
-    def post(self, request, get_args={}):
-        for wallet in self._wallets_list:
-            try:
-                response = wallet.post(request, get_args)
-            except:
-                continue
-            return response
-
     def jsonify(self):
         '''
         Return the list of wallets in a key:value form.

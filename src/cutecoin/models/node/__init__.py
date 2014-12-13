@@ -4,7 +4,7 @@ Created on 1 févr. 2014
 @author: inso
 '''
 
-import ucoin
+from ucoinpy.api import bma
 import re
 
 
@@ -20,74 +20,41 @@ class Node(object):
         '''
         self.server = server
         self.port = port
-        self.trust = trust
-        self.hoster = hoster
 
     @classmethod
-    def create(cls, server, port, trust=False, hoster=False):
-        return cls(server, port, trust, hoster)
-
-    @classmethod
-    def from_endpoints(cls, endpoints):
-        #TODO: Manage multiple endpoints
-        for endpoint in endpoints:
-            bma_endpoints = re.compile('^BASIC_MERKLED_API( ([a-z_][a-z0-9-_.]+))?( ([0-9.]+))?( ([0-9a-f:]+))?( ([0-9]+))$')
-            m = bma_endpoints.match(endpoint)
-            server = m.group(4)
-            port = int(m.group(8))
-        return cls(server, port, False, False)
+    def create(cls, server, port):
+        return cls(server, port)
 
     @classmethod
     def load(cls, json_data):
         server = json_data['server']
         port = json_data['port']
-        trust = json_data['trust']
-        hoster = json_data['hoster']
-        return cls(server, port, trust, hoster)
+        return cls(server, port)
 
     def __eq__(self, other):
-        hash = ucoin.network.Peering(server=self.server,
-                                     port=self.port).get()['fingerprint']
-        other_hash = ucoin.network.Peering(server=other.server,
-                                           port=other.port).get()['fingerprint']
-        return (hash == other_hash)
+        pubkey = bma.network.Peering(server=self.server,
+                                     port=self.port).get()['puubkey']
+        other_pubkey = bma.network.Peering(server=other.server,
+                                           port=other.port).get()['pubkey']
+        return (pubkey == other_pubkey)
 
     def get_text(self):
         return self.server + ":" + str(self.port)
 
-    '''
-        TrustedNode is a node the community is reading to get informations.
-        The account sends data one of the community main nodes.
-    '''
-
-    def downstream_peers(self):
-        ucoin.settings['server'] = self.server
-        ucoin.settings['port'] = self.port
-
-        peers = []
-        for peer in ucoin.network.peering.peers.DownStream().get()['peers']:
-            node = Node.create(peer['ipv4'], peer['port'])
-            peers.append(node)
-
-        return peers
-
     def peering(self):
-        request = ucoin.network.Peering()
-        self.use(request)
+        request = bma.network.Peering(self.connection_handler())
         return request.get()
 
     def peers(self):
-        request = ucoin.network.peering.Peers()
-        self.use(request)
+        request = bma.network.peering.Peers(self.connection_handler())
         return request.get()
 
-    def use(self, request):
-        request.server = self.server
-        request.port = self.port
-        return request
+    def connection_handler(self):
+        if self.server is not None:
+            return bma.ConnectionHandler(self.server, self.port)
+        else:
+            return bma.ConnectionHandler(self.ipv4, self.port)
 
     def jsonify(self):
         return {'server': self.server,
-                'port': self.port,
-                'trust': self.trust,
-                'hoster': self.hoster}
+                'port': self.port}

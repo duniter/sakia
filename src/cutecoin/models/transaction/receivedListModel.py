@@ -4,7 +4,6 @@ Created on 5 févr. 2014
 @author: inso
 '''
 
-import ucoin
 import logging
 from PyQt5.QtCore import QAbstractListModel, Qt
 
