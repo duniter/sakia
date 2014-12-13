@@ -40,13 +40,13 @@ SIGNATURE
 ...
     '''
 
-    re_type = re.compile("Type: Transaction\n")
+    re_type = re.compile("Type: (Transaction)\n")
     re_header = re.compile("TX:([0-9])+:([0-9])+:([0-9])+:([0-9])+:(0|1)\n")
     re_issuers = re.compile("Issuers:\n")
     re_inputs = re.compile("Inputs:\n")
     re_outputs = re.compile("Outputs:\n")
     re_compact_comment = re.compile("-----@@@-----([^\n]+)\n")
-    re_comment = re.compile("Comment: ([^\n]+)\n")
+    re_comment = re.compile("Comment:(?:)?([^\n]*)\n")
     re_pubkey = re.compile("([1-9A-Za-z][^OIl]{42,45})\n")
 
     def __init__(self, version, currency, issuers, inputs, outputs,
@@ -65,7 +65,7 @@ SIGNATURE
         self.comment = comment
 
     @classmethod
-    def from_compact(cls, currency, number, compact):
+    def from_compact(cls, currency, compact):
         lines = compact.splitlines(True)
         n = 0
 
@@ -112,7 +112,7 @@ SIGNATURE
         lines = raw.splitlines(True)
         n = 0
 
-        version = Transaction.re_version.match(lines[n]).group(1)
+        version = int(Transaction.re_version.match(lines[n]).group(1))
         n = n + 1
 
         Transaction.re_type.match(lines[n]).group(1)
@@ -127,42 +127,44 @@ SIGNATURE
         signatures = []
 
         if Transaction.re_issuers.match(lines[n]):
-            lines = lines + 1
+            n = n + 1
             while Transaction.re_inputs.match(lines[n]) is None:
                 issuer = Transaction.re_pubkey.match(lines[n]).group(1)
                 issuers.append(issuer)
-                lines = lines + 1
+                n = n + 1
 
         if Transaction.re_inputs.match(lines[n]):
-            lines = lines + 1
+            n = n + 1
             while Transaction.re_outputs.match(lines[n]) is None:
                 input_source = InputSource.from_inline(lines[n])
                 inputs.append(input_source)
-                lines = lines + 1
+                n = n + 1
 
         if Transaction.re_outputs.match(lines[n]) is not None:
+            n = n + 1
             while not Transaction.re_comment.match(lines[n]):
                 output = OutputSource.from_inline(lines[n])
                 outputs.append(output)
-                lines = lines + 1
+                n = n + 1
 
         comment = Transaction.re_comment.match(lines[n]).group(1)
+        n = n + 1
 
-        if Transaction.re_sign.match(lines[n]) is not None:
-            while n < lines.len:
-                sign = Transaction.re_sign.match(lines[n]).group(1)
+        if Transaction.re_signature.match(lines[n]) is not None:
+            while n < len(lines):
+                sign = Transaction.re_signature.match(lines[n]).group(1)
                 signatures.append(sign)
-                lines = lines + 1
+                n = n + 1
 
         return cls(version, currency, issuers, inputs, outputs,
                    comment, signatures)
 
     def raw(self):
-        doc = """
-Version: {0}
+        doc = """Version: {0}
 Type: Transaction
 Currency: {1}
-Issuers:""".format(self.version,
+Issuers:
+""".format(self.version,
                    self.currency)
 
         for p in self.issuers:
@@ -176,10 +178,10 @@ Issuers:""".format(self.version,
         for o in self.outputs:
             doc += "{0}\n".format(o.inline())
 
-        doc += """
-COMMENT:
-{0}
-""".format(self.comment)
+        doc += "Comment: "
+        if self.comment:
+            doc += "{0}".format(self.comment)
+        doc += "\n"
 
         for signature in self.signatures:
             doc += "{0}\n".format(signature)
@@ -211,7 +213,7 @@ COMMENT
         for o in self.outputs:
             doc += "{0}\n".format(o.inline())
         if self.comment:
-            doc += "{0}\n".format(self.comment)
+            doc += "-----@@@----- {0}\n".format(self.comment)
         for s in self.signatures:
             doc += "{0}\n".format(s)
 
