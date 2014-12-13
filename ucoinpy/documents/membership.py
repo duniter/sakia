@@ -100,15 +100,15 @@ class Membership(Document):
                    membership_type, uid, cert_ts, signature)
 
     def raw(self):
-        return """
-Version: {0}
+        return """Version: {0}
 Type: Membership
 Currency: {1}
 Issuer: {2}
 Block: {3}-{4}
 Membership: {5}
 UserID: {6}
-CertTS: {7}""".format(self.version,
+CertTS: {7}
+""".format(self.version,
                       self.currency,
                       self.issuer,
                       self.block_number, self.block_hash,

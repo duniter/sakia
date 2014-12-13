@@ -115,7 +115,7 @@ class Test_Block:
         assert len(block.certifications) == 12
         assert block.transactions == []
 
-    def test_to_raw_from_signed_raw(self):
+    def test_toraw_fromsignedraw(self):
         block = Block.from_signed_raw(raw_block)
         rendered_raw = block.signed_raw()
         from_rendered_raw = Block.from_signed_raw(rendered_raw)
@@ -139,7 +139,7 @@ class Test_Block:
         assert from_rendered_raw.certifications == []
         assert from_rendered_raw.transactions == []
 
-    def test_to_raw_from_signed_raw_zero(self):
+    def test_toraw_fromrawzero(self):
         block = Block.from_signed_raw(raw_block_zero)
         rendered_raw = block.signed_raw()
         from_rendered_raw = block.from_signed_raw(rendered_raw)

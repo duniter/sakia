@@ -73,8 +73,7 @@ class Status(Document):
                    sender, recipient, signature)
 
     def raw(self):
-        return '''
-Version: {0}
+        return '''Version: {0}
 Type: Status
 Currency: {1}
 Status: {2}

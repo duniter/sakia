@@ -74,8 +74,7 @@ class Peer(Document):
         return cls(version, currency, pubkey, blockid, endpoints, signature)
 
     def raw(self):
-        doc = """
-Version: {0}
+        doc = """Version: {0}
 Type: Peer
 Currency: {1}
 PublicKey: {2}
@@ -115,6 +114,12 @@ class UnknownEndpoint(Endpoint):
         api = inline.split()[0]
         properties = inline.split()[1:]
         return cls(api, properties)
+
+    def inline(self):
+        doc = self.api
+        for p in self.properties:
+            doc += " {0}".format(p)
+        return doc
 
 
 class BMAEndpoint(Endpoint):

@@ -58,6 +58,3 @@ class Test_SelfCertification:
         assert cert.blocknumber == 0
         assert cert.blockhash == blockhash
         assert cert.signatures[0] == "qn/XNJjaGIwfnR+wGrDME6YviCQbG+ywsQWnETlAsL6q7o3k1UhpR5ZTVY9dvejLKuC+1mUEXVTmH+8Ib55DBA=="
-
-
-
