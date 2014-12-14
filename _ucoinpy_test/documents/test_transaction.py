@@ -100,8 +100,6 @@ class Test_Transaction:
 
         assert tx.signatures[0] == "42yQm4hGTJYWkPg39hQAUgP6S6EQ4vTfXdJuxKEHL1ih6YHiDL2hcwrFgBHjXLRgxRhj2VNVqqc6b4JayKqTE14r"
 
-
-
     def test_fromraw_toraw(self):
         tx = Transaction.from_signed_raw(tx_raw)
         rendered_tx = tx.signed_raw()

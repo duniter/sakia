@@ -8,6 +8,7 @@ import base58
 import base64
 import scrypt
 from nacl.signing import SigningKey as NaclSigningKey
+from nacl.encoding import Base64Encoder
 
 
 SEED_LENGTH = 32  # Length of the key
@@ -24,6 +25,8 @@ class SigningKey(NaclSigningKey):
                     SCRYPT_PARAMS['N'], SCRYPT_PARAMS['r'], SCRYPT_PARAMS['p'],
                     SEED_LENGTH)
         seedb64 = base64.b64encode(seed)
+        super.__init__(seedb64, Base64Encoder)
+        self.pubkey = Base58Encoder.encode(self.verify_key.key)
 
 
 class Base58Encoder(object):
