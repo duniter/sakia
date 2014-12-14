@@ -68,15 +68,20 @@ class Community(object):
         return members
 
     def request(self, request, req_args={}, get_args={}):
+        error = None
+        logging.debug("Nodes : {0}".format(self.nodes))
         for node in self.nodes:
             logging.debug("Trying to connect to : " + node.get_text())
             req = request(node.connection_handler(), **req_args)
             try:
                 data = req.get(**get_args)
                 return data
-            except:
-                continue
-        return None
+            except ValueError as e:
+                error = str(e)
+                logging.debug("Error : {0}".format(error))
+
+        logging.debug("Leaving on error...")
+        return error
 
     def post(self, request, req_args={}, post_args={}):
         error = None

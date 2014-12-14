@@ -67,10 +67,10 @@ class Wallet(object):
 
     def sources(self, community):
         data = community.request(bma.tx.Sources, req_args={'pubkey': self.pubkey})
-        sources = []
-        for s in data:
-            sources.append(InputSource.from_bma(s))
-        return sources
+        tx = []
+        for s in data['sources']:
+            tx.append(InputSource.from_bma(s))
+        return tx
 
     #TODO: Build a cache of latest transactions
     def transactions_sent(self):

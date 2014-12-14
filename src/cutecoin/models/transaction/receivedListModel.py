@@ -22,7 +22,7 @@ class ReceivedListModel(QAbstractListModel):
         self.sources = account.sources()
 
     def rowCount(self, parent):
-        return len(self.transactions)
+        return len(self.sources)
 
     def data(self, index, role):
         if role == Qt.DisplayRole:
