@@ -20,12 +20,12 @@ SCRYPT_PARAMS = {'N': 4096,
 
 
 class SigningKey(NaclSigningKey):
-    def __init__(self, password, salt):
+    def __init__(self, salt, password):
         seed = scrypt.hash(password, salt,
                     SCRYPT_PARAMS['N'], SCRYPT_PARAMS['r'], SCRYPT_PARAMS['p'],
                     SEED_LENGTH)
         seedb64 = base64.b64encode(seed)
-        super().__init__(seedb64, Base64Encoder)
+        super().__init__(seed)
         self.pubkey = self.verify_key.encode(encoder=Base58Encoder)
 
 
