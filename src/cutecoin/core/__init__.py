@@ -69,9 +69,17 @@ class Core(object):
 
         if (os.path.exists(config.parameters['data'])
                 and os.path.isfile(config.parameters['data'])):
+            logging.debug("Loading data...")
             json_data = open(config.parameters['data'], 'r')
             data = json.load(json_data)
+
             json_data.close()
+            for account_name in data['local_accounts']:
+                account_path = os.path.join(config.parameters['home'],
+                                            account_name, 'properties')
+                json_data = open(account_path, 'r')
+                data = json.load(json_data)
+                self.accounts.append(Account.load(data))
 
     def save(self, account):
         with open(config.parameters['data'], 'w') as outfile:

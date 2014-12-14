@@ -42,24 +42,25 @@ class Wallet(object):
 
     @classmethod
     def load(cls, json_data):
-        walletid = json_data['id']
+        walletid = json_data['walletid']
         pubkey = json_data['pubkey']
         name = json_data['name']
         currency = json_data['currency']
-        return cls(walletid, currency, name)
+        return cls(walletid, pubkey, currency, name)
 
     def __eq__(self, other):
         return (self.keyid == other.keyid)
 
     def relative_value(self, community):
-        value = self.value()
+        value = self.value(community)
         block = community.get_block()
-        relative_value = value / float(block['du'])
+        relative_value = value / float(block.ud)
         return relative_value
 
-    def value(self):
+    def value(self, community):
         value = 0
-
+        for s in self.sources(community):
+            value += s.amount
         return value
 
     def send_money(self, recipient, amount, message):
@@ -76,13 +77,14 @@ class Wallet(object):
     def transactions_sent(self):
         return []
 
-    def get_text(self):
+    def get_text(self, community):
         return "%s : \n \
 %d %s \n \
-%.2f UD" % (self.name, self.value(), self.currency,
-                          self.relative_value())
+%.2f UD" % (self.name, self.value(community), self.currency,
+                          self.relative_value(community))
 
     def jsonify(self):
         return {'walletid': self.walletid,
+                'pubkey': self.pubkey,
                 'name': self.name,
                 'currency': self.currency}

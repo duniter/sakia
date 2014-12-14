@@ -5,6 +5,7 @@ Created on 1 févr. 2014
 '''
 
 from ucoinpy.api import bma
+from ucoinpy.documents.block import Block
 import hashlib
 import json
 import logging
@@ -55,6 +56,13 @@ class Community(object):
 
     def send_membership(self, account, membership):
         pass
+
+    def get_block(self, number=None):
+        if number is None:
+            data = self.request(bma.blockchain.Current)
+        else:
+            data = self.request(bma.blockchain.Block, req_args={'number': number})
+        return Block.from_signed_raw("{0}{1}\n".format(data['raw'], data['signature']))
 
     def members_pubkeys(self):
         '''
@@ -109,6 +117,13 @@ class Community(object):
                 continue
         return error
 
+    def jsonify_nodes_list(self):
+        data = []
+        for node in self.nodes:
+            data.append(node.jsonify())
+        return data
+
     def jsonify(self):
-        data = {'currency': self.currency}
+        data = {'currency': self.currency,
+                'nodes': self.jsonify_nodes_list()}
         return data

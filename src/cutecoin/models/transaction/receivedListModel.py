@@ -27,8 +27,7 @@ class ReceivedListModel(QAbstractListModel):
     def data(self, index, role):
         if role == Qt.DisplayRole:
             row = index.row()
-            value = "{0} from {1}".format(self.sources[row].amount,
-                                          self.sources[row].pubkey)
+            value = "{0}".format(self.sources[row].amount)
             return value
 
     def flags(self, index):

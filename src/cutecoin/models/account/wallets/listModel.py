@@ -19,14 +19,17 @@ class WalletsListModel(QAbstractListModel):
         '''
         super(WalletsListModel, self).__init__(parent)
         self.wallets = account.wallets
+        self.communities = account.communities
 
     def rowCount(self, parent):
-        return len(self.wallets)
+        return len(self.wallets) * len(self.communities)
 
     def data(self, index, role):
         if role == Qt.DisplayRole:
             row = index.row()
-            value = self.wallets[row].get_text()
+            index_community = row % len(self.communities)
+            index_wallet = int(row / len(self.communities))
+            value = self.wallets[index_wallet].get_text(self.communities[index_community])
             return value
 
     def flags(self, index):
