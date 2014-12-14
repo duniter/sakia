@@ -36,11 +36,11 @@ class Account(object):
         self.contacts = contacts
 
     @classmethod
-    def create(cls, salt, pubkey, name, communities, wallets, confpath):
+    def create(cls, name, communities, wallets, confpath):
         '''
         Constructor
         '''
-        account = cls(salt, pubkey, name, communities, wallets, [])
+        account = cls(None, None, name, communities, wallets, [])
         return account
 
     @classmethod

@@ -73,7 +73,7 @@ class StepPageKey(Step):
         salt = self.config_dialog.edit_email.text()
         password = self.config_dialog.edit_password.text()
         self.config_dialog.account.salt = salt
-        self.config_dialog.account.pubkey = SigningKey(salt, password).public_key
+        self.config_dialog.account.pubkey = SigningKey(salt, password).pubkey
         model = CommunitiesListModel(self.config_dialog.account)
         self.config_dialog.list_communities.setModel(model)
 
