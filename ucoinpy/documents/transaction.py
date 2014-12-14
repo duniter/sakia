@@ -262,6 +262,15 @@ class InputSource():
         amount = int(data.group(5))
         return cls(index, source, number, txhash, amount)
 
+    @classmethod
+    def from_bma(cls, bma_data):
+        index = None
+        source = bma_data['source']
+        number = bma_data['number']
+        txhash = bma_data['fingerprint']
+        amount = bma_data['amount']
+        return cls(index, source, number, txhash, amount)
+
     def inline(self):
         return "{0}:{1}:{2}:{3}:{4}".format(self.index,
                                             self.source,
