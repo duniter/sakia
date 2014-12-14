@@ -3,8 +3,9 @@ Created on 6 mars 2014
 
 @author: inso
 '''
+import logging
+from ucoinpy.key import SigningKey
 from cutecoin.gen_resources.accountConfigurationDialog_uic import Ui_AccountConfigurationDialog
-from cutecoin.gui.generateAccountKeyDialog import GenerateAccountKeyDialog
 from cutecoin.gui.processConfigureCommunity import ProcessConfigureCommunity
 from cutecoin.models.account.communities.listModel import CommunitiesListModel
 from cutecoin.tools.exceptions import KeyAlreadyUsed, Error
@@ -45,9 +46,10 @@ class StepPageInit(Step):
             self.config_dialog.list_communities.setModel(model)
 
         self.config_dialog.button_previous.setEnabled(False)
+        self.config_dialog.button_next.setEnabled(False)
 
 
-class StepPageGPG(Step):
+class StepPageKey(Step):
     '''
     First step when adding a community
     '''
@@ -55,9 +57,22 @@ class StepPageGPG(Step):
         super().__init__(config_dialog)
 
     def is_valid(self):
-        return self.config_dialog.account.keyid != ''
+        if len(self.config_dialog.edit_password.text()) < 8:
+            return False
+
+        if len(self.config_dialog.edit_email.text()) < 2:
+            return False
+
+        if self.config_dialog.edit_password.text() != \
+            self.config_dialog.edit_password_repeat.text():
+            return False
+
+        return True
 
     def process_next(self):
+        salt = self.config_dialog.edit_email.text()
+        password = self.config_dialog.edit_password.text()
+        self.config_dialog.account.key = SigningKey(salt, password)
         model = CommunitiesListModel(self.config_dialog.account)
         self.config_dialog.list_communities.setModel(model)
 
@@ -82,11 +97,11 @@ class StepPageCommunities(Step):
         '''
         server = self.config_dialog.lineedit_server.text()
         port = self.config_dialog.spinbox_port.value()
-        default_node = Node.create(server, port, trust=True, hoster=True)
+        default_node = Node.create(server, port)
         account = self.config_dialog.account
         self.config_dialog.community = account.communities.add_community(
             default_node)
-        account.wallets.add_wallet(account.keyid,
+        account.wallets.add_wallet(account.key,
                                    self.config_dialog.community)
         self.config_dialog.refresh()
 
@@ -112,10 +127,10 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         self.account = account
         self.core = core
         step_init = StepPageInit(self)
-        step_gpg = StepPageGPG(self)
+        step_key = StepPageKey(self)
         step_communities = StepPageCommunities(self)
-        step_init.next_step = step_gpg
-        step_gpg.next_step = step_communities
+        step_init.next_step = step_key
+        step_key.next_step = step_communities
         self.step = step_init
         self.step.display_page()
         if self.account is None:
@@ -126,6 +141,7 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
             self.setWindowTitle("Configure " + self.account.name)
 
     def open_process_add_community(self):
+        logging.debug("Opening configure community dialog")
         dialog = ProcessConfigureCommunity(self.account, None)
         dialog.accepted.connect(self.action_add_community)
         dialog.exec_()
@@ -144,41 +160,17 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
     def action_edit_community(self):
         self.list_communities.setModel(CommunitiesListModel(self.account))
 
+    def action_edit_account_key(self):
+        if self.step.is_valid():
+            self.button_next.setEnabled(True)
+        else:
+            self.button_next.setEnabled(False)
+
     def open_process_edit_community(self, index):
         community = self.account.communities[index.row()]
         dialog = ProcessConfigureCommunity(self.account, community)
         dialog.accepted.connect(self.action_edit_community)
         dialog.exec_()
-
-    def open_generate_account_key(self):
-        dialog = GenerateAccountKeyDialog(self.account, self)
-        dialog.exec_()
-
-    def open_import_key(self):
-        keyfile = QFileDialog.getOpenFileName(self,
-                                              "Choose a secret key",
-                                              "",
-                                              "All key files (*.asc);; Any file (*)")
-        keyfile = keyfile[0]
-        key = open(keyfile).read()
-        result = self.account.gpg.import_keys(key)
-        if result.count == 0:
-            QErrorMessage(self).showMessage("Bad key file")
-        else:
-            QMessageBox.information(self, "Key import", "Key " +
-                                    result.fingerprints[0] + " has been imported",
-                            QMessageBox.Ok)
-            if self.account.keyid is not '':
-                self.account.gpg.delete_keys(self.account.keyid)
-
-            secret_keys = self.account.gpg.list_keys(True)
-            for k in secret_keys:
-                if k['fingerprint'] == result.fingerprints[0]:
-                    self.account.keyid = k['keyid']
-
-            self.label_fingerprint.setText("Key : " + result.fingerprints[0])
-            self.edit_secretkey_path.setText(keyfile)
-            self.button_next.setEnabled(True)
 
     def next(self):
         if self.step.next_step is not None:
@@ -191,7 +183,6 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
                     self.step.display_page()
                 except Error as e:
                     QErrorMessage(self).showMessage(e.message)
-
         else:
             self.accept()
 

@@ -126,6 +126,9 @@
              <property name="text">
               <string/>
              </property>
+             <property name="echoMode">
+              <enum>QLineEdit::Password</enum>
+             </property>
              <property name="placeholderText">
               <string>Please repeat your password</string>
              </property>
@@ -333,18 +336,50 @@
    </hints>
   </connection>
   <connection>
-   <sender>button_generate</sender>
-   <signal>clicked()</signal>
+   <sender>edit_email</sender>
+   <signal>textChanged(QString)</signal>
    <receiver>AccountConfigurationDialog</receiver>
-   <slot>open_generate_account_key()</slot>
+   <slot>action_edit_account_key()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>224</x>
-     <y>221</y>
+     <x>199</x>
+     <y>69</y>
     </hint>
     <hint type="destinationlabel">
      <x>199</x>
-     <y>149</y>
+     <y>118</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>edit_password</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>AccountConfigurationDialog</receiver>
+   <slot>action_edit_account_key()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>98</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>118</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>edit_password_repeat</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>AccountConfigurationDialog</receiver>
+   <slot>action_edit_account_key()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>127</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>118</y>
     </hint>
    </hints>
   </connection>
@@ -358,5 +393,6 @@
   <slot>previous()</slot>
   <slot>open_import_key()</slot>
   <slot>open_generate_account_key()</slot>
+  <slot>action_edit_account_key()</slot>
  </slots>
 </ui>

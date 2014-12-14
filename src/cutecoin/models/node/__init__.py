@@ -14,7 +14,7 @@ class Node(object):
     A ucoin node using BMA protocol
     '''
 
-    def __init__(self, server, port, trust, hoster):
+    def __init__(self, server, port):
         '''
         Constructor
         '''

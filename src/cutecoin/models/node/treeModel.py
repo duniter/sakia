@@ -102,7 +102,7 @@ class NodesTreeModel(QAbstractItemModel):
                 " / " +
                 node_item.data(0))
             self.root_item.appendChild(node_item)
-            for node in node.downstream_peers():
+            for node in node.peers():
                 child_node_item = NodeItem(node, node_item)
                 logging.debug(
                     "\t node : " +

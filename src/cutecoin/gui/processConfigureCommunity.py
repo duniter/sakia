@@ -4,6 +4,7 @@ Created on 8 mars 2014
 @author: inso
 '''
 
+import logging
 from ucoinpy.api import bma
 from cutecoin.gen_resources.communityConfigurationDialog_uic import Ui_CommunityConfigurationDialog
 from PyQt5.QtWidgets import QDialog, QMenu, QMessageBox, QWidget, QAction
@@ -26,10 +27,12 @@ class StepPageInit(Step):
     '''
     def __init__(self, config_dialog):
         super().__init__(config_dialog)
+        logging.debug("Init")
 
     def is_valid(self):
         server = self.config_dialog.lineedit_server.text()
         port = self.config_dialog.spinbox_port.value()
+        logging.debug("Is valid ? ")
         try:
             bma.network.Peering(server, port)
         except:
@@ -46,6 +49,7 @@ class StepPageInit(Step):
         port = self.config_dialog.spinbox_port.value()
         default_node = Node.create(server, port)
         account = self.config_dialog.account
+        logging.debug("Account : {0}".format(account))
         self.config_dialog.community = account.add_community(default_node)
 
     def display_page(self):
@@ -165,8 +169,9 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         '''
         server = self.lineedit_server.text()
         port = self.spinbox_port.value()
+        logging.debug("Add node : {0}".format(self.community))
         if self.community is not None:
-            self.nodes.append(Node.create(server, port, trust=True))
+            self.nodes.append(Node.create(server, port))
             self.tree_nodes.setModel(NodesTreeModel(self.community,
                                                     self.nodes))
 

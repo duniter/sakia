@@ -117,12 +117,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.refresh_wallet_content(QModelIndex())
 
     def refresh_wallet_content(self, index):
-        if index.isValid():
-            current_wallet = self.core.current_account.wallets[index.row()]
-            self.list_wallet_content.setModel(CoinsListModel(current_wallet,
-                                                             current_wallet.coins))
-        else:
-            self.list_wallet_content.setModel(CoinsListModel(None, []))
+        pass
 
     def import_account(self):
         dialog = ImportAccountDialog(self.core, self)

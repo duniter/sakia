@@ -43,8 +43,6 @@ class NodeItem(object):
     def __init__(self, main_node, root_item):
         self.main_node_text = main_node.get_text()
         self.root_item = root_item
-        self.trust = main_node.trust
-        self.hoster = main_node.hoster
         self.node_items = []
 
     def appendChild(self, node_item):

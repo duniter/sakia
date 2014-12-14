@@ -68,9 +68,11 @@ class Account(object):
         self.contacts.append(person)
 
     def add_community(self, default_node):
+        logging.debug("Adding a community")
         current = bma.blockchain.Current(default_node.connection_handler())
-        amendment_data = current.get()
-        currency = amendment_data['currency']
+        block_data = current.get()
+        currency = block_data['currency']
+        logging.debug("Currency : {0}".format(currency))
         community = self.communities.add_community(currency, default_node)
         self.wallets.add_wallet(currency)
         return community
