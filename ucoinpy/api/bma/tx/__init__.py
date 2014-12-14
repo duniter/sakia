@@ -38,6 +38,9 @@ class Process(Tx):
 
 class Sources(Tx):
     """Get transaction sources."""
+    def __init__(self, connection_handler, pubkey, module='tx'):
+        super(Tx, self).__init__(connection_handler, module)
+        self.pubkey = pubkey
 
     def __get__(self, **kwargs):
         assert self.pubkey is not None
