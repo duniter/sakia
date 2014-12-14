@@ -46,11 +46,11 @@ class Wallets(object):
     def __getitem__(self, key):
         return self._wallets_list[key]
 
-    def add_wallet(self, walletid, currency, name="Main Wallet"):
+    def add_wallet(self, walletid, pubkey, currency, name="Main Wallet"):
         '''
         Create a new wallet of a specific currency.
         '''
-        wallet = Wallet.create(walletid, currency, name)
+        wallet = Wallet.create(walletid, pubkey, currency, name)
         if wallet not in self._wallets_list:
             self._wallets_list.append(wallet)
             return wallet

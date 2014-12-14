@@ -35,7 +35,7 @@ class PersonNotFoundError(Error):
     who isnt present in key list
     '''
 
-    def __init__(self, class_type, value, community):
+    def __init__(self, value, community):
         '''
         Constructor
         '''
@@ -43,9 +43,9 @@ class PersonNotFoundError(Error):
             PersonNotFoundError,
             self) .__init(
             "Person looked by " +
-            class_type +
+            value +
             " in " +
-            type +
+            community +
             " not found ")
 
 

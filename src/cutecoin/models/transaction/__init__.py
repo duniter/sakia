@@ -5,6 +5,8 @@ Created on 1 févr. 2014
 '''
 
 from ucoinpy.api import bma
+from ucoinpy.documents.transaction import InputSource
+
 from cutecoin.models.person import Person
 
 

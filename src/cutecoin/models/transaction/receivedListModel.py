@@ -19,16 +19,16 @@ class ReceivedListModel(QAbstractListModel):
         Constructor
         '''
         super(ReceivedListModel, self).__init__(parent)
-        self.transactions = account.transactions_received()
+        self.sources = account.sources()
 
     def rowCount(self, parent):
         return len(self.transactions)
 
     def data(self, index, role):
-
         if role == Qt.DisplayRole:
             row = index.row()
-            value = self.transactions[row].get_receiver_text()
+            value = "{0} from {1}".format(self.sources[row].amount,
+                                          self.sources[row].pubkey)
             return value
 
     def flags(self, index):

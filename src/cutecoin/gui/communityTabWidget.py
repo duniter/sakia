@@ -24,9 +24,8 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         self.setupUi(self)
         self.community = community
         self.account = account
-        wallets = account.wallets.community_wallets(community.currency)
-        self.list_community_members.setModel(MembersListModel(community, wallets))
-        if self.account.quality(self.community) == "member":
+        self.list_community_members.setModel(MembersListModel(community))
+        if self.account.member_of(self.community):
             self.button_membership.setText("Send leaving demand")
             self.button_membership.clicked.connect(self.send_membership_leaving)
         else:

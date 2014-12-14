@@ -56,47 +56,48 @@ class Community(object):
     def send_membership(self, account, membership):
         pass
 
-    def members_pubkeys(self, wallets):
+    def members_pubkeys(self):
         '''
-        Listing members of a community
+        Listing members pubkeys of a community
         '''
-        memberships = self.request(bma.wot.Members())
+        memberships = self.request(bma.wot.Members)
         members = []
-        for m in memberships:
-            members.append(m['results']['pubkey'])
+        logging.debug(memberships)
+        for m in memberships["results"]:
+            members.append(m['pubkey'])
         return members
 
-    def request(self, request, get_args={}):
-        for node in self.nodes():
+    def request(self, request, req_args={}, get_args={}):
+        for node in self.nodes:
             logging.debug("Trying to connect to : " + node.get_text())
-            request.connection_handler = node.connection_handler()
+            req = request(node.connection_handler(), **req_args)
             try:
-                data = request.get(**get_args)
+                data = req.get(**get_args)
                 return data
             except:
                 continue
         return None
 
-    def post(self, request, get_args={}):
+    def post(self, request, req_args={}, post_args={}):
         error = None
-        for node in self.nodes():
+        for node in self.nodes:
             logging.debug("Trying to connect to : " + node.get_text())
-            request.connection_handler = node.connection_handler()
+            req = request(node.connection_handler(), **req_args)
             try:
-                request.post(**get_args)
+                req.post(**post_args)
             except ValueError as e:
                 error = str(e)
             except:
                 continue
         return error
 
-    def broadcast(self, nodes, request, get_args={}):
+    def broadcast(self, nodes, request, req_args={}, post_args={}):
         error = None
         for node in nodes:
             logging.debug("Trying to connect to : " + node.get_text())
-            request.connection_handler = node.connection_handler()
+            req = request(node.connection_handler(), **req_args)
             try:
-                request.post(**get_args)
+                req.post(**post_args)
             except ValueError as e:
                 error = str(e)
             except:

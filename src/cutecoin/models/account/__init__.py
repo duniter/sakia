@@ -76,14 +76,17 @@ class Account(object):
         currency = block_data['currency']
         logging.debug("Currency : {0}".format(currency))
         community = self.communities.add_community(currency, default_node)
-        self.wallets.add_wallet(self.wallets.nextid(), currency)
+        self.wallets.add_wallet(self.wallets.nextid(), self.pubkey, currency)
         return community
 
-    def transactions_received(self):
+    def sources(self):
+        #TODO: Change the way things are displayed
+        # Listing sources from all communities is stupid
         received = []
-        for w in self.wallets:
-            for r in w.transactions_received():
-                received.append(r)
+        for c in self.communities:
+            for w in self.wallets:
+                for s in w.sources(c):
+                    received.append(s)
         return received
 
     def transactions_sent(self):
@@ -92,6 +95,14 @@ class Account(object):
             for t in w.transactions_sent():
                 sent.append(t)
         return sent
+
+    def member_of(self, community):
+        pubkeys = community.members_pubkeys()
+        if self.pubkey not in pubkeys:
+            logging.debug("{0} not found in members : {1}".format(self.pubkey,
+                                                                  pubkeys))
+            return False
+        return True
 
     def send_pubkey(self, community):
         return community.send_pubkey(self)

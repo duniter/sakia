@@ -29,9 +29,13 @@ class StepPageInit(Step):
         super().__init__(config_dialog)
 
     def is_valid(self):
-        return True
+        if len(self.config_dialog.edit_account_name.text()) > 2:
+            return True
+        else:
+            return False
 
     def process_next(self):
+        logging.debug("Init NEXT")
         if self.config_dialog.account is None:
             name = self.config_dialog.edit_account_name.text()
             self.config_dialog.account = self.config_dialog.core.create_account(name)
@@ -40,6 +44,7 @@ class StepPageInit(Step):
             self.config_dialog.account.name = name
 
     def display_page(self):
+        logging.debug("Init DISPLAY")
         if self.config_dialog.account is not None:
             self.config_dialog.edit_account_name.setText(self.config_dialog.account.name)
             model = CommunitiesListModel(self.config_dialog.account)
@@ -70,6 +75,7 @@ class StepPageKey(Step):
         return True
 
     def process_next(self):
+        logging.debug("Key NEXT")
         salt = self.config_dialog.edit_email.text()
         password = self.config_dialog.edit_password.text()
         self.config_dialog.account.salt = salt
@@ -78,6 +84,7 @@ class StepPageKey(Step):
         self.config_dialog.list_communities.setModel(model)
 
     def display_page(self):
+        logging.debug("Key DISPLAY")
         self.config_dialog.button_previous.setEnabled(False)
         self.config_dialog.button_next.setEnabled(False)
 
@@ -96,6 +103,7 @@ class StepPageCommunities(Step):
         '''
         We create the community
         '''
+        logging.debug("Communities NEXT ")
         server = self.config_dialog.lineedit_server.text()
         port = self.config_dialog.spinbox_port.value()
         default_node = Node.create(server, port)
@@ -107,6 +115,7 @@ class StepPageCommunities(Step):
         self.config_dialog.refresh()
 
     def display_page(self):
+        logging.debug("Communities DISPLAY")
         self.config_dialog.button_previous.setEnabled(False)
         self.config_dialog.button_next.setText("Ok")
         list_model = CommunitiesListModel(self.config_dialog.account)
@@ -165,6 +174,12 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         self.list_communities.setModel(CommunitiesListModel(self.account))
 
     def action_edit_account_key(self):
+        if self.step.is_valid():
+            self.button_next.setEnabled(True)
+        else:
+            self.button_next.setEnabled(False)
+
+    def action_edit_account_name(self):
         if self.step.is_valid():
             self.button_next.setEnabled(True)
         else:

@@ -20,7 +20,7 @@
    <item>
     <widget class="QStackedWidget" name="stacked_pages">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="page_init">
       <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -383,6 +383,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>edit_account_name</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>AccountConfigurationDialog</receiver>
+   <slot>action_edit_account_name()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>240</x>
+     <y>110</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>118</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>open_process_add_community()</slot>
@@ -394,5 +410,6 @@
   <slot>open_import_key()</slot>
   <slot>open_generate_account_key()</slot>
   <slot>action_edit_account_key()</slot>
+  <slot>action_edit_account_name()</slot>
  </slots>
 </ui>

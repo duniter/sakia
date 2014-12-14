@@ -5,6 +5,7 @@ Created on 1 févr. 2014
 '''
 
 from ucoinpy.api import bma
+from ucoinpy.documents.transaction import InputSource
 from ucoinpy.key import SigningKey
 import logging
 import gnupg
@@ -25,22 +26,24 @@ class Wallet(object):
     It's only used to sort coins.
     '''
 
-    def __init__(self, walletid, currency, name):
+    def __init__(self, walletid, pubkey, currency, name):
         '''
         Constructor
         '''
         self.coins = []
         self.walletid = walletid
+        self.pubkey = pubkey
         self.currency = currency
         self.name = name
 
     @classmethod
-    def create(cls, walletid, currency, name):
-        return cls(walletid, currency, name)
+    def create(cls, walletid, pubkey, currency, name):
+        return cls(walletid, pubkey, currency, name)
 
     @classmethod
     def load(cls, json_data):
         walletid = json_data['id']
+        pubkey = json_data['pubkey']
         name = json_data['name']
         currency = json_data['currency']
         return cls(walletid, currency, name)
@@ -62,11 +65,16 @@ class Wallet(object):
     def send_money(self, recipient, amount, message):
         pass
 
-    def transactions_received(self):
-        pass
+    def sources(self, community):
+        data = community.request(bma.tx.Sources, req_args={'pubkey': self.pubkey})
+        sources = []
+        for s in data:
+            sources.append(InputSource.from_bma(s))
+        return sources
 
+    #TODO: Build a cache of latest transactions
     def transactions_sent(self):
-        pass
+        return []
 
     def get_text(self):
         return "%s : \n \
@@ -74,14 +82,7 @@ class Wallet(object):
 %.2f UD" % (self.name, self.value(), self.currency,
                           self.relative_value())
 
-    def jsonify_nodes_list(self):
-        data = []
-        for node in self.nodes:
-            data.append(node.jsonify())
-        return data
-
     def jsonify(self):
         return {'walletid': self.walletid,
                 'name': self.name,
-                'currency': self.currency,
-                'nodes': self.jsonify_nodes_list()}
+                'currency': self.currency}

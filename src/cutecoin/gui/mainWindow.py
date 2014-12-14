@@ -93,9 +93,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 tab_community = CommunityTabWidget(
                     self.core.current_account,
                     community)
-                quality = self.core.current_account.quality(community)
-                self.tabs_communities.addTab(tab_community, quality +
-                                                     " in " + community.name())
+                self.tabs_communities.addTab(tab_community, community.name())
 
             self.menu_contacts_list.clear()
             for contact in self.core.current_account.contacts:
@@ -109,9 +107,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     self.core.current_account))
 
     def refresh_wallets(self):
-        for wallet in self.core.current_account.wallets:
-            wallet.refresh_coins(self.core.current_account.gpg)
-
         wallets_list_model = WalletsListModel(self.core.current_account)
         self.list_wallets.setModel(wallets_list_model)
         self.refresh_wallet_content(QModelIndex())
