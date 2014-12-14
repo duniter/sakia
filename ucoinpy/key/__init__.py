@@ -25,8 +25,8 @@ class SigningKey(NaclSigningKey):
                     SCRYPT_PARAMS['N'], SCRYPT_PARAMS['r'], SCRYPT_PARAMS['p'],
                     SEED_LENGTH)
         seedb64 = base64.b64encode(seed)
-        super.__init__(seedb64, Base64Encoder)
-        self.pubkey = Base58Encoder.encode(self.verify_key.key)
+        super().__init__(seedb64, Base64Encoder)
+        self.pubkey = self.verify_key.encode(encoder=Base58Encoder)
 
 
 class Base58Encoder(object):
