@@ -26,7 +26,7 @@ class Community(object):
 
     @classmethod
     def create(cls, currency, default_node):
-        return cls(currency, default_node)
+        return cls(currency, [default_node])
 
     @classmethod
     def load(cls, json_data):
@@ -50,7 +50,7 @@ class Community(object):
         current_amendment = self.request(bma.blockchain.Current())
         return int(current_amendment['du'])
 
-    def send_pubkey(self, account, wallets):
+    def send_pubkey(self, account):
         pass
 
     def send_membership(self, account, membership):

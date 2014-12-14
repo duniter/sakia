@@ -25,12 +25,12 @@ class Wallet(object):
     It's only used to sort coins.
     '''
 
-    def __init__(self, key, currency, name):
+    def __init__(self, walletid, currency, name):
         '''
         Constructor
         '''
         self.coins = []
-        self.key = key
+        self.walletid = walletid
         self.currency = currency
         self.name = name
 
@@ -39,11 +39,11 @@ class Wallet(object):
         return cls(walletid, currency, name)
 
     @classmethod
-    def load(cls, passwd, json_data):
+    def load(cls, json_data):
         walletid = json_data['id']
         name = json_data['name']
         currency = json_data['currency']
-        return cls(SigningKey(walletid, passwd), currency, name)
+        return cls(walletid, currency, name)
 
     def __eq__(self, other):
         return (self.keyid == other.keyid)
@@ -81,8 +81,7 @@ class Wallet(object):
         return data
 
     def jsonify(self):
-        return {'required_trusts': self.required_trusts,
-                'key': self.key,
+        return {'walletid': self.walletid,
                 'name': self.name,
                 'currency': self.currency,
                 'nodes': self.jsonify_nodes_list()}

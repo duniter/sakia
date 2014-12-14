@@ -24,27 +24,29 @@ class Account(object):
     be locally referenced by only one account.
     '''
 
-    def __init__(self, key, name, communities, wallets, contacts):
+    def __init__(self, salt, pubkey, name, communities, wallets, contacts):
         '''
         Constructor
         '''
-        self.key = key
+        self.salt = salt
+        self.pubkey = pubkey
         self.name = name
         self.communities = communities
         self.wallets = wallets
         self.contacts = contacts
 
     @classmethod
-    def create(cls, name, communities, wallets, confpath):
+    def create(cls, salt, pubkey, name, communities, wallets, confpath):
         '''
         Constructor
         '''
-        account = cls(None, name, communities, wallets, [])
+        account = cls(salt, pubkey, name, communities, wallets, [])
         return account
 
     @classmethod
-    def load(cls, passwd, json_data):
+    def load(cls, json_data):
         salt = json_data['salt']
+        pubkey = json_data['pubkey']
 
         name = json_data['name']
         contacts = []
@@ -55,7 +57,7 @@ class Account(object):
         wallets = Wallets.load(json_data['wallets'])
         communities = Communities.load(json_data['communities'])
 
-        account = cls(SigningKey(passwd, salt), name, communities, wallets, contacts)
+        account = cls(salt, pubkey, name, communities, wallets, contacts)
         return account
 
     def __eq__(self, other):
@@ -74,7 +76,7 @@ class Account(object):
         currency = block_data['currency']
         logging.debug("Currency : {0}".format(currency))
         community = self.communities.add_community(currency, default_node)
-        self.wallets.add_wallet(currency)
+        self.wallets.add_wallet(self.wallets.nextid(), currency)
         return community
 
     def transactions_received(self):
@@ -109,6 +111,7 @@ class Account(object):
     def jsonify(self):
         data = {'name': self.name,
                 'salt': self.salt,
+                'pubkey': self.pubkey,
                 'communities': self.communities.jsonify(),
                 'wallets': self.wallets.jsonify(),
                 'contacts': self.jsonify_contacts()}

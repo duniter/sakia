@@ -23,7 +23,7 @@
    <item>
     <widget class="QStackedWidget" name="stacked_pages">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="page_init">
       <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -142,17 +142,6 @@
            </layout>
           </item>
          </layout>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="page_wallets">
-      <layout class="QVBoxLayout" name="verticalLayout_5">
-       <item>
-        <widget class="QTabWidget" name="tabs_wallets">
-         <property name="currentIndex">
-          <number>-1</number>
-         </property>
         </widget>
        </item>
       </layout>

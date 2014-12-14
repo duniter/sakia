@@ -4,7 +4,9 @@ Created on 1 févr. 2014
 @author: inso
 '''
 
+import logging
 from ucoinpy.api import bma
+from ucoinpy.documents.peer import Endpoint, BMAEndpoint, UnknownEndpoint
 import re
 
 
@@ -31,6 +33,17 @@ class Node(object):
         port = json_data['port']
         return cls(server, port)
 
+    @classmethod
+    def from_endpoint(cls, endpoint_data):
+        endpoint = Endpoint.from_inline(endpoint_data)
+        if type(endpoint) is not UnknownEndpoint:
+            if type(endpoint) is BMAEndpoint:
+                if endpoint.server:
+                    return cls(Node(endpoint.server, endpoint.port))
+                else:
+                    return cls(Node(endpoint.ipv4, endpoint.port))
+        return None
+
     def __eq__(self, other):
         pubkey = bma.network.Peering(server=self.server,
                                      port=self.port).get()['puubkey']
@@ -47,7 +60,10 @@ class Node(object):
 
     def peers(self):
         request = bma.network.peering.Peers(self.connection_handler())
-        return request.get()
+        peer_nodes = []
+        for peer in request.get():
+            logging.debug(peer)
+        return peer_nodes
 
     def connection_handler(self):
         if self.server is not None:

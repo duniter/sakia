@@ -45,11 +45,11 @@ class Communities(object):
     def __getitem__(self, key):
         return self._communities_list[key]
 
-    def add_community(self, wallets):
+    def add_community(self, currency, default_node):
         '''
         Add a community with a mainNode
         '''
-        community = Community.create(wallets)
+        community = Community.create(currency, default_node)
         if community not in self._communities_list:
             self._communities_list.append(community)
             return community

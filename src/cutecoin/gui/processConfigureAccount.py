@@ -72,7 +72,8 @@ class StepPageKey(Step):
     def process_next(self):
         salt = self.config_dialog.edit_email.text()
         password = self.config_dialog.edit_password.text()
-        self.config_dialog.account.key = SigningKey(salt, password)
+        self.config_dialog.account.salt = salt
+        self.config_dialog.account.pubkey = SigningKey(salt, password).public_key
         model = CommunitiesListModel(self.config_dialog.account)
         self.config_dialog.list_communities.setModel(model)
 
@@ -101,7 +102,7 @@ class StepPageCommunities(Step):
         account = self.config_dialog.account
         self.config_dialog.community = account.communities.add_community(
             default_node)
-        account.wallets.add_wallet(account.key,
+        account.wallets.add_wallet(0,
                                    self.config_dialog.community)
         self.config_dialog.refresh()
 
@@ -147,7 +148,10 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         dialog.exec_()
 
     def action_add_community(self):
+        logging.debug("Action add community : done")
         self.list_communities.setModel(CommunitiesListModel(self.account))
+        self.button_next.setEnabled(True)
+        self.button_next.setText("Ok")
 
     def action_remove_community(self):
         for index in self.list_communities.selectedIndexes():

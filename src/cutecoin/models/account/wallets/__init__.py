@@ -46,27 +46,24 @@ class Wallets(object):
     def __getitem__(self, key):
         return self._wallets_list[key]
 
-    def add_wallet(self, gpg, keyid, currency, node,
-                   required_trusts=1, name="Main Wallet"):
+    def add_wallet(self, walletid, currency, name="Main Wallet"):
         '''
         Create a new wallet of a specific currency.
         '''
-        wallet = Wallet.create(keyid, currency, node,
-                               required_trusts, name)
-        # We try to add already present nodes to the wallet
-        present_nodes = wallet.get_nodes_in_peering(wallet.pull_wht(gpg))
-        if present_nodes is None:
-            present_nodes = []
-
-        for present_node in present_nodes:
-            if present_node not in wallet.nodes:
-                wallet.nodes.append(present_node)
-
+        wallet = Wallet.create(walletid, currency, name)
         if wallet not in self._wallets_list:
             self._wallets_list.append(wallet)
             return wallet
         else:
             return self._wallets_list.get(wallet)
+
+    def nextid(self):
+        walletid = 0
+        for w in self._wallets_list:
+            if w.id >= id:
+                walletid = w.id + 1
+        return walletid
+
     def jsonify(self):
         '''
         Return the list of wallets in a key:value form.
