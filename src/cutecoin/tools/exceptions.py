@@ -24,7 +24,7 @@ class NotMemberOfCommunityError(Error):
         '''
         Constructor
         '''
-        super(NotMemberOfCommunityError, self) \
+        super() \
             .__init__(account + " is not a member of " + community)
 
 
@@ -39,9 +39,7 @@ class PersonNotFoundError(Error):
         '''
         Constructor
         '''
-        super(
-            PersonNotFoundError,
-            self) .__init(
+        super() .__init__(
             "Person looked by " +
             value +
             " in " +
@@ -59,7 +57,7 @@ class AlgorithmNotImplemented(Error):
         '''
         Constructor
         '''
-        super(AlgorithmNotImplemented, self) \
+        super() \
             .__init__("Algorithm " + algo_name + " not implemented.")
 
 
@@ -74,9 +72,7 @@ class KeyAlreadyUsed(Error):
         '''
         Constructor
         '''
-        super(
-            KeyAlreadyUsed,
-            self) .__init__(
+        super() .__init__(
             "Cannot add account " +
             new_account.name +
             " : the pgpKey " +
@@ -96,9 +92,7 @@ class NameAlreadyExists(Error):
         '''
         Constructor
         '''
-        super(
-            KeyAlreadyUsed,
-            self) .__init__(
+        super() .__init__(
             "Cannot add account " +
             account.name +
             " the name already exists")
@@ -115,7 +109,5 @@ class BadAccountFile(Error):
         '''
         Constructor
         '''
-        super(
-            BadAccountFile,
-            self) .__init__(
+        super() .__init__(
             "File " + path + " is not an account file")

@@ -37,6 +37,10 @@ class Person(object):
                 name = uids[0]["uid"]
             else:
                 raise PersonNotFoundError(pubkey, community.name())
+                return None
+        else:
+            raise PersonNotFoundError(pubkey, community.name())
+            return None
         return cls(name, pubkey)
 
     @classmethod

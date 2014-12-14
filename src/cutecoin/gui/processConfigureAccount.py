@@ -35,7 +35,6 @@ class StepPageInit(Step):
             return False
 
     def process_next(self):
-        logging.debug("Init NEXT")
         if self.config_dialog.account is None:
             name = self.config_dialog.edit_account_name.text()
             self.config_dialog.account = self.config_dialog.core.create_account(name)
@@ -44,7 +43,6 @@ class StepPageInit(Step):
             self.config_dialog.account.name = name
 
     def display_page(self):
-        logging.debug("Init DISPLAY")
         if self.config_dialog.account is not None:
             self.config_dialog.edit_account_name.setText(self.config_dialog.account.name)
             model = CommunitiesListModel(self.config_dialog.account)
@@ -75,7 +73,6 @@ class StepPageKey(Step):
         return True
 
     def process_next(self):
-        logging.debug("Key NEXT")
         salt = self.config_dialog.edit_email.text()
         password = self.config_dialog.edit_password.text()
         self.config_dialog.account.salt = salt
@@ -84,7 +81,6 @@ class StepPageKey(Step):
         self.config_dialog.list_communities.setModel(model)
 
     def display_page(self):
-        logging.debug("Key DISPLAY")
         self.config_dialog.button_previous.setEnabled(False)
         self.config_dialog.button_next.setEnabled(False)
 

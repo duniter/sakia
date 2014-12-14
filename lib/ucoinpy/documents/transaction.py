@@ -265,7 +265,7 @@ class InputSource():
     @classmethod
     def from_bma(cls, bma_data):
         index = None
-        source = bma_data['type']
+        source = bma_data['source']
         number = bma_data['number']
         txhash = bma_data['fingerprint']
         amount = bma_data['amount']

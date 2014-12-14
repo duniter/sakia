@@ -11,6 +11,8 @@ from PyQt5.QtWidgets import QDialog, QMenu, QMessageBox, QWidget, QAction
 from PyQt5.QtCore import QSignalMapper
 from cutecoin.models.node.treeModel import NodesTreeModel
 from cutecoin.models.node import Node
+from cutecoin.models.person import Person
+from cutecoin.tools.exceptions import PersonNotFoundError
 from cutecoin.tools.exceptions import Error
 
 
@@ -158,10 +160,20 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
 
     def accept(self):
         try:
-            self.account.send_pubkey(self.community)
-        except Error as e:
-            QMessageBox.critical(self, "Pubkey publishing error",
-                              e.message)
+            Person.lookup(self.account.pubkey, self.community)
+        except PersonNotFoundError as e:
+            reply = QMessageBox.question(self, "Pubkey not found",
+                                 "The public key of your account wasn't found in the community. :\n \
+                                 {0}\n \
+                                 Would you like to publish the key ?".format(self.account.pubkey))
+            if reply == QMessageBox.Yes:
+                try:
+                    self.account.send_pubkey(self.community)
+                except Error as e:
+                    QMessageBox.critical(self, "Pubkey publishing error",
+                                      e.message)
+            else:
+                return
 
         self.accepted.emit()
         self.close()

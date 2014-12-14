@@ -46,7 +46,7 @@ class Node(object):
 
     def __eq__(self, other):
         pubkey = bma.network.Peering(server=self.server,
-                                     port=self.port).get()['puubkey']
+                                     port=self.port).get()['pubkey']
         other_pubkey = bma.network.Peering(server=other.server,
                                            port=other.port).get()['pubkey']
         return (pubkey == other_pubkey)
