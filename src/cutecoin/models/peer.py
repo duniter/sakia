@@ -38,28 +38,28 @@ class RootItem(object):
         return 0
 
 
-class NodeItem(object):
+class PeerItem(object):
 
-    def __init__(self, main_node, root_item):
-        self.main_node_text = main_node.get_text()
+    def __init__(self, main_peer, root_item):
+        self.main_peer_text = main_peer.pubkey
         self.root_item = root_item
-        self.node_items = []
+        self.peer_items = []
 
     def appendChild(self, node_item):
-        self.node_items.append(node_item)
+        self.peer_items.append(node_item)
 
     def child(self, row):
-        return self.node_items[row]
+        return self.peer_items[row]
 
     def childCount(self):
-        return len(self.node_items)
+        return len(self.peer_items)
 
     def columnCount(self):
         return 1
 
     def data(self, column):
         try:
-            return self.main_node_text
+            return self.main_peer_text
         except IndexError:
             return None
 
@@ -68,5 +68,5 @@ class NodeItem(object):
 
     def row(self):
         if self.root_item:
-            return self.root_item.main_node_items.index(self)
+            return self.root_item.main_peer_items.index(self)
         return 0

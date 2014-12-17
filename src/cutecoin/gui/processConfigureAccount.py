@@ -4,12 +4,12 @@ Created on 6 mars 2014
 @author: inso
 '''
 import logging
+from ucoinpy.documents.peer import Peer
 from ucoinpy.key import SigningKey
 from cutecoin.gen_resources.accountConfigurationDialog_uic import Ui_AccountConfigurationDialog
 from cutecoin.gui.processConfigureCommunity import ProcessConfigureCommunity
-from cutecoin.models.account.communities.listModel import CommunitiesListModel
+from cutecoin.models.communities import CommunitiesListModel
 from cutecoin.tools.exceptions import KeyAlreadyUsed, Error
-from cutecoin.models.node import Node
 
 from PyQt5.QtWidgets import QDialog, QErrorMessage, QFileDialog, QMessageBox
 
@@ -37,7 +37,7 @@ class StepPageInit(Step):
     def process_next(self):
         if self.config_dialog.account is None:
             name = self.config_dialog.edit_account_name.text()
-            self.config_dialog.account = self.config_dialog.core.create_account(name)
+            self.config_dialog.account = self.config_dialog.app.create_account(name)
         else:
             name = self.config_dialog.edit_account_name.text()
             self.config_dialog.account.name = name
@@ -102,10 +102,8 @@ class StepPageCommunities(Step):
         logging.debug("Communities NEXT ")
         server = self.config_dialog.lineedit_server.text()
         port = self.config_dialog.spinbox_port.value()
-        default_node = Node.create(server, port)
         account = self.config_dialog.account
-        self.config_dialog.community = account.communities.add_community(
-            default_node)
+        self.config_dialog.community = account.add_community(server, port)
         account.wallets.add_wallet(0,
                                    self.config_dialog.community)
         self.config_dialog.refresh()
@@ -123,7 +121,7 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
     classdocs
     '''
 
-    def __init__(self, core, account):
+    def __init__(self, app, account):
         '''
         Constructor
         '''
@@ -131,7 +129,7 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         super(ProcessConfigureAccount, self).__init__()
         self.setupUi(self)
         self.account = account
-        self.core = core
+        self.app = app
         step_init = StepPageInit(self)
         step_key = StepPageKey(self)
         step_communities = StepPageCommunities(self)
@@ -209,12 +207,12 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
             self.step.display_page()
 
     def accept(self):
-        if self.account not in self.core.accounts:
+        if self.account not in self.app.accounts:
             self.account.name = self.edit_account_name.text()
             try:
-                self.core.add_account(self.account)
+                self.app.add_account(self.account)
             except KeyAlreadyUsed as e:
                 QErrorMessage(self).showMessage(e.message)
-        self.core.save(self.account)
+        self.app.save(self.account)
         self.accepted.emit()
         self.close()

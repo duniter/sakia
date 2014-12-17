@@ -101,7 +101,7 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <item>
-           <widget class="QTreeView" name="tree_nodes">
+           <widget class="QTreeView" name="tree_peers">
             <property name="contextMenuPolicy">
              <enum>Qt::CustomContextMenu</enum>
             </property>
@@ -206,7 +206,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>tree_nodes</sender>
+   <sender>tree_peers</sender>
    <signal>customContextMenuRequested(QPoint)</signal>
    <receiver>CommunityConfigurationDialog</receiver>
    <slot>showContextMenu(QPoint)</slot>

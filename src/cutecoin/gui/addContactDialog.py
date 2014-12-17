@@ -7,7 +7,7 @@ import re
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox
 
 
-from cutecoin.models.person import Person
+from cutecoin.core.person import Person
 
 from cutecoin.gen_resources.addContactDialog_uic import Ui_AddContactDialog
 
@@ -22,7 +22,7 @@ class AddContactDialog(QDialog, Ui_AddContactDialog):
         '''
         Constructor
         '''
-        super(AddContactDialog, self).__init__()
+        super().__init__()
         self.setupUi(self)
         self.account = account
         self.main_window = parent

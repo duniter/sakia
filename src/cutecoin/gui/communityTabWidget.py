@@ -6,7 +6,7 @@ Created on 2 févr. 2014
 
 import logging
 from PyQt5.QtWidgets import QWidget, QErrorMessage
-from cutecoin.models.community.membersListModel import MembersListModel
+from cutecoin.models.members import MembersListModel
 from cutecoin.gen_resources.communityTabWidget_uic import Ui_CommunityTabWidget
 
 
@@ -20,7 +20,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         '''
         Constructor
         '''
-        super(CommunityTabWidget, self).__init__()
+        super().__init__()
         self.setupUi(self)
         self.community = community
         self.account = account

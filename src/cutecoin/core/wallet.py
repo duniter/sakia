@@ -7,16 +7,6 @@ Created on 1 févr. 2014
 from ucoinpy.api import bma
 from ucoinpy.documents.transaction import InputSource
 from ucoinpy.key import SigningKey
-import logging
-import gnupg
-import json
-import time
-import hashlib
-import importlib
-from decimal import Decimal
-from cutecoin.models.node import Node
-from cutecoin.models.transaction import Transaction
-from cutecoin.tools.exceptions import AlgorithmNotImplemented
 
 
 class Wallet(object):
@@ -53,8 +43,8 @@ class Wallet(object):
 
     def relative_value(self, community):
         value = self.value(community)
-        block = community.get_block()
-        relative_value = value / float(block.ud)
+        ud = community.dividend()
+        relative_value = value / float(ud)
         return relative_value
 
     def value(self, community):

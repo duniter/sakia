@@ -5,15 +5,13 @@ Created on 1 févr. 2014
 '''
 
 from ucoinpy.api import bma
+from ucoinpy.api.bma import ConnectionHandler
+from ucoinpy.documents.peer import Peer
 from ucoinpy.key import SigningKey
 import logging
-import json
-import os
-from cutecoin.models.account.wallets import Wallets
-from cutecoin.models.account.communities import Communities
-from cutecoin.models.community import Community
-from cutecoin.models.transaction import Transaction
-from cutecoin.models.person import Person
+from .wallet import Wallet
+from .community import Community
+from .person import Person
 
 
 class Account(object):
@@ -54,30 +52,53 @@ class Account(object):
         for contact_data in json_data['contacts']:
             contacts.append(Person.from_json(contact_data))
 
-        wallets = Wallets.load(json_data['wallets'])
-        communities = Communities.load(json_data['communities'])
+        wallets = []
+        for data in json_data['wallets']:
+            wallets.append(Wallet.load(data))
+
+        communities = []
+        for data in json_data['communities']:
+            communities.append(Community.load(data))
 
         account = cls(salt, pubkey, name, communities, wallets, contacts)
         return account
 
     def __eq__(self, other):
         if other is not None:
-            return other.keyid == self.keyid
+            return other.pubkey == self.pubkey
         else:
             return False
 
     def add_contact(self, person):
         self.contacts.append(person)
 
-    def add_community(self, default_node):
+    def add_community(self, server, port):
         logging.debug("Adding a community")
-        current = bma.blockchain.Current(default_node.connection_handler())
+        current = bma.blockchain.Current(ConnectionHandler(server, port))
         block_data = current.get()
         currency = block_data['currency']
         logging.debug("Currency : {0}".format(currency))
-        community = self.communities.add_community(currency, default_node)
-        self.wallets.add_wallet(self.wallets.nextid(), self.pubkey, currency)
+
+        peering = bma.network.Peering(ConnectionHandler(server, port))
+        peer_data = peering.get()
+        peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],
+                                                      peer_data['signature']))
+
+        community = Community.create(currency, peer)
+        self.communities.append(community)
+
+        wallet = Wallet.create(self.next_walletid(), self.pubkey,
+                               currency, "Default wallet")
+        self.wallets.append(wallet)
+
         return community
+
+    def next_walletid(self):
+        wid = 0
+        for w in self.wallets:
+            if w.walletid > wid:
+                wid = w.walletid + 1
+        return wid
 
     def sources(self):
         #TODO: Change the way things are displayed
@@ -119,11 +140,23 @@ class Account(object):
             data.append(p.jsonify())
         return data
 
+    def jsonify_wallets(self):
+        data = []
+        for w in self.wallets:
+            data.append(w.jsonify())
+        return data
+
+    def jsonify_community(self):
+        data = []
+        for c in self.communities:
+            data.append(c.jsonify())
+        return data
+
     def jsonify(self):
         data = {'name': self.name,
                 'salt': self.salt,
                 'pubkey': self.pubkey,
-                'communities': self.communities.jsonify(),
-                'wallets': self.wallets.jsonify(),
+                'communities': self.jsonify_community(),
+                'wallets': self.jsonify_wallets(),
                 'contacts': self.jsonify_contacts()}
         return data

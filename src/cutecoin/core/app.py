@@ -12,12 +12,10 @@ import gnupg
 
 from cutecoin.core import config
 from cutecoin.tools.exceptions import NameAlreadyExists, BadAccountFile
-from cutecoin.models.account import Account
-from cutecoin.models.account.communities import Communities
-from cutecoin.models.account.wallets import Wallets
+from cutecoin.core.account import Account
 
 
-class Core(object):
+class Application(object):
 
     '''
     Managing core application datas :
@@ -49,8 +47,8 @@ class Core(object):
             logging.info("Creating account directory")
             os.makedirs(account_path)
         account = Account.create(name,
-                                 Communities.create(),
-                                 Wallets.create(),
+                                 [],
+                                 [],
                                  config.parameters)
         self.accounts.append(account)
         self.current_account = account
@@ -94,7 +92,7 @@ class Core(object):
         with tarfile.open(file, "r") as tar:
             path = os.path.join(config.parameters['home'],
                                 name)
-            for obj in ["properties", "keyring", "secretkeyring"]:
+            for obj in ["properties"]:
                 try:
                     tar.getmember(obj)
                 except KeyError:
@@ -112,7 +110,7 @@ class Core(object):
 
     def export_account(self, file, account):
         with tarfile.open(file, "w") as tar:
-            for file in ["properties", "keyring", "secretkeyring"]:
+            for file in ["properties"]:
                 path = os.path.join(config.parameters['home'],
                                     account.name, file)
                 tar.add(path, file)

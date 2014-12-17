@@ -4,25 +4,27 @@ Created on 5 févr. 2014
 @author: inso
 '''
 
+from ucoinpy.api import bma
+from ucoinpy.documents.peer import BMAEndpoint
 from PyQt5.QtCore import QAbstractItemModel, QModelIndex, Qt
-from cutecoin.models.node.itemModel import NodeItem, RootItem
+from .peer import PeerItem, RootItem
 import logging
 
 
-class NodesTreeModel(QAbstractItemModel):
+class PeeringTreeModel(QAbstractItemModel):
 
     '''
     A Qt abstract item model to display nodes of a community
     '''
 
-    def __init__(self, nodes, community_name):
+    def __init__(self, community):
         '''
         Constructor
         '''
-        super(NodesTreeModel, self).__init__(None)
-        self.nodes = nodes
-        self.root_item = RootItem(community_name)
-        self.refresh_tree_nodes()
+        super().__init__(None)
+        self.peers = community.peering()
+        self.root_item = RootItem(community.currency)
+        self.refresh_tree()
 
     def columnCount(self, parent):
         return 1
@@ -46,7 +48,8 @@ class NodesTreeModel(QAbstractItemModel):
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable
 
     def headerData(self, section, orientation, role):
-        if orientation == Qt.Horizontal and role == Qt.DisplayRole and section == 0:
+        if orientation == Qt.Horizontal \
+        and role == Qt.DisplayRole and section == 0:
             return self.root_item.data(0) + " nodes"
         return None
 
@@ -92,21 +95,22 @@ class NodesTreeModel(QAbstractItemModel):
         if index.column() == 0:
             return True
 
-    def refresh_tree_nodes(self):
+    def refresh_tree(self):
         logging.debug("root : " + self.root_item.data(0))
-        for node in self.nodes:
-            node_item = NodeItem(node, self.root_item)
+        for peer in self.peers:
+            peer_item = PeerItem(peer, self.root_item)
             logging.debug(
-                "mainNode : " +
-                node.get_text() +
+                "main peer : " +
+                peer.get_text() +
                 " / " +
-                node_item.data(0))
-            self.root_item.appendChild(node_item)
-            for node in node.peers():
-                child_node_item = NodeItem(node, node_item)
-                logging.debug(
-                    "\t node : " +
-                    node.get_text() +
-                    " / " +
-                    child_node_item.data(0))
-                node_item.appendChild(child_node_item)
+                peer_item.data(0))
+            self.root_item.appendChild(peer_item)
+            try:
+                e = next((e for e in peer.endpoints if type(e) is BMAEndpoint))
+                for peer in bma.network.peering.Peers(e.conn_handler()):
+                    child_node_item = PeerItem(peer, peer_item)
+                    logging.debug("\t peer : " + peer.pubkey + " / " +
+                        child_node_item.data(0))
+                    peer_item.appendChild(child_node_item)
+            except e as StopIteration:
+                continue

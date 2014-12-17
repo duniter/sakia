@@ -4,7 +4,7 @@ Created on 5 févr. 2014
 @author: inso
 '''
 
-from cutecoin.models.person import Person
+from cutecoin.core.person import Person
 from PyQt5.QtCore import QAbstractListModel, Qt
 
 

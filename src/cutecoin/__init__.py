@@ -6,13 +6,13 @@ Created on 1 févr. 2014
 import sys
 from PyQt5.QtWidgets import QApplication, QDialog
 from cutecoin.gui.mainWindow import MainWindow
-from cutecoin.core import Core
+from cutecoin.core.app import Application
 
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    core = Core(sys.argv)
-    window = MainWindow(core)
+    cutecoin = QApplication(sys.argv)
+    app = Application(sys.argv)
+    window = MainWindow(app)
     window.show()
-    sys.exit(app.exec_())
+    sys.exit(cutecoin.exec_())
     pass

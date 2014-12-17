@@ -6,8 +6,7 @@ Created on 2 févr. 2014
 from PyQt5.QtWidgets import QDialog, QErrorMessage
 
 
-from cutecoin.models.person import Person
-from cutecoin.models.node import Node
+from cutecoin.core.person import Person
 
 from cutecoin.gen_resources.transferDialog_uic import Ui_TransferMoneyDialog
 

@@ -16,20 +16,20 @@ class ImportAccountDialog(QDialog, Ui_ImportAccountDialog):
     classdocs
     '''
 
-    def __init__(self, core, parent=None):
+    def __init__(self, app, parent=None):
         '''
         Constructor
         '''
-        super(ImportAccountDialog, self).__init__()
+        super().__init__()
         self.setupUi(self)
-        self.core = core
+        self.app = app
         self.main_window = parent
         self.button_box.button(QDialogButtonBox.Ok).setEnabled(False)
 
     def accept(self):
         account_name = self.edit_name.text()
         try:
-            self.core.import_account(self.selected_file, account_name)
+            self.app.import_account(self.selected_file, account_name)
         except Error as e:
             QErrorMessage(self).showMessage(e.message)
             return
@@ -56,7 +56,7 @@ class ImportAccountDialog(QDialog, Ui_ImportAccountDialog):
             self.button_box.button(QDialogButtonBox.Ok).setEnabled(False)
             self.label_errors.setText("Please enter a name")
             return
-        for account in self.core.accounts:
+        for account in self.app.accounts:
             if name == account.name:
                 self.button_box.button(QDialogButtonBox.Ok).setEnabled(False)
                 self.label_errors.setText("Name already exists")
