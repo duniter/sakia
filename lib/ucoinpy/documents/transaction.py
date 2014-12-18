@@ -183,9 +183,6 @@ Issuers:
             doc += "{0}".format(self.comment)
         doc += "\n"
 
-        for signature in self.signatures:
-            doc += "{0}\n".format(signature)
-
         return doc
 
     def compact(self):

@@ -31,7 +31,6 @@ class Process(Tx):
 
     def __post__(self, **kwargs):
         assert 'transaction' in kwargs
-        assert 'signature' in kwargs
 
         return self.requests_post('/process', **kwargs).json()
 

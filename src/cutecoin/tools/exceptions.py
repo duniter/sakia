@@ -111,3 +111,18 @@ class BadAccountFile(Error):
         '''
         super() .__init__(
             "File " + path + " is not an account file")
+
+
+class NotEnoughMoneyError(Error):
+
+    '''
+    Exception raised trying to add an account using
+    a key already used for another account.
+    '''
+
+    def __init__(self, available, requested):
+        '''
+        Constructor
+        '''
+        super() .__init__(
+            "Key owns only {0} money, needs {1}".format(available, requested))

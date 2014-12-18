@@ -53,7 +53,11 @@ class Community(object):
         return (other.currency == self.currency)
 
     def dividend(self):
-        return 100
+        ud = self.request(bma.blockchain.UD)
+        block_number = ud['result']['blocks'][-1]
+        block = self.request(bma.blockchain.Block,
+                             req_args={'number': block_number})
+        return block['dividend']
 
     def send_pubkey(self, account):
         pass
