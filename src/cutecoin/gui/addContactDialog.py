@@ -30,9 +30,8 @@ class AddContactDialog(QDialog, Ui_AddContactDialog):
 
     def accept(self):
         name = self.edit_name.text()
-        fingerprint = self.edit_fingerprint.text()
-        email = self.edit_email.text()
-        self.account.add_contact(Person(name, fingerprint, email))
+        pubkey = self.edit_pubkey.text()
+        self.account.add_contact(Person(name, pubkey))
         self.main_window.menu_contacts_list.addAction(name)
         self.close()
 
@@ -40,8 +39,8 @@ class AddContactDialog(QDialog, Ui_AddContactDialog):
         name_ok = len(new_name) > 0
         self.button_box.button(QDialogButtonBox.Ok).setEnabled(name_ok)
 
-    def fingerprint_edited(self, new_fingerprint):
-        pattern = re.compile("([A-Z]|[0-9])+")
+    def pubkey_edited(self, new_pubkey):
+        pattern = re.compile("([1-9A-Za-z][^OIl]{42,45})")
         self.button_box.button(
             QDialogButtonBox.Ok).setEnabled(
-            pattern.match(new_fingerprint) is not None)
+            pattern.match(new_pubkey))

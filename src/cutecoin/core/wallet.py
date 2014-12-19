@@ -30,6 +30,7 @@ class Wallet(object):
         self.pubkey = pubkey
         self.currency = currency
         self.name = name
+        self.inputs_cache = None
 
     @classmethod
     def create(cls, walletid, pubkey, currency, name):
@@ -69,12 +70,21 @@ class Wallet(object):
     def tx_inputs(self, amount, community):
         value = 0
         inputs = []
-        for s in self.sources(community):
+        block = community.request(bma.blockchain.Current)
+        sources = self.sources(community)
+        if not self.inputs_cache:
+            self.inputs_cache = (block['number'], sources)
+        elif self.inputs_cache[0] < block['number']:
+            self.inputs_cache = (block['number'], sources)
+
+        for s in self.inputs_cache[1]:
             value += s.amount
             s.index = 0
             inputs.append(s)
+            self.inputs_cache[1].remove(s)
             if value >= amount:
                 return inputs
+
         raise NotEnoughMoneyError(amount, value)
         return []
 
