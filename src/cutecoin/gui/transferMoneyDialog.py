@@ -40,8 +40,8 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
 
     def accept(self):
         message = self.edit_message.text()
-        recipient = ""
-        if self.radio_contact.isEnabled():
+
+        if self.radio_contact.isChecked():
             index = self.combo_contact.currentIndex()
             recipient = self.sender.contacts[index].pubkey
         else:

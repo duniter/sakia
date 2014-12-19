@@ -66,12 +66,12 @@ class StepPageKey(Step):
         if len(self.config_dialog.edit_email.text()) < 2:
             return False
 
-        if len(self.config_dialog.edit_password.text()) < 8:
-            self.config_dialog.label_info.setText("Warning : password is too short")
+        if len(self.config_dialog.edit_password.text()) < 6:
+            self.config_dialog.label_3.setText("Warning : password is too short")
 
         if self.config_dialog.edit_password.text() != \
             self.config_dialog.edit_password_repeat.text():
-            self.config_dialog.label_info.setText("Error : passwords are different")
+            self.config_dialog.label_3.setText("Error : passwords are different")
             return False
 
         return True
