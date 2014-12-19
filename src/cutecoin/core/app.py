@@ -40,7 +40,7 @@ class Application(object):
     def create_account(self, name):
         for a in self.accounts:
             if a.name == name:
-                raise NameAlreadyExists(name)
+                raise NameAlreadyExists(a)
 
         account_path = os.path.join(config.parameters['home'], name)
         if not os.path.exists(account_path):
