@@ -46,6 +46,14 @@ class Wallet(object):
     def __eq__(self, other):
         return (self.keyid == other.keyid)
 
+    def check_password(self, salt, password):
+        key = None
+        if self.walletid == 0:
+            key = SigningKey(salt, password)
+        else:
+            key = SigningKey("{0}{1}".format(salt, self.walletid), password)
+        return (key.pubkey == self.pubkey)
+
     def relative_value(self, community):
         value = self.value(community)
         ud = community.dividend()
@@ -106,11 +114,8 @@ class Wallet(object):
         logging.debug("Signature : {0}".format(str(signing.signature)))
         tx.signatures = [str(signing.signature, 'ascii')]
         logging.debug("Transaction : {0}".format(tx.signed_raw()))
-        try:
-            community.post(bma.tx.Process,
-                                post_args={'transaction': tx.signed_raw()})
-        except ValueError as e:
-            logging.debug("Error : {0}".format(e))
+        community.post(bma.tx.Process,
+                        post_args={'transaction': tx.signed_raw()})
 
     def sources(self, community):
         data = community.request(bma.tx.Sources, req_args={'pubkey': self.pubkey})

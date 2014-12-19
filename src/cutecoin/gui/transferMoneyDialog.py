@@ -3,7 +3,7 @@ Created on 2 févr. 2014
 
 @author: inso
 '''
-from PyQt5.QtWidgets import QDialog, QErrorMessage, QInputDialog, QLineEdit
+from PyQt5.QtWidgets import QDialog, QErrorMessage, QInputDialog, QLineEdit, QMessageBox
 
 from cutecoin.core.person import Person
 
@@ -50,15 +50,32 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         else:
             return
 
-        error = self.wallet.send_money(self.sender.salt, password, self.community,
+        while not self.wallet.check_password(self.sender.salt, password):
+            password = QInputDialog.getText(self, "Wallet password",
+                                            "Wrong password.\nPlease enter your password",
+                                            QLineEdit.Password)
+            if password[1] is True:
+                password = password[0]
+            else:
+                return
+
+        try:
+            self.wallet.send_money(self.sender.salt, password, self.community,
                                        recipient, amount, message)
+            QMessageBox.information(self, "Money transfer",
+                                 "Success transfering {0} {1} to {2}".format(amount,
+                                                                             self.community.currency,
+                                                                             recipient))
+        except ValueError as e:
+            QMessageBox.critical(self, "Money transfer",
+                                 "Something wrong happened : {0}".format(e),
+                                 QMessageBox.Ok)
 
         self.accepted.emit()
         self.close()
 
     def amount_changed(self):
         amount = self.spinbox_amount.value()
-        dividend = self.community.dividend()
         relative = amount / self.dividend
         self.spinbox_relative.blockSignals(True)
         self.spinbox_relative.setValue(relative)
