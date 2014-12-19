@@ -60,14 +60,18 @@ class StepPageKey(Step):
         super().__init__(config_dialog)
 
     def is_valid(self):
-        if len(self.config_dialog.edit_password.text()) < 8:
+        if len(self.config_dialog.edit_password.text()) < 2:
             return False
 
         if len(self.config_dialog.edit_email.text()) < 2:
             return False
 
+        if len(self.config_dialog.edit_password.text()) < 8:
+            self.config_dialog.label_info.setText("Warning : password is too short")
+
         if self.config_dialog.edit_password.text() != \
             self.config_dialog.edit_password_repeat.text():
+            self.config_dialog.label_info.setText("Error : passwords are different")
             return False
 
         return True
@@ -172,6 +176,12 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
             self.button_next.setEnabled(True)
         else:
             self.button_next.setEnabled(False)
+
+    def action_show_pubkey(self):
+        salt = self.edit_email.text()
+        password = self.edit_password.text()
+        pubkey = SigningKey(salt, password).pubkey
+        QMessageBox.information(self, "Public key", "These parameters pubkeys are : {0}".format(pubkey))
 
     def action_edit_account_name(self):
         if self.step.is_valid():

@@ -140,7 +140,7 @@
               <number>5</number>
              </property>
              <item>
-              <widget class="QLabel" name="label_fingerprint">
+              <widget class="QLabel" name="label_info">
                <property name="text">
                 <string/>
                </property>
@@ -149,7 +149,7 @@
              <item>
               <widget class="QPushButton" name="button_generate">
                <property name="text">
-                <string>Generate a secret key</string>
+                <string>Show public key</string>
                </property>
               </widget>
              </item>
@@ -399,6 +399,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>button_generate</sender>
+   <signal>clicked()</signal>
+   <receiver>AccountConfigurationDialog</receiver>
+   <slot>action_show_pubkey()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>290</x>
+     <y>161</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>118</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>open_process_add_community()</slot>
@@ -411,5 +427,6 @@
   <slot>open_generate_account_key()</slot>
   <slot>action_edit_account_key()</slot>
   <slot>action_edit_account_name()</slot>
+  <slot>action_show_pubkey()</slot>
  </slots>
 </ui>
