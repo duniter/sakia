@@ -40,7 +40,12 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
 
     def accept(self):
         message = self.edit_message.text()
-        recipient = self.edit_key_fingerprint.text()
+        recipient = ""
+        if self.radio_contact.isEnabled():
+            index = self.combo_contact.currentIndex()
+            recipient = self.sender.contacts[index].pubkey
+        else:
+            recipient = self.edit_key_fingerprint.text()
         amount = self.spinbox_amount.value()
         password = QInputDialog.getText(self, "Wallet password",
                                         "Please enter your password",

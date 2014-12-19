@@ -11,14 +11,12 @@ from ucoinpy.documents.transaction import InputSource, OutputSource, Transaction
 from ucoinpy.key import SigningKey
 from ..tools.exceptions import NotEnoughMoneyError
 import logging
-import base64
 
 
 class Wallet(object):
 
     '''
-    A wallet is list of coins.
-    It's only used to sort coins.
+    A wallet is used to manage money with a unique key.
     '''
 
     def __init__(self, walletid, pubkey, currency, name):

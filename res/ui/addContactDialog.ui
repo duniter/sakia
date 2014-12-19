@@ -92,7 +92,7 @@
    <sender>edit_pubkey</sender>
    <signal>textChanged(QString)</signal>
    <receiver>AddContactDialog</receiver>
-   <slot>fingerprint_edited()</slot>
+   <slot>pubkey_edited()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>145</x>

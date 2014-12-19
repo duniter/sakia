@@ -33,6 +33,7 @@ class AddContactDialog(QDialog, Ui_AddContactDialog):
         pubkey = self.edit_pubkey.text()
         self.account.add_contact(Person(name, pubkey))
         self.main_window.menu_contacts_list.addAction(name)
+        self.main_window.app.save(self.account)
         self.close()
 
     def name_edited(self, new_name):
@@ -43,4 +44,4 @@ class AddContactDialog(QDialog, Ui_AddContactDialog):
         pattern = re.compile("([1-9A-Za-z][^OIl]{42,45})")
         self.button_box.button(
             QDialogButtonBox.Ok).setEnabled(
-            pattern.match(new_pubkey))
+            pattern.match(new_pubkey)is not None)

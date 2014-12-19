@@ -7,7 +7,6 @@ Created on 1 févr. 2014
 from ucoinpy.api import bma
 from ucoinpy.api.bma import ConnectionHandler
 from ucoinpy.documents.peer import Peer
-from ucoinpy.key import SigningKey
 import logging
 from .wallet import Wallet
 from .community import Community
