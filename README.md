@@ -9,15 +9,15 @@ Qt Client for [Ucoin](http://www.ucoin.io) project.
   * Multi-currency
   * Multi-community
   * Multi-wallets
-  * Contacts messaging
-  * User-friendly coins transfer
-  * Community membership management via a voting interface
+  * Contacts management
+  * User-friendly money transfer
+  * Community membership management
 
 ## Current state
 ### Done (master branch)
   * Accounts management
   * Communities viewing
-  * Coins Transfer
+  * Money Transfer
   * cx_freeze deployment
   * Wallet management (no multiple wallets yet)
   * Contacts management
@@ -28,11 +28,12 @@ Qt Client for [Ucoin](http://www.ucoin.io) project.
 
 ### How to install
   * __git clone --recursive https://github.com/Insoleet/cutecoin.git__
-  * Note : On Windows, it seems that PyQt5 works best with 32 bits version of Python.
-  * Install [python3.3](https://www.python.org/download/releases/3.3.5), [cx_freeze for python 3.3](http://cx-freeze.sourceforge.net/) and [pyqt5](http://www.riverbankcomputing.co.uk/software/pyqt/download5), and [pip](http://www.pip-installer.org/en/latest/)
-  * On Linux, deployment works with python3.4 too
-  * On Windows, make sure folders for python3 and pyqt5 binaries are in your $PATH
-  * Run __pip install python-gnupg__ and __pip install requests__
+  * Note : On Windows, this can't be installed because of Pynacl not available on this OS. Issue #100 opened : https://github.com/pyca/pynacl/issues/100 )
+  * Install [python3](https://www.python.org/downloads/), [cx_freeze for python 3](http://cx-freeze.sourceforge.net/) and [pyqt5](http://www.riverbankcomputing.co.uk/software/pyqt/download5), and [pip](http://www.pip-installer.org/en/latest/)
+  * Run :
+   * __pip install scrypt__
+   * __pip install pynacl__
+   * __pip install requests__
   * Run __python gen_resources.py__ in cutecoin folder
   * Run __python setup.py build__ in cutecoin folder
   * The executable is generated in "build" folder, named "__init__"
