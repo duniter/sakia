@@ -119,8 +119,6 @@ class Scene(QGraphicsScene):
 
         root_node = self.add_node(selected_id, selected_node, (0, 0))
 
-        done = [selected_id]
-
         # add certified by selected node
         y = 0
         x = 200
@@ -134,23 +132,15 @@ class Scene(QGraphicsScene):
         for _id, items in nodes:
             node = self.add_node(_id, items['node'], (x, y))
             self.add_arc(root_node, node, items['arc'])
-            graph.pop(_id)
             y += 50
-            done.append(_id)
 
         # add certifiers of selected node
         y = 0
         x = -200
-        # capture nodes for sorting by text
-        nodes = dict()
-        for _id, certifier_node in graph.items():
-            nodes[_id] = certifier_node
         # sort by text
-        nodes = ((k, v) for (k, v) in sorted(nodes.items(), key=lambda kv: kv[1]['text'].lower()))
+        nodes = ((k, v) for (k, v) in sorted(graph.items(), key=lambda kv: kv[1]['text'].lower()) if selected_id in (arc['id'] for arc in v['arcs']))
         # add nodes and arcs
         for _id, certifier_node in nodes:
-            if _id in done:
-                continue
             node = self.add_node(_id, certifier_node, (x, y))
             for arc in certifier_node['arcs']:
                 if arc['id'] == selected_id:

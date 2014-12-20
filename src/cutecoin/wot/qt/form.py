@@ -2,14 +2,12 @@
 
 import time
 import datetime
-import hashlib
 from PyQt5.QtWidgets import QWidget
 
-
 from cutecoin.gen_resources.wot_form_uic import Ui_Form
-import cutecoin.wot.mapi as mapi
 from cutecoin.wot.qt.view import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_SELECTED, ARC_STATUS_STRONG, ARC_STATUS_WEAK
 from ucoinpy.api import bma
+
 
 class Form(QWidget, Ui_Form):
     def __init__(self, account, community, parent=None):
@@ -35,9 +33,8 @@ class Form(QWidget, Ui_Form):
 
         self.account = account
         self.community = community
-
-        self.nodes = []
-        self.graph = {}
+        # nodes list for menu from search
+        self.nodes = list()
         self.signature_validity = 86400 * 365
         self.ARC_STATUS_STRONG_time = self.signature_validity - (86400 * 165)
         self.draw_graph(self.account.pubkey)
@@ -48,19 +45,17 @@ class Form(QWidget, Ui_Form):
 
         :param public_key: Public key of the identity
         """
-        self.graph = dict()
+        graph = dict()
         # add wallet node
         node_status = (NODE_STATUS_HIGHLIGHTED and (public_key == self.account.pubkey)) or 0
         node_status += NODE_STATUS_SELECTED
         certifiers = self.community.request(bma.wot.CertifiersOf, {'search': public_key})
 
-        self.graph[public_key] = {'arcs': [], 'text': certifiers['uid'], 'tooltip': public_key, 'status': node_status}
+        graph[public_key] = {'arcs': [], 'text': certifiers['uid'], 'tooltip': public_key, 'status': node_status}
 
         # add certifiers of uid
         #for certifier in self.community.request(mapi.get_sig_to(public_key):
         for certifier in certifiers['certifications']:
-            if certifier['pubkey'] in self.graph.keys():
-                continue
             if (time.time() - certifier['cert_time']['medianTime']) > self.ARC_STATUS_STRONG_time:
                 arc_status = ARC_STATUS_WEAK
             else:
@@ -72,19 +67,18 @@ class Form(QWidget, Ui_Form):
                     certifier['cert_time']['medianTime'] + self.signature_validity
                 ).strftime("%Y/%m/%d")
             }
-            node_status = (NODE_STATUS_HIGHLIGHTED and (certifier['pubkey'] == self.account.pubkey)) or 0
-            self.graph[certifier['pubkey']] = {
-                'arcs': [arc],
-                'text': certifier['uid'],
-                'tooltip': public_key,
-                'status': node_status
-            }
+            if certifier['pubkey'] not in graph.keys():
+                node_status = (NODE_STATUS_HIGHLIGHTED and (certifier['pubkey'] == self.account.pubkey)) or 0
+                graph[certifier['pubkey']] = {
+                    'arcs': [arc],
+                    'text': certifier['uid'],
+                    'tooltip': certifier['pubkey'],
+                    'status': node_status
+                }
 
         # add certified by uid
         #for certified in mapi.get_sig_from(public_key):
         for certified in self.community.request(bma.wot.CertifiedBy, {'search': public_key})['certifications']:
-            if certified['pubkey'] in self.graph.keys():
-                continue
             if (time.time() - certified['cert_time']['medianTime']) > self.ARC_STATUS_STRONG_time:
                 arc_status = ARC_STATUS_WEAK
             else:
@@ -96,17 +90,18 @@ class Form(QWidget, Ui_Form):
                     certified['cert_time']['medianTime'] + self.signature_validity
                 ).strftime("%Y/%m/%d")
             }
-            node_status = (NODE_STATUS_HIGHLIGHTED and (certified['pubkey'] == self.account.pubkey)) or 0
-            self.graph[certified['pubkey']] = {
-                'arcs': [],
-                'text': certified['uid'],
-                'tooltip': public_key,
-                'status': node_status
-            }
-            self.graph[public_key]['arcs'].append(arc)
+            graph[public_key]['arcs'].append(arc)
+            if certified['pubkey'] not in graph.keys():
+                node_status = (NODE_STATUS_HIGHLIGHTED and (certified['pubkey'] == self.account.pubkey)) or 0
+                graph[certified['pubkey']] = {
+                    'arcs': list(),
+                    'text': certified['uid'],
+                    'tooltip': certified['pubkey'],
+                    'status': node_status
+                }
 
         # draw graph in qt scene
-        self.graphicsView.scene().update_wot(self.graph)
+        self.graphicsView.scene().update_wot(graph)
 
     def reset(self):
         """
@@ -128,12 +123,20 @@ class Form(QWidget, Ui_Form):
         """
         if len(text) < 2:
             return False
-        self.nodes = mapi.search(text)
-        if self.nodes:
+
+        response = self.community.request(bma.wot.Lookup, {'search': text})
+        nodes = {}
+        for identity in response['results']:
+            if identity['uids'][0]['others']:
+                nodes[identity['pubkey']] = identity['uids'][0]['uid']
+
+        if nodes:
+            self.nodes = list()
             self.comboBoxSearch.clear()
             self.comboBoxSearch.lineEdit().setText(text)
-            for node in self.nodes:
-                self.comboBoxSearch.addItem(node['uid'])
+            for pubkey, uid in nodes.items():
+                self.nodes.append({'pubkey': pubkey, 'uid': uid})
+                self.comboBoxSearch.addItem(uid)
             self.comboBoxSearch.showPopup()
 
     def select_node(self, index):
