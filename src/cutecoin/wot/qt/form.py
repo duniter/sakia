@@ -33,10 +33,12 @@ class Form(QWidget, Ui_Form):
 
         self.account = account
         self.community = community
+
         # nodes list for menu from search
         self.nodes = list()
-        self.signature_validity = 86400 * 365
-        self.ARC_STATUS_STRONG_time = self.signature_validity - (86400 * 165)
+        self.signature_validity = self.community.get_parameters()['sigValidity']
+        # arc considered strong during 75% of signature validity time
+        self.ARC_STATUS_STRONG_time = int(self.signature_validity * 0.75)
         self.draw_graph(self.account.pubkey)
 
     def draw_graph(self, public_key):
@@ -54,7 +56,6 @@ class Form(QWidget, Ui_Form):
         graph[public_key] = {'arcs': [], 'text': certifiers['uid'], 'tooltip': public_key, 'status': node_status}
 
         # add certifiers of uid
-        #for certifier in self.community.request(mapi.get_sig_to(public_key):
         for certifier in certifiers['certifications']:
             if (time.time() - certifier['cert_time']['medianTime']) > self.ARC_STATUS_STRONG_time:
                 arc_status = ARC_STATUS_WEAK
@@ -77,7 +78,6 @@ class Form(QWidget, Ui_Form):
                 }
 
         # add certified by uid
-        #for certified in mapi.get_sig_from(public_key):
         for certified in self.community.request(bma.wot.CertifiedBy, {'search': public_key})['certifications']:
             if (time.time() - certified['cert_time']['medianTime']) > self.ARC_STATUS_STRONG_time:
                 arc_status = ARC_STATUS_WEAK
