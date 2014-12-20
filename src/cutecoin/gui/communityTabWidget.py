@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import QWidget, QErrorMessage
 from cutecoin.models.members import MembersListModel
 from cutecoin.gen_resources.communityTabWidget_uic import Ui_CommunityTabWidget
 from cutecoin.gui.addContactDialog import AddContactDialog
+from cutecoin.wot.qt.form import Form
 
 
 class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
@@ -33,6 +34,9 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         else:
             self.button_membership.setText("Send membership demand")
             self.button_membership.clicked.connect(self.send_membership_demand)
+
+        # create wot widget
+        self.verticalLayout_2.addWidget(Form(account, community))
 
     def add_member_as_contact(self, index):
         members_model = self.list_community_members.model()
