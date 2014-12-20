@@ -1,0 +1,32 @@
+include tox.ini
+include LICENSE
+include README.rst
+
+# libsodium files
+recursive-include src/libsodium *
+recursive-include src/libsodium *.S
+recursive-include src/libsodium *.ac
+recursive-include src/libsodium *.am
+recursive-include src/libsodium *.c
+recursive-include src/libsodium *.exp
+recursive-include src/libsodium *.guess
+recursive-include src/libsodium *.h
+recursive-include src/libsodium *.in
+recursive-include src/libsodium *.m4
+recursive-include src/libsodium *.markdown
+recursive-include src/libsodium *.sh
+recursive-include src/libsodium *.sub
+
+# test files
+recursive-include docs *.png
+recursive-include docs *.py
+recursive-include docs *.rst
+recursive-include docs Makefile
+recursive-include tests *.py
+recursive-include tests/data *
+
+# Remove CFFI files
+global-exclude __pycache__/*
+
+# Add PyNaCl header files
+recursive-include src/nacl/_lib *.h
