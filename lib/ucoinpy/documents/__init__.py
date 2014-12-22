@@ -6,8 +6,6 @@ Created on 3 déc. 2014
 import base58
 import re
 from ..key import Base58Encoder
-from nacl.encoding import Base64Encoder
-
 
 class Document:
     re_version = re.compile("Version: ([0-9]+)\n")

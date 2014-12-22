@@ -8,7 +8,6 @@ import os
 import logging
 import json
 import tarfile
-import gnupg
 
 from cutecoin.core import config
 from cutecoin.tools.exceptions import NameAlreadyExists, BadAccountFile

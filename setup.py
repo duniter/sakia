@@ -12,9 +12,9 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'lib')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 
 print(sys.path)
-includes = ["sip", "re", "json", "logging", "hashlib", "os", "urllib", "ucoinpy", "requests"]
+includes = ["sip", "re", "json", "logging", "hashlib", "os", "urllib", "ucoinpy", "requests", "cutecoin.core"]
 excludes = []
-packages = ["nacl", "nacl.c", "scrypt"]
+packages = ["libnacl"]
 includefiles = []
 
 options = {"path": sys.path,

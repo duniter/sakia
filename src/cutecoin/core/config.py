@@ -7,7 +7,6 @@ Created on 7 févr. 2014
 import logging
 from optparse import OptionParser
 from os import environ, path
-import gnupg
 
 
 if "XDG_CONFIG_HOME" in environ:

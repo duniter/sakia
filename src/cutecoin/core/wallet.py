@@ -6,7 +6,6 @@ Created on 1 févr. 2014
 
 from ucoinpy import PROTOCOL_VERSION
 from ucoinpy.api import bma
-from nacl.encoding import Base64Encoder
 from ucoinpy.documents.transaction import InputSource, OutputSource, Transaction
 from ucoinpy.key import SigningKey
 from ..tools.exceptions import NotEnoughMoneyError
@@ -118,7 +117,7 @@ class Wallet(object):
             key = SigningKey("{0}{1}".format(salt, self.walletid), password)
         logging.debug("Sender pubkey:{0}".format(key.pubkey))
 
-        signing = key.sign(bytes(tx.raw(), 'ascii'), Base64Encoder)
+        signing = key.signature(bytes(tx.raw(), 'ascii'))
         logging.debug("Signature : {0}".format(str(signing.signature)))
         tx.signatures = [str(signing.signature, 'ascii')]
         logging.debug("Transaction : {0}".format(tx.signed_raw()))
