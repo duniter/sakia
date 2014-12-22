@@ -27,7 +27,6 @@ class SigningKey(NaclSigningKey):
         super().__init__(seed)
         self.pubkey = Base58Encoder.encoder(self.vk)
 
-
 class Base58Encoder(object):
     @staticmethod
     def encode(data):

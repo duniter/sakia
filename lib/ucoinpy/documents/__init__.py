@@ -24,7 +24,7 @@ class Document:
         '''
         self.signatures = []
         for k in keys:
-            self.signatures.append(k.sign(self.raw(), Base64Encoder))
+            self.signatures.append(k.signature(self.raw()))
 
     def signed_raw(self):
         '''
