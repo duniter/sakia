@@ -12,9 +12,9 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'lib')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 
 print(sys.path)
-includes = ["sip", "re", "json", "logging", "hashlib", "os", "urllib", "ucoinpy", "requests", "nacl", "cffi"]
+includes = ["sip", "re", "json", "logging", "hashlib", "os", "urllib", "ucoinpy", "requests"]
 excludes = []
-packages = []
+packages = ["nacl", "nacl.c", "scrypt"]
 includefiles = []
 
 options = {"path": sys.path,
@@ -36,7 +36,7 @@ target = Executable(
     script = "src/cutecoin/__init__.py",
     targetName="cutecoin"+file_type,
     base = base,
-    compress = True,
+    compress = False,
     icon = None,
     )
 
