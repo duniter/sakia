@@ -126,3 +126,6 @@ class Community(object):
         data = {'currency': self.currency,
                 'peers': self.jsonify_peers_list()}
         return data
+
+    def get_parameters(self):
+        return self.request(bma.blockchain.Parameters)

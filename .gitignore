@@ -10,7 +10,7 @@ dist
 build
 eggs
 parts
-bin
+bin/[a-b,d-z]
 var
 sdist
 develop-eggs
@@ -35,6 +35,7 @@ nosetests.xml
 .project
 .pydevproject
 .settings
+.idea
 
 # Generated files
 src/cutecoin/gen_resources/*

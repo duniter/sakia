@@ -15,6 +15,7 @@ print(sys.path)
 includes = ["sip", "re", "json", "logging", "hashlib", "os", "urllib", "ucoinpy", "requests", "cutecoin.core"]
 excludes = []
 packages = ["libnacl", "pylibscrypt"]
+
 includefiles = []
 
 options = {"path": sys.path,
