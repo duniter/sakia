@@ -74,6 +74,7 @@ class StepPageKey(Step):
             self.config_dialog.label_info.setText("Error : passwords are different")
             return False
 
+        self.config_dialog.label_info.setText("")
         return True
 
     def process_next(self):
