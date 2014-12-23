@@ -12,7 +12,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'lib')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 
 print(sys.path)
-includes = ["sip", "re", "json", "logging", "hashlib", "os", "urllib", "ucoinpy", "requests", "cutecoin.core"]
+includes = ["sip", "re", "json", "logging", "hashlib", "os", "urllib", "ucoinpy", "requests"]
 excludes = []
 packages = ["libnacl", "pylibscrypt"]
 
@@ -34,7 +34,7 @@ if sys.platform == "win32":
     file_type=".exe"
 
 target = Executable(
-    script = "src/cutecoin/__init__.py",
+    script = "src/cutecoin/main.py",
     targetName="cutecoin"+file_type,
     base = base,
     compress = False,
