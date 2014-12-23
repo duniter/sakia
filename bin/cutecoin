@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 """
 Created on 1 févr. 2014
 
@@ -6,7 +9,8 @@ Created on 1 févr. 2014
 import signal
 import sys
 import os
-
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../lib')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 from PyQt5.QtWidgets import QApplication, QDialog
 from cutecoin.gui.mainWindow import MainWindow
 from cutecoin.core.app import Application
