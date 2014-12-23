@@ -36,12 +36,10 @@ def parse_arguments(argv):
     (options, args) = parser.parse_args(argv)
 
     if options.debug:
-        logging.basicConfig(
-            format='%(levelname)s:%(module)s:%(message)s',
+        logging.basicConfig(format='%(levelname)s:%(module)s:%(message)s',
             level=logging.DEBUG)
     elif options.verbose:
-        logging.basicConfig(
-            format='%(levelname)s:%(message)s',
+        logging.basicConfig(format='%(levelname)s:%(message)s',
             level=logging.INFO)
     else:
         logging.getLogger().propagate = False
