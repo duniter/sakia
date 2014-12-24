@@ -20,7 +20,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         '''
         Constructor
         '''
-        super(TransferMoneyDialog, self).__init__()
+        super().__init__()
         self.setupUi(self)
         self.sender = sender
         self.recipient_trusts = []

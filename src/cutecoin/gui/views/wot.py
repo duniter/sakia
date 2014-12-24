@@ -14,14 +14,14 @@ ARC_STATUS_STRONG = 1
 ARC_STATUS_WEAK = 2
 
 
-class View(QGraphicsView):
+class WotView(QGraphicsView):
     def __init__(self, parent=None):
         """
         Create View to display scene
 
         :param parent:  [Optional, default=None] Parent widget
         """
-        super(View, self).__init__(parent)
+        super(WotView, self).__init__(parent)
 
         self.setScene(Scene(self))
 

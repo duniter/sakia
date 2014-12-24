@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="QWidget" name="Form">
+ <class>WotTabWidget</class>
+ <widget class="QWidget" name="WotTabWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -35,7 +35,7 @@
     </widget>
    </item>
    <item row="1" column="0" colspan="2">
-    <widget class="View" name="graphicsView">
+    <widget class="WotView" name="graphicsView">
      <property name="viewportUpdateMode">
       <enum>QGraphicsView::BoundingRectViewportUpdate</enum>
      </property>
@@ -45,9 +45,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>View</class>
+   <class>WotView</class>
    <extends>QGraphicsView</extends>
-   <header>cutecoin.wot.qt.view.h</header>
+   <header>cutecoin.gui.views.wot</header>
   </customwidget>
  </customwidgets>
  <resources/>
@@ -55,7 +55,7 @@
   <connection>
    <sender>pushButtonReset</sender>
    <signal>clicked()</signal>
-   <receiver>Form</receiver>
+   <receiver>WotTabWidget</receiver>
    <slot>reset()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -71,7 +71,7 @@
   <connection>
    <sender>comboBoxSearch</sender>
    <signal>currentIndexChanged(int)</signal>
-   <receiver>Form</receiver>
+   <receiver>WotTabWidget</receiver>
    <slot>select_node()</slot>
    <hints>
     <hint type="sourcelabel">

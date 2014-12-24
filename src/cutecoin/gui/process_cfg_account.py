@@ -131,7 +131,7 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         Constructor
         '''
         # Set up the user interface from Designer.
-        super(ProcessConfigureAccount, self).__init__()
+        super().__init__()
         self.setupUi(self)
         self.account = account
         self.app = app

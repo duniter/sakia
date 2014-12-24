@@ -25,7 +25,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         Constructor
         '''
         # Set up the user interface from Designer.
-        super(MainWindow, self).__init__()
+        super().__init__()
         self.setupUi(self)
         self.app = app
         self.refresh()

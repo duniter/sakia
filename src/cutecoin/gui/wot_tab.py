@@ -4,12 +4,12 @@ import time
 import datetime
 from PyQt5.QtWidgets import QWidget
 
-from cutecoin.gen_resources.wot_form_uic import Ui_Form
-from cutecoin.wot.qt.view import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_SELECTED, ARC_STATUS_STRONG, ARC_STATUS_WEAK
+from ..gen_resources.wot_tab_uic import Ui_WotTabWidget
+from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_SELECTED, ARC_STATUS_STRONG, ARC_STATUS_WEAK
 from ucoinpy.api import bma
 
 
-class Form(QWidget, Ui_Form):
+class WotTabWidget(QWidget, Ui_WotTabWidget):
     def __init__(self, account, community, parent=None):
         """
 
@@ -18,7 +18,7 @@ class Form(QWidget, Ui_Form):
         :param parent:
         :return:
         """
-        super(Form, self).__init__(parent)
+        super().__init__(parent)
 
         # construct from qtDesigner
         self.setupUi(self)

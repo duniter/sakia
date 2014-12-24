@@ -15,9 +15,9 @@
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
-    <widget class="QTabWidget" name="tabs_community">
+    <widget class="QTabWidget" name="tabs_information">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab_members">
       <attribute name="title">
@@ -56,12 +56,6 @@
         </layout>
        </item>
       </layout>
-     </widget>
-     <widget class="QWidget" name="tab_wot">
-      <attribute name="title">
-       <string>Wot</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_2"/>
      </widget>
     </widget>
    </item>

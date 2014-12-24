@@ -92,7 +92,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         '''
         Constructor
         '''
-        super(ProcessConfigureCommunity, self).__init__()
+        super().__init__()
         self.setupUi(self)
         self.community = community
         self.account = account
