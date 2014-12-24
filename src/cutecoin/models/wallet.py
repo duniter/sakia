@@ -13,21 +13,20 @@ class WalletListModel(QAbstractListModel):
     A Qt abstract item model to display communities in a tree
     '''
 
-    def __init__(self, wallet, parent=None):
+    def __init__(self, wallet, community, parent=None):
         '''
         Constructor
         '''
         super(WalletListModel, self).__init__(parent)
-        self.coins = list(wallet.coins)
-        self.wallet = wallet
+        self.sources = wallet.sources(community)
 
     def rowCount(self, parent):
-        return len(self.coins)
+        return len(self.sources)
 
     def data(self, index, role):
         if role == Qt.DisplayRole:
             row = index.row()
-            value = str(self.coins[row].value(self.wallet))
+            value = "{0}".format(self.sources[row].amount)
             return value
 
     def flags(self, index):

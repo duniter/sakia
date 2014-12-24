@@ -132,7 +132,11 @@ class Wallet(object):
         return tx
 
     #TODO: Build a cache of latest transactions
-    def transactions_sent(self):
+    def transactions_sent(self, community):
+        return []
+
+    #TODO: Build a cache of latest transactions
+    def transactions_received(self, community):
         return []
 
     def get_text(self, community):

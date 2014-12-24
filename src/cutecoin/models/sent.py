@@ -14,21 +14,23 @@ class SentListModel(QAbstractListModel):
     A Qt abstract item model to display communities in a tree
     '''
 
-    def __init__(self, account, parent=None):
+    def __init__(self, account, community, parent=None):
         '''
         Constructor
         '''
         super(SentListModel, self).__init__(parent)
-        self.transactions = account.transactions_sent()
+        self.account = account
+        self.community = community
 
     def rowCount(self, parent):
-        return len(self.transactions)
+        return len(self.account.transactions_sent(self.community))
 
     def data(self, index, role):
 
         if role == Qt.DisplayRole:
             row = index.row()
-            value = self.transactions[row].get_sender_text()
+            transactions = self.account.transactions_sent(self.community)
+            value = transactions[row].get_sender_text()
             return value
 
     def flags(self, index):

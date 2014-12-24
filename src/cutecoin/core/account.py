@@ -99,20 +99,24 @@ class Account(object):
                 wid = w.walletid + 1
         return wid
 
-    def sources(self):
-        #TODO: Change the way things are displayed
-        # Listing sources from all communities is stupid
+    def sources(self, community):
+        sources = []
+        for w in self.wallets:
+            for s in w.sources(community):
+                sources.append(s)
+        return sources
+
+    def transactions_received(self, community):
         received = []
-        for c in self.communities:
-            for w in self.wallets:
-                for s in w.sources(c):
-                    received.append(s)
+        for w in self.wallets:
+            for t in w.transactions_received(community):
+                received.append(t)
         return received
 
-    def transactions_sent(self):
+    def transactions_sent(self, community):
         sent = []
         for w in self.wallets:
-            for t in w.transactions_sent():
+            for t in w.transactions_sent(community):
                 sent.append(t)
         return sent
 

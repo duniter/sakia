@@ -12,6 +12,7 @@ from cutecoin.gui.community_tab import CommunityTabWidget
 from cutecoin.models.sent import SentListModel
 from cutecoin.models.received import ReceivedListModel
 from cutecoin.models.wallets import WalletsListModel
+from ..models.wallet import WalletListModel
 
 
 class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
@@ -37,11 +38,9 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             self.refresh_wallets()
 
             self.list_transactions_sent.setModel(
-                SentListModel(
-                    self.app.current_account))
+                SentListModel(self.app.current_account, self.community))
             self.list_transactions_received.setModel(
-                ReceivedListModel(
-                    self.app.current_account))
+                ReceivedListModel(self.app.current_account, self.community))
             tab_community = CommunityTabWidget(self.app.current_account,
                                                     self.community)
             self.tabs_account.addTab(tab_community, "Community")
@@ -52,4 +51,6 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         self.refresh_wallet_content(QModelIndex())
 
     def refresh_wallet_content(self, index):
-        pass
+        current_wallet = self.app.current_account.wallets[index.row()]
+        wallet_list_model = WalletListModel(current_wallet, self.community)
+        self.list_wallet_content.setModel(wallet_list_model)
