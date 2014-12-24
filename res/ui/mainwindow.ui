@@ -73,6 +73,7 @@
      <string>Actions</string>
     </property>
     <addaction name="actionTransfer_money"/>
+    <addaction name="actionCertification"/>
    </widget>
    <addaction name="menu_account"/>
    <addaction name="menu_contacts"/>
@@ -162,6 +163,11 @@
   <action name="action_export">
    <property name="text">
     <string>Export</string>
+   </property>
+  </action>
+  <action name="actionCertification">
+   <property name="text">
+    <string>Certification</string>
    </property>
   </action>
  </widget>
@@ -279,6 +285,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionCertification</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>open_certification_dialog()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>248</x>
+     <y>218</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>open_add_account_dialog()</slot>
@@ -289,5 +311,6 @@
   <slot>refresh_main_window()</slot>
   <slot>refresh_wallet_content(QModelIndex)</slot>
   <slot>export_account()</slot>
+  <slot>open_certification_dialog()</slot>
  </slots>
 </ui>

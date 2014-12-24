@@ -11,6 +11,8 @@ from cutecoin.gui.transfer import TransferMoneyDialog
 from cutecoin.gui.currency_tab import CurrencyTabWidget
 from cutecoin.gui.add_contact import AddContactDialog
 from cutecoin.gui.import_account import ImportAccountDialog
+from cutecoin.gui.certification import CertificationDialog
+
 import logging
 
 
@@ -43,6 +45,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def open_transfer_money_dialog(self):
         dialog = TransferMoneyDialog(self.app.current_account)
         dialog.accepted.connect(self.refresh_wallets)
+        dialog.exec_()
+
+    def open_certification_dialog(self):
+        dialog = CertificationDialog(self.app.current_account)
         dialog.exec_()
 
     def open_add_contact_dialog(self):

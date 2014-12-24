@@ -6,6 +6,8 @@ Created on 11 févr. 2014
 
 import logging
 from ucoinpy.api import bma
+from ucoinpy import PROTOCOL_VERSION
+from ucoinpy.documents.certification import SelfCertification
 from cutecoin.tools.exceptions import PersonNotFoundError
 
 
@@ -31,17 +33,18 @@ class Person(object):
         data = community.request(bma.wot.Lookup, req_args={'search': pubkey})
         logging.debug(data)
         results = data['results']
-        if len(results) > 0:
-            uids = results[0]['uids']
-            if len(uids) > 0:
-                name = uids[0]["uid"]
-            else:
-                raise PersonNotFoundError(pubkey, community.name())
-                return None
-        else:
-            raise PersonNotFoundError(pubkey, community.name())
-            return None
-        return cls(name, pubkey)
+        timestamp = 0
+
+        for result in data['results']:
+            if result["pubkey"] == pubkey:
+                uids = result['uids']
+                for uid in uids:
+                    if uid["meta"]["timestamp"] > timestamp:
+                        timestamp = uid["meta"]["timestamp"]
+                        name = uid["uid"]
+
+                return cls(name, pubkey)
+        raise PersonNotFoundError(pubkey, community.name())
 
     @classmethod
     def from_json(cls, json_person):
@@ -51,6 +54,28 @@ class Person(object):
         name = json_person['name']
         pubkey = json_person['pubkey']
         return cls(name, pubkey)
+
+    def selfcert(self, community):
+        data = community.request(bma.wot.Lookup, req_args={'search': self.pubkey})
+        logging.debug(data)
+        timestamp = 0
+
+        for result in data['results']:
+            if result["pubkey"] == self.pubkey:
+                uids = result['uids']
+                for uid in uids:
+                    if uid["meta"]["timestamp"] > timestamp:
+                        timestamp = uid["meta"]["timestamp"]
+                        name = uid["uid"]
+                        signature = uid["self"]
+
+                return SelfCertification(PROTOCOL_VERSION,
+                                             community.currency,
+                                             self.pubkey,
+                                             timestamp,
+                                             name,
+                                             signature)
+        raise PersonNotFoundError(self.pubkey, community.name())
 
     def jsonify(self):
         data = {'name': self.name,

@@ -4,10 +4,17 @@ Created on 1 févr. 2014
 @author: inso
 '''
 
+from ucoinpy import PROTOCOL_VERSION
 from ucoinpy.api import bma
 from ucoinpy.api.bma import ConnectionHandler
 from ucoinpy.documents.peer import Peer
+from ucoinpy.documents.certification import Certification
+from ucoinpy.key import SigningKey
+
 import logging
+import hashlib
+import base64
+
 from .wallet import Wallet
 from .community import Community
 from .person import Person
@@ -68,6 +75,10 @@ class Account(object):
         else:
             return False
 
+    def check_password(self, password):
+        key = SigningKey(self.salt, password)
+        return (key.pubkey == self.pubkey)
+
     def add_contact(self, person):
         self.contacts.append(person)
 
@@ -98,6 +109,31 @@ class Account(object):
             if w.walletid > wid:
                 wid = w.walletid + 1
         return wid
+
+    def certify(self, password, community, pubkey):
+        certified = Person.lookup(pubkey, community)
+        block = community.get_block()
+        block_hash = hashlib.sha1(block.signed_raw().encode("ascii")).hexdigest().upper()
+
+        certification = Certification(PROTOCOL_VERSION, community.currency,
+                                      self.pubkey, certified.pubkey,
+                                      block.number, block_hash, None)
+
+        selfcert = certified.selfcert(community)
+        raw_cert = certification.raw(selfcert)
+        logging.debug("SelfCertification : {0}".format(selfcert.raw()))
+
+        key = SigningKey(self.salt, password)
+        signing = base64.b64encode(key.signature(bytes(raw_cert, 'ascii')))
+        logging.debug("Signature : {0}".format(signing.decode("ascii")))
+        certification.signatures = [signing.decode("ascii")]
+        signed_cert = certification.signed_raw(selfcert)
+        logging.debug("Certification : {0}".format(signed_cert))
+
+        community.post(bma.wot.Add, {},
+                       {'pubkey': certified.pubkey,
+                        'self': selfcert.signed_raw(),
+                        'others': certification.inline() + "\n"})
 
     def sources(self, community):
         sources = []

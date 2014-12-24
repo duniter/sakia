@@ -37,7 +37,8 @@ class SelfCertification(Document):
 
     def raw(self):
         return """UID:{0}
-META:TS:{1}""".format(self.uid(), self.ts())
+META:TS:{1}
+""".format(self.uid, self.timestamp)
 
     def inline(self):
         return "{0}:{1}:{2}:{3}".format(self.pubkey, self.signatures[0],
@@ -77,8 +78,16 @@ class Certification(Document):
                    blockhash, blocknumber, signature)
 
     def raw(self, selfcert):
-        return """{0}
-META:TS:{1}-{2}""".format(selfcert.signed_raw(), self.blockhash, self.blocknumber)
+        return """{0}META:TS:{1}-{2}
+""".format(selfcert.signed_raw(), self.blockhash, self.blocknumber)
+
+    def signed_raw(self, selfcert):
+        raw = self.raw(selfcert)
+        signed_raw = raw
+        for s in self.signatures:
+            if s is not None:
+                signed_raw += s + "\n"
+        return signed_raw
 
     def inline(self):
         return "{0}:{1}:{2}:{3}".format(self.pubkey_from, self.pubkey_to,
