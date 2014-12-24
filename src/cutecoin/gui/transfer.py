@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QDialog, QErrorMessage, QInputDialog, QLineEdit, QMe
 
 from cutecoin.core.person import Person
 
-from cutecoin.gen_resources.transferDialog_uic import Ui_TransferMoneyDialog
+from cutecoin.gen_resources.transfer_uic import Ui_TransferMoneyDialog
 
 
 class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):

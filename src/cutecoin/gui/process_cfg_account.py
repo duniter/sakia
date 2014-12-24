@@ -6,8 +6,8 @@ Created on 6 mars 2014
 import logging
 from ucoinpy.documents.peer import Peer
 from ucoinpy.key import SigningKey
-from cutecoin.gen_resources.accountConfigurationDialog_uic import Ui_AccountConfigurationDialog
-from cutecoin.gui.processConfigureCommunity import ProcessConfigureCommunity
+from cutecoin.gen_resources.account_cfg_uic import Ui_AccountConfigurationDialog
+from cutecoin.gui.process_cfg_community import ProcessConfigureCommunity
 from cutecoin.models.communities import CommunitiesListModel
 from cutecoin.tools.exceptions import KeyAlreadyUsed, Error
 

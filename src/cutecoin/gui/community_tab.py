@@ -7,8 +7,8 @@ Created on 2 févr. 2014
 import logging
 from PyQt5.QtWidgets import QWidget, QErrorMessage
 from cutecoin.models.members import MembersListModel
-from cutecoin.gen_resources.communityTabWidget_uic import Ui_CommunityTabWidget
-from cutecoin.gui.addContactDialog import AddContactDialog
+from cutecoin.gen_resources.community_tab_uic import Ui_CommunityTabWidget
+from cutecoin.gui.add_contact import AddContactDialog
 from cutecoin.wot.qt.form import Form
 
 
@@ -48,7 +48,6 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             dialog.edit_name.setText(person.name)
             dialog.edit_pubkey.setText(person.pubkey)
             dialog.exec_()
-
 
     def send_membership_demand(self):
         result = self.account.send_membership_in(self.community)

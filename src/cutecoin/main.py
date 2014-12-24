@@ -8,7 +8,7 @@ import sys
 import os
 
 from PyQt5.QtWidgets import QApplication, QDialog
-from cutecoin.gui.mainWindow import MainWindow
+from cutecoin.gui.mainwindow import MainWindow
 from cutecoin.core.app import Application
 
 

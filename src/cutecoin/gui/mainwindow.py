@@ -5,16 +5,12 @@ Created on 1 févr. 2014
 '''
 from cutecoin.gen_resources.mainwindow_uic import Ui_MainWindow
 from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog
-from PyQt5.QtCore import QSignalMapper, QModelIndex
-from cutecoin.gui.processConfigureAccount import ProcessConfigureAccount
-from cutecoin.gui.transferMoneyDialog import TransferMoneyDialog
-from cutecoin.gui.communityTabWidget import CommunityTabWidget
-from cutecoin.gui.addContactDialog import AddContactDialog
-from cutecoin.gui.importAccountDialog import ImportAccountDialog
-from cutecoin.models.wallets import WalletsListModel
-from cutecoin.models.sent import SentListModel
-from cutecoin.models.received import ReceivedListModel
-
+from PyQt5.QtCore import QSignalMapper
+from cutecoin.gui.process_cfg_account import ProcessConfigureAccount
+from cutecoin.gui.transfer import TransferMoneyDialog
+from cutecoin.gui.currency_tab import CurrencyTabWidget
+from cutecoin.gui.add_contact import AddContactDialog
+from cutecoin.gui.import_account import ImportAccountDialog
 import logging
 
 
@@ -75,44 +71,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             signal_mapper.mapped[str].connect(self.action_change_account)
 
         if self.app.current_account is None:
-            self.tabs_account.setEnabled(False)
             self.menu_contacts.setEnabled(False)
             self.menu_actions.setEnabled(False)
         else:
-            self.tabs_account.setEnabled(True)
             self.menu_contacts.setEnabled(True)
             self.menu_actions.setEnabled(True)
             self.label_account_name.setText(
                 "Current account : " +
                 self.app.current_account.name)
 
-            self.refresh_wallets()
-
-            self.tabs_communities.clear()
+            self.currencies_tabwidget.clear()
             for community in self.app.current_account.communities:
-                tab_community = CommunityTabWidget(
-                    self.app.current_account,
-                    community)
-                self.tabs_communities.addTab(tab_community, community.name())
+                tab_currency = CurrencyTabWidget(self.app, community)
+                tab_currency.refresh()
+                self.currencies_tabwidget.addTab(tab_currency, community.name())
 
             self.menu_contacts_list.clear()
             for contact in self.app.current_account.contacts:
                 self.menu_contacts_list.addAction(contact.name)
-
-            self.list_transactions_sent.setModel(
-                SentListModel(
-                    self.app.current_account))
-            self.list_transactions_received.setModel(
-                ReceivedListModel(
-                    self.app.current_account))
-
-    def refresh_wallets(self):
-        wallets_list_model = WalletsListModel(self.app.current_account)
-        self.list_wallets.setModel(wallets_list_model)
-        self.refresh_wallet_content(QModelIndex())
-
-    def refresh_wallet_content(self, index):
-        pass
 
     def import_account(self):
         dialog = ImportAccountDialog(self.app, self)

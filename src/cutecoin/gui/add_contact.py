@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QDialog, QDialogButtonBox
 
 from cutecoin.core.person import Person
 
-from cutecoin.gen_resources.addContactDialog_uic import Ui_AddContactDialog
+from cutecoin.gen_resources.add_contact_uic import Ui_AddContactDialog
 
 
 class AddContactDialog(QDialog, Ui_AddContactDialog):

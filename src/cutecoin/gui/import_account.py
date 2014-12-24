@@ -7,7 +7,7 @@ import re
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QMessageBox, QErrorMessage, QFileDialog
 
 from cutecoin.tools.exceptions import Error
-from cutecoin.gen_resources.importAccountDialog_uic import Ui_ImportAccountDialog
+from cutecoin.gen_resources.import_account_uic import Ui_ImportAccountDialog
 
 
 class ImportAccountDialog(QDialog, Ui_ImportAccountDialog):

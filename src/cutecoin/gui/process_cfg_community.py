@@ -9,7 +9,7 @@ from ucoinpy.api import bma
 from ucoinpy.api.bma import ConnectionHandler
 from ucoinpy.documents.peer import Peer
 
-from cutecoin.gen_resources.communityConfigurationDialog_uic import Ui_CommunityConfigurationDialog
+from cutecoin.gen_resources.community_cfg_uic import Ui_CommunityConfigurationDialog
 from PyQt5.QtWidgets import QDialog, QMenu, QMessageBox, QWidget, QAction
 from PyQt5.QtCore import QSignalMapper
 from cutecoin.models.peering import PeeringTreeModel
