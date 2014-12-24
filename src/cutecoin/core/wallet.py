@@ -101,7 +101,6 @@ class Wallet(object):
 
     def send_money(self, salt, password, community,
                    recipient, amount, message):
-
         inputs = self.tx_inputs(int(amount), community)
         logging.debug("Inputs : {0}".format(inputs))
         outputs = self.tx_outputs(recipient, amount, inputs)
