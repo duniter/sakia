@@ -10,6 +10,7 @@ from ucoinpy.documents.transaction import InputSource, OutputSource, Transaction
 from ucoinpy.key import SigningKey
 from ..tools.exceptions import NotEnoughMoneyError
 import logging
+import base64
 
 
 class Wallet(object):
@@ -100,7 +101,6 @@ class Wallet(object):
 
     def send_money(self, salt, password, community,
                    recipient, amount, message):
-
         inputs = self.tx_inputs(int(amount), community)
         logging.debug("Inputs : {0}".format(inputs))
         outputs = self.tx_outputs(recipient, amount, inputs)
@@ -117,9 +117,9 @@ class Wallet(object):
             key = SigningKey("{0}{1}".format(salt, self.walletid), password)
         logging.debug("Sender pubkey:{0}".format(key.pubkey))
 
-        signing = key.signature(bytes(tx.raw(), 'ascii'))
-        logging.debug("Signature : {0}".format(str(signing.signature)))
-        tx.signatures = [str(signing.signature, 'ascii')]
+        signing = base64.b64encode(key.signature(bytes(tx.raw(), 'ascii')))
+        logging.debug("Signature : {0}".format(signing.decode("ascii")))
+        tx.signatures = [signing.decode("ascii")]
         logging.debug("Transaction : {0}".format(tx.signed_raw()))
         community.post(bma.tx.Process,
                         post_args={'transaction': tx.signed_raw()})

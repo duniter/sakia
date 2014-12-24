@@ -38,6 +38,8 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         for contact in sender.contacts:
             self.combo_contact.addItem(contact.name)
 
+        self.edit_message.setEnabled(False)
+
     def accept(self):
         message = self.edit_message.text()
 
