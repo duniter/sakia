@@ -53,6 +53,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog.accepted.connect(self.refresh_wallets)
         dialog.exec_()
 
+    def refresh_wallets(self):
+        currency_tab = self.currencies_tabwidget.currentWidget()
+        currency_tab.refresh_wallets()
+
     '''
     Refresh main window
     When the selected account changes, all the widgets
