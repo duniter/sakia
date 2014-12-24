@@ -9,6 +9,7 @@ from ucoinpy import PROTOCOL_VERSION
 from ucoinpy.documents.peer import Peer, Endpoint, BMAEndpoint
 from ucoinpy.documents.block import Block
 import logging
+import time
 
 
 class Community(object):
@@ -21,6 +22,8 @@ class Community(object):
         '''
         self.currency = currency
         self.peers = peers
+        self.requests_cache = None
+        self.last_block = None
 
     @classmethod
     def create(cls, currency, peer):
@@ -100,9 +103,41 @@ class Community(object):
         logging.debug("Peers : {0}".format(self.peers))
         for peer in self.peers:
             e = next(e for e in peer.endpoints if type(e) is BMAEndpoint)
-            logging.debug("Trying to connect to : " + peer.pubkey)
-            req = request(e.conn_handler(), **req_args)
-            data = req.get(**get_args)
+            # We request the current block every five minutes
+            # If a new block is mined we reset the cache
+            if self.last_block is None:
+                block = bma.blockchain.Current(e.conn_handler()).get()
+                self.last_block = {"request_ts": time.time(),
+                                   "number": block['number']}
+            elif self.last_block["request_ts"] < time.time() - 300:
+                block = bma.blockchain.Current(e.conn_handler()).get()
+                self.last_block = {"request_ts": time.time(),
+                                   "number": block['number']}
+                self.requests_cache = None
+
+            cache_key = (hash(request),
+                         hash(tuple(frozenset(sorted(req_args.keys())))),
+                         hash(tuple(frozenset(sorted(req_args.items())))),
+                         hash(tuple(frozenset(sorted(get_args.keys())))),
+                         hash(tuple(frozenset(sorted(get_args.items())))))
+
+            # If the cache was cleared, let's initialize a new one
+            if self.requests_cache is None:
+                req = request(e.conn_handler(), **req_args)
+                data = req.get(**get_args)
+                self.requests_cache = {cache_key: data}
+            else:
+                if cache_key in self.requests_cache.keys():
+                    logging.debug("Cache : {0} : {1}".format(cache_key,
+                                                             self.requests_cache[cache_key]))
+                    return self.requests_cache[cache_key]
+                # If we cant find it, we request for it
+                else:
+                    logging.debug("Connecting to {0}:{1}".format(e.server,
+                                                                 e.port))
+                    req = request(e.conn_handler(), **req_args)
+                    data = req.get(**get_args)
+                    self.requests_cache[cache_key] = data
             return data
 
     def post(self, request, req_args={}, post_args={}):

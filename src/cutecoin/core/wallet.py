@@ -14,7 +14,6 @@ import base64
 
 
 class Wallet(object):
-
     '''
     A wallet is used to manage money with a unique key.
     '''
