@@ -79,7 +79,7 @@ class Certification(Document):
 
     def raw(self, selfcert):
         return """{0}META:TS:{1}-{2}
-""".format(selfcert.signed_raw(), self.blockhash, self.blocknumber)
+""".format(selfcert.signed_raw(), self.blocknumber, self.blockhash)
 
     def signed_raw(self, selfcert):
         raw = self.raw(selfcert)

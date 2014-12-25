@@ -117,7 +117,7 @@ class Account(object):
 
         certification = Certification(PROTOCOL_VERSION, community.currency,
                                       self.pubkey, certified.pubkey,
-                                      block.number, block_hash, None)
+                                      block_hash, block.number, None)
 
         selfcert = certified.selfcert(community)
         raw_cert = certification.raw(selfcert)
@@ -125,15 +125,17 @@ class Account(object):
 
         key = SigningKey(self.salt, password)
         signing = base64.b64encode(key.signature(bytes(raw_cert, 'ascii')))
-        logging.debug("Signature : {0}".format(signing.decode("ascii")))
+        logging.debug("Raw certification {0}".format(raw_cert))
+        logging.debug("Signature of {0}".format(signing.decode("ascii")))
         certification.signatures = [signing.decode("ascii")]
         signed_cert = certification.signed_raw(selfcert)
         logging.debug("Certification : {0}".format(signed_cert))
 
-        community.post(bma.wot.Add, {},
-                       {'pubkey': certified.pubkey,
-                        'self': selfcert.signed_raw(),
-                        'others': certification.inline() + "\n"})
+        data = {'pubkey': certified.pubkey,
+                        'self_': selfcert.signed_raw(),
+                        'other': "{0}\n".format(certification.inline())}
+        logging.debug("Posted data : {0}".format(data))
+        community.post(bma.wot.Add, {}, data)
 
     def sources(self, community):
         sources = []

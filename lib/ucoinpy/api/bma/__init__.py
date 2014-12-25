@@ -123,7 +123,10 @@ class API(object):
         Arguments:
         - `path`: the request path
         """
+        if 'self_' in kwargs.keys():
+            kwargs['self'] = kwargs.pop('self_')
 
+        logging.debug("POST : {0}".format(kwargs))
         response = requests.post(self.reverse_url(path), data=kwargs, headers=self.headers)
 
         if response.status_code != 200:

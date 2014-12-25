@@ -31,7 +31,7 @@ class Add(WOT):
 
     def __post__(self, **kwargs):
         assert 'pubkey' in kwargs
-        assert 'self' in kwargs
+        assert 'self_' in kwargs
         assert 'other' in kwargs
 
         return self.requests_post('/add', **kwargs).json()
