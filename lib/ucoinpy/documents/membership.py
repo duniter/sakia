@@ -39,10 +39,7 @@ class Membership(Document):
         '''
         Constructor
         '''
-        if signature:
-            super().__init__(version, currency, [signature])
-        else:
-            super().__init__(version, currency, [])
+        super().__init__(version, currency, [signature])
         self.issuer = issuer
         self.block_number = block_number
         self.block_hash = block_hash

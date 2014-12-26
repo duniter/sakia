@@ -120,14 +120,10 @@ class Account(object):
                                       block_hash, block.number, None)
 
         selfcert = certified.selfcert(community)
-        raw_cert = certification.raw(selfcert)
         logging.debug("SelfCertification : {0}".format(selfcert.raw()))
 
         key = SigningKey(self.salt, password)
-        signing = base64.b64encode(key.signature(bytes(raw_cert, 'ascii')))
-        logging.debug("Raw certification {0}".format(raw_cert))
-        logging.debug("Signature of {0}".format(signing.decode("ascii")))
-        certification.signatures = [signing.decode("ascii")]
+        certification.sign(selfcert, [key])
         signed_cert = certification.signed_raw(selfcert)
         logging.debug("Certification : {0}".format(signed_cert))
 

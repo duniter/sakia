@@ -83,10 +83,7 @@ BOTTOM_SIGNATURE
         '''
         Constructor
         '''
-        if signature:
-            super().__init__(version, currency, [signature])
-        else:
-            super().__init__(version, currency, [])
+        super().__init__(version, currency, [signature])
         self.noonce = noonce
         self.number = number
         self.powmin = powmin

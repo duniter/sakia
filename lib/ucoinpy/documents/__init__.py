@@ -4,7 +4,9 @@ Created on 3 déc. 2014
 @author: inso
 '''
 import base58
+import base64
 import re
+import logging
 from ..key import Base58Encoder
 
 class Document:
@@ -15,7 +17,10 @@ class Document:
     def __init__(self, version, currency, signatures):
         self.version = version
         self.currency = currency
-        self.signatures = signatures
+        if signatures:
+            self.signatures = [s for s in signatures if s is not None]
+        else:
+            self.signatures = []
 
     def sign(self, keys):
         '''
@@ -23,8 +28,10 @@ class Document:
         Warning : current signatures will be replaced with the new ones.
         '''
         self.signatures = []
-        for k in keys:
-            self.signatures.append(k.signature(self.raw()))
+        for key in keys:
+            signing = base64.b64encode(key.signature(bytes(self.raw(), 'ascii')))
+            logging.debug("Signature : \n{0}".format(signing.decode("ascii")))
+            self.signatures.append(signing.decode("ascii"))
 
     def signed_raw(self):
         '''
@@ -32,8 +39,6 @@ class Document:
         If keys are present, returns the raw signed by these keys
         '''
         raw = self.raw()
-        signed_raw = raw
-        for s in self.signatures:
-            if s is not None:
-                signed_raw += s + "\n"
+        signed = "\n".join(self.signatures)
+        signed_raw = raw + signed + "\n"
         return signed_raw

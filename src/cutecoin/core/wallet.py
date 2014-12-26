@@ -116,9 +116,7 @@ class Wallet(object):
             key = SigningKey("{0}{1}".format(salt, self.walletid), password)
         logging.debug("Sender pubkey:{0}".format(key.pubkey))
 
-        signing = base64.b64encode(key.signature(bytes(tx.raw(), 'ascii')))
-        logging.debug("Signature : {0}".format(signing.decode("ascii")))
-        tx.signatures = [signing.decode("ascii")]
+        tx.sign([key])
         logging.debug("Transaction : {0}".format(tx.signed_raw()))
         community.post(bma.tx.Process,
                         post_args={'transaction': tx.signed_raw()})

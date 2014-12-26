@@ -32,10 +32,7 @@ class Peer(Document):
 
     def __init__(self, version, currency, pubkey, blockid,
                  endpoints, signature):
-        if signature:
-            super().__init__(version, currency, [signature])
-        else:
-            super().__init__(version, currency, [])
+        super().__init__(version, currency, [signature])
 
         self.pubkey = pubkey
         self.blockid = blockid

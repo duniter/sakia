@@ -4,6 +4,8 @@ Created on 2 déc. 2014
 @author: inso
 '''
 import re
+import base64
+import logging
 
 from . import Document
 
@@ -39,6 +41,9 @@ class SelfCertification(Document):
         return """UID:{0}
 META:TS:{1}
 """.format(self.uid, self.timestamp)
+
+    def signed_raw(self):
+        return super().signed_raw()[:-1]
 
     def inline(self):
         return "{0}:{1}:{2}:{3}".format(self.pubkey, self.signatures[0],
@@ -78,15 +83,26 @@ class Certification(Document):
                    blockhash, blocknumber, signature)
 
     def raw(self, selfcert):
-        return """{0}META:TS:{1}-{2}
+        return """{0}
+META:TS:{1}-{2}
 """.format(selfcert.signed_raw(), self.blocknumber, self.blockhash)
+
+
+    def sign(self, selfcert, keys):
+        '''
+        Sign the current document.
+        Warning : current signatures will be replaced with the new ones.
+        '''
+        self.signatures = []
+        for key in keys:
+            signing = base64.b64encode(key.signature(bytes(self.raw(selfcert), 'ascii')))
+            logging.debug("Signature : \n{0}".format(signing.decode("ascii")))
+            self.signatures.append(signing.decode("ascii"))
 
     def signed_raw(self, selfcert):
         raw = self.raw(selfcert)
-        signed_raw = raw
-        for s in self.signatures:
-            if s is not None:
-                signed_raw += s + "\n"
+        signed = "\n".join(self.signatures)
+        signed_raw = raw + signed + "\n"
         return signed_raw
 
     def inline(self):

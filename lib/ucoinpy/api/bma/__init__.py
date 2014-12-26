@@ -123,7 +123,7 @@ class API(object):
         Arguments:
         - `path`: the request path
         """
-        if 'self_' in kwargs.keys():
+        if 'self_' in kwargs:
             kwargs['self'] = kwargs.pop('self_')
 
         logging.debug("POST : {0}".format(kwargs))
