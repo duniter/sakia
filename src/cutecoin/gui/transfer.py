@@ -5,9 +5,10 @@ Created on 2 févr. 2014
 '''
 from PyQt5.QtWidgets import QDialog, QErrorMessage, QInputDialog, QLineEdit, QMessageBox
 
-from cutecoin.core.person import Person
+from ..core.person import Person
+from ..gen_resources.transfer_uic import Ui_TransferMoneyDialog
 
-from cutecoin.gen_resources.transfer_uic import Ui_TransferMoneyDialog
+import logging
 
 
 class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
@@ -47,7 +48,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
             index = self.combo_contact.currentIndex()
             recipient = self.sender.contacts[index].pubkey
         else:
-            recipient = self.edit_key_fingerprint.text()
+            recipient = self.edit_pubkey.text()
         amount = self.spinbox_amount.value()
         password = QInputDialog.getText(self, "Wallet password",
                                         "Please enter your password",
@@ -109,6 +110,6 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         self.spinbox_amount.setValue(0)
         self.spinbox_amount.setMaximum(self.wallet.value(self.community))
 
-    def recipient_mode_changed(self, fingerprint_toggled):
-        self.edit_key_fingerprint.setEnabled(fingerprint_toggled)
-        self.combo_contact.setEnabled(not fingerprint_toggled)
+    def recipient_mode_changed(self, pubkey_toggled):
+        self.edit_pubkey.setEnabled(pubkey_toggled)
+        self.combo_contact.setEnabled(not pubkey_toggled)

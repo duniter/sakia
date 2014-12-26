@@ -10,6 +10,9 @@
     <height>369</height>
    </rect>
   </property>
+  <property name="contextMenuPolicy">
+   <enum>Qt::DefaultContextMenu</enum>
+  </property>
   <property name="windowTitle">
    <string>communityTabWidget</string>
   </property>
@@ -27,7 +30,11 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_6">
          <item>
-          <widget class="QListView" name="list_community_members"/>
+          <widget class="QListView" name="list_community_members">
+           <property name="contextMenuPolicy">
+            <enum>Qt::CustomContextMenu</enum>
+           </property>
+          </widget>
          </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -95,9 +102,25 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>list_community_members</sender>
+   <signal>customContextMenuRequested(QPoint)</signal>
+   <receiver>CommunityTabWidget</receiver>
+   <slot>member_context_menu(QPoint)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>210</x>
+     <y>179</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>210</x>
+     <y>184</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
-  <slot>open_issuance_dialog()</slot>
+  <slot>member_context_menu(QPoint)</slot>
   <slot>send_membership_demand()</slot>
   <slot>send_membership_leaving()</slot>
  </slots>

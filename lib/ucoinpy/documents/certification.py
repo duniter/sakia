@@ -42,9 +42,6 @@ class SelfCertification(Document):
 META:TS:{1}
 """.format(self.uid, self.timestamp)
 
-    def signed_raw(self):
-        return super().signed_raw()[:-1]
-
     def inline(self):
         return "{0}:{1}:{2}:{3}".format(self.pubkey, self.signatures[0],
                                     self.timestamp, self.uid)
@@ -83,8 +80,7 @@ class Certification(Document):
                    blockhash, blocknumber, signature)
 
     def raw(self, selfcert):
-        return """{0}
-META:TS:{1}-{2}
+        return """{0}META:TS:{1}-{2}
 """.format(selfcert.signed_raw(), self.blocknumber, self.blockhash)
 
 

@@ -56,7 +56,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="QRadioButton" name="radio_key_fingerprint">
+         <widget class="QRadioButton" name="radio_pubkey">
           <property name="text">
            <string>Recipient public key</string>
           </property>
@@ -66,7 +66,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="edit_key_fingerprint">
+         <widget class="QLineEdit" name="edit_pubkey">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -235,7 +235,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>radio_key_fingerprint</sender>
+   <sender>radio_pubkey</sender>
    <signal>toggled(bool)</signal>
    <receiver>TransferMoneyDialog</receiver>
    <slot>recipient_mode_changed(bool)</slot>
