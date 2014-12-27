@@ -62,9 +62,6 @@ class Community(object):
                              req_args={'number': block_number})
         return block['dividend']
 
-    def send_pubkey(self, account):
-        pass
-
     def send_membership(self, account, membership):
         pass
 

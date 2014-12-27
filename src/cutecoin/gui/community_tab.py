@@ -81,7 +81,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         dialog.radio_pubkey.setChecked(True)
         dialog.exec_()
 
-    def certify_member(self,):
+    def certify_member(self):
         dialog = CertificationDialog(self.account)
         person = self.sender().data()
         dialog.edit_pubkey.setText(person.pubkey)

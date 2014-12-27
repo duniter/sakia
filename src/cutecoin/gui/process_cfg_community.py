@@ -10,7 +10,7 @@ from ucoinpy.api.bma import ConnectionHandler
 from ucoinpy.documents.peer import Peer
 
 from cutecoin.gen_resources.community_cfg_uic import Ui_CommunityConfigurationDialog
-from PyQt5.QtWidgets import QDialog, QMenu, QMessageBox, QWidget, QAction
+from PyQt5.QtWidgets import QDialog, QMenu, QMessageBox, QInputDialog, QLineEdit
 from PyQt5.QtCore import QSignalMapper
 from cutecoin.models.peering import PeeringTreeModel
 from cutecoin.core.person import Person
@@ -166,9 +166,19 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
                                  {0}\n \
                                  Would you like to publish the key ?".format(self.account.pubkey))
             if reply == QMessageBox.Yes:
+                password = ""
+
+                while not self.account.check_password(password):
+                    password = QInputDialog.getText(self, "Account password",
+                                "Wrong password.\nPlease enter your password",
+                                QLineEdit.Password)
+                    if password[1] is True:
+                        password = password[0]
+                    else:
+                        return
                 try:
-                    self.account.send_pubkey(self.community)
-                except Error as e:
+                    self.account.send_pubkey(password, self.community)
+                except ValueError as e:
                     QMessageBox.critical(self, "Pubkey publishing error",
                                       e.message)
             else:

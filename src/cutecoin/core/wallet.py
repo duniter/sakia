@@ -10,7 +10,6 @@ from ucoinpy.documents.transaction import InputSource, OutputSource, Transaction
 from ucoinpy.key import SigningKey
 from ..tools.exceptions import NotEnoughMoneyError
 import logging
-import base64
 
 
 class Wallet(object):

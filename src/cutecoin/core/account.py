@@ -8,12 +8,13 @@ from ucoinpy import PROTOCOL_VERSION
 from ucoinpy.api import bma
 from ucoinpy.api.bma import ConnectionHandler
 from ucoinpy.documents.peer import Peer
-from ucoinpy.documents.certification import Certification
+from ucoinpy.documents.certification import SelfCertification, Certification
 from ucoinpy.key import SigningKey
+from ..tools.exceptions import PersonNotFoundError
 
 import logging
 import hashlib
-import base64
+import time
 
 from .wallet import Wallet
 from .community import Community
@@ -162,8 +163,19 @@ class Account(object):
             return False
         return True
 
-    def send_pubkey(self, community):
-        return community.send_pubkey(self)
+    def send_pubkey(self, password, community):
+        selfcert = SelfCertification(PROTOCOL_VERSION,
+                                     community.currency,
+                                     self.pubkey,
+                                     int(time.time()),
+                                     self.name,
+                                     None)
+        key = SigningKey(self.salt, password)
+        selfcert.sign([key])
+        logging.debug("Key publish : {0}".format(selfcert.signed_raw()))
+        community.post(bma.wot.Add, {}, {'pubkey': self.pubkey,
+                                    'self_': selfcert.signed_raw(),
+                                    'other': []})
 
     def send_membership_in(self, community):
         return community.send_membership(self, "IN")

@@ -75,7 +75,7 @@ class KeyAlreadyUsed(Error):
         super() .__init__(
             "Cannot add account " +
             new_account.name +
-            " : the pgpKey " +
+            " : the key " +
             keyid +
             " is already used by " +
             found_account.name)

@@ -163,9 +163,8 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
 
     def action_remove_community(self):
         for index in self.list_communities.selectedIndexes():
-            community = self.account.communities.communitiesList[index.row()]
-            self.account.wallets.removeAllWalletsOf(community)
-            self.account.communities.communitiesList.pop(index.row())
+            community = self.account.communities[index.row()]
+            self.account.communities.pop(index.row())
 
         self.list_communities.setModel(CommunitiesListModel(self.account))
 

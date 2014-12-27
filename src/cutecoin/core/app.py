@@ -104,6 +104,7 @@ class Application(object):
         json_data = open(account_path, 'r')
         data = json.load(json_data)
         account = Account.load(data)
+        account.name = name
         self.accounts.append(account)
         self.save(account)
 
