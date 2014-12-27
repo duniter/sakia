@@ -2,6 +2,7 @@
 
 import time
 import datetime
+import logging
 from PyQt5.QtWidgets import QWidget
 
 from ..gen_resources.wot_tab_uic import Ui_WotTabWidget
@@ -47,12 +48,20 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
 
         :param public_key: Public key of the identity
         """
+        try:
+            certifiers = self.community.request(bma.wot.CertifiersOf, {'search': public_key})
+        except ValueError as e:
+            logging.debug('bma.wot.CertifiersOf request error : ' + str(e))
+            return False
+
+        # reset graph
         graph = dict()
+
         # add wallet node
         node_status = (NODE_STATUS_HIGHLIGHTED and (public_key == self.account.pubkey)) or 0
         node_status += NODE_STATUS_SELECTED
-        certifiers = self.community.request(bma.wot.CertifiersOf, {'search': public_key})
 
+        # highlighted node (wallet)
         graph[public_key] = {'arcs': [], 'text': certifiers['uid'], 'tooltip': public_key, 'status': node_status}
 
         # add certifiers of uid
