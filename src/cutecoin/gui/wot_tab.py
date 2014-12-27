@@ -8,7 +8,9 @@ from PyQt5.QtWidgets import QWidget
 from ..gen_resources.wot_tab_uic import Ui_WotTabWidget
 from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_SELECTED, ARC_STATUS_STRONG, ARC_STATUS_WEAK
 from ucoinpy.api import bma
-
+from .certification import CertificationDialog
+from .add_contact import AddContactDialog
+from .transfer import TransferMoneyDialog
 
 class WotTabWidget(QWidget, Ui_WotTabWidget):
     def __init__(self, account, community, parent=None):
@@ -29,8 +31,9 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         self.comboBoxSearch.lineEdit().returnPressed.connect(self.combobox_return_pressed)
 
         # add scene events
-        self.graphicsView.scene().node_signed.connect(self.sign_node)
         self.graphicsView.scene().node_clicked.connect(self.draw_graph)
+        self.graphicsView.scene().node_signed.connect(self.sign_node)
+        self.graphicsView.scene().node_transaction.connect(self.send_money_to_node)
 
         self.account = account
         self.community = community
@@ -62,7 +65,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         node_status += NODE_STATUS_SELECTED
 
         # highlighted node (wallet)
-        graph[public_key] = {'arcs': [], 'text': certifiers['uid'], 'tooltip': public_key, 'status': node_status}
+        graph[public_key] = {'id': public_key, 'arcs': [], 'text': certifiers['uid'], 'tooltip': public_key, 'status': node_status}
 
         # add certifiers of uid
         for certifier in certifiers['certifications']:
@@ -80,6 +83,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             if certifier['pubkey'] not in graph.keys():
                 node_status = (NODE_STATUS_HIGHLIGHTED and (certifier['pubkey'] == self.account.pubkey)) or 0
                 graph[certifier['pubkey']] = {
+                    'id': certifier['pubkey'],
                     'arcs': [arc],
                     'text': certifier['uid'],
                     'tooltip': certifier['pubkey'],
@@ -103,6 +107,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             if certified['pubkey'] not in graph.keys():
                 node_status = (NODE_STATUS_HIGHLIGHTED and (certified['pubkey'] == self.account.pubkey)) or 0
                 graph[certified['pubkey']] = {
+                    'id': certified['pubkey'],
                     'arcs': list(),
                     'text': certified['uid'],
                     'tooltip': certified['pubkey'],
@@ -159,5 +164,26 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
                 node['pubkey']
         )
 
-    def sign_node(self, public_key):
-        print('sign node {} not implemented'.format(public_key))
+    def sign_node(self, metadata):
+        # check if identity already certified...
+        for certified in self.community.request(bma.wot.CertifiedBy, {'search': self.account.pubkey})['certifications']:
+            if metadata['id'] == certified['pubkey']:
+                return False
+        # open certify dialog
+        dialog = CertificationDialog(self.account)
+        dialog.edit_pubkey.setText(metadata['id'])
+        dialog.radio_pubkey.setChecked(True)
+        dialog.exec_()
+
+    def add_node_as_contact(self, metadata):
+        dialog = AddContactDialog(self.account, self.window())
+        dialog.edit_name.setText(metadata['text'])
+        dialog.edit_pubkey.setText(metadata['id'])
+        dialog.exec_()
+
+    def send_money_to_node(self, metadata):
+        dialog = TransferMoneyDialog(self.account)
+        dialog.edit_pubkey.setText(metadata['id'])
+        dialog.combo_community.setCurrentText(self.community.name())
+        dialog.radio_pubkey.setChecked(True)
+        dialog.exec_()
