@@ -59,6 +59,7 @@ class Scene(QGraphicsScene):
     node_clicked = pyqtSignal(str, name='nodeClicked')
     node_signed = pyqtSignal(dict, name='nodeSigned')
     node_transaction = pyqtSignal(dict, name='nodeTransaction')
+    node_contact = pyqtSignal(dict, name='nodeContact')
 
     def __init__(self, parent=None):
         """
@@ -171,6 +172,7 @@ class Node(QGraphicsEllipseItem):
         self.menu = None
         self.action_sign = None
         self.action_transaction = None
+        self.action_contact = None
 
         # color around ellipse
         outline_color = QColor('grey')
@@ -244,6 +246,11 @@ class Node(QGraphicsEllipseItem):
         self.action_transaction = QAction('Send money to identity', self.scene())
         self.menu.addAction(self.action_transaction)
         self.action_transaction.triggered.connect(self.transaction_action)
+        # action add identity as contact
+        self.action_contact = QAction('Add identity as contact', self.scene())
+        self.menu.addAction(self.action_contact)
+        self.action_contact.triggered.connect(self.contact_action)
+        # run menu
         self.menu.exec(event.screenPos())
 
     def add_arc(self, arc):
@@ -268,6 +275,12 @@ class Node(QGraphicsEllipseItem):
         # trigger scene signal
         self.scene().node_transaction.emit(self.metadata)
 
+    def contact_action(self):
+        """
+        Transaction action to identity node
+        """
+        # trigger scene signal
+        self.scene().node_contact.emit(self.metadata)
 
 class Arc(QGraphicsLineItem):
     def __init__(self, source_node, destination_node, metadata):

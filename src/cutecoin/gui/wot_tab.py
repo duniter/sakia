@@ -12,6 +12,7 @@ from .certification import CertificationDialog
 from .add_contact import AddContactDialog
 from .transfer import TransferMoneyDialog
 
+
 class WotTabWidget(QWidget, Ui_WotTabWidget):
     def __init__(self, account, community, parent=None):
         """
@@ -34,6 +35,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         self.graphicsView.scene().node_clicked.connect(self.draw_graph)
         self.graphicsView.scene().node_signed.connect(self.sign_node)
         self.graphicsView.scene().node_transaction.connect(self.send_money_to_node)
+        self.graphicsView.scene().node_contact.connect(self.add_node_as_contact)
 
         self.account = account
         self.community = community
@@ -175,15 +177,18 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         dialog.radio_pubkey.setChecked(True)
         dialog.exec_()
 
-    def add_node_as_contact(self, metadata):
-        dialog = AddContactDialog(self.account, self.window())
-        dialog.edit_name.setText(metadata['text'])
-        dialog.edit_pubkey.setText(metadata['id'])
-        dialog.exec_()
-
     def send_money_to_node(self, metadata):
         dialog = TransferMoneyDialog(self.account)
         dialog.edit_pubkey.setText(metadata['id'])
         dialog.combo_community.setCurrentText(self.community.name())
         dialog.radio_pubkey.setChecked(True)
+        dialog.exec_()
+
+    def add_node_as_contact(self, metadata):
+        # check if contact already exists...
+        if metadata['id'] == self.account.pubkey or metadata['id'] in [contact.pubkey for contact in self.account.contacts]:
+            return False
+        dialog = AddContactDialog(self.account, self.window())
+        dialog.edit_name.setText(metadata['text'])
+        dialog.edit_pubkey.setText(metadata['id'])
         dialog.exec_()
