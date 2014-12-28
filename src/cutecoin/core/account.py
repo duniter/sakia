@@ -191,29 +191,23 @@ class Account(object):
         community.post(bma.blockchain.Membership, {},
                        {'membership': membership.signed_raw()})
 
-    def jsonify_contacts(self):
-        data = []
-        for p in self.contacts:
-            data.append(p.jsonify())
-        return data
-
-    def jsonify_wallets(self):
-        data = []
-        for w in self.wallets:
-            data.append(w.jsonify())
-        return data
-
-    def jsonify_community(self):
-        data = []
-        for c in self.communities:
-            data.append(c.jsonify())
-        return data
-
     def jsonify(self):
+        data_communities = []
+        for c in self.communities:
+            data_communities.append(c.jsonify())
+
+        data_wallets = []
+        for w in self.wallets:
+            data_wallets.append(w.jsonify())
+
+        data_contacts = []
+        for p in self.contacts:
+            data_contacts.append(p.jsonify())
+
         data = {'name': self.name,
                 'salt': self.salt,
                 'pubkey': self.pubkey,
-                'communities': self.jsonify_community(),
-                'wallets': self.jsonify_wallets(),
-                'contacts': self.jsonify_contacts()}
+                'communities': data_communities,
+                'wallets': data_wallets,
+                'contacts': data_contacts}
         return data
