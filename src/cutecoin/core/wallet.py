@@ -17,28 +17,30 @@ class Wallet(object):
     A wallet is used to manage money with a unique key.
     '''
 
-    def __init__(self, walletid, pubkey, currency, name):
+    def __init__(self, walletid, pubkey, name):
         '''
         Constructor
         '''
         self.coins = []
         self.walletid = walletid
         self.pubkey = pubkey
-        self.currency = currency
         self.name = name
         self.inputs_cache = None
 
     @classmethod
-    def create(cls, walletid, pubkey, currency, name):
-        return cls(walletid, pubkey, currency, name)
+    def create(cls, walletid, salt, password, name):
+        if walletid == 0:
+            key = SigningKey(salt, password)
+        else:
+            key = SigningKey("{0}{1}".format(salt, walletid), password)
+        return cls(walletid, key.pubkey, name)
 
     @classmethod
     def load(cls, json_data):
         walletid = json_data['walletid']
         pubkey = json_data['pubkey']
         name = json_data['name']
-        currency = json_data['currency']
-        return cls(walletid, pubkey, currency, name)
+        return cls(walletid, pubkey, name)
 
     def __eq__(self, other):
         return (self.keyid == other.keyid)
@@ -138,11 +140,10 @@ class Wallet(object):
     def get_text(self, community):
         return "%s : \n \
 %d %s \n \
-%.2f UD" % (self.name, self.value(community), self.currency,
+%.2f UD" % (self.name, self.value(community), community.currency,
                           self.relative_value(community))
 
     def jsonify(self):
         return {'walletid': self.walletid,
                 'pubkey': self.pubkey,
-                'name': self.name,
-                'currency': self.currency}
+                'name': self.name}

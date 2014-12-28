@@ -58,6 +58,33 @@
            </layout>
           </item>
           <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <property name="topMargin">
+             <number>6</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="label_2">
+              <property name="text">
+               <string>Wallets</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="spinbox_wallets">
+              <property name="minimum">
+               <number>1</number>
+              </property>
+              <property name="maximum">
+               <number>100</number>
+              </property>
+              <property name="value">
+               <number>1</number>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
            <spacer name="verticalSpacer_4">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -387,7 +414,7 @@
    <sender>edit_account_name</sender>
    <signal>textChanged(QString)</signal>
    <receiver>AccountConfigurationDialog</receiver>
-   <slot>action_edit_account_name()</slot>
+   <slot>action_edit_account_parameters()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>240</x>
@@ -415,6 +442,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>spinbox_wallets</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>AccountConfigurationDialog</receiver>
+   <slot>action_edit_account_parameters()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>285</x>
+     <y>127</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>118</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>open_process_add_community()</slot>
@@ -426,7 +469,7 @@
   <slot>open_import_key()</slot>
   <slot>open_generate_account_key()</slot>
   <slot>action_edit_account_key()</slot>
-  <slot>action_edit_account_name()</slot>
+  <slot>action_edit_account_parameters()</slot>
   <slot>action_show_pubkey()</slot>
  </slots>
 </ui>

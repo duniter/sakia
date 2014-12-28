@@ -40,7 +40,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
             self.combo_contact.addItem(contact.name)
 
     def accept(self):
-        message = self.edit_message.text()
+        comment = self.edit_message.text()
 
         if self.radio_contact.isChecked():
             index = self.combo_contact.currentIndex()
@@ -48,18 +48,15 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         else:
             recipient = self.edit_pubkey.text()
         amount = self.spinbox_amount.value()
-        password = QInputDialog.getText(self, "Wallet password",
-                                        "Please enter your password",
-                                        QLineEdit.Password)
-        if password[1] is True:
-            password = password[0]
-        else:
-            return
 
-        while not self.wallet.check_password(self.sender.salt, password):
-            password = QInputDialog.getText(self, "Wallet password",
-                                            "Wrong password.\nPlease enter your password",
-                                            QLineEdit.Password)
+        password = ""
+        message = "Please enter your password"
+
+        while not self.sender.check_password(password):
+            password = QInputDialog.getText(self, "Account password",
+                        message,
+                        QLineEdit.Password)
+            message = "Error, wrong password. Please enter your password"
             if password[1] is True:
                 password = password[0]
             else:
@@ -67,7 +64,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
 
         try:
             self.wallet.send_money(self.sender.salt, password, self.community,
-                                       recipient, amount, message)
+                                       recipient, amount, comment)
             QMessageBox.information(self, "Money transfer",
                                  "Success transfering {0} {1} to {2}".format(amount,
                                                                              self.community.currency,

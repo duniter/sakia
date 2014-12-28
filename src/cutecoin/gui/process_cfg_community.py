@@ -98,10 +98,6 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         self.account = account
         self.step = None
         self.peers = []
-        self.wallet_edit = {}
-
-        for w in self.account.wallets:
-            self.wallet_edit[w.name] = False
 
         step_init = StepPageInit(self)
         step_add_peers = StepPageAddpeers(self)

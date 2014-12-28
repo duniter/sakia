@@ -37,7 +37,11 @@
          </attribute>
          <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
-           <widget class="QListView" name="list_wallets"/>
+           <widget class="QListView" name="list_wallets">
+            <property name="contextMenuPolicy">
+             <enum>Qt::CustomContextMenu</enum>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QListView" name="list_wallet_content"/>
@@ -87,5 +91,42 @@
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>list_wallets</sender>
+   <signal>clicked(QModelIndex)</signal>
+   <receiver>CurrencyTabWidget</receiver>
+   <slot>refresh_wallet_content(QModelIndex)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>113</x>
+     <y>162</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>list_wallets</sender>
+   <signal>customContextMenuRequested(QPoint)</signal>
+   <receiver>CurrencyTabWidget</receiver>
+   <slot>wallet_context_menu(QPoint)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>113</x>
+     <y>162</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>refresh_wallet_content(QModelIndex)</slot>
+  <slot>wallet_context_menu(QPoint)</slot>
+ </slots>
 </ui>

@@ -11,7 +11,7 @@ from cutecoin.gui.process_cfg_community import ProcessConfigureCommunity
 from cutecoin.models.communities import CommunitiesListModel
 from cutecoin.tools.exceptions import KeyAlreadyUsed, Error
 
-from PyQt5.QtWidgets import QDialog, QErrorMessage, QFileDialog, QMessageBox
+from PyQt5.QtWidgets import QDialog, QErrorMessage, QInputDialog, QMessageBox, QLineEdit
 
 
 class Step():
@@ -47,6 +47,8 @@ class StepPageInit(Step):
             self.config_dialog.edit_account_name.setText(self.config_dialog.account.name)
             model = CommunitiesListModel(self.config_dialog.account)
             self.config_dialog.list_communities.setModel(model)
+            nb_wallets = len(self.config_dialog.account.wallets)
+            self.config_dialog.spinbox_wallets.setValue(nb_wallets)
 
         self.config_dialog.button_previous.setEnabled(False)
         self.config_dialog.button_next.setEnabled(False)
@@ -109,8 +111,7 @@ class StepPageCommunities(Step):
         port = self.config_dialog.spinbox_port.value()
         account = self.config_dialog.account
         self.config_dialog.community = account.add_community(server, port)
-        account.wallets.add_wallet(0,
-                                   self.config_dialog.community)
+
         self.config_dialog.refresh()
 
     def display_page(self):
@@ -147,6 +148,7 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         else:
             self.stacked_pages.removeWidget(self.stacked_pages.widget(1))
             step_init.next_step = step_communities
+            self.button_next.setEnabled(True)
             self.setWindowTitle("Configure " + self.account.name)
 
     def open_process_add_community(self):
@@ -181,9 +183,10 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         salt = self.edit_email.text()
         password = self.edit_password.text()
         pubkey = SigningKey(salt, password).pubkey
-        QMessageBox.information(self, "Public key", "These parameters pubkeys are : {0}".format(pubkey))
+        QMessageBox.information(self, "Public key",
+                                "These parameters pubkeys are : {0}".format(pubkey))
 
-    def action_edit_account_name(self):
+    def action_edit_account_parameters(self):
         if self.step.is_valid():
             self.button_next.setEnabled(True)
         else:
@@ -217,12 +220,28 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
             self.step.display_page()
 
     def accept(self):
+        password = ""
         if self.account not in self.app.accounts:
             self.account.name = self.edit_account_name.text()
             try:
                 self.app.add_account(self.account)
             except KeyAlreadyUsed as e:
                 QErrorMessage(self).showMessage(e.message)
+            password = self.edit_password.text()
+        else:
+            message = "Please enter your password"
+
+            while not self.account.check_password(password):
+                password = QInputDialog.getText(self, "Account password",
+                            message,
+                            QLineEdit.Password)
+                message = "Error, wrong password. Please enter your password"
+                if password[1] is True:
+                    password = password[0]
+                else:
+                    return
+        nb_wallets = self.spinbox_wallets.value()
+        self.account.set_walletpool_size(nb_wallets, password)
         self.app.save(self.account)
         self.accepted.emit()
         self.close()

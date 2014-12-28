@@ -97,7 +97,6 @@ class Community(object):
         return members
 
     def request(self, request, req_args={}, get_args={}):
-        logging.debug("Peers : {0}".format(self.peers))
         for peer in self.peers:
             e = next(e for e in peer.endpoints if type(e) is BMAEndpoint)
             # We request the current block every five minutes
@@ -125,8 +124,8 @@ class Community(object):
                 self.requests_cache = {cache_key: data}
             else:
                 if cache_key in self.requests_cache.keys():
-                    logging.debug("Cache : {0} : {1}".format(cache_key,
-                                                             self.requests_cache[cache_key]))
+                    #logging.debug("Cache : {0} : {1}".format(cache_key,
+                    #                                        self.requests_cache[cache_key]))
                     return self.requests_cache[cache_key]
                 # If we cant find it, we request for it
                 else:

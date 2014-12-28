@@ -98,19 +98,16 @@ class Account(object):
 
         community = Community.create(currency, peer)
         self.communities.append(community)
-
-        wallet = Wallet.create(self.next_walletid(), self.pubkey,
-                               currency, "Default wallet")
-        self.wallets.append(wallet)
-
         return community
 
-    def next_walletid(self):
-        wid = 0
-        for w in self.wallets:
-            if w.walletid > wid:
-                wid = w.walletid + 1
-        return wid
+    def set_walletpool_size(self, size, password):
+        logging.debug("Defining wallet pool size")
+        if len(self.wallets) < size:
+            for i in range(len(self.wallets), size):
+                wallet = Wallet.create(i, self.salt, password, "Wallet {0}".format(i))
+                self.wallets.append(wallet)
+        else:
+            self.wallets = self.wallets[:size]
 
     def certify(self, password, community, pubkey):
         certified = Person.lookup(pubkey, community)
