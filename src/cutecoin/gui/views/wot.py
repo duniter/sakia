@@ -55,9 +55,11 @@ class WotView(QGraphicsView):
 
 class Scene(QGraphicsScene):
 
-    # This defines a signal called 'nodeSigned' that takes on string argument
-    node_signed = pyqtSignal(str, name='nodeSigned')
+    # This defines signals taking string arguments
     node_clicked = pyqtSignal(str, name='nodeClicked')
+    node_signed = pyqtSignal(dict, name='nodeSigned')
+    node_transaction = pyqtSignal(dict, name='nodeTransaction')
+    node_contact = pyqtSignal(dict, name='nodeContact')
 
     def __init__(self, parent=None):
         """
@@ -74,21 +76,20 @@ class Scene(QGraphicsScene):
         # self.addLine(-100, 0, 100, 0)
         # self.addLine(0, -100, 0, 100)
 
-    def add_node(self, _id, node, pos):
+    def add_node(self, metadata, pos):
         """
         Add a node item in the graph
 
-        :param str _id: Node id
-        :param dict node: Node data
+        :param dict metadata: Node metadata
         :param tuple pos: Position (x,y) of the node
 
         :return: Node
         """
-        node = Node(_id, node, pos)
+        node = Node(metadata, pos)
         self.addItem(node)
         return node
 
-    def add_arc(self, source_node, destination_node, arc):
+    def add_arc(self, source_node, destination_node, metadata):
         """
         Add an arc between two nodes
 
@@ -98,7 +99,7 @@ class Scene(QGraphicsScene):
 
         :return: Arc
         """
-        arc = Arc(source_node, destination_node, arc)
+        arc = Arc(source_node, destination_node, metadata)
         self.addItem(arc)
         return arc
 
@@ -117,7 +118,7 @@ class Scene(QGraphicsScene):
                 selected_id = _id
                 selected_node = node
 
-        root_node = self.add_node(selected_id, selected_node, (0, 0))
+        root_node = self.add_node(selected_node, (0, 0))
 
         # add certified by selected node
         y = 0
@@ -130,7 +131,7 @@ class Scene(QGraphicsScene):
         nodes = ((k, v) for (k, v) in sorted(nodes.items(), key=lambda kv: kv[1]['node']['text'].lower()))
         # add nodes and arcs
         for _id, items in nodes:
-            node = self.add_node(_id, items['node'], (x, y))
+            node = self.add_node(items['node'], (x, y))
             self.add_arc(root_node, node, items['arc'])
             y += 50
 
@@ -141,7 +142,7 @@ class Scene(QGraphicsScene):
         nodes = ((k, v) for (k, v) in sorted(graph.items(), key=lambda kv: kv[1]['text'].lower()) if selected_id in (arc['id'] for arc in v['arcs']))
         # add nodes and arcs
         for _id, certifier_node in nodes:
-            node = self.add_node(_id, certifier_node, (x, y))
+            node = self.add_node(certifier_node, (x, y))
             for arc in certifier_node['arcs']:
                 if arc['id'] == selected_id:
                     self.add_arc(node, root_node, arc)
@@ -151,24 +152,27 @@ class Scene(QGraphicsScene):
 
 
 class Node(QGraphicsEllipseItem):
-    def __init__(self, _id, data, x_y):
+    def __init__(self, metadata, x_y):
         """
         Create node in the graph scene
 
-        :param dict data: Node data
+        :param dict metadata: Node metadata
         :param x_y: Position of the node
         """
         # unpack tuple
         x, y = x_y
 
         super(Node, self).__init__()
-        self.id = _id
-        self.status_wallet = data['status'] & NODE_STATUS_HIGHLIGHTED
-        self.text = data['text']
-        self.setToolTip(data['tooltip'])
+
+        self.metadata = metadata
+        self.status_wallet = self.metadata['status'] & NODE_STATUS_HIGHLIGHTED
+        self.text = self.metadata['text']
+        self.setToolTip(self.metadata['tooltip'])
         self.arcs = []
         self.menu = None
         self.action_sign = None
+        self.action_transaction = None
+        self.action_contact = None
 
         # color around ellipse
         outline_color = QColor('grey')
@@ -216,7 +220,7 @@ class Node(QGraphicsEllipseItem):
         """
         if event.button() == Qt.LeftButton:
             # trigger scene signal
-            self.scene().node_clicked.emit(self.id)
+            self.scene().node_clicked.emit(self.metadata['id'])
 
     def hoverEnterEvent(self, event: QGraphicsSceneHoverEvent):
         """
@@ -238,6 +242,15 @@ class Node(QGraphicsEllipseItem):
         self.action_sign = QAction('Sign identity', self.scene())
         self.menu.addAction(self.action_sign)
         self.action_sign.triggered.connect(self.sign_action)
+        # action transaction toward identity
+        self.action_transaction = QAction('Send money to identity', self.scene())
+        self.menu.addAction(self.action_transaction)
+        self.action_transaction.triggered.connect(self.transaction_action)
+        # action add identity as contact
+        self.action_contact = QAction('Add identity as contact', self.scene())
+        self.menu.addAction(self.action_contact)
+        self.action_contact.triggered.connect(self.contact_action)
+        # run menu
         self.menu.exec(event.screenPos())
 
     def add_arc(self, arc):
@@ -253,26 +266,40 @@ class Node(QGraphicsEllipseItem):
         Sign identity node
         """
         # trigger scene signal
-        self.scene().node_signed.emit(self.id)
+        self.scene().node_signed.emit(self.metadata)
 
+    def transaction_action(self):
+        """
+        Transaction action to identity node
+        """
+        # trigger scene signal
+        self.scene().node_transaction.emit(self.metadata)
+
+    def contact_action(self):
+        """
+        Transaction action to identity node
+        """
+        # trigger scene signal
+        self.scene().node_contact.emit(self.metadata)
 
 class Arc(QGraphicsLineItem):
-    def __init__(self, source_node, destination_node, data):
+    def __init__(self, source_node, destination_node, metadata):
         """
         Create an arc between two nodes
 
         :param Node source_node: Source node of the arc
         :param Node destination_node: Destination node of the arc
-        :param dict data: Arc data
+        :param dict metadata: Arc metadata
         """
         super(Arc, self).__init__()
 
+        self.metadata = metadata
         self.source = source_node
         self.destination = destination_node
-        self.setToolTip(data['tooltip'])
+        self.setToolTip(self.metadata['tooltip'])
         self.source.add_arc(self)
 
-        self.status = data['status']
+        self.status = self.metadata['status']
 
         self.source_point = None
         self.destination_point = None
