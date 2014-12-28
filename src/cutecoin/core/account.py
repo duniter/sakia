@@ -189,7 +189,7 @@ class Account(object):
                           block_hash, type, selfcert.uid,
                           selfcert.timestamp, None)
         key = SigningKey(self.salt, password)
-        membership.sign(key)
+        membership.sign([key])
         logging.debug("Membership : {0}".format(membership.signed_raw()))
         community.post(bma.blockchain.Membership, {},
                        {'membership': membership.signed_raw()})
