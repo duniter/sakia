@@ -167,11 +167,13 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
                                  Would you like to publish the key ?".format(self.account.pubkey))
             if reply == QMessageBox.Yes:
                 password = ""
+                message = "Please enter your password"
 
                 while not self.account.check_password(password):
                     password = QInputDialog.getText(self, "Account password",
-                                "Wrong password.\nPlease enter your password",
+                                message,
                                 QLineEdit.Password)
+                    message = "Error, wrong password. Please enter your password"
                     if password[1] is True:
                         password = password[0]
                     else:

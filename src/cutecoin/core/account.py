@@ -9,6 +9,7 @@ from ucoinpy.api import bma
 from ucoinpy.api.bma import ConnectionHandler
 from ucoinpy.documents.peer import Peer
 from ucoinpy.documents.certification import SelfCertification, Certification
+from ucoinpy.documents.membership import Membership
 from ucoinpy.key import SigningKey
 from ..tools.exceptions import PersonNotFoundError
 
@@ -177,11 +178,21 @@ class Account(object):
                                     'self_': selfcert.signed_raw(),
                                     'other': []})
 
-    def send_membership_in(self, community):
-        return community.send_membership(self, "IN")
+    def send_membership(self, password, community, type):
+        self_ = Person.lookup(self.pubkey, community)
+        selfcert = self_.selfcert(community)
 
-    def send_membership_out(self, community):
-        return community.send_membership(self, "OUT")
+        block = community.get_block()
+        block_hash = hashlib.sha1(block.signed_raw().encode("ascii")).hexdigest().upper()
+        membership = Membership(PROTOCOL_VERSION, community.currency,
+                          selfcert.pubkey, block.number,
+                          block_hash, type, selfcert.uid,
+                          selfcert.timestamp, None)
+        key = SigningKey(self.salt, password)
+        membership.sign(key)
+        logging.debug("Membership : {0}".format(membership.signed_raw()))
+        community.post(bma.blockchain.Membership, {},
+                       {'membership': membership.signed_raw()})
 
     def jsonify_contacts(self):
         data = []

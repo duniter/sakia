@@ -5,8 +5,8 @@ Created on 2 févr. 2014
 '''
 
 import logging
-from PyQt5.QtCore import Qt, QSignalMapper
-from PyQt5.QtWidgets import QWidget, QErrorMessage, QAction, QMenu
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QWidget, QMessageBox, QAction, QMenu, QInputDialog, QLineEdit
 from ..models.members import MembersListModel
 from ..gen_resources.community_tab_uic import Ui_CommunityTabWidget
 from .add_contact import AddContactDialog
@@ -89,11 +89,39 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         dialog.exec_()
 
     def send_membership_demand(self):
-        result = self.account.send_membership_in(self.community)
-        if (result):
-            QErrorMessage(self).showMessage(result)
+        password = ""
+        message = "Please enter your password"
+
+        while not self.account.check_password(password):
+            password = QInputDialog.getText(self, "Account password",
+                        message,
+                        QLineEdit.Password)
+            message = "Error, wrong password. Please enter your password"
+            if password[1] is True:
+                password = password[0]
+            else:
+                return
+        try:
+            self.account.send_membership(password, self.community, 'IN')
+        except ValueError as e:
+            QMessageBox.critical(self, "Join demand error",
+                              e.message)
 
     def send_membership_leaving(self):
-        result = self.account.send_membership_out(self.community)
-        if (result):
-            QErrorMessage(self).showMessage(result)
+        password = ""
+        message = "Please enter your password"
+
+        while not self.account.check_password(password):
+            password = QInputDialog.getText(self, "Account password",
+                        message,
+                        QLineEdit.Password)
+            message = "Error, wrong password. Please enter your password"
+            if password[1] is True:
+                password = password[0]
+            else:
+                return
+        try:
+            self.account.send_membership(password, self.community, 'OUT')
+        except ValueError as e:
+            QMessageBox.critical(self, "Leaving demand error",
+                              e.message)
