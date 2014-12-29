@@ -38,8 +38,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog.exec_()
 
     def action_change_account(self, account_name):
-        self.app.current_account = self.app.get_account(account_name)
-        logging.info('Changing account to ' + self.app.current_account.name)
+        self.app.change_current_account(self.app.get_account(account_name))
         self.refresh()
 
     def open_transfer_money_dialog(self):
@@ -116,3 +115,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             path = selected_file[0] + ".acc"
         self.app.export_account(path, self.app.current_account)
+
+    def closeEvent(self, event):
+        self.app.save_cache(self.app.current_account)
+        super().closeEvent(event)
+

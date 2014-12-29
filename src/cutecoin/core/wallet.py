@@ -20,15 +20,27 @@ class Cache():
         self.tx_sent = []
         self.tx_received = []
 
-    def from_json(self, data):
-        pass
+    def load_from_json(self, data):
+        self.tx_received = []
+        self.tx_sent = []
+        data_received = data['received']
+        for r in data_received:
+            self.tx_received.append(Transaction.from_signed_raw(r['raw']))
+        data_sent = data['sent']
+        for s in data_sent:
+            self.tx_sent.append(Transaction.from_signed_raw(s['raw']))
+        self.latest_block = data['latest_block']
 
-    def to_json(self):
+    def jsonify(self):
         data_received = []
         for r in self.tx_received:
-            data_received.append({'amount': r.amount,
-                                  'pubkey': r.pubkey})
-        return {'received': data_received}
+            data_received.append({'raw': r.signed_raw()})
+        data_sent = []
+        for s in self.tx_sent:
+            data_sent.append({'raw': s.signed_raw()})
+        return {'latest_block': self.latest_block,
+                'received': data_received,
+                'sent': data_sent}
 
     def latest_sent(self, community):
         self._refresh(community)

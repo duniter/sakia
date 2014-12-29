@@ -57,7 +57,10 @@ class Application(object):
         self.accounts.remove(account)
 
     def change_current_account(self, account):
+        if self.current_account is not None:
+            self.save_cache(self.current_account)
         self.current_account = account
+        self.load_cache(account)
 
     def load(self):
         if not os.path.exists(config.parameters['home']):
@@ -76,7 +79,17 @@ class Application(object):
                                             account_name, 'properties')
                 json_data = open(account_path, 'r')
                 data = json.load(json_data)
-                self.accounts.append(Account.load(data))
+                account = Account.load(data)
+                self.accounts.append(account)
+
+    def load_cache(self, account):
+        for wallet in account.wallets:
+            wallet_path = os.path.join(config.parameters['home'],
+                                        account.name, wallet.pubkey)
+            if os.path.exists(wallet_path):
+                json_data = open(wallet_path, 'r')
+                data = json.load(json_data)
+                wallet.cache.load_from_json(data)
 
     def save(self, account):
         with open(config.parameters['data'], 'w') as outfile:
@@ -86,6 +99,13 @@ class Application(object):
                                     account.name, 'properties')
         with open(account_path, 'w') as outfile:
             json.dump(account.jsonify(), outfile, indent=4, sort_keys=True)
+
+    def save_cache(self, account):
+        for wallet in account.wallets:
+            wallet_path = os.path.join(config.parameters['home'],
+                                        account.name, wallet.pubkey)
+            with open(wallet_path, 'w') as outfile:
+                json.dump(wallet.cache.jsonify(), outfile, indent=4, sort_keys=True)
 
     def import_account(self, file, name):
         with tarfile.open(file, "r") as tar:
