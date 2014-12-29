@@ -5,6 +5,7 @@ Created on 5 févr. 2014
 '''
 
 import logging
+from ..core.person import Person
 from PyQt5.QtCore import QAbstractListModel, Qt
 
 
@@ -30,7 +31,15 @@ class SentListModel(QAbstractListModel):
         if role == Qt.DisplayRole:
             row = index.row()
             transactions = self.account.transactions_sent(self.community)
-            value = transactions[row].get_sender_text()
+            amount = 0
+            outputs = []
+            for o in transactions[row].outputs:
+                pubkeys = [w.pubkey for w in self.account.wallets]
+                if o.pubkey not in pubkeys:
+                    outputs.append(o)
+                    amount += o.amount
+            receiver = Person.lookup(outputs[0].pubkey, self.community)
+            value = "{0} to {1}".format(amount, receiver.name)
             return value
 
     def flags(self, index):
