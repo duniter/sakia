@@ -1,0 +1,10 @@
+<RCC>
+  <qresource prefix="icons">
+    <file alias="community_icon">noun_22441_cc.svg</file>
+    <file alias="wot_icon">noun_2651_cc.svg</file>
+    <file alias="members_icon">noun_18704_cc.svg</file>
+    <file alias="wallet_icon">noun_29542_cc.svg</file>
+    <file alias="tx_icon">noun_63271_cc.svg</file>
+    <file alias="currency_icon">noun_43022_cc.svg</file>
+  </qresource>
+</RCC>

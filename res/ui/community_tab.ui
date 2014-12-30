@@ -23,6 +23,10 @@
       <number>0</number>
      </property>
      <widget class="QWidget" name="tab_members">
+      <attribute name="icon">
+       <iconset resource="../icons/icons.qrc">
+        <normaloff>:/icons/members_icon</normaloff>:/icons/members_icon</iconset>
+      </attribute>
       <attribute name="title">
        <string>Members</string>
       </attribute>
@@ -68,7 +72,9 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../icons/icons.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>button_membership</sender>

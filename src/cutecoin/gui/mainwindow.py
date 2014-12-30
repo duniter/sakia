@@ -6,6 +6,7 @@ Created on 1 févr. 2014
 from cutecoin.gen_resources.mainwindow_uic import Ui_MainWindow
 from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog
 from PyQt5.QtCore import QSignalMapper
+from PyQt5.QtGui import QIcon
 from cutecoin.gui.process_cfg_account import ProcessConfigureAccount
 from cutecoin.gui.transfer import TransferMoneyDialog
 from cutecoin.gui.currency_tab import CurrencyTabWidget
@@ -93,7 +94,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             for community in self.app.current_account.communities:
                 tab_currency = CurrencyTabWidget(self.app, community)
                 tab_currency.refresh()
-                self.currencies_tabwidget.addTab(tab_currency, community.name())
+                self.currencies_tabwidget.addTab(tab_currency,
+                                                 QIcon(":/icons/currency_icon"),
+                                                 community.name())
 
             self.menu_contacts_list.clear()
             for contact in self.app.current_account.contacts:
@@ -117,6 +120,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.app.export_account(path, self.app.current_account)
 
     def closeEvent(self, event):
-        self.app.save_cache(self.app.current_account)
+        if self.app.current_account:
+            self.app.save_cache(self.app.current_account)
         super().closeEvent(event)
 

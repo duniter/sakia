@@ -5,7 +5,7 @@ Created on 5 févr. 2014
 '''
 
 from ucoinpy.api import bma
-from ucoinpy.documents.peer import BMAEndpoint
+from ucoinpy.documents.peer import BMAEndpoint, Peer
 from PyQt5.QtCore import QAbstractItemModel, QModelIndex, Qt
 from .peer import PeerItem, RootItem
 import logging
@@ -98,19 +98,16 @@ class PeeringTreeModel(QAbstractItemModel):
     def refresh_tree(self):
         logging.debug("root : " + self.root_item.data(0))
         for peer in self.peers:
+            logging.debug("Browser peers")
             peer_item = PeerItem(peer, self.root_item)
-            logging.debug(
-                "main peer : " +
-                peer.get_text() +
-                " / " +
-                peer_item.data(0))
             self.root_item.appendChild(peer_item)
             try:
                 e = next((e for e in peer.endpoints if type(e) is BMAEndpoint))
-                for peer in bma.network.peering.Peers(e.conn_handler()):
+                peers = bma.network.peering.Peers(e.conn_handler()).get()
+                for peer_data in peers:
+                    peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['value']['raw'],
+                                                                peer_data['value']['signature']))
                     child_node_item = PeerItem(peer, peer_item)
-                    logging.debug("\t peer : " + peer.pubkey + " / " +
-                        child_node_item.data(0))
                     peer_item.appendChild(child_node_item)
-            except e as StopIteration:
+            except StopIteration as e:
                 continue

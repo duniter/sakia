@@ -7,6 +7,7 @@ Created on 2 févr. 2014
 import logging
 from PyQt5.QtWidgets import QWidget, QMenu, QAction, QApplication
 from PyQt5.QtCore import QModelIndex, Qt
+from PyQt5.QtGui import QIcon
 from cutecoin.gen_resources.currency_tab_uic import Ui_CurrencyTabWidget
 from cutecoin.gui.community_tab import CommunityTabWidget
 from cutecoin.models.sent import SentListModel
@@ -43,7 +44,9 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                 ReceivedListModel(self.app.current_account, self.community))
             tab_community = CommunityTabWidget(self.app.current_account,
                                                     self.community)
-            self.tabs_account.addTab(tab_community, "Community")
+            self.tabs_account.addTab(tab_community,
+                                     QIcon(':/icons/community_icon'),
+                                    "Community")
 
     def refresh_wallets(self):
         wallets_list_model = WalletsListModel(self.app.current_account,

@@ -182,8 +182,15 @@ class Wallet(object):
 
         tx.sign([key])
         logging.debug("Transaction : {0}".format(tx.signed_raw()))
-        community.post(bma.tx.Process,
+        try:
+            community.post(bma.tx.Process,
                         post_args={'transaction': tx.signed_raw()})
+        except:
+            # If it fails, do not remove inputs from available inputs
+            # And raise the exception again
+            for i in inputs:
+                self.available_inputs[1].append(i)
+            raise
 
     def sources(self, community):
         data = community.request(bma.tx.Sources,

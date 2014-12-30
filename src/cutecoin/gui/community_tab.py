@@ -6,6 +6,7 @@ Created on 2 févr. 2014
 
 import logging
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QMessageBox, QAction, QMenu, QInputDialog, QLineEdit
 from ..models.members import MembersListModel
 from ..gen_resources.community_tab_uic import Ui_CommunityTabWidget
@@ -38,7 +39,9 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             self.button_membership.setText("Send membership demand")
             self.button_membership.clicked.connect(self.send_membership_demand)
 
-        self.tabs_information.addTab(WotTabWidget(account, community), "Wot")
+        self.tabs_information.addTab(WotTabWidget(account, community),
+                                     QIcon(':/icons/wot_icon'),
+                                     "Wot")
 
     def member_context_menu(self, point):
         index = self.list_community_members.indexAt(point)

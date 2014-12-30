@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>:/icons/noun_43022_cc.svg</normaloff>:/icons/noun_43022_cc.svg</iconset>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout_4">
    <item>
     <widget class="QFrame" name="actionsFrame">
@@ -32,6 +36,10 @@
          <number>0</number>
         </property>
         <widget class="QWidget" name="tab_wallets">
+         <attribute name="icon">
+          <iconset resource="../icons/icons.qrc">
+           <normaloff>:/icons/wallet_icon</normaloff>:/icons/wallet_icon</iconset>
+         </attribute>
          <attribute name="title">
           <string>Wallets</string>
          </attribute>
@@ -49,6 +57,10 @@
          </layout>
         </widget>
         <widget class="QWidget" name="tab_transactions">
+         <attribute name="icon">
+          <iconset resource="../icons/icons.qrc">
+           <normaloff>:/icons/tx_icon</normaloff>:/icons/tx_icon</iconset>
+         </attribute>
          <attribute name="title">
           <string>Transactions</string>
          </attribute>
@@ -90,7 +102,9 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../icons/icons.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>list_wallets</sender>
