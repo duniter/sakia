@@ -17,7 +17,14 @@ excludes = []
 packages = ["libnacl", "pylibscrypt"]
 
 includefiles = []
-
+if sys.platform == "win32":
+    includefiles.append("platforms/win32/libEGL.dll")
+    includefiles.append("platforms/win32/libsodium.dll")
+elif sys.platform == "darwin":
+    pass
+else:
+    pass
+    
 options = {"path": sys.path,
            "includes": includes,
            "include_files": includefiles,
