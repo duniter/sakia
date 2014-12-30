@@ -19,21 +19,33 @@ Qt Client for [Ucoin](http://www.ucoin.io) project.
   * Communities viewing
   * Money Transfer
   * cx_freeze deployment
-  * Wallet management (no multiple wallets yet)
+  * Wallets management
   * Contacts management
-
-### Todo
   * Joining a community, publishing keys
   * Multiple wallets management
 
-### How to install
-  * __git clone --recursive https://github.com/Insoleet/cutecoin.git__
-  * Note : On Windows, this can't be installed because of Pynacl not available on this OS. Issue #100 opened : https://github.com/pyca/pynacl/issues/100 )
-  * Install [python3](https://www.python.org/downloads/), [cx_freeze for python 3](http://cx-freeze.sourceforge.net/) and [pyqt5](http://www.riverbankcomputing.co.uk/software/pyqt/download5), and [pip](http://www.pip-installer.org/en/latest/)
-  * Run :
-   * __pip install scrypt__
-   * __pip install pynacl__
+### Todo
+  * Creating a list of received and sent transactions
+  * Enhance the UI : add icons...
+  * ... ?
+
+### How to build
+  * __git clone --recursive https://github.com/ucoin-io/cutecoin.git__
+  * Dependencies :
+   * [python3](https://www.python.org/downloads/)
+   * [cx_freeze for python 3](http://cx-freeze.sourceforge.net/)
+   * [pyqt5](http://www.riverbankcomputing.co.uk/software/pyqt/download5)
+   * [libsodium](http://doc.libsodium.org/installation/README.html)
+  * To get python libraries dependencies :
+   * __pip install pylibscrypt__
+   * __pip install libnacl__
    * __pip install requests__
+   * __pip install base58__
   * Run __python gen_resources.py__ in cutecoin folder
   * Run __python setup.py build__ in cutecoin folder
-  * The executable is generated in "build" folder, named "__init__"
+  * The executable is generated in "build" folder, named "cutecoin"
+
+### How to download latest release
+  * Go to the [current release](https://github.com/ucoin-io/cutecoin/releases/tag/0.6)
+  * Download the package corresponding to your operating system
+  * Unzip and start "cutecoin" :)
