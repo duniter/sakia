@@ -18,33 +18,53 @@ class Cache():
         self.latest_block = 0
         self.wallet = wallet
         self.tx_sent = []
+        self.awaiting_tx = []
         self.tx_received = []
 
     def load_from_json(self, data):
         self.tx_received = []
         self.tx_sent = []
+        self.awaiting_tx = []
+
         data_received = data['received']
         for r in data_received:
             self.tx_received.append(Transaction.from_signed_raw(r['raw']))
+
         data_sent = data['sent']
         for s in data_sent:
             self.tx_sent.append(Transaction.from_signed_raw(s['raw']))
+
+        data_awaiting = data['awaiting']
+        for s in data_awaiting:
+            self.awaiting_tx.append(Transaction.from_signed_raw(s['raw']))
+
         self.latest_block = data['latest_block']
 
     def jsonify(self):
         data_received = []
         for r in self.tx_received:
             data_received.append({'raw': r.signed_raw()})
+
         data_sent = []
         for s in self.tx_sent:
             data_sent.append({'raw': s.signed_raw()})
+
+        data_awaiting = []
+        for s in self.awaiting_tx:
+            data_awaiting.append({'raw': s.signed_raw()})
+
         return {'latest_block': self.latest_block,
                 'received': data_received,
-                'sent': data_sent}
+                'sent': data_sent,
+                'awaiting': data_awaiting}
 
     def latest_sent(self, community):
         self._refresh(community)
         return self.tx_sent
+
+    def awaiting(self, community):
+        self._refresh(community)
+        return self.awaiting_tx
 
     def latest_received(self, community):
         self._refresh(community)
@@ -63,13 +83,17 @@ class Cache():
             signed_raw = "{0}{1}\n".format(block['raw'], block['signature'])
             block_doc = Block.from_signed_raw(signed_raw)
             for tx in block_doc.transactions:
-                for o in tx.outputs:
-                    if o.pubkey == self.wallet.pubkey:
-                        self.tx_received.append(tx)
+                in_outputs = [o for o in tx.outputs if o.pubkey == self.wallet.pubkey]
+                if len(in_outputs) > 0:
+                    self.tx_received.append(tx)
 
-                for i in tx.issuers:
-                    if i == self.wallet.pubkey:
-                        self.tx_sent.append(tx)
+                in_inputs = [i for i in tx.issuers if i == self.wallet.pubkey]
+                if len(in_inputs) > 0:
+                    # remove from waiting transactions list the one which were
+                    # validated in the blockchain
+                    self.awaiting_tx = [awaiting for awaiting in self.awaiting_tx
+                                         if awaiting.compact() != tx.compact()]
+                    self.tx_sent.append(tx)
 
         self.latest_block = current_block['number']
 
@@ -138,12 +162,15 @@ class Wallet(object):
         elif self.available_inputs[0] < block['number']:
             self.available_inputs = (block['number'], sources)
 
+        logging.debug("Available inputs : {0}".format(self.available_inputs[1]))
+        buf_inputs = list(self.available_inputs[1])
         for s in self.available_inputs[1]:
             value += s.amount
             s.index = 0
             inputs.append(s)
-            self.available_inputs[1].remove(s)
+            buf_inputs.remove(s)
             if value >= amount:
+                self.available_inputs = (block['number'], buf_inputs)
                 return inputs
 
         raise NotEnoughMoneyError(amount, value)
@@ -185,11 +212,8 @@ class Wallet(object):
         try:
             community.post(bma.tx.Process,
                         post_args={'transaction': tx.signed_raw()})
+            self.cache.awaiting_tx.append(tx)
         except:
-            # If it fails, do not remove inputs from available inputs
-            # And raise the exception again
-            for i in inputs:
-                self.available_inputs[1].append(i)
             raise
 
     def sources(self, community):
@@ -200,11 +224,12 @@ class Wallet(object):
             tx.append(InputSource.from_bma(s))
         return tx
 
-    #TODO: Build a cache of latest transactions
+    def transactions_awaiting(self, community):
+        return self.cache.awaiting(community)
+
     def transactions_sent(self, community):
         return self.cache.latest_sent(community)
 
-    #TODO: Build a cache of latest transactions
     def transactions_received(self, community):
         return self.cache.latest_received(community)
 

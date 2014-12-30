@@ -141,7 +141,13 @@ class Community(object):
             e = next(e for e in peer.endpoints if type(e) is BMAEndpoint)
             logging.debug("Trying to connect to : " + peer.pubkey)
             req = request(e.conn_handler(), **req_args)
-            req.post(**post_args)
+            try:
+                req.post(**post_args)
+            except ValueError as e:
+                raise
+            except:
+                pass
+            return
 
     def jsonify_peers_list(self):
         data = []

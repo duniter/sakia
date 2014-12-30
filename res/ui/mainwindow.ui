@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>498</width>
-    <height>437</height>
+    <width>681</width>
+    <height>549</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -23,7 +23,14 @@
      </widget>
     </item>
     <item>
-     <widget class="QTabWidget" name="currencies_tabwidget"/>
+     <widget class="QTabWidget" name="currencies_tabwidget">
+      <property name="iconSize">
+       <size>
+        <width>24</width>
+        <height>24</height>
+       </size>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -32,7 +39,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>498</width>
+     <width>681</width>
      <height>20</height>
     </rect>
    </property>
@@ -42,12 +49,12 @@
     </property>
     <widget class="QMenu" name="menu_change_account">
      <property name="title">
-      <string>Change account</string>
+      <string>Open account</string>
      </property>
     </widget>
-    <addaction name="action_configure_parameters"/>
     <addaction name="menu_change_account"/>
     <addaction name="action_add_account"/>
+    <addaction name="action_configure_parameters"/>
     <addaction name="separator"/>
     <addaction name="action_export"/>
     <addaction name="action_import"/>
@@ -152,7 +159,7 @@
   </action>
   <action name="action_configure_parameters">
    <property name="text">
-    <string>Configure</string>
+    <string>Configure account</string>
    </property>
   </action>
   <action name="action_import">

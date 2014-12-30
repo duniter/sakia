@@ -5,7 +5,7 @@ Created on 1 févr. 2014
 '''
 from cutecoin.gen_resources.mainwindow_uic import Ui_MainWindow
 from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog
-from PyQt5.QtCore import QSignalMapper
+from PyQt5.QtCore import QSignalMapper, QModelIndex
 from PyQt5.QtGui import QIcon
 from cutecoin.gui.process_cfg_account import ProcessConfigureAccount
 from cutecoin.gui.transfer import TransferMoneyDialog
@@ -46,6 +46,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog = TransferMoneyDialog(self.app.current_account)
         dialog.accepted.connect(self.refresh_wallets)
         dialog.exec_()
+        currency_tab = self.currencies_tabwidget.currentWidget()
+        currency_tab.list_transactions_sent.model().dataChanged.emit(
+                                                             QModelIndex(),
+                                                             QModelIndex(), ())
 
     def open_certification_dialog(self):
         dialog = CertificationDialog(self.app.current_account)

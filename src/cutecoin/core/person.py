@@ -31,7 +31,6 @@ class Person(object):
         Create a person from the pubkey found in a community
         '''
         data = community.request(bma.wot.Lookup, req_args={'search': pubkey})
-        logging.debug(data)
         results = data['results']
         timestamp = 0
 

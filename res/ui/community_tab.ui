@@ -22,6 +22,15 @@
      <property name="currentIndex">
       <number>0</number>
      </property>
+     <property name="iconSize">
+      <size>
+       <width>20</width>
+       <height>20</height>
+      </size>
+     </property>
+     <property name="elideMode">
+      <enum>Qt::ElideNone</enum>
+     </property>
      <widget class="QWidget" name="tab_members">
       <attribute name="icon">
        <iconset resource="../icons/icons.qrc">
