@@ -139,10 +139,16 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         '''
         server = self.lineedit_server.text()
         port = self.spinbox_port.value()
-        if self.community is not None:
-            self.community.add_peer(server, port)
-            self.tree_peers.setModel(PeeringTreeModel(self.community,
-                                                    self.peers))
+        try:
+            peer_data = bma.network.Peering(ConnectionHandler(server, port))
+
+            peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],
+                                                      peer_data['signature']))
+            self.community.peers.append(peer)
+        except:
+            QMessageBox.critical(self, "Server error",
+                              "Cannot get node peering")
+        self.tree_peers.setModel(PeeringTreeModel(self.community))
 
     def showContextMenu(self, point):
         if self.stacked_pages.currentIndex() == 1:

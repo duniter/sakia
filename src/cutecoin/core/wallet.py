@@ -75,22 +75,29 @@ class Cache():
         with_tx = community.request(bma.blockchain.TX)
         # We parse only blocks with transactions
         parsed_blocks = reversed(range(self.latest_block,
-                                           current_block['number']))
-        parsed_blocks = [n for n in parsed_blocks if n in with_tx['result']['blocks']]
+                                           current_block['number'] + 1))
+        parsed_blocks = [n for n in parsed_blocks
+                         if n in with_tx['result']['blocks']]
         for block_number in parsed_blocks:
             block = community.request(bma.blockchain.Block,
                               req_args={'number': block_number})
             signed_raw = "{0}{1}\n".format(block['raw'], block['signature'])
             block_doc = Block.from_signed_raw(signed_raw)
             for tx in block_doc.transactions:
-                in_outputs = [o for o in tx.outputs if o.pubkey == self.wallet.pubkey]
+                in_outputs = [o for o in tx.outputs
+                              if o.pubkey == self.wallet.pubkey]
                 if len(in_outputs) > 0:
                     self.tx_received.append(tx)
 
                 in_inputs = [i for i in tx.issuers if i == self.wallet.pubkey]
                 if len(in_inputs) > 0:
+                    logging.debug("TX:{0}".format(tx.compact()))
                     # remove from waiting transactions list the one which were
                     # validated in the blockchain
+                    confirmed_tx = [awaiting for awaiting in self.awaiting_tx
+                                         if awaiting.compact() == tx.compact()]
+                    for c in confirmed_tx:
+                        logging.debug("Awaiting:{0}".format(c.compact()))
                     self.awaiting_tx = [awaiting for awaiting in self.awaiting_tx
                                          if awaiting.compact() != tx.compact()]
                     self.tx_sent.append(tx)

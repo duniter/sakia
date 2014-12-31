@@ -47,11 +47,14 @@ class Community(object):
             endpoint_inline = next(e for e in data['endpoints']
                             if Endpoint.from_inline(e) is not None)
             endpoint = Endpoint.from_inline(endpoint_inline)
-            peering = bma.network.Peering(endpoint.conn_handler())
-            peer_data = peering.get()
-            peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],
+            try:
+                peering = bma.network.Peering(endpoint.conn_handler())
+                peer_data = peering.get()
+                peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],
                                                   peer_data['signature']))
-            peers.append(peer)
+                peers.append(peer)
+            except:
+                pass
 
         community = cls(currency, peers)
         return community
