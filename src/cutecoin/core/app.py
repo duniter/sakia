@@ -86,7 +86,7 @@ class Application(object):
     def load_cache(self, account):
         for wallet in account.wallets:
             wallet_path = os.path.join(config.parameters['home'],
-                                        account.name, wallet.pubkey)
+                                        account.name, '__cache__', wallet.pubkey)
             if os.path.exists(wallet_path):
                 json_data = open(wallet_path, 'r')
                 data = json.load(json_data)
@@ -102,9 +102,13 @@ class Application(object):
             json.dump(account.jsonify(), outfile, indent=4, sort_keys=True)
 
     def save_cache(self, account):
+        if not os.path.exists(os.path.join(config.parameters['home'],
+                                        account.name, '__cache__')):
+            os.makedirs(os.path.join(config.parameters['home'],
+                                        account.name, '__cache__'))
         for wallet in account.wallets:
             wallet_path = os.path.join(config.parameters['home'],
-                                        account.name, wallet.pubkey)
+                                        account.name, '__cache__', wallet.pubkey)
             with open(wallet_path, 'w') as outfile:
                 json.dump(wallet.cache.jsonify(), outfile, indent=4, sort_keys=True)
 
