@@ -25,16 +25,15 @@ class Application(object):
         '''
         Constructor
         '''
-        self.accounts = []
+        self.accounts = {}
         self.current_account = None
         config.parse_arguments(argv)
         self.load()
 
     def get_account(self, name):
-        for a in self.accounts:
-            logging.debug('Name : ' + a.name + '/' + name)
-            if name == a.name:
-                return a
+        if not self.accounts[name]:
+            self.load_account(name)
+        return self.accounts[name]
 
     def create_account(self, name):
         for a in self.accounts:
@@ -70,17 +69,19 @@ class Application(object):
         if (os.path.exists(config.parameters['data'])
                 and os.path.isfile(config.parameters['data'])):
             logging.debug("Loading data...")
-            json_data = open(config.parameters['data'], 'r')
-            data = json.load(json_data)
-
-            json_data.close()
-            for account_name in data['local_accounts']:
-                account_path = os.path.join(config.parameters['home'],
-                                            account_name, 'properties')
-                json_data = open(account_path, 'r')
+            with open(config.parameters['data'], 'r') as json_data:
                 data = json.load(json_data)
-                account = Account.load(data)
-                self.accounts.append(account)
+                json_data.close()
+                for account_name in data['local_accounts']:
+                    self.accounts[account_name] = None
+
+    def load_account(self, account_name):
+        account_path = os.path.join(config.parameters['home'],
+                                    account_name, 'properties')
+        with open(account_path, 'r') as json_data:
+            data = json.load(json_data)
+            account = Account.load(data)
+            self.accounts[account_name] = account
 
     def load_cache(self, account):
         for wallet in account.wallets:

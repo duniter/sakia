@@ -77,10 +77,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.menu_change_account.clear()
         signal_mapper = QSignalMapper(self)
 
-        for account in self.app.accounts:
-            action = QAction(account.name, self)
+        for account_name in self.app.accounts.keys():
+            action = QAction(account_name, self)
             self.menu_change_account.addAction(action)
-            signal_mapper.setMapping(action, account.name)
+            signal_mapper.setMapping(action, account_name)
             action.triggered.connect(signal_mapper.map)
             signal_mapper.mapped[str].connect(self.action_change_account)
 
