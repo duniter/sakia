@@ -124,15 +124,15 @@ class Scene(QGraphicsScene):
         y = 0
         x = 200
         # capture nodes for sorting by text
-        nodes = dict()
+        nodes = list()
         for arc in selected_node['arcs']:
-            nodes[arc['id']] = {'node': graph[arc['id']], 'arc': arc}
+            nodes.append({'node': graph[arc['id']], 'arc': arc})
         # sort by text
-        nodes = ((k, v) for (k, v) in sorted(nodes.items(), key=lambda kv: kv[1]['node']['text'].lower()))
+        nodes = sorted(nodes, key=lambda _node: _node['node']['text'].lower())
         # add nodes and arcs
-        for _id, items in nodes:
-            node = self.add_node(items['node'], (x, y))
-            self.add_arc(root_node, node, items['arc'])
+        for _node in nodes:
+            node = self.add_node(_node['node'], (x, y))
+            self.add_arc(root_node, node, _node['arc'])
             y += 50
 
         # add certifiers of selected node
@@ -142,11 +142,11 @@ class Scene(QGraphicsScene):
         nodes = ((k, v) for (k, v) in sorted(graph.items(), key=lambda kv: kv[1]['text'].lower()) if selected_id in (arc['id'] for arc in v['arcs']))
         # add nodes and arcs
         for _id, certifier_node in nodes:
-            node = self.add_node(certifier_node, (x, y))
             for arc in certifier_node['arcs']:
                 if arc['id'] == selected_id:
+                    node = self.add_node(certifier_node, (x, y))
                     self.add_arc(node, root_node, arc)
-            y += 50
+                    y += 50
 
         self.update()
 
@@ -239,15 +239,15 @@ class Node(QGraphicsEllipseItem):
         # create node context menus
         self.menu = QMenu()
         # action sign identity
-        self.action_sign = QAction('Sign identity', self.scene())
+        self.action_sign = QAction('Certify identity', self.scene())
         self.menu.addAction(self.action_sign)
         self.action_sign.triggered.connect(self.sign_action)
         # action transaction toward identity
-        self.action_transaction = QAction('Send money to identity', self.scene())
+        self.action_transaction = QAction('Send money', self.scene())
         self.menu.addAction(self.action_transaction)
         self.action_transaction.triggered.connect(self.transaction_action)
         # action add identity as contact
-        self.action_contact = QAction('Add identity as contact', self.scene())
+        self.action_contact = QAction('Add as contact', self.scene())
         self.menu.addAction(self.action_contact)
         self.action_contact.triggered.connect(self.contact_action)
         # run menu
