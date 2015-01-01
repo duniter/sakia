@@ -59,7 +59,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             send_money.triggered.connect(self.send_money_to_member)
             send_money.setData(member)
 
-            certify = QAction("Certify individual", self)
+            certify = QAction("Certify identity", self)
             certify.triggered.connect(self.certify_member)
             certify.setData(member)
 

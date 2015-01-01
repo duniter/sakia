@@ -5,7 +5,7 @@ Created on 1 févr. 2014
 '''
 from cutecoin.gen_resources.mainwindow_uic import Ui_MainWindow
 from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog
-from PyQt5.QtCore import QSignalMapper, QModelIndex
+from PyQt5.QtCore import QSignalMapper, QModelIndex, QThread, pyqtSignal
 from PyQt5.QtGui import QIcon
 from cutecoin.gui.process_cfg_account import ProcessConfigureAccount
 from cutecoin.gui.transfer import TransferMoneyDialog
@@ -14,7 +14,34 @@ from cutecoin.gui.add_contact import AddContactDialog
 from cutecoin.gui.import_account import ImportAccountDialog
 from cutecoin.gui.certification import CertificationDialog
 
+from ucoinpy.api import bma
+
 import logging
+import time
+
+
+class BlockchainInspector(QThread):
+    def __init__(self, community):
+        QThread.__init__(self)
+        self.community = community
+        self.exiting = False
+        self.last_block = self.community.request(bma.blockchain.Current)['number']
+
+    def __del__(self):
+        self.exiting = True
+        self.wait()
+
+    def run(self):
+        while not self.exiting:
+            time.sleep(10)
+            current_block = self.community.request(bma.blockchain.Current)
+            if self.last_block != current_block['number']:
+                logging.debug("New block, {0} mined in {1}".format(self.last_block,
+                                                                   self.community.currency))
+                self.new_block_mined.emit(current_block)
+                self.last_block = current_block['number']
+
+    new_block_mined = pyqtSignal(int)
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -97,6 +124,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.currencies_tabwidget.clear()
             for community in self.app.current_account.communities:
                 tab_currency = CurrencyTabWidget(self.app, community)
+                bc_inspector = BlockchainInspector(community)
+                bc_inspector.new_block_mined.connect(tab_currency.refresh_block)
+                bc_inspector.start()
                 tab_currency.refresh()
                 self.currencies_tabwidget.addTab(tab_currency,
                                                  QIcon(":/icons/currency_icon"),

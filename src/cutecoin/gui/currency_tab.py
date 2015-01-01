@@ -5,14 +5,15 @@ Created on 2 févr. 2014
 '''
 
 import logging
+from ucoinpy.api import bma
 from PyQt5.QtWidgets import QWidget, QMenu, QAction, QApplication
-from PyQt5.QtCore import QModelIndex, Qt
+from PyQt5.QtCore import QModelIndex, Qt, pyqtSlot
 from PyQt5.QtGui import QIcon
-from cutecoin.gen_resources.currency_tab_uic import Ui_CurrencyTabWidget
-from cutecoin.gui.community_tab import CommunityTabWidget
-from cutecoin.models.sent import SentListModel
-from cutecoin.models.received import ReceivedListModel
-from cutecoin.models.wallets import WalletsListModel
+from ..gen_resources.currency_tab_uic import Ui_CurrencyTabWidget
+from .community_tab import CommunityTabWidget
+from ..models.sent import SentListModel
+from ..models.received import ReceivedListModel
+from ..models.wallets import WalletsListModel
 from ..models.wallet import WalletListModel
 
 
@@ -30,6 +31,8 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         self.setupUi(self)
         self.app = app
         self.community = community
+        self.tab_community = CommunityTabWidget(self.app.current_account,
+                                                    self.community)
 
     def refresh(self):
         if self.app.current_account is None:
@@ -42,11 +45,40 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                 SentListModel(self.app.current_account, self.community))
             self.list_transactions_received.setModel(
                 ReceivedListModel(self.app.current_account, self.community))
-            tab_community = CommunityTabWidget(self.app.current_account,
+            self.tab_community = CommunityTabWidget(self.app.current_account,
                                                     self.community)
-            self.tabs_account.addTab(tab_community,
+            self.tabs_account.addTab(self.tab_community,
                                      QIcon(':/icons/community_icon'),
                                     "Community")
+            block_number = self.community.request(bma.blockchain.Current)['number']
+            self.label_current_block.setText("Current Block : {0}".format(block_number))
+
+    @pyqtSlot(int)
+    def refresh_block(self, block_number):
+        if self.list_wallet_content.model():
+            self.list_wallet_content.model().dataChanged.emit(
+                                                 QModelIndex(),
+                                                 QModelIndex(),
+                                                 [])
+        if self.list_wallet_content.model():
+            self.list_transactions_sent.model().dataChanged.emit(
+                                                     QModelIndex(),
+                                                     QModelIndex(),
+                                                     [])
+
+        if self.list_transactions_received.model():
+            self.list_transactions_received.model().dataChanged.emit(
+                                                         QModelIndex(),
+                                                         QModelIndex(),
+                                                         [])
+
+        if self.tab_community.list_community_members.model():
+            self.tab_community.list_community_members.model().dataChanged.emit(
+                                                           QModelIndex(),
+                                                           QModelIndex(),
+                                                           [])
+
+        self.label_current_block.setText("Current Block : {0}".format(block_number))
 
     def refresh_wallets(self):
         wallets_list_model = WalletsListModel(self.app.current_account,
@@ -65,7 +97,6 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         model = self.list_wallets.model()
         if index.row() < model.rowCount(None):
             wallet = model.wallets[index.row()]
-            logging.debug(wallet)
             menu = QMenu(model.data(index, Qt.DisplayRole), self)
 
             rename = QAction("Rename", self)

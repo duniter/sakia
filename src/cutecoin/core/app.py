@@ -121,7 +121,6 @@ class Application(object):
                     tar.getmember(obj)
                 except KeyError:
                     raise BadAccountFile(file)
-                    return
             tar.extractall(path)
 
         account_path = os.path.join(config.parameters['home'],

@@ -91,16 +91,14 @@ class Cache():
 
                 in_inputs = [i for i in tx.issuers if i == self.wallet.pubkey]
                 if len(in_inputs) > 0:
-                    logging.debug("TX:{0}".format(tx.compact()))
                     # remove from waiting transactions list the one which were
                     # validated in the blockchain
-                    confirmed_tx = [awaiting for awaiting in self.awaiting_tx
-                                         if awaiting.compact() == tx.compact()]
-                    for c in confirmed_tx:
-                        logging.debug("Awaiting:{0}".format(c.compact()))
                     self.awaiting_tx = [awaiting for awaiting in self.awaiting_tx
                                          if awaiting.compact() != tx.compact()]
                     self.tx_sent.append(tx)
+
+        self.tx_sent = self.tx_sent[:50]
+        self.tx_received = self.tx_received[:50]
 
         self.latest_block = current_block['number']
 
