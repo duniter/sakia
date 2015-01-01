@@ -142,11 +142,11 @@ class Scene(QGraphicsScene):
         nodes = ((k, v) for (k, v) in sorted(graph.items(), key=lambda kv: kv[1]['text'].lower()) if selected_id in (arc['id'] for arc in v['arcs']))
         # add nodes and arcs
         for _id, certifier_node in nodes:
+            node = self.add_node(certifier_node, (x, y))
             for arc in certifier_node['arcs']:
                 if arc['id'] == selected_id:
-                    node = self.add_node(certifier_node, (x, y))
                     self.add_arc(node, root_node, arc)
-                    y += 50
+            y += 50
 
         self.update()
 
