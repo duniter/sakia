@@ -17,6 +17,7 @@ from .password_asker import PasswordAskerDialog
 
 import logging
 
+
 class MainWindow(QMainWindow, Ui_MainWindow):
 
     '''
@@ -96,18 +97,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.app.current_account is None:
             self.menu_contacts.setEnabled(False)
             self.menu_actions.setEnabled(False)
+            self.action_configure_parameters.setEnabled(False)
             self.action_set_as_default.setEnabled(False)
         else:
             self.action_set_as_default.setEnabled(self.app.current_account.name != self.app.default_account)
             self.password_asker = PasswordAskerDialog(self.app.current_account)
             self.menu_contacts.setEnabled(True)
+            self.action_configure_parameters.setEnabled(True)
             self.menu_actions.setEnabled(True)
             self.setWindowTitle("CuteCoin - Account : {0}".format(
                 self.app.current_account.name))
 
             self.currencies_tabwidget.clear()
             for community in self.app.current_account.communities:
-                tab_currency = CurrencyTabWidget(self.app, community, self.password_asker)
+                tab_currency = CurrencyTabWidget(self.app, community,
+                                                 self.password_asker)
                 tab_currency.refresh()
                 self.currencies_tabwidget.addTab(tab_currency,
                                                  QIcon(":/icons/currency_icon"),

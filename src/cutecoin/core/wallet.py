@@ -74,10 +74,11 @@ class Cache():
         current_block = community.request(bma.blockchain.Current)
         with_tx = community.request(bma.blockchain.TX)
         # We parse only blocks with transactions
-        parsed_blocks = reversed(range(self.latest_block,
+        parsed_blocks = reversed(range(self.latest_block + 1,
                                            current_block['number'] + 1))
         parsed_blocks = [n for n in parsed_blocks
                          if n in with_tx['result']['blocks']]
+
         for block_number in parsed_blocks:
             block = community.request(bma.blockchain.Block,
                               req_args={'number': block_number})

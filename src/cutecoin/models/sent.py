@@ -47,6 +47,7 @@ class SentListModel(QAbstractListModel):
             receiver = Person.lookup(outputs[0].pubkey, self.community)
             value = "{0} to {1}".format(amount, receiver.name)
             return value
+
         if role == Qt.FontRole:
             if row < len(self.account.transactions_sent(self.community)):
                 return QFont('Sans Serif', italic=False)
