@@ -26,14 +26,20 @@ class Application(object):
         Constructor
         '''
         self.accounts = {}
+        self.default_account = ""
         self.current_account = None
         config.parse_arguments(argv)
         self.load()
+        if self.default_account != "":
+            self.current_account = self.get_account(self.default_account)
 
     def get_account(self, name):
         if not self.accounts[name]:
             self.load_account(name)
-        return self.accounts[name]
+        if name in self.accounts.keys():
+            return self.accounts[name]
+        else:
+            return None
 
     def create_account(self, name):
         for a in self.accounts:
@@ -72,6 +78,8 @@ class Application(object):
             with open(config.parameters['data'], 'r') as json_data:
                 data = json.load(json_data)
                 json_data.close()
+                if 'default_account' in data.keys():
+                    self.default_account = data['default_account']
                 for account_name in data['local_accounts']:
                     self.accounts[account_name] = None
 
@@ -141,10 +149,12 @@ class Application(object):
 
     def jsonify_accounts(self):
         data = []
+        logging.debug("{0}".format(self.accounts))
         for account in self.accounts:
-            data.append(account.name)
+            data.append(account)
         return data
 
     def jsonify(self):
-        data = {'local_accounts': self.jsonify_accounts()}
+        data = {'default_account': self.default_account,
+                'local_accounts': self.jsonify_accounts()}
         return data

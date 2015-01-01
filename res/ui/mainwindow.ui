@@ -42,12 +42,13 @@
     </property>
     <widget class="QMenu" name="menu_change_account">
      <property name="title">
-      <string>Open account</string>
+      <string>Open</string>
      </property>
     </widget>
-    <addaction name="menu_change_account"/>
     <addaction name="action_add_account"/>
+    <addaction name="menu_change_account"/>
     <addaction name="action_configure_parameters"/>
+    <addaction name="action_set_as_default"/>
     <addaction name="separator"/>
     <addaction name="action_export"/>
     <addaction name="action_import"/>
@@ -127,7 +128,7 @@
   </action>
   <action name="action_add_account">
    <property name="text">
-    <string>Add account</string>
+    <string>Add</string>
    </property>
   </action>
   <action name="action_save">
@@ -152,7 +153,7 @@
   </action>
   <action name="action_configure_parameters">
    <property name="text">
-    <string>Configure account</string>
+    <string>Configure</string>
    </property>
   </action>
   <action name="action_import">
@@ -168,6 +169,11 @@
   <action name="actionCertification">
    <property name="text">
     <string>Certification</string>
+   </property>
+  </action>
+  <action name="action_set_as_default">
+   <property name="text">
+    <string>Set as default</string>
    </property>
   </action>
  </widget>
@@ -301,6 +307,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>action_set_as_default</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>set_as_default_account()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>340</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>open_add_account_dialog()</slot>
@@ -312,5 +334,6 @@
   <slot>refresh_wallet_content(QModelIndex)</slot>
   <slot>export_account()</slot>
   <slot>open_certification_dialog()</slot>
+  <slot>set_as_default_account()</slot>
  </slots>
 </ui>

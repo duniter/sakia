@@ -15,6 +15,7 @@ from .import_account import ImportAccountDialog
 from .certification import CertificationDialog
 from .password_asker import PasswordAskerDialog
 
+import logging
 
 class MainWindow(QMainWindow, Ui_MainWindow):
 
@@ -69,6 +70,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         currency_tab = self.currencies_tabwidget.currentWidget()
         currency_tab.refresh_wallets()
 
+    def set_as_default_account(self):
+        self.app.default_account = self.app.current_account.name
+        logging.debug(self.app.current_account)
+        self.app.save(self.app.current_account)
+        self.action_set_as_default.setEnabled(False)
+
     '''
     Refresh main window
     When the selected account changes, all the widgets
@@ -89,7 +96,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.app.current_account is None:
             self.menu_contacts.setEnabled(False)
             self.menu_actions.setEnabled(False)
+            self.action_set_as_default.setEnabled(False)
         else:
+            self.action_set_as_default.setEnabled(self.app.current_account.name != self.app.default_account)
             self.password_asker = PasswordAskerDialog(self.app.current_account)
             self.menu_contacts.setEnabled(True)
             self.menu_actions.setEnabled(True)
