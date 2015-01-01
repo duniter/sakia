@@ -7,41 +7,13 @@ from cutecoin.gen_resources.mainwindow_uic import Ui_MainWindow
 from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog
 from PyQt5.QtCore import QSignalMapper, QModelIndex, QThread, pyqtSignal
 from PyQt5.QtGui import QIcon
-from cutecoin.gui.process_cfg_account import ProcessConfigureAccount
-from cutecoin.gui.transfer import TransferMoneyDialog
-from cutecoin.gui.currency_tab import CurrencyTabWidget
-from cutecoin.gui.add_contact import AddContactDialog
-from cutecoin.gui.import_account import ImportAccountDialog
-from cutecoin.gui.certification import CertificationDialog
-
-from ucoinpy.api import bma
-
-import logging
-import time
-
-
-class BlockchainInspector(QThread):
-    def __init__(self, community):
-        QThread.__init__(self)
-        self.community = community
-        self.exiting = False
-        self.last_block = self.community.request(bma.blockchain.Current)['number']
-
-    def __del__(self):
-        self.exiting = True
-        self.wait()
-
-    def run(self):
-        while not self.exiting:
-            time.sleep(10)
-            current_block = self.community.request(bma.blockchain.Current)
-            if self.last_block != current_block['number']:
-                logging.debug("New block, {0} mined in {1}".format(self.last_block,
-                                                                   self.community.currency))
-                self.new_block_mined.emit(current_block)
-                self.last_block = current_block['number']
-
-    new_block_mined = pyqtSignal(int)
+from .process_cfg_account import ProcessConfigureAccount
+from .transfer import TransferMoneyDialog
+from .currency_tab import CurrencyTabWidget
+from .add_contact import AddContactDialog
+from .import_account import ImportAccountDialog
+from .certification import CertificationDialog
+from .password_asker import PasswordAskerDialog
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -58,6 +30,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
         self.app = app
+        self.password_asker = None
         self.refresh()
 
     def open_add_account_dialog(self):
@@ -70,7 +43,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.refresh()
 
     def open_transfer_money_dialog(self):
-        dialog = TransferMoneyDialog(self.app.current_account)
+        dialog = TransferMoneyDialog(self.app.current_account,
+                                     self.password_asker)
         dialog.accepted.connect(self.refresh_wallets)
         dialog.exec_()
         currency_tab = self.currencies_tabwidget.currentWidget()
@@ -79,7 +53,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                                              QModelIndex(), ())
 
     def open_certification_dialog(self):
-        dialog = CertificationDialog(self.app.current_account)
+        dialog = CertificationDialog(self.app.current_account,
+                                     self.password_asker)
         dialog.exec_()
 
     def open_add_contact_dialog(self):
@@ -115,18 +90,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.menu_contacts.setEnabled(False)
             self.menu_actions.setEnabled(False)
         else:
+            self.password_asker = PasswordAskerDialog(self.app.current_account)
             self.menu_contacts.setEnabled(True)
             self.menu_actions.setEnabled(True)
-            self.label_account_name.setText(
-                "Current account : " +
-                self.app.current_account.name)
+            self.setWindowTitle("CuteCoin - Account : {0}".format(
+                self.app.current_account.name))
 
             self.currencies_tabwidget.clear()
             for community in self.app.current_account.communities:
-                tab_currency = CurrencyTabWidget(self.app, community)
-                bc_inspector = BlockchainInspector(community)
-                bc_inspector.new_block_mined.connect(tab_currency.refresh_block)
-                bc_inspector.start()
+                tab_currency = CurrencyTabWidget(self.app, community, self.password_asker)
                 tab_currency.refresh()
                 self.currencies_tabwidget.addTab(tab_currency,
                                                  QIcon(":/icons/currency_icon"),

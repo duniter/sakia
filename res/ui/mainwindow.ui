@@ -16,13 +16,6 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_6">
     <item>
-     <widget class="QLabel" name="label_account_name">
-      <property name="text">
-       <string>Please select an account</string>
-      </property>
-     </widget>
-    </item>
-    <item>
      <widget class="QTabWidget" name="currencies_tabwidget">
       <property name="iconSize">
        <size>

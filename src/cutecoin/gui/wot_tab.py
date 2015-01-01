@@ -14,7 +14,7 @@ from .transfer import TransferMoneyDialog
 
 
 class WotTabWidget(QWidget, Ui_WotTabWidget):
-    def __init__(self, account, community, parent=None):
+    def __init__(self, account, community, password_asker, parent=None):
         """
 
         :param cutecoin.core.account.Account account:
@@ -39,6 +39,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
 
         self.account = account
         self.community = community
+        self.password_asker = password_asker
 
         # nodes list for menu from search
         self.nodes = list()
@@ -169,13 +170,13 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
 
     def sign_node(self, metadata):
         # open certify dialog
-        dialog = CertificationDialog(self.account)
+        dialog = CertificationDialog(self.account, self.password_asker)
         dialog.edit_pubkey.setText(metadata['id'])
         dialog.radio_pubkey.setChecked(True)
         dialog.exec_()
 
     def send_money_to_node(self, metadata):
-        dialog = TransferMoneyDialog(self.account)
+        dialog = TransferMoneyDialog(self.account, self.password_asker)
         dialog.edit_pubkey.setText(metadata['id'])
         dialog.combo_community.setCurrentText(self.community.name())
         dialog.radio_pubkey.setChecked(True)

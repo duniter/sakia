@@ -17,13 +17,14 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
     classdocs
     '''
 
-    def __init__(self, sender):
+    def __init__(self, sender, password_asker):
         '''
         Constructor
         '''
         super().__init__()
         self.setupUi(self)
         self.sender = sender
+        self.password_asker = password_asker
         self.recipient_trusts = []
         self.wallet = None
         self.community = self.sender.communities[0]
@@ -49,18 +50,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
             recipient = self.edit_pubkey.text()
         amount = self.spinbox_amount.value()
 
-        password = ""
-        message = "Please enter your password"
-
-        while not self.sender.check_password(password):
-            password = QInputDialog.getText(self, "Account password",
-                        message,
-                        QLineEdit.Password)
-            message = "Error, wrong password. Please enter your password"
-            if password[1] is True:
-                password = password[0]
-            else:
-                return
+        password = self.password_asker.ask()
 
         try:
             self.wallet.send_money(self.sender.salt, password, self.community,

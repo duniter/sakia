@@ -16,13 +16,14 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
     classdocs
     '''
 
-    def __init__(self, certifier):
+    def __init__(self, certifier, password_asker):
         '''
         Constructor
         '''
         super().__init__()
         self.setupUi(self)
         self.certifier = certifier
+        self.password_asker = password_asker
         self.community = self.certifier.communities[0]
 
         for community in self.certifier.communities:
@@ -38,22 +39,7 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
         else:
             pubkey = self.edit_pubkey.text()
 
-        password = QInputDialog.getText(self, "Account password",
-                                        "Please enter your password",
-                                        QLineEdit.Password)
-        if password[1] is True:
-            password = password[0]
-        else:
-            return
-
-        while not self.certifier.check_password(password):
-            password = QInputDialog.getText(self, "Account password",
-                                            "Wrong password.\nPlease enter your password",
-                                            QLineEdit.Password)
-            if password[1] is True:
-                password = password[0]
-            else:
-                return
+        password = self.password_asker.ask()
 
         try:
             self.certifier.certify(password, self.community, pubkey)
