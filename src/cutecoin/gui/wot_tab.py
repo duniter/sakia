@@ -71,6 +71,15 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
 
         # add certifiers of uid
         for certifier in certifiers['certifications']:
+            if certifier['pubkey'] not in graph.keys():
+                node_status = (NODE_STATUS_HIGHLIGHTED and (certifier['pubkey'] == self.account.pubkey)) or 0
+                graph[certifier['pubkey']] = {
+                    'id': certifier['pubkey'],
+                    'arcs': list(),
+                    'text': certifier['uid'],
+                    'tooltip': certifier['pubkey'],
+                    'status': node_status
+                }
             if (time.time() - certifier['cert_time']['medianTime']) > self.ARC_STATUS_STRONG_time:
                 arc_status = ARC_STATUS_WEAK
             else:
@@ -82,15 +91,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
                     certifier['cert_time']['medianTime'] + self.signature_validity
                 ).strftime("%Y/%m/%d")
             }
-            if certifier['pubkey'] not in graph.keys():
-                node_status = (NODE_STATUS_HIGHLIGHTED and (certifier['pubkey'] == self.account.pubkey)) or 0
-                graph[certifier['pubkey']] = {
-                    'id': certifier['pubkey'],
-                    'arcs': [arc],
-                    'text': certifier['uid'],
-                    'tooltip': certifier['pubkey'],
-                    'status': node_status
-                }
+            graph[certifier['pubkey']]['arcs'].append(arc)
 
         # add certified by uid
         for certified in self.community.request(bma.wot.CertifiedBy, {'search': public_key})['certifications']:
@@ -167,10 +168,6 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         )
 
     def sign_node(self, metadata):
-        # check if identity already certified...
-        for certified in self.community.request(bma.wot.CertifiedBy, {'search': self.account.pubkey})['certifications']:
-            if metadata['id'] == certified['pubkey']:
-                return False
         # open certify dialog
         dialog = CertificationDialog(self.account)
         dialog.edit_pubkey.setText(metadata['id'])
