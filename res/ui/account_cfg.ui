@@ -20,7 +20,7 @@
    <item>
     <widget class="QStackedWidget" name="stacked_pages">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="page_init">
       <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -48,7 +48,7 @@
             <item>
              <widget class="QLabel" name="label">
               <property name="text">
-               <string>Account name</string>
+               <string>Account name (uid)</string>
               </property>
              </widget>
             </item>
@@ -132,9 +132,9 @@
             <layout class="QHBoxLayout" name="horizontalLayout_5"/>
            </item>
            <item>
-            <widget class="QLineEdit" name="edit_email">
+            <widget class="QLineEdit" name="edit_salt">
              <property name="placeholderText">
-              <string>Your email</string>
+              <string>Your salt</string>
              </property>
             </widget>
            </item>
@@ -363,7 +363,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>edit_email</sender>
+   <sender>edit_salt</sender>
    <signal>textChanged(QString)</signal>
    <receiver>AccountConfigurationDialog</receiver>
    <slot>action_edit_account_key()</slot>
