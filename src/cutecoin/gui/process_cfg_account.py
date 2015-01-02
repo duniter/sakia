@@ -221,7 +221,7 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
 
     def accept(self):
         password = ""
-        if self.account not in self.app.accounts:
+        if self.account.name not in self.app.accounts:
             self.account.name = self.edit_account_name.text()
             try:
                 self.app.add_account(self.account)
