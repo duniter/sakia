@@ -108,7 +108,6 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                                            QModelIndex(),
                                                            QModelIndex(),
                                                            [])
-
         self.label_current_block.setText("Current Block : {0}".format(block_number))
 
     def refresh_wallets(self):
