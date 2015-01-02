@@ -32,12 +32,9 @@ class BlockchainInspector(QThread):
         self.wait()
 
     def run(self):
-        logging.debug("Runs.")
         while not self.exiting:
-            logging.debug("Sleep.")
             time.sleep(10)
             current_block = self.community.request(bma.blockchain.Current)
-            logging.debug("Current block... {0}".format(current_block['number']))
             if self.last_block != current_block['number']:
                 for w in self.account.wallets:
                     w.cache.refresh(self.community)
