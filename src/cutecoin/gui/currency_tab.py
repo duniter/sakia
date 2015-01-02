@@ -58,9 +58,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         self.app = app
         self.community = community
         self.password_asker = password_asker
-        self.tab_community = CommunityTabWidget(self.app.current_account,
-                                                    self.community,
-                                                    self.password_asker)
+
         bc_inspector = BlockchainInspector(community)
         bc_inspector.new_block_mined.connect(self.refresh_block)
         bc_inspector.start()
