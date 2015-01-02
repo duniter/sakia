@@ -20,8 +20,9 @@ from ..models.wallet import WalletListModel
 
 
 class BlockchainInspector(QThread):
-    def __init__(self, community):
+    def __init__(self, account, community):
         QThread.__init__(self)
+        self.account = account
         self.community = community
         self.exiting = False
         self.last_block = self.community.request(bma.blockchain.Current)['number']
@@ -31,10 +32,16 @@ class BlockchainInspector(QThread):
         self.wait()
 
     def run(self):
+        logging.debug("Runs.")
         while not self.exiting:
+            logging.debug("Sleep.")
             time.sleep(10)
             current_block = self.community.request(bma.blockchain.Current)
+            logging.debug("Current block... {0}".format(current_block['number']))
             if self.last_block != current_block['number']:
+                for w in self.account.wallets:
+                    w.cache.refresh(self.community)
+
                 logging.debug("New block, {0} mined in {1}".format(self.last_block,
                                                                    self.community.currency))
                 self.new_block_mined.emit(current_block['number'])
@@ -61,9 +68,10 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         self.tab_community = CommunityTabWidget(self.app.current_account,
                                                     self.community,
                                                     self.password_asker)
-        bc_inspector = BlockchainInspector(community)
-        bc_inspector.new_block_mined.connect(self.refresh_block)
-        bc_inspector.start()
+        self.bc_inspector = BlockchainInspector(self.app.current_account,
+                                                community)
+        self.bc_inspector.new_block_mined.connect(self.refresh_block)
+        self.bc_inspector.start()
 
     def refresh(self):
         if self.app.current_account is None:
@@ -77,12 +85,14 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             self.list_transactions_received.setModel(
                 ReceivedListModel(self.app.current_account, self.community))
             self.tab_community = CommunityTabWidget(self.app.current_account,
-                                                    self.community, self.password_asker)
+                                                    self.community,
+                                                    self.password_asker)
             self.tabs_account.addTab(self.tab_community,
                                      QIcon(':/icons/community_icon'),
                                     "Community")
             block_number = self.community.request(bma.blockchain.Current)['number']
-            self.label_current_block.setText("Current Block : {0}".format(block_number))
+            self.label_current_block.setText("Current Block : {0}"
+                                             .format(block_number))
 
     @pyqtSlot(int)
     def refresh_block(self, block_number):
@@ -108,7 +118,9 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                                            QModelIndex(),
                                                            QModelIndex(),
                                                            [])
-        self.label_current_block.setText("Current Block : {0}".format(block_number))
+
+        self.label_current_block.setText("Current Block : {0}"
+                                         .format(block_number))
 
     def refresh_wallets(self):
         wallets_list_model = WalletsListModel(self.app.current_account,

@@ -40,6 +40,8 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
             pubkey = self.edit_pubkey.text()
 
         password = self.password_asker.ask()
+        if password == "":
+            return
 
         try:
             self.certifier.certify(password, self.community, pubkey)

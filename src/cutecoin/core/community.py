@@ -112,11 +112,12 @@ class Community(object):
                 block = bma.blockchain.Current(e.conn_handler()).get()
                 self.last_block = {"request_ts": time.time(),
                                    "number": block['number']}
-            elif self.last_block["request_ts"] < time.time() - 300:
+            elif self.last_block["request_ts"] + 60 < time.time():
+                logging.debug("{0} > {1}".format(self.last_block["request_ts"] + 60, time.time()))
+                self.last_block["request_ts"] = time.time()
                 block = bma.blockchain.Current(e.conn_handler()).get()
                 if block['number'] > self.last_block['number']:
-                    self.last_block = {"request_ts": time.time(),
-                                       "number": block['number']}
+                    self.last_block["number"] = block['number']
                     self.requests_cache = {}
 
             cache_key = (hash(request),

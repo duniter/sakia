@@ -59,22 +59,21 @@ class Cache():
                 'awaiting': data_awaiting}
 
     def latest_sent(self, community):
-        self._refresh(community)
         return self.tx_sent
 
     def awaiting(self, community):
-        self._refresh(community)
         return self.awaiting_tx
 
     def latest_received(self, community):
-        self._refresh(community)
         return self.tx_received
 
-    def _refresh(self, community):
+    def refresh(self, community):
         current_block = community.request(bma.blockchain.Current)
         with_tx = community.request(bma.blockchain.TX)
         # We parse only blocks with transactions
         parsed_blocks = reversed(range(self.latest_block + 1,
+                                           current_block['number'] + 1))
+        logging.debug("Refresh from {0} to {1}".format(self.latest_block + 1,
                                            current_block['number'] + 1))
         parsed_blocks = [n for n in parsed_blocks
                          if n in with_tx['result']['blocks']]

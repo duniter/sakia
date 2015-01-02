@@ -100,7 +100,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.action_configure_parameters.setEnabled(False)
             self.action_set_as_default.setEnabled(False)
         else:
-            self.action_set_as_default.setEnabled(self.app.current_account.name != self.app.default_account)
+            self.action_set_as_default.setEnabled(self.app.current_account.name
+                                                  != self.app.default_account)
             self.password_asker = PasswordAskerDialog(self.app.current_account)
             self.menu_contacts.setEnabled(True)
             self.action_configure_parameters.setEnabled(True)

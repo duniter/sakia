@@ -51,6 +51,8 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         amount = self.spinbox_amount.value()
 
         password = self.password_asker.ask()
+        if password == "":
+            return
 
         try:
             self.wallet.send_money(self.sender.salt, password, self.community,
