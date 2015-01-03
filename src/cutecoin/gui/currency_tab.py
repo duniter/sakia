@@ -36,7 +36,7 @@ class BlockchainWatcher(QObject):
                 for w in self.account.wallets:
                     w.cache.refresh(self.community)
 
-                logging.debug("New block, {0} mined in {1}".format(self.last_block,
+                logging.debug("New block, {0} mined in {1}".format(current_block['number'],
                                                                    self.community.currency))
                 self.new_block_mined.emit(current_block['number'])
                 self.last_block = current_block['number']
