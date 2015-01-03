@@ -6,6 +6,7 @@ Created on 5 févr. 2014
 
 import logging
 from ..core.person import Person
+from ..tools.exceptions import PersonNotFoundError
 from PyQt5.QtCore import QAbstractListModel, Qt
 from PyQt5.QtGui import QFont
 
@@ -44,8 +45,11 @@ class SentListModel(QAbstractListModel):
                 if o.pubkey not in pubkeys:
                     outputs.append(o)
                     amount += o.amount
-            receiver = Person.lookup(outputs[0].pubkey, self.community)
-            value = "{0} to {1}".format(amount, receiver.name)
+            try:
+                receiver = Person.lookup(outputs[0].pubkey, self.community)
+                value = "{0} to {1}".format(amount, receiver.name)
+            except PersonNotFoundError:
+                value = "{0} to {1}".format(amount, outputs[0].pubkey)
             return value
 
         if role == Qt.FontRole:
