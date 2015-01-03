@@ -46,6 +46,6 @@ Qt Client for [Ucoin](http://www.ucoin.io) project.
   * The executable is generated in "build" folder, named "cutecoin"
 
 ### How to download latest release
-  * Go to the [current release](https://github.com/ucoin-io/cutecoin/releases/tag/0.6)
+  * Go to the [current release](https://github.com/ucoin-io/cutecoin/releases/tag/0.7)
   * Download the package corresponding to your operating system
   * Unzip and start "cutecoin" :)
