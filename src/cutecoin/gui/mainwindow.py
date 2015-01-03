@@ -129,7 +129,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.menu_change_account.clear()
         signal_mapper = QSignalMapper(self)
 
-        for account_name in self.app.accounts.keys():
+        for account_name in sorted(self.app.accounts.keys()):
             action = QAction(account_name, self)
             self.menu_change_account.addAction(action)
             signal_mapper.setMapping(action, account_name)
