@@ -10,6 +10,7 @@ from ucoinpy.documents.peer import Peer, Endpoint, BMAEndpoint
 from ucoinpy.documents.block import Block
 import logging
 import time
+import inspect
 
 
 class Community(object):
@@ -22,8 +23,15 @@ class Community(object):
         '''
         self.currency = currency
         self.peers = peers
-        self.requests_cache = None
+        self.requests_cache = {}
         self.last_block = None
+
+        # After initializing the community from latest peers,
+        # we refresh its peers tree
+        found_peers = self.peering()
+        for p in found_peers:
+            if p.pubkey not in [peer.pubkey for peer in peers]:
+                self.peers.append(p)
 
     @classmethod
     def create(cls, currency, peer):
@@ -39,14 +47,16 @@ class Community(object):
             endpoint_inline = next(e for e in data['endpoints']
                             if Endpoint.from_inline(e) is not None)
             endpoint = Endpoint.from_inline(endpoint_inline)
-            peering = bma.network.Peering(endpoint.conn_handler())
-            peer_data = peering.get()
-            peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],
+            try:
+                peering = bma.network.Peering(endpoint.conn_handler())
+                peer_data = peering.get()
+                peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],
                                                   peer_data['signature']))
-            peers.append(peer)
+                peers.append(peer)
+            except:
+                pass
 
         community = cls(currency, peers)
-
         return community
 
     def name(self):
@@ -62,17 +72,14 @@ class Community(object):
                              req_args={'number': block_number})
         return block['dividend']
 
-    def send_membership(self, account, membership):
-        pass
-
     def peering(self):
         peers = []
         peering_data = self.request(bma.network.peering.Peers)
-        logging.debug(peering_data)
+        logging.debug("Peering : {0}".format(peering_data))
         for peer in peering_data:
             logging.debug(peer)
-            #peers.append(Peer.from_signed_raw("{0}{1}\n".format(peer['value']['raw'],
-            #                                                    peer['value']['signature'])))
+            peers.append(Peer.from_signed_raw("{0}{1}\n".format(peer['value']['raw'],
+                                                                peer['value']['signature'])))
         return peers
 
     def get_block(self, number=None):
@@ -105,11 +112,13 @@ class Community(object):
                 block = bma.blockchain.Current(e.conn_handler()).get()
                 self.last_block = {"request_ts": time.time(),
                                    "number": block['number']}
-            elif self.last_block["request_ts"] < time.time() - 300:
+            elif self.last_block["request_ts"] + 60 < time.time():
+                logging.debug("{0} > {1}".format(self.last_block["request_ts"] + 60, time.time()))
+                self.last_block["request_ts"] = time.time()
                 block = bma.blockchain.Current(e.conn_handler()).get()
-                self.last_block = {"request_ts": time.time(),
-                                   "number": block['number']}
-                self.requests_cache = None
+                if block['number'] > self.last_block['number']:
+                    self.last_block["number"] = block['number']
+                    self.requests_cache = {}
 
             cache_key = (hash(request),
                          hash(tuple(frozenset(sorted(req_args.keys())))),
@@ -117,31 +126,38 @@ class Community(object):
                          hash(tuple(frozenset(sorted(get_args.keys())))),
                          hash(tuple(frozenset(sorted(get_args.items())))))
 
-            # If the cache was cleared, let's initialize a new one
-            if self.requests_cache is None:
+            if cache_key not in self.requests_cache.keys():
+                if e.server:
+                    logging.debug("Connecting to {0}:{1}".format(e.server,
+                                                             e.port))
+                else:
+                    logging.debug("Connecting to {0}:{1}".format(e.ipv4,
+                                                             e.port))
+
                 req = request(e.conn_handler(), **req_args)
                 data = req.get(**get_args)
-                self.requests_cache = {cache_key: data}
-            else:
-                if cache_key in self.requests_cache.keys():
-                    #logging.debug("Cache : {0} : {1}".format(cache_key,
-                    #                                        self.requests_cache[cache_key]))
-                    return self.requests_cache[cache_key]
-                # If we cant find it, we request for it
+                if inspect.isgenerator(data):
+                    cached_data = []
+                    for d in data:
+                        cached_data.append(d)
+                    self.requests_cache[cache_key] = cached_data
+                    logging.debug("Got a generator !")
                 else:
-                    logging.debug("Connecting to {0}:{1}".format(e.server,
-                                                                 e.port))
-                    req = request(e.conn_handler(), **req_args)
-                    data = req.get(**get_args)
                     self.requests_cache[cache_key] = data
-            return data
+            return self.requests_cache[cache_key]
 
     def post(self, request, req_args={}, post_args={}):
         for peer in self.peers:
             e = next(e for e in peer.endpoints if type(e) is BMAEndpoint)
             logging.debug("Trying to connect to : " + peer.pubkey)
             req = request(e.conn_handler(), **req_args)
-            req.post(**post_args)
+            try:
+                req.post(**post_args)
+            except ValueError as e:
+                raise
+            except:
+                pass
+            return
 
     def jsonify_peers_list(self):
         data = []

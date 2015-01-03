@@ -6,10 +6,101 @@ Created on 1 févr. 2014
 
 from ucoinpy import PROTOCOL_VERSION
 from ucoinpy.api import bma
+from ucoinpy.documents.block import Block
 from ucoinpy.documents.transaction import InputSource, OutputSource, Transaction
 from ucoinpy.key import SigningKey
 from ..tools.exceptions import NotEnoughMoneyError
 import logging
+
+
+class Cache():
+    def __init__(self, wallet):
+        self.latest_block = 0
+        self.wallet = wallet
+        self.tx_sent = []
+        self.awaiting_tx = []
+        self.tx_received = []
+
+    def load_from_json(self, data):
+        self.tx_received = []
+        self.tx_sent = []
+        self.awaiting_tx = []
+
+        data_received = data['received']
+        for r in data_received:
+            self.tx_received.append(Transaction.from_signed_raw(r['raw']))
+
+        data_sent = data['sent']
+        for s in data_sent:
+            self.tx_sent.append(Transaction.from_signed_raw(s['raw']))
+
+        data_awaiting = data['awaiting']
+        for s in data_awaiting:
+            self.awaiting_tx.append(Transaction.from_signed_raw(s['raw']))
+
+        self.latest_block = data['latest_block']
+
+    def jsonify(self):
+        data_received = []
+        for r in self.tx_received:
+            data_received.append({'raw': r.signed_raw()})
+
+        data_sent = []
+        for s in self.tx_sent:
+            data_sent.append({'raw': s.signed_raw()})
+
+        data_awaiting = []
+        for s in self.awaiting_tx:
+            data_awaiting.append({'raw': s.signed_raw()})
+
+        return {'latest_block': self.latest_block,
+                'received': data_received,
+                'sent': data_sent,
+                'awaiting': data_awaiting}
+
+    def latest_sent(self, community):
+        return self.tx_sent
+
+    def awaiting(self, community):
+        return self.awaiting_tx
+
+    def latest_received(self, community):
+        return self.tx_received
+
+    def refresh(self, community):
+        current_block = community.request(bma.blockchain.Current)
+        with_tx = community.request(bma.blockchain.TX)
+        # We parse only blocks with transactions
+        parsed_blocks = reversed(range(self.latest_block + 1,
+                                           current_block['number'] + 1))
+        logging.debug("Refresh from {0} to {1}".format(self.latest_block + 1,
+                                           current_block['number'] + 1))
+        parsed_blocks = [n for n in parsed_blocks
+                         if n in with_tx['result']['blocks']]
+
+        for block_number in parsed_blocks:
+            block = community.request(bma.blockchain.Block,
+                              req_args={'number': block_number})
+            signed_raw = "{0}{1}\n".format(block['raw'], block['signature'])
+            block_doc = Block.from_signed_raw(signed_raw)
+            for tx in block_doc.transactions:
+                in_outputs = [o for o in tx.outputs
+                              if o.pubkey == self.wallet.pubkey]
+                if len(in_outputs) > 0:
+                    self.tx_received.append(tx)
+
+                in_inputs = [i for i in tx.issuers if i == self.wallet.pubkey]
+                if len(in_inputs) > 0:
+                    # remove from waiting transactions list the one which were
+                    # validated in the blockchain
+                    self.awaiting_tx = [awaiting for awaiting in self.awaiting_tx
+                                         if awaiting.compact() != tx.compact()]
+                    self.tx_sent.append(tx)
+
+        self.tx_sent = self.tx_sent[:50]
+        self.tx_received = self.tx_received[:50]
+
+        self.latest_block = current_block['number']
 
 
 class Wallet(object):
@@ -25,7 +116,8 @@ class Wallet(object):
         self.walletid = walletid
         self.pubkey = pubkey
         self.name = name
-        self.inputs_cache = None
+        self.available_inputs = None
+        self.cache = Cache(self)
 
     @classmethod
     def create(cls, walletid, salt, password, name):
@@ -70,17 +162,20 @@ class Wallet(object):
         inputs = []
         block = community.request(bma.blockchain.Current)
         sources = self.sources(community)
-        if not self.inputs_cache:
-            self.inputs_cache = (block['number'], sources)
-        elif self.inputs_cache[0] < block['number']:
-            self.inputs_cache = (block['number'], sources)
+        if not self.available_inputs:
+            self.available_inputs = (block['number'], sources)
+        elif self.available_inputs[0] < block['number']:
+            self.available_inputs = (block['number'], sources)
 
-        for s in self.inputs_cache[1]:
+        logging.debug("Available inputs : {0}".format(self.available_inputs[1]))
+        buf_inputs = list(self.available_inputs[1])
+        for s in self.available_inputs[1]:
             value += s.amount
             s.index = 0
             inputs.append(s)
-            self.inputs_cache[1].remove(s)
+            buf_inputs.remove(s)
             if value >= amount:
+                self.available_inputs = (block['number'], buf_inputs)
                 return inputs
 
         raise NotEnoughMoneyError(amount, value)
@@ -119,23 +214,29 @@ class Wallet(object):
 
         tx.sign([key])
         logging.debug("Transaction : {0}".format(tx.signed_raw()))
-        community.post(bma.tx.Process,
+        try:
+            community.post(bma.tx.Process,
                         post_args={'transaction': tx.signed_raw()})
+            self.cache.awaiting_tx.append(tx)
+        except:
+            raise
 
     def sources(self, community):
-        data = community.request(bma.tx.Sources, req_args={'pubkey': self.pubkey})
+        data = community.request(bma.tx.Sources,
+                                 req_args={'pubkey': self.pubkey})
         tx = []
         for s in data['sources']:
             tx.append(InputSource.from_bma(s))
         return tx
 
-    #TODO: Build a cache of latest transactions
-    def transactions_sent(self, community):
-        return []
+    def transactions_awaiting(self, community):
+        return self.cache.awaiting(community)
 
-    #TODO: Build a cache of latest transactions
+    def transactions_sent(self, community):
+        return self.cache.latest_sent(community)
+
     def transactions_received(self, community):
-        return []
+        return self.cache.latest_received(community)
 
     def get_text(self, community):
         return "%s : \n \

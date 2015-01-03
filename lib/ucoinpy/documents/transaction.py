@@ -7,7 +7,6 @@ Created on 2 déc. 2014
 from . import Document
 import re
 
-
 class Transaction(Document):
     '''
 Document format :
@@ -45,8 +44,8 @@ SIGNATURE
     re_issuers = re.compile("Issuers:\n")
     re_inputs = re.compile("Inputs:\n")
     re_outputs = re.compile("Outputs:\n")
-    re_compact_comment = re.compile("-----@@@-----([^\n]+)\n")
-    re_comment = re.compile("Comment:(?:)?([^\n]*)\n")
+    re_compact_comment = re.compile("([^\n]+)\n")
+    re_comment = re.compile("Comment: ([^\n]*)\n")
     re_pubkey = re.compile("([1-9A-Za-z][^OIl]{42,45})\n")
 
     def __init__(self, version, currency, issuers, inputs, outputs,
@@ -71,13 +70,13 @@ SIGNATURE
         issuers_num = int(header_data.group(2))
         inputs_num = int(header_data.group(3))
         outputs_num = int(header_data.group(4))
+        has_comment = int(header_data.group(5))
         n = n + 1
 
         issuers = []
         inputs = []
         outputs = []
         signatures = []
-        logging.debug(compact)
         for i in range(0, issuers_num):
             issuer = Transaction.re_pubkey.match(lines[n]).group(1)
             issuers.append(issuer)
@@ -93,8 +92,8 @@ SIGNATURE
             outputs.append(output_source)
             n = n + 1
 
-        comment = None
-        if Transaction.re_comment.match(lines[n]):
+        comment = ""
+        if has_comment == 1:
             comment = Transaction.re_compact_comment.match(lines[n]).group(1)
             n = n + 1
 
@@ -176,9 +175,7 @@ Issuers:
             doc += "{0}\n".format(o.inline())
 
         doc += "Comment: "
-        if self.comment:
-            doc += "{0}".format(self.comment)
-        doc += "\n"
+        doc += "{0}\n".format(self.comment)
 
         return doc
 
@@ -195,19 +192,19 @@ PUBLIC_KEY:AMOUNT
 ...
 COMMENT
 """
-        doc = "TX:{0}:{1}:{2}:{3}:{4}".format(self.version,
-                                              self.issuers.len,
-                                              self.inputs.len,
-                                              self.outputs.len,
-                                              '1' if self.Comment else '0')
+        doc = "TX:{0}:{1}:{2}:{3}:{4}\n".format(self.version,
+                                              len(self.issuers),
+                                              len(self.inputs),
+                                              len(self.outputs),
+                                              '1' if self.comment != "" else '0')
         for pubkey in self.issuers:
             doc += "{0}\n".format(pubkey)
         for i in self.inputs:
             doc += "{0}\n".format(i.compact())
         for o in self.outputs:
             doc += "{0}\n".format(o.inline())
-        if self.comment:
-            doc += "-----@@@----- {0}\n".format(self.comment)
+        if self.comment != "":
+            doc += "{0}\n".format(self.comment)
         for s in self.signatures:
             doc += "{0}\n".format(s)
 

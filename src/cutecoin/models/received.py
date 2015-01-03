@@ -5,6 +5,8 @@ Created on 5 févr. 2014
 '''
 
 import logging
+from ..core.person import Person
+from ..tools.exceptions import PersonNotFoundError
 from PyQt5.QtCore import QAbstractListModel, Qt
 
 
@@ -29,7 +31,17 @@ class ReceivedListModel(QAbstractListModel):
         if role == Qt.DisplayRole:
             row = index.row()
             transactions = self.account.transactions_received(self.community)
-            value = transactions[row].get_receiver_text()
+            amount = 0
+            for o in transactions[row].outputs:
+                pubkeys = [w.pubkey for w in self.account.wallets]
+                if o.pubkey in pubkeys:
+                    amount += o.amount
+            pubkey = transactions[row].issuers[0]
+            try:
+                sender = Person.lookup(pubkey, self.community)
+                value = "{0} from {1}".format(amount, sender.name)
+            except PersonNotFoundError:
+                value = "{0} from {1}".format(amount, pubkey)
             return value
 
     def flags(self, index):

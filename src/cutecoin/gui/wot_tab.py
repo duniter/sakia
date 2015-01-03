@@ -14,7 +14,7 @@ from .transfer import TransferMoneyDialog
 
 
 class WotTabWidget(QWidget, Ui_WotTabWidget):
-    def __init__(self, account, community, parent=None):
+    def __init__(self, account, community, password_asker, parent=None):
         """
 
         :param cutecoin.core.account.Account account:
@@ -39,6 +39,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
 
         self.account = account
         self.community = community
+        self.password_asker = password_asker
 
         # nodes list for menu from search
         self.nodes = list()
@@ -67,10 +68,28 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         node_status += NODE_STATUS_SELECTED
 
         # highlighted node (wallet)
-        graph[public_key] = {'id': public_key, 'arcs': [], 'text': certifiers['uid'], 'tooltip': public_key, 'status': node_status}
+        graph[public_key] = {'id': public_key, 'arcs': list(), 'text': certifiers['uid'], 'tooltip': public_key, 'status': node_status}
 
         # add certifiers of uid
         for certifier in certifiers['certifications']:
+            # new node
+            if certifier['pubkey'] not in graph.keys():
+                node_status = (NODE_STATUS_HIGHLIGHTED and (certifier['pubkey'] == self.account.pubkey)) or 0
+                graph[certifier['pubkey']] = {
+                    'id': certifier['pubkey'],
+                    'arcs': list(),
+                    'text': certifier['uid'],
+                    'tooltip': certifier['pubkey'],
+                    'status': node_status
+                }
+            # add only valid certification...
+            if (time.time() - certifier['cert_time']['medianTime']) > self.signature_validity:
+                continue
+            # keep only the latest certification
+            if graph[certifier['pubkey']]['arcs']:
+                if certifier['cert_time']['medianTime'] < graph[certifier['pubkey']]['arcs'][0]['cert_time']:
+                    continue
+                # display validity status
             if (time.time() - certifier['cert_time']['medianTime']) > self.ARC_STATUS_STRONG_time:
                 arc_status = ARC_STATUS_WEAK
             else:
@@ -80,32 +99,13 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
                 'status': arc_status,
                 'tooltip': datetime.datetime.fromtimestamp(
                     certifier['cert_time']['medianTime'] + self.signature_validity
-                ).strftime("%Y/%m/%d")
+                ).strftime("%Y/%m/%d"),
+                'cert_time': certifier['cert_time']['medianTime']
             }
-            if certifier['pubkey'] not in graph.keys():
-                node_status = (NODE_STATUS_HIGHLIGHTED and (certifier['pubkey'] == self.account.pubkey)) or 0
-                graph[certifier['pubkey']] = {
-                    'id': certifier['pubkey'],
-                    'arcs': [arc],
-                    'text': certifier['uid'],
-                    'tooltip': certifier['pubkey'],
-                    'status': node_status
-                }
+            graph[certifier['pubkey']]['arcs'] = [arc]
 
         # add certified by uid
         for certified in self.community.request(bma.wot.CertifiedBy, {'search': public_key})['certifications']:
-            if (time.time() - certified['cert_time']['medianTime']) > self.ARC_STATUS_STRONG_time:
-                arc_status = ARC_STATUS_WEAK
-            else:
-                arc_status = ARC_STATUS_STRONG
-            arc = {
-                'id': certified['pubkey'],
-                'status': arc_status,
-                'tooltip': datetime.datetime.fromtimestamp(
-                    certified['cert_time']['medianTime'] + self.signature_validity
-                ).strftime("%Y/%m/%d")
-            }
-            graph[public_key]['arcs'].append(arc)
             if certified['pubkey'] not in graph.keys():
                 node_status = (NODE_STATUS_HIGHLIGHTED and (certified['pubkey'] == self.account.pubkey)) or 0
                 graph[certified['pubkey']] = {
@@ -115,6 +115,34 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
                     'tooltip': certified['pubkey'],
                     'status': node_status
                 }
+            # add only valid certification...
+            if (time.time() - certified['cert_time']['medianTime']) > self.signature_validity:
+                continue
+            # display validity status
+            if (time.time() - certified['cert_time']['medianTime']) > self.ARC_STATUS_STRONG_time:
+                arc_status = ARC_STATUS_WEAK
+            else:
+                arc_status = ARC_STATUS_STRONG
+            arc = {
+                'id': certified['pubkey'],
+                'status': arc_status,
+                'tooltip': datetime.datetime.fromtimestamp(
+                    certified['cert_time']['medianTime'] + self.signature_validity
+                ).strftime("%Y/%m/%d"),
+                'cert_time': certified['cert_time']['medianTime']
+            }
+            graph[public_key]['arcs'].append(arc)
+            # removed old duplicated arcs
+            arcs = list()
+            for a in graph[public_key]['arcs']:
+                # if same arc already exists...
+                if a['id'] == arc['id']:
+                    # if arc more recent, dont keep old one...
+                    if arc['cert_time'] > a['cert_time']:
+                        continue
+                arcs.append(a)
+            # replace arcs with updated list
+            graph[public_key]['arcs'] = arcs
 
         # draw graph in qt scene
         self.graphicsView.scene().update_wot(graph)
@@ -167,18 +195,14 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         )
 
     def sign_node(self, metadata):
-        # check if identity already certified...
-        for certified in self.community.request(bma.wot.CertifiedBy, {'search': self.account.pubkey})['certifications']:
-            if metadata['id'] == certified['pubkey']:
-                return False
         # open certify dialog
-        dialog = CertificationDialog(self.account)
+        dialog = CertificationDialog(self.account, self.password_asker)
         dialog.edit_pubkey.setText(metadata['id'])
         dialog.radio_pubkey.setChecked(True)
         dialog.exec_()
 
     def send_money_to_node(self, metadata):
-        dialog = TransferMoneyDialog(self.account)
+        dialog = TransferMoneyDialog(self.account, self.password_asker)
         dialog.edit_pubkey.setText(metadata['id'])
         dialog.combo_community.setCurrentText(self.community.name())
         dialog.radio_pubkey.setChecked(True)

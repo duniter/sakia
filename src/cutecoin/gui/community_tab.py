@@ -6,6 +6,7 @@ Created on 2 févr. 2014
 
 import logging
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QMessageBox, QAction, QMenu, QInputDialog, QLineEdit
 from ..models.members import MembersListModel
 from ..gen_resources.community_tab_uic import Ui_CommunityTabWidget
@@ -21,7 +22,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
     classdocs
     '''
 
-    def __init__(self, account, community):
+    def __init__(self, account, community, password_asker):
         '''
         Constructor
         '''
@@ -29,6 +30,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         self.setupUi(self)
         self.community = community
         self.account = account
+        self.password_asker = password_asker
         self.list_community_members.setModel(MembersListModel(community))
 
         if self.account.member_of(self.community):
@@ -38,7 +40,10 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             self.button_membership.setText("Send membership demand")
             self.button_membership.clicked.connect(self.send_membership_demand)
 
-        self.tabs_information.addTab(WotTabWidget(account, community), "Wot")
+        self.tabs_information.addTab(WotTabWidget(account, community,
+                                                  password_asker),
+                                     QIcon(':/icons/wot_icon'),
+                                     "Wot")
 
     def member_context_menu(self, point):
         index = self.list_community_members.indexAt(point)
@@ -56,7 +61,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             send_money.triggered.connect(self.send_money_to_member)
             send_money.setData(member)
 
-            certify = QAction("Certify individual", self)
+            certify = QAction("Certify identity", self)
             certify.triggered.connect(self.certify_member)
             certify.setData(member)
 
@@ -74,7 +79,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         dialog.exec_()
 
     def send_money_to_member(self):
-        dialog = TransferMoneyDialog(self.account)
+        dialog = TransferMoneyDialog(self.account, self.password_asker)
         person = self.sender().data()
         dialog.edit_pubkey.setText(person.pubkey)
         dialog.combo_community.setCurrentText(self.community.name())
@@ -82,7 +87,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         dialog.exec_()
 
     def certify_member(self):
-        dialog = CertificationDialog(self.account)
+        dialog = CertificationDialog(self.account, self.password_asker)
         person = self.sender().data()
         dialog.edit_pubkey.setText(person.pubkey)
         dialog.radio_pubkey.setChecked(True)

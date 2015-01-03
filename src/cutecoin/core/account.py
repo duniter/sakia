@@ -143,15 +143,33 @@ class Account(object):
         received = []
         for w in self.wallets:
             for t in w.transactions_received(community):
-                received.append(t)
+                # Lets remove transactions from our own wallets
+                pubkeys = [wallet.pubkey for wallet in self.wallets]
+                if t.issuers[0] not in pubkeys:
+                    received.append(t)
         return received
 
     def transactions_sent(self, community):
         sent = []
         for w in self.wallets:
             for t in w.transactions_sent(community):
-                sent.append(t)
+                # Lets remove transactions to our own wallets
+                pubkeys = [wallet.pubkey for wallet in self.wallets]
+                outputs = [o for o in t.outputs if o.pubkey not in pubkeys]
+                if len(outputs) > 0:
+                    sent.append(t)
         return sent
+
+    def transactions_awaiting(self, community):
+        awaiting = []
+        for w in self.wallets:
+            for t in w.transactions_awaiting(community):
+                # Lets remove transactions to our own wallets
+                pubkeys = [wallet.pubkey for wallet in self.wallets]
+                outputs = [o for o in t.outputs if o.pubkey not in pubkeys]
+                if len(outputs) > 0:
+                    awaiting.append(t)
+        return awaiting
 
     def member_of(self, community):
         pubkeys = community.members_pubkeys()

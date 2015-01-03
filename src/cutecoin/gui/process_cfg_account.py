@@ -65,7 +65,7 @@ class StepPageKey(Step):
         if len(self.config_dialog.edit_password.text()) < 2:
             return False
 
-        if len(self.config_dialog.edit_email.text()) < 2:
+        if len(self.config_dialog.edit_salt.text()) < 2:
             return False
 
         if len(self.config_dialog.edit_password.text()) < 6:
@@ -80,7 +80,7 @@ class StepPageKey(Step):
         return True
 
     def process_next(self):
-        salt = self.config_dialog.edit_email.text()
+        salt = self.config_dialog.edit_salt.text()
         password = self.config_dialog.edit_password.text()
         self.config_dialog.account.salt = salt
         self.config_dialog.account.pubkey = SigningKey(salt, password).pubkey
@@ -180,7 +180,7 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
             self.button_next.setEnabled(False)
 
     def action_show_pubkey(self):
-        salt = self.edit_email.text()
+        salt = self.edit_salt.text()
         password = self.edit_password.text()
         pubkey = SigningKey(salt, password).pubkey
         QMessageBox.information(self, "Public key",
@@ -221,7 +221,7 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
 
     def accept(self):
         password = ""
-        if self.account not in self.app.accounts:
+        if self.account.name not in self.app.accounts:
             self.account.name = self.edit_account_name.text()
             try:
                 self.app.add_account(self.account)

@@ -25,16 +25,19 @@ class Application(object):
         '''
         Constructor
         '''
-        self.accounts = []
+        self.accounts = {}
+        self.default_account = ""
         self.current_account = None
         config.parse_arguments(argv)
         self.load()
 
     def get_account(self, name):
-        for a in self.accounts:
-            logging.debug('Name : ' + a.name + '/' + name)
-            if name == a.name:
-                return a
+        if not self.accounts[name]:
+            self.load_account(name)
+        if name in self.accounts.keys():
+            return self.accounts[name]
+        else:
+            return None
 
     def create_account(self, name):
         for a in self.accounts:
@@ -57,7 +60,10 @@ class Application(object):
         self.accounts.remove(account)
 
     def change_current_account(self, account):
+        if self.current_account is not None:
+            self.save_cache(self.current_account)
         self.current_account = account
+        self.load_cache(account)
 
     def load(self):
         if not os.path.exists(config.parameters['home']):
@@ -67,16 +73,32 @@ class Application(object):
         if (os.path.exists(config.parameters['data'])
                 and os.path.isfile(config.parameters['data'])):
             logging.debug("Loading data...")
-            json_data = open(config.parameters['data'], 'r')
-            data = json.load(json_data)
-
-            json_data.close()
-            for account_name in data['local_accounts']:
-                account_path = os.path.join(config.parameters['home'],
-                                            account_name, 'properties')
-                json_data = open(account_path, 'r')
+            with open(config.parameters['data'], 'r') as json_data:
                 data = json.load(json_data)
-                self.accounts.append(Account.load(data))
+                json_data.close()
+                if 'default_account' in data.keys():
+                    self.default_account = data['default_account']
+                for account_name in data['local_accounts']:
+                    self.accounts[account_name] = None
+
+    def load_account(self, account_name):
+        account_path = os.path.join(config.parameters['home'],
+                                    account_name, 'properties')
+        with open(account_path, 'r') as json_data:
+            data = json.load(json_data)
+            account = Account.load(data)
+            self.accounts[account_name] = account
+
+    def load_cache(self, account):
+        for wallet in account.wallets:
+            wallet_path = os.path.join(config.parameters['home'],
+                                        account.name, '__cache__', wallet.pubkey)
+            if os.path.exists(wallet_path):
+                json_data = open(wallet_path, 'r')
+                data = json.load(json_data)
+                wallet.cache.load_from_json(data)
+                for community in account.communities:
+                    wallet.cache.refresh(community)
 
     def save(self, account):
         with open(config.parameters['data'], 'w') as outfile:
@@ -87,6 +109,17 @@ class Application(object):
         with open(account_path, 'w') as outfile:
             json.dump(account.jsonify(), outfile, indent=4, sort_keys=True)
 
+    def save_cache(self, account):
+        if not os.path.exists(os.path.join(config.parameters['home'],
+                                        account.name, '__cache__')):
+            os.makedirs(os.path.join(config.parameters['home'],
+                                        account.name, '__cache__'))
+        for wallet in account.wallets:
+            wallet_path = os.path.join(config.parameters['home'],
+                                        account.name, '__cache__', wallet.pubkey)
+            with open(wallet_path, 'w') as outfile:
+                json.dump(wallet.cache.jsonify(), outfile, indent=4, sort_keys=True)
+
     def import_account(self, file, name):
         with tarfile.open(file, "r") as tar:
             path = os.path.join(config.parameters['home'],
@@ -96,7 +129,6 @@ class Application(object):
                     tar.getmember(obj)
                 except KeyError:
                     raise BadAccountFile(file)
-                    return
             tar.extractall(path)
 
         account_path = os.path.join(config.parameters['home'],
@@ -117,10 +149,12 @@ class Application(object):
 
     def jsonify_accounts(self):
         data = []
+        logging.debug("{0}".format(self.accounts))
         for account in self.accounts:
-            data.append(account.name)
+            data.append(account)
         return data
 
     def jsonify(self):
-        data = {'local_accounts': self.jsonify_accounts()}
+        data = {'default_account': self.default_account,
+                'local_accounts': self.jsonify_accounts()}
         return data

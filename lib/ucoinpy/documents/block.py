@@ -11,6 +11,7 @@ from .membership import Membership
 from .transaction import Transaction
 
 import re
+import logging
 
 
 class Block(Document):
@@ -104,7 +105,7 @@ BOTTOM_SIGNATURE
         self.transactions = transactions
 
     @classmethod
-    def from_signed_raw(cls, raw, signature=None):
+    def from_signed_raw(cls, raw):
         lines = raw.splitlines(True)
         n = 0
 
@@ -211,9 +212,19 @@ BOTTOM_SIGNATURE
         if Block.re_transactions.match(lines[n]):
             n = n + 1
             while not Block.re_signature.match(lines[n]):
-                transaction = Transaction.from_compact(version, lines[n])
+                tx_lines = ""
+                header_data = Transaction.re_header.match(lines[n])
+                version = int(header_data.group(1))
+                issuers_num = int(header_data.group(2))
+                inputs_num = int(header_data.group(3))
+                outputs_num = int(header_data.group(4))
+                has_comment = int(header_data.group(5))
+                tx_max = n+issuers_num*2+inputs_num+outputs_num+has_comment+1
+                for i in range(n, tx_max):
+                    tx_lines += lines[n]
+                    n = n + 1
+                transaction = Transaction.from_compact(version, tx_lines)
                 transactions.append(transaction)
-                n = n + 1
 
         signature = Block.re_signature.match(lines[n]).group(1)
 

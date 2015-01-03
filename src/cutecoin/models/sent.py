@@ -5,7 +5,10 @@ Created on 5 févr. 2014
 '''
 
 import logging
+from ..core.person import Person
+from ..tools.exceptions import PersonNotFoundError
 from PyQt5.QtCore import QAbstractListModel, Qt
+from PyQt5.QtGui import QFont
 
 
 class SentListModel(QAbstractListModel):
@@ -23,15 +26,37 @@ class SentListModel(QAbstractListModel):
         self.community = community
 
     def rowCount(self, parent):
-        return len(self.account.transactions_sent(self.community))
+        return len(self.account.transactions_sent(self.community)) \
+            + len(self.account.transactions_awaiting(self.community))
 
     def data(self, index, role):
-
+        row = index.row()
         if role == Qt.DisplayRole:
-            row = index.row()
-            transactions = self.account.transactions_sent(self.community)
-            value = transactions[row].get_sender_text()
+            transactions = []
+            if row < len(self.account.transactions_sent(self.community)):
+                transactions = self.account.transactions_sent(self.community)
+            else:
+                transactions = self.account.transactions_awaiting(self.community)
+                row = row - len(self.account.transactions_sent(self.community))
+            amount = 0
+            outputs = []
+            for o in transactions[row].outputs:
+                pubkeys = [w.pubkey for w in self.account.wallets]
+                if o.pubkey not in pubkeys:
+                    outputs.append(o)
+                    amount += o.amount
+            try:
+                receiver = Person.lookup(outputs[0].pubkey, self.community)
+                value = "{0} to {1}".format(amount, receiver.name)
+            except PersonNotFoundError:
+                value = "{0} to {1}".format(amount, outputs[0].pubkey)
             return value
+
+        if role == Qt.FontRole:
+            if row < len(self.account.transactions_sent(self.community)):
+                return QFont('Sans Serif', italic=False)
+            else:
+                return QFont('Sans Serif', italic=True)
 
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled
