@@ -238,18 +238,18 @@ class Node(QGraphicsEllipseItem):
         """
         # create node context menus
         self.menu = QMenu()
-        # action sign identity
-        self.action_sign = QAction('Certify identity', self.scene())
-        self.menu.addAction(self.action_sign)
-        self.action_sign.triggered.connect(self.sign_action)
-        # action transaction toward identity
-        self.action_transaction = QAction('Send money', self.scene())
-        self.menu.addAction(self.action_transaction)
-        self.action_transaction.triggered.connect(self.transaction_action)
         # action add identity as contact
         self.action_contact = QAction('Add as contact', self.scene())
         self.menu.addAction(self.action_contact)
         self.action_contact.triggered.connect(self.contact_action)
+        # action transaction toward identity
+        self.action_transaction = QAction('Send money', self.scene())
+        self.menu.addAction(self.action_transaction)
+        self.action_transaction.triggered.connect(self.transaction_action)
+        # action sign identity
+        self.action_sign = QAction('Certify identity', self.scene())
+        self.menu.addAction(self.action_sign)
+        self.action_sign.triggered.connect(self.sign_action)
         # run menu
         self.menu.exec(event.screenPos())
 
