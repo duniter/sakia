@@ -119,7 +119,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                                            QModelIndex(),
                                                            [])
 
-        self.label_current_block.setText("Connected : Block {0}"
+        self.status_label.setText("Connected : Block {0}"
                                              .format(block_number))
 
     def refresh_wallets(self):
