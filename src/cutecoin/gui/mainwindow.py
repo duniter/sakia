@@ -4,8 +4,8 @@ Created on 1 févr. 2014
 @author: inso
 '''
 from cutecoin.gen_resources.mainwindow_uic import Ui_MainWindow
-from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog
-from PyQt5.QtCore import QSignalMapper, QModelIndex, QThread, pyqtSignal
+from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog, QProgressBar, QLabel
+from PyQt5.QtCore import QSignalMapper, QModelIndex, QObject, QThread, pyqtSlot, pyqtSignal
 from PyQt5.QtGui import QIcon
 from .process_cfg_account import ProcessConfigureAccount
 from .transfer import TransferMoneyDialog
@@ -16,6 +16,24 @@ from .certification import CertificationDialog
 from .password_asker import PasswordAskerDialog
 
 import logging
+
+
+class Loader(QObject):
+    def __init__(self, app):
+        super().__init__()
+        self.app = app
+        self.account_name = ""
+
+    loaded = pyqtSignal()
+
+    def set_account_name(self, name):
+        self.account_name = name
+
+    @pyqtSlot()
+    def load(self):
+        if self.account_name != "":
+            self.app.change_current_account(self.app.get_account(self.account_name))
+        self.loaded.emit()
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -33,6 +51,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.app = app
         self.password_asker = None
+        self.initialized = False
+        self.busybar = QProgressBar(self.statusbar)
+        self.busybar.setMinimum(0)
+        self.busybar.setMaximum(0)
+        self.busybar.setValue(-1)
+        self.statusbar.addWidget(self.busybar)
+        self.busybar.hide()
+
+        self.status_label = QLabel("", self.statusbar)
+        self.statusbar.addPermanentWidget(self.status_label)
+
+        self.loader_thread = QThread()
+        self.loader = Loader(self.app)
+        self.loader.moveToThread(self.loader_thread)
+        self.loader.loaded.connect(self.loader_finished)
+        self.loader.loaded.connect(self.loader_thread.quit)
+        self.loader_thread.started.connect(self.loader.load)
         self.refresh()
 
     def open_add_account_dialog(self):
@@ -40,9 +75,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog.accepted.connect(self.refresh)
         dialog.exec_()
 
-    def action_change_account(self, account_name):
-        self.app.change_current_account(self.app.get_account(account_name))
+    @pyqtSlot()
+    def loader_finished(self):
         self.refresh()
+        self.busybar.hide()
+
+    def action_change_account(self, account_name):
+        self.busybar.show()
+        self.status_label.setText("Loading account {0}".format(account_name))
+        self.loader.set_account_name(account_name)
+        self.loader_thread.start(QThread.LowPriority)
 
     def open_transfer_money_dialog(self):
         dialog = TransferMoneyDialog(self.app.current_account,
@@ -112,7 +154,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.currencies_tabwidget.clear()
             for community in self.app.current_account.communities:
                 tab_currency = CurrencyTabWidget(self.app, community,
-                                                 self.password_asker)
+                                                 self.password_asker,
+                                                 self.status_label)
                 tab_currency.refresh()
                 self.currencies_tabwidget.addTab(tab_currency,
                                                  QIcon(":/icons/currency_icon"),
@@ -142,5 +185,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def closeEvent(self, event):
         if self.app.current_account:
             self.app.save_cache(self.app.current_account)
+        self.loader.deleteLater()
+        self.loader_thread.deleteLater()
         super().closeEvent(event)
 
+    def showEvent(self, event):
+        super().showEvent(event)
+        if not self.initialized:
+            if self.app.default_account != "":
+                logging.debug("Loading default account")
+                self.action_change_account(self.app.default_account)
+            self.initialized = True

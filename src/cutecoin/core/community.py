@@ -127,8 +127,13 @@ class Community(object):
                          hash(tuple(frozenset(sorted(get_args.items())))))
 
             if cache_key not in self.requests_cache.keys():
-                logging.debug("Connecting to {0}:{1}".format(e.server,
+                if e.server:
+                    logging.debug("Connecting to {0}:{1}".format(e.server,
                                                              e.port))
+                else:
+                    logging.debug("Connecting to {0}:{1}".format(e.ipv4,
+                                                             e.port))
+
                 req = request(e.conn_handler(), **req_args)
                 data = req.get(**get_args)
                 if inspect.isgenerator(data):

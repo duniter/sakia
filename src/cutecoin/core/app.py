@@ -30,8 +30,6 @@ class Application(object):
         self.current_account = None
         config.parse_arguments(argv)
         self.load()
-        if self.default_account != "":
-            self.change_current_account(self.get_account(self.default_account))
 
     def get_account(self, name):
         if not self.accounts[name]:

@@ -9,7 +9,7 @@ import time
 
 from ucoinpy.api import bma
 from PyQt5.QtWidgets import QWidget, QMenu, QAction, QApplication
-from PyQt5.QtCore import QModelIndex, Qt, pyqtSlot, QThread, pyqtSignal
+from PyQt5.QtCore import QModelIndex, Qt, pyqtSlot, QObject, QThread, pyqtSignal
 from PyQt5.QtGui import QIcon
 from ..gen_resources.currency_tab_uic import Ui_CurrencyTabWidget
 from .community_tab import CommunityTabWidget
@@ -19,19 +19,16 @@ from ..models.wallets import WalletsListModel
 from ..models.wallet import WalletListModel
 
 
-class BlockchainInspector(QThread):
+class BlockchainWatcher(QObject):
     def __init__(self, account, community):
-        QThread.__init__(self)
+        super().__init__()
         self.account = account
         self.community = community
         self.exiting = False
         self.last_block = self.community.request(bma.blockchain.Current)['number']
 
-    def __del__(self):
-        self.exiting = True
-        self.wait()
-
-    def run(self):
+    @pyqtSlot()
+    def watch(self):
         while not self.exiting:
             time.sleep(10)
             current_block = self.community.request(bma.blockchain.Current)
@@ -53,7 +50,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
     classdocs
     '''
 
-    def __init__(self, app, community, password_asker):
+    def __init__(self, app, community, password_asker, status_label):
         '''
         Constructor
         '''
@@ -62,13 +59,19 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         self.app = app
         self.community = community
         self.password_asker = password_asker
+        self.status_label = status_label
         self.tab_community = CommunityTabWidget(self.app.current_account,
                                                     self.community,
                                                     self.password_asker)
-        self.bc_inspector = BlockchainInspector(self.app.current_account,
+        self.bc_watcher = BlockchainWatcher(self.app.current_account,
                                                 community)
-        self.bc_inspector.new_block_mined.connect(self.refresh_block)
-        self.bc_inspector.start()
+        self.bc_watcher.new_block_mined.connect(self.refresh_block)
+
+        self.watcher_thread = QThread()
+        self.bc_watcher.moveToThread(self.watcher_thread)
+        self.watcher_thread.started.connect(self.bc_watcher.watch)
+
+        self.watcher_thread.start()
 
     def refresh(self):
         if self.app.current_account is None:
@@ -88,7 +91,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                      QIcon(':/icons/community_icon'),
                                     "Community")
             block_number = self.community.request(bma.blockchain.Current)['number']
-            self.label_current_block.setText("Current Block : {0}"
+            self.status_label.setText("Connected : Block {0}"
                                              .format(block_number))
 
     @pyqtSlot(int)
@@ -116,8 +119,8 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                                            QModelIndex(),
                                                            [])
 
-        self.label_current_block.setText("Current Block : {0}"
-                                         .format(block_number))
+        self.label_current_block.setText("Connected : Block {0}"
+                                             .format(block_number))
 
     def refresh_wallets(self):
         wallets_list_model = WalletsListModel(self.app.current_account,
@@ -162,3 +165,12 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
 
     def wallet_changed(self):
         self.app.save(self.app.current_account)
+
+    def showEvent(self, event):
+        block_number = self.community.request(bma.blockchain.Current)['number']
+        self.status_label.setText("Connected : Block {0}"
+                                         .format(block_number))
+
+    def closeEvent(self, event):
+        self.bc_watcher.deleteLater()
+        self.watcher_thread.deleteLater()
