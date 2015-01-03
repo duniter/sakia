@@ -41,7 +41,7 @@ class Application(object):
 
     def create_account(self, name):
         for a in self.accounts:
-            if a.name == name:
+            if a == name:
                 raise NameAlreadyExists(a)
 
         account_path = os.path.join(config.parameters['home'], name)
@@ -52,7 +52,7 @@ class Application(object):
                                  [],
                                  [],
                                  config.parameters)
-        self.accounts.append(account)
+        self.accounts[name] = account
         self.current_account = account
         return account
 
