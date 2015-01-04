@@ -28,6 +28,7 @@ class PasswordAskerDialog(QDialog, Ui_PasswordAskerDialog):
         self.remember = False
 
     def ask(self):
+        self.edit_password.setText("")
         if not self.remember:
             self.exec_()
             pwd = self.password
