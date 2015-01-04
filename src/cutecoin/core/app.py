@@ -97,8 +97,8 @@ class Application(object):
                 json_data = open(wallet_path, 'r')
                 data = json.load(json_data)
                 wallet.cache.load_from_json(data)
-                for community in account.communities:
-                    wallet.cache.refresh(community)
+            for community in account.communities:
+                wallet.cache.refresh(community)
 
     def save(self, account):
         with open(config.parameters['data'], 'w') as outfile:
