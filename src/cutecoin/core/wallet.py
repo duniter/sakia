@@ -20,6 +20,7 @@ class Cache():
         self.tx_sent = []
         self.awaiting_tx = []
         self.tx_received = []
+        self.available_sources = []
 
     def load_from_json(self, data):
         self.tx_received = []
@@ -38,6 +39,11 @@ class Cache():
         for s in data_awaiting:
             self.awaiting_tx.append(Transaction.from_signed_raw(s['raw']))
 
+        if 'sources' in data:
+            data_sources = data['sources']
+            for s in data_sources:
+                self.available_sources.append(InputSource.from_inline(s['inline']))
+
         self.latest_block = data['latest_block']
 
     def jsonify(self):
@@ -53,10 +59,16 @@ class Cache():
         for s in self.awaiting_tx:
             data_awaiting.append({'raw': s.signed_raw()})
 
+        data_sources = []
+        for s in self.available_sources:
+            s.index = 0
+            data_sources.append({'inline': "{0}\n".format(s.inline())})
+
         return {'latest_block': self.latest_block,
                 'received': data_received,
                 'sent': data_sent,
-                'awaiting': data_awaiting}
+                'awaiting': data_awaiting,
+                'sources': data_sources}
 
     def latest_sent(self, community):
         return self.tx_sent
@@ -97,6 +109,9 @@ class Cache():
                                          if awaiting.compact() != tx.compact()]
                     self.tx_sent.append(tx)
 
+        if current_block['number'] > self.latest_block:
+            self.available_sources = self.wallet.sources(community)
+
         self.tx_sent = self.tx_sent[:50]
         self.tx_received = self.tx_received[:50]
 
@@ -116,7 +131,6 @@ class Wallet(object):
         self.walletid = walletid
         self.pubkey = pubkey
         self.name = name
-        self.available_inputs = None
         self.cache = Cache(self)
 
     @classmethod
@@ -160,22 +174,16 @@ class Wallet(object):
     def tx_inputs(self, amount, community):
         value = 0
         inputs = []
-        block = community.request(bma.blockchain.Current)
-        sources = self.sources(community)
-        if not self.available_inputs:
-            self.available_inputs = (block['number'], sources)
-        elif self.available_inputs[0] < block['number']:
-            self.available_inputs = (block['number'], sources)
 
-        logging.debug("Available inputs : {0}".format(self.available_inputs[1]))
-        buf_inputs = list(self.available_inputs[1])
-        for s in self.available_inputs[1]:
+        logging.debug("Available inputs : {0}".format(self.cache.available_sources))
+        buf_inputs = list(self.cache.available_sources)
+        for s in self.cache.available_sources:
             value += s.amount
             s.index = 0
             inputs.append(s)
             buf_inputs.remove(s)
             if value >= amount:
-                self.available_inputs = (block['number'], buf_inputs)
+                self.cache.available_sources = buf_inputs
                 return inputs
 
         raise NotEnoughMoneyError(amount, community.currency,
