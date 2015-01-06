@@ -141,7 +141,6 @@ class Community(object):
                     for d in data:
                         cached_data.append(d)
                     self.requests_cache[cache_key] = cached_data
-                    logging.debug("Got a generator !")
                 else:
                     self.requests_cache[cache_key] = data
             return self.requests_cache[cache_key]
@@ -158,6 +157,19 @@ class Community(object):
             except:
                 pass
             return
+
+    def broadcast(self, request, req_args={}, post_args={}):
+        for peer in self.peers:
+            e = next(e for e in peer.endpoints if type(e) is BMAEndpoint)
+            logging.debug("Trying to connect to : " + peer.pubkey)
+            req = request(e.conn_handler(), **req_args)
+            try:
+                req.post(**post_args)
+            except ValueError as e:
+                if peer == self.peers[0]:
+                    raise
+            except:
+                pass
 
     def jsonify_peers_list(self):
         data = []

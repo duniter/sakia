@@ -130,7 +130,7 @@ class Account(object):
                         'self_': selfcert.signed_raw(),
                         'other': "{0}\n".format(certification.inline())}
         logging.debug("Posted data : {0}".format(data))
-        community.post(bma.wot.Add, {}, data)
+        community.broadcast(bma.wot.Add, {}, data)
 
     def sources(self, community):
         sources = []
@@ -189,7 +189,7 @@ class Account(object):
         key = SigningKey(self.salt, password)
         selfcert.sign([key])
         logging.debug("Key publish : {0}".format(selfcert.signed_raw()))
-        community.post(bma.wot.Add, {}, {'pubkey': self.pubkey,
+        community.broadcast(bma.wot.Add, {}, {'pubkey': self.pubkey,
                                     'self_': selfcert.signed_raw(),
                                     'other': []})
 
@@ -206,7 +206,7 @@ class Account(object):
         key = SigningKey(self.salt, password)
         membership.sign([key])
         logging.debug("Membership : {0}".format(membership.signed_raw()))
-        community.post(bma.blockchain.Membership, {},
+        community.broadcast(bma.blockchain.Membership, {},
                        {'membership': membership.signed_raw()})
 
     def jsonify(self):

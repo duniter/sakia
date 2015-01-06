@@ -216,7 +216,7 @@ class Wallet(object):
         tx.sign([key])
         logging.debug("Transaction : {0}".format(tx.signed_raw()))
         try:
-            community.post(bma.tx.Process,
+            community.broadcast(bma.tx.Process,
                         post_args={'transaction': tx.signed_raw()})
             self.cache.awaiting_tx.append(tx)
         except:
