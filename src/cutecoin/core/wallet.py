@@ -178,7 +178,8 @@ class Wallet(object):
                 self.available_inputs = (block['number'], buf_inputs)
                 return inputs
 
-        raise NotEnoughMoneyError(amount, value)
+        raise NotEnoughMoneyError(amount, community.currency,
+                                  len(inputs), value)
         return []
 
     def tx_outputs(self, pubkey, amount, inputs):

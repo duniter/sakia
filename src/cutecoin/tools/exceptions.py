@@ -120,9 +120,13 @@ class NotEnoughMoneyError(Error):
     a key already used for another account.
     '''
 
-    def __init__(self, available, requested):
+    def __init__(self, available, currency, nb_inputs, requested):
         '''
         Constructor
         '''
         super() .__init__(
-            "Key owns only {0} money, needs {1}".format(available, requested))
+            "Only {0} {1} available in {2} sources, needs {3}"
+            .format(available,
+                    currency,
+                    nb_inputs,
+                    requested))

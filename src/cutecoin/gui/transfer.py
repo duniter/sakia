@@ -5,6 +5,7 @@ Created on 2 févr. 2014
 '''
 from PyQt5.QtWidgets import QDialog, QErrorMessage, QInputDialog, QLineEdit, QMessageBox
 
+from ..tools.exceptions import NotEnoughMoneyError
 from ..core.person import Person
 from ..gen_resources.transfer_uic import Ui_TransferMoneyDialog
 
@@ -65,6 +66,10 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
             QMessageBox.critical(self, "Money transfer",
                                  "Something wrong happened : {0}".format(e),
                                  QMessageBox.Ok)
+        except NotEnoughMoneyError as e:
+            QMessageBox.critical(self, "Money transfer",
+                                 "You don't have enough money available in this block : \n{0}"
+                                 .format(e.message))
 
         self.accepted.emit()
         self.close()
