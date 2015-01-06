@@ -5,6 +5,7 @@ Created on 7 févr. 2014
 '''
 
 import logging
+from logging import FileHandler
 from optparse import OptionParser
 from os import environ, path
 
@@ -12,14 +13,14 @@ from os import environ, path
 if "XDG_CONFIG_HOME" in environ:
     config_path = environ["XDG_CONFIG_HOME"]
 elif "HOME" in environ:
-    config_path = environ["HOME"] + "/.config"
+    config_path = path.join(environ["HOME"], ".config")
 elif "APPDATA" in environ:
     config_path = environ["APPDATA"]
 else:
     config_path = path.dirname(__file__)
 
-parameters = {'home': config_path + '/cutecoin/',
-              'data': config_path + '/cutecoin/' + 'data'}
+parameters = {'home': path.join(config_path, 'cutecoin'),
+              'data': path.join(config_path, 'cutecoin', 'data')}
 
 
 def parse_arguments(argv):
@@ -44,4 +45,5 @@ def parse_arguments(argv):
     else:
         logging.getLogger().propagate = False
 
-    pass
+    logfile = FileHandler(path.join(parameters['home'], 'cutecoin.log'))
+    logging.getLogger().addHandler(logfile)
