@@ -14,6 +14,7 @@ from .add_contact import AddContactDialog
 from .import_account import ImportAccountDialog
 from .certification import CertificationDialog
 from .password_asker import PasswordAskerDialog
+from ..__init__ import __version__
 
 import logging
 
@@ -68,6 +69,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.loader.loaded.connect(self.loader_finished)
         self.loader.loaded.connect(self.loader_thread.quit)
         self.loader_thread.started.connect(self.loader.load)
+        self.setWindowTitle("CuteCoin {0}".format(__version__))
         self.refresh()
 
     def open_add_account_dialog(self):
@@ -148,7 +150,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.menu_contacts.setEnabled(True)
             self.action_configure_parameters.setEnabled(True)
             self.menu_actions.setEnabled(True)
-            self.setWindowTitle("CuteCoin - Account : {0}".format(
+            self.setWindowTitle("CuteCoin {0} - Account : {1}".format(__version__,
                 self.app.current_account.name))
 
             self.currencies_tabwidget.clear()
