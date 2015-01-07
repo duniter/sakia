@@ -186,8 +186,8 @@ class Wallet(object):
                 self.cache.available_sources = buf_inputs
                 return inputs
 
-        raise NotEnoughMoneyError(amount, community.currency,
-                                  len(inputs), value)
+        raise NotEnoughMoneyError(value, community.currency,
+                                  len(inputs), amount)
         return []
 
     def tx_outputs(self, pubkey, amount, inputs):
