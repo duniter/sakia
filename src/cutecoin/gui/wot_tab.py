@@ -131,18 +131,23 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
                 ).strftime("%Y/%m/%d"),
                 'cert_time': certified['cert_time']['medianTime']
             }
-            graph[public_key]['arcs'].append(arc)
-            # removed old duplicated arcs
-            arcs = list()
+
+            # replace old arc if this one is more recent
+            new_arc = True
+            index = 0
             for a in graph[public_key]['arcs']:
                 # if same arc already exists...
                 if a['id'] == arc['id']:
                     # if arc more recent, dont keep old one...
-                    if arc['cert_time'] > a['cert_time']:
-                        continue
-                arcs.append(a)
-            # replace arcs with updated list
-            graph[public_key]['arcs'] = arcs
+                    if arc['cert_time'] >= a['cert_time']:
+                        graph[public_key]['arcs'][index] = arc
+                    new_arc = False
+                index += 1
+
+            # if arc not in graph...
+            if new_arc:
+                # add arc in graph
+                graph[public_key]['arcs'].append(arc)
 
         # draw graph in qt scene
         self.graphicsView.scene().update_wot(graph)
