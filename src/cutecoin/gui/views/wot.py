@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsEllipseItem,
 
 NODE_STATUS_HIGHLIGHTED = 1
 NODE_STATUS_SELECTED = 2
+NODE_STATUS_OUT = 4
 ARC_STATUS_STRONG = 1
 ARC_STATUS_WEAK = 2
 
@@ -166,6 +167,7 @@ class Node(QGraphicsEllipseItem):
 
         self.metadata = metadata
         self.status_wallet = self.metadata['status'] & NODE_STATUS_HIGHLIGHTED
+        self.status_member = not self.metadata['status'] & NODE_STATUS_OUT
         self.text = self.metadata['text']
         self.setToolTip(self.metadata['tooltip'])
         self.arcs = []
@@ -176,9 +178,15 @@ class Node(QGraphicsEllipseItem):
 
         # color around ellipse
         outline_color = QColor('grey')
+        outline_style = Qt.SolidLine
+        outline_width = 1
         if self.status_wallet:
             outline_color = QColor('black')
-        self.setPen(QPen(outline_color))
+            outline_width = 2
+        if not self.status_member:
+            outline_color = QColor('red')
+            outline_style = Qt.DashLine
+        self.setPen(QPen(outline_color, outline_width, outline_style))
 
         # text inside ellipse
         self.text_item = QGraphicsSimpleTextItem(self)

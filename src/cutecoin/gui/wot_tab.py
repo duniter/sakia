@@ -6,7 +6,7 @@ import logging
 from PyQt5.QtWidgets import QWidget
 
 from ..gen_resources.wot_tab_uic import Ui_WotTabWidget
-from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_SELECTED, ARC_STATUS_STRONG, ARC_STATUS_WEAK
+from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_SELECTED, NODE_STATUS_OUT, ARC_STATUS_STRONG, ARC_STATUS_WEAK
 from ucoinpy.api import bma
 from .certification import CertificationDialog
 from .add_contact import AddContactDialog
@@ -64,7 +64,11 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         graph = dict()
 
         # add wallet node
-        node_status = (NODE_STATUS_HIGHLIGHTED and (public_key == self.account.pubkey)) or 0
+        node_status = 0
+        if public_key == self.account.pubkey:
+            node_status += NODE_STATUS_HIGHLIGHTED
+        if certifiers['isMember'] is False:
+            node_status += NODE_STATUS_OUT
         node_status += NODE_STATUS_SELECTED
 
         # highlighted node (wallet)
@@ -74,7 +78,11 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         for certifier in certifiers['certifications']:
             # new node
             if certifier['pubkey'] not in graph.keys():
-                node_status = (NODE_STATUS_HIGHLIGHTED and (certifier['pubkey'] == self.account.pubkey)) or 0
+                node_status = 0
+                if certifier['pubkey'] == self.account.pubkey:
+                    node_status += NODE_STATUS_HIGHLIGHTED
+                if certifier['isMember'] is False:
+                    node_status += NODE_STATUS_OUT
                 graph[certifier['pubkey']] = {
                     'id': certifier['pubkey'],
                     'arcs': list(),
@@ -107,7 +115,12 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         # add certified by uid
         for certified in self.community.request(bma.wot.CertifiedBy, {'search': public_key})['certifications']:
             if certified['pubkey'] not in graph.keys():
-                node_status = (NODE_STATUS_HIGHLIGHTED and (certified['pubkey'] == self.account.pubkey)) or 0
+                node_status = 0
+                if certified['pubkey'] == self.account.pubkey:
+                    node_status += NODE_STATUS_HIGHLIGHTED
+                if certified['isMember'] is False:
+                    node_status += NODE_STATUS_OUT
+
                 graph[certified['pubkey']] = {
                     'id': certified['pubkey'],
                     'arcs': list(),
