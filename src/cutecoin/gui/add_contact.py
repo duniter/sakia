@@ -31,9 +31,10 @@ class AddContactDialog(QDialog, Ui_AddContactDialog):
     def accept(self):
         name = self.edit_name.text()
         pubkey = self.edit_pubkey.text()
-        self.account.add_contact(Person(name, pubkey))
-        self.main_window.menu_contacts_list.addAction(name)
-        self.main_window.app.save(self.account)
+        result = self.account.add_contact(Person(name, pubkey))
+        if result:
+            self.main_window.menu_contacts_list.addAction(name)
+            self.main_window.app.save(self.account)
         self.close()
 
     def name_edited(self, new_name):

@@ -82,7 +82,12 @@ class Account(object):
         return (key.pubkey == self.pubkey)
 
     def add_contact(self, person):
-        self.contacts.append(person)
+        same_contact = [contact for contact in self.contacts if person.pubkey == contact.pubkey]
+        if len(same_contact) == 0:
+            print("add contact")
+            self.contacts.append(person)
+            return True
+        return False
 
     def add_community(self, server, port):
         logging.debug("Adding a community")
