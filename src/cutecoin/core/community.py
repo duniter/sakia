@@ -22,7 +22,7 @@ class Community(object):
         A community is a group of nodes using the same currency.
         '''
         self.currency = currency
-        self.peers = peers
+        self.peers = [p for p in peers if p.currency == currency]
         self.requests_cache = {}
         self.last_block = None
 
@@ -30,6 +30,7 @@ class Community(object):
         # we refresh its peers tree
         found_peers = self.peering()
         for p in found_peers:
+            logging.debug(p.currency)
             if p.pubkey not in [peer.pubkey for peer in peers]:
                 self.peers.append(p)
 
