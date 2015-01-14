@@ -88,7 +88,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
     Dialog to configure or add a community
     '''
 
-    def __init__(self, account, community, default_node=None):
+    def __init__(self, account, community, password_asker, default_node=None):
         '''
         Constructor
         '''
@@ -96,6 +96,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         self.setupUi(self)
         self.community = community
         self.account = account
+        self.password_asker = password_asker
         self.step = None
         self.peers = []
 
@@ -168,18 +169,9 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
                                  {0}\n \
                                  Would you like to publish the key ?".format(self.account.pubkey))
             if reply == QMessageBox.Yes:
-                password = ""
-                message = "Please enter your password"
-
-                while not self.account.check_password(password):
-                    password = QInputDialog.getText(self, "Account password",
-                                message,
-                                QLineEdit.Password)
-                    message = "Error, wrong password. Please enter your password"
-                    if password[1] is True:
-                        password = password[0]
-                    else:
-                        return
+                password = self.password_asker.ask()
+                if password == "":
+                    return
                 try:
                     self.account.send_pubkey(password, self.community)
                 except ValueError as e:

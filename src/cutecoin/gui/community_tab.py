@@ -96,18 +96,10 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         dialog.exec_()
 
     def send_membership_demand(self):
-        password = ""
-        message = "Please enter your password"
+        password = self.password_asker.ask()
+        if password == "":
+            return
 
-        while not self.account.check_password(password):
-            password = QInputDialog.getText(self, "Account password",
-                        message,
-                        QLineEdit.Password)
-            message = "Error, wrong password. Please enter your password"
-            if password[1] is True:
-                password = password[0]
-            else:
-                return
         try:
             self.account.send_membership(password, self.community, 'IN')
         except ValueError as e:
@@ -119,18 +111,10 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
                               You can't request a membership.")
 
     def send_membership_leaving(self):
-        password = ""
-        message = "Please enter your password"
+        password = self.password_asker.ask()
+        if password == "":
+            return
 
-        while not self.account.check_password(password):
-            password = QInputDialog.getText(self, "Account password",
-                        message,
-                        QLineEdit.Password)
-            message = "Error, wrong password. Please enter your password"
-            if password[1] is True:
-                password = password[0]
-            else:
-                return
         try:
             self.account.send_membership(password, self.community, 'OUT')
         except ValueError as e:

@@ -6,10 +6,11 @@ Created on 6 mars 2014
 import logging
 from ucoinpy.documents.peer import Peer
 from ucoinpy.key import SigningKey
-from cutecoin.gen_resources.account_cfg_uic import Ui_AccountConfigurationDialog
-from cutecoin.gui.process_cfg_community import ProcessConfigureCommunity
-from cutecoin.models.communities import CommunitiesListModel
-from cutecoin.tools.exceptions import KeyAlreadyUsed, Error
+from ..gen_resources.account_cfg_uic import Ui_AccountConfigurationDialog
+from ..gui.process_cfg_community import ProcessConfigureCommunity
+from ..gui.password_asker import PasswordAskerDialog
+from ..models.communities import CommunitiesListModel
+from ..tools.exceptions import KeyAlreadyUsed, Error
 
 from PyQt5.QtWidgets import QDialog, QErrorMessage, QInputDialog, QMessageBox, QLineEdit
 
@@ -84,6 +85,7 @@ class StepPageKey(Step):
         password = self.config_dialog.edit_password.text()
         self.config_dialog.account.salt = salt
         self.config_dialog.account.pubkey = SigningKey(salt, password).pubkey
+        self.config_dialog.password_asker = PasswordAskerDialog(self.config_dialog.account)
         model = CommunitiesListModel(self.config_dialog.account)
         self.config_dialog.list_communities.setModel(model)
 
@@ -135,6 +137,7 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         super().__init__()
         self.setupUi(self)
         self.account = account
+        self.password_asker = None
         self.app = app
         step_init = StepPageInit(self)
         step_key = StepPageKey(self)
@@ -153,7 +156,9 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
 
     def open_process_add_community(self):
         logging.debug("Opening configure community dialog")
-        dialog = ProcessConfigureCommunity(self.account, None)
+        logging.debug(self.password_asker)
+        dialog = ProcessConfigureCommunity(self.account, None,
+                                           self.password_asker)
         dialog.accepted.connect(self.action_add_community)
         dialog.exec_()
 
@@ -229,17 +234,10 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
                 QErrorMessage(self).showMessage(e.message)
             password = self.edit_password.text()
         else:
-            message = "Please enter your password"
+            password = self.password_asker.ask()
+            if password == "":
+                return
 
-            while not self.account.check_password(password):
-                password = QInputDialog.getText(self, "Account password",
-                            message,
-                            QLineEdit.Password)
-                message = "Error, wrong password. Please enter your password"
-                if password[1] is True:
-                    password = password[0]
-                else:
-                    return
         nb_wallets = self.spinbox_wallets.value()
         self.account.set_walletpool_size(nb_wallets, password)
         self.app.save(self.account)
