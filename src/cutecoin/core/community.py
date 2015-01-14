@@ -30,7 +30,6 @@ class Community(object):
         # we refresh its peers tree
         found_peers = self.peering()
         for p in found_peers:
-            logging.debug(p.currency)
             if p.pubkey not in [peer.pubkey for peer in peers]:
                 self.peers.append(p)
 
