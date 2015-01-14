@@ -14,6 +14,7 @@ from .add_contact import AddContactDialog
 from .wot_tab import WotTabWidget
 from .transfer import TransferMoneyDialog
 from .certification import CertificationDialog
+from ..tools.exceptions import PersonNotFoundError
 
 
 class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
@@ -32,6 +33,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         self.account = account
         self.password_asker = password_asker
         self.list_community_members.setModel(MembersListModel(community))
+        self.button_membership.disconnect()
 
         if self.account.member_of(self.community):
             self.button_membership.setText("Send leaving demand")
@@ -111,6 +113,10 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         except ValueError as e:
             QMessageBox.critical(self, "Join demand error",
                               e.message)
+        except PersonNotFoundError as e:
+            QMessageBox.critical(self, "Key not sent to community",
+                              "Your key wasn't sent in the community. \
+                              You can't request a membership.")
 
     def send_membership_leaving(self):
         password = ""

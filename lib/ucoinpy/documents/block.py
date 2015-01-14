@@ -73,6 +73,7 @@ BOTTOM_SIGNATURE
     re_actives = re.compile("Actives:\n")
     re_leavers = re.compile("Leavers:\n")
     re_excluded = re.compile("Excluded:\n")
+    re_exclusion = re.compile("([1-9A-Za-z][^OIl]{42,45})\n")
     re_certifications = re.compile("Certifications:\n")
     re_transactions = re.compile("Transactions:\n")
 
@@ -197,7 +198,7 @@ BOTTOM_SIGNATURE
         if Block.re_excluded.match(lines[n]):
             n = n + 1
             while Block.re_certifications.match(lines[n]) is None:
-                membership = Membership.from_inline(version, currency, "OUT", lines[n])
+                membership = Block.re_exclusion.match(lines[n]).group(1)
                 excluded.append(membership)
                 n = n + 1
 
@@ -282,7 +283,7 @@ PreviousIssuer: {1}\n".format(self.prev_hash, self.prev_issuer)
 
         doc += "Excluded:\n"
         for exclude in self.excluded:
-            doc += "{0}\n".format(exclude.inline())
+            doc += "{0}\n".format(exclude)
 
         doc += "Certifications:\n"
         for cert in self.certifications:
