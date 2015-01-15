@@ -17,6 +17,7 @@ class Cache():
     def __init__(self, wallet):
         self.latest_block = 0
         self.wallet = wallet
+
         self.tx_sent = []
         self.awaiting_tx = []
         self.tx_received = []
@@ -131,7 +132,7 @@ class Wallet(object):
         self.walletid = walletid
         self.pubkey = pubkey
         self.name = name
-        self.cache = Cache(self)
+        self.caches = {}
 
     @classmethod
     def create(cls, walletid, salt, password, name):
@@ -150,6 +151,20 @@ class Wallet(object):
 
     def __eq__(self, other):
         return (self.keyid == other.keyid)
+
+    def load_caches(self, json_data):
+        for currency in json_data:
+            self.caches[currency] = Cache(self)
+            self.caches[currency].load_from_json(json_data[currency])
+
+    def jsonify_caches(self):
+        for currency in self.caches:
+            return {currency: self.caches[currency].jsonify()}
+
+    def refresh_cache(self, community):
+        if community.currency not in self.caches:
+            self.caches[community.currency] = Cache(self)
+        self.caches[community.currency].refresh(community)
 
     def check_password(self, salt, password):
         key = None
@@ -174,16 +189,17 @@ class Wallet(object):
     def tx_inputs(self, amount, community):
         value = 0
         inputs = []
+        cache = self.caches[community.currency]
 
-        logging.debug("Available inputs : {0}".format(self.cache.available_sources))
-        buf_inputs = list(self.cache.available_sources)
-        for s in self.cache.available_sources:
+        logging.debug("Available inputs : {0}".format(cache.available_sources))
+        buf_inputs = list(cache.available_sources)
+        for s in cache.available_sources:
             value += s.amount
             s.index = 0
             inputs.append(s)
             buf_inputs.remove(s)
             if value >= amount:
-                self.cache.available_sources = buf_inputs
+                cache.available_sources = buf_inputs
                 return inputs
 
         raise NotEnoughMoneyError(value, community.currency,
@@ -226,7 +242,7 @@ class Wallet(object):
         try:
             community.broadcast(bma.tx.Process,
                         post_args={'transaction': tx.signed_raw()})
-            self.cache.awaiting_tx.append(tx)
+            self.caches[community.currency].awaiting_tx.append(tx)
         except:
             raise
 
@@ -239,13 +255,13 @@ class Wallet(object):
         return tx
 
     def transactions_awaiting(self, community):
-        return self.cache.awaiting(community)
+        return self.caches[community.currency].awaiting(community)
 
     def transactions_sent(self, community):
-        return self.cache.latest_sent(community)
+        return self.caches[community.currency].latest_sent(community)
 
     def transactions_received(self, community):
-        return self.cache.latest_received(community)
+        return self.caches[community.currency].latest_received(community)
 
     def get_text(self, community):
         return "%s : \n \

@@ -92,9 +92,9 @@ class Application(object):
             if os.path.exists(wallet_path):
                 json_data = open(wallet_path, 'r')
                 data = json.load(json_data)
-                wallet.cache.load_from_json(data)
+                wallet.load_caches(data)
             for community in account.communities:
-                wallet.cache.refresh(community)
+                wallet.refresh_cache(community)
 
     def save(self, account):
         with open(config.parameters['data'], 'w') as outfile:
@@ -114,7 +114,7 @@ class Application(object):
             wallet_path = os.path.join(config.parameters['home'],
                                         account.name, '__cache__', wallet.pubkey)
             with open(wallet_path, 'w') as outfile:
-                json.dump(wallet.cache.jsonify(), outfile, indent=4, sort_keys=True)
+                json.dump(wallet.jsonify_caches(), outfile, indent=4, sort_keys=True)
 
     def import_account(self, file, name):
         with tarfile.open(file, "r") as tar:
