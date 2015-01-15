@@ -91,15 +91,18 @@ class Account(object):
 
     def add_community(self, server, port):
         logging.debug("Adding a community")
-        current = bma.blockchain.Current(ConnectionHandler(server, port))
-        block_data = current.get()
-        currency = block_data['currency']
-        logging.debug("Currency : {0}".format(currency))
 
         peering = bma.network.Peering(ConnectionHandler(server, port))
         peer_data = peering.get()
         peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],
                                                       peer_data['signature']))
+
+        currency = ""
+        if peer.blockid != "0-DA39A3EE5E6B4B0D3255BFEF95601890AFD80709":
+            current = bma.blockchain.Current(ConnectionHandler(server, port))
+            block_data = current.get()
+            currency = block_data['currency']
+            logging.debug("Currency : {0}".format(currency))
 
         community = Community.create(currency, peer)
         self.communities.append(community)
