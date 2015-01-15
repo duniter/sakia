@@ -57,7 +57,7 @@ class StepPageInit(Step):
             self.config_dialog.community = account.add_community(server, port)
         except NoPeerAvailable:
             QMessageBox.critical(self.config_dialog, "Server Error",
-                              "Canno't join any peer in this community.")
+                              "Cannot join any peer in this community.")
             raise
 
     def display_page(self):

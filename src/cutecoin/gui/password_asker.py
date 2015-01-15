@@ -42,6 +42,7 @@ class PasswordAskerDialog(QDialog, Ui_PasswordAskerDialog):
         if self.account.check_password(password):
             self.remember = self.check_remember.isChecked()
             self.password = password
+            self.edit_password.setText("")
 
             self.accepted.emit()
             self.close()
