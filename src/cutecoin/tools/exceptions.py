@@ -130,3 +130,17 @@ class NotEnoughMoneyError(Error):
                     currency,
                     nb_inputs,
                     requested))
+
+
+class NoPeerAvailable(Error):
+    '''
+    Exception raised when a community doesn't have any
+    peer available.
+    '''
+    def __init__(self, currency):
+        '''
+        Constructor
+        '''
+        super() .__init__(
+            "No peer found in {0} community"
+            .format(currency))

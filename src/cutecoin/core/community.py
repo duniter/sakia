@@ -8,6 +8,7 @@ from ucoinpy.api import bma
 from ucoinpy import PROTOCOL_VERSION
 from ucoinpy.documents.peer import Peer, Endpoint, BMAEndpoint
 from ucoinpy.documents.block import Block
+from ..tools.exceptions import NoPeerAvailable
 import logging
 import time
 import inspect
@@ -44,17 +45,18 @@ class Community(object):
         currency = json_data['currency']
 
         for data in json_data['peers']:
-            endpoint_inline = next(e for e in data['endpoints']
-                            if Endpoint.from_inline(e) is not None)
-            endpoint = Endpoint.from_inline(endpoint_inline)
-            try:
-                peering = bma.network.Peering(endpoint.conn_handler())
-                peer_data = peering.get()
-                peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],
-                                                  peer_data['signature']))
-                peers.append(peer)
-            except:
-                pass
+            for e in data['endpoints']:
+                if Endpoint.from_inline(e) is not None:
+                    endpoint = Endpoint.from_inline(e)
+                    try:
+                        peering = bma.network.Peering(endpoint.conn_handler())
+                        peer_data = peering.get()
+                        peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],
+                                                          peer_data['signature']))
+                        peers.append(peer)
+                        break
+                    except:
+                        pass
 
         community = cls(currency, peers)
         return community
@@ -103,47 +105,59 @@ class Community(object):
             members.append(m['pubkey'])
         return members
 
+    def check_current_block(self, endpoint):
+        if self.last_block is None:
+            peering = bma.network.Peering(endpoint.conn_handler()).get()
+            block_number = peering['block'].split('-')[0]
+            self.last_block = {"request_ts": time.time(),
+                               "number": block_number}
+        elif self.last_block["request_ts"] + 60 < time.time():
+            logging.debug("{0} > {1}".format(self.last_block["request_ts"] + 60, time.time()))
+            self.last_block["request_ts"] = time.time()
+            peering = bma.network.Peering(endpoint.conn_handler()).get()
+            block_number = peering['block'].split('-')[0]
+            if block_number > self.last_block['number']:
+                self.last_block["number"] = block_number
+                self.requests_cache = {}
+
     def request(self, request, req_args={}, get_args={}):
         for peer in self.peers:
-            e = next(e for e in peer.endpoints if type(e) is BMAEndpoint)
-            # We request the current block every five minutes
-            # If a new block is mined we reset the cache
-            if self.last_block is None:
-                block = bma.blockchain.Current(e.conn_handler()).get()
-                self.last_block = {"request_ts": time.time(),
-                                   "number": block['number']}
-            elif self.last_block["request_ts"] + 60 < time.time():
-                logging.debug("{0} > {1}".format(self.last_block["request_ts"] + 60, time.time()))
-                self.last_block["request_ts"] = time.time()
-                block = bma.blockchain.Current(e.conn_handler()).get()
-                if block['number'] > self.last_block['number']:
-                    self.last_block["number"] = block['number']
-                    self.requests_cache = {}
+            try:
+                e = next(e for e in peer.endpoints if type(e) is BMAEndpoint)
+                # We request the current block every five minutes
+                # If a new block is mined we reset the cache
 
-            cache_key = (hash(request),
-                         hash(tuple(frozenset(sorted(req_args.keys())))),
-                         hash(tuple(frozenset(sorted(req_args.items())))),
-                         hash(tuple(frozenset(sorted(get_args.keys())))),
-                         hash(tuple(frozenset(sorted(get_args.items())))))
+                self.check_current_block(e)
+                cache_key = (hash(request),
+                             hash(tuple(frozenset(sorted(req_args.keys())))),
+                             hash(tuple(frozenset(sorted(req_args.items())))),
+                             hash(tuple(frozenset(sorted(get_args.keys())))),
+                             hash(tuple(frozenset(sorted(get_args.items())))))
 
-            if cache_key not in self.requests_cache.keys():
-                if e.server:
-                    logging.debug("Connecting to {0}:{1}".format(e.server,
-                                                             e.port))
+                if cache_key not in self.requests_cache.keys():
+                    if e.server:
+                        logging.debug("Connecting to {0}:{1}".format(e.server,
+                                                                 e.port))
+                    else:
+                        logging.debug("Connecting to {0}:{1}".format(e.ipv4,
+                                                                 e.port))
+
+                    req = request(e.conn_handler(), **req_args)
+                    data = req.get(**get_args)
+                    if inspect.isgenerator(data):
+                        cached_data = []
+                        for d in data:
+                            cached_data.append(d)
+                        self.requests_cache[cache_key] = cached_data
+                    else:
+                        self.requests_cache[cache_key] = data
+            except ValueError as e:
+                if '502' in str(e):
+                    continue
                 else:
-                    logging.debug("Connecting to {0}:{1}".format(e.ipv4,
-                                                             e.port))
-
-                req = request(e.conn_handler(), **req_args)
-                data = req.get(**get_args)
-                if inspect.isgenerator(data):
-                    cached_data = []
-                    for d in data:
-                        cached_data.append(d)
-                    self.requests_cache[cache_key] = cached_data
-                else:
-                    self.requests_cache[cache_key] = data
+                    raise
             return self.requests_cache[cache_key]
+        raise NoPeerAvailable(self.currency)
 
     def post(self, request, req_args={}, post_args={}):
         for peer in self.peers:

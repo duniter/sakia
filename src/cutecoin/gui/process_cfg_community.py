@@ -9,13 +9,12 @@ from ucoinpy.api import bma
 from ucoinpy.api.bma import ConnectionHandler
 from ucoinpy.documents.peer import Peer
 
-from cutecoin.gen_resources.community_cfg_uic import Ui_CommunityConfigurationDialog
-from PyQt5.QtWidgets import QDialog, QMenu, QMessageBox, QInputDialog, QLineEdit
-from PyQt5.QtCore import QSignalMapper
-from cutecoin.models.peering import PeeringTreeModel
-from cutecoin.core.person import Person
-from cutecoin.tools.exceptions import PersonNotFoundError
-from cutecoin.tools.exceptions import Error
+from PyQt5.QtWidgets import QDialog, QMenu, QMessageBox
+
+from ..gen_resources.community_cfg_uic import Ui_CommunityConfigurationDialog
+from ..models.peering import PeeringTreeModel
+from ..core.person import Person
+from ..tools.exceptions import PersonNotFoundError, NoPeerAvailable
 
 
 class Step():
@@ -41,7 +40,7 @@ class StepPageInit(Step):
             peer_data = bma.network.Peering(ConnectionHandler(server, port))
             peer_data.get()['raw']
         except:
-            QMessageBox.critical(self, "Server error",
+            QMessageBox.critical(self.config_dialog, "Server error",
                               "Cannot get node peering")
             return False
         return True
@@ -54,7 +53,12 @@ class StepPageInit(Step):
         port = self.config_dialog.spinbox_port.value()
         account = self.config_dialog.account
         logging.debug("Account : {0}".format(account))
-        self.config_dialog.community = account.add_community(server, port)
+        try:
+            self.config_dialog.community = account.add_community(server, port)
+        except NoPeerAvailable:
+            QMessageBox.critical(self.config_dialog, "Server Error",
+                              "Canno't join any peer in this community.")
+            raise
 
     def display_page(self):
         self.config_dialog.button_previous.setEnabled(False)
