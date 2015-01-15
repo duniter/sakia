@@ -199,10 +199,15 @@ class Account(object):
         self_ = Person.lookup(self.pubkey, community)
         selfcert = self_.selfcert(community)
 
-        block = community.get_block()
-        block_hash = hashlib.sha1(block.signed_raw().encode("ascii")).hexdigest().upper()
+        try:
+            block = community.get_block()
+            block_hash = hashlib.sha1(block.signed_raw().encode("ascii")).hexdigest().upper()
+            block_number = block['number']
+        except ValueError as e:
+            block_number = 0
+            block_hash = "DA39A3EE5E6B4B0D3255BFEF95601890AFD80709"
         membership = Membership(PROTOCOL_VERSION, community.currency,
-                          selfcert.pubkey, block.number,
+                          selfcert.pubkey, block_number,
                           block_hash, type, selfcert.uid,
                           selfcert.timestamp, None)
         key = SigningKey(self.salt, password)

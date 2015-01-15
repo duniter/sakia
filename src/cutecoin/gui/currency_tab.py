@@ -25,21 +25,23 @@ class BlockchainWatcher(QObject):
         self.account = account
         self.community = community
         self.exiting = False
-        self.last_block = self.community.request(bma.blockchain.Current)['number']
+        peering = self.community.request(bma.network.Peering)
+        self.last_block = peering['block'].split('-')[0]
 
     @pyqtSlot()
     def watch(self):
         while not self.exiting:
             time.sleep(10)
-            current_block = self.community.request(bma.blockchain.Current)
-            if self.last_block != current_block['number']:
+            peering = self.community.request(bma.network.Peering)
+            block_number = peering['block'].split('-')[0]
+            if self.last_block != block_number:
                 for w in self.account.wallets:
                     w.cache.refresh(self.community)
 
-                logging.debug("New block, {0} mined in {1}".format(current_block['number'],
+                logging.debug("New block, {0} mined in {1}".format(block_number,
                                                                    self.community.currency))
-                self.new_block_mined.emit(current_block['number'])
-                self.last_block = current_block['number']
+                self.new_block_mined.emit(block_number)
+                self.last_block = block_number
 
     new_block_mined = pyqtSignal(int)
 
@@ -90,7 +92,8 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             self.tabs_account.addTab(self.tab_community,
                                      QIcon(':/icons/community_icon'),
                                     "Community")
-            block_number = self.community.request(bma.blockchain.Current)['number']
+            peering = self.community.request(bma.network.Peering)
+            block_number = peering['block'].split('-')[0]
             self.status_label.setText("Connected : Block {0}"
                                              .format(block_number))
 
@@ -167,7 +170,8 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         self.app.save(self.app.current_account)
 
     def showEvent(self, event):
-        block_number = self.community.request(bma.blockchain.Current)['number']
+        peering = self.community.request(bma.network.Peering)
+        block_number = peering['block'].split('-')[0]
         self.status_label.setText("Connected : Block {0}"
                                          .format(block_number))
 

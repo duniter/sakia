@@ -81,13 +81,22 @@ class Cache():
         return self.tx_received
 
     def refresh(self, community):
-        current_block = community.request(bma.blockchain.Current)
+        current_block = 0
+        try:
+            block_data = community.request(bma.blockchain.Current)
+            current_block = block_data['number']
+        except ValueError as e:
+            if '404' in str(e):
+                current_block = 0
+            else:
+                raise
+
         with_tx = community.request(bma.blockchain.TX)
         # We parse only blocks with transactions
         parsed_blocks = reversed(range(self.latest_block + 1,
-                                           current_block['number'] + 1))
+                                           current_block + 1))
         logging.debug("Refresh from {0} to {1}".format(self.latest_block + 1,
-                                           current_block['number'] + 1))
+                                           current_block + 1))
         parsed_blocks = [n for n in parsed_blocks
                          if n in with_tx['result']['blocks']]
 
@@ -110,13 +119,13 @@ class Cache():
                                          if awaiting.compact() != tx.compact()]
                     self.tx_sent.append(tx)
 
-        if current_block['number'] > self.latest_block:
+        if current_block > self.latest_block:
             self.available_sources = self.wallet.sources(community)
 
         self.tx_sent = self.tx_sent[:50]
         self.tx_received = self.tx_received[:50]
 
-        self.latest_block = current_block['number']
+        self.latest_block = current_block
 
 
 class Wallet(object):

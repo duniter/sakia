@@ -69,10 +69,13 @@ class Community(object):
 
     def dividend(self):
         ud = self.request(bma.blockchain.UD)
-        block_number = ud['result']['blocks'][-1]
-        block = self.request(bma.blockchain.Block,
-                             req_args={'number': block_number})
-        return block['dividend']
+        if len(ud['result']['blocks']) > 0:
+            block_number = ud['result']['blocks'][-1]
+            block = self.request(bma.blockchain.Block,
+                                 req_args={'number': block_number})
+            return block['dividend']
+        else:
+            return 1
 
     def peering(self):
         peers = []
