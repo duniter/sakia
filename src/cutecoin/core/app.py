@@ -66,10 +66,6 @@ class Application(object):
         self.load_cache(account)
 
     def load(self):
-        if not os.path.exists(config.parameters['home']):
-            logging.info("Creating home directory")
-            os.makedirs((config.parameters['home']))
-
         if (os.path.exists(config.parameters['data'])
                 and os.path.isfile(config.parameters['data'])):
             logging.debug("Loading data...")

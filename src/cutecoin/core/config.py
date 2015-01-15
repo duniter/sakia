@@ -7,7 +7,7 @@ Created on 7 févr. 2014
 import logging
 from logging import FileHandler
 from optparse import OptionParser
-from os import environ, path
+from os import environ, path, makedirs
 
 
 if "XDG_CONFIG_HOME" in environ:
@@ -21,6 +21,10 @@ else:
 
 parameters = {'home': path.join(config_path, 'cutecoin'),
               'data': path.join(config_path, 'cutecoin', 'data')}
+
+if not path.exists(parameters['home']):
+    logging.info("Creating home directory")
+    makedirs((parameters['home']))
 
 
 def parse_arguments(argv):
