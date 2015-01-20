@@ -166,7 +166,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
 
     def accept(self):
         try:
-            Person.lookup(self.account.pubkey, self.community)
+            Person.lookup(self.account.pubkey, self.community, cached=False)
         except PersonNotFoundError as e:
             reply = QMessageBox.question(self, "Pubkey not found",
                                  "The public key of your account wasn't found in the community. :\n \

@@ -26,11 +26,12 @@ class Person(object):
         self.pubkey = pubkey
 
     @classmethod
-    def lookup(cls, pubkey, community):
+    def lookup(cls, pubkey, community, cached=True):
         '''
         Create a person from the pubkey found in a community
         '''
-        data = community.request(bma.wot.Lookup, req_args={'search': pubkey})
+        data = community.request(bma.wot.Lookup, req_args={'search': pubkey},
+                                 cached=cached)
         results = data['results']
         logging.debug(results)
         timestamp = 0

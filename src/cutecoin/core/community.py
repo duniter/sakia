@@ -123,43 +123,48 @@ class Community(object):
                 self.last_block["number"] = block_number
                 self.requests_cache = {}
 
-    def request(self, request, req_args={}, get_args={}):
+    def request(self, request, req_args={}, get_args={}, cached=True):
         for peer in self.peers:
-            try:
-                e = next(e for e in peer.endpoints if type(e) is BMAEndpoint)
-                # We request the current block every five minutes
-                # If a new block is mined we reset the cache
+            e = next(e for e in peer.endpoints if type(e) is BMAEndpoint)
+            if cached:
+                try:
+                    # We request the current block every five minutes
+                    # If a new block is mined we reset the cache
 
-                self.check_current_block(e)
-                cache_key = (hash(request),
-                             hash(tuple(frozenset(sorted(req_args.keys())))),
-                             hash(tuple(frozenset(sorted(req_args.items())))),
-                             hash(tuple(frozenset(sorted(get_args.keys())))),
-                             hash(tuple(frozenset(sorted(get_args.items())))))
+                    self.check_current_block(e)
+                    cache_key = (hash(request),
+                                 hash(tuple(frozenset(sorted(req_args.keys())))),
+                                 hash(tuple(frozenset(sorted(req_args.items())))),
+                                 hash(tuple(frozenset(sorted(get_args.keys())))),
+                                 hash(tuple(frozenset(sorted(get_args.items())))))
 
-                if cache_key not in self.requests_cache.keys():
-                    if e.server:
-                        logging.debug("Connecting to {0}:{1}".format(e.server,
-                                                                 e.port))
+                    if cache_key not in self.requests_cache.keys():
+                        if e.server:
+                            logging.debug("Connecting to {0}:{1}".format(e.server,
+                                                                     e.port))
+                        else:
+                            logging.debug("Connecting to {0}:{1}".format(e.ipv4,
+                                                                     e.port))
+
+                        req = request(e.conn_handler(), **req_args)
+                        data = req.get(**get_args)
+                        if inspect.isgenerator(data):
+                            cached_data = []
+                            for d in data:
+                                cached_data.append(d)
+                            self.requests_cache[cache_key] = cached_data
+                        else:
+                            self.requests_cache[cache_key] = data
+                except ValueError as e:
+                    if '502' in str(e):
+                        continue
                     else:
-                        logging.debug("Connecting to {0}:{1}".format(e.ipv4,
-                                                                 e.port))
-
-                    req = request(e.conn_handler(), **req_args)
-                    data = req.get(**get_args)
-                    if inspect.isgenerator(data):
-                        cached_data = []
-                        for d in data:
-                            cached_data.append(d)
-                        self.requests_cache[cache_key] = cached_data
-                    else:
-                        self.requests_cache[cache_key] = data
-            except ValueError as e:
-                if '502' in str(e):
-                    continue
-                else:
-                    raise
-            return self.requests_cache[cache_key]
+                        raise
+                return self.requests_cache[cache_key]
+            else:
+                req = request(e.conn_handler(), **req_args)
+                data = req.get(**get_args)
+                return data
         raise NoPeerAvailable(self.currency)
 
     def post(self, request, req_args={}, post_args={}):
