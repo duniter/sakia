@@ -3,7 +3,7 @@ Created on 2 févr. 2014
 
 @author: inso
 '''
-from PyQt5.QtWidgets import QDialog, QErrorMessage, QInputDialog, QLineEdit, QMessageBox
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QMessageBox
 
 from ..tools.exceptions import NotEnoughMoneyError
 from ..core.person import Person
@@ -40,6 +40,11 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
 
         for contact in sender.contacts:
             self.combo_contact.addItem(contact.name)
+
+        if len(self.sender.contacts) == 0:
+            self.combo_contact.setEnabled(False)
+            self.radio_contact.setEnabled(False)
+            self.radio_pubkey.setChecked(True)
 
     def accept(self):
         comment = self.edit_message.text()
@@ -94,13 +99,19 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         self.label_total.setText(self.wallet.get_text(self.community))
         self.spinbox_amount.setSuffix(" " + self.community.currency)
         self.spinbox_amount.setValue(0)
-        self.spinbox_amount.setMaximum(self.wallet.value(self.community))
+        amount = self.wallet.value(self.community)
+        relative = amount / self.dividend
+        self.spinbox_amount.setMaximum(amount)
+        self.spinbox_relative.setMaximum(relative)
 
     def change_displayed_wallet(self, index):
         self.wallet = self.sender.wallets[index]
         self.label_total.setText(self.wallet.get_text(self.community))
         self.spinbox_amount.setValue(0)
-        self.spinbox_amount.setMaximum(self.wallet.value(self.community))
+        amount = self.wallet.value(self.community)
+        relative = amount / self.dividend
+        self.spinbox_amount.setMaximum(amount)
+        self.spinbox_relative.setMaximum(relative)
 
     def recipient_mode_changed(self, pubkey_toggled):
         self.edit_pubkey.setEnabled(pubkey_toggled)

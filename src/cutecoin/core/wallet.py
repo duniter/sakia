@@ -167,8 +167,10 @@ class Wallet(object):
             self.caches[currency].load_from_json(json_data[currency])
 
     def jsonify_caches(self):
+        data = {}
         for currency in self.caches:
-            return {currency: self.caches[currency].jsonify()}
+            data[currency] = self.caches[currency].jsonify()
+        return data
 
     def refresh_cache(self, community):
         if community.currency not in self.caches:

@@ -200,7 +200,7 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
 
     def open_process_edit_community(self, index):
         community = self.account.communities[index.row()]
-        dialog = ProcessConfigureCommunity(self.account, community)
+        dialog = ProcessConfigureCommunity(self.account, community, self.password_asker)
         dialog.accepted.connect(self.action_edit_community)
         dialog.exec_()
 

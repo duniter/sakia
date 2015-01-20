@@ -113,12 +113,18 @@ class Account(object):
 
     def certify(self, password, community, pubkey):
         certified = Person.lookup(pubkey, community)
-        block = community.get_block()
-        block_hash = hashlib.sha1(block.signed_raw().encode("ascii")).hexdigest().upper()
+
+        try:
+            block = community.get_block()
+            block_number = block.number
+            block_hash = hashlib.sha1(block.signed_raw().encode("ascii")).hexdigest().upper()
+        except ValueError as e:
+            block_number = 0
+            block_hash = "DA39A3EE5E6B4B0D3255BFEF95601890AFD80709"
 
         certification = Certification(PROTOCOL_VERSION, community.currency,
                                       self.pubkey, certified.pubkey,
-                                      block_hash, block.number, None)
+                                      block_hash, block_number, None)
 
         selfcert = certified.selfcert(community)
         logging.debug("SelfCertification : {0}".format(selfcert.raw()))
@@ -202,10 +208,11 @@ class Account(object):
         try:
             block = community.get_block()
             block_hash = hashlib.sha1(block.signed_raw().encode("ascii")).hexdigest().upper()
-            block_number = block['number']
+            block_number = block.number
         except ValueError as e:
             block_number = 0
             block_hash = "DA39A3EE5E6B4B0D3255BFEF95601890AFD80709"
+
         membership = Membership(PROTOCOL_VERSION, community.currency,
                           selfcert.pubkey, block_number,
                           block_hash, type, selfcert.uid,

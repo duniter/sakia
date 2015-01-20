@@ -104,7 +104,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             self.account.send_membership(password, self.community, 'IN')
         except ValueError as e:
             QMessageBox.critical(self, "Join demand error",
-                              e.message)
+                              str(e))
         except PersonNotFoundError as e:
             QMessageBox.critical(self, "Key not sent to community",
                               "Your key wasn't sent in the community. \

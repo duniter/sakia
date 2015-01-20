@@ -126,12 +126,11 @@ class Community(object):
     def request(self, request, req_args={}, get_args={}, cached=True):
         for peer in self.peers:
             e = next(e for e in peer.endpoints if type(e) is BMAEndpoint)
-            if cached:
+            self.check_current_block(e)
+            if cached and self.last_block["number"] != 0:
                 try:
                     # We request the current block every five minutes
                     # If a new block is mined we reset the cache
-
-                    self.check_current_block(e)
                     cache_key = (hash(request),
                                  hash(tuple(frozenset(sorted(req_args.keys())))),
                                  hash(tuple(frozenset(sorted(req_args.items())))),
