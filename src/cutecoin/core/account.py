@@ -87,16 +87,8 @@ class Account(object):
             return True
         return False
 
-    def add_community(self, server, port):
+    def add_community(self, community):
         logging.debug("Adding a community")
-
-        peering = bma.network.Peering(ConnectionHandler(server, port))
-        peer_data = peering.get()
-        peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],
-                                                      peer_data['signature']))
-        currency = peer.currency
-
-        community = Community.create(currency, peer)
         self.communities.append(community)
         return community
 

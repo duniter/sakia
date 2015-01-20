@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import QDialog, QMenu, QMessageBox
 
 from ..gen_resources.community_cfg_uic import Ui_CommunityConfigurationDialog
 from ..models.peering import PeeringTreeModel
+from ..core.community import Community
 from ..core.person import Person
 from ..tools.exceptions import PersonNotFoundError, NoPeerAvailable
 
@@ -54,7 +55,12 @@ class StepPageInit(Step):
         account = self.config_dialog.account
         logging.debug("Account : {0}".format(account))
         try:
-            self.config_dialog.community = account.add_community(server, port)
+            peering = bma.network.Peering(ConnectionHandler(server, port))
+            peer_data = peering.get()
+            peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],
+                                                          peer_data['signature']))
+            currency = peer.currency
+            self.config_dialog.community = Community.create(currency, peer)
         except NoPeerAvailable:
             QMessageBox.critical(self.config_dialog, "Server Error",
                               "Cannot join any peer in this community.")
