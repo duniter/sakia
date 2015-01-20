@@ -54,14 +54,32 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
 
         :param public_key: Public key of the identity
         """
+        # reset graph
+        graph = dict()
+
         try:
             certifiers = self.community.request(bma.wot.CertifiersOf, {'search': public_key})
         except ValueError as e:
             logging.debug('bma.wot.CertifiersOf request error : ' + str(e))
-            return False
+            try:
+                results = self.community.request(bma.wot.Lookup, {'search': public_key})
+            except ValueError as e:
+                logging.debug('bma.wot.CertifiersOf request error : ' + str(e))
+                return False
 
-        # reset graph
-        graph = dict()
+            # show only node of this non member (to certify him)
+            node_status = 0
+            if public_key == self.account.pubkey:
+                node_status += NODE_STATUS_HIGHLIGHTED
+            node_status += NODE_STATUS_OUT
+            node_status += NODE_STATUS_SELECTED
+
+            # selected node
+            graph[public_key] = {'id': public_key, 'arcs': list(), 'text': results['results'][0]['uids'][0]['uid'], 'tooltip': public_key, 'status': node_status}
+
+            # draw graph in qt scene
+            self.graphicsView.scene().update_wot(graph)
+            return False
 
         # add wallet node
         node_status = 0
@@ -215,6 +233,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
     def sign_node(self, metadata):
         # open certify dialog
         dialog = CertificationDialog(self.account, self.password_asker)
+        dialog.combo_community.setCurrentText(self.community.name())
         dialog.edit_pubkey.setText(metadata['id'])
         dialog.radio_pubkey.setChecked(True)
         dialog.exec_()
