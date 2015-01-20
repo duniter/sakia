@@ -52,5 +52,13 @@ class SentListModel(QAbstractListModel):
                 value = "{0} to {1}".format(amount, outputs[0].pubkey)
             return value
 
+        if role == Qt.FontRole:
+            font = QFont()
+            if row < len(self.account.transactions_sent(self.community)):
+                font.setItalic(False)
+            else:
+                font.setItalic(True)
+            return font
+
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled
