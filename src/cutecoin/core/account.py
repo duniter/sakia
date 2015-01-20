@@ -113,11 +113,10 @@ class Account(object):
 
     def certify(self, password, community, pubkey):
         certified = Person.lookup(pubkey, community)
-
         try:
             block = community.get_block()
-            block_number = block.number
             block_hash = hashlib.sha1(block.signed_raw().encode("ascii")).hexdigest().upper()
+            block_number = block['number']
         except ValueError as e:
             block_number = 0
             block_hash = "DA39A3EE5E6B4B0D3255BFEF95601890AFD80709"
