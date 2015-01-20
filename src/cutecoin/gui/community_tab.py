@@ -102,6 +102,8 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
 
         try:
             self.account.send_membership(password, self.community, 'IN')
+            QMessageBox.information(self, "Membership",
+                                 "Success sending membership demand")
         except ValueError as e:
             QMessageBox.critical(self, "Join demand error",
                               str(e))
@@ -117,6 +119,8 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
 
         try:
             self.account.send_membership(password, self.community, 'OUT')
+            QMessageBox.information(self, "Membership",
+                                 "Success sending leaving demand")
         except ValueError as e:
             QMessageBox.critical(self, "Leaving demand error",
                               e.message)

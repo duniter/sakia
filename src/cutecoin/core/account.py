@@ -185,7 +185,9 @@ class Account(object):
                                     'other': []})
 
     def send_membership(self, password, community, type):
-        selfcert = Person.lookup(self.pubkey, community)
+        self_ = Person.lookup(self.pubkey, community)
+        selfcert = self_.selfcert(community)
+
         blockid = community.current_blockid()
 
         membership = Membership(PROTOCOL_VERSION, community.currency,

@@ -57,7 +57,7 @@ class Certification(Document):
     re_timestamp = re.compile("META:TS:([0-9]+)-([0-9a-fA-F]{5,40})\n")
 
     def __init__(self, version, currency, pubkey_from, pubkey_to,
-                 blockhash, blocknumber, signature):
+                 blocknumber, blockhash, signature):
         '''
         Constructor
         '''
