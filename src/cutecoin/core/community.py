@@ -12,6 +12,7 @@ from ..tools.exceptions import NoPeerAvailable
 import logging
 import time
 import inspect
+import hashlib
 
 
 class Community(object):
@@ -97,6 +98,20 @@ class Community(object):
         return Block.from_signed_raw("{0}{1}\n".format(data['raw'],
                                                        data['signature']))
 
+    def current_blockid(self):
+        try:
+            block = self.request(bma.blockchain.Current, cached=False)
+            signed_raw = "{0}{1}\n".format(block['raw'], block['signature'])
+            block_hash = hashlib.sha1(signed_raw.encode("ascii")).hexdigest().upper()
+            block_number = block['number']
+        except ValueError as e:
+            if '404' in str(e):
+                block_number = 0
+                block_hash = "DA39A3EE5E6B4B0D3255BFEF95601890AFD80709"
+            else:
+                raise
+        return {'number': block_number, 'hash': block_hash}
+
     def members_pubkeys(self):
         '''
         Listing members pubkeys of a community
@@ -108,62 +123,71 @@ class Community(object):
             members.append(m['pubkey'])
         return members
 
-    def check_current_block(self, endpoint):
+    def _check_current_block(self, endpoint):
         if self.last_block is None:
-            peering = bma.network.Peering(endpoint.conn_handler()).get()
-            block_number = peering['block'].split('-')[0]
+            blockid = self.current_blockid()
             self.last_block = {"request_ts": time.time(),
-                               "number": block_number}
+                               "number": blockid['number']}
         elif self.last_block["request_ts"] + 60 < time.time():
-            logging.debug("{0} > {1}".format(self.last_block["request_ts"] + 60, time.time()))
             self.last_block["request_ts"] = time.time()
-            peering = bma.network.Peering(endpoint.conn_handler()).get()
-            block_number = peering['block'].split('-')[0]
-            if block_number > self.last_block['number']:
-                self.last_block["number"] = block_number
+            blockid = self.current_blockid()
+            if blockid['number'] > self.last_block['number']:
+                self.last_block["number"] = blockid['number']
                 self.requests_cache = {}
 
-    def request(self, request, req_args={}, get_args={}, cached=True):
+    def _cached_request(self, request, req_args={}, get_args={}):
         for peer in self.peers:
             e = next(e for e in peer.endpoints if type(e) is BMAEndpoint)
-            self.check_current_block(e)
-            if cached and self.last_block["number"] != 0:
+            self._check_current_block(e)
+            try:
+                # We request the current block every five minutes
+                # If a new block is mined we reset the cache
+                cache_key = (hash(request),
+                             hash(tuple(frozenset(sorted(req_args.keys())))),
+                             hash(tuple(frozenset(sorted(req_args.items())))),
+                             hash(tuple(frozenset(sorted(get_args.keys())))),
+                             hash(tuple(frozenset(sorted(get_args.items())))))
+
+                if cache_key not in self.requests_cache.keys():
+                    if e.server:
+                        logging.debug("Connecting to {0}:{1}".format(e.server,
+                                                                 e.port))
+                    else:
+                        logging.debug("Connecting to {0}:{1}".format(e.ipv4,
+                                                                 e.port))
+
+                    req = request(e.conn_handler(), **req_args)
+                    data = req.get(**get_args)
+                    if inspect.isgenerator(data):
+                        cached_data = []
+                        for d in data:
+                            cached_data.append(d)
+                        self.requests_cache[cache_key] = cached_data
+                    else:
+                        self.requests_cache[cache_key] = data
+            except ValueError as e:
+                if '502' in str(e):
+                    continue
+                else:
+                    raise
+            return self.requests_cache[cache_key]
+        raise NoPeerAvailable(self.currency)
+
+    def request(self, request, req_args={}, get_args={}, cached=True):
+        if cached:
+            return self._cached_request(request, req_args, get_args)
+        else:
+            for peer in self.peers:
+                e = next(e for e in peer.endpoints if type(e) is BMAEndpoint)
                 try:
-                    # We request the current block every five minutes
-                    # If a new block is mined we reset the cache
-                    cache_key = (hash(request),
-                                 hash(tuple(frozenset(sorted(req_args.keys())))),
-                                 hash(tuple(frozenset(sorted(req_args.items())))),
-                                 hash(tuple(frozenset(sorted(get_args.keys())))),
-                                 hash(tuple(frozenset(sorted(get_args.items())))))
-
-                    if cache_key not in self.requests_cache.keys():
-                        if e.server:
-                            logging.debug("Connecting to {0}:{1}".format(e.server,
-                                                                     e.port))
-                        else:
-                            logging.debug("Connecting to {0}:{1}".format(e.ipv4,
-                                                                     e.port))
-
-                        req = request(e.conn_handler(), **req_args)
-                        data = req.get(**get_args)
-                        if inspect.isgenerator(data):
-                            cached_data = []
-                            for d in data:
-                                cached_data.append(d)
-                            self.requests_cache[cache_key] = cached_data
-                        else:
-                            self.requests_cache[cache_key] = data
+                    req = request(e.conn_handler(), **req_args)
+                    data = req.get(**get_args)
+                    return data
                 except ValueError as e:
                     if '502' in str(e):
                         continue
                     else:
                         raise
-                return self.requests_cache[cache_key]
-            else:
-                req = request(e.conn_handler(), **req_args)
-                data = req.get(**get_args)
-                return data
         raise NoPeerAvailable(self.currency)
 
     def post(self, request, req_args={}, post_args={}):

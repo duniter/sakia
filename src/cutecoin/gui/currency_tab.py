@@ -25,15 +25,15 @@ class BlockchainWatcher(QObject):
         self.account = account
         self.community = community
         self.exiting = False
-        peering = self.community.request(bma.network.Peering)
-        self.last_block = peering['block'].split('-')[0]
+        blockid = self.community.current_blockid()
+        self.last_block = blockid['number']
 
     @pyqtSlot()
     def watch(self):
         while not self.exiting:
             time.sleep(10)
-            peering = self.community.request(bma.network.Peering)
-            block_number = peering['block'].split('-')[0]
+            blockid = self.community.current_blockid()
+            block_number = blockid['number']
             if self.last_block != block_number:
                 for w in self.account.wallets:
                     w.cache.refresh(self.community)
@@ -92,8 +92,8 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             self.tabs_account.addTab(self.tab_community,
                                      QIcon(':/icons/community_icon'),
                                     "Community")
-            peering = self.community.request(bma.network.Peering)
-            block_number = peering['block'].split('-')[0]
+            blockid = self.community.current_blockid()
+            block_number = blockid['number']
             self.status_label.setText("Connected : Block {0}"
                                              .format(block_number))
 
@@ -170,8 +170,8 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         self.app.save(self.app.current_account)
 
     def showEvent(self, event):
-        peering = self.community.request(bma.network.Peering)
-        block_number = peering['block'].split('-')[0]
+        blockid = self.community.current_blockid()
+        block_number = blockid['number']
         self.status_label.setText("Connected : Block {0}"
                                          .format(block_number))
 

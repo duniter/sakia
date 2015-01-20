@@ -11,10 +11,8 @@ from ucoinpy.documents.peer import Peer
 from ucoinpy.documents.certification import SelfCertification, Certification
 from ucoinpy.documents.membership import Membership
 from ucoinpy.key import SigningKey
-from ..tools.exceptions import PersonNotFoundError
 
 import logging
-import hashlib
 import time
 
 from .wallet import Wallet
@@ -113,17 +111,11 @@ class Account(object):
 
     def certify(self, password, community, pubkey):
         certified = Person.lookup(pubkey, community)
-        try:
-            block = community.get_block()
-            block_hash = hashlib.sha1(block.signed_raw().encode("ascii")).hexdigest().upper()
-            block_number = block['number']
-        except ValueError as e:
-            block_number = 0
-            block_hash = "DA39A3EE5E6B4B0D3255BFEF95601890AFD80709"
+        blockid = community.current_blockid()
 
         certification = Certification(PROTOCOL_VERSION, community.currency,
                                       self.pubkey, certified.pubkey,
-                                      block_hash, block_number, None)
+                                      blockid['number'], blockid['hash'], None)
 
         selfcert = certified.selfcert(community)
         logging.debug("SelfCertification : {0}".format(selfcert.raw()))
@@ -201,20 +193,12 @@ class Account(object):
                                     'other': []})
 
     def send_membership(self, password, community, type):
-        self_ = Person.lookup(self.pubkey, community)
-        selfcert = self_.selfcert(community)
-
-        try:
-            block = community.get_block()
-            block_hash = hashlib.sha1(block.signed_raw().encode("ascii")).hexdigest().upper()
-            block_number = block.number
-        except ValueError as e:
-            block_number = 0
-            block_hash = "DA39A3EE5E6B4B0D3255BFEF95601890AFD80709"
+        selfcert = Person.lookup(self.pubkey, community)
+        blockid = community.current_blockid()
 
         membership = Membership(PROTOCOL_VERSION, community.currency,
-                          selfcert.pubkey, block_number,
-                          block_hash, type, selfcert.uid,
+                          selfcert.pubkey, blockid['number'],
+                          blockid['hash'], type, selfcert.uid,
                           selfcert.timestamp, None)
         key = SigningKey(self.salt, password)
         membership.sign([key])
