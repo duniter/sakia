@@ -30,6 +30,7 @@ class Community(object):
 
         # After initializing the community from latest peers,
         # we refresh its peers tree
+        logging.debug("Creating community")
         found_peers = self.peering()
         for p in found_peers:
             if p.pubkey not in [peer.pubkey for peer in peers]:

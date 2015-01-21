@@ -106,16 +106,7 @@ class StepPageCommunities(Step):
         return True
 
     def process_next(self):
-        '''
-        We create the community
-        '''
-        logging.debug("Communities NEXT ")
-        server = self.config_dialog.lineedit_server.text()
-        port = self.config_dialog.spinbox_port.value()
-        account = self.config_dialog.account
-        self.config_dialog.community = account.add_community(server, port)
-
-        self.config_dialog.refresh()
+        pass
 
     def display_page(self):
         logging.debug("Communities DISPLAY")

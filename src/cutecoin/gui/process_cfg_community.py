@@ -190,6 +190,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
             else:
                 return
 
-        self.account.add_community(self.community)
+        if self.community not in self.account.communities:
+            self.account.add_community(self.community)
         self.accepted.emit()
         self.close()
