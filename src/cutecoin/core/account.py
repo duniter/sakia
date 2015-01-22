@@ -18,6 +18,7 @@ import time
 from .wallet import Wallet
 from .community import Community
 from .person import Person
+from ..tools.exceptions import NoPeerAvailable
 
 
 class Account(object):
@@ -64,7 +65,7 @@ class Account(object):
 
         communities = []
         for data in json_data['communities']:
-            communities.append(Community.load(data))
+                communities.append(Community.load(data))
 
         account = cls(salt, pubkey, name, communities, wallets, contacts)
         return account

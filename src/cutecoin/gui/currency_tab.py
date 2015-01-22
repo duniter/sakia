@@ -17,6 +17,7 @@ from ..models.sent import SentListModel
 from ..models.received import ReceivedListModel
 from ..models.wallets import WalletsListModel
 from ..models.wallet import WalletListModel
+from ..tools.exceptions import NoPeerAvailable
 
 
 class BlockchainWatcher(QObject):
@@ -32,16 +33,19 @@ class BlockchainWatcher(QObject):
     def watch(self):
         while not self.exiting:
             time.sleep(10)
-            blockid = self.community.current_blockid()
-            block_number = blockid['number']
-            if self.last_block != block_number:
-                for w in self.account.wallets:
-                    w.refresh_cache(self.community)
+            try:
+                blockid = self.community.current_blockid()
+                block_number = blockid['number']
+                if self.last_block != block_number:
+                    for w in self.account.wallets:
+                        w.refresh_cache(self.community)
 
-                logging.debug("New block, {0} mined in {1}".format(block_number,
-                                                                   self.community.currency))
-                self.new_block_mined.emit(block_number)
-                self.last_block = block_number
+                    logging.debug("New block, {0} mined in {1}".format(block_number,
+                                                                       self.community.currency))
+                    self.new_block_mined.emit(block_number)
+                    self.last_block = block_number
+            except NoPeerAvailable:
+                return
 
     new_block_mined = pyqtSignal(int)
 

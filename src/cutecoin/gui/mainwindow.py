@@ -4,7 +4,7 @@ Created on 1 févr. 2014
 @author: inso
 '''
 from cutecoin.gen_resources.mainwindow_uic import Ui_MainWindow
-from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog, QProgressBar, QLabel
+from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog, QProgressBar, QMessageBox, QLabel
 from PyQt5.QtCore import QSignalMapper, QModelIndex, QObject, QThread, pyqtSlot, pyqtSignal
 from PyQt5.QtGui import QIcon
 from .process_cfg_account import ProcessConfigureAccount
@@ -14,6 +14,7 @@ from .add_contact import AddContactDialog
 from .import_account import ImportAccountDialog
 from .certification import CertificationDialog
 from .password_asker import PasswordAskerDialog
+from ..tools.exceptions import NoPeerAvailable
 from ..__init__ import __version__
 
 import logging
@@ -109,11 +110,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def open_configure_account_dialog(self):
         dialog = ProcessConfigureAccount(self.app, self.app.current_account)
         dialog.accepted.connect(self.refresh_wallets)
+        dialog.accepted.connect(self.refresh_communities)
         dialog.exec_()
 
     def refresh_wallets(self):
         currency_tab = self.currencies_tabwidget.currentWidget()
         currency_tab.refresh_wallets()
+
+    def refresh_communities(self):
+        self.currencies_tabwidget.clear()
+        for community in self.app.current_account.communities:
+            tab_currency = CurrencyTabWidget(self.app, community,
+                                             self.password_asker,
+                                             self.status_label)
+            tab_currency.refresh()
+            self.currencies_tabwidget.addTab(tab_currency,
+                                             QIcon(":/icons/currency_icon"),
+                                             community.name())
 
     def set_as_default_account(self):
         self.app.default_account = self.app.current_account.name
@@ -155,13 +168,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             self.currencies_tabwidget.clear()
             for community in self.app.current_account.communities:
-                tab_currency = CurrencyTabWidget(self.app, community,
-                                                 self.password_asker,
-                                                 self.status_label)
-                tab_currency.refresh()
-                self.currencies_tabwidget.addTab(tab_currency,
-                                                 QIcon(":/icons/currency_icon"),
-                                                 community.name())
+                try:
+                    tab_currency = CurrencyTabWidget(self.app, community,
+                                                     self.password_asker,
+                                                     self.status_label)
+                    tab_currency.refresh()
+                    self.currencies_tabwidget.addTab(tab_currency,
+                                                     QIcon(":/icons/currency_icon"),
+                                                     community.name())
+                except NoPeerAvailable as e:
+                    QMessageBox.critical(self, "Could not join {0}".format(community.currency),
+                                str(e),
+                                QMessageBox.Ok)
+                    continue
 
             self.menu_contacts_list.clear()
             for contact in self.app.current_account.contacts:

@@ -14,7 +14,7 @@ from .add_contact import AddContactDialog
 from .wot_tab import WotTabWidget
 from .transfer import TransferMoneyDialog
 from .certification import CertificationDialog
-from ..tools.exceptions import PersonNotFoundError
+from ..tools.exceptions import PersonNotFoundError, NoPeerAvailable
 
 
 class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
@@ -111,6 +111,10 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             QMessageBox.critical(self, "Key not sent to community",
                               "Your key wasn't sent in the community. \
                               You can't request a membership.")
+        except NoPeerAvailable as e:
+            QMessageBox.critical(self, "Network error",
+                                 "Couldn't connect to network : {0}".format(e),
+                                 QMessageBox.Ok)
 
     def send_membership_leaving(self):
         password = self.password_asker.ask()
@@ -124,3 +128,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         except ValueError as e:
             QMessageBox.critical(self, "Leaving demand error",
                               e.message)
+        except NoPeerAvailable as e:
+            QMessageBox.critical(self, "Network error",
+                                 "Couldn't connect to network : {0}".format(e),
+                                 QMessageBox.Ok)

@@ -10,31 +10,71 @@ from ucoinpy.documents.peer import Peer, Endpoint, BMAEndpoint
 from ucoinpy.documents.block import Block
 from ..tools.exceptions import NoPeerAvailable
 import logging
-import time
 import inspect
 import hashlib
+from requests.exceptions import ConnectTimeout
+
+
+class Cache():
+    def __init__(self, community):
+        self.latest_block = 0
+        self.community = community
+        self.data = {}
+
+    def refresh(self):
+        self.latest_block = self.community.current_blockid()['number']
+        self.data = {}
+
+    def request(self, request, req_args={}, get_args={}):
+        cache_key = (hash(request),
+                     hash(tuple(frozenset(sorted(req_args.keys())))),
+                     hash(tuple(frozenset(sorted(req_args.items())))),
+                     hash(tuple(frozenset(sorted(get_args.keys())))),
+                     hash(tuple(frozenset(sorted(get_args.items())))))
+
+        if cache_key not in self.data.keys():
+            result = self.community.request(request, req_args, get_args,
+                                         cached=False)
+
+            # Do not cache block 0
+            if self.latest_block == 0:
+                return result
+            else:
+                self.data[cache_key] = result
+            return self.data[cache_key]
+        else:
+            return self.data[cache_key]
 
 
 class Community(object):
     '''
     classdocs
     '''
+
     def __init__(self, currency, peers):
         '''
         A community is a group of nodes using the same currency.
         '''
         self.currency = currency
         self.peers = [p for p in peers if p.currency == currency]
-        self.requests_cache = {}
-        self.last_block = None
+        self.cache = Cache(self)
 
         # After initializing the community from latest peers,
         # we refresh its peers tree
         logging.debug("Creating community")
-        found_peers = self.peering()
-        for p in found_peers:
-            if p.pubkey not in [peer.pubkey for peer in peers]:
-                self.peers.append(p)
+        try:
+            found_peers = self.peering()
+            for p in found_peers:
+                if p.pubkey not in [peer.pubkey for peer in peers]:
+                    self.peers.append(p)
+        except NoPeerAvailable:
+            pass
+        logging.debug("{0} peers found".format(len(self.peers)))
+
+        try:
+            self.cache.refresh()
+        except NoPeerAvailable:
+            pass
 
     @classmethod
     def create(cls, currency, peer):
@@ -124,76 +164,40 @@ class Community(object):
             members.append(m['pubkey'])
         return members
 
-    def _check_current_block(self, endpoint):
-        if self.last_block is None:
-            blockid = self.current_blockid()
-            self.last_block = {"request_ts": time.time(),
-                               "number": blockid['number']}
-        elif self.last_block["request_ts"] + 60 < time.time():
-            self.last_block["request_ts"] = time.time()
-            blockid = self.current_blockid()
-            if blockid['number'] > self.last_block['number']:
-                self.last_block["number"] = blockid['number']
-                self.requests_cache = {}
-
-    def _cached_request(self, request, req_args={}, get_args={}):
-        for peer in self.peers:
-            e = next(e for e in peer.endpoints if type(e) is BMAEndpoint)
-            self._check_current_block(e)
-            try:
-                # Do not cache block 0
-                if self.last_block["number"] != 0:
-                    cache_key = (hash(request),
-                                 hash(tuple(frozenset(sorted(req_args.keys())))),
-                                 hash(tuple(frozenset(sorted(req_args.items())))),
-                                 hash(tuple(frozenset(sorted(get_args.keys())))),
-                                 hash(tuple(frozenset(sorted(get_args.items())))))
-
-                    if cache_key not in self.requests_cache.keys():
-                        if e.server:
-                            logging.debug("Connecting to {0}:{1}".format(e.server,
-                                                                     e.port))
-                        else:
-                            logging.debug("Connecting to {0}:{1}".format(e.ipv4,
-                                                                     e.port))
-
-                        req = request(e.conn_handler(), **req_args)
-                        data = req.get(**get_args)
-                        if inspect.isgenerator(data):
-                            cached_data = []
-                            for d in data:
-                                cached_data.append(d)
-                            self.requests_cache[cache_key] = cached_data
-                        else:
-                            self.requests_cache[cache_key] = data
-                    return self.requests_cache[cache_key]
-                else:
-                    req = request(e.conn_handler(), **req_args)
-                    data = req.get(**get_args)
-                    return data
-            except ValueError as e:
-                if '502' in str(e):
-                    continue
-                else:
-                    raise
-        raise NoPeerAvailable(self.currency)
-
     def request(self, request, req_args={}, get_args={}, cached=True):
         if cached:
-            return self._cached_request(request, req_args, get_args)
+            return self.cache.request(request, req_args, get_args)
         else:
-            for peer in self.peers:
+            for peer in self.peers.copy():
                 e = next(e for e in peer.endpoints if type(e) is BMAEndpoint)
                 try:
                     req = request(e.conn_handler(), **req_args)
                     data = req.get(**get_args)
-                    return data
+
+                    if inspect.isgenerator(data):
+                        generated = []
+                        for d in data:
+                            generated.append(d)
+                        return generated
+                    else:
+                        return data
                 except ValueError as e:
                     if '502' in str(e):
                         continue
                     else:
                         raise
-        raise NoPeerAvailable(self.currency)
+                except ConnectTimeout:
+                    # Move the timeout peer to the end
+                    self.peers.remove(peer)
+                    self.peers.append(peer)
+                    continue
+                except TimeoutError:
+                    # Move the timeout peer to the end
+                    self.peers.remove(peer)
+                    self.peers.append(peer)
+                    continue
+
+        raise NoPeerAvailable(self.currency, len(self.peers))
 
     def post(self, request, req_args={}, post_args={}):
         for peer in self.peers:
@@ -207,6 +211,7 @@ class Community(object):
             except:
                 pass
             return
+        raise NoPeerAvailable(self.currency, len(self.peers))
 
     def broadcast(self, request, req_args={}, post_args={}):
         for peer in self.peers:
@@ -220,6 +225,7 @@ class Community(object):
                     raise
             except:
                 pass
+        raise NoPeerAvailable(self.currency, len(self.peers))
 
     def jsonify_peers_list(self):
         data = []

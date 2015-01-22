@@ -3,11 +3,9 @@ Created on 24 dec. 2014
 
 @author: inso
 '''
-from PyQt5.QtWidgets import QDialog, QErrorMessage, QInputDialog, QLineEdit, QMessageBox
-
-from cutecoin.core.person import Person
-
-from cutecoin.gen_resources.certification_uic import Ui_CertificationDialog
+from PyQt5.QtWidgets import QDialog, QMessageBox
+from ..tools.exceptions import NoPeerAvailable
+from ..gen_resources.certification_uic import Ui_CertificationDialog
 
 
 class CertificationDialog(QDialog, Ui_CertificationDialog):
@@ -51,6 +49,10 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
         except ValueError as e:
             QMessageBox.critical(self, "Certification",
                                  "Something wrong happened : {0}".format(e),
+                                 QMessageBox.Ok)
+        except NoPeerAvailable as e:
+            QMessageBox.critical(self, "Certification",
+                                 "Couldn't connect to network : {0}".format(e),
                                  QMessageBox.Ok)
 
         self.accepted.emit()

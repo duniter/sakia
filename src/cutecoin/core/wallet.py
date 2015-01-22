@@ -9,7 +9,7 @@ from ucoinpy.api import bma
 from ucoinpy.documents.block import Block
 from ucoinpy.documents.transaction import InputSource, OutputSource, Transaction
 from ucoinpy.key import SigningKey
-from ..tools.exceptions import NotEnoughMoneyError
+from ..tools.exceptions import NotEnoughMoneyError, NoPeerAvailable
 import logging
 
 
@@ -83,44 +83,48 @@ class Cache():
     def refresh(self, community):
         current_block = 0
         try:
-            block_data = community.request(bma.blockchain.Current)
-            current_block = block_data['number']
-        except ValueError as e:
-            if '404' in str(e):
-                current_block = 0
-            else:
-                raise
+            try:
+                block_data = community.request(bma.blockchain.Current)
+                current_block = block_data['number']
+            except ValueError as e:
+                if '404' in str(e):
+                    current_block = 0
+                else:
+                    raise
+            with_tx = community.request(bma.blockchain.TX)
 
-        with_tx = community.request(bma.blockchain.TX)
-        # We parse only blocks with transactions
-        parsed_blocks = reversed(range(self.latest_block + 1,
-                                           current_block + 1))
-        logging.debug("Refresh from {0} to {1}".format(self.latest_block + 1,
-                                           current_block + 1))
-        parsed_blocks = [n for n in parsed_blocks
-                         if n in with_tx['result']['blocks']]
+            # We parse only blocks with transactions
+            parsed_blocks = reversed(range(self.latest_block + 1,
+                                               current_block + 1))
+            logging.debug("Refresh from {0} to {1}".format(self.latest_block + 1,
+                                               current_block + 1))
+            parsed_blocks = [n for n in parsed_blocks
+                             if n in with_tx['result']['blocks']]
 
-        for block_number in parsed_blocks:
-            block = community.request(bma.blockchain.Block,
-                              req_args={'number': block_number})
-            signed_raw = "{0}{1}\n".format(block['raw'], block['signature'])
-            block_doc = Block.from_signed_raw(signed_raw)
-            for tx in block_doc.transactions:
-                in_outputs = [o for o in tx.outputs
-                              if o.pubkey == self.wallet.pubkey]
-                if len(in_outputs) > 0:
-                    self.tx_received.append(tx)
+            for block_number in parsed_blocks:
+                block = community.request(bma.blockchain.Block,
+                                  req_args={'number': block_number})
+                signed_raw = "{0}{1}\n".format(block['raw'], block['signature'])
+                block_doc = Block.from_signed_raw(signed_raw)
+                for tx in block_doc.transactions:
+                    in_outputs = [o for o in tx.outputs
+                                  if o.pubkey == self.wallet.pubkey]
+                    if len(in_outputs) > 0:
+                        self.tx_received.append(tx)
 
-                in_inputs = [i for i in tx.issuers if i == self.wallet.pubkey]
-                if len(in_inputs) > 0:
-                    # remove from waiting transactions list the one which were
-                    # validated in the blockchain
-                    self.awaiting_tx = [awaiting for awaiting in self.awaiting_tx
-                                         if awaiting.compact() != tx.compact()]
-                    self.tx_sent.append(tx)
+                    in_inputs = [i for i in tx.issuers if i == self.wallet.pubkey]
+                    if len(in_inputs) > 0:
+                        # remove from waiting transactions list the one which were
+                        # validated in the blockchain
+                        self.awaiting_tx = [awaiting for awaiting in self.awaiting_tx
+                                             if awaiting.compact() != tx.compact()]
+                        self.tx_sent.append(tx)
 
-        if current_block > self.latest_block:
-            self.available_sources = self.wallet.sources(community)
+            if current_block > self.latest_block:
+                    self.available_sources = self.wallet.sources(community)
+
+        except NoPeerAvailable:
+            return
 
         self.tx_sent = self.tx_sent[:50]
         self.tx_received = self.tx_received[:50]

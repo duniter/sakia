@@ -109,7 +109,8 @@ class API(object):
         - `path`: the request path
         """
 
-        response = requests.get(self.reverse_url(path), params=kwargs, headers=self.headers)
+        response = requests.get(self.reverse_url(path), params=kwargs,
+                                headers=self.headers, timeout=15)
 
         if response.status_code != 200:
             raise ValueError('status code != 200 => %d (%s)' % (response.status_code, response.text))
@@ -127,7 +128,8 @@ class API(object):
             kwargs['self'] = kwargs.pop('self_')
 
         logging.debug("POST : {0}".format(kwargs))
-        response = requests.post(self.reverse_url(path), data=kwargs, headers=self.headers)
+        response = requests.post(self.reverse_url(path), data=kwargs, headers=self.headers,
+                                 timeout=15)
 
         if response.status_code != 200:
             raise ValueError('status code != 200 => %d (%s)' % (response.status_code, response.text))

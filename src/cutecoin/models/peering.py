@@ -8,6 +8,7 @@ from ucoinpy.api import bma
 from ucoinpy.documents.peer import BMAEndpoint, Peer
 from PyQt5.QtCore import QAbstractItemModel, QModelIndex, Qt
 from .peer import PeerItem, RootItem
+from requests.exceptions import ConnectTimeout
 import logging
 
 
@@ -104,10 +105,16 @@ class PeeringTreeModel(QAbstractItemModel):
             try:
                 e = next((e for e in peer.endpoints if type(e) is BMAEndpoint))
                 peers = bma.network.peering.Peers(e.conn_handler()).get()
-                for peer_data in peers:
-                    peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['value']['raw'],
-                                                                peer_data['value']['signature']))
-                    child_node_item = PeerItem(peer, peer_item)
-                    peer_item.appendChild(child_node_item)
+                try:
+                    for peer_data in peers:
+                        peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['value']['raw'],
+                                                                    peer_data['value']['signature']))
+                        child_node_item = PeerItem(peer, peer_item)
+                        peer_item.appendChild(child_node_item)
+                except ConnectTimeout:
+                    continue
+                except TimeoutError:
+                    continue
+
             except StopIteration as e:
                 continue

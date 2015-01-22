@@ -13,6 +13,9 @@ class Error(Exception):
         '''
         self.message = "Error : " + message
 
+    def __str__(self):
+        return self.message
+
 
 class NotMemberOfCommunityError(Error):
 
@@ -137,10 +140,10 @@ class NoPeerAvailable(Error):
     Exception raised when a community doesn't have any
     peer available.
     '''
-    def __init__(self, currency):
+    def __init__(self, currency, peers):
         '''
         Constructor
         '''
         super() .__init__(
-            "No peer found in {0} community"
-            .format(currency))
+            "No peer answered in {0} community ({1} peers available)"
+            .format(currency, peers))

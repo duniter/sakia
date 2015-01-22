@@ -3,10 +3,9 @@ Created on 2 févr. 2014
 
 @author: inso
 '''
-from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QMessageBox
+from PyQt5.QtWidgets import QDialog, QMessageBox
 
-from ..tools.exceptions import NotEnoughMoneyError
-from ..core.person import Person
+from ..tools.exceptions import NotEnoughMoneyError, NoPeerAvailable
 from ..gen_resources.transfer_uic import Ui_TransferMoneyDialog
 
 import logging
@@ -75,7 +74,10 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
             QMessageBox.critical(self, "Money transfer",
                                  "You don't have enough money available in this block : \n{0}"
                                  .format(e.message))
-
+        except NoPeerAvailable as e:
+            QMessageBox.critical(self, "Money transfer",
+                                 "Couldn't connect to network : {0}".format(e),
+                                 QMessageBox.Ok)
         self.accepted.emit()
         self.close()
 

@@ -10,9 +10,9 @@ from ..gen_resources.account_cfg_uic import Ui_AccountConfigurationDialog
 from ..gui.process_cfg_community import ProcessConfigureCommunity
 from ..gui.password_asker import PasswordAskerDialog
 from ..models.communities import CommunitiesListModel
-from ..tools.exceptions import KeyAlreadyUsed, Error
+from ..tools.exceptions import KeyAlreadyUsed, Error, NoPeerAvailable
 
-from PyQt5.QtWidgets import QDialog, QErrorMessage, QInputDialog, QMessageBox, QLineEdit
+from PyQt5.QtWidgets import QDialog, QMessageBox
 
 
 class Step():
@@ -191,7 +191,13 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
 
     def open_process_edit_community(self, index):
         community = self.account.communities[index.row()]
-        dialog = ProcessConfigureCommunity(self.account, community, self.password_asker)
+        try:
+            dialog = ProcessConfigureCommunity(self.account, community, self.password_asker)
+        except NoPeerAvailable as e:
+            QMessageBox.critical(self, "Error",
+                                 str(e), QMessageBox.Ok)
+            return
+
         dialog.accepted.connect(self.action_edit_community)
         dialog.exec_()
 
@@ -205,7 +211,8 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
                     self.stacked_pages.setCurrentIndex(next_index)
                     self.step.display_page()
                 except Error as e:
-                    QErrorMessage(self).showMessage(e.message)
+                    QMessageBox.critical(self, "Error",
+                                         str(e), QMessageBox.Ok)
         else:
             self.accept()
 
@@ -223,7 +230,8 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
             try:
                 self.app.add_account(self.account)
             except KeyAlreadyUsed as e:
-                QErrorMessage(self).showMessage(e.message)
+                QMessageBox.critical(self, "Error",
+                                     str(e), QMessageBox.Ok)
             password = self.edit_password.text()
         else:
             password = self.password_asker.ask()
