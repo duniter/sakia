@@ -115,6 +115,10 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             QMessageBox.critical(self, "Network error",
                                  "Couldn't connect to network : {0}".format(e),
                                  QMessageBox.Ok)
+        except Exception as e:
+            QMessageBox.critical(self, "Error",
+                                 "{0}".format(e),
+                                 QMessageBox.Ok)
 
     def send_membership_leaving(self):
         password = self.password_asker.ask()
@@ -132,3 +136,8 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             QMessageBox.critical(self, "Network error",
                                  "Couldn't connect to network : {0}".format(e),
                                  QMessageBox.Ok)
+        except Exception as e:
+            QMessageBox.critical(self, "Error",
+                                 "{0}".format(e),
+                                 QMessageBox.Ok)
+

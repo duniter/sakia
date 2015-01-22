@@ -57,7 +57,7 @@ class Community(object):
         '''
         self.currency = currency
         self.peers = [p for p in peers if p.currency == currency]
-        self.cache = Cache(self)
+        self._cache = Cache(self)
 
         # After initializing the community from latest peers,
         # we refresh its peers tree
@@ -72,7 +72,7 @@ class Community(object):
         logging.debug("{0} peers found".format(len(self.peers)))
 
         try:
-            self.cache.refresh()
+            self._cache.refresh()
         except NoPeerAvailable:
             pass
 
@@ -164,9 +164,12 @@ class Community(object):
             members.append(m['pubkey'])
         return members
 
+    def refresh_cache(self):
+        self._cache.refresh()
+
     def request(self, request, req_args={}, get_args={}, cached=True):
         if cached:
-            return self.cache.request(request, req_args, get_args)
+            return self._cache.request(request, req_args, get_args)
         else:
             for peer in self.peers.copy():
                 e = next(e for e in peer.endpoints if type(e) is BMAEndpoint)

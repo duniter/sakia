@@ -54,6 +54,10 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
             QMessageBox.critical(self, "Certification",
                                  "Couldn't connect to network : {0}".format(e),
                                  QMessageBox.Ok)
+        except Exception as e:
+            QMessageBox.critical(self, "Error",
+                                 "{0}".format(e),
+                                 QMessageBox.Ok)
 
         self.accepted.emit()
         self.close()

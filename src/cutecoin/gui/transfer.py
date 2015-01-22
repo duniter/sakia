@@ -78,6 +78,10 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
             QMessageBox.critical(self, "Money transfer",
                                  "Couldn't connect to network : {0}".format(e),
                                  QMessageBox.Ok)
+        except Exception as e:
+            QMessageBox.critical(self, "Error",
+                                 "{0}".format(e),
+                                 QMessageBox.Ok)
         self.accepted.emit()
         self.close()
 

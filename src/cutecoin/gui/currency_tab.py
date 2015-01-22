@@ -37,6 +37,7 @@ class BlockchainWatcher(QObject):
                 blockid = self.community.current_blockid()
                 block_number = blockid['number']
                 if self.last_block != block_number:
+                    self.community.refresh_cache()
                     for w in self.account.wallets:
                         w.refresh_cache(self.community)
 
