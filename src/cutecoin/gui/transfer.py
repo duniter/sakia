@@ -70,18 +70,22 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
             QMessageBox.critical(self, "Money transfer",
                                  "Something wrong happened : {0}".format(e),
                                  QMessageBox.Ok)
+            return
         except NotEnoughMoneyError as e:
             QMessageBox.critical(self, "Money transfer",
                                  "You don't have enough money available in this block : \n{0}"
                                  .format(e.message))
+            return
         except NoPeerAvailable as e:
             QMessageBox.critical(self, "Money transfer",
                                  "Couldn't connect to network : {0}".format(e),
                                  QMessageBox.Ok)
+            return
         except Exception as e:
             QMessageBox.critical(self, "Error",
                                  "{0}".format(e),
                                  QMessageBox.Ok)
+            return
         self.accepted.emit()
         self.close()
 

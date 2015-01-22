@@ -29,7 +29,8 @@ class Account(object):
     be locally referenced by only one account.
     '''
 
-    def __init__(self, salt, pubkey, name, communities, wallets, contacts):
+    def __init__(self, salt, pubkey, name, communities, wallets, contacts,
+                 dead_communities):
         '''
         Constructor
         '''
@@ -37,6 +38,7 @@ class Account(object):
         self.pubkey = pubkey
         self.name = name
         self.communities = communities
+        self.dead_communities = dead_communities
         self.wallets = wallets
         self.contacts = contacts
 
@@ -45,7 +47,7 @@ class Account(object):
         '''
         Constructor
         '''
-        account = cls(None, None, name, communities, wallets, [])
+        account = cls(None, None, name, communities, wallets, [], [])
         return account
 
     @classmethod
@@ -64,10 +66,15 @@ class Account(object):
             wallets.append(Wallet.load(data))
 
         communities = []
+        dead_communities = []
         for data in json_data['communities']:
+            try:
                 communities.append(Community.load(data))
+            except NoPeerAvailable:
+                dead_communities.append(data['currency'])
 
-        account = cls(salt, pubkey, name, communities, wallets, contacts)
+        account = cls(salt, pubkey, name, communities, wallets,
+                      contacts, dead_communities)
         return account
 
     def __eq__(self, other):

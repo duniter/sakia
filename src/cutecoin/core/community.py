@@ -62,19 +62,14 @@ class Community(object):
         # After initializing the community from latest peers,
         # we refresh its peers tree
         logging.debug("Creating community")
-        try:
-            found_peers = self.peering()
-            for p in found_peers:
-                if p.pubkey not in [peer.pubkey for peer in peers]:
-                    self.peers.append(p)
-        except NoPeerAvailable:
-            pass
+        found_peers = self.peering()
+        for p in found_peers:
+            if p.pubkey not in [peer.pubkey for peer in self.peers]:
+                self.peers.append(p)
         logging.debug("{0} peers found".format(len(self.peers)))
+        logging.debug([peer.pubkey for peer in peers])
 
-        try:
-            self._cache.refresh()
-        except NoPeerAvailable:
-            pass
+        self._cache.refresh()
 
     @classmethod
     def create(cls, currency, peer):
@@ -209,26 +204,57 @@ class Community(object):
             req = request(e.conn_handler(), **req_args)
             try:
                 req.post(**post_args)
+                return
             except ValueError as e:
                 raise
+            except ConnectTimeout:
+                # Move the timeout peer to the end
+                self.peers.remove(peer)
+                self.peers.append(peer)
+                continue
+            except TimeoutError:
+                # Move the timeout peer to the end
+                self.peers.remove(peer)
+                self.peers.append(peer)
+                continue
             except:
-                pass
-            return
+                raise
         raise NoPeerAvailable(self.currency, len(self.peers))
 
     def broadcast(self, request, req_args={}, post_args={}):
+        tries = 0
+        ok = False
+        value_error = None
         for peer in self.peers:
             e = next(e for e in peer.endpoints if type(e) is BMAEndpoint)
             logging.debug("Trying to connect to : " + peer.pubkey)
             req = request(e.conn_handler(), **req_args)
             try:
                 req.post(**post_args)
+                ok = True
             except ValueError as e:
-                if peer == self.peers[0]:
-                    raise
+                value_error = e
+                continue
+            except ConnectTimeout:
+                tries = tries + 1
+                # Move the timeout peer to the end
+                self.peers.remove(peer)
+                self.peers.append(peer)
+                continue
+            except TimeoutError:
+                tries = tries + 1
+                # Move the timeout peer to the end
+                self.peers.remove(peer)
+                self.peers.append(peer)
+                continue
             except:
-                pass
-        raise NoPeerAvailable(self.currency, len(self.peers))
+                raise
+
+        if not ok:
+            raise value_error
+
+        if tries == len(self.peers):
+            raise NoPeerAvailable(self.currency, len(self.peers))
 
     def jsonify_peers_list(self):
         data = []

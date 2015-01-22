@@ -157,6 +157,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.action_configure_parameters.setEnabled(False)
             self.action_set_as_default.setEnabled(False)
         else:
+            for dead in self.app.current_account.dead_communities:
+                QMessageBox.critical(self, ":(",
+                            "No {0} peers could be joined. Community was lost.".format(dead),
+                            QMessageBox.Ok)
+
             self.action_set_as_default.setEnabled(self.app.current_account.name
                                                   != self.app.default_account)
             self.password_asker = PasswordAskerDialog(self.app.current_account)

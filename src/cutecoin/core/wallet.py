@@ -214,12 +214,10 @@ class Wallet(object):
             inputs.append(s)
             buf_inputs.remove(s)
             if value >= amount:
-                cache.available_sources = buf_inputs
-                return inputs
+                return (inputs, buf_inputs)
 
         raise NotEnoughMoneyError(value, community.currency,
                                   len(inputs), amount)
-        return []
 
     def tx_outputs(self, pubkey, amount, inputs):
         outputs = []
@@ -236,8 +234,12 @@ class Wallet(object):
 
     def send_money(self, salt, password, community,
                    recipient, amount, message):
-        inputs = self.tx_inputs(int(amount), community)
+
+        result = self.tx_inputs(int(amount), community)
+        inputs = result[0]
+        self.caches[community.currency].available_sources = result[1]
         logging.debug("Inputs : {0}".format(inputs))
+
         outputs = self.tx_outputs(recipient, amount, inputs)
         logging.debug("Outputs : {0}".format(outputs))
         tx = Transaction(PROTOCOL_VERSION, community.currency,
