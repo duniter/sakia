@@ -36,7 +36,7 @@ class BlockchainWatcher(QObject):
             block_number = blockid['number']
             if self.last_block != block_number:
                 for w in self.account.wallets:
-                    w.cache.refresh(self.community)
+                    w.refresh_cache(self.community)
 
                 logging.debug("New block, {0} mined in {1}".format(block_number,
                                                                    self.community.currency))
