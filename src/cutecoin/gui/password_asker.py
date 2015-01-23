@@ -43,9 +43,8 @@ class PasswordAskerDialog(QDialog, Ui_PasswordAskerDialog):
             self.remember = self.check_remember.isChecked()
             self.password = password
             self.edit_password.setText("")
-
-            self.accepted.emit()
-            self.close()
+            logging.debug("Password is valid")
+            super().accept()
         else:
             QMessageBox.warning(self, "Failed to get private key",
                                 "Wrong password typed. Cannot open the private key",
@@ -53,6 +52,6 @@ class PasswordAskerDialog(QDialog, Ui_PasswordAskerDialog):
 
     def reject(self):
         self.edit_password.setText("")
+        logging.debug("Cancelled")
         self.password = ""
-        self.rejected.emit()
-        self.close()
+        super().reject()
