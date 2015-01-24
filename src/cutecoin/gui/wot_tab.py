@@ -217,6 +217,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         dialog = CertificationDialog(self.account, self.password_asker)
         dialog.edit_pubkey.setText(metadata['id'])
         dialog.radio_pubkey.setChecked(True)
+        dialog.combo_community.setCurrentText(self.community.name())
         dialog.exec_()
 
     def send_money_to_node(self, metadata):

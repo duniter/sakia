@@ -90,6 +90,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
     def certify_member(self):
         dialog = CertificationDialog(self.account, self.password_asker)
         person = self.sender().data()
+        dialog.combo_community.setCurrentText(self.community.name())
         dialog.edit_pubkey.setText(person.pubkey)
         dialog.radio_pubkey.setChecked(True)
         dialog.exec_()
