@@ -13,6 +13,7 @@ from ..gen_resources.community_tab_uic import Ui_CommunityTabWidget
 from .add_contact import AddContactDialog
 from .wot_tab import WotTabWidget
 from .transfer import TransferMoneyDialog
+from .password_asker import PasswordAskerDialog
 from .certification import CertificationDialog
 from ..tools.exceptions import PersonNotFoundError, NoPeerAvailable
 
@@ -33,14 +34,12 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         self.account = account
         self.password_asker = password_asker
         self.list_community_members.setModel(MembersListModel(community))
-        self.button_membership.disconnect()
 
         if self.account.member_of(self.community):
-            self.button_membership.setText("Send leaving demand")
-            self.button_membership.clicked.connect(self.send_membership_leaving)
+            self.button_membership.setText("Renew membership")
         else:
             self.button_membership.setText("Send membership demand")
-            self.button_membership.clicked.connect(self.send_membership_demand)
+            self.button_leaving.hide()
 
         self.tabs_information.addTab(WotTabWidget(account, community,
                                                   password_asker),
@@ -121,23 +120,29 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
                                  QMessageBox.Ok)
 
     def send_membership_leaving(self):
-        password = self.password_asker.ask()
-        if password == "":
-            return
+        reply = QMessageBox.warning(self, "Warning",
+                             """Are you sure ?
+Sending a membership demand  cannot be canceled.
+The process to join back the community later will have to be done again."""
+.format(self.account.pubkey), QMessageBox.Ok | QMessageBox.Cancel)
+        if reply == QMessageBox.Ok:
+            password = PasswordAskerDialog(self.app.current_account).ask()
+            if password == "":
+                return
 
-        try:
-            self.account.send_membership(password, self.community, 'OUT')
-            QMessageBox.information(self, "Membership",
-                                 "Success sending leaving demand")
-        except ValueError as e:
-            QMessageBox.critical(self, "Leaving demand error",
-                              e.message)
-        except NoPeerAvailable as e:
-            QMessageBox.critical(self, "Network error",
-                                 "Couldn't connect to network : {0}".format(e),
-                                 QMessageBox.Ok)
-        except Exception as e:
-            QMessageBox.critical(self, "Error",
-                                 "{0}".format(e),
-                                 QMessageBox.Ok)
+            try:
+                self.account.send_membership(password, self.community, 'OUT')
+                QMessageBox.information(self, "Membership",
+                                     "Success sending leaving demand")
+            except ValueError as e:
+                QMessageBox.critical(self, "Leaving demand error",
+                                  e.message)
+            except NoPeerAvailable as e:
+                QMessageBox.critical(self, "Network error",
+                                     "Couldn't connect to network : {0}".format(e),
+                                     QMessageBox.Ok)
+            except Exception as e:
+                QMessageBox.critical(self, "Error",
+                                     "{0}".format(e),
+                                     QMessageBox.Ok)
 

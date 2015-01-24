@@ -58,6 +58,19 @@
             <number>5</number>
            </property>
            <item>
+            <spacer name="horizontalSpacer">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
             <widget class="QLabel" name="label_quality">
              <property name="text">
               <string>Quality : </string>
@@ -67,7 +80,14 @@
            <item>
             <widget class="QPushButton" name="button_membership">
              <property name="text">
-              <string>Send membership demand</string>
+              <string>Renew membership</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="button_leaving">
+             <property name="text">
+              <string>Send leaving demand</string>
              </property>
             </widget>
            </item>
@@ -92,8 +112,8 @@
    <slot>send_membership_demand()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>289</x>
-     <y>277</y>
+     <x>198</x>
+     <y>335</y>
     </hint>
     <hint type="destinationlabel">
      <x>199</x>
@@ -102,14 +122,14 @@
    </hints>
   </connection>
   <connection>
-   <sender>button_membership</sender>
+   <sender>button_leaving</sender>
    <signal>clicked()</signal>
    <receiver>CommunityTabWidget</receiver>
    <slot>send_membership_leaving()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>289</x>
-     <y>277</y>
+     <x>338</x>
+     <y>335</y>
     </hint>
     <hint type="destinationlabel">
      <x>199</x>

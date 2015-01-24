@@ -175,9 +175,9 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
             Person.lookup(self.account.pubkey, self.community, cached=False)
         except PersonNotFoundError as e:
             reply = QMessageBox.question(self, "Pubkey not found",
-                                 "The public key of your account wasn't found in the community. :\n \
-                                 {0}\n \
-                                 Would you like to publish the key ?".format(self.account.pubkey))
+                                 """The public key of your account wasn't found in the community. :\n
+{0}\n
+Would you like to publish the key ?""".format(self.account.pubkey))
             if reply == QMessageBox.Yes:
                 password = self.password_asker.ask()
                 if password == "":
