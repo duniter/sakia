@@ -33,7 +33,7 @@
          <bool>false</bool>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="tab_wallets">
          <attribute name="icon">
@@ -70,26 +70,16 @@
             <item>
              <widget class="QLabel" name="label">
               <property name="text">
-               <string>Sent</string>
+               <string>History</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QListView" name="list_transactions_sent"/>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="verticalLayout_2">
-            <item>
-             <widget class="QLabel" name="label_2">
-              <property name="text">
-               <string>Received</string>
-              </property>
+             <widget class="QTableView" name="table_history">
+              <attribute name="verticalHeaderVisible">
+               <bool>false</bool>
+              </attribute>
              </widget>
-            </item>
-            <item>
-             <widget class="QListView" name="list_transactions_received"/>
             </item>
            </layout>
           </item>

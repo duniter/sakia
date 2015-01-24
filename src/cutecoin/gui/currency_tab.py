@@ -13,8 +13,7 @@ from PyQt5.QtCore import QModelIndex, Qt, pyqtSlot, QObject, QThread, pyqtSignal
 from PyQt5.QtGui import QIcon
 from ..gen_resources.currency_tab_uic import Ui_CurrencyTabWidget
 from .community_tab import CommunityTabWidget
-from ..models.sent import SentListModel
-from ..models.received import ReceivedListModel
+from ..models.txhistory import HistoryTableModel
 from ..models.wallets import WalletsListModel
 from ..models.wallet import WalletListModel
 from ..tools.exceptions import NoPeerAvailable
@@ -87,10 +86,8 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             self.tabs_account.setEnabled(True)
             self.refresh_wallets()
 
-            self.list_transactions_sent.setModel(
-                SentListModel(self.app.current_account, self.community))
-            self.list_transactions_received.setModel(
-                ReceivedListModel(self.app.current_account, self.community))
+            self.table_history.setModel(
+                HistoryTableModel(self.app.current_account, self.community))
             self.tab_community = CommunityTabWidget(self.app.current_account,
                                                     self.community,
                                                     self.password_asker)
@@ -115,17 +112,11 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                                  QModelIndex(),
                                                  QModelIndex(),
                                                  [])
-        if self.list_transactions_sent.model():
-            self.list_transactions_sent.model().dataChanged.emit(
+        if self.table_history.model():
+            self.table_history.model().dataChanged.emit(
                                                      QModelIndex(),
                                                      QModelIndex(),
                                                      [])
-
-        if self.list_transactions_received.model():
-            self.list_transactions_received.model().dataChanged.emit(
-                                                         QModelIndex(),
-                                                         QModelIndex(),
-                                                         [])
 
         if self.tab_community.list_community_members.model():
             self.tab_community.list_community_members.model().dataChanged.emit(
