@@ -140,6 +140,9 @@
           <property name="suffix">
            <string/>
           </property>
+          <property name="decimals">
+           <number>0</number>
+          </property>
           <property name="maximum">
            <double>99999999.000000000000000</double>
           </property>
