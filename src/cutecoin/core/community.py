@@ -132,6 +132,8 @@ class Community(object):
             pass
         except TimeoutError:
             pass
+        except ValueError:
+            pass
 
     def peering(self):
         peers = []
