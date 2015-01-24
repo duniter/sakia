@@ -234,8 +234,8 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
                                      str(e), QMessageBox.Ok)
             password = self.edit_password.text()
         else:
-            password = self.password_asker.ask()
-            if password == "":
+            password = self.password_asker.exec_()
+            if self.password_asker.result() == QDialog.Rejected:
                 return
 
         nb_wallets = self.spinbox_wallets.value()

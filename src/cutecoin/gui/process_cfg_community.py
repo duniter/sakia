@@ -179,8 +179,8 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
 {0}\n
 Would you like to publish the key ?""".format(self.account.pubkey))
             if reply == QMessageBox.Yes:
-                password = self.password_asker.ask()
-                if password == "":
+                password = self.password_asker.exec_()
+                if self.password_asker.result() == QDialog.Rejected:
                     return
                 try:
                     self.account.send_pubkey(password, self.community)

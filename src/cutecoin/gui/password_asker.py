@@ -27,14 +27,15 @@ class PasswordAskerDialog(QDialog, Ui_PasswordAskerDialog):
         self.password = ""
         self.remember = False
 
-    def ask(self):
+    def exec_(self):
         if not self.remember:
-            self.exec_()
+            super().exec_()
             pwd = self.password
             if not self.remember:
                 self.password = ""
             return pwd
         else:
+            self.setResult(QDialog.Accepted)
             return self.password
 
     def accept(self):
@@ -53,5 +54,6 @@ class PasswordAskerDialog(QDialog, Ui_PasswordAskerDialog):
     def reject(self):
         self.edit_password.setText("")
         logging.debug("Cancelled")
+        self.setResult(QDialog.Accepted)
         self.password = ""
         super().reject()

@@ -55,8 +55,8 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
             recipient = self.edit_pubkey.text()
         amount = self.spinbox_amount.value()
 
-        password = self.password_asker.ask()
-        if password == "":
+        password = self.password_asker.exec_()
+        if self.password_asker.result() == QDialog.Rejected:
             return
 
         try:

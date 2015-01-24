@@ -37,7 +37,7 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
         else:
             pubkey = self.edit_pubkey.text()
 
-        password = self.password_asker.ask()
+        password = self.password_asker.exec_()
         if password == "":
             return
 

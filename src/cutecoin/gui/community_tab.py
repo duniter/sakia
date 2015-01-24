@@ -7,7 +7,7 @@ Created on 2 févr. 2014
 import logging
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QWidget, QMessageBox, QAction, QMenu, QInputDialog, QLineEdit
+from PyQt5.QtWidgets import QWidget, QMessageBox, QAction, QMenu, QDialog, QLineEdit
 from ..models.members import MembersListModel
 from ..gen_resources.community_tab_uic import Ui_CommunityTabWidget
 from .add_contact import AddContactDialog
@@ -95,8 +95,8 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         dialog.exec_()
 
     def send_membership_demand(self):
-        password = self.password_asker.ask()
-        if password == "":
+        password = self.password_asker.exec_()
+        if self.password_asker.result() == QDialog.Rejected:
             return
 
         try:
@@ -126,8 +126,9 @@ Sending a membership demand  cannot be canceled.
 The process to join back the community later will have to be done again."""
 .format(self.account.pubkey), QMessageBox.Ok | QMessageBox.Cancel)
         if reply == QMessageBox.Ok:
-            password = PasswordAskerDialog(self.app.current_account).ask()
-            if password == "":
+            password_asker = PasswordAskerDialog(self.app.current_account)
+            password = password_asker.exec_()
+            if password_asker.result() == QDialog.Rejected:
                 return
 
             try:
