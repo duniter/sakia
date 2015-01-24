@@ -86,8 +86,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
                                  "{0}".format(e),
                                  QMessageBox.Ok)
             return
-        self.accepted.emit()
-        self.close()
+        super().accept()
 
     def amount_changed(self):
         amount = self.spinbox_amount.value()

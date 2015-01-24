@@ -4,7 +4,7 @@ Created on 22 mai 2014
 @author: inso
 '''
 import re
-from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QMessageBox, QErrorMessage, QFileDialog
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QMessageBox, QFileDialog
 
 from cutecoin.tools.exceptions import Error
 from cutecoin.gen_resources.import_account_uic import Ui_ImportAccountDialog
@@ -30,13 +30,14 @@ class ImportAccountDialog(QDialog, Ui_ImportAccountDialog):
         account_name = self.edit_name.text()
         try:
             self.app.import_account(self.selected_file, account_name)
-        except Error as e:
-            QErrorMessage(self).showMessage(e.message)
+        except Exception as e:
+            QMessageBox.critical(self, "Error",
+                                 "{0}".format(e),
+                                 QMessageBox.Ok)
             return
         QMessageBox.information(self, "Account import",
                                 "Account imported succefully !")
-        self.accepted.emit()
-        self.close()
+        super().accept()
 
     def import_account(self):
         self.selected_file = QFileDialog.getOpenFileName(self,

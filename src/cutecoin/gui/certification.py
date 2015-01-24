@@ -50,17 +50,19 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
             QMessageBox.critical(self, "Certification",
                                  "Something wrong happened : {0}".format(e),
                                  QMessageBox.Ok)
+            return
         except NoPeerAvailable as e:
             QMessageBox.critical(self, "Certification",
                                  "Couldn't connect to network : {0}".format(e),
                                  QMessageBox.Ok)
+            return
         except Exception as e:
             QMessageBox.critical(self, "Error",
                                  "{0}".format(e),
                                  QMessageBox.Ok)
+            return
 
-        self.accepted.emit()
-        self.close()
+        super().accept()
 
     def change_current_community(self, index):
         self.community = self.certifier.communities[index]

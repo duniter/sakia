@@ -241,5 +241,4 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         nb_wallets = self.spinbox_wallets.value()
         self.account.set_walletpool_size(nb_wallets, password)
         self.app.save(self.account)
-        self.accepted.emit()
-        self.close()
+        super().accept()

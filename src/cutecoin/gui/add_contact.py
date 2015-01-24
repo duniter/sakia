@@ -35,7 +35,7 @@ class AddContactDialog(QDialog, Ui_AddContactDialog):
         if result:
             self.main_window.menu_contacts_list.addAction(name)
             self.main_window.app.save(self.account)
-        self.close()
+        super().accept()
 
     def name_edited(self, new_name):
         name_ok = len(new_name) > 0
