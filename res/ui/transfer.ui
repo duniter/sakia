@@ -136,17 +136,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QDoubleSpinBox" name="spinbox_amount">
-          <property name="suffix">
-           <string/>
-          </property>
-          <property name="decimals">
-           <number>0</number>
-          </property>
-          <property name="maximum">
-           <double>99999999.000000000000000</double>
-          </property>
-         </widget>
+         <widget class="QSpinBox" name="spinbox_amount"/>
         </item>
         <item>
          <widget class="QDoubleSpinBox" name="spinbox_relative">
@@ -262,22 +252,6 @@
     <hint type="sourcelabel">
      <x>199</x>
      <y>50</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>165</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>spinbox_amount</sender>
-   <signal>valueChanged(double)</signal>
-   <receiver>TransferMoneyDialog</receiver>
-   <slot>amount_changed()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>199</x>
-     <y>269</y>
     </hint>
     <hint type="destinationlabel">
      <x>199</x>
