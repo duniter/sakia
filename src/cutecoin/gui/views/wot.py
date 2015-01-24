@@ -241,9 +241,13 @@ class Node(QGraphicsEllipseItem):
     def contextMenuEvent(self, event: QGraphicsSceneContextMenuEvent):
         """
         Right click on node to show node menu
+        Except on wallet node
 
         :param event: scene context menu event
         """
+        # no menu on the wallet node
+        if self.status_wallet:
+            return None
         # create node context menus
         self.menu = QMenu()
         # action add identity as contact
