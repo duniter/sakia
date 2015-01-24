@@ -115,7 +115,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def refresh_wallets(self):
         currency_tab = self.currencies_tabwidget.currentWidget()
-        currency_tab.refresh_wallets()
+        if currency_tab:
+            currency_tab.refresh_wallets()
 
     def refresh_communities(self):
         self.currencies_tabwidget.clear()
