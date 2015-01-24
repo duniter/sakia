@@ -104,12 +104,18 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
 
     @pyqtSlot(int)
     def refresh_block(self, block_number):
+        if self.list_wallets.model():
+            self.list_wallets.model().dataChanged.emit(
+                                                 QModelIndex(),
+                                                 QModelIndex(),
+                                                 [])
+
         if self.list_wallet_content.model():
             self.list_wallet_content.model().dataChanged.emit(
                                                  QModelIndex(),
                                                  QModelIndex(),
                                                  [])
-        if self.list_wallet_content.model():
+        if self.list_transactions_sent.model():
             self.list_transactions_sent.model().dataChanged.emit(
                                                      QModelIndex(),
                                                      QModelIndex(),
