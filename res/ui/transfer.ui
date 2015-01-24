@@ -275,6 +275,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>spinbox_amount</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>TransferMoneyDialog</receiver>
+   <slot>amount_changed()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>269</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>200</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>open_manage_wallet_coins()</slot>
