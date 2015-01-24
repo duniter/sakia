@@ -84,6 +84,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.busybar.hide()
 
     def action_change_account(self, account_name):
+        if self.app.current_account:
+            self.app.save_cache(self.app.current_account)
         self.busybar.show()
         self.status_label.setText("Loading account {0}".format(account_name))
         self.loader.set_account_name(account_name)
