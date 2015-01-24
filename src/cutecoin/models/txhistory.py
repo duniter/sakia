@@ -26,7 +26,7 @@ class HistoryTableModel(QAbstractTableModel):
         super().__init__(parent)
         self.account = account
         self.community = community
-        self.columns = ('date', 'uid', 'pubkey', 'output', 'input')
+        self.columns = ('Date', 'UID/Public key', 'Payment', 'Deposit', 'Comment')
 
     def rowCount(self, parent):
         transactions = self.account.transactions_sent(self.community) + \
@@ -49,18 +49,17 @@ class HistoryTableModel(QAbstractTableModel):
             if o.pubkey not in pubkeys:
                 outputs.append(o)
                 amount += o.amount
-
+        comment = tx[1].comment
         pubkey = tx[1].issuers[0]
-        sender = ""
         try:
-            sender = Person.lookup(pubkey, self.community)
+            sender = Person.lookup(pubkey, self.community).name
         except PersonNotFoundError:
-            sender = ""
+            sender = pubkey
 
         date_ts = self.community.get_block(tx[0]).mediantime
         date = datetime.datetime.fromtimestamp(date_ts).strftime('%Y-%m-%d %H:%M:%S')
 
-        return (date, sender.name, pubkey, "", "{0}".format(amount))
+        return (date, sender, "", "{0}".format(amount), comment)
 
     def data_sent(self, tx):
         amount = 0
@@ -71,16 +70,16 @@ class HistoryTableModel(QAbstractTableModel):
                 outputs.append(o)
                 amount += o.amount
 
+        comment = tx[1].comment
         pubkey = outputs[0].pubkey
-        receiver = ""
         try:
-            receiver = Person.lookup(pubkey, self.community)
+            receiver = Person.lookup(pubkey, self.community).name
         except PersonNotFoundError:
-            receiver = ""
+            receiver = pubkey
         date_ts = self.community.get_block(tx[0]).mediantime
         date = datetime.datetime.fromtimestamp(date_ts).strftime('%Y-%m-%d %H:%M:%S')
 
-        return (date, receiver.name, pubkey, "-{0}".format(amount), "")
+        return (date, receiver, "-{0}".format(amount), "", comment)
 
     def data(self, index, role):
         row = index.row()
