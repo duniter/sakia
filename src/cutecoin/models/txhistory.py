@@ -9,6 +9,8 @@ from ..core.person import Person
 from ..tools.exceptions import PersonNotFoundError
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant
 from PyQt5.QtGui import QFont
+from operator import itemgetter
+import datetime
 
 
 class HistoryTableModel(QAbstractTableModel):
@@ -30,7 +32,6 @@ class HistoryTableModel(QAbstractTableModel):
         transactions = self.account.transactions_sent(self.community) + \
          self.account.transactions_awaiting(self.community) + \
          self.account.transactions_received(self.community)
-        logging.debug("rowcount: {0}:{1}".format(parent.row(), len(transactions)))
         return len(transactions)
 
     def columnCount(self, parent):
@@ -43,25 +44,28 @@ class HistoryTableModel(QAbstractTableModel):
     def data_received(self, tx):
         outputs = []
         amount = 0
-        for o in tx.outputs:
+        for o in tx[1].outputs:
             pubkeys = [w.pubkey for w in self.account.wallets]
             if o.pubkey not in pubkeys:
                 outputs.append(o)
                 amount += o.amount
 
-        pubkey = tx.issuers[0]
+        pubkey = tx[1].issuers[0]
         sender = ""
         try:
             sender = Person.lookup(pubkey, self.community)
         except PersonNotFoundError:
             sender = ""
 
-        return ("", sender.name, pubkey, "", "{0}".format(amount))
+        date_ts = self.community.get_block(tx[0]).mediantime
+        date = datetime.datetime.fromtimestamp(date_ts).strftime('%Y-%m-%d %H:%M:%S')
+
+        return (date, sender.name, pubkey, "", "{0}".format(amount))
 
     def data_sent(self, tx):
         amount = 0
         outputs = []
-        for o in tx.outputs:
+        for o in tx[1].outputs:
             pubkeys = [w.pubkey for w in self.account.wallets]
             if o.pubkey not in pubkeys:
                 outputs.append(o)
@@ -73,8 +77,10 @@ class HistoryTableModel(QAbstractTableModel):
             receiver = Person.lookup(pubkey, self.community)
         except PersonNotFoundError:
             receiver = ""
+        date_ts = self.community.get_block(tx[0]).mediantime
+        date = datetime.datetime.fromtimestamp(date_ts).strftime('%Y-%m-%d %H:%M:%S')
 
-        return ("", receiver.name, pubkey, "-{0}".format(amount), "")
+        return (date, receiver.name, pubkey, "-{0}".format(amount), "")
 
     def data(self, index, role):
         row = index.row()
@@ -82,12 +88,12 @@ class HistoryTableModel(QAbstractTableModel):
         transactions = self.account.transactions_sent(self.community) + \
          self.account.transactions_awaiting(self.community) + \
          self.account.transactions_received(self.community)
+        transactions = sorted(transactions, reverse=True, key=itemgetter(0))
 
         if not index.isValid():
             return QVariant()
 
         if role == Qt.DisplayRole:
-            logging.debug("{0}/{1}".format(row, len(transactions)))
             if transactions[row] in self.account.transactions_sent(self.community) \
                 or transactions[row] in self.account.transactions_awaiting(self.community):
                 return self.data_sent(transactions[row])[col]

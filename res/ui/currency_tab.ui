@@ -68,14 +68,10 @@
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_3">
             <item>
-             <widget class="QLabel" name="label">
-              <property name="text">
-               <string>History</string>
-              </property>
-             </widget>
-            </item>
-            <item>
              <widget class="QTableView" name="table_history">
+              <attribute name="horizontalHeaderStretchLastSection">
+               <bool>true</bool>
+              </attribute>
               <attribute name="verticalHeaderVisible">
                <bool>false</bool>
               </attribute>

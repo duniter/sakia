@@ -30,15 +30,15 @@ class Cache():
 
         data_received = data['received']
         for r in data_received:
-            self.tx_received.append(Transaction.from_signed_raw(r['raw']))
+            self.tx_received.append((r['block'], Transaction.from_signed_raw(r['raw'])))
 
         data_sent = data['sent']
         for s in data_sent:
-            self.tx_sent.append(Transaction.from_signed_raw(s['raw']))
+            self.tx_sent.append((r['block'], Transaction.from_signed_raw(s['raw'])))
 
         data_awaiting = data['awaiting']
         for s in data_awaiting:
-            self.awaiting_tx.append(Transaction.from_signed_raw(s['raw']))
+            self.awaiting_tx.append((r['block'], Transaction.from_signed_raw(s['raw'])))
 
         if 'sources' in data:
             data_sources = data['sources']
@@ -50,15 +50,15 @@ class Cache():
     def jsonify(self):
         data_received = []
         for r in self.tx_received:
-            data_received.append({'raw': r.signed_raw()})
+            data_received.append({'block': r[0], 'raw': r[1].signed_raw()})
 
         data_sent = []
         for s in self.tx_sent:
-            data_sent.append({'raw': s.signed_raw()})
+            data_sent.append({'block': r[0], 'raw': s[1].signed_raw()})
 
         data_awaiting = []
         for s in self.awaiting_tx:
-            data_awaiting.append({'raw': s.signed_raw()})
+            data_awaiting.append({'block': r[0], 'raw': s[1].signed_raw()})
 
         data_sources = []
         for s in self.available_sources:
@@ -110,15 +110,15 @@ class Cache():
                     in_outputs = [o for o in tx.outputs
                                   if o.pubkey == self.wallet.pubkey]
                     if len(in_outputs) > 0:
-                        self.tx_received.append(tx)
+                        self.tx_received.append((block_number, tx))
 
                     in_inputs = [i for i in tx.issuers if i == self.wallet.pubkey]
                     if len(in_inputs) > 0:
                         # remove from waiting transactions list the one which were
                         # validated in the blockchain
-                        self.awaiting_tx = [awaiting for awaiting in self.awaiting_tx
-                                             if awaiting.compact() != tx.compact()]
-                        self.tx_sent.append(tx)
+                        self.awaiting_tx = [awaiting[1] for awaiting in self.awaiting_tx
+                                             if awaiting[1].compact() != tx.compact()]
+                        self.tx_sent.append((block_number, tx))
 
             if current_block > self.latest_block:
                     self.available_sources = self.wallet.sources(community)
@@ -259,7 +259,8 @@ class Wallet(object):
         try:
             community.broadcast(bma.tx.Process,
                         post_args={'transaction': tx.signed_raw()})
-            self.caches[community.currency].awaiting_tx.append(tx)
+            block_number = community.current_blockid()['number']
+            self.caches[community.currency].awaiting_tx.append((block_number, tx))
         except:
             raise
 
