@@ -62,10 +62,7 @@ class Community(object):
         # After initializing the community from latest peers,
         # we refresh its peers tree
         logging.debug("Creating community")
-        found_peers = self.peering()
-        for p in found_peers:
-            if p.pubkey not in [peer.pubkey for peer in self.peers]:
-                self.peers.append(p)
+        self.peers = self.peering()
         logging.debug("{0} peers found".format(len(self.peers)))
         logging.debug([peer.pubkey for peer in peers])
 
@@ -114,14 +111,39 @@ class Community(object):
         else:
             return 1
 
+    def _peering_traversal(self, peer, found_peers, traversed_pubkeys):
+        logging.debug("Read {0} peering".format(peer.pubkey))
+        traversed_pubkeys.append(peer.pubkey)
+        if peer.currency == self.currency and \
+            peer.pubkey not in [p.pubkey for p in found_peers]:
+            found_peers.append(peer)
+        try:
+            e = next(e for e in peer.endpoints if type(e) is BMAEndpoint)
+            next_peers = bma.network.peering.Peers(e.conn_handler()).get()
+            for p in next_peers:
+                next_peer = Peer.from_signed_raw("{0}{1}\n".format(p['value']['raw'],
+                                                            p['value']['signature']))
+                logging.debug(traversed_pubkeys)
+                logging.debug("Traversing : next to read : {0} : {1}".format(next_peer.pubkey,
+                              (next_peer.pubkey not in traversed_pubkeys)))
+                if next_peer.pubkey not in traversed_pubkeys:
+                    self._peering_traversal(next_peer, found_peers, traversed_pubkeys)
+        except ConnectTimeout:
+            pass
+        except TimeoutError:
+            pass
+
     def peering(self):
         peers = []
-        peering_data = self.request(bma.network.peering.Peers)
-        logging.debug("Peering : {0}".format(peering_data))
-        for peer in peering_data:
-            logging.debug(peer)
-            peers.append(Peer.from_signed_raw("{0}{1}\n".format(peer['value']['raw'],
-                                                                peer['value']['signature'])))
+        traversed_pubkeys = []
+        for p in self.peers:
+            logging.debug(traversed_pubkeys)
+            logging.debug("Peering : next to read : {0} : {1}".format(p.pubkey,
+                          (p.pubkey not in traversed_pubkeys)))
+            if p.pubkey not in traversed_pubkeys:
+                self._peering_traversal(p, peers, traversed_pubkeys)
+
+        logging.debug("Peers found : {0}".format(peers))
         return peers
 
     def get_block(self, number=None):
