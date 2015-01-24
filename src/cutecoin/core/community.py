@@ -132,6 +132,8 @@ class Community(object):
             pass
         except TimeoutError:
             pass
+        except ConnectionError:
+            pass
         except ValueError:
             pass
 

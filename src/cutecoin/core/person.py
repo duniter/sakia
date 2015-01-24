@@ -32,8 +32,6 @@ class Person(object):
         '''
         data = community.request(bma.wot.Lookup, req_args={'search': pubkey},
                                  cached=cached)
-        results = data['results']
-        logging.debug(results)
         timestamp = 0
 
         for result in data['results']:

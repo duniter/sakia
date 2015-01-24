@@ -88,6 +88,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
 
             self.table_history.setModel(
                 HistoryTableModel(self.app.current_account, self.community))
+            self.table_history.setSortingEnabled(True)
             self.tab_community = CommunityTabWidget(self.app.current_account,
                                                     self.community,
                                                     self.password_asker)
