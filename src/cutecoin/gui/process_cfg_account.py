@@ -4,6 +4,7 @@ Created on 6 mars 2014
 @author: inso
 '''
 import logging
+import requests
 from ucoinpy.documents.peer import Peer
 from ucoinpy.key import SigningKey
 from ..gen_resources.account_cfg_uic import Ui_AccountConfigurationDialog
@@ -194,6 +195,10 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         try:
             dialog = ProcessConfigureCommunity(self.account, community, self.password_asker)
         except NoPeerAvailable as e:
+            QMessageBox.critical(self, "Error",
+                                 str(e), QMessageBox.Ok)
+            return
+        except requests.exceptions.RequestException as e:
             QMessageBox.critical(self, "Error",
                                  str(e), QMessageBox.Ok)
             return

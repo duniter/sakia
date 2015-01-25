@@ -18,6 +18,7 @@ from ..tools.exceptions import NoPeerAvailable
 from ..__init__ import __version__
 
 import logging
+import requests
 
 
 class Loader(QObject):
@@ -27,6 +28,7 @@ class Loader(QObject):
         self.account_name = ""
 
     loaded = pyqtSignal()
+    connection_error = pyqtSignal(str)
 
     def set_account_name(self, name):
         self.account_name = name
@@ -34,7 +36,12 @@ class Loader(QObject):
     @pyqtSlot()
     def load(self):
         if self.account_name != "":
-            self.app.change_current_account(self.app.get_account(self.account_name))
+            try:
+                self.app.change_current_account(self.app.get_account(self.account_name))
+            except requests.exceptions.RequestException as e:
+                self.connection_error.emit(str(e))
+                self.loaded.emit()
+
         self.loaded.emit()
 
 
@@ -69,6 +76,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.loader.moveToThread(self.loader_thread)
         self.loader.loaded.connect(self.loader_finished)
         self.loader.loaded.connect(self.loader_thread.quit)
+        self.loader.connection_error.connect(self.display_error)
         self.loader_thread.started.connect(self.loader.load)
         self.setWindowTitle("CuteCoin {0}".format(__version__))
         self.refresh()
@@ -83,9 +91,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.refresh()
         self.busybar.hide()
 
+    @pyqtSlot(str)
+    def display_error(self, error):
+        QMessageBox.critical(self, ":(",
+                    error,
+                    QMessageBox.Ok)
+
     def action_change_account(self, account_name):
-        if self.app.current_account:
-            self.app.save_cache(self.app.current_account)
         self.busybar.show()
         self.status_label.setText("Loading account {0}".format(account_name))
         self.loader.set_account_name(account_name)
@@ -160,11 +172,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.action_configure_parameters.setEnabled(False)
             self.action_set_as_default.setEnabled(False)
         else:
-            for dead in self.app.current_account.dead_communities:
-                QMessageBox.critical(self, ":(",
-                            "No {0} peers could be joined. Community was lost.".format(dead),
-                            QMessageBox.Ok)
-
             self.action_set_as_default.setEnabled(self.app.current_account.name
                                                   != self.app.default_account)
             self.password_asker = PasswordAskerDialog(self.app.current_account)
@@ -189,6 +196,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                 str(e),
                                 QMessageBox.Ok)
                     continue
+                except requests.exceptions.RequestException as e:
+                    QMessageBox.critical(self, ":(",
+                                str(e),
+                                QMessageBox.Ok)
 
             self.menu_contacts_list.clear()
             for contact in self.app.current_account.contacts:

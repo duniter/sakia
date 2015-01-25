@@ -12,7 +12,7 @@ from ..tools.exceptions import NoPeerAvailable
 import logging
 import inspect
 import hashlib
-from requests.exceptions import ConnectTimeout
+from requests.exceptions import RequestException, Timeout
 
 
 class Cache():
@@ -59,18 +59,16 @@ class Community(object):
         self.peers = [p for p in peers if p.currency == currency]
         self._cache = Cache(self)
 
-        # After initializing the community from latest peers,
-        # we refresh its peers tree
-        logging.debug("Creating community")
-        self.peers = self.peering()
-        logging.debug("{0} peers found".format(len(self.peers)))
-        logging.debug([peer.pubkey for peer in peers])
-
         self._cache.refresh()
 
     @classmethod
     def create(cls, currency, peer):
-        return cls(currency, [peer])
+        community = cls(currency, [peer])
+        logging.debug("Creating community")
+        community.peers = community.peering()
+        logging.debug("{0} peers found".format(len(community.peers)))
+        logging.debug([peer.pubkey for peer in community.peers])
+        return community
 
     @classmethod
     def load(cls, json_data):
@@ -91,6 +89,28 @@ class Community(object):
                         break
                     except:
                         pass
+
+        community = cls(currency, peers)
+        logging.debug("Creating community")
+        community.peers = community.peering()
+        logging.debug("{0} peers found".format(len(community.peers)))
+        logging.debug([peer.pubkey for peer in community.peers])
+        return community
+
+    @classmethod
+    def without_network(cls, json_data):
+        peers = []
+
+        currency = json_data['currency']
+
+        for data in json_data['peers']:
+            endpoints = []
+            for e in data['endpoints']:
+                endpoints.append(Endpoint.from_inline(e))
+            peer = Peer(PROTOCOL_VERSION, currency, data['pubkey'],
+                        "0-DA39A3EE5E6B4B0D3255BFEF95601890AFD80709",
+                        endpoints, None)
+            peers.append(peer)
 
         community = cls(currency, peers)
         return community
@@ -128,13 +148,13 @@ class Community(object):
                               (next_peer.pubkey not in traversed_pubkeys)))
                 if next_peer.pubkey not in traversed_pubkeys:
                     self._peering_traversal(next_peer, found_peers, traversed_pubkeys)
-        except ConnectTimeout:
-            pass
-        except TimeoutError:
+        except Timeout:
             pass
         except ConnectionError:
             pass
         except ValueError:
+            pass
+        except RequestException as e:
             pass
 
     def peering(self):
@@ -210,17 +230,11 @@ class Community(object):
                         continue
                     else:
                         raise
-                except ConnectTimeout:
+                except Timeout:
                     # Move the timeout peer to the end
                     self.peers.remove(peer)
                     self.peers.append(peer)
                     continue
-                except TimeoutError:
-                    # Move the timeout peer to the end
-                    self.peers.remove(peer)
-                    self.peers.append(peer)
-                    continue
-
         raise NoPeerAvailable(self.currency, len(self.peers))
 
     def post(self, request, req_args={}, post_args={}):
@@ -233,12 +247,7 @@ class Community(object):
                 return
             except ValueError as e:
                 raise
-            except ConnectTimeout:
-                # Move the timeout peer to the end
-                self.peers.remove(peer)
-                self.peers.append(peer)
-                continue
-            except TimeoutError:
+            except Timeout:
                 # Move the timeout peer to the end
                 self.peers.remove(peer)
                 self.peers.append(peer)
@@ -261,13 +270,7 @@ class Community(object):
             except ValueError as e:
                 value_error = e
                 continue
-            except ConnectTimeout:
-                tries = tries + 1
-                # Move the timeout peer to the end
-                self.peers.remove(peer)
-                self.peers.append(peer)
-                continue
-            except TimeoutError:
+            except Timeout:
                 tries = tries + 1
                 # Move the timeout peer to the end
                 self.peers.remove(peer)

@@ -6,9 +6,10 @@ Created on 2 févr. 2014
 
 import logging
 import time
+import requests
 
 from ucoinpy.api import bma
-from PyQt5.QtWidgets import QWidget, QMenu, QAction, QApplication
+from PyQt5.QtWidgets import QWidget, QMenu, QAction, QApplication, QMessageBox
 from PyQt5.QtCore import QModelIndex, Qt, pyqtSlot, QObject, QThread, pyqtSignal
 from PyQt5.QtGui import QIcon
 from ..gen_resources.currency_tab_uic import Ui_CurrencyTabWidget
@@ -46,8 +47,11 @@ class BlockchainWatcher(QObject):
                     self.last_block = block_number
             except NoPeerAvailable:
                 return
+            except requests.exceptions.RequestException as e:
+                self.connection_error.emit("Cannot check new block : {0}".format(str(e)))
 
     new_block_mined = pyqtSignal(int)
+    connection_error = pyqtSignal(str)
 
 
 class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
@@ -72,6 +76,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         self.bc_watcher = BlockchainWatcher(self.app.current_account,
                                                 community)
         self.bc_watcher.new_block_mined.connect(self.refresh_block)
+        self.bc_watcher.connection_error.connect(self.display_error)
 
         self.watcher_thread = QThread()
         self.bc_watcher.moveToThread(self.watcher_thread)
@@ -99,6 +104,12 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             block_number = blockid['number']
             self.status_label.setText("Connected : Block {0}"
                                              .format(block_number))
+
+    @pyqtSlot(str)
+    def display_error(self, error):
+        QMessageBox.critical(self, ":(",
+                    error,
+                    QMessageBox.Ok)
 
     @pyqtSlot(int)
     def refresh_block(self, block_number):

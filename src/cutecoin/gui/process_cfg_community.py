@@ -5,6 +5,8 @@ Created on 8 mars 2014
 '''
 
 import logging
+import requests
+
 from ucoinpy.api import bma
 from ucoinpy.api.bma import ConnectionHandler
 from ucoinpy.documents.peer import Peer
@@ -65,6 +67,11 @@ class StepPageInit(Step):
             QMessageBox.critical(self.config_dialog, "Server Error",
                               "Cannot join any peer in this community.")
             raise
+        except requests.exceptions.RequestException as e:
+            QMessageBox.critical(self.config_dialog, ":(",
+                        str(e),
+                        QMessageBox.Ok)
+            raise
 
     def display_page(self):
         self.config_dialog.button_previous.setEnabled(False)
@@ -87,7 +94,11 @@ class StepPageAddpeers(Step):
         # We add already known peers to the displayed list
         for peer in self.config_dialog.community.peers:
             self.config_dialog.peers.append(peer)
-        tree_model = PeeringTreeModel(self.config_dialog.community)
+        try:
+            tree_model = PeeringTreeModel(self.config_dialog.community)
+        except requests.exceptions.RequestException:
+            raise
+
         self.config_dialog.tree_peers.setModel(tree_model)
         self.config_dialog.button_previous.setEnabled(False)
         self.config_dialog.button_next.setText("Ok")
@@ -129,11 +140,19 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
     def next(self):
         if self.step.next_step is not None:
             if self.step.is_valid():
-                self.step.process_next()
-                self.step = self.step.next_step
-                next_index = self.stacked_pages.currentIndex() + 1
-                self.stacked_pages.setCurrentIndex(next_index)
-                self.step.display_page()
+                try:
+                    self.step.process_next()
+                    self.step = self.step.next_step
+                    next_index = self.stacked_pages.currentIndex() + 1
+                    self.stacked_pages.setCurrentIndex(next_index)
+                    self.step.display_page()
+                except NoPeerAvailable:
+                    return
+                except requests.exceptions.RequestException as e:
+                    QMessageBox.critical(self.config_dialog, ":(",
+                                str(e),
+                                QMessageBox.Ok)
+                    return
         else:
             self.accept()
 
@@ -155,8 +174,12 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
 
             peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],
                                                       peer_data['signature']))
-            self.community.peers.append(peer)
-        except:
+            if peer.currency == self.community.currency:
+                self.community.peers.append(peer)
+            else:
+                QMessageBox.critical(self, "Error",
+                                     "This peer doesn't use this community currency.")
+        except requests.exceptions.RequestException as e:
             QMessageBox.critical(self, "Server error",
                               "Cannot get node peering")
         self.tree_peers.setModel(PeeringTreeModel(self.community))
@@ -187,6 +210,15 @@ Would you like to publish the key ?""".format(self.account.pubkey))
                 except ValueError as e:
                     QMessageBox.critical(self, "Pubkey publishing error",
                                       e.message)
+                except NoPeerAvailable as e:
+                    QMessageBox.critical(self, "Network error",
+                                         "Couldn't connect to network : {0}".format(e),
+                                         QMessageBox.Ok)
+                except Exception as e:
+                    QMessageBox.critical(self, "Error",
+                                         "{0}".format(e),
+                                         QMessageBox.Ok)
+
             else:
                 return
 

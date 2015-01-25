@@ -28,8 +28,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         self.setupUi(self)
 
         # add combobox events
-        self.comboBoxSearch.lineEdit().textEdited.connect(self.search)
-        self.comboBoxSearch.lineEdit().returnPressed.connect(self.combobox_return_pressed)
+        self.comboBoxSearch.lineEdit().returnPressed.connect(self.search)
 
         # add scene events
         self.graphicsView.scene().node_clicked.connect(self.draw_graph)
@@ -54,14 +53,35 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
 
         :param public_key: Public key of the identity
         """
+        # reset graph
+        graph = dict()
         try:
             certifiers = self.community.request(bma.wot.CertifiersOf, {'search': public_key})
         except ValueError as e:
             logging.debug('bma.wot.CertifiersOf request error : ' + str(e))
+            try:
+                results = self.community.request(bma.wot.Lookup, {'search': public_key})
+            except ValueError as e:
+                logging.debug('bma.wot.CertifiersOf request error : ' + str(e))
+                return False
+
+            # show only node of this non member (to certify him)
+            node_status = 0
+            if public_key == self.account.pubkey:
+                node_status += NODE_STATUS_HIGHLIGHTED
+            node_status += NODE_STATUS_OUT
+            node_status += NODE_STATUS_SELECTED
+
+            # selected node
+            graph[public_key] = {'id': public_key, 'arcs': list(), 'text': results['results'][0]['uids'][0]['uid'], 'tooltip': public_key, 'status': node_status}
+
+            # draw graph in qt scene
+            self.graphicsView.scene().update_wot(graph)
             return False
 
-        # reset graph
-        graph = dict()
+        except Exception as e:
+            logging.debug('bma.wot.CertifiersOf request error : ' + str(e))
+            return False
 
         # add wallet node
         node_status = 0
@@ -173,24 +193,23 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             self.account.pubkey
         )
 
-    def combobox_return_pressed(self):
+    def search(self):
         """
         Search nodes when return is pressed in combobox lineEdit
         """
-        self.search(self.comboBoxSearch.lineEdit().text())
+        text = self.comboBoxSearch.lineEdit().text()
 
-    def search(self, text):
-        """
-        Search nodes when text is edited in combobox lineEdit
-        """
         if len(text) < 2:
             return False
+        try:
+            response = self.community.request(bma.wot.Lookup, {'search': text})
+        except Exception as e:
+            logging.debug('bma.wot.Lookup request error : ' + str(e))
+            return False
 
-        response = self.community.request(bma.wot.Lookup, {'search': text})
         nodes = {}
         for identity in response['results']:
-            if identity['uids'][0]['others']:
-                nodes[identity['pubkey']] = identity['uids'][0]['uid']
+            nodes[identity['pubkey']] = identity['uids'][0]['uid']
 
         if nodes:
             self.nodes = list()
@@ -200,6 +219,11 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
                 self.nodes.append({'pubkey': pubkey, 'uid': uid})
                 self.comboBoxSearch.addItem(uid)
             self.comboBoxSearch.showPopup()
+
+        if len(nodes) == 1:
+            self.draw_graph(
+                list(nodes.keys())[0]
+            )
 
     def select_node(self, index):
         """
@@ -215,6 +239,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
     def sign_node(self, metadata):
         # open certify dialog
         dialog = CertificationDialog(self.account, self.password_asker)
+        dialog.combo_community.setCurrentText(self.community.name())
         dialog.edit_pubkey.setText(metadata['id'])
         dialog.radio_pubkey.setChecked(True)
         dialog.combo_community.setCurrentText(self.community.name())
