@@ -28,8 +28,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         self.setupUi(self)
 
         # add combobox events
-        self.comboBoxSearch.lineEdit().textEdited.connect(self.search)
-        self.comboBoxSearch.lineEdit().returnPressed.connect(self.combobox_return_pressed)
+        self.comboBoxSearch.lineEdit().returnPressed.connect(self.search)
 
         # add scene events
         self.graphicsView.scene().node_clicked.connect(self.draw_graph)
@@ -56,7 +55,6 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         """
         # reset graph
         graph = dict()
-
         try:
             certifiers = self.community.request(bma.wot.CertifiersOf, {'search': public_key})
         except ValueError as e:
@@ -191,24 +189,19 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             self.account.pubkey
         )
 
-    def combobox_return_pressed(self):
+    def search(self):
         """
         Search nodes when return is pressed in combobox lineEdit
         """
-        self.search(self.comboBoxSearch.lineEdit().text())
+        text = self.comboBoxSearch.lineEdit().text()
 
-    def search(self, text):
-        """
-        Search nodes when text is edited in combobox lineEdit
-        """
         if len(text) < 2:
             return False
 
         response = self.community.request(bma.wot.Lookup, {'search': text})
         nodes = {}
         for identity in response['results']:
-            if identity['uids'][0]['others']:
-                nodes[identity['pubkey']] = identity['uids'][0]['uid']
+            nodes[identity['pubkey']] = identity['uids'][0]['uid']
 
         if nodes:
             self.nodes = list()
@@ -218,6 +211,11 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
                 self.nodes.append({'pubkey': pubkey, 'uid': uid})
                 self.comboBoxSearch.addItem(uid)
             self.comboBoxSearch.showPopup()
+
+        if len(nodes) == 1:
+            self.draw_graph(
+                list(nodes.keys())[0]
+            )
 
     def select_node(self, index):
         """
