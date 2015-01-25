@@ -63,7 +63,6 @@ class Application(object):
         if self.current_account is not None:
             self.save_cache(self.current_account)
         self.current_account = account
-        self.load_cache(account)
 
     def load(self):
         if (os.path.exists(config.parameters['data'])
@@ -71,7 +70,6 @@ class Application(object):
             logging.debug("Loading data...")
             with open(config.parameters['data'], 'r') as json_data:
                 data = json.load(json_data)
-                json_data.close()
                 if 'default_account' in data.keys():
                     self.default_account = data['default_account']
                 for account_name in data['local_accounts']:
@@ -83,6 +81,7 @@ class Application(object):
         with open(account_path, 'r') as json_data:
             data = json.load(json_data)
             account = Account.load(data)
+            self.load_cache(account)
             self.accounts[account_name] = account
 
     def load_cache(self, account):
@@ -92,7 +91,7 @@ class Application(object):
             if os.path.exists(wallet_path):
                 with open(wallet_path, 'r') as json_data:
                     data = json.load(json_data)
-                    wallet.load_caches(data)
+                wallet.load_caches(data)
             for community in account.communities:
                 wallet.refresh_cache(community)
 

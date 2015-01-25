@@ -49,11 +49,10 @@ class BlockchainWatcher(QObject):
             except NoPeerAvailable:
                 return
             except requests.exceptions.RequestException as e:
-                QMessageBox.critical(self, ":(",
-                            str(e),
-                            QMessageBox.Ok)
+                self.connection_error.emit(str(e))
 
     new_block_mined = pyqtSignal(int)
+    connection_error = pyqtSignal(str)
 
 
 class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
@@ -78,6 +77,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         self.bc_watcher = BlockchainWatcher(self.app.current_account,
                                                 community)
         self.bc_watcher.new_block_mined.connect(self.refresh_block)
+        self.bc_watcher.connection_error.connect(self.display_error)
 
         self.watcher_thread = QThread()
         self.bc_watcher.moveToThread(self.watcher_thread)
@@ -106,6 +106,12 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             block_number = blockid['number']
             self.status_label.setText("Connected : Block {0}"
                                              .format(block_number))
+
+    @pyqtSlot(str)
+    def display_error(self, error):
+        QMessageBox.critical(self, ":(",
+                    error,
+                    QMessageBox.Ok)
 
     @pyqtSlot(int)
     def refresh_block(self, block_number):

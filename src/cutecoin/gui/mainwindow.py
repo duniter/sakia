@@ -28,6 +28,7 @@ class Loader(QObject):
         self.account_name = ""
 
     loaded = pyqtSignal()
+    connection_error = pyqtSignal(str)
 
     def set_account_name(self, name):
         self.account_name = name
@@ -38,9 +39,9 @@ class Loader(QObject):
             try:
                 self.app.change_current_account(self.app.get_account(self.account_name))
             except requests.exceptions.RequestException as e:
-                QMessageBox.critical(self, ":(",
-                            str(e),
-                            QMessageBox.Ok)
+                self.connection_error.emit(str(e))
+                self.loaded.emit()
+
         self.loaded.emit()
 
 
@@ -75,6 +76,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.loader.moveToThread(self.loader_thread)
         self.loader.loaded.connect(self.loader_finished)
         self.loader.loaded.connect(self.loader_thread.quit)
+        self.loader.connection_error.connect(self.display_error)
         self.loader_thread.started.connect(self.loader.load)
         self.setWindowTitle("CuteCoin {0}".format(__version__))
         self.refresh()
@@ -89,9 +91,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.refresh()
         self.busybar.hide()
 
+    @pyqtSlot(str)
+    def display_error(self, error):
+        QMessageBox.critical(self, ":(",
+                    error,
+                    QMessageBox.Ok)
+
     def action_change_account(self, account_name):
-        if self.app.current_account:
-            self.app.save_cache(self.app.current_account)
         self.busybar.show()
         self.status_label.setText("Loading account {0}".format(account_name))
         self.loader.set_account_name(account_name)
