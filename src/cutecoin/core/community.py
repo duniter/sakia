@@ -59,18 +59,16 @@ class Community(object):
         self.peers = [p for p in peers if p.currency == currency]
         self._cache = Cache(self)
 
-        # After initializing the community from latest peers,
-        # we refresh its peers tree
-        logging.debug("Creating community")
-        self.peers = self.peering()
-        logging.debug("{0} peers found".format(len(self.peers)))
-        logging.debug([peer.pubkey for peer in peers])
-
         self._cache.refresh()
 
     @classmethod
     def create(cls, currency, peer):
-        return cls(currency, [peer])
+        community = cls(currency, [peer])
+        logging.debug("Creating community")
+        community.peers = community.peering()
+        logging.debug("{0} peers found".format(len(community.peers)))
+        logging.debug([peer.pubkey for peer in community.peers])
+        return community
 
     @classmethod
     def load(cls, json_data):
@@ -91,6 +89,28 @@ class Community(object):
                         break
                     except:
                         pass
+
+        community = cls(currency, peers)
+        logging.debug("Creating community")
+        community.peers = community.peering()
+        logging.debug("{0} peers found".format(len(community.peers)))
+        logging.debug([peer.pubkey for peer in community.peers])
+        return community
+
+    @classmethod
+    def without_network(cls, json_data):
+        peers = []
+
+        currency = json_data['currency']
+
+        for data in json_data['peers']:
+            endpoints = []
+            for e in data['endpoints']:
+                endpoints.append(Endpoint.from_inline(e))
+            peer = Peer(PROTOCOL_VERSION, currency, data['pubkey'],
+                        "0-DA39A3EE5E6B4B0D3255BFEF95601890AFD80709",
+                        endpoints, None)
+            peers.append(peer)
 
         community = cls(currency, peers)
         return community

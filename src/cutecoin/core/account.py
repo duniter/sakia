@@ -69,9 +69,11 @@ class Account(object):
         dead_communities = []
         for data in json_data['communities']:
             try:
-                communities.append(Community.load(data))
+                community = Community.load(data)
+                communities.append(community)
             except NoPeerAvailable:
-                dead_communities.append(data['currency'])
+                community = Community.without_network(data)
+                dead_communities.append(community)
 
         account = cls(salt, pubkey, name, communities, wallets,
                       contacts, dead_communities)
@@ -210,7 +212,8 @@ class Account(object):
 
     def jsonify(self):
         data_communities = []
-        for c in self.communities:
+        communities = self.communities + self.dead_communities
+        for c in communities:
             data_communities.append(c.jsonify())
 
         data_wallets = []
