@@ -12,7 +12,7 @@ from ..tools.exceptions import NoPeerAvailable
 import logging
 import inspect
 import hashlib
-from requests.exceptions import RequestException, ConnectTimeout
+from requests.exceptions import RequestException, Timeout
 
 
 class Cache():
@@ -128,7 +128,7 @@ class Community(object):
                               (next_peer.pubkey not in traversed_pubkeys)))
                 if next_peer.pubkey not in traversed_pubkeys:
                     self._peering_traversal(next_peer, found_peers, traversed_pubkeys)
-        except TimeoutError:
+        except Timeout:
             pass
         except ValueError:
             pass
@@ -208,12 +208,7 @@ class Community(object):
                         continue
                     else:
                         raise
-                except ConnectTimeout:
-                    # Move the timeout peer to the end
-                    self.peers.remove(peer)
-                    self.peers.append(peer)
-                    continue
-                except TimeoutError:
+                except Timeout:
                     # Move the timeout peer to the end
                     self.peers.remove(peer)
                     self.peers.append(peer)
@@ -230,12 +225,7 @@ class Community(object):
                 return
             except ValueError as e:
                 raise
-            except ConnectTimeout:
-                # Move the timeout peer to the end
-                self.peers.remove(peer)
-                self.peers.append(peer)
-                continue
-            except TimeoutError:
+            except Timeout:
                 # Move the timeout peer to the end
                 self.peers.remove(peer)
                 self.peers.append(peer)
@@ -258,13 +248,7 @@ class Community(object):
             except ValueError as e:
                 value_error = e
                 continue
-            except ConnectTimeout:
-                tries = tries + 1
-                # Move the timeout peer to the end
-                self.peers.remove(peer)
-                self.peers.append(peer)
-                continue
-            except TimeoutError:
+            except Timeout:
                 tries = tries + 1
                 # Move the timeout peer to the end
                 self.peers.remove(peer)

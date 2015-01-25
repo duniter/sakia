@@ -68,7 +68,7 @@ class StepPageInit(Step):
                               "Cannot join any peer in this community.")
             raise
         except requests.exceptions.RequestException as e:
-            QMessageBox.critical(self, ":(",
+            QMessageBox.critical(self.config_dialog, ":(",
                         str(e),
                         QMessageBox.Ok)
             raise
@@ -94,7 +94,11 @@ class StepPageAddpeers(Step):
         # We add already known peers to the displayed list
         for peer in self.config_dialog.community.peers:
             self.config_dialog.peers.append(peer)
-        tree_model = PeeringTreeModel(self.config_dialog.community)
+        try:
+            tree_model = PeeringTreeModel(self.config_dialog.community)
+        except requests.exceptions.RequestException:
+            raise
+
         self.config_dialog.tree_peers.setModel(tree_model)
         self.config_dialog.button_previous.setEnabled(False)
         self.config_dialog.button_next.setText("Ok")
@@ -136,11 +140,19 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
     def next(self):
         if self.step.next_step is not None:
             if self.step.is_valid():
-                self.step.process_next()
-                self.step = self.step.next_step
-                next_index = self.stacked_pages.currentIndex() + 1
-                self.stacked_pages.setCurrentIndex(next_index)
-                self.step.display_page()
+                try:
+                    self.step.process_next()
+                    self.step = self.step.next_step
+                    next_index = self.stacked_pages.currentIndex() + 1
+                    self.stacked_pages.setCurrentIndex(next_index)
+                    self.step.display_page()
+                except NoPeerAvailable:
+                    return
+                except requests.exceptions.RequestException as e:
+                    QMessageBox.critical(self.config_dialog, ":(",
+                                str(e),
+                                QMessageBox.Ok)
+                    return
         else:
             self.accept()
 
