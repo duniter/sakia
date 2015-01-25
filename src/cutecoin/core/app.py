@@ -32,8 +32,7 @@ class Application(object):
         self.load()
 
     def get_account(self, name):
-        if not self.accounts[name]:
-            self.load_account(name)
+        self.load_account(name)
         if name in self.accounts.keys():
             return self.accounts[name]
         else:

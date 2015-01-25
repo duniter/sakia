@@ -49,7 +49,7 @@ class BlockchainWatcher(QObject):
             except NoPeerAvailable:
                 return
             except requests.exceptions.RequestException as e:
-                self.connection_error.emit(str(e))
+                self.connection_error.emit("Cannot check new block : {0}".format(str(e)))
 
     new_block_mined = pyqtSignal(int)
     connection_error = pyqtSignal(str)
