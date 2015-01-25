@@ -79,6 +79,10 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             self.graphicsView.scene().update_wot(graph)
             return False
 
+        except Exception as e:
+            logging.debug('bma.wot.CertifiersOf request error : ' + str(e))
+            return False
+
         # add wallet node
         node_status = 0
         if public_key == self.account.pubkey:
@@ -197,8 +201,12 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
 
         if len(text) < 2:
             return False
+        try:
+            response = self.community.request(bma.wot.Lookup, {'search': text})
+        except Exception as e:
+            logging.debug('bma.wot.Lookup request error : ' + str(e))
+            return False
 
-        response = self.community.request(bma.wot.Lookup, {'search': text})
         nodes = {}
         for identity in response['results']:
             nodes[identity['pubkey']] = identity['uids'][0]['uid']
