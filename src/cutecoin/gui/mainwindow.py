@@ -18,6 +18,7 @@ from ..tools.exceptions import NoPeerAvailable
 from ..__init__ import __version__
 
 import logging
+import requests
 
 
 class Loader(QObject):
@@ -189,6 +190,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                 str(e),
                                 QMessageBox.Ok)
                     continue
+                except requests.exceptions.RequestException as e:
+                    QMessageBox.critical(self, ":(",
+                                str(e),
+                                QMessageBox.Ok)
 
             self.menu_contacts_list.clear()
             for contact in self.app.current_account.contacts:

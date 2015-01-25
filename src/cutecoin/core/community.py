@@ -12,7 +12,7 @@ from ..tools.exceptions import NoPeerAvailable
 import logging
 import inspect
 import hashlib
-from requests.exceptions import ConnectTimeout
+from requests.exceptions import RequestException, ConnectTimeout
 
 
 class Cache():
@@ -128,11 +128,11 @@ class Community(object):
                               (next_peer.pubkey not in traversed_pubkeys)))
                 if next_peer.pubkey not in traversed_pubkeys:
                     self._peering_traversal(next_peer, found_peers, traversed_pubkeys)
-        except ConnectTimeout:
-            pass
         except TimeoutError:
             pass
         except ValueError:
+            pass
+        except RequestException as e:
             pass
 
     def peering(self):
@@ -218,7 +218,6 @@ class Community(object):
                     self.peers.remove(peer)
                     self.peers.append(peer)
                     continue
-
         raise NoPeerAvailable(self.currency, len(self.peers))
 
     def post(self, request, req_args={}, post_args={}):

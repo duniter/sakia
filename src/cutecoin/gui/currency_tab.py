@@ -6,9 +6,10 @@ Created on 2 févr. 2014
 
 import logging
 import time
+import requests
 
 from ucoinpy.api import bma
-from PyQt5.QtWidgets import QWidget, QMenu, QAction, QApplication
+from PyQt5.QtWidgets import QWidget, QMenu, QAction, QApplication, QMessageBox
 from PyQt5.QtCore import QModelIndex, Qt, pyqtSlot, QObject, QThread, pyqtSignal
 from PyQt5.QtGui import QIcon
 from ..gen_resources.currency_tab_uic import Ui_CurrencyTabWidget
@@ -47,6 +48,10 @@ class BlockchainWatcher(QObject):
                     self.last_block = block_number
             except NoPeerAvailable:
                 return
+            except requests.exceptions.RequestException as e:
+                QMessageBox.critical(self, ":(",
+                            str(e),
+                            QMessageBox.Ok)
 
     new_block_mined = pyqtSignal(int)
 

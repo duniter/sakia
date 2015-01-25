@@ -5,6 +5,8 @@ Created on 8 mars 2014
 '''
 
 import logging
+import requests
+
 from ucoinpy.api import bma
 from ucoinpy.api.bma import ConnectionHandler
 from ucoinpy.documents.peer import Peer
@@ -64,6 +66,11 @@ class StepPageInit(Step):
         except NoPeerAvailable:
             QMessageBox.critical(self.config_dialog, "Server Error",
                               "Cannot join any peer in this community.")
+            raise
+        except requests.exceptions.RequestException as e:
+            QMessageBox.critical(self, ":(",
+                        str(e),
+                        QMessageBox.Ok)
             raise
 
     def display_page(self):
@@ -155,8 +162,12 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
 
             peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],
                                                       peer_data['signature']))
-            self.community.peers.append(peer)
-        except:
+            if peer.currency == self.community.currency:
+                self.community.peers.append(peer)
+            else:
+                QMessageBox.critical(self, "Error",
+                                     "This peer doesn't use this community currency.")
+        except requests.exceptions.RequestException as e:
             QMessageBox.critical(self, "Server error",
                               "Cannot get node peering")
         self.tree_peers.setModel(PeeringTreeModel(self.community))
@@ -187,6 +198,15 @@ Would you like to publish the key ?""".format(self.account.pubkey))
                 except ValueError as e:
                     QMessageBox.critical(self, "Pubkey publishing error",
                                       e.message)
+                except NoPeerAvailable as e:
+                    QMessageBox.critical(self, "Network error",
+                                         "Couldn't connect to network : {0}".format(e),
+                                         QMessageBox.Ok)
+                except Exception as e:
+                    QMessageBox.critical(self, "Error",
+                                         "{0}".format(e),
+                                         QMessageBox.Ok)
+
             else:
                 return
 
