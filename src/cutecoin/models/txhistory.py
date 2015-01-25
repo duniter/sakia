@@ -27,7 +27,6 @@ class HistoryTableModel(QAbstractTableModel):
         self.account = account
         self.community = community
         self.columns = ('Date', 'UID/Public key', 'Payment', 'Deposit', 'Comment')
-        self.sorting = lambda
         self.transactions = self.account.transactions_sent(self.community) + \
          self.account.transactions_awaiting(self.community) + \
          self.account.transactions_received(self.community)
