@@ -90,9 +90,9 @@ class Application(object):
             wallet_path = os.path.join(config.parameters['home'],
                                         account.name, '__cache__', wallet.pubkey)
             if os.path.exists(wallet_path):
-                json_data = open(wallet_path, 'r')
-                data = json.load(json_data)
-                wallet.load_caches(data)
+                with open(wallet_path, 'r') as json_data:
+                    data = json.load(json_data)
+                    wallet.load_caches(data)
             for community in account.communities:
                 wallet.refresh_cache(community)
 

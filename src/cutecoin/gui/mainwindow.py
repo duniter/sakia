@@ -35,7 +35,12 @@ class Loader(QObject):
     @pyqtSlot()
     def load(self):
         if self.account_name != "":
-            self.app.change_current_account(self.app.get_account(self.account_name))
+            try:
+                self.app.change_current_account(self.app.get_account(self.account_name))
+            except requests.exceptions.RequestException as e:
+                QMessageBox.critical(self, ":(",
+                            str(e),
+                            QMessageBox.Ok)
         self.loaded.emit()
 
 
@@ -163,7 +168,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             for dead in self.app.current_account.dead_communities:
                 QMessageBox.critical(self, ":(",
-                            "No {0} peers could be joined. Community was lost.".format(dead),
+                            "No {0} peers could be joined. Connection to its network is lost.".format(dead),
                             QMessageBox.Ok)
 
             self.action_set_as_default.setEnabled(self.app.current_account.name
