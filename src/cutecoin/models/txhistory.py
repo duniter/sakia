@@ -7,7 +7,7 @@ Created on 5 févr. 2014
 import logging
 from ..core.person import Person
 from ..tools.exceptions import PersonNotFoundError
-from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel
+from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QAbstractProxyModel
 from PyQt5.QtGui import QFont
 from operator import itemgetter
 import datetime
@@ -27,8 +27,7 @@ class HistoryTableModel(QAbstractTableModel):
         self.account = account
         self.community = community
         self.columns = ('Date', 'UID/Public key', 'Payment', 'Deposit', 'Comment')
-        self.section_sorting = 0
-        self.reversed = True
+        self.sorting = lambda
         self.transactions = self.account.transactions_sent(self.community) + \
          self.account.transactions_awaiting(self.community) + \
          self.account.transactions_received(self.community)
@@ -151,9 +150,32 @@ class HistoryTableModel(QAbstractTableModel):
                           3: amount_received,
                           4: comment}
 
+        self.transactions = self.account.transactions_sent(self.community) + \
+         self.account.transactions_awaiting(self.community) + \
+         self.account.transactions_received(self.community)
+
         self.transactions = sorted(self.transactions,
                               reverse=(order == Qt.DescendingOrder),
                               key=key_getter[section])
+
+        self.layoutChanged.emit()
+
+    def set_period(self, ts_from, ts_to):
+        """
+        Filter table by given timestamps
+        """
+        self.layoutAboutToBeChanged.emit()
+        logging.debug("Filtering from {0} to {1}".format(ts_from, ts_to))
+
+        def in_period(tx):
+            block = self.community.get_block(tx[0])
+            return (block.mediantime in range(ts_from, ts_to))
+
+        self.transactions = self.account.transactions_sent(self.community) + \
+         self.account.transactions_awaiting(self.community) + \
+         self.account.transactions_received(self.community)
+
+        self.transactions = [tx for tx in filter(in_period, self.transactions)]
 
         self.layoutChanged.emit()
 

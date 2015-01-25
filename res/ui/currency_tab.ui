@@ -68,6 +68,33 @@
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_3">
             <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_2">
+              <property name="topMargin">
+               <number>5</number>
+              </property>
+              <item>
+               <widget class="QDateTimeEdit" name="date_from">
+                <property name="displayFormat">
+                 <string>dd/MM/yyyy</string>
+                </property>
+                <property name="calendarPopup">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDateTimeEdit" name="date_to">
+                <property name="displayFormat">
+                 <string>dd/MM/yyyy</string>
+                </property>
+                <property name="calendarPopup">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
              <widget class="QTableView" name="table_history">
               <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
                <bool>true</bool>
@@ -127,9 +154,42 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>date_from</sender>
+   <signal>dateTimeChanged(QDateTime)</signal>
+   <receiver>CurrencyTabWidget</receiver>
+   <slot>dates_changed(QDateTime)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>114</x>
+     <y>73</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>date_to</sender>
+   <signal>dateTimeChanged(QDateTime)</signal>
+   <receiver>CurrencyTabWidget</receiver>
+   <slot>dates_changed(QDateTime)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>285</x>
+     <y>73</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>refresh_wallet_content(QModelIndex)</slot>
   <slot>wallet_context_menu(QPoint)</slot>
+  <slot>dates_changed(QDateTime)</slot>
  </slots>
 </ui>

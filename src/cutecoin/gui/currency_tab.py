@@ -9,8 +9,8 @@ import time
 import requests
 
 from ucoinpy.api import bma
-from PyQt5.QtWidgets import QWidget, QMenu, QAction, QApplication, QMessageBox
-from PyQt5.QtCore import QModelIndex, Qt, pyqtSlot, QObject, QThread, pyqtSignal
+from PyQt5.QtWidgets import QWidget, QMenu, QAction, QApplication
+from PyQt5.QtCore import QModelIndex, Qt, pyqtSlot, QObject, QThread, pyqtSignal, QDateTime
 from PyQt5.QtGui import QIcon
 from ..gen_resources.currency_tab_uic import Ui_CurrencyTabWidget
 from .community_tab import CommunityTabWidget
@@ -90,6 +90,19 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         else:
             self.tabs_account.setEnabled(True)
             self.refresh_wallets()
+            blockchain_init = QDateTime()
+            blockchain_init.setTime_t(self.community.get_block(1).mediantime)
+
+            blockchain_lastblock = QDateTime()
+            blockchain_lastblock.setTime_t(self.community.get_block().mediantime)
+
+            self.date_from.setMinimumDateTime(blockchain_init)
+            self.date_from.setDateTime(blockchain_init)
+            self.date_from.setMaximumDateTime(blockchain_lastblock)
+
+            self.date_to.setMinimumDateTime(blockchain_init)
+            self.date_to.setDateTime(blockchain_lastblock)
+            self.date_to.setMaximumDateTime(blockchain_lastblock)
 
             self.table_history.setModel(
                 HistoryTableModel(self.app.current_account, self.community))
@@ -192,3 +205,9 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
     def closeEvent(self, event):
         self.bc_watcher.deleteLater()
         self.watcher_thread.deleteLater()
+
+    def dates_changed(self, datetime):
+        ts_from = self.date_from.dateTime().toTime_t()
+        ts_to = self.date_to.dateTime().toTime_t()
+        if self.table_history.model():
+            self.table_history.model().set_period(ts_from, ts_to)
