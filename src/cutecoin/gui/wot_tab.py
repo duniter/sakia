@@ -3,7 +3,7 @@
 import time
 import datetime
 import logging
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QWidget, QComboBox
 
 from ..gen_resources.wot_tab_uic import Ui_WotTabWidget
 from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_SELECTED, NODE_STATUS_OUT, ARC_STATUS_STRONG, ARC_STATUS_WEAK
@@ -29,6 +29,9 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
 
         # add combobox events
         self.comboBoxSearch.lineEdit().returnPressed.connect(self.search)
+        # To fix a recall of the same item with different case,
+        # the edited text is not added in the item list
+        self.comboBoxSearch.setInsertPolicy(QComboBox.NoInsert)
 
         # add scene events
         self.graphicsView.scene().node_clicked.connect(self.draw_graph)
