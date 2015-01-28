@@ -14,7 +14,7 @@ from PyQt5.QtCore import QModelIndex, Qt, pyqtSlot, QObject, QThread, pyqtSignal
 from PyQt5.QtGui import QIcon
 from ..gen_resources.currency_tab_uic import Ui_CurrencyTabWidget
 from .community_tab import CommunityTabWidget
-from ..models.txhistory import HistoryTableModel
+from ..models.txhistory import HistoryTableModel, TxFilterProxyModel
 from ..models.wallets import WalletsListModel
 from ..models.wallet import WalletListModel
 from ..tools.exceptions import NoPeerAvailable
@@ -104,9 +104,18 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             self.date_to.setDateTime(blockchain_lastblock)
             self.date_to.setMaximumDateTime(blockchain_lastblock)
 
-            self.table_history.setModel(
-                HistoryTableModel(self.app.current_account, self.community))
+            ts_from = self.date_from.dateTime().toTime_t()
+            ts_to = self.date_to.dateTime().toTime_t()
+
+            model = HistoryTableModel(self.app.current_account, self.community)
+            proxy = TxFilterProxyModel(self.community, ts_from, ts_to)
+            proxy.setSourceModel(model)
+            proxy.setDynamicSortFilter(True)
+            proxy.setSortRole(Qt.DisplayRole)
+
+            self.table_history.setModel(proxy)
             self.table_history.setSortingEnabled(True)
+
             self.tab_community = CommunityTabWidget(self.app.current_account,
                                                     self.community,
                                                     self.password_asker)
@@ -211,3 +220,4 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         ts_to = self.date_to.dateTime().toTime_t()
         if self.table_history.model():
             self.table_history.model().set_period(ts_from, ts_to)
+            self.table_history.model().invalidate()

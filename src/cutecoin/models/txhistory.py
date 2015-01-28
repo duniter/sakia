@@ -7,10 +7,41 @@ Created on 5 févr. 2014
 import logging
 from ..core.person import Person
 from ..tools.exceptions import PersonNotFoundError
-from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QAbstractProxyModel
+from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, QDateTime
 from PyQt5.QtGui import QFont
-from operator import itemgetter
-import datetime
+
+
+class TxFilterProxyModel(QSortFilterProxyModel):
+    def __init__(self, community, ts_from, ts_to, parent=None):
+        super().__init__(parent)
+        self.community = community
+        self.ts_from = ts_from
+        self.ts_to = ts_to
+
+    def set_period(self, ts_from, ts_to):
+        """
+        Filter table by given timestamps
+        """
+        logging.debug("Filtering from {0} to {1}".format(ts_from, ts_to))
+        self.ts_from = ts_from
+        self.ts_to = ts_to
+
+    def filterAcceptsRow(self, sourceRow, sourceParent):
+        def in_period(tx):
+            block = self.community.get_block(tx[0])
+            return (block.mediantime in range(self.ts_from, self.ts_to))
+
+        tx = self.sourceModel().transactions[sourceRow]
+        return in_period(tx)
+
+    def lessThan(self, left, right):
+        """
+        Sort table by given column number.
+        """
+        logging.debug(self.sortOrder())
+        left_data = self.sourceModel().data(left, Qt.DisplayRole)
+        right_data = self.sourceModel().data(right, Qt.DisplayRole)
+        return (left_data < right_data)
 
 
 class HistoryTableModel(QAbstractTableModel):
@@ -32,7 +63,7 @@ class HistoryTableModel(QAbstractTableModel):
          self.account.transactions_received(self.community)
 
     def rowCount(self, parent):
-        return len(self.transactions )
+        return len(self.transactions)
 
     def columnCount(self, parent):
         return len(self.columns)
@@ -57,9 +88,9 @@ class HistoryTableModel(QAbstractTableModel):
             sender = pubkey
 
         date_ts = self.community.get_block(tx[0]).mediantime
-        date = datetime.datetime.fromtimestamp(date_ts).strftime('%Y-%m-%d %H:%M:%S')
+        date = QDateTime.fromTime_t(date_ts)
 
-        return (date, sender, "", "{0}".format(amount), comment)
+        return (date.date(), sender, "", "{0}".format(amount), comment)
 
     def data_sent(self, tx):
         amount = 0
@@ -77,9 +108,9 @@ class HistoryTableModel(QAbstractTableModel):
         except PersonNotFoundError:
             receiver = pubkey
         date_ts = self.community.get_block(tx[0]).mediantime
-        date = datetime.datetime.fromtimestamp(date_ts).strftime('%Y-%m-%d %H:%M:%S')
+        date = QDateTime.fromTime_t(date_ts)
 
-        return (date, receiver, "-{0}".format(amount), "", comment)
+        return (date.date(), receiver, "-{0}".format(amount), "", comment)
 
     def data(self, index, role):
         row = index.row()
@@ -103,80 +134,6 @@ class HistoryTableModel(QAbstractTableModel):
             else:
                 font.setItalic(False)
             return font
-
-    def sort(self, section, order):
-        """Sort table by given column number.
-        """
-        self.layoutAboutToBeChanged.emit()
-
-        def uid(tx):
-            if tx in self.account.transactions_received(self.community):
-                pubkey = tx[1].issuers[0]
-            else:
-                pubkey = tx[1].outputs[0].pubkey
-
-            try:
-                receiver = Person.lookup(pubkey, self.community).name
-            except PersonNotFoundError:
-                receiver = pubkey
-            return receiver
-
-        def amount_received(tx):
-            amount = 0
-            if tx in self.account.transactions_received(self.community):
-                for o in tx[1].outputs:
-                    pubkeys = [w.pubkey for w in self.account.wallets]
-                    if o.pubkey not in pubkeys:
-                        amount += o.amount
-            return amount
-
-        def amount_sent(tx):
-            amount = 0
-            if tx in self.account.transactions_sent(self.community) \
-                or tx in self.account.transactions_awaiting(self.community):
-                for o in tx[1].outputs:
-                    pubkeys = [w.pubkey for w in self.account.wallets]
-                    if o.pubkey not in pubkeys:
-                        amount += o.amount
-            return amount
-
-        def comment(tx):
-            return tx[1].comment
-
-        key_getter = {0: itemgetter(0),
-                          1: uid,
-                          2: amount_sent,
-                          3: amount_received,
-                          4: comment}
-
-        self.transactions = self.account.transactions_sent(self.community) + \
-         self.account.transactions_awaiting(self.community) + \
-         self.account.transactions_received(self.community)
-
-        self.transactions = sorted(self.transactions,
-                              reverse=(order == Qt.DescendingOrder),
-                              key=key_getter[section])
-
-        self.layoutChanged.emit()
-
-    def set_period(self, ts_from, ts_to):
-        """
-        Filter table by given timestamps
-        """
-        self.layoutAboutToBeChanged.emit()
-        logging.debug("Filtering from {0} to {1}".format(ts_from, ts_to))
-
-        def in_period(tx):
-            block = self.community.get_block(tx[0])
-            return (block.mediantime in range(ts_from, ts_to))
-
-        self.transactions = self.account.transactions_sent(self.community) + \
-         self.account.transactions_awaiting(self.community) + \
-         self.account.transactions_received(self.community)
-
-        self.transactions = [tx for tx in filter(in_period, self.transactions)]
-
-        self.layoutChanged.emit()
 
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled
