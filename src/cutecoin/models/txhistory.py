@@ -38,7 +38,6 @@ class TxFilterProxyModel(QSortFilterProxyModel):
         """
         Sort table by given column number.
         """
-        logging.debug(self.sortOrder())
         left_data = self.sourceModel().data(left, Qt.DisplayRole)
         right_data = self.sourceModel().data(right, Qt.DisplayRole)
         return (left_data < right_data)

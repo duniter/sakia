@@ -4,7 +4,8 @@ Created on 1 févr. 2014
 @author: inso
 '''
 from cutecoin.gen_resources.mainwindow_uic import Ui_MainWindow
-from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog, QProgressBar, QMessageBox, QLabel
+from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog, QProgressBar, \
+        QMessageBox, QLabel, QComboBox
 from PyQt5.QtCore import QSignalMapper, QModelIndex, QObject, QThread, pyqtSlot, pyqtSignal
 from PyQt5.QtGui import QIcon
 from .process_cfg_account import ProcessConfigureAccount
@@ -68,8 +69,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.statusbar.addWidget(self.busybar)
         self.busybar.hide()
 
+        self.combo_referential = QComboBox(self)
+        self.combo_referential.setEnabled(False)
+        self.combo_referential.currentIndexChanged.connect(self.referential_changed)
+        self.combo_referential.addItems(("Units", "UD",
+                                         "Units to zero", "UD to zero"))
+
         self.status_label = QLabel("", self.statusbar)
         self.statusbar.addPermanentWidget(self.status_label)
+        self.statusbar.addPermanentWidget(self.combo_referential)
 
         self.loader_thread = QThread()
         self.loader = Loader(self.app)
@@ -96,6 +104,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         QMessageBox.critical(self, ":(",
                     error,
                     QMessageBox.Ok)
+
+    @pyqtSlot(int)
+    def referential_changed(self, index):
+        if self.app.current_account:
+            self.app.current_account.set_display_referential(index)
 
     def action_change_account(self, account_name):
         self.busybar.show()
@@ -171,10 +184,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.menu_actions.setEnabled(False)
             self.action_configure_parameters.setEnabled(False)
             self.action_set_as_default.setEnabled(False)
+            self.combo_referential.setEnabled(False)
         else:
             self.action_set_as_default.setEnabled(self.app.current_account.name
                                                   != self.app.default_account)
             self.password_asker = PasswordAskerDialog(self.app.current_account)
+            self.combo_referential.setEnabled(True)
             self.menu_contacts.setEnabled(True)
             self.action_configure_parameters.setEnabled(True)
             self.menu_actions.setEnabled(True)

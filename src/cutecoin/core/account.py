@@ -102,6 +102,10 @@ class Account(object):
         self.communities.append(community)
         return community
 
+    def set_display_referential(self, index):
+        for w in self.wallets:
+            w.set_display_referential(index)
+
     def set_walletpool_size(self, size, password):
         logging.debug("Defining wallet pool size")
         if len(self.wallets) < size:

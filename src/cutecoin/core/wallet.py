@@ -146,6 +146,12 @@ class Wallet(object):
         self.pubkey = pubkey
         self.name = name
         self.caches = {}
+        self.referentials = [self.value,
+                             self.relative_value,
+                             self.value_from_zero,
+                             self.relative_from_zero
+                             ]
+        self.referential = self.referentials[0]
 
     @classmethod
     def create(cls, walletid, salt, password, name):
@@ -189,6 +195,9 @@ class Wallet(object):
             key = SigningKey("{0}{1}".format(salt, self.walletid), password)
         return (key.pubkey == self.pubkey)
 
+    def show_value(self, community):
+        return self.referential(community)
+
     def relative_value(self, community):
         value = self.value(community)
         ud = community.dividend()
@@ -200,6 +209,21 @@ class Wallet(object):
         for s in self.sources(community):
             value += s.amount
         return value
+
+    def relative_from_zero(self, community):
+        value = self.value(community)
+        ud = community.dividend()
+        relative_value = value / float(ud)
+        return relative_value
+
+    def value_from_zero(self, community):
+        value = 0
+        for s in self.sources(community):
+            value += s.amount
+        return value
+
+    def set_display_referential(self, index):
+        self.referential = self.referentials[index]
 
     def tx_inputs(self, amount, community):
         value = 0
