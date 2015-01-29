@@ -109,6 +109,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def referential_changed(self, index):
         if self.app.current_account:
             self.app.current_account.set_display_referential(index)
+            self.currencies_tabwidget.currentWidget().referential_changed()
 
     def action_change_account(self, account_name):
         self.busybar.show()

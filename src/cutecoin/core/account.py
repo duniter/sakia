@@ -41,6 +41,7 @@ class Account(object):
         self.dead_communities = dead_communities
         self.wallets = wallets
         self.contacts = contacts
+        self.referential = 0
 
     @classmethod
     def create(cls, name, communities, wallets, confpath):
@@ -103,8 +104,32 @@ class Account(object):
         return community
 
     def set_display_referential(self, index):
-        for w in self.wallets:
-            w.set_display_referential(index)
+        self.referential = index
+
+    def units_to_ref(self):
+        def units(units, community):
+            return units
+
+        def relative(units, community):
+            ud = community.dividend()
+            relative_value = units / float(ud)
+            return relative_value
+
+        def units_to_zero(units, community):
+            monetary_mass = community.monetary_mass()
+            to_zero_value = units - (monetary_mass / 2)
+            return to_zero_value
+
+        def relative_to_zero(units, community):
+            monetary_mass = community.monetary_mass()
+            ud = community.dividend()
+            relative_mass = monetary_mass / float(ud)
+            relative_value = units / float(ud)
+            to_zero_value = relative_value - (relative_mass / 2)
+            return to_zero_value
+
+        referentials = [units, relative, units_to_zero, relative_to_zero]
+        return referentials[self.referential]
 
     def set_walletpool_size(self, size, password):
         logging.debug("Defining wallet pool size")

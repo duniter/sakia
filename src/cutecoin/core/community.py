@@ -131,6 +131,14 @@ class Community(object):
         else:
             return 1
 
+    def monetary_mass(self):
+        try:
+            block = self.request(bma.blockchain.Current)
+            return block['monetaryMass']
+        except ValueError as e:
+            if '404' in e:
+                return 0
+
     def _peering_traversal(self, peer, found_peers, traversed_pubkeys):
         logging.debug("Read {0} peering".format(peer.pubkey))
         traversed_pubkeys.append(peer.pubkey)

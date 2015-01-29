@@ -221,3 +221,10 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         if self.table_history.model():
             self.table_history.model().set_period(ts_from, ts_to)
             self.table_history.model().invalidate()
+
+    def referential_changed(self):
+        if self.table_history.model():
+            self.table_history.model().dataChanged.emit(
+                                                     QModelIndex(),
+                                                     QModelIndex(),
+                                                     [])
