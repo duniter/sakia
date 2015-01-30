@@ -21,6 +21,16 @@ from .person import Person
 from ..tools.exceptions import NoPeerAvailable
 
 
+def units(units, community):
+    return units
+
+
+def relative(units, community):
+    ud = community.dividend()
+    relative_value = units / float(ud)
+    return relative_value
+
+
 class Account(object):
 
     '''
@@ -28,19 +38,8 @@ class Account(object):
     Each account has only one key, and a key can
     be locally referenced by only one account.
     '''
-
-    @staticmethod
-    def units(units, community):
-        return units
-
-    @staticmethod
-    def relative(units, community):
-        ud = community.dividend()
-        relative_value = units / float(ud)
-        return relative_value
-
-    referentials = {'Units': (units.__func__, '{0}'),
-                    'UD': (relative.__func__, 'UD {0}')
+    referentials = {'Units': (units, '{0}'),
+                    'UD': (relative, 'UD {0}')
                     }
 
     def __init__(self, salt, pubkey, name, communities, wallets, contacts,
