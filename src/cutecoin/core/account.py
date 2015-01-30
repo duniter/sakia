@@ -29,6 +29,20 @@ class Account(object):
     be locally referenced by only one account.
     '''
 
+    @staticmethod
+    def units(units, community):
+        return units
+
+    @staticmethod
+    def relative(units, community):
+        ud = community.dividend()
+        relative_value = units / float(ud)
+        return relative_value
+
+    referentials = {'Units': (units.__func__, '{0}'),
+                    'UD': (relative.__func__, 'UD {0}')
+                    }
+
     def __init__(self, salt, pubkey, name, communities, wallets, contacts,
                  dead_communities):
         '''
@@ -41,7 +55,7 @@ class Account(object):
         self.dead_communities = dead_communities
         self.wallets = wallets
         self.contacts = contacts
-        self.referential = 0
+        self.referential = 'Units'
 
     @classmethod
     def create(cls, name, communities, wallets, confpath):
@@ -108,33 +122,10 @@ class Account(object):
 
     @property
     def units_to_ref(self):
-        def units(units, community):
-            return units
-
-        def relative(units, community):
-            ud = community.dividend()
-            relative_value = units / float(ud)
-            return relative_value
-
-        def units_to_zero(units, community):
-            monetary_mass = community.monetary_mass()
-            to_zero_value = units - (monetary_mass / 2)
-            return to_zero_value
-
-        def relative_to_zero(units, community):
-            monetary_mass = community.monetary_mass()
-            ud = community.dividend()
-            relative_mass = monetary_mass / float(ud)
-            relative_value = units / float(ud)
-            to_zero_value = relative_value - (relative_mass / 2)
-            return to_zero_value
-
-        referentials = [units, relative, units_to_zero, relative_to_zero]
-        return referentials[self.referential]
+        return Account.referentials[self.referential][0]
 
     def ref_name(self, currency):
-        referentials = ['{0}', 'UD {0}', '{0} -> 0', 'UD {0} -> 0']
-        return referentials[self.referential].format(currency)
+        return Account.referentials[self.referential][1].format(currency)
 
     def set_walletpool_size(self, size, password):
         logging.debug("Defining wallet pool size")

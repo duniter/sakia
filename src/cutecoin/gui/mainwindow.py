@@ -16,6 +16,7 @@ from .import_account import ImportAccountDialog
 from .certification import CertificationDialog
 from .password_asker import PasswordAskerDialog
 from ..tools.exceptions import NoPeerAvailable
+from ..core.account import Account
 from ..__init__ import __version__
 
 import logging
@@ -71,9 +72,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.combo_referential = QComboBox(self)
         self.combo_referential.setEnabled(False)
-        self.combo_referential.currentIndexChanged.connect(self.referential_changed)
-        self.combo_referential.addItems(("Units", "UD",
-                                         "Units to zero", "UD to zero"))
+        self.combo_referential.currentTextChanged.connect(self.referential_changed)
 
         self.status_label = QLabel("", self.statusbar)
         self.statusbar.addPermanentWidget(self.status_label)
@@ -105,11 +104,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     error,
                     QMessageBox.Ok)
 
-    @pyqtSlot(int)
-    def referential_changed(self, index):
+    @pyqtSlot(str)
+    def referential_changed(self, text):
         if self.app.current_account:
-            self.app.current_account.set_display_referential(index)
-            self.currencies_tabwidget.currentWidget().referential_changed()
+            self.app.current_account.set_display_referential(text)
+            if self.currencies_tabwidget.currentWidget():
+                self.currencies_tabwidget.currentWidget().referential_changed()
 
     def action_change_account(self, account_name):
         self.busybar.show()
@@ -190,6 +190,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.action_set_as_default.setEnabled(self.app.current_account.name
                                                   != self.app.default_account)
             self.password_asker = PasswordAskerDialog(self.app.current_account)
+
+            self.combo_referential.addItems(Account.referentials.keys())
             self.combo_referential.setEnabled(True)
             self.menu_contacts.setEnabled(True)
             self.action_configure_parameters.setEnabled(True)
