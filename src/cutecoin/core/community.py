@@ -12,6 +12,7 @@ from ..tools.exceptions import NoPeerAvailable
 import logging
 import inspect
 import hashlib
+import re
 from requests.exceptions import RequestException, Timeout
 
 
@@ -120,6 +121,24 @@ class Community(object):
 
     def __eq__(self, other):
         return (other.currency == self.currency)
+
+    @property
+    def short_currency(self):
+        words = re.split('[_\W]+', self.currency)
+        shortened = ""
+        if len(words) > 1:
+            shortened = ''.join([w[0] for w in words])
+        else:
+            vowels = ('a', 'e', 'i', 'o', 'u', 'y')
+            shortened = self.currency
+            shortened = ''.join([c for c in shortened if c not in vowels])
+        return shortened
+
+    @property
+    def currency_symbol(self):
+        letter = self.currency[0]
+        u = ord('\u24B6') + ord(letter) - ord('A')
+        return chr(u)
 
     def dividend(self):
         ud = self.request(bma.blockchain.UD)

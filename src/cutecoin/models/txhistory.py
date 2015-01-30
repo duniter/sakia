@@ -76,7 +76,7 @@ class HistoryTableModel(QAbstractTableModel):
         amount = 0
         for o in tx[1].outputs:
             pubkeys = [w.pubkey for w in self.account.wallets]
-            if o.pubkey not in pubkeys:
+            if o.pubkey in pubkeys:
                 outputs.append(o)
                 amount += o.amount
         comment = tx[1].comment
@@ -86,12 +86,14 @@ class HistoryTableModel(QAbstractTableModel):
         except PersonNotFoundError:
             sender = pubkey
 
-        date_ts = self.community.get_block(tx[0]).mediantime
+        date_ts = self.community.get_block(tx[0]).time
         date = QDateTime.fromTime_t(date_ts)
 
         amount_ref = self.account.units_to_ref(amount, self.community)
+        ref_name = self.account.ref_name(self.community.short_currency)
 
-        return (date.date(), sender, "", "{0}".format(amount_ref), comment)
+        return (date.date(), sender, "", "{0} {1}".format(amount_ref, ref_name),
+                comment)
 
     def data_sent(self, tx):
         amount = 0
@@ -108,12 +110,14 @@ class HistoryTableModel(QAbstractTableModel):
             receiver = Person.lookup(pubkey, self.community).name
         except PersonNotFoundError:
             receiver = pubkey
-        date_ts = self.community.get_block(tx[0]).mediantime
+        date_ts = self.community.get_block(tx[0]).time
         date = QDateTime.fromTime_t(date_ts)
 
         amount_ref = self.account.units_to_ref(-amount, self.community)
+        ref_name = self.account.ref_name(self.community.short_currency)
 
-        return (date.date(), receiver, "{0}".format(amount_ref), "", comment)
+        return (date.date(), receiver, "{0} {1}".format(amount_ref, ref_name),
+                "", comment)
 
     def data(self, index, role):
         row = index.row()

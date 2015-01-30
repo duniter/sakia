@@ -39,7 +39,7 @@ class Account(object):
     be locally referenced by only one account.
     '''
     referentials = {'Units': (units, '{0}'),
-                    'UD': (relative, 'UD {0}')
+                    'UD': (relative, 'ud {0}')
                     }
 
     def __init__(self, salt, pubkey, name, communities, wallets, contacts,
