@@ -123,7 +123,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog.accepted.connect(self.refresh_wallets)
         dialog.exec_()
         currency_tab = self.currencies_tabwidget.currentWidget()
-        currency_tab.list_transactions_sent.model().dataChanged.emit(
+        currency_tab.table_history.model().dataChanged.emit(
                                                              QModelIndex(),
                                                              QModelIndex(), ())
 

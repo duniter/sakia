@@ -106,6 +106,7 @@ class Account(object):
     def set_display_referential(self, index):
         self.referential = index
 
+    @property
     def units_to_ref(self):
         def units(units, community):
             return units
@@ -130,6 +131,10 @@ class Account(object):
 
         referentials = [units, relative, units_to_zero, relative_to_zero]
         return referentials[self.referential]
+
+    def ref_name(self, currency):
+        referentials = ['{0}', 'UD {0}', '{0} -> 0', 'UD {0} -> 0']
+        return referentials[self.referential].format(currency)
 
     def set_walletpool_size(self, size, password):
         logging.debug("Defining wallet pool size")

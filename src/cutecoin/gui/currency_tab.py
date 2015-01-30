@@ -228,3 +228,9 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                                      QModelIndex(),
                                                      QModelIndex(),
                                                      [])
+
+        if self.list_wallets.model():
+            self.list_wallets.model().dataChanged.emit(
+                                                 QModelIndex(),
+                                                 QModelIndex(),
+                                                 [])

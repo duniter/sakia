@@ -89,7 +89,7 @@ class HistoryTableModel(QAbstractTableModel):
         date_ts = self.community.get_block(tx[0]).mediantime
         date = QDateTime.fromTime_t(date_ts)
 
-        amount_ref = self.account.units_to_ref()(amount, self.community)
+        amount_ref = self.account.units_to_ref(amount, self.community)
 
         return (date.date(), sender, "", "{0}".format(amount_ref), comment)
 
@@ -111,7 +111,7 @@ class HistoryTableModel(QAbstractTableModel):
         date_ts = self.community.get_block(tx[0]).mediantime
         date = QDateTime.fromTime_t(date_ts)
 
-        amount_ref = self.account.units_to_ref()(-amount, self.community)
+        amount_ref = self.account.units_to_ref(-amount, self.community)
 
         return (date.date(), receiver, "{0}".format(amount_ref), "", comment)
 
