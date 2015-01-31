@@ -19,14 +19,15 @@ class Cache():
         self.wallet = wallet
 
         self.tx_sent = []
-        self.awaiting_tx = []
+        self.tx_awaiting = []
         self.tx_received = []
+        self.tx_to_send = []
         self.available_sources = []
 
     def load_from_json(self, data):
         self.tx_received = []
         self.tx_sent = []
-        self.awaiting_tx = []
+        self.tx_awaiting = []
         logging.debug(data)
 
         data_received = data['received']
@@ -39,7 +40,7 @@ class Cache():
 
         data_awaiting = data['awaiting']
         for s in data_awaiting:
-            self.awaiting_tx.append((r['block'], Transaction.from_signed_raw(s['raw'])))
+            self.tx_awaiting.append((r['block'], Transaction.from_signed_raw(s['raw'])))
 
         if 'sources' in data:
             data_sources = data['sources']
@@ -58,7 +59,7 @@ class Cache():
             data_sent.append({'block': r[0], 'raw': s[1].signed_raw()})
 
         data_awaiting = []
-        for s in self.awaiting_tx:
+        for s in self.tx_awaiting:
             data_awaiting.append({'block': r[0], 'raw': s[1].signed_raw()})
 
         data_sources = []
@@ -76,7 +77,7 @@ class Cache():
         return self.tx_sent
 
     def awaiting(self, community):
-        return self.awaiting_tx
+        return self.tx_awaiting
 
     def latest_received(self, community):
         return self.tx_received
@@ -117,7 +118,7 @@ class Cache():
                     if len(in_inputs) > 0:
                         # remove from waiting transactions list the one which were
                         # validated in the blockchain
-                        self.awaiting_tx = [awaiting[1] for awaiting in self.awaiting_tx
+                        self.tx_awaiting = [awaiting[1] for awaiting in self.tx_awaiting
                                              if awaiting[1].compact() != tx.compact()]
                         self.tx_sent.append((block_number, tx))
 
@@ -262,7 +263,7 @@ class Wallet(object):
             community.broadcast(bma.tx.Process,
                         post_args={'transaction': tx.signed_raw()})
             block_number = community.current_blockid()['number']
-            self.caches[community.currency].awaiting_tx.append((block_number, tx))
+            self.caches[community.currency].tx_awaiting.append((block_number, tx))
         except:
             raise
 

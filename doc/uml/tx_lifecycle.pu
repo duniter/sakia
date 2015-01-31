@@ -1,0 +1,10 @@
+@startuml
+
+[*] --> To_send
+To_send --> Awaiting : Broadcasted at B
+Awaiting --> Validated : Registered in [B; B+15]
+Awaiting --> Canceled : Not registered in [B; B+15]
+Canceled --> To_send : Send back order
+Canceled --> Dropped : Drop order
+
+@enduml
