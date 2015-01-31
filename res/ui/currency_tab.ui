@@ -96,6 +96,9 @@
             </item>
             <item>
              <widget class="QTableView" name="table_history">
+              <property name="contextMenuPolicy">
+               <enum>Qt::CustomContextMenu</enum>
+              </property>
               <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
                <bool>true</bool>
               </attribute>

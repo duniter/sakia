@@ -84,7 +84,7 @@ class HistoryTableModel(QAbstractTableModel):
         try:
             sender = Person.lookup(pubkey, self.community).name
         except PersonNotFoundError:
-            sender = pubkey
+            sender = "pub:{0}".format(pubkey[:5])
 
         date_ts = self.community.get_block(tx[0]).time
         date = QDateTime.fromTime_t(date_ts)
@@ -109,7 +109,8 @@ class HistoryTableModel(QAbstractTableModel):
         try:
             receiver = Person.lookup(pubkey, self.community).name
         except PersonNotFoundError:
-            receiver = pubkey
+            receiver = "pub:{0}".format(pubkey[:5])
+
         date_ts = self.community.get_block(tx[0]).time
         date = QDateTime.fromTime_t(date_ts)
 

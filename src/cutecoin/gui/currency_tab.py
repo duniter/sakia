@@ -18,6 +18,8 @@ from ..models.txhistory import HistoryTableModel, TxFilterProxyModel
 from ..models.wallets import WalletsListModel
 from ..models.wallet import WalletListModel
 from ..tools.exceptions import NoPeerAvailable
+from ..core.wallet import Wallet
+from ..core.person import Person
 
 
 class BlockchainWatcher(QObject):
@@ -193,14 +195,32 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             # Show the context menu.
             menu.exec_(self.list_wallets.mapToGlobal(point))
 
+    def history_context_menu(self, point):
+        index = self.table_history.indexAt(point)
+        model = self.table_history.model()
+        if index.row() < model.rowCount(None):
+            wallet = model.wallets[index.row()]
+            menu = QMenu(model.data(index, Qt.DisplayRole), self)
+
+            copy_pubkey = QAction("Copy pubkey to clipboard", self)
+            copy_pubkey.triggered.connect(self.copy_pubkey_to_clipboard)
+            copy_pubkey.setData(wallet)
+
+            menu.addAction(copy_pubkey)
+            # Show the context menu.
+            menu.exec_(self.list_wallets.mapToGlobal(point))
+
     def rename_wallet(self):
         index = self.sender().data()
         self.list_wallets.edit(index)
 
     def copy_pubkey_to_clipboard(self):
-        wallet = self.sender().data()
+        data = self.sender().data()
         clipboard = QApplication.clipboard()
-        clipboard.setText(wallet.pubkey)
+        if data.__class__ is Wallet:
+            clipboard.setText(data.pubkey)
+        elif data.__class__ is Person:
+            clipboard.setText(data.pubkey)
 
     def wallet_changed(self):
         self.app.save(self.app.current_account)

@@ -6,7 +6,8 @@ Created on 1 févr. 2014
 from cutecoin.gen_resources.mainwindow_uic import Ui_MainWindow
 from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog, QProgressBar, \
         QMessageBox, QLabel, QComboBox
-from PyQt5.QtCore import QSignalMapper, QModelIndex, QObject, QThread, pyqtSlot, pyqtSignal
+from PyQt5.QtCore import QSignalMapper, QModelIndex, QObject, QThread, \
+    pyqtSlot, pyqtSignal, QDate, QDateTime, QTimer
 from PyQt5.QtGui import QIcon
 from .process_cfg_account import ProcessConfigureAccount
 from .transfer import TransferMoneyDialog
@@ -74,9 +75,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.combo_referential.setEnabled(False)
         self.combo_referential.currentTextChanged.connect(self.referential_changed)
 
-        self.status_label = QLabel("", self.statusbar)
+        self.status_label = QLabel("", self)
+
+        self.label_time = QLabel("", self)
+
         self.statusbar.addPermanentWidget(self.status_label)
+        self.statusbar.addPermanentWidget(self.label_time)
         self.statusbar.addPermanentWidget(self.combo_referential)
+        self.update_time()
 
         self.loader_thread = QThread()
         self.loader = Loader(self.app)
@@ -110,6 +116,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.app.current_account.set_display_referential(text)
             if self.currencies_tabwidget.currentWidget():
                 self.currencies_tabwidget.currentWidget().referential_changed()
+
+    @pyqtSlot()
+    def update_time(self):
+        date = QDate.currentDate()
+        self.label_time.setText("- {0} -".format(date.toString("dd/MM/yyyy")))
+        next_day = date.addDays(1)
+        current_time = QDateTime().toMSecsSinceEpoch()
+        next_time = QDateTime(next_day).toMSecsSinceEpoch()
+        timer = QTimer()
+        timer.timeout.connect(self.update_time)
+        timer.start(next_time - current_time)
 
     def action_change_account(self, account_name):
         self.busybar.show()

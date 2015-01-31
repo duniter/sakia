@@ -126,9 +126,6 @@ class Cache():
         except NoPeerAvailable:
             return
 
-        self.tx_sent = self.tx_sent[:50]
-        self.tx_received = self.tx_received[:50]
-
         self.latest_block = current_block
 
 
