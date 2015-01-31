@@ -41,11 +41,6 @@ class ParametersModel(QAbstractTableModel):
             font = QFont()
             font.setBold(True)
             return font
-        elif role == Qt.BackgroundColorRole:
-            if index.row() > 12:
-                return QColor("#dddddd")
-            elif index.row() > 4:
-                return QColor("#eeeeee")
         return None
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
