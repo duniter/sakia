@@ -42,6 +42,19 @@ class TxFilterProxyModel(QSortFilterProxyModel):
         right_data = self.sourceModel().data(right, Qt.DisplayRole)
         return (left_data < right_data)
 
+    def data(self, index, role):
+        source_index = self.mapToSource(index)
+        source_data = self.sourceModel().data(source_index, role)
+        if role == Qt.DisplayRole:
+            if source_index.column() == self.sourceModel().columns.index('UID/Public key'):
+                if source_data.__class__ == Person:
+                    tx_person = source_data.name
+                else:
+                    tx_person = "pub:{0}".format(source_data[:5])
+                source_data = tx_person
+                return source_data
+        return source_data
+
 
 class HistoryTableModel(QAbstractTableModel):
 
@@ -82,9 +95,11 @@ class HistoryTableModel(QAbstractTableModel):
         comment = tx[1].comment
         pubkey = tx[1].issuers[0]
         try:
-            sender = Person.lookup(pubkey, self.community).name
+            #sender = Person.lookup(pubkey, self.community).name
+            sender = Person.lookup(pubkey, self.community)
         except PersonNotFoundError:
-            sender = "pub:{0}".format(pubkey[:5])
+            #sender = "pub:{0}".format(pubkey[:5])
+            sender = pubkey
 
         date_ts = self.community.get_block(tx[0]).time
         date = QDateTime.fromTime_t(date_ts)
@@ -107,9 +122,11 @@ class HistoryTableModel(QAbstractTableModel):
         comment = tx[1].comment
         pubkey = outputs[0].pubkey
         try:
-            receiver = Person.lookup(pubkey, self.community).name
+            #receiver = Person.lookup(pubkey, self.community).name
+            receiver = Person.lookup(pubkey, self.community)
         except PersonNotFoundError:
-            receiver = "pub:{0}".format(pubkey[:5])
+            #receiver = "pub:{0}".format(pubkey[:5])
+            receiver = pubkey
 
         date_ts = self.community.get_block(tx[0]).time
         date = QDateTime.fromTime_t(date_ts)

@@ -189,10 +189,27 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>table_history</sender>
+   <signal>customContextMenuRequested(QPoint)</signal>
+   <receiver>CurrencyTabWidget</receiver>
+   <slot>history_context_menu(QPoint)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>180</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>refresh_wallet_content(QModelIndex)</slot>
   <slot>wallet_context_menu(QPoint)</slot>
   <slot>dates_changed(QDateTime)</slot>
+  <slot>history_context_menu(QPoint)</slot>
  </slots>
 </ui>

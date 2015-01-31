@@ -178,7 +178,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
     def wallet_context_menu(self, point):
         index = self.list_wallets.indexAt(point)
         model = self.list_wallets.model()
-        if index.row() < model.rowCount(None):
+        if index.row() < model.rowCount(QModelIndex()):
             wallet = model.wallets[index.row()]
             menu = QMenu(model.data(index, Qt.DisplayRole), self)
 
@@ -198,17 +198,19 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
     def history_context_menu(self, point):
         index = self.table_history.indexAt(point)
         model = self.table_history.model()
-        if index.row() < model.rowCount(None):
-            wallet = model.wallets[index.row()]
-            menu = QMenu(model.data(index, Qt.DisplayRole), self)
+        if index.row() < model.rowCount(QModelIndex()):
+            if index.column() == model.sourceModel().columns.index('UID/Public key'):
+                source_index = model.mapToSource(index)
+                person = model.sourceModel().data(source_index, Qt.DisplayRole)
+                menu = QMenu(model.data(index, Qt.DisplayRole), self)
 
-            copy_pubkey = QAction("Copy pubkey to clipboard", self)
-            copy_pubkey.triggered.connect(self.copy_pubkey_to_clipboard)
-            copy_pubkey.setData(wallet)
+                copy_pubkey = QAction("Copy pubkey to clipboard", self)
+                copy_pubkey.triggered.connect(self.copy_pubkey_to_clipboard)
+                copy_pubkey.setData(person)
 
             menu.addAction(copy_pubkey)
             # Show the context menu.
-            menu.exec_(self.list_wallets.mapToGlobal(point))
+            menu.exec_(self.table_history.mapToGlobal(point))
 
     def rename_wallet(self):
         index = self.sender().data()
@@ -221,6 +223,8 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             clipboard.setText(data.pubkey)
         elif data.__class__ is Person:
             clipboard.setText(data.pubkey)
+        elif data.__class__ is str:
+            clipboard.setText(data)
 
     def wallet_changed(self):
         self.app.save(self.app.current_account)
