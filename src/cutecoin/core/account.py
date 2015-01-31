@@ -21,7 +21,7 @@ from .person import Person
 from ..tools.exceptions import NoPeerAvailable
 
 
-def units(units, community):
+def quantitative(units, community):
     return units
 
 
@@ -31,6 +31,19 @@ def relative(units, community):
     return relative_value
 
 
+def quantitative_zerosum(units, community):
+    median = community.monetary_mass / community.nb_members
+    return units - median
+
+
+def relative_zerosum(units, community):
+    median = community.monetary_mass / community.nb_members
+    ud = community.dividend()
+    relative_value = units / float(ud)
+    relative_median = median / ud
+    return relative_value - relative_median
+
+
 class Account(object):
 
     '''
@@ -38,8 +51,10 @@ class Account(object):
     Each account has only one key, and a key can
     be locally referenced by only one account.
     '''
-    referentials = {'Units': (units, '{0}'),
-                    'UD': (relative, 'ud {0}')
+    referentials = {'Units': (quantitative, '{0}'),
+                    'UD': (relative, 'ud {0}'),
+                    'Quant Z-sum': (quantitative_zerosum, 'q0 {0}'),
+                    'Relat Z-sum': (relative_zerosum, 'r0 {0}')
                     }
 
     def __init__(self, salt, pubkey, name, communities, wallets, contacts,
@@ -106,7 +121,6 @@ class Account(object):
     def add_contact(self, person):
         same_contact = [contact for contact in self.contacts if person.pubkey == contact.pubkey]
         if len(same_contact) == 0:
-            print("add contact")
             self.contacts.append(person)
             return True
         return False

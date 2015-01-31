@@ -34,7 +34,7 @@ class WalletsListModel(QAbstractListModel):
             ref_amount = self.account.units_to_ref(amount, self.community)
             ref_name = self.account.ref_name(self.community.currency)
             return """{0}
-{1} {2}""".format(w.name, ref_amount, ref_name)
+{1:.2f} {2}""".format(w.name, ref_amount, ref_name)
         elif role == Qt.EditRole:
             return self.wallets[row].name
 

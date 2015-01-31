@@ -150,10 +150,20 @@ class Community(object):
         else:
             return 1
 
+    @property
     def monetary_mass(self):
         try:
             block = self.request(bma.blockchain.Current)
             return block['monetaryMass']
+        except ValueError as e:
+            if '404' in e:
+                return 0
+
+    @property
+    def nb_members(self):
+        try:
+            block = self.request(bma.blockchain.Current)
+            return block['membersCount']
         except ValueError as e:
             if '404' in e:
                 return 0

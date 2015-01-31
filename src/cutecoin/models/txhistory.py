@@ -92,7 +92,7 @@ class HistoryTableModel(QAbstractTableModel):
         amount_ref = self.account.units_to_ref(amount, self.community)
         ref_name = self.account.ref_name(self.community.short_currency)
 
-        return (date.date(), sender, "", "{0} {1}".format(amount_ref, ref_name),
+        return (date.date(), sender, "", "{0:.2f} {1}".format(amount_ref, ref_name),
                 comment)
 
     def data_sent(self, tx):
@@ -116,7 +116,7 @@ class HistoryTableModel(QAbstractTableModel):
         amount_ref = self.account.units_to_ref(-amount, self.community)
         ref_name = self.account.ref_name(self.community.short_currency)
 
-        return (date.date(), receiver, "{0} {1}".format(amount_ref, ref_name),
+        return (date.date(), receiver, "{0:.2f} {1}".format(amount_ref, ref_name),
                 "", comment)
 
     def data(self, index, role):

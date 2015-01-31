@@ -191,8 +191,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                                   != self.app.default_account)
             self.password_asker = PasswordAskerDialog(self.app.current_account)
 
-            self.combo_referential.addItems(Account.referentials.keys())
+            self.combo_referential.blockSignals(True)
+            self.combo_referential.addItems(sorted(Account.referentials.keys()))
             self.combo_referential.setEnabled(True)
+            self.combo_referential.blockSignals(False)
+            self.combo_referential.setCurrentText(self.app.current_account.referential)
             self.menu_contacts.setEnabled(True)
             self.action_configure_parameters.setEnabled(True)
             self.menu_actions.setEnabled(True)
