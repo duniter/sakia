@@ -14,6 +14,7 @@ from PyQt5.QtCore import QModelIndex, Qt, pyqtSlot, QObject, QThread, pyqtSignal
 from PyQt5.QtGui import QIcon
 from ..gen_resources.currency_tab_uic import Ui_CurrencyTabWidget
 from .community_tab import CommunityTabWidget
+from .informations_tab import InformationsTabWidget
 from ..models.sent import SentListModel
 from ..models.received import ReceivedListModel
 from ..models.wallets import WalletsListModel
@@ -102,6 +103,11 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             self.tabs_account.addTab(self.tab_community,
                                      QIcon(':/icons/community_icon'),
                                     "Community")
+            self.tab_informations = InformationsTabWidget(self.app.current_account,
+                                                    self.community)
+            self.tabs_account.addTab(self.tab_informations,
+                                     QIcon(':/icons/informations_icon'),
+                                    "Informations")
             blockid = self.community.current_blockid()
             block_number = blockid['number']
             self.status_label.setText("Connected : Block {0}"

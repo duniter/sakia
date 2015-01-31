@@ -122,14 +122,21 @@ class Community(object):
         return (other.currency == self.currency)
 
     def dividend(self):
+        block = self.get_ud_block()
+        if block:
+            return block['dividend']
+        else:
+            return 1
+
+    def get_ud_block(self):
         ud = self.request(bma.blockchain.UD)
         if len(ud['result']['blocks']) > 0:
             block_number = ud['result']['blocks'][-1]
             block = self.request(bma.blockchain.Block,
                                  req_args={'number': block_number})
-            return block['dividend']
+            return block
         else:
-            return 1
+            return False
 
     def _peering_traversal(self, peer, found_peers, traversed_pubkeys):
         logging.debug("Read {0} peering".format(peer.pubkey))
