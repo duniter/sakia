@@ -27,6 +27,7 @@ class Cache():
         self.tx_received = []
         self.tx_sent = []
         self.awaiting_tx = []
+        logging.debug(data)
 
         data_received = data['received']
         for r in data_received:
@@ -164,8 +165,9 @@ class Wallet(object):
 
     def load_caches(self, json_data):
         for currency in json_data:
-            self.caches[currency] = Cache(self)
-            self.caches[currency].load_from_json(json_data[currency])
+            if currency != 'version':
+                self.caches[currency] = Cache(self)
+                self.caches[currency].load_from_json(json_data[currency])
 
     def jsonify_caches(self):
         data = {}

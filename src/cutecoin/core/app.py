@@ -9,9 +9,10 @@ import logging
 import json
 import tarfile
 
-from cutecoin.core import config
-from cutecoin.tools.exceptions import NameAlreadyExists, BadAccountFile
-from cutecoin.core.account import Account
+from . import config
+from ..tools.exceptions import NameAlreadyExists, BadAccountFile
+from .account import Account
+from .. import __version__
 
 
 class Application(object):
@@ -90,7 +91,10 @@ class Application(object):
             if os.path.exists(wallet_path):
                 with open(wallet_path, 'r') as json_data:
                     data = json.load(json_data)
-                wallet.load_caches(data)
+                if 'version' in data and data['version'] == __version__:
+                    wallet.load_caches(data)
+                else:
+                    os.remove(wallet_path)
             for community in account.communities:
                 wallet.refresh_cache(community)
 
@@ -112,7 +116,9 @@ class Application(object):
             wallet_path = os.path.join(config.parameters['home'],
                                         account.name, '__cache__', wallet.pubkey)
             with open(wallet_path, 'w') as outfile:
-                json.dump(wallet.jsonify_caches(), outfile, indent=4, sort_keys=True)
+                data = wallet.jsonify_caches()
+                data['version'] = __version__
+                json.dump(data, outfile, indent=4, sort_keys=True)
 
     def import_account(self, file, name):
         with tarfile.open(file, "r") as tar:

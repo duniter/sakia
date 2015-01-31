@@ -208,7 +208,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                 copy_pubkey.triggered.connect(self.copy_pubkey_to_clipboard)
                 copy_pubkey.setData(person)
 
-            menu.addAction(copy_pubkey)
+                menu.addAction(copy_pubkey)
             # Show the context menu.
             menu.exec_(self.table_history.mapToGlobal(point))
 
