@@ -61,7 +61,7 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 'Monetary Mass per member M(t)/N(t) in currency units',
                 block['dividend'] / (block['monetaryMass'] - (block['membersCount'] * block['dividend'])) / block[
                     'membersCount'],
-                'Actual % Growth (UD(t) / (M(t-1)/Nt))'
+                'Actual % Growth c = UD(t)/[M(t-1)/N(t)]'
             )
         )
 
@@ -80,7 +80,7 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
             </table>
             """.format(
                 params['c'],
-                'Growth (c)',
+                'Growth parameter c',
                 params['ud0'],
                 'Initial Universal Dividend in currency units',
                 params['dt'] / 86400,
