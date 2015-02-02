@@ -28,10 +28,14 @@ class Transfer(object):
         self.metadata = metadata
 
     @classmethod
-    def initiate(cls, txdoc, block, amount):
+    def initiate(cls, txdoc, block, time, amount):
+        receivers = [o.pubkey for o in txdoc.outputs
+                             if o.pubkey != txdoc.issuers[0]]
         return cls(txdoc, Transfer.TO_SEND, {'block': block,
+                                             'time': time,
                                              'amount': amount,
-                                             'issuer': txdoc.issuers[0]})
+                                             'issuer': txdoc.issuers[0],
+                                             'receiver': receivers[0]})
 
     @classmethod
     def create_validated(cls, txdoc, metadata):
@@ -57,7 +61,7 @@ class Transfer(object):
                 self.state = Transfer.REFUSED
             raise
         finally:
-            self.metadata['block'] = community.current_blockid['number']
+            self.metadata['block'] = community.current_blockid()['number']
             self.metadata['time'] = community.get_block().time
 
     def check_registered(self, tx, metadata):

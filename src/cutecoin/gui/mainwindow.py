@@ -140,9 +140,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog.accepted.connect(self.refresh_wallets)
         dialog.exec_()
         currency_tab = self.currencies_tabwidget.currentWidget()
-        currency_tab.table_history.model().dataChanged.emit(
+        '''currency_tab.table_history.model().sourceModel().dataChanged.emit(
                                                              QModelIndex(),
                                                              QModelIndex(), ())
+                                                             '''
+        currency_tab.table_history.model().invalidate()
 
     def open_certification_dialog(self):
         dialog = CertificationDialog(self.app.current_account,

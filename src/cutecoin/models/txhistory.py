@@ -73,7 +73,10 @@ class HistoryTableModel(QAbstractTableModel):
         self.account = account
         self.community = community
         self.columns = ('Date', 'UID/Public key', 'Payment', 'Deposit', 'Comment')
-        self.transfers = self.account.transfers(community)
+
+    @property
+    def transfers(self):
+        return self.account.transfers(self.community)
 
     def rowCount(self, parent):
         return len(self.transfers)

@@ -103,8 +103,10 @@ class Cache():
 
                         awaiting = [t for t in self._transfers
                                     if t.state == Transfer.AWAITING]
-                        awaiting_docs = [t.txdoc for t in awaiting]
-                        if tx not in awaiting_docs:
+                        awaiting_docs = [t.txdoc.signed_raw() for t in awaiting]
+                        logging.debug(tx.signed_raw())
+                        logging.debug(awaiting_docs)
+                        if tx.signed_raw() not in awaiting_docs:
                             transfer = Transfer.create_validated(tx, metadata)
                             self._transfers.append(transfer)
                         for transfer in awaiting:
@@ -259,8 +261,9 @@ class Wallet(object):
 
         block_number = community.current_blockid()['number']
 
-        transfer = Transfer.initiate(tx, block_number, amount)
-        transfer.send()
+        time = community.get_block().time
+        transfer = Transfer.initiate(tx, block_number, time, amount)
+        transfer.send(community)
         self.caches[community.currency]._transfers.append(transfer)
 
     def sources(self, community):
