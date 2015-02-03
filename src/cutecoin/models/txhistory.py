@@ -9,8 +9,8 @@ from ..core.transfer import Transfer, Received
 from ..core.person import Person
 from ..tools.exceptions import PersonNotFoundError
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, \
-                        QDateTime, QModelIndex
-from PyQt5.QtGui import QFont
+                        QDateTime
+from PyQt5.QtGui import QFont, QColor
 
 
 class TxFilterProxyModel(QSortFilterProxyModel):
@@ -147,9 +147,15 @@ class HistoryTableModel(QAbstractTableModel):
             font = QFont()
             if transfer.state == Transfer.AWAITING:
                 font.setItalic(True)
+            elif transfer.state == Transfer.REFUSED:
+                font.setItalic(True)
             else:
                 font.setItalic(False)
             return font
+
+        if role == Qt.ForegroundRole:
+            if transfer.state == Transfer.REFUSED:
+                return QColor(Qt.red)
 
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled

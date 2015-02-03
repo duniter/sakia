@@ -3,7 +3,7 @@ Created on 31 janv. 2015
 
 @author: inso
 '''
-
+import logging
 from ucoinpy.api import bma
 from ucoinpy.documents.transaction import Transaction
 
@@ -65,10 +65,15 @@ class Transfer(object):
             self.metadata['time'] = community.get_block().time
 
     def check_registered(self, tx, metadata):
+
+        logging.debug("{0} > {1} ?".format(metadata['block'],
+                                           self.metadata['block'] + 15))
         if tx.signed_raw() == self.txdoc.signed_raw():
             self.state = Transfer.VALIDATED
             self.metadata = metadata
-        if metadata['block'] > self.metadata['block'] + 15:
+
+    def check_refused(self, block):
+        if block > self.metadata['block'] + 15:
             self.state = Transfer.REFUSED
 
 

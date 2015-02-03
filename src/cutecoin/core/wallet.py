@@ -59,14 +59,15 @@ class Cache():
     def refresh(self, community):
         current_block = 0
         try:
-            try:
-                block_data = community.request(bma.blockchain.Current)
-                current_block = block_data['number']
-            except ValueError as e:
-                if '404' in str(e):
-                    current_block = 0
-                else:
-                    raise
+            block_data = community.current_blockid()
+            current_block = block_data['number']
+
+            # Lets look if transactions took too long to be validated
+            awaiting = [t for t in self._transfers
+                        if t.state == Transfer.AWAITING]
+            for transfer in awaiting:
+                transfer.check_refused(current_block)
+
             with_tx = community.request(bma.blockchain.TX)
 
             # We parse only blocks with transactions
@@ -109,8 +110,9 @@ class Cache():
                         if tx.signed_raw() not in awaiting_docs:
                             transfer = Transfer.create_validated(tx, metadata)
                             self._transfers.append(transfer)
-                        for transfer in awaiting:
-                            transfer.check_registered(tx, metadata)
+                        else:
+                            for transfer in awaiting:
+                                transfer.check_registered(tx, metadata)
                     else:
                         outputs = [o for o in tx.outputs
                                    if o.pubkey == self.wallet.pubkey]
