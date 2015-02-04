@@ -29,13 +29,16 @@ class TxFilterProxyModel(QSortFilterProxyModel):
         self.ts_to = ts_to
 
     def filterAcceptsRow(self, sourceRow, sourceParent):
-        def in_period(date):
-            return (QDateTime(date).toTime_t() in range(self.ts_from, self.ts_to))
+        def in_period(date_ts):
+            return (date_ts in range(self.ts_from, self.ts_to))
 
         date_col = self.sourceModel().columns.index('Date')
         source_index = self.sourceModel().index(sourceRow, date_col)
         date = self.sourceModel().data(source_index, Qt.DisplayRole)
         return in_period(date)
+
+    def columnCount(self, parent):
+        return self.sourceModel().columnCount(None) - 1
 
     def lessThan(self, left, right):
         """
@@ -48,6 +51,9 @@ class TxFilterProxyModel(QSortFilterProxyModel):
     def data(self, index, role):
         source_index = self.mapToSource(index)
         source_data = self.sourceModel().data(source_index, role)
+        state_col = self.sourceModel().columns.index('State')
+        state_index = self.sourceModel().index(source_index.row(), state_col)
+        state_data = self.sourceModel().data(state_index, Qt.DisplayRole)
         if role == Qt.DisplayRole:
             if source_index.column() == self.sourceModel().columns.index('UID/Public key'):
                 if source_data.__class__ == Person:
@@ -56,6 +62,23 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                     tx_person = "pub:{0}".format(source_data[:5])
                 source_data = tx_person
                 return source_data
+            if source_index.column() == self.sourceModel().columns.index('Date'):
+                date = QDateTime.fromTime_t(source_data)
+                return date.date()
+
+        if role == Qt.FontRole:
+            font = QFont()
+            if state_data == Transfer.AWAITING:
+                font.setItalic(True)
+            elif state_data == Transfer.REFUSED:
+                font.setItalic(True)
+            else:
+                font.setItalic(False)
+            return font
+
+        if role == Qt.ForegroundRole:
+            if state_data == Transfer.REFUSED:
+                return QColor(Qt.red)
         return source_data
 
 
@@ -72,7 +95,8 @@ class HistoryTableModel(QAbstractTableModel):
         super().__init__(parent)
         self.account = account
         self.community = community
-        self.columns = ('Date', 'UID/Public key', 'Payment', 'Deposit', 'Comment')
+        self.columns = ('Date', 'UID/Public key', 'Payment',
+                        'Deposit', 'Comment', 'State')
 
     @property
     def transfers(self):
@@ -100,13 +124,12 @@ class HistoryTableModel(QAbstractTableModel):
             sender = pubkey
 
         date_ts = transfer.metadata['time']
-        date = QDateTime.fromTime_t(date_ts)
 
         amount_ref = self.account.units_to_ref(amount, self.community)
         ref_name = self.account.ref_name(self.community.short_currency)
 
-        return (date.date(), sender, "", "{0:.2f} {1}".format(amount_ref, ref_name),
-                comment)
+        return (date_ts, sender, "", "{0:.2f} {1}".format(amount_ref, ref_name),
+                comment, transfer.state)
 
     def data_sent(self, transfer):
         amount = transfer.metadata['amount']
@@ -121,13 +144,12 @@ class HistoryTableModel(QAbstractTableModel):
             receiver = pubkey
 
         date_ts = transfer.metadata['time']
-        date = QDateTime.fromTime_t(date_ts)
 
         amount_ref = self.account.units_to_ref(-amount, self.community)
         ref_name = self.account.ref_name(self.community.short_currency)
 
-        return (date.date(), receiver, "{0:.2f} {1}".format(amount_ref, ref_name),
-                "", comment)
+        return (date_ts, receiver, "{0:.2f} {1}".format(amount_ref, ref_name),
+                "", comment, transfer.state)
 
     def data(self, index, role):
         row = index.row()
@@ -142,20 +164,6 @@ class HistoryTableModel(QAbstractTableModel):
                 return self.data_received(transfer)[col]
             else:
                 return self.data_sent(transfer)[col]
-
-        if role == Qt.FontRole:
-            font = QFont()
-            if transfer.state == Transfer.AWAITING:
-                font.setItalic(True)
-            elif transfer.state == Transfer.REFUSED:
-                font.setItalic(True)
-            else:
-                font.setItalic(False)
-            return font
-
-        if role == Qt.ForegroundRole:
-            if transfer.state == Transfer.REFUSED:
-                return QColor(Qt.red)
 
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled

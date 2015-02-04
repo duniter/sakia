@@ -199,10 +199,10 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         index = self.table_history.indexAt(point)
         model = self.table_history.model()
         if index.row() < model.rowCount(QModelIndex()):
+            menu = QMenu(model.data(index, Qt.DisplayRole), self)
+            source_index = model.mapToSource(index)
             if index.column() == model.sourceModel().columns.index('UID/Public key'):
-                source_index = model.mapToSource(index)
                 person = model.sourceModel().data(source_index, Qt.DisplayRole)
-                menu = QMenu(model.data(index, Qt.DisplayRole), self)
 
                 copy_pubkey = QAction("Copy pubkey to clipboard", self)
                 copy_pubkey.triggered.connect(self.copy_pubkey_to_clipboard)
