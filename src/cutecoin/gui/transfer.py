@@ -72,10 +72,9 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
                                  QMessageBox.Ok)
             return
         except NotEnoughMoneyError as e:
-            QMessageBox.critical(self, "Money transfer",
-                                 "You don't have enough money available in this block : \n{0}"
-                                 .format(e.message))
-            return
+            QMessageBox.warning(self, "Money transfer",
+                                 """This transaction could not be sent on this block
+Please try again later""")
         except NoPeerAvailable as e:
             QMessageBox.critical(self, "Money transfer",
                                  "Couldn't connect to network : {0}".format(e),

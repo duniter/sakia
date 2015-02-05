@@ -28,14 +28,12 @@ class Transfer(object):
         self.metadata = metadata
 
     @classmethod
-    def initiate(cls, txdoc, block, time, amount):
-        receivers = [o.pubkey for o in txdoc.outputs
-                             if o.pubkey != txdoc.issuers[0]]
+    def initiate(cls, txdoc, block, time, amount, issuer, receiver):
         return cls(txdoc, Transfer.TO_SEND, {'block': block,
                                              'time': time,
                                              'amount': amount,
-                                             'issuer': txdoc.issuers[0],
-                                             'receiver': receivers[0]})
+                                             'issuer': issuer,
+                                             'receiver': receiver})
 
     @classmethod
     def create_validated(cls, txdoc, metadata):
@@ -43,11 +41,18 @@ class Transfer(object):
 
     @classmethod
     def load(cls, data):
-        txdoc = Transaction.from_signed_raw(data['txdoc'])
+        if data['state'] is Transfer.TO_SEND:
+            txdoc = None
+        else:
+            txdoc = Transaction.from_signed_raw(data['txdoc'])
         return cls(txdoc, data['state'], data['metadata'])
 
     def jsonify(self):
-        return {'txdoc': self.txdoc.signed_raw(),
+        if self.txdoc:
+            txraw = self.txdoc.signed_raw()
+        else:
+            txraw = None
+        return {'txdoc': txraw,
                 'state': self.state,
                 'metadata': self.metadata}
 

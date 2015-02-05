@@ -213,7 +213,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                                     pubkey_col)
             person = model.sourceModel().data(person_index, Qt.DisplayRole)
             transfer = model.sourceModel().transfers[source_index.row()]
-            if state_data == Transfer.REFUSED:
+            if state_data == Transfer.REFUSED or state_data == Transfer.TO_SEND:
                 send_back = QAction("Send again", self)
                 send_back.triggered.connect(self.send_again)
                 send_back.setData(transfer)

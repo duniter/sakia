@@ -238,18 +238,8 @@ class Wallet(object):
 
     def send_money(self, salt, password, community,
                    recipient, amount, message):
-
-        result = self.tx_inputs(int(amount), community)
-        inputs = result[0]
-        self.caches[community.currency].available_sources = result[1]
-        logging.debug("Inputs : {0}".format(inputs))
-
-        outputs = self.tx_outputs(recipient, amount, inputs)
-        logging.debug("Outputs : {0}".format(outputs))
-        tx = Transaction(PROTOCOL_VERSION, community.currency,
-                         [self.pubkey], inputs,
-                         outputs, message, None)
-        logging.debug("TX : {0}".format(tx.raw()))
+        time = community.get_block().time
+        block_number = community.current_blockid()['number']
         key = None
         logging.debug("Key : {0} : {1}".format(salt, password))
         if self.walletid == 0:
@@ -258,15 +248,31 @@ class Wallet(object):
             key = SigningKey("{0}{1}".format(salt, self.walletid), password)
         logging.debug("Sender pubkey:{0}".format(key.pubkey))
 
-        tx.sign([key])
-        logging.debug("Transaction : {0}".format(tx.signed_raw()))
+        try:
+            result = self.tx_inputs(int(amount), community)
+            inputs = result[0]
+            self.caches[community.currency].available_sources = result[1]
+            logging.debug("Inputs : {0}".format(inputs))
 
-        block_number = community.current_blockid()['number']
+            outputs = self.tx_outputs(recipient, amount, inputs)
+            logging.debug("Outputs : {0}".format(outputs))
+            tx = Transaction(PROTOCOL_VERSION, community.currency,
+                             [self.pubkey], inputs,
+                             outputs, message, None)
+            logging.debug("TX : {0}".format(tx.raw()))
 
-        time = community.get_block().time
-        transfer = Transfer.initiate(tx, block_number, time, amount)
-        transfer.send(community)
-        self.caches[community.currency]._transfers.append(transfer)
+            tx.sign([key])
+            logging.debug("Transaction : {0}".format(tx.signed_raw()))
+
+            transfer = Transfer.initiate(tx, block_number, time, amount,
+                                         key.pubkey, recipient)
+            transfer.send(community)
+            self.caches[community.currency]._transfers.append(transfer)
+        except NotEnoughMoneyError:
+            transfer = Transfer.initiate(None, block_number, time, amount,
+                                         key.pubkey, recipient)
+            self.caches[community.currency]._transfers.append(transfer)
+            raise
 
     def sources(self, community):
         data = community.request(bma.tx.Sources,

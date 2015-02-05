@@ -87,6 +87,8 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                 font.setItalic(True)
             elif state_data == Transfer.REFUSED:
                 font.setItalic(True)
+            elif state_data == Transfer.TO_SEND:
+                font.setBold(True)
             else:
                 font.setItalic(False)
             return font
@@ -94,6 +96,8 @@ class TxFilterProxyModel(QSortFilterProxyModel):
         if role == Qt.ForegroundRole:
             if state_data == Transfer.REFUSED:
                 return QColor(Qt.red)
+            elif state_data == Transfer.TO_SEND:
+                return QColor(Qt.blue)
         return source_data
 
 
@@ -129,7 +133,9 @@ class HistoryTableModel(QAbstractTableModel):
 
     def data_received(self, transfer):
         amount = transfer.metadata['amount']
-        comment = transfer.txdoc.comment
+        comment = ""
+        if transfer.txdoc:
+            comment = transfer.txdoc.comment
         pubkey = transfer.metadata['issuer']
         try:
             #sender = Person.lookup(pubkey, self.community).name
@@ -148,8 +154,9 @@ class HistoryTableModel(QAbstractTableModel):
 
     def data_sent(self, transfer):
         amount = transfer.metadata['amount']
-
-        comment = transfer.txdoc.comment
+        comment = ""
+        if transfer.txdoc:
+            comment = transfer.txdoc.comment
         pubkey = transfer.metadata['receiver']
         try:
             #receiver = Person.lookup(pubkey, self.community).name
