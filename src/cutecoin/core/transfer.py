@@ -76,6 +76,9 @@ class Transfer(object):
         if block > self.metadata['block'] + 15:
             self.state = Transfer.REFUSED
 
+    def drop(self):
+        self.state = Transfer.DROPPED
+
 
 class Received(Transfer):
     def __init__(self, txdoc, metadata):

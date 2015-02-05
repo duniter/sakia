@@ -40,7 +40,7 @@ class Cache():
 
     def jsonify(self):
         data_transfer = []
-        for s in self._transfers:
+        for s in self.transfers:
             data_transfer.append(s.jsonify())
 
         data_sources = []
@@ -54,7 +54,7 @@ class Cache():
 
     @property
     def transfers(self):
-        return self._transfers
+        return [t for t in self._transfers if t.state != Transfer.DROPPED]
 
     def refresh(self, community):
         current_block = 0

@@ -9,11 +9,14 @@ import time
 import requests
 
 from ucoinpy.api import bma
-from PyQt5.QtWidgets import QWidget, QMenu, QAction, QApplication, QMessageBox
-from PyQt5.QtCore import QModelIndex, Qt, pyqtSlot, QObject, QThread, pyqtSignal, QDateTime
+from PyQt5.QtWidgets import QWidget, QMenu, QAction, QApplication, \
+                            QMessageBox, QDialog
+from PyQt5.QtCore import QModelIndex, Qt, pyqtSlot, QObject, \
+                        QThread, pyqtSignal, QDateTime
 from PyQt5.QtGui import QIcon
 from ..gen_resources.currency_tab_uic import Ui_CurrencyTabWidget
 from .community_tab import CommunityTabWidget
+from .transfer import TransferMoneyDialog
 from ..models.txhistory import HistoryTableModel, TxFilterProxyModel
 from ..models.wallets import WalletsListModel
 from ..models.wallet import WalletListModel
@@ -94,18 +97,16 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             self.tabs_account.setEnabled(True)
             self.refresh_wallets()
             blockchain_init = QDateTime()
-            blockchain_init.setTime_t(self.community.get_block(1).mediantime)
-
-            blockchain_lastblock = QDateTime()
-            blockchain_lastblock.setTime_t(self.community.get_block().mediantime)
+            blockchain_init.setTime_t(self.community.get_block(1).time)
 
             self.date_from.setMinimumDateTime(blockchain_init)
             self.date_from.setDateTime(blockchain_init)
-            self.date_from.setMaximumDateTime(blockchain_lastblock)
+            self.date_from.setMaximumDateTime(QDateTime().currentDateTime())
 
             self.date_to.setMinimumDateTime(blockchain_init)
-            self.date_to.setDateTime(blockchain_lastblock)
-            self.date_to.setMaximumDateTime(blockchain_lastblock)
+            tomorrow_datetime = QDateTime().currentDateTime().addDays(1)
+            self.date_to.setDateTime(tomorrow_datetime)
+            self.date_to.setMaximumDateTime(tomorrow_datetime)
 
             ts_from = self.date_from.dateTime().toTime_t()
             ts_to = self.date_to.dateTime().toTime_t()
@@ -211,16 +212,17 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             person_index = model.sourceModel().index(source_index.row(),
                                                     pubkey_col)
             person = model.sourceModel().data(person_index, Qt.DisplayRole)
-
-            payment_col = model.sourceModel().columns.index('Payment')
-            payment_index = model.sourceModel().index(source_index.row(),
-                                                    payment_col)
-            payment_data = model.sourceModel().data(payment_index, Qt.DisplayRole)
+            transfer = model.sourceModel().transfers[source_index.row()]
             if state_data == Transfer.REFUSED:
                 send_back = QAction("Send again", self)
                 send_back.triggered.connect(self.send_again)
-                send_back.setData((payment_data, person))
+                send_back.setData(transfer)
                 menu.addAction(send_back)
+
+                cancel = QAction("Cancel", self)
+                cancel.triggered.connect(self.cancel_transfer)
+                cancel.setData(transfer)
+                menu.addAction(cancel)
 
             copy_pubkey = QAction("Copy pubkey to clipboard", self)
             copy_pubkey.triggered.connect(self.copy_pubkey_to_clipboard)
@@ -244,10 +246,28 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             clipboard.setText(data)
 
     def send_again(self):
-        data = self.sender().data()
-        payment = data[0]
-        person = data[1]
-        #TODO: Send back the transaction and change its state
+        transfer = self.sender().data()
+        dialog = TransferMoneyDialog(self.app.current_account,
+                                     self.password_asker)
+        dialog.accepted.connect(self.refresh_wallets)
+        dialog.edit_pubkey.setText(transfer.metadata['receiver'])
+        dialog.combo_community.setCurrentText(self.community.name())
+        dialog.spinbox_amount.setValue(transfer.metadata['amount'])
+        dialog.radio_pubkey.setChecked(True)
+        result = dialog.exec_()
+        if result == QDialog.Accepted:
+            transfer.drop()
+            self.table_history.model().invalidate()
+
+    def cancel_transfer(self):
+        reply = QMessageBox.warning(self, "Warning",
+                             """Are you sure ?
+This money transfer will be removed and not sent.""",
+QMessageBox.Ok | QMessageBox.Cancel)
+        if reply == QMessageBox.Ok:
+            transfer = self.sender().data()
+            transfer.drop()
+            self.table_history.model().invalidate()
 
     def wallet_changed(self):
         self.app.save(self.app.current_account)
