@@ -20,6 +20,7 @@ from ..models.wallet import WalletListModel
 from ..tools.exceptions import NoPeerAvailable
 from ..core.wallet import Wallet
 from ..core.person import Person
+from ..core.transfer import Transfer
 
 
 class BlockchainWatcher(QObject):
@@ -110,7 +111,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             ts_to = self.date_to.dateTime().toTime_t()
 
             model = HistoryTableModel(self.app.current_account, self.community)
-            proxy = TxFilterProxyModel(self.community, ts_from, ts_to)
+            proxy = TxFilterProxyModel(ts_from, ts_to)
             proxy.setSourceModel(model)
             proxy.setDynamicSortFilter(True)
             proxy.setSortRole(Qt.DisplayRole)
@@ -148,7 +149,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                                  QModelIndex(),
                                                  QModelIndex(),
                                                  [])
-        if self.table_history.model():
+        if self.tablcommunitye_history.model():
             self.table_history.model().dataChanged.emit(
                                                      QModelIndex(),
                                                      QModelIndex(),
@@ -201,14 +202,30 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         if index.row() < model.rowCount(QModelIndex()):
             menu = QMenu(model.data(index, Qt.DisplayRole), self)
             source_index = model.mapToSource(index)
-            if index.column() == model.sourceModel().columns.index('UID/Public key'):
-                person = model.sourceModel().data(source_index, Qt.DisplayRole)
+            state_col = model.sourceModel().columns.index('State')
+            state_index = model.sourceModel().index(source_index.row(),
+                                                   state_col)
+            state_data = model.sourceModel().data(state_index, Qt.DisplayRole)
 
-                copy_pubkey = QAction("Copy pubkey to clipboard", self)
-                copy_pubkey.triggered.connect(self.copy_pubkey_to_clipboard)
-                copy_pubkey.setData(person)
+            pubkey_col = model.sourceModel().columns.index('UID/Public key')
+            person_index = model.sourceModel().index(source_index.row(),
+                                                    pubkey_col)
+            person = model.sourceModel().data(person_index, Qt.DisplayRole)
 
-                menu.addAction(copy_pubkey)
+            payment_col = model.sourceModel().columns.index('Payment')
+            payment_index = model.sourceModel().index(source_index.row(),
+                                                    payment_col)
+            payment_data = model.sourceModel().data(payment_index, Qt.DisplayRole)
+            if state_data == Transfer.REFUSED:
+                send_back = QAction("Send again", self)
+                send_back.triggered.connect(self.send_again)
+                send_back.setData((payment_data, person))
+                menu.addAction(send_back)
+
+            copy_pubkey = QAction("Copy pubkey to clipboard", self)
+            copy_pubkey.triggered.connect(self.copy_pubkey_to_clipboard)
+            copy_pubkey.setData(person)
+            menu.addAction(copy_pubkey)
             # Show the context menu.
             menu.exec_(self.table_history.mapToGlobal(point))
 
@@ -225,6 +242,12 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             clipboard.setText(data.pubkey)
         elif data.__class__ is str:
             clipboard.setText(data)
+
+    def send_again(self):
+        data = self.sender().data()
+        payment = data[0]
+        person = data[1]
+        #TODO: Send back the transaction and change its state
 
     def wallet_changed(self):
         self.app.save(self.app.current_account)

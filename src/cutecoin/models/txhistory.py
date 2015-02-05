@@ -14,9 +14,10 @@ from PyQt5.QtGui import QFont, QColor
 
 
 class TxFilterProxyModel(QSortFilterProxyModel):
-    def __init__(self, community, ts_from, ts_to, parent=None):
+    def __init__(self, ts_from, ts_to, parent=None):
         super().__init__(parent)
-        self.community = community
+        self.community = None
+        self.account = None
         self.ts_from = ts_from
         self.ts_to = ts_to
 
@@ -39,6 +40,11 @@ class TxFilterProxyModel(QSortFilterProxyModel):
 
     def columnCount(self, parent):
         return self.sourceModel().columnCount(None) - 1
+
+    def setSourceModel(self, sourceModel):
+        self.community = sourceModel.community
+        self.account = sourceModel.account
+        super().setSourceModel(sourceModel)
 
     def lessThan(self, left, right):
         """
@@ -65,6 +71,16 @@ class TxFilterProxyModel(QSortFilterProxyModel):
             if source_index.column() == self.sourceModel().columns.index('Date'):
                 date = QDateTime.fromTime_t(source_data)
                 return date.date()
+            if source_index.column() == self.sourceModel().columns.index('Payment'):
+                if source_data is not "":
+                    amount_ref = self.account.units_to_ref(-source_data, self.community)
+                    ref_name = self.account.ref_name(self.community.short_currency)
+                    return "{0:.2f} {1}".format(amount_ref, ref_name)
+            if source_index.column() == self.sourceModel().columns.index('Deposit'):
+                if source_data is not "":
+                    amount_ref = self.account.units_to_ref(source_data, self.community)
+                    ref_name = self.account.ref_name(self.community.short_currency)
+                    return "{0:.2f} {1}".format(amount_ref, ref_name)
 
         if role == Qt.FontRole:
             font = QFont()
@@ -128,7 +144,7 @@ class HistoryTableModel(QAbstractTableModel):
         amount_ref = self.account.units_to_ref(amount, self.community)
         ref_name = self.account.ref_name(self.community.short_currency)
 
-        return (date_ts, sender, "", "{0:.2f} {1}".format(amount_ref, ref_name),
+        return (date_ts, sender, "", amount, "{0:.2f} {1}".format(amount_ref, ref_name),
                 comment, transfer.state)
 
     def data_sent(self, transfer):
@@ -145,10 +161,7 @@ class HistoryTableModel(QAbstractTableModel):
 
         date_ts = transfer.metadata['time']
 
-        amount_ref = self.account.units_to_ref(-amount, self.community)
-        ref_name = self.account.ref_name(self.community.short_currency)
-
-        return (date_ts, receiver, "{0:.2f} {1}".format(amount_ref, ref_name),
+        return (date_ts, receiver, amount,
                 "", comment, transfer.state)
 
     def data(self, index, role):
