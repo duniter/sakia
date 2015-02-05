@@ -250,6 +250,9 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         dialog = TransferMoneyDialog(self.app.current_account,
                                      self.password_asker)
         dialog.accepted.connect(self.refresh_wallets)
+        sender = transfer.metadata['issuer']
+        wallet_index = [w.pubkey for w in self.app.current_account.wallets].index(sender)
+        dialog.combo_wallets.setCurrentIndex(wallet_index)
         dialog.edit_pubkey.setText(transfer.metadata['receiver'])
         dialog.combo_community.setCurrentText(self.community.name())
         dialog.spinbox_amount.setValue(transfer.metadata['amount'])
