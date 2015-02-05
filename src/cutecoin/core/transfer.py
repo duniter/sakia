@@ -28,12 +28,13 @@ class Transfer(object):
         self.metadata = metadata
 
     @classmethod
-    def initiate(cls, txdoc, block, time, amount, issuer, receiver):
-        return cls(txdoc, Transfer.TO_SEND, {'block': block,
+    def initiate(cls, block, time, amount, issuer, receiver, comment):
+        return cls(None, Transfer.TO_SEND, {'block': block,
                                              'time': time,
                                              'amount': amount,
                                              'issuer': issuer,
-                                             'receiver': receiver})
+                                             'receiver': receiver,
+                                             'comment': comment})
 
     @classmethod
     def create_validated(cls, txdoc, metadata):
@@ -56,8 +57,9 @@ class Transfer(object):
                 'state': self.state,
                 'metadata': self.metadata}
 
-    def send(self, community):
+    def send(self, txdoc, community):
         try:
+            self.txdoc = txdoc
             community.broadcast(bma.tx.Process,
                         post_args={'transaction': self.txdoc.signed_raw()})
             self.state = Transfer.AWAITING

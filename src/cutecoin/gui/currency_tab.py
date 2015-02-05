@@ -254,6 +254,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         dialog.combo_community.setCurrentText(self.community.name())
         dialog.spinbox_amount.setValue(transfer.metadata['amount'])
         dialog.radio_pubkey.setChecked(True)
+        dialog.edit_message.setText(transfer.metadata['comment'])
         result = dialog.exec_()
         if result == QDialog.Accepted:
             transfer.drop()
