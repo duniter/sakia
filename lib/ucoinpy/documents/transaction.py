@@ -6,6 +6,7 @@ Created on 2 déc. 2014
 
 from . import Document
 import re
+import logging
 
 class Transaction(Document):
     '''
@@ -40,7 +41,7 @@ SIGNATURE
     '''
 
     re_type = re.compile("Type: (Transaction)\n")
-    re_header = re.compile("TX:([0-9])+:([0-9])+:([0-9])+:([0-9])+:(0|1)\n")
+    re_header = re.compile("TX:([0-9]+):([0-9]+):([0-9]+):([0-9]+):(0|1)\n")
     re_issuers = re.compile("Issuers:\n")
     re_inputs = re.compile("Inputs:\n")
     re_outputs = re.compile("Outputs:\n")

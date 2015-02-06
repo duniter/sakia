@@ -83,7 +83,11 @@ class Cache():
                                   req_args={'number': block_number})
                 signed_raw = "{0}{1}\n".format(block['raw'],
                                                block['signature'])
-                block_doc = Block.from_signed_raw(signed_raw)
+                try:
+                    block_doc = Block.from_signed_raw(signed_raw)
+                except:
+                    logging.debug("Error in {0}".format(block_number))
+                    raise
                 metadata = {'block': block_number,
                             'time': block_doc.time}
                 for tx in block_doc.transactions:
