@@ -52,6 +52,7 @@ class Application(object):
                                  [],
                                  [],
                                  config.parameters)
+
         self.accounts[name] = account
         self.current_account = account
         return account
