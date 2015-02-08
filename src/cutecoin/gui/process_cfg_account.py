@@ -246,7 +246,7 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         nb_wallets = self.spinbox_wallets.value()
         self.account.set_walletpool_size(nb_wallets, password)
 
-        if len(self.app.accounts) == 0:
+        if len(self.app.accounts) == 1:
             self.app.default_account = self.account.name
 
         self.app.save(self.account)

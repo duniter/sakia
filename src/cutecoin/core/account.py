@@ -130,6 +130,11 @@ class Account(object):
         self.communities.append(community)
         return community
 
+    def refresh_cache(self):
+        for w in self.wallets:
+            for c in self.communities:
+                w.refresh_cache(c)
+
     def set_display_referential(self, index):
         self.referential = index
 

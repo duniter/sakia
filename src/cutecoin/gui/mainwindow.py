@@ -96,8 +96,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def open_add_account_dialog(self):
         dialog = ProcessConfigureAccount(self.app, None)
-        dialog.accepted.connect(self.refresh)
-        dialog.exec_()
+        result = dialog.exec_()
+        if result == QDialog.Accepted:
+            self.action_change_account(self.app.current_account.name)
 
     @pyqtSlot()
     def loader_finished(self):

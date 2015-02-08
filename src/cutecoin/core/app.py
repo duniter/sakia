@@ -63,6 +63,8 @@ class Application(object):
     def change_current_account(self, account):
         if self.current_account is not None:
             self.save_cache(self.current_account)
+
+        account.refresh_cache()
         self.current_account = account
 
     def load(self):

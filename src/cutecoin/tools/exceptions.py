@@ -95,12 +95,11 @@ class KeyAlreadyUsed(Error):
         Constructor
         '''
         super() .__init__(
-            "Cannot add account " +
-            new_account.name +
-            " : the key " +
-            keyid +
-            " is already used by " +
-            found_account.name)
+"""Cannot add account {0} :
+the key {1} is already used by {2}""".format(new_account,
+                                             keyid,
+                                             found_account)
+            )
 
 
 class NameAlreadyExists(Error):
@@ -110,13 +109,13 @@ class NameAlreadyExists(Error):
     a key already used for another account.
     '''
 
-    def __init__(self, account):
+    def __init__(self, account_name):
         '''
         Constructor
         '''
         super() .__init__(
             "Cannot add account " +
-            account.name +
+            account_name +
             " the name already exists")
 
 
