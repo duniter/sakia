@@ -4,7 +4,7 @@ Created on 1 févr. 2014
 @author: inso
 '''
 from cutecoin.gen_resources.mainwindow_uic import Ui_MainWindow
-from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog, QProgressBar, QMessageBox, QLabel
+from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog, QProgressBar, QMessageBox, QLabel, QDialog
 from PyQt5.QtCore import QSignalMapper, QModelIndex, QObject, QThread, pyqtSlot, pyqtSignal
 from PyQt5.QtGui import QIcon
 from .process_cfg_account import ProcessConfigureAccount
@@ -16,6 +16,7 @@ from .certification import CertificationDialog
 from .password_asker import PasswordAskerDialog
 from ..tools.exceptions import NoPeerAvailable
 from ..__init__ import __version__
+from cutecoin.gen_resources.about_uic import Ui_AboutPopup
 
 import logging
 import requests
@@ -126,6 +127,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog.accepted.connect(self.refresh_wallets)
         dialog.accepted.connect(self.refresh_communities)
         dialog.exec_()
+
+    def open_about_popup(self):
+        """
+        Open about popup window
+        """
+        aboutDialog = QDialog(self)
+        aboutUi = Ui_AboutPopup()
+        aboutUi.setupUi(aboutDialog)
+        text = """
+        <h1>Cutecoin</h1>
+
+        <p>Python/Qt uCoin client</p>
+
+        <p>Version : {:}</p>
+
+        <p>License : MIT</p>
+
+        <p><b>Authors</b></p>
+
+        <p>inso</p>
+        <p>vit</p>
+        <p>canercandan</p>
+        """.format(__version__)
+        aboutUi.label.setText(text)
+        aboutDialog.show()
 
     def refresh_wallets(self):
         currency_tab = self.currencies_tabwidget.currentWidget()

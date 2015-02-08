@@ -33,7 +33,7 @@
      <x>0</x>
      <y>0</y>
      <width>681</width>
-     <height>20</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_account">
@@ -53,6 +53,7 @@
     <addaction name="action_export"/>
     <addaction name="action_import"/>
     <addaction name="separator"/>
+    <addaction name="actionAbout"/>
     <addaction name="action_quit"/>
    </widget>
    <widget class="QMenu" name="menu_contacts">
@@ -174,6 +175,11 @@
   <action name="action_set_as_default">
    <property name="text">
     <string>Set as default</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
    </property>
   </action>
  </widget>
@@ -323,6 +329,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionAbout</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>open_about_popup()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>340</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>open_add_account_dialog()</slot>
@@ -335,5 +357,6 @@
   <slot>export_account()</slot>
   <slot>open_certification_dialog()</slot>
   <slot>set_as_default_account()</slot>
+  <slot>open_about_popup()</slot>
  </slots>
 </ui>
