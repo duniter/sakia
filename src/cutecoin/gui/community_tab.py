@@ -7,7 +7,8 @@ Created on 2 févr. 2014
 import logging
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QWidget, QMessageBox, QAction, QMenu, QDialog, QLineEdit
+from PyQt5.QtWidgets import QWidget, QMessageBox, QAction, QMenu, QDialog, \
+                            QAbstractItemView
 from ..models.members import MembersFilterProxyModel, MembersTableModel
 from ..gen_resources.community_tab_uic import Ui_CommunityTabWidget
 from .add_contact import AddContactDialog
@@ -15,6 +16,7 @@ from .wot_tab import WotTabWidget
 from .transfer import TransferMoneyDialog
 from .password_asker import PasswordAskerDialog
 from .certification import CertificationDialog
+from ..core.person import Person
 from ..tools.exceptions import PersonNotFoundError, NoPeerAvailable
 
 
@@ -37,6 +39,8 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         proxy_members = MembersFilterProxyModel()
         proxy_members.setSourceModel(members_model)
         self.table_community_members.setModel(proxy_members)
+        self.table_community_members.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.table_community_members.customContextMenuRequested.connect(self.member_context_menu)
 
         if self.account.member_of(self.community):
             self.button_membership.setText("Renew membership")
@@ -52,9 +56,13 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
     def member_context_menu(self, point):
         index = self.table_community_members.indexAt(point)
         model = self.table_community_members.model()
-        if index.row() < model.rowCount(None):
-            member = model.members[index.row()]
-            logging.debug(member)
+        if index.row() < model.rowCount():
+            source_index = model.mapToSource(index)
+            pubkey_col = model.sourceModel().columns.index('Pubkey')
+            pubkey_index = model.sourceModel().index(source_index.row(),
+                                                   pubkey_col)
+            pubkey = model.sourceModel().data(pubkey_index, Qt.DisplayRole)
+            member = Person.lookup(pubkey, self.community)
             menu = QMenu(model.data(index, Qt.DisplayRole), self)
 
             add_contact = QAction("Add as contact", self)
