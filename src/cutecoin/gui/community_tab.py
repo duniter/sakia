@@ -48,10 +48,8 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             self.button_membership.setText("Send membership demand")
             self.button_leaving.hide()
 
-        self.tabs_information.addTab(WotTabWidget(account, community,
-                                                  password_asker),
-                                     QIcon(':/icons/wot_icon'),
-                                     "Wot")
+        self.wot_tab = WotTabWidget(account, community, password_asker)
+        self.tabs_information.addTab(self.wot_tab, QIcon(':/icons/wot_icon'), "Wot")
 
     def member_context_menu(self, point):
         index = self.table_community_members.indexAt(point)
@@ -77,9 +75,15 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             certify.triggered.connect(self.certify_member)
             certify.setData(member)
 
+            view_wot = QAction("View in WoT", self)
+            view_wot.triggered.connect(self.view_wot)
+            view_wot.setData(member)
+
             menu.addAction(add_contact)
             menu.addAction(send_money)
             menu.addAction(certify)
+            menu.addAction(view_wot)
+
             # Show the context menu.
             menu.exec_(self.table_community_members.mapToGlobal(point))
 
@@ -105,6 +109,14 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         dialog.edit_pubkey.setText(person.pubkey)
         dialog.radio_pubkey.setChecked(True)
         dialog.exec_()
+
+    def view_wot(self):
+        person = self.sender().data()
+        index_wot_tab = self.tabs_information.indexOf(self.wot_tab)
+        # redraw WoT with this member selected
+        self.wot_tab.draw_graph(person.pubkey)
+        # change page to WoT
+        self.tabs_information.setCurrentIndex(index_wot_tab)
 
     def send_membership_demand(self):
         password = self.password_asker.exec_()
