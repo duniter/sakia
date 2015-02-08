@@ -73,7 +73,7 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
             """
             <table cellpadding="5">
             <tr><td align="right"><b>{:2.0%}</b></td><td>{:}</td></tr>
-            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+            <tr><td align="right"><b>{:}</b></td><td>{:} {:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
@@ -85,7 +85,8 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 params['c'],
                 'Growth parameter c',
                 params['ud0'],
-                'Initial Universal Dividend in currency units',
+                'Initial Universal Dividend in',
+                self.community.short_currency,
                 params['dt'] / 86400,
                 'Time period in days between two UD',
                 params['medianTimeBlocks'],
