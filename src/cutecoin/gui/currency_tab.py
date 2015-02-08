@@ -31,6 +31,7 @@ class BlockchainWatcher(QObject):
         super().__init__()
         self.account = account
         self.community = community
+        self.time_to_wait = int(self.community.get_parameters()['avgGenTime'] / 10)
         self.exiting = False
         blockid = self.community.current_blockid()
         self.last_block = blockid['number']
@@ -38,7 +39,7 @@ class BlockchainWatcher(QObject):
     @pyqtSlot()
     def watch(self):
         while not self.exiting:
-            time.sleep(10)
+            time.sleep(self.time_to_wait)
             try:
                 blockid = self.community.current_blockid()
                 block_number = blockid['number']
@@ -150,7 +151,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                                  QModelIndex(),
                                                  QModelIndex(),
                                                  [])
-        if self.tablcommunitye_history.model():
+        if self.table_history.model():
             self.table_history.model().dataChanged.emit(
                                                      QModelIndex(),
                                                      QModelIndex(),
