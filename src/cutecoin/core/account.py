@@ -18,7 +18,7 @@ import time
 from .wallet import Wallet
 from .community import Community
 from .person import Person
-from ..tools.exceptions import NoPeerAvailable
+from ..tools.exceptions import NoPeerAvailable, ContactAlreadyExists
 
 
 def quantitative(units, community):
@@ -119,11 +119,12 @@ class Account(object):
         return (key.pubkey == self.pubkey)
 
     def add_contact(self, person):
-        same_contact = [contact for contact in self.contacts if person.pubkey == contact.pubkey]
-        if len(same_contact) == 0:
-            self.contacts.append(person)
-            return True
-        return False
+        same_contact = [contact for contact in self.contacts
+                        if person.pubkey == contact.pubkey]
+
+        if len(same_contact) > 0:
+            raise ContactAlreadyExists(person.uid, same_contact[0].uid)
+        self.contacts.append(person)
 
     def add_community(self, community):
         logging.debug("Adding a community")

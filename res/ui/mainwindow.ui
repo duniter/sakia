@@ -176,6 +176,11 @@
     <string>Set as default</string>
    </property>
   </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections>
@@ -335,5 +340,6 @@
   <slot>export_account()</slot>
   <slot>open_certification_dialog()</slot>
   <slot>set_as_default_account()</slot>
+  <slot>open_about_dialog()</slot>
  </slots>
 </ui>

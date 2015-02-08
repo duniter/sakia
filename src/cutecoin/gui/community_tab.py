@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import QWidget, QMessageBox, QAction, QMenu, QDialog, \
                             QAbstractItemView
 from ..models.members import MembersFilterProxyModel, MembersTableModel
 from ..gen_resources.community_tab_uic import Ui_CommunityTabWidget
-from .add_contact import AddContactDialog
+from cutecoin.gui.contact import ConfigureContactDialog
 from .wot_tab import WotTabWidget
 from .transfer import TransferMoneyDialog
 from .password_asker import PasswordAskerDialog
@@ -88,11 +88,11 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             menu.exec_(self.table_community_members.mapToGlobal(point))
 
     def add_member_as_contact(self):
-        dialog = AddContactDialog(self.account, self.window())
         person = self.sender().data()
-        dialog.edit_name.setText(person.name)
-        dialog.edit_pubkey.setText(person.pubkey)
-        dialog.exec_()
+        dialog = ConfigureContactDialog(self.account, self.window(), person)
+        result = dialog.exec_()
+        if result == QDialog.Accepted:
+            self.window().refresh_contacts()
 
     def send_money_to_member(self):
         dialog = TransferMoneyDialog(self.account, self.password_asker)

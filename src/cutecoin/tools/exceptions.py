@@ -165,3 +165,17 @@ class NoPeerAvailable(Error):
         super() .__init__(
             "No peer answered in {0} community ({1} peers available)"
             .format(currency, peers))
+
+
+class ContactAlreadyExists(Error):
+    '''
+    Exception raised when a community doesn't have any
+    peer available.
+    '''
+    def __init__(self, new_contact, already_contact):
+        '''
+        Constructor
+        '''
+        super() .__init__(
+            "Cannot add {0}, he/she has the same pubkey as {1} contact"
+            .format(new_contact, already_contact))

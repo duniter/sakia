@@ -9,9 +9,10 @@ from ..gen_resources.wot_tab_uic import Ui_WotTabWidget
 from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_SELECTED, NODE_STATUS_OUT, ARC_STATUS_STRONG, ARC_STATUS_WEAK
 from ucoinpy.api import bma
 from .certification import CertificationDialog
-from .add_contact import AddContactDialog
+from cutecoin.gui.contact import ConfigureContactDialog
 from .transfer import TransferMoneyDialog
 from cutecoin.core.person import Person
+
 
 class WotTabWidget(QWidget, Ui_WotTabWidget):
     def __init__(self, account, community, password_asker, parent=None):
@@ -361,7 +362,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         # check if contact already exists...
         if metadata['id'] == self.account.pubkey or metadata['id'] in [contact.pubkey for contact in self.account.contacts]:
             return False
-        dialog = AddContactDialog(self.account, self.window())
+        dialog = ConfigureContactDialog(self.account, self.window())
         dialog.edit_name.setText(metadata['text'])
         dialog.edit_pubkey.setText(metadata['id'])
         dialog.exec_()

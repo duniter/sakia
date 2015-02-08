@@ -12,7 +12,7 @@ from PyQt5.QtGui import QIcon
 from .process_cfg_account import ProcessConfigureAccount
 from .transfer import TransferMoneyDialog
 from .currency_tab import CurrencyTabWidget
-from .add_contact import AddContactDialog
+from cutecoin.gui.contact import ConfigureContactDialog
 from .import_account import ImportAccountDialog
 from .certification import CertificationDialog
 from .password_asker import PasswordAskerDialog
@@ -129,6 +129,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         timer.timeout.connect(self.update_time)
         timer.start(next_time - current_time)
 
+    @pyqtSlot()
+    def delete_contact(self):
+        contact = self.sender().data()
+        self.app.current_account.contacts.remove(contact)
+        self.refresh_contacts()
+
+    @pyqtSlot()
+    def edit_contact(self):
+        contact = self.sender().data()
+        dialog = ConfigureContactDialog(self.app.current_account, self, contact)
+        result = dialog.exec_()
+        if result == QDialog.Accepted:
+            self.window().refresh_contacts()
+
     def action_change_account(self, account_name):
         self.busybar.show()
         self.status_label.setText("Loading account {0}".format(account_name))
@@ -149,7 +163,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog.exec_()
 
     def open_add_contact_dialog(self):
-        AddContactDialog(self.app.current_account, self).exec_()
+        dialog = ConfigureContactDialog(self.app.current_account, self)
+        result = dialog.exec_()
+        if result == QDialog.Accepted:
+            self.window().refresh_contacts()
 
     def open_configure_account_dialog(self):
         dialog = ProcessConfigureAccount(self.app, self.app.current_account)
@@ -172,6 +189,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.currencies_tabwidget.addTab(tab_currency,
                                              QIcon(":/icons/currency_icon"),
                                              community.name())
+
+    def refresh_contacts(self):
+        self.menu_contacts_list.clear()
+        for contact in self.app.current_account.contacts:
+            contact_menu = self.menu_contacts_list.addMenu(contact.name)
+            edit_action = contact_menu.addAction("Edit")
+            edit_action.triggered.connect(self.edit_contact)
+            edit_action.setData(contact)
+            delete_action = contact_menu.addAction("Delete")
+            delete_action.setData(contact)
+            delete_action.triggered.connect(self.delete_contact)
 
     def set_as_default_account(self):
         self.app.default_account = self.app.current_account.name
@@ -237,10 +265,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     QMessageBox.critical(self, ":(",
                                 str(e),
                                 QMessageBox.Ok)
-
-            self.menu_contacts_list.clear()
-            for contact in self.app.current_account.contacts:
-                self.menu_contacts_list.addAction(contact.name)
+            self.refresh_contacts()
 
     def import_account(self):
         dialog = ImportAccountDialog(self.app, self)
