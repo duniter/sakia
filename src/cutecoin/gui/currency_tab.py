@@ -311,3 +311,5 @@ QMessageBox.Ok | QMessageBox.Cancel)
                                                  QModelIndex(),
                                                  QModelIndex(),
                                                  [])
+        if self.tab_informations:
+            self.tab_informations.refresh()
