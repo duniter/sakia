@@ -34,12 +34,19 @@ class Parameters(Blockchain):
 
 
 class Membership(Blockchain):
-    """POST a Membership document."""
+    """GET/POST a Membership document."""
+    def __init__(self, connection_handler, search=None):
+        super().__init__(connection_handler)
+        self.search = search
 
     def __post__(self, **kwargs):
         assert 'membership' in kwargs
 
         return self.requests_post('/membership', **kwargs).json()
+
+    def __get__(self, **kwargs):
+        assert self.search is not None
+        return self.requests_get('/memberships/%s' % self.search, **kwargs).json()
 
 
 class Block(Blockchain):

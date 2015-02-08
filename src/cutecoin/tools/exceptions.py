@@ -50,6 +50,25 @@ class PersonNotFoundError(Error):
             " not found ")
 
 
+class MembershipNotFoundError(Error):
+
+    '''
+    Exception raised when looking for a person in a community
+    who isnt present in key list
+    '''
+
+    def __init__(self, value, community):
+        '''
+        Constructor
+        '''
+        super() .__init__(
+            "Membership searched by " +
+            value +
+            " in " +
+            community +
+            " not found ")
+
+
 class AlgorithmNotImplemented(Error):
 
     '''

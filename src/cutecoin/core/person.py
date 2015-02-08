@@ -8,7 +8,9 @@ import logging
 from ucoinpy.api import bma
 from ucoinpy import PROTOCOL_VERSION
 from ucoinpy.documents.certification import SelfCertification
-from cutecoin.tools.exceptions import PersonNotFoundError
+from ucoinpy.documents.membership import Membership
+from cutecoin.tools.exceptions import PersonNotFoundError,\
+                                        MembershipNotFoundError
 
 
 class Person(object):
@@ -75,6 +77,27 @@ class Person(object):
                                              name,
                                              signature)
         raise PersonNotFoundError(self.pubkey, community.name())
+
+    def membership(self, community):
+        search = community.request(bma.blockchain.Membership,
+                                           {'search': self.pubkey})
+        block_number = 0
+        for ms in search['memberships']:
+            if ms['blockNumber'] >= block_number:
+                if 'type' in ms:
+                    if ms['type'] is 'IN':
+                        membership_data = ms
+                else:
+                    membership_data = ms
+
+        if membership_data is None:
+            raise MembershipNotFoundError(self.pubkey(), community.name())
+
+        membership = Membership(PROTOCOL_VERSION, community.currency, self.pubkey,
+                                membership_data['blockNumber'],
+                                membership_data['blockHash'], 'IN', search['uid'],
+                                search['sigDate'], None)
+        return membership
 
     def jsonify(self):
         data = {'name': self.name,

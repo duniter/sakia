@@ -236,11 +236,7 @@ class Community(object):
         Listing members pubkeys of a community
         '''
         memberships = self.request(bma.wot.Members)
-        members = []
-        logging.debug(memberships)
-        for m in memberships["results"]:
-            members.append(m['pubkey'])
-        return members
+        return [m['pubkey'] for m in memberships["results"]]
 
     def refresh_cache(self):
         self._cache.refresh()

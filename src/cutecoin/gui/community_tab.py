@@ -8,7 +8,7 @@ import logging
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QMessageBox, QAction, QMenu, QDialog, QLineEdit
-from ..models.members import MembersListModel
+from ..models.members import MembersFilterProxyModel, MembersTableModel
 from ..gen_resources.community_tab_uic import Ui_CommunityTabWidget
 from .add_contact import AddContactDialog
 from .wot_tab import WotTabWidget
@@ -33,7 +33,10 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         self.community = community
         self.account = account
         self.password_asker = password_asker
-        self.list_community_members.setModel(MembersListModel(community))
+        members_model = MembersTableModel(community)
+        proxy_members = MembersFilterProxyModel()
+        proxy_members.setSourceModel(members_model)
+        self.table_community_members.setModel(proxy_members)
 
         if self.account.member_of(self.community):
             self.button_membership.setText("Renew membership")
@@ -47,8 +50,8 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
                                      "Wot")
 
     def member_context_menu(self, point):
-        index = self.list_community_members.indexAt(point)
-        model = self.list_community_members.model()
+        index = self.table_community_members.indexAt(point)
+        model = self.table_community_members.model()
         if index.row() < model.rowCount(None):
             member = model.members[index.row()]
             logging.debug(member)
@@ -70,7 +73,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             menu.addAction(send_money)
             menu.addAction(certify)
             # Show the context menu.
-            menu.exec_(self.list_community_members.mapToGlobal(point))
+            menu.exec_(self.table_community_members.mapToGlobal(point))
 
     def add_member_as_contact(self):
         dialog = AddContactDialog(self.account, self.window())

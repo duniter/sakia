@@ -43,10 +43,22 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_6">
          <item>
-          <widget class="QListView" name="list_community_members">
+          <widget class="QTableView" name="table_community_members">
            <property name="contextMenuPolicy">
             <enum>Qt::CustomContextMenu</enum>
            </property>
+           <property name="sortingEnabled">
+            <bool>true</bool>
+           </property>
+           <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+            <bool>true</bool>
+           </attribute>
+           <attribute name="horizontalHeaderStretchLastSection">
+            <bool>true</bool>
+           </attribute>
+           <attribute name="verticalHeaderVisible">
+            <bool>false</bool>
+           </attribute>
           </widget>
          </item>
          <item>
@@ -134,22 +146,6 @@
     <hint type="destinationlabel">
      <x>199</x>
      <y>149</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>list_community_members</sender>
-   <signal>customContextMenuRequested(QPoint)</signal>
-   <receiver>CommunityTabWidget</receiver>
-   <slot>member_context_menu(QPoint)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>210</x>
-     <y>179</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>210</x>
-     <y>184</y>
     </hint>
    </hints>
   </connection>
