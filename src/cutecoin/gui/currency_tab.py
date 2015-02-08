@@ -18,6 +18,7 @@ from ..gen_resources.currency_tab_uic import Ui_CurrencyTabWidget
 from .community_tab import CommunityTabWidget
 from .transfer import TransferMoneyDialog
 from ..models.txhistory import HistoryTableModel, TxFilterProxyModel
+from .informations_tab import InformationsTabWidget
 from ..models.wallets import WalletsListModel
 from ..models.wallet import WalletListModel
 from ..tools.exceptions import NoPeerAvailable
@@ -128,6 +129,11 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             self.tabs_account.addTab(self.tab_community,
                                      QIcon(':/icons/community_icon'),
                                     "Community")
+            self.tab_informations = InformationsTabWidget(self.app.current_account,
+                                                    self.community)
+            self.tabs_account.addTab(self.tab_informations,
+                                     QIcon(':/icons/informations_icon'),
+                                    "Informations")
             blockid = self.community.current_blockid()
             block_number = blockid['number']
             self.status_label.setText("Connected : Block {0}"
@@ -307,3 +313,5 @@ QMessageBox.Ok | QMessageBox.Cancel)
                                                  QModelIndex(),
                                                  QModelIndex(),
                                                  [])
+        if self.tab_informations:
+            self.tab_informations.refresh()
