@@ -104,8 +104,13 @@ class Cache():
             for block_number in parsed_blocks:
                 block = community.request(bma.blockchain.Block,
                                   req_args={'number': block_number})
-                signed_raw = "{0}{1}\n".format(block['raw'], block['signature'])
-                block_doc = Block.from_signed_raw(signed_raw)
+                signed_raw = "{0}{1}\n".format(block['raw'],
+                                               block['signature'])
+                try:
+                    block_doc = Block.from_signed_raw(signed_raw)
+                except:
+                    logging.debug("Error in {0}".format(block_number))
+                    raise
                 for tx in block_doc.transactions:
                     in_outputs = [o for o in tx.outputs
                                   if o.pubkey == self.wallet.pubkey]
