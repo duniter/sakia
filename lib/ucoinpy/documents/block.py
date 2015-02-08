@@ -224,7 +224,7 @@ BOTTOM_SIGNATURE
                 for i in range(n, tx_max):
                     tx_lines += lines[n]
                     n = n + 1
-                transaction = Transaction.from_compact(version, tx_lines)
+                transaction = Transaction.from_compact(currency, tx_lines)
                 transactions.append(transaction)
 
         signature = Block.re_signature.match(lines[n]).group(1)

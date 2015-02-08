@@ -10,6 +10,7 @@ from ucoinpy.documents.block import Block
 from ucoinpy.documents.transaction import InputSource, OutputSource, Transaction
 from ucoinpy.key import SigningKey
 from ..tools.exceptions import NotEnoughMoneyError, NoPeerAvailable
+from cutecoin.core.transfer import Transfer, Received
 import logging
 
 
@@ -18,47 +19,29 @@ class Cache():
         self.latest_block = 0
         self.wallet = wallet
 
-        self.tx_sent = []
-        self.awaiting_tx = []
-        self.tx_received = []
+        self._transfers = []
         self.available_sources = []
 
     def load_from_json(self, data):
-        self.tx_received = []
-        self.tx_sent = []
-        self.awaiting_tx = []
+        self._transfers = []
+        logging.debug(data)
 
-        data_received = data['received']
-        for r in data_received:
-            self.tx_received.append(Transaction.from_signed_raw(r['raw']))
-
-        data_sent = data['sent']
+        data_sent = data['transfers']
         for s in data_sent:
-            self.tx_sent.append(Transaction.from_signed_raw(s['raw']))
+            if s['metadata']['issuer'] == self.wallet.pubkey:
+                self._transfers.append(Transfer.load(s))
+            else:
+                self._transfers.append(Received.load(s))
 
-        data_awaiting = data['awaiting']
-        for s in data_awaiting:
-            self.awaiting_tx.append(Transaction.from_signed_raw(s['raw']))
-
-        if 'sources' in data:
-            data_sources = data['sources']
-            for s in data_sources:
-                self.available_sources.append(InputSource.from_inline(s['inline']))
+        for s in data['sources']:
+            self.available_sources.append(InputSource.from_inline(s['inline']))
 
         self.latest_block = data['latest_block']
 
     def jsonify(self):
-        data_received = []
-        for r in self.tx_received:
-            data_received.append({'raw': r.signed_raw()})
-
-        data_sent = []
-        for s in self.tx_sent:
-            data_sent.append({'raw': s.signed_raw()})
-
-        data_awaiting = []
-        for s in self.awaiting_tx:
-            data_awaiting.append({'raw': s.signed_raw()})
+        data_transfer = []
+        for s in self.transfers:
+            data_transfer.append(s.jsonify())
 
         data_sources = []
         for s in self.available_sources:
@@ -66,31 +49,25 @@ class Cache():
             data_sources.append({'inline': "{0}\n".format(s.inline())})
 
         return {'latest_block': self.latest_block,
-                'received': data_received,
-                'sent': data_sent,
-                'awaiting': data_awaiting,
+                'transfers': data_transfer,
                 'sources': data_sources}
 
-    def latest_sent(self, community):
-        return self.tx_sent
-
-    def awaiting(self, community):
-        return self.awaiting_tx
-
-    def latest_received(self, community):
-        return self.tx_received
+    @property
+    def transfers(self):
+        return [t for t in self._transfers if t.state != Transfer.DROPPED]
 
     def refresh(self, community):
         current_block = 0
         try:
-            try:
-                block_data = community.request(bma.blockchain.Current)
-                current_block = block_data['number']
-            except ValueError as e:
-                if '404' in str(e):
-                    current_block = 0
-                else:
-                    raise
+            block_data = community.current_blockid()
+            current_block = block_data['number']
+
+            # Lets look if transactions took too long to be validated
+            awaiting = [t for t in self._transfers
+                        if t.state == Transfer.AWAITING]
+            for transfer in awaiting:
+                transfer.check_refused(current_block)
+
             with_tx = community.request(bma.blockchain.TX)
 
             # We parse only blocks with transactions
@@ -104,30 +81,57 @@ class Cache():
             for block_number in parsed_blocks:
                 block = community.request(bma.blockchain.Block,
                                   req_args={'number': block_number})
-                signed_raw = "{0}{1}\n".format(block['raw'], block['signature'])
-                block_doc = Block.from_signed_raw(signed_raw)
+                signed_raw = "{0}{1}\n".format(block['raw'],
+                                               block['signature'])
+                try:
+                    block_doc = Block.from_signed_raw(signed_raw)
+                except:
+                    logging.debug("Error in {0}".format(block_number))
+                    raise
+                metadata = {'block': block_number,
+                            'time': block_doc.time}
                 for tx in block_doc.transactions:
-                    in_outputs = [o for o in tx.outputs
-                                  if o.pubkey == self.wallet.pubkey]
-                    if len(in_outputs) > 0:
-                        self.tx_received.append(tx)
+                    metadata['issuer'] = tx.issuers[0]
+                    receivers = [o.pubkey for o in tx.outputs
+                                 if o.pubkey != metadata['issuer']]
+                    metadata['receiver'] = receivers[0]
 
-                    in_inputs = [i for i in tx.issuers if i == self.wallet.pubkey]
-                    if len(in_inputs) > 0:
-                        # remove from waiting transactions list the one which were
-                        # validated in the blockchain
-                        self.awaiting_tx = [awaiting for awaiting in self.awaiting_tx
-                                             if awaiting.compact() != tx.compact()]
-                        self.tx_sent.append(tx)
+                    in_issuers = len([i for i in tx.issuers
+                                 if i == self.wallet.pubkey]) > 0
+                    if in_issuers:
+                        outputs = [o for o in tx.outputs
+                                   if o.pubkey != self.wallet.pubkey]
+                        amount = 0
+                        for o in outputs:
+                            amount += o.amount
+                        metadata['amount'] = amount
+
+                        awaiting = [t for t in self._transfers
+                                    if t.state == Transfer.AWAITING]
+                        awaiting_docs = [t.txdoc.signed_raw() for t in awaiting]
+                        logging.debug(tx.signed_raw())
+                        logging.debug(awaiting_docs)
+                        if tx.signed_raw() not in awaiting_docs:
+                            transfer = Transfer.create_validated(tx, metadata)
+                            self._transfers.append(transfer)
+                        else:
+                            for transfer in awaiting:
+                                transfer.check_registered(tx, metadata)
+                    else:
+                        outputs = [o for o in tx.outputs
+                                   if o.pubkey == self.wallet.pubkey]
+                        if len(outputs) > 0:
+                            amount = 0
+                            for o in outputs:
+                                amount += o.amount
+                            metadata['amount'] = amount
+                            self._transfers.append(Received(tx, metadata))
 
             if current_block > self.latest_block:
                     self.available_sources = self.wallet.sources(community)
 
         except NoPeerAvailable:
             return
-
-        self.tx_sent = self.tx_sent[:50]
-        self.tx_received = self.tx_received[:50]
 
         self.latest_block = current_block
 
@@ -167,8 +171,9 @@ class Wallet(object):
 
     def load_caches(self, json_data):
         for currency in json_data:
-            self.caches[currency] = Cache(self)
-            self.caches[currency].load_from_json(json_data[currency])
+            if currency != 'version':
+                self.caches[currency] = Cache(self)
+                self.caches[currency].load_from_json(json_data[currency])
 
     def jsonify_caches(self):
         data = {}
@@ -188,6 +193,9 @@ class Wallet(object):
         else:
             key = SigningKey("{0}{1}".format(salt, self.walletid), password)
         return (key.pubkey == self.pubkey)
+
+    def show_value(self, community):
+        return self.referential(community)
 
     def relative_value(self, community):
         value = self.value(community)
@@ -235,6 +243,20 @@ class Wallet(object):
     def send_money(self, salt, password, community,
                    recipient, amount, message):
 
+        time = community.get_block().time
+        block_number = community.current_blockid()['number']
+        key = None
+        logging.debug("Key : {0} : {1}".format(salt, password))
+        if self.walletid == 0:
+            key = SigningKey(salt, password)
+        else:
+            key = SigningKey("{0}{1}".format(salt, self.walletid), password)
+        logging.debug("Sender pubkey:{0}".format(key.pubkey))
+
+        transfer = Transfer.initiate(block_number, time, amount,
+                                     key.pubkey, recipient, message)
+        self.caches[community.currency]._transfers.append(transfer)
+
         result = self.tx_inputs(int(amount), community)
         inputs = result[0]
         self.caches[community.currency].available_sources = result[1]
@@ -246,22 +268,10 @@ class Wallet(object):
                          [self.pubkey], inputs,
                          outputs, message, None)
         logging.debug("TX : {0}".format(tx.raw()))
-        key = None
-        logging.debug("Key : {0} : {1}".format(salt, password))
-        if self.walletid == 0:
-            key = SigningKey(salt, password)
-        else:
-            key = SigningKey("{0}{1}".format(salt, self.walletid), password)
-        logging.debug("Sender pubkey:{0}".format(key.pubkey))
 
         tx.sign([key])
         logging.debug("Transaction : {0}".format(tx.signed_raw()))
-        try:
-            community.broadcast(bma.tx.Process,
-                        post_args={'transaction': tx.signed_raw()})
-            self.caches[community.currency].awaiting_tx.append(tx)
-        except:
-            raise
+        transfer.send(tx, community)
 
     def sources(self, community):
         data = community.request(bma.tx.Sources,
@@ -271,20 +281,8 @@ class Wallet(object):
             tx.append(InputSource.from_bma(s))
         return tx
 
-    def transactions_awaiting(self, community):
-        return self.caches[community.currency].awaiting(community)
-
-    def transactions_sent(self, community):
-        return self.caches[community.currency].latest_sent(community)
-
-    def transactions_received(self, community):
-        return self.caches[community.currency].latest_received(community)
-
-    def get_text(self, community):
-        return "%s : \n \
-%d %s \n \
-%.2f UD" % (self.name, self.value(community), community.currency,
-                          self.relative_value(community))
+    def transfers(self, community):
+        return self.caches[community.currency].transfers
 
     def jsonify(self):
         return {'walletid': self.walletid,

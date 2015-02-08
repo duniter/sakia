@@ -4,8 +4,10 @@ Created on 1 févr. 2014
 @author: inso
 '''
 from cutecoin.gen_resources.mainwindow_uic import Ui_MainWindow
-from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog, QProgressBar, QMessageBox, QLabel
-from PyQt5.QtCore import QSignalMapper, QModelIndex, QObject, QThread, pyqtSlot, pyqtSignal
+from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog, QProgressBar, \
+        QMessageBox, QLabel, QComboBox, QDialog
+from PyQt5.QtCore import QSignalMapper, QModelIndex, QObject, QThread, \
+    pyqtSlot, pyqtSignal, QDate, QDateTime, QTimer
 from PyQt5.QtGui import QIcon
 from .process_cfg_account import ProcessConfigureAccount
 from .transfer import TransferMoneyDialog
@@ -15,6 +17,7 @@ from .import_account import ImportAccountDialog
 from .certification import CertificationDialog
 from .password_asker import PasswordAskerDialog
 from ..tools.exceptions import NoPeerAvailable
+from ..core.account import Account
 from ..__init__ import __version__
 
 import logging
@@ -68,8 +71,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.statusbar.addWidget(self.busybar)
         self.busybar.hide()
 
-        self.status_label = QLabel("", self.statusbar)
+        self.combo_referential = QComboBox(self)
+        self.combo_referential.setEnabled(False)
+        self.combo_referential.currentTextChanged.connect(self.referential_changed)
+
+        self.status_label = QLabel("", self)
+
+        self.label_time = QLabel("", self)
+
         self.statusbar.addPermanentWidget(self.status_label)
+        self.statusbar.addPermanentWidget(self.label_time)
+        self.statusbar.addPermanentWidget(self.combo_referential)
+        self.update_time()
 
         self.loader_thread = QThread()
         self.loader = Loader(self.app)
@@ -97,6 +110,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     error,
                     QMessageBox.Ok)
 
+    @pyqtSlot(str)
+    def referential_changed(self, text):
+        if self.app.current_account:
+            self.app.current_account.set_display_referential(text)
+            if self.currencies_tabwidget.currentWidget():
+                self.currencies_tabwidget.currentWidget().referential_changed()
+
+    @pyqtSlot()
+    def update_time(self):
+        date = QDate.currentDate()
+        self.label_time.setText("- {0} -".format(date.toString("dd/MM/yyyy")))
+        next_day = date.addDays(1)
+        current_time = QDateTime().toMSecsSinceEpoch()
+        next_time = QDateTime(next_day).toMSecsSinceEpoch()
+        timer = QTimer()
+        timer.timeout.connect(self.update_time)
+        timer.start(next_time - current_time)
+
     def action_change_account(self, account_name):
         self.busybar.show()
         self.status_label.setText("Loading account {0}".format(account_name))
@@ -107,11 +138,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog = TransferMoneyDialog(self.app.current_account,
                                      self.password_asker)
         dialog.accepted.connect(self.refresh_wallets)
-        dialog.exec_()
-        currency_tab = self.currencies_tabwidget.currentWidget()
-        currency_tab.list_transactions_sent.model().dataChanged.emit(
-                                                             QModelIndex(),
-                                                             QModelIndex(), ())
+        if dialog.exec_() == QDialog.Accepted:
+            currency_tab = self.currencies_tabwidget.currentWidget()
+            currency_tab.table_history.model().invalidate()
 
     def open_certification_dialog(self):
         dialog = CertificationDialog(self.app.current_account,
@@ -171,10 +200,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.menu_actions.setEnabled(False)
             self.action_configure_parameters.setEnabled(False)
             self.action_set_as_default.setEnabled(False)
+            self.combo_referential.setEnabled(False)
         else:
             self.action_set_as_default.setEnabled(self.app.current_account.name
                                                   != self.app.default_account)
             self.password_asker = PasswordAskerDialog(self.app.current_account)
+
+            self.combo_referential.blockSignals(True)
+            self.combo_referential.addItems(sorted(Account.referentials.keys()))
+            self.combo_referential.setEnabled(True)
+            self.combo_referential.blockSignals(False)
+            self.combo_referential.setCurrentText(self.app.current_account.referential)
             self.menu_contacts.setEnabled(True)
             self.action_configure_parameters.setEnabled(True)
             self.menu_actions.setEnabled(True)

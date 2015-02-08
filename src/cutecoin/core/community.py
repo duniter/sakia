@@ -12,6 +12,7 @@ from ..tools.exceptions import NoPeerAvailable
 import logging
 import inspect
 import hashlib
+import re
 from requests.exceptions import RequestException, Timeout
 
 
@@ -121,6 +122,24 @@ class Community(object):
     def __eq__(self, other):
         return (other.currency == self.currency)
 
+    @property
+    def short_currency(self):
+        words = re.split('[_\W]+', self.currency)
+        shortened = ""
+        if len(words) > 1:
+            shortened = ''.join([w[0] for w in words])
+        else:
+            vowels = ('a', 'e', 'i', 'o', 'u', 'y')
+            shortened = self.currency
+            shortened = ''.join([c for c in shortened if c not in vowels])
+        return shortened
+
+    @property
+    def currency_symbol(self):
+        letter = self.currency[0]
+        u = ord('\u24B6') + ord(letter) - ord('A')
+        return chr(u)
+
     def dividend(self):
         block = self.get_ud_block()
         if block:
@@ -137,6 +156,24 @@ class Community(object):
             return block
         else:
             return False
+
+    @property
+    def monetary_mass(self):
+        try:
+            block = self.request(bma.blockchain.Current)
+            return block['monetaryMass']
+        except ValueError as e:
+            if '404' in e:
+                return 0
+
+    @property
+    def nb_members(self):
+        try:
+            block = self.request(bma.blockchain.Current)
+            return block['membersCount']
+        except ValueError as e:
+            if '404' in e:
+                return 0
 
     def _peering_traversal(self, peer, found_peers, traversed_pubkeys):
         logging.debug("Read {0} peering".format(peer.pubkey))
@@ -156,6 +193,8 @@ class Community(object):
                 if next_peer.pubkey not in traversed_pubkeys:
                     self._peering_traversal(next_peer, found_peers, traversed_pubkeys)
         except Timeout:
+            pass
+        except ConnectionError:
             pass
         except ValueError:
             pass

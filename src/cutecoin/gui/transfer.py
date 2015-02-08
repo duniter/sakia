@@ -72,10 +72,9 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
                                  QMessageBox.Ok)
             return
         except NotEnoughMoneyError as e:
-            QMessageBox.critical(self, "Money transfer",
-                                 "You don't have enough money available in this block : \n{0}"
-                                 .format(e.message))
-            return
+            QMessageBox.warning(self, "Money transfer",
+                                 """This transaction could not be sent on this block
+Please try again later""")
         except NoPeerAvailable as e:
             QMessageBox.critical(self, "Money transfer",
                                  "Couldn't connect to network : {0}".format(e),
@@ -105,7 +104,10 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
     def change_current_community(self, index):
         self.community = self.sender.communities[index]
         self.dividend = self.community.dividend()
-        self.label_total.setText(self.wallet.get_text(self.community))
+        amount = self.wallet.value(self.community)
+        ref_amount = self.sender.units_to_ref(amount, self.community)
+        ref_name = self.sender.ref_name(self.community.currency)
+        self.label_total.setText("{0} {1}".format(ref_amount, ref_name))
         self.spinbox_amount.setSuffix(" " + self.community.currency)
         self.spinbox_amount.setValue(0)
         amount = self.wallet.value(self.community)
@@ -115,7 +117,10 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
 
     def change_displayed_wallet(self, index):
         self.wallet = self.sender.wallets[index]
-        self.label_total.setText(self.wallet.get_text(self.community))
+        amount = self.wallet.value(self.community)
+        ref_amount = self.sender.units_to_ref(amount, self.community)
+        ref_name = self.sender.ref_name(self.community.currency)
+        self.label_total.setText("{0} {1}".format(ref_amount, ref_name))
         self.spinbox_amount.setValue(0)
         amount = self.wallet.value(self.community)
         relative = amount / self.dividend

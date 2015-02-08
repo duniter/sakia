@@ -26,8 +26,8 @@ class WalletListModel(QAbstractListModel):
     def data(self, index, role):
         if role == Qt.DisplayRole:
             row = index.row()
-            value = "{0}".format(self.sources[row].amount)
-            return value
+            amount = self.sources[row].amount
+            return amount
 
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled

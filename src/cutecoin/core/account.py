@@ -21,6 +21,29 @@ from .person import Person
 from ..tools.exceptions import NoPeerAvailable
 
 
+def quantitative(units, community):
+    return units
+
+
+def relative(units, community):
+    ud = community.dividend()
+    relative_value = units / float(ud)
+    return relative_value
+
+
+def quantitative_zerosum(units, community):
+    median = community.monetary_mass / community.nb_members
+    return units - median
+
+
+def relative_zerosum(units, community):
+    median = community.monetary_mass / community.nb_members
+    ud = community.dividend()
+    relative_value = units / float(ud)
+    relative_median = median / ud
+    return relative_value - relative_median
+
+
 class Account(object):
 
     '''
@@ -28,6 +51,11 @@ class Account(object):
     Each account has only one key, and a key can
     be locally referenced by only one account.
     '''
+    referentials = {'Units': (quantitative, '{0}'),
+                    'UD': (relative, 'ud {0}'),
+                    'Quant Z-sum': (quantitative_zerosum, 'q0 {0}'),
+                    'Relat Z-sum': (relative_zerosum, 'r0 {0}')
+                    }
 
     def __init__(self, salt, pubkey, name, communities, wallets, contacts,
                  dead_communities):
@@ -41,6 +69,7 @@ class Account(object):
         self.dead_communities = dead_communities
         self.wallets = wallets
         self.contacts = contacts
+        self.referential = 'Units'
 
     @classmethod
     def create(cls, name, communities, wallets, confpath):
@@ -92,7 +121,6 @@ class Account(object):
     def add_contact(self, person):
         same_contact = [contact for contact in self.contacts if person.pubkey == contact.pubkey]
         if len(same_contact) == 0:
-            print("add contact")
             self.contacts.append(person)
             return True
         return False
@@ -101,6 +129,16 @@ class Account(object):
         logging.debug("Adding a community")
         self.communities.append(community)
         return community
+
+    def set_display_referential(self, index):
+        self.referential = index
+
+    @property
+    def units_to_ref(self):
+        return Account.referentials[self.referential][0]
+
+    def ref_name(self, currency):
+        return Account.referentials[self.referential][1].format(currency)
 
     def set_walletpool_size(self, size, password):
         logging.debug("Defining wallet pool size")
@@ -140,37 +178,12 @@ class Account(object):
                 sources.append(s)
         return sources
 
-    def transactions_received(self, community):
-        received = []
-        for w in self.wallets:
-            for t in w.transactions_received(community):
-                # Lets remove transactions from our own wallets
-                pubkeys = [wallet.pubkey for wallet in self.wallets]
-                if t.issuers[0] not in pubkeys:
-                    received.append(t)
-        return received
-
-    def transactions_sent(self, community):
+    def transfers(self, community):
         sent = []
         for w in self.wallets:
-            for t in w.transactions_sent(community):
-                # Lets remove transactions to our own wallets
-                pubkeys = [wallet.pubkey for wallet in self.wallets]
-                outputs = [o for o in t.outputs if o.pubkey not in pubkeys]
-                if len(outputs) > 0:
-                    sent.append(t)
+            for transfer in w.transfers(community):
+                sent.append(transfer)
         return sent
-
-    def transactions_awaiting(self, community):
-        awaiting = []
-        for w in self.wallets:
-            for t in w.transactions_awaiting(community):
-                # Lets remove transactions to our own wallets
-                pubkeys = [wallet.pubkey for wallet in self.wallets]
-                outputs = [o for o in t.outputs if o.pubkey not in pubkeys]
-                if len(outputs) > 0:
-                    awaiting.append(t)
-        return awaiting
 
     def member_of(self, community):
         pubkeys = community.members_pubkeys()

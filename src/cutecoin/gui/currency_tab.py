@@ -9,17 +9,22 @@ import time
 import requests
 
 from ucoinpy.api import bma
-from PyQt5.QtWidgets import QWidget, QMenu, QAction, QApplication, QMessageBox
-from PyQt5.QtCore import QModelIndex, Qt, pyqtSlot, QObject, QThread, pyqtSignal
+from PyQt5.QtWidgets import QWidget, QMenu, QAction, QApplication, \
+                            QMessageBox, QDialog
+from PyQt5.QtCore import QModelIndex, Qt, pyqtSlot, QObject, \
+                        QThread, pyqtSignal, QDateTime
 from PyQt5.QtGui import QIcon
 from ..gen_resources.currency_tab_uic import Ui_CurrencyTabWidget
 from .community_tab import CommunityTabWidget
+from .transfer import TransferMoneyDialog
+from ..models.txhistory import HistoryTableModel, TxFilterProxyModel
 from .informations_tab import InformationsTabWidget
-from ..models.sent import SentListModel
-from ..models.received import ReceivedListModel
 from ..models.wallets import WalletsListModel
 from ..models.wallet import WalletListModel
 from ..tools.exceptions import NoPeerAvailable
+from ..core.wallet import Wallet
+from ..core.person import Person
+from ..core.transfer import Transfer
 
 
 class BlockchainWatcher(QObject):
@@ -92,11 +97,30 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         else:
             self.tabs_account.setEnabled(True)
             self.refresh_wallets()
+            blockchain_init = QDateTime()
+            blockchain_init.setTime_t(self.community.get_block(1).time)
 
-            self.list_transactions_sent.setModel(
-                SentListModel(self.app.current_account, self.community))
-            self.list_transactions_received.setModel(
-                ReceivedListModel(self.app.current_account, self.community))
+            self.date_from.setMinimumDateTime(blockchain_init)
+            self.date_from.setDateTime(blockchain_init)
+            self.date_from.setMaximumDateTime(QDateTime().currentDateTime())
+
+            self.date_to.setMinimumDateTime(blockchain_init)
+            tomorrow_datetime = QDateTime().currentDateTime().addDays(1)
+            self.date_to.setDateTime(tomorrow_datetime)
+            self.date_to.setMaximumDateTime(tomorrow_datetime)
+
+            ts_from = self.date_from.dateTime().toTime_t()
+            ts_to = self.date_to.dateTime().toTime_t()
+
+            model = HistoryTableModel(self.app.current_account, self.community)
+            proxy = TxFilterProxyModel(ts_from, ts_to)
+            proxy.setSourceModel(model)
+            proxy.setDynamicSortFilter(True)
+            proxy.setSortRole(Qt.DisplayRole)
+
+            self.table_history.setModel(proxy)
+            self.table_history.setSortingEnabled(True)
+
             self.tab_community = CommunityTabWidget(self.app.current_account,
                                                     self.community,
                                                     self.password_asker)
@@ -132,17 +156,11 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                                  QModelIndex(),
                                                  QModelIndex(),
                                                  [])
-        if self.list_transactions_sent.model():
-            self.list_transactions_sent.model().dataChanged.emit(
+        if self.tablcommunitye_history.model():
+            self.table_history.model().dataChanged.emit(
                                                      QModelIndex(),
                                                      QModelIndex(),
                                                      [])
-
-        if self.list_transactions_received.model():
-            self.list_transactions_received.model().dataChanged.emit(
-                                                         QModelIndex(),
-                                                         QModelIndex(),
-                                                         [])
 
         if self.tab_community.list_community_members.model():
             self.tab_community.list_community_members.model().dataChanged.emit(
@@ -168,7 +186,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
     def wallet_context_menu(self, point):
         index = self.list_wallets.indexAt(point)
         model = self.list_wallets.model()
-        if index.row() < model.rowCount(None):
+        if index.row() < model.rowCount(QModelIndex()):
             wallet = model.wallets[index.row()]
             menu = QMenu(model.data(index, Qt.DisplayRole), self)
 
@@ -185,14 +203,81 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             # Show the context menu.
             menu.exec_(self.list_wallets.mapToGlobal(point))
 
+    def history_context_menu(self, point):
+        index = self.table_history.indexAt(point)
+        model = self.table_history.model()
+        if index.row() < model.rowCount(QModelIndex()):
+            menu = QMenu(model.data(index, Qt.DisplayRole), self)
+            source_index = model.mapToSource(index)
+            state_col = model.sourceModel().columns.index('State')
+            state_index = model.sourceModel().index(source_index.row(),
+                                                   state_col)
+            state_data = model.sourceModel().data(state_index, Qt.DisplayRole)
+
+            pubkey_col = model.sourceModel().columns.index('UID/Public key')
+            person_index = model.sourceModel().index(source_index.row(),
+                                                    pubkey_col)
+            person = model.sourceModel().data(person_index, Qt.DisplayRole)
+            transfer = model.sourceModel().transfers[source_index.row()]
+            if state_data == Transfer.REFUSED or state_data == Transfer.TO_SEND:
+                send_back = QAction("Send again", self)
+                send_back.triggered.connect(self.send_again)
+                send_back.setData(transfer)
+                menu.addAction(send_back)
+
+                cancel = QAction("Cancel", self)
+                cancel.triggered.connect(self.cancel_transfer)
+                cancel.setData(transfer)
+                menu.addAction(cancel)
+
+            copy_pubkey = QAction("Copy pubkey to clipboard", self)
+            copy_pubkey.triggered.connect(self.copy_pubkey_to_clipboard)
+            copy_pubkey.setData(person)
+            menu.addAction(copy_pubkey)
+            # Show the context menu.
+            menu.exec_(self.table_history.mapToGlobal(point))
+
     def rename_wallet(self):
         index = self.sender().data()
         self.list_wallets.edit(index)
 
     def copy_pubkey_to_clipboard(self):
-        wallet = self.sender().data()
+        data = self.sender().data()
         clipboard = QApplication.clipboard()
-        clipboard.setText(wallet.pubkey)
+        if data.__class__ is Wallet:
+            clipboard.setText(data.pubkey)
+        elif data.__class__ is Person:
+            clipboard.setText(data.pubkey)
+        elif data.__class__ is str:
+            clipboard.setText(data)
+
+    def send_again(self):
+        transfer = self.sender().data()
+        dialog = TransferMoneyDialog(self.app.current_account,
+                                     self.password_asker)
+        dialog.accepted.connect(self.refresh_wallets)
+        sender = transfer.metadata['issuer']
+        wallet_index = [w.pubkey for w in self.app.current_account.wallets].index(sender)
+        dialog.combo_wallets.setCurrentIndex(wallet_index)
+        dialog.edit_pubkey.setText(transfer.metadata['receiver'])
+        dialog.combo_community.setCurrentText(self.community.name())
+        dialog.spinbox_amount.setValue(transfer.metadata['amount'])
+        dialog.radio_pubkey.setChecked(True)
+        dialog.edit_message.setText(transfer.metadata['comment'])
+        result = dialog.exec_()
+        if result == QDialog.Accepted:
+            transfer.drop()
+            self.table_history.model().invalidate()
+
+    def cancel_transfer(self):
+        reply = QMessageBox.warning(self, "Warning",
+                             """Are you sure ?
+This money transfer will be removed and not sent.""",
+QMessageBox.Ok | QMessageBox.Cancel)
+        if reply == QMessageBox.Ok:
+            transfer = self.sender().data()
+            transfer.drop()
+            self.table_history.model().invalidate()
 
     def wallet_changed(self):
         self.app.save(self.app.current_account)
@@ -206,3 +291,23 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
     def closeEvent(self, event):
         self.bc_watcher.deleteLater()
         self.watcher_thread.deleteLater()
+
+    def dates_changed(self, datetime):
+        ts_from = self.date_from.dateTime().toTime_t()
+        ts_to = self.date_to.dateTime().toTime_t()
+        if self.table_history.model():
+            self.table_history.model().set_period(ts_from, ts_to)
+            self.table_history.model().invalidate()
+
+    def referential_changed(self):
+        if self.table_history.model():
+            self.table_history.model().dataChanged.emit(
+                                                     QModelIndex(),
+                                                     QModelIndex(),
+                                                     [])
+
+        if self.list_wallets.model():
+            self.list_wallets.model().dataChanged.emit(
+                                                 QModelIndex(),
+                                                 QModelIndex(),
+                                                 [])

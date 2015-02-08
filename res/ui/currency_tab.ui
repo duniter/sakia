@@ -33,7 +33,7 @@
          <bool>false</bool>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="tab_wallets">
          <attribute name="icon">
@@ -68,28 +68,47 @@
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_3">
             <item>
-             <widget class="QLabel" name="label">
-              <property name="text">
-               <string>Sent</string>
+             <layout class="QHBoxLayout" name="horizontalLayout_2">
+              <property name="topMargin">
+               <number>5</number>
               </property>
-             </widget>
+              <item>
+               <widget class="QDateTimeEdit" name="date_from">
+                <property name="displayFormat">
+                 <string>dd/MM/yyyy</string>
+                </property>
+                <property name="calendarPopup">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDateTimeEdit" name="date_to">
+                <property name="displayFormat">
+                 <string>dd/MM/yyyy</string>
+                </property>
+                <property name="calendarPopup">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
             <item>
-             <widget class="QListView" name="list_transactions_sent"/>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="verticalLayout_2">
-            <item>
-             <widget class="QLabel" name="label_2">
-              <property name="text">
-               <string>Received</string>
+             <widget class="QTableView" name="table_history">
+              <property name="contextMenuPolicy">
+               <enum>Qt::CustomContextMenu</enum>
               </property>
+              <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+               <bool>true</bool>
+              </attribute>
+              <attribute name="horizontalHeaderStretchLastSection">
+               <bool>true</bool>
+              </attribute>
+              <attribute name="verticalHeaderVisible">
+               <bool>false</bool>
+              </attribute>
              </widget>
-            </item>
-            <item>
-             <widget class="QListView" name="list_transactions_received"/>
             </item>
            </layout>
           </item>
@@ -138,9 +157,59 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>date_from</sender>
+   <signal>dateTimeChanged(QDateTime)</signal>
+   <receiver>CurrencyTabWidget</receiver>
+   <slot>dates_changed(QDateTime)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>114</x>
+     <y>73</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>date_to</sender>
+   <signal>dateTimeChanged(QDateTime)</signal>
+   <receiver>CurrencyTabWidget</receiver>
+   <slot>dates_changed(QDateTime)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>285</x>
+     <y>73</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>table_history</sender>
+   <signal>customContextMenuRequested(QPoint)</signal>
+   <receiver>CurrencyTabWidget</receiver>
+   <slot>history_context_menu(QPoint)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>180</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>refresh_wallet_content(QModelIndex)</slot>
   <slot>wallet_context_menu(QPoint)</slot>
+  <slot>dates_changed(QDateTime)</slot>
+  <slot>history_context_menu(QPoint)</slot>
  </slots>
 </ui>
