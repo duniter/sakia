@@ -270,11 +270,12 @@ class Community(object):
                         continue
                     else:
                         raise
-                except Timeout:
+                except RequestException:
                     # Move the timeout peer to the end
                     self.peers.remove(peer)
                     self.peers.append(peer)
                     continue
+
         raise NoPeerAvailable(self.currency, len(self.peers))
 
     def post(self, request, req_args={}, post_args={}):
@@ -287,7 +288,7 @@ class Community(object):
                 return
             except ValueError as e:
                 raise
-            except Timeout:
+            except RequestException:
                 # Move the timeout peer to the end
                 self.peers.remove(peer)
                 self.peers.append(peer)
@@ -310,7 +311,7 @@ class Community(object):
             except ValueError as e:
                 value_error = e
                 continue
-            except Timeout:
+            except RequestException:
                 tries = tries + 1
                 # Move the timeout peer to the end
                 self.peers.remove(peer)
