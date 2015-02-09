@@ -164,8 +164,8 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                                      QModelIndex(),
                                                      [])
 
-        if self.tab_community.list_community_members.model():
-            self.tab_community.list_community_members.model().dataChanged.emit(
+        if self.tab_community.table_community_members.model():
+            self.tab_community.table_community_members.model().dataChanged.emit(
                                                            QModelIndex(),
                                                            QModelIndex(),
                                                            [])
