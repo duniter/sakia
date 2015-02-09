@@ -69,7 +69,7 @@ class Transfer(object):
             raise
         finally:
             self.metadata['block'] = community.current_blockid()['number']
-            self.metadata['time'] = community.get_block().time
+            self.metadata['time'] = community.get_block().mediantime
 
     def check_registered(self, tx, metadata):
 

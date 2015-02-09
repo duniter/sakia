@@ -99,7 +99,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             self.tabs_account.setEnabled(True)
             self.refresh_wallets()
             blockchain_init = QDateTime()
-            blockchain_init.setTime_t(self.community.get_block(1).time)
+            blockchain_init.setTime_t(self.community.get_block(1).mediantime)
 
             self.date_from.setMinimumDateTime(blockchain_init)
             self.date_from.setDateTime(blockchain_init)
@@ -170,8 +170,21 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                                            QModelIndex(),
                                                            [])
 
-        self.status_label.setText("Connected : Block {0}"
-                                             .format(block_number))
+        person = Person.lookup(self.account.pubkey, self.community)
+        join_block = person.membership(self.community).block_number
+        join_date = self.community.get_block(join_block).mediantime
+        parameters = self.community.get_parameters()
+        expiration_date = join_date + parameters['sigValidity']
+        current_time = QDateTime().currentDateTime()
+        sig_validity = self.community.get_parameters()['sigValidity']
+        warning_expiration_time = int(sig_validity / 3)
+        will_expire_soon = (current_time > expiration_date*1000 - warning_expiration_time*1000)
+
+        text = "Connected : Block {0}".format(block_number)
+        if will_expire_soon:
+            days = QDateTime().currentDateTime().daysTo(QDateTime(expiration_date*1000))
+            text += " - Warning : Membership expiration in {0}".format(days)
+        self.status_label.setText(text)
 
     def refresh_wallets(self):
         if self.app.current_account:

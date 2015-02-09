@@ -89,7 +89,7 @@ class Cache():
                     logging.debug("Error in {0}".format(block_number))
                     raise
                 metadata = {'block': block_number,
-                            'time': block_doc.time}
+                            'time': block_doc.mediantime}
                 for tx in block_doc.transactions:
                     metadata['issuer'] = tx.issuers[0]
                     receivers = [o.pubkey for o in tx.outputs
@@ -243,7 +243,7 @@ class Wallet(object):
     def send_money(self, salt, password, community,
                    recipient, amount, message):
 
-        time = community.get_block().time
+        time = community.get_block().mediantime
         block_number = community.current_blockid()['number']
         key = None
         logging.debug("Key : {0} : {1}".format(salt, password))

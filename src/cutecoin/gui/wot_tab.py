@@ -213,7 +213,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
                         'status': node_status
                     }
 
-                cert_time = self.get_block_median_time(certifier['meta']['block_number'])
+                cert_time = self.get_block_mediantime(certifier['meta']['block_number'])
 
                 # add only valid certification...
                 if (time.time() - cert_time) > self.signature_validity:
@@ -367,7 +367,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         dialog.edit_pubkey.setText(metadata['id'])
         dialog.exec_()
 
-    def get_block_median_time(self, number):
+    def get_block_mediantime(self, number):
         try:
             block = self.community.get_block(number)
         except Exception as e:
