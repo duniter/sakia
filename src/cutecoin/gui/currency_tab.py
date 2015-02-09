@@ -170,7 +170,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                                            QModelIndex(),
                                                            [])
 
-        person = Person.lookup(self.account.pubkey, self.community)
+        person = Person.lookup(self.app.current_account.pubkey, self.community)
         join_block = person.membership(self.community).block_number
         join_date = self.community.get_block(join_block).mediantime
         parameters = self.community.get_parameters()
