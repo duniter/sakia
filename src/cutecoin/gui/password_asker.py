@@ -5,6 +5,8 @@ Created on 24 dec. 2014
 '''
 
 import logging
+import unicodedata
+import re
 
 from PyQt5.QtWidgets import QDialog, QMessageBox
 
@@ -40,16 +42,24 @@ class PasswordAskerDialog(QDialog, Ui_PasswordAskerDialog):
 
     def accept(self):
         password = self.edit_password.text()
-        if self.account.check_password(password):
-            self.remember = self.check_remember.isChecked()
-            self.password = password
-            self.edit_password.setText("")
-            logging.debug("Password is valid")
-            super().accept()
-        else:
+
+        if detect_non_printable(password):
+            QMessageBox.warning(self, "Bad password",
+                                "Non printable characters in password",
+                                QMessageBox.Ok)
+            return False
+
+        if not self.account.check_password(password):
             QMessageBox.warning(self, "Failed to get private key",
                                 "Wrong password typed. Cannot open the private key",
                                 QMessageBox.Ok)
+            return False
+
+        self.remember = self.check_remember.isChecked()
+        self.password = password
+        self.edit_password.setText("")
+        logging.debug("Password is valid")
+        super().accept()
 
     def reject(self):
         self.edit_password.setText("")
@@ -57,3 +67,10 @@ class PasswordAskerDialog(QDialog, Ui_PasswordAskerDialog):
         self.setResult(QDialog.Accepted)
         self.password = ""
         super().reject()
+
+
+def detect_non_printable(data):
+    control_chars = ''.join(map(chr, list(range(0, 32)) + list(range(127, 160))))
+    control_char_re = re.compile('[%s]' % re.escape(control_chars))
+    if control_char_re.search(data):
+        return True
