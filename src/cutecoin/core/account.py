@@ -26,7 +26,7 @@ def quantitative(units, community):
 
 
 def relative(units, community):
-    ud = community.dividend()
+    ud = community.dividend
     relative_value = units / float(ud)
     return relative_value
 
@@ -38,7 +38,7 @@ def quantitative_zerosum(units, community):
 
 def relative_zerosum(units, community):
     median = community.monetary_mass / community.nb_members
-    ud = community.dividend()
+    ud = community.dividend
     relative_value = units / float(ud)
     relative_median = median / ud
     return relative_value - relative_median

@@ -199,7 +199,7 @@ class Wallet(object):
 
     def relative_value(self, community):
         value = self.value(community)
-        ud = community.dividend()
+        ud = community.dividend
         relative_value = value / float(ud)
         return relative_value
 

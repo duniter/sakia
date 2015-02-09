@@ -29,7 +29,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         self.wallet = None
         self.community = self.sender.communities[0]
         self.wallet = self.sender.wallets[0]
-        self.dividend = self.community.dividend()
+        self.dividend = self.community.dividend
 
         for community in self.sender.communities:
             self.combo_community.addItem(community.currency)
@@ -103,7 +103,7 @@ Please try again later""")
 
     def change_current_community(self, index):
         self.community = self.sender.communities[index]
-        self.dividend = self.community.dividend()
+        self.dividend = self.community.dividend
         amount = self.wallet.value(self.community)
         ref_amount = self.sender.units_to_ref(amount, self.community)
         ref_name = self.sender.ref_name(self.community.currency)

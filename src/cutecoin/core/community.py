@@ -140,14 +140,15 @@ class Community(object):
         u = ord('\u24B6') + ord(letter) - ord('A')
         return chr(u)
 
+    @property
     def dividend(self):
-        block = self.get_ud_block()
+        block = self._ud_block()
         if block:
             return block['dividend']
         else:
             return 1
 
-    def get_ud_block(self):
+    def _ud_block(self):
         ud = self.request(bma.blockchain.UD)
         if len(ud['result']['blocks']) > 0:
             block_number = ud['result']['blocks'][-1]
