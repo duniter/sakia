@@ -250,6 +250,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     '''
 
     def refresh(self):
+        logging.debug("Refresh finished")
         self.menu_change_account.clear()
         signal_mapper = QSignalMapper(self)
 
@@ -260,10 +261,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             action.triggered.connect(signal_mapper.map)
             signal_mapper.mapped[str].connect(self.action_change_account)
 
-        self.refresh_communities()
-        self.refresh_wallets()
-        self.refresh_contacts()
-
         if self.app.current_account is None:
             self.setWindowTitle("CuteCoin {0}".format(__version__))
             self.menu_contacts.setEnabled(False)
@@ -272,6 +269,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.action_set_as_default.setEnabled(False)
             self.combo_referential.setEnabled(False)
             self.status_label.setText("")
+            self.password_asker = None
         else:
             self.action_set_as_default.setEnabled(self.app.current_account.name
                                                   != self.app.default_account)
@@ -285,8 +283,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.menu_contacts.setEnabled(True)
             self.action_configure_parameters.setEnabled(True)
             self.menu_actions.setEnabled(True)
+            self.password_asker = PasswordAskerDialog(self.app.current_account)
             self.setWindowTitle("CuteCoin {0} - Account : {1}".format(__version__,
                 self.app.current_account.name))
+
+        self.refresh_communities()
+        self.refresh_wallets()
+        self.refresh_contacts()
+
 
     def import_account(self):
         dialog = ImportAccountDialog(self.app, self)

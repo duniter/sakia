@@ -5,7 +5,6 @@ Created on 24 dec. 2014
 '''
 
 import logging
-import unicodedata
 import re
 
 from PyQt5.QtWidgets import QDialog, QMessageBox
