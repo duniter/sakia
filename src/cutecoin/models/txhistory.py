@@ -72,7 +72,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                 return date.date()
             if source_index.column() == self.sourceModel().columns.index('Payment'):
                 if source_data is not "":
-                    amount_ref = self.account.units_to_ref(-source_data, self.community)
+                    amount_ref = self.account.units_to_ref(source_data, self.community)
                     ref_name = self.account.ref_name(self.community.short_currency)
                     return "{0:.2f} {1}".format(amount_ref, ref_name)
             if source_index.column() == self.sourceModel().columns.index('Deposit'):
