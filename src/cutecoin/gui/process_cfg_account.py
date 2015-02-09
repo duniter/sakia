@@ -107,7 +107,23 @@ class StepPageCommunities(Step):
         return True
 
     def process_next(self):
-        pass
+        password = self.config_dialog.password_asker.exec_()
+        if self.config_dialog.password_asker.result() == QDialog.Rejected:
+            return
+
+        nb_wallets = self.config_dialog.spinbox_wallets.value()
+        self.config_dialog.account.set_walletpool_size(nb_wallets, password)
+
+        if len(self.config_dialog.app.accounts) == 1:
+            self.config_dialog.app.default_account = self.config_dialog.account.name
+
+        try:
+            self.config_dialog.app.add_account(self.config_dialog.account)
+        except KeyAlreadyUsed as e:
+            QMessageBox.critical(self, "Error",
+                                 str(e), QMessageBox.Ok)
+            return
+        self.config_dialog.app.save(self.config_dialog.account)
 
     def display_page(self):
         logging.debug("Communities DISPLAY")
@@ -141,10 +157,12 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         self.step.display_page()
         if self.account is None:
             self.setWindowTitle("New account")
+            self.button_delete.hide()
         else:
             self.stacked_pages.removeWidget(self.stacked_pages.widget(1))
             step_init.next_step = step_communities
             self.button_next.setEnabled(True)
+            self.stacked_pages.currentWidget()
             self.setWindowTitle("Configure " + self.account.name)
 
     def open_process_add_community(self):
@@ -163,7 +181,6 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
 
     def action_remove_community(self):
         for index in self.list_communities.selectedIndexes():
-            community = self.account.communities[index.row()]
             self.account.communities.pop(index.row())
 
         self.list_communities.setModel(CommunitiesListModel(self.account))
@@ -206,20 +223,32 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         dialog.accepted.connect(self.action_edit_community)
         dialog.exec_()
 
+    def action_delete_account(self):
+        reply = QMessageBox.question(self, "Warning",
+                             """This action will delete your account locally.
+Please note your key parameters (salt and password) if you wish to recover it later.
+Your account won't be removed from the networks it joined.
+Are you sure ?""")
+        if reply == QMessageBox.Yes:
+            account = self.app.current_account
+            self.app.delete_account(account)
+            self.app.save(account)
+            self.accept()
+
     def next(self):
-        if self.step.next_step is not None:
-            if self.step.is_valid():
-                try:
-                    self.step.process_next()
+        if self.step.is_valid():
+            try:
+                self.step.process_next()
+                if self.step.next_step is not None:
                     self.step = self.step.next_step
                     next_index = self.stacked_pages.currentIndex() + 1
                     self.stacked_pages.setCurrentIndex(next_index)
                     self.step.display_page()
-                except Error as e:
-                    QMessageBox.critical(self, "Error",
-                                         str(e), QMessageBox.Ok)
-        else:
-            self.accept()
+                else:
+                    self.accept()
+            except Error as e:
+                QMessageBox.critical(self, "Error",
+                                     str(e), QMessageBox.Ok)
 
     def previous(self):
         if self.step.previous_step is not None:
@@ -229,25 +258,4 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
             self.step.display_page()
 
     def accept(self):
-        password = ""
-        if self.account.name not in self.app.accounts:
-            self.account.name = self.edit_account_name.text()
-            try:
-                self.app.add_account(self.account)
-            except KeyAlreadyUsed as e:
-                QMessageBox.critical(self, "Error",
-                                     str(e), QMessageBox.Ok)
-            password = self.edit_password.text()
-        else:
-            password = self.password_asker.exec_()
-            if self.password_asker.result() == QDialog.Rejected:
-                return
-
-        nb_wallets = self.spinbox_wallets.value()
-        self.account.set_walletpool_size(nb_wallets, password)
-
-        if len(self.app.accounts) == 1:
-            self.app.default_account = self.account.name
-
-        self.app.save(self.account)
         super().accept()

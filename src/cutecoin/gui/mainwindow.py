@@ -92,7 +92,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.loader.loaded.connect(self.loader_thread.quit)
         self.loader.connection_error.connect(self.display_error)
         self.loader_thread.started.connect(self.loader.load)
-        self.setWindowTitle("CuteCoin {0}".format(__version__))
         self.refresh()
 
     def open_add_account_dialog(self):
@@ -171,8 +170,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def open_configure_account_dialog(self):
         dialog = ProcessConfigureAccount(self.app, self.app.current_account)
-        dialog.accepted.connect(self.refresh_wallets)
-        dialog.accepted.connect(self.refresh_communities)
+        dialog.accepted.connect(self.refresh)
         dialog.exec_()
 
     def open_about_popup(self):
@@ -207,25 +205,37 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def refresh_communities(self):
         self.currencies_tabwidget.clear()
-        for community in self.app.current_account.communities:
-            tab_currency = CurrencyTabWidget(self.app, community,
-                                             self.password_asker,
-                                             self.status_label)
-            tab_currency.refresh()
-            self.currencies_tabwidget.addTab(tab_currency,
-                                             QIcon(":/icons/currency_icon"),
-                                             community.name())
+        if self.app.current_account:
+            for community in self.app.current_account.communities:
+                try:
+                    tab_currency = CurrencyTabWidget(self.app, community,
+                                                     self.password_asker,
+                                                     self.status_label)
+                    tab_currency.refresh()
+                    self.currencies_tabwidget.addTab(tab_currency,
+                                                     QIcon(":/icons/currency_icon"),
+                                                     community.name())
+                except NoPeerAvailable as e:
+                    QMessageBox.critical(self, "Could not join {0}".format(community.currency),
+                                str(e),
+                                QMessageBox.Ok)
+                    continue
+                except requests.exceptions.RequestException as e:
+                    QMessageBox.critical(self, ":(",
+                                str(e),
+                                QMessageBox.Ok)
 
     def refresh_contacts(self):
         self.menu_contacts_list.clear()
-        for contact in self.app.current_account.contacts:
-            contact_menu = self.menu_contacts_list.addMenu(contact.name)
-            edit_action = contact_menu.addAction("Edit")
-            edit_action.triggered.connect(self.edit_contact)
-            edit_action.setData(contact)
-            delete_action = contact_menu.addAction("Delete")
-            delete_action.setData(contact)
-            delete_action.triggered.connect(self.delete_contact)
+        if self.app.current_account:
+            for contact in self.app.current_account.contacts:
+                contact_menu = self.menu_contacts_list.addMenu(contact.name)
+                edit_action = contact_menu.addAction("Edit")
+                edit_action.triggered.connect(self.edit_contact)
+                edit_action.setData(contact)
+                delete_action = contact_menu.addAction("Delete")
+                delete_action.setData(contact)
+                delete_action.triggered.connect(self.delete_contact)
 
     def set_as_default_account(self):
         self.app.default_account = self.app.current_account.name
@@ -250,12 +260,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             action.triggered.connect(signal_mapper.map)
             signal_mapper.mapped[str].connect(self.action_change_account)
 
+        self.refresh_communities()
+        self.refresh_wallets()
+        self.refresh_contacts()
+
         if self.app.current_account is None:
+            self.setWindowTitle("CuteCoin {0}".format(__version__))
             self.menu_contacts.setEnabled(False)
             self.menu_actions.setEnabled(False)
             self.action_configure_parameters.setEnabled(False)
             self.action_set_as_default.setEnabled(False)
             self.combo_referential.setEnabled(False)
+            self.status_label.setText("")
         else:
             self.action_set_as_default.setEnabled(self.app.current_account.name
                                                   != self.app.default_account)
@@ -271,27 +287,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.menu_actions.setEnabled(True)
             self.setWindowTitle("CuteCoin {0} - Account : {1}".format(__version__,
                 self.app.current_account.name))
-
-            self.currencies_tabwidget.clear()
-            for community in self.app.current_account.communities:
-                try:
-                    tab_currency = CurrencyTabWidget(self.app, community,
-                                                     self.password_asker,
-                                                     self.status_label)
-                    tab_currency.refresh()
-                    self.currencies_tabwidget.addTab(tab_currency,
-                                                     QIcon(":/icons/currency_icon"),
-                                                     community.name())
-                except NoPeerAvailable as e:
-                    QMessageBox.critical(self, "Could not join {0}".format(community.currency),
-                                str(e),
-                                QMessageBox.Ok)
-                    continue
-                except requests.exceptions.RequestException as e:
-                    QMessageBox.critical(self, ":(",
-                                str(e),
-                                QMessageBox.Ok)
-            self.refresh_contacts()
 
     def import_account(self):
         dialog = ImportAccountDialog(self.app, self)

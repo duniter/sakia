@@ -8,9 +8,10 @@ import os
 import logging
 import json
 import tarfile
+import shutil
 
 from . import config
-from ..tools.exceptions import NameAlreadyExists, BadAccountFile
+from ..tools.exceptions import NameAlreadyExists, BadAccountFile, KeyAlreadyUsed
 from .account import Account
 from .. import __version__
 
@@ -44,21 +45,20 @@ class Application(object):
             if a == name:
                 raise NameAlreadyExists(a)
 
-        account_path = os.path.join(config.parameters['home'], name)
-        if not os.path.exists(account_path):
-            logging.info("Creating account directory")
-            os.makedirs(account_path)
         account = Account.create(name,
                                  [],
                                  [],
                                  config.parameters)
 
-        self.accounts[name] = account
-        self.current_account = account
         return account
 
-    def del_account(self, account):
-        self.accounts.remove(account)
+    def add_account(self, account):
+        self.accounts[account.name] = account
+
+    def delete_account(self, account):
+        self.accounts.pop(account.name)
+        if self.current_account == account:
+            self.current_account = None
 
     def change_current_account(self, account):
         if self.current_account is not None:
@@ -104,11 +104,18 @@ class Application(object):
     def save(self, account):
         with open(config.parameters['data'], 'w') as outfile:
             json.dump(self.jsonify(), outfile, indent=4, sort_keys=True)
-
         account_path = os.path.join(config.parameters['home'],
-                                    account.name, 'properties')
-        with open(account_path, 'w') as outfile:
-            json.dump(account.jsonify(), outfile, indent=4, sort_keys=True)
+                                account.name)
+        if account.name in self.accounts:
+            properties_path = os.path.join(account_path, 'properties')
+            if not os.path.exists(account_path):
+                logging.info("Creating account directory")
+                os.makedirs(account_path)
+            with open(properties_path, 'w') as outfile:
+                json.dump(account.jsonify(), outfile, indent=4, sort_keys=True)
+        else:
+            account_path = os.path.join(config.parameters['home'], account.name)
+            shutil.rmtree(account_path)
 
     def save_cache(self, account):
         if not os.path.exists(os.path.join(config.parameters['home'],
