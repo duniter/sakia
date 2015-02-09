@@ -134,6 +134,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             self.tabs_account.addTab(self.tab_informations,
                                      QIcon(':/icons/informations_icon'),
                                     "Informations")
+            self.tab_informations.refresh()
             blockid = self.community.current_blockid()
             block_number = blockid['number']
             self.status_label.setText("Connected : Block {0}"
