@@ -51,6 +51,10 @@ class TxFilterProxyModel(QSortFilterProxyModel):
         """
         left_data = self.sourceModel().data(left, Qt.DisplayRole)
         right_data = self.sourceModel().data(right, Qt.DisplayRole)
+        if left_data == "":
+            return self.sortOrder() == Qt.DescendingOrder
+        elif right_data == "":
+            return self.sortOrder() == Qt.AscendingOrder
         return (left_data < right_data)
 
     def data(self, index, role):
