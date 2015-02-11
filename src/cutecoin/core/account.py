@@ -51,10 +51,12 @@ class Account(object):
     Each account has only one key, and a key can
     be locally referenced by only one account.
     '''
-    referentials = {'Units': (quantitative, '{0}'),
-                    'UD': (relative, 'ud {0}'),
-                    'Quant Z-sum': (quantitative_zerosum, 'q0 {0}'),
-                    'Relat Z-sum': (relative_zerosum, 'r0 {0}')
+    referentials = {'Units': (quantitative, '{0}', quantitative, '{0}'),
+                    'UD': (relative, 'ud {0}', relative, 'ud {0}'),
+                    'Quant Z-sum': (quantitative_zerosum, 'q0 {0}',
+                                    quantitative, '{0}'),
+                    'Relat Z-sum': (relative_zerosum, 'r0 {0}',
+                                    relative, 'ud {0}')
                     }
 
     def __init__(self, salt, pubkey, name, communities, wallets, contacts,
@@ -143,8 +145,15 @@ class Account(object):
     def units_to_ref(self):
         return Account.referentials[self.referential][0]
 
+    @property
+    def units_to_diff_ref(self):
+        return Account.referentials[self.referential][2]
+
     def ref_name(self, currency):
         return Account.referentials[self.referential][1].format(currency)
+
+    def diff_ref_name(self, currency):
+        return Account.referentials[self.referential][3].format(currency)
 
     def set_walletpool_size(self, size, password):
         logging.debug("Defining wallet pool size")
