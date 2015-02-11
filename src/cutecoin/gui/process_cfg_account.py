@@ -9,7 +9,7 @@ from ucoinpy.documents.peer import Peer
 from ucoinpy.key import SigningKey
 from ..gen_resources.account_cfg_uic import Ui_AccountConfigurationDialog
 from ..gui.process_cfg_community import ProcessConfigureCommunity
-from ..gui.password_asker import PasswordAskerDialog
+from ..gui.password_asker import PasswordAskerDialog, detect_non_printable
 from ..models.communities import CommunitiesListModel
 from ..tools.exceptions import KeyAlreadyUsed, Error, NoPeerAvailable
 
@@ -71,6 +71,14 @@ class StepPageKey(Step):
 
         if len(self.config_dialog.edit_password.text()) < 6:
             self.config_dialog.label_info.setText("Warning : password is too short")
+            return False
+
+        if detect_non_printable(self.config_dialog.edit_salt.text()):
+            self.config_dialog.label_info.setText("Warning : Invalid characters in salt field")
+            return False
+
+        if detect_non_printable(self.config_dialog.edit_password.text()):
+            self.config_dialog.label_info.setText("Warning : Invalid characters in password field")
             return False
 
         if self.config_dialog.edit_password.text() != \
