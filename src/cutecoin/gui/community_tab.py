@@ -41,6 +41,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         self.table_community_members.setModel(proxy_members)
         self.table_community_members.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table_community_members.customContextMenuRequested.connect(self.member_context_menu)
+        self.table_community_members.sortByColumn(0, Qt.AscendingOrder)
 
         if self.account.member_of(self.community):
             self.button_membership.setText("Renew membership")
