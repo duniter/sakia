@@ -48,7 +48,7 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
             <tr><td align="right"><b>{:.2f}</b></td><td>{:} {:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:.2f}</b></td><td>{:} {:}</td></tr>
-            <tr><td align="right"><b>{:2.2%}</b></td><td>{:}</td></tr>
+            <tr><td align="right"><b>{:2.2%} / {:} days</b></td><td>{:}</td></tr>
             </table>
             """.format(
                 self.get_referential_value(block['dividend']),
@@ -62,9 +62,9 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 self.get_referential_value(block['monetaryMass'] / block['membersCount']),
                 'Monetary Mass per member M(t)/N(t) in',
                 self.get_referential_name(),
-                block['dividend'] / (block['monetaryMass'] - (block['membersCount'] * block['dividend'])) / block[
-                    'membersCount'],
-                'Actual % Growth c = UD(t)/[M(t-1)/N(t)]'
+                block['dividend'] / (block['monetaryMass'] / block['membersCount']),
+                params['dt'] / 86400,
+                'Actual growth c = UD(t)/[M(t-1)/N(t)]'
             )
         )
 
@@ -72,7 +72,7 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
         self.label_money.setText(
             """
             <table cellpadding="5">
-            <tr><td align="right"><b>{:2.0%}</b></td><td>{:}</td></tr>
+            <tr><td align="right"><b>{:2.0%} / {:} days</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:} {:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
@@ -83,12 +83,13 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
             </table>
             """.format(
                 params['c'],
-                'Growth parameter c',
+                params['dt'] / 86400,
+                'Fundamental growth (c)',
                 params['ud0'],
-                'Initial Universal Dividend in',
+                'Initial Universal Dividend UD(0) in',
                 self.community.short_currency,
                 params['dt'] / 86400,
-                'Time period in days between two UD',
+                'Time period (dt) in days (86400 seconds) between two UD',
                 params['medianTimeBlocks'],
                 'Number of blocks used for calculating median time',
                 params['avgGenTime'],
@@ -99,6 +100,31 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 'The number of previous blocks to check for personalized difficulty',
                 params['percentRot'],
                 'The percent of previous issuers to reach for personalized difficulty'
+            )
+        )
+
+        # set infos in label
+        self.label_rules.setText(
+            """
+            <table cellpadding="5">
+            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+            </table>
+            """.format(
+                '{:2.0%} / {:} days'.format(params['c'], params['dt'] / 86400),
+                'Fundamental growth (c) / Delta time (dt)',
+                'UD(t+1) = MAX { UD(t) ; c * M(t) / N(t) }',
+                'Universal Dividend (formula)',
+                'UD(t+1) = MAX {{ {:.2f} {:} ; {:2.0%} * {:.2f} {:} / {:} }}'.format(
+                    self.get_referential_value(block['dividend']),
+                    self.get_referential_name(),
+                    params['c'],
+                    self.get_referential_value(block['monetaryMass']),
+                    self.get_referential_name(),
+                    block['membersCount']
+                ),
+                'Universal Dividend (computed)'
             )
         )
 
@@ -126,30 +152,6 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 'Maximum age of a valid membership (in days)',
                 params['stepMax'],
                 'Maximum distance between each WoT member and a newcomer',
-            )
-        )
-
-        # set infos in label
-        self.label_rules.setText(
-            """
-            <table cellpadding="5">
-            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-            </table>
-            """.format(
-                "{:2.0%} / {:} days".format(params['c'], params['dt'] / 86400),
-                'Growth percent (c)',
-                "UD t+1 = MAX ( UD t ; c * Mt / Nt+1 )",
-                'Universal Dividend (formula)',
-                "UD t+1 = MAX ( {:.2f} {:} ; {:2.0%} * {:.2f} {:} / Nt+1 )".format(
-                    self.get_referential_value(params['ud0']),
-                    self.get_referential_name(),
-                    params['c'],
-                    self.get_referential_value(block['monetaryMass']),
-                    self.get_referential_name()
-                ),
-                'Universal Dividend (computed)'
             )
         )
 
