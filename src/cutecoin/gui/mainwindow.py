@@ -276,6 +276,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.password_asker = PasswordAskerDialog(self.app.current_account)
 
             self.combo_referential.blockSignals(True)
+            self.combo_referential.clear()
             self.combo_referential.addItems(sorted(Account.referentials.keys()))
             self.combo_referential.setEnabled(True)
             self.combo_referential.blockSignals(False)
@@ -290,7 +291,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.refresh_communities()
         self.refresh_wallets()
         self.refresh_contacts()
-
 
     def import_account(self):
         dialog = ImportAccountDialog(self.app, self)
