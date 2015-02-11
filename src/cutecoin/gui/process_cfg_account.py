@@ -65,14 +65,13 @@ class StepPageKey(Step):
         super().__init__(config_dialog)
 
     def is_valid(self):
-        if len(self.config_dialog.edit_password.text()) < 2:
-            return False
-
-        if len(self.config_dialog.edit_salt.text()) < 2:
+        if len(self.config_dialog.edit_salt.text()) < 6:
+            self.config_dialog.label_info.setText("Warning : salt is too short")
             return False
 
         if len(self.config_dialog.edit_password.text()) < 6:
             self.config_dialog.label_info.setText("Warning : password is too short")
+            return False
 
         if self.config_dialog.edit_password.text() != \
             self.config_dialog.edit_password_repeat.text():
