@@ -155,7 +155,7 @@ class HistoryTableModel(QAbstractTableModel):
         amount_ref = self.account.units_to_ref(amount, self.community)
         ref_name = self.account.ref_name(self.community.short_currency)
 
-        return (date_ts, sender, "", amount, "{0:.2f} {1}".format(amount_ref, ref_name),
+        return (date_ts, sender, "", amount,
                 comment, transfer.state)
 
     def data_sent(self, transfer):
@@ -186,6 +186,7 @@ class HistoryTableModel(QAbstractTableModel):
         transfer = self.transfers[row]
         if role == Qt.DisplayRole:
             if type(transfer) is Received:
+                print(col, self.data_received(transfer)[col])
                 return self.data_received(transfer)[col]
             else:
                 return self.data_sent(transfer)[col]
