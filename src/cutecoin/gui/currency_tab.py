@@ -180,7 +180,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         sig_validity = self.community.get_parameters()['sigValidity']
         warning_expiration_time = int(sig_validity / 3)
         will_expire_soon = (current_time > expiration_date - warning_expiration_time)
-        text = "Connected : Block {0}".format(block_number['number'])
+        text = "Connected : Block {0}".format(block_number)
         self.status_label.setText(text)
 
         if will_expire_soon:

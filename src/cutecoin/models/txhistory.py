@@ -138,8 +138,8 @@ class HistoryTableModel(QAbstractTableModel):
         self.column_headers = (
             'Date',
             'UID/Public key',
-            'Payment\n({:})'.format(self.account.diff_ref_name(self.community.short_currency)),
-            'Deposit\n({:})'.format(self.account.diff_ref_name(self.community.short_currency)),
+            'Payment',
+            'Deposit',
             'Comment',
             'State'
         )
@@ -156,6 +156,12 @@ class HistoryTableModel(QAbstractTableModel):
 
     def headerData(self, section, orientation, role):
         if role == Qt.DisplayRole:
+            if self.column_types[section] == 'payment' or self.column_types[section] == 'deposit':
+                return '{:}\n({:})'.format(
+                    self.column_headers[section],
+                    self.account.diff_ref_name(self.community.short_currency)
+                )
+
             return self.column_headers[section]
 
     def data_received(self, transfer):
@@ -210,3 +216,4 @@ class HistoryTableModel(QAbstractTableModel):
 
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled
+
