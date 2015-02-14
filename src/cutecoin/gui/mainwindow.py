@@ -80,7 +80,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.label_time = QLabel("", self)
 
-        self.statusbar.addPermanentWidget(self.status_label)
+        self.statusbar.addPermanentWidget(self.status_label, 1)
         self.statusbar.addPermanentWidget(self.label_time)
         self.statusbar.addPermanentWidget(self.combo_referential)
         self.update_time()

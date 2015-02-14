@@ -176,16 +176,21 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         join_date = self.community.get_block(join_block).mediantime
         parameters = self.community.get_parameters()
         expiration_date = join_date + parameters['sigValidity']
-        current_time = QDateTime().currentDateTime()
+        current_time = time.time()
         sig_validity = self.community.get_parameters()['sigValidity']
         warning_expiration_time = int(sig_validity / 3)
-        will_expire_soon = (current_time > expiration_date*1000 - warning_expiration_time*1000)
-
-        text = "Connected : Block {0}".format(block_number)
-        if will_expire_soon:
-            days = QDateTime().currentDateTime().daysTo(QDateTime(expiration_date*1000))
-            text += " - Warning : Membership expiration in {0}".format(days)
+        will_expire_soon = (current_time > expiration_date - warning_expiration_time)
+        text = "Connected : Block {0}".format(block_number['number'])
         self.status_label.setText(text)
+
+        if will_expire_soon:
+            days = QDateTime().currentDateTime().daysTo(QDateTime.fromTime_t(expiration_date))
+            QMessageBox.warning(
+                self,
+                "Membership expiration",
+                "Warning : Membership expiration in {0} days".format(days),
+                QMessageBox.Ok
+            )
 
     def refresh_wallets(self):
         if self.app.current_account:
