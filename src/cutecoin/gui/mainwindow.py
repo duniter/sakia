@@ -121,7 +121,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     @pyqtSlot()
     def update_time(self):
         date = QDate.currentDate()
-        self.label_time.setText("- {0} -".format(date.toString("dd/MM/yyyy")))
+        self.label_time.setText("{0}".format(date.toString("dd/MM/yyyy")))
         next_day = date.addDays(1)
         current_time = QDateTime().currentDateTime().toMSecsSinceEpoch()
         next_time = QDateTime(next_day).toMSecsSinceEpoch()
