@@ -10,7 +10,7 @@ import requests
 
 from ucoinpy.api import bma
 from PyQt5.QtWidgets import QWidget, QMenu, QAction, QApplication, \
-                            QMessageBox, QDialog, QAbstractItemView
+                            QMessageBox, QDialog, QAbstractItemView, QHeaderView
 from PyQt5.QtCore import QModelIndex, Qt, pyqtSlot, QObject, \
                         QThread, pyqtSignal, QDateTime
 from PyQt5.QtGui import QIcon
@@ -122,7 +122,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             self.table_history.setModel(proxy)
             self.table_history.setSelectionBehavior(QAbstractItemView.SelectRows)
             self.table_history.setSortingEnabled(True)
-
+            self.table_history.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
             self.tab_community = CommunityTabWidget(self.app.current_account,
                                                     self.community,
                                                     self.password_asker)

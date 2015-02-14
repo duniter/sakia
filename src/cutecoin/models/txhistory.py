@@ -32,7 +32,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
     def filterAcceptsRow(self, sourceRow, sourceParent):
         def in_period(date_ts):
             return (date_ts in range(self.ts_from, self.ts_to))
-        date_col = self.sourceModel().columns.index('Date')
+        date_col = self.sourceModel().column_types.index('date')
         source_index = self.sourceModel().index(sourceRow, date_col)
         date = self.sourceModel().data(source_index, Qt.DisplayRole)
         return in_period(date)
@@ -60,32 +60,30 @@ class TxFilterProxyModel(QSortFilterProxyModel):
     def data(self, index, role):
         source_index = self.mapToSource(index)
         source_data = self.sourceModel().data(source_index, role)
-        state_col = self.sourceModel().columns.index('State')
+        state_col = self.sourceModel().column_types.index('state')
         state_index = self.sourceModel().index(source_index.row(), state_col)
         state_data = self.sourceModel().data(state_index, Qt.DisplayRole)
         if role == Qt.DisplayRole:
-            if source_index.column() == self.sourceModel().columns.index('UID/Public key'):
+            if source_index.column() == self.sourceModel().column_types.index('uid'):
                 if source_data.__class__ == Person:
                     tx_person = source_data.name
                 else:
                     tx_person = "pub:{0}".format(source_data[:5])
                 source_data = tx_person
                 return source_data
-            if source_index.column() == self.sourceModel().columns.index('Date'):
+            if source_index.column() == self.sourceModel().column_types.index('date'):
                 date = QDateTime.fromTime_t(source_data)
                 return date.date()
-            if source_index.column() == self.sourceModel().columns.index('Payment'):
+            if source_index.column() == self.sourceModel().column_types.index('payment'):
                 if source_data is not "":
                     amount_ref = self.account.units_to_diff_ref(source_data,
                                                                 self.community)
-                    ref_name = self.account.diff_ref_name(self.community.short_currency)
-                    return "{0:.2f} {1}".format(amount_ref, ref_name)
-            if source_index.column() == self.sourceModel().columns.index('Deposit'):
+                    return "{0:.2f}".format(amount_ref)
+            if source_index.column() == self.sourceModel().column_types.index('deposit'):
                 if source_data is not "":
                     amount_ref = self.account.units_to_diff_ref(source_data,
                                                                 self.community)
-                    ref_name = self.account.diff_ref_name(self.community.short_currency)
-                    return "{0:.2f} {1}".format(amount_ref, ref_name)
+                    return "{0:.2f}".format(amount_ref)
 
         if role == Qt.FontRole:
             font = QFont()
@@ -104,6 +102,12 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                 return QColor(Qt.red)
             elif state_data == Transfer.TO_SEND:
                 return QColor(Qt.blue)
+
+        if role == Qt.TextAlignmentRole:
+            if source_index.column() == self.sourceModel().column_types.index('deposit') or source_index.column() == self.sourceModel().column_types.index('payment'):
+                return Qt.AlignRight | Qt.AlignVCenter
+            if source_index.column() == self.sourceModel().column_types.index('date'):
+                return Qt.AlignCenter
         return source_data
 
 
@@ -120,8 +124,25 @@ class HistoryTableModel(QAbstractTableModel):
         super().__init__(parent)
         self.account = account
         self.community = community
-        self.columns = ('Date', 'UID/Public key', 'Payment',
-                        'Deposit', 'Comment', 'State')
+        self.account.referential
+
+        self.column_types = (
+            'date',
+            'uid',
+            'payment',
+            'deposit',
+            'comment',
+            'state'
+        )
+
+        self.column_headers = (
+            'Date',
+            'UID/Public key',
+            'Payment\n({:})'.format(self.account.diff_ref_name(self.community.short_currency)),
+            'Deposit\n({:})'.format(self.account.diff_ref_name(self.community.short_currency)),
+            'Comment',
+            'State'
+        )
 
     @property
     def transfers(self):
@@ -131,11 +152,11 @@ class HistoryTableModel(QAbstractTableModel):
         return len(self.transfers)
 
     def columnCount(self, parent):
-        return len(self.columns)
+        return len(self.column_types)
 
     def headerData(self, section, orientation, role):
         if role == Qt.DisplayRole:
-            return self.columns[section]
+            return self.column_headers[section]
 
     def data_received(self, transfer):
         amount = transfer.metadata['amount']
@@ -151,9 +172,6 @@ class HistoryTableModel(QAbstractTableModel):
             sender = pubkey
 
         date_ts = transfer.metadata['time']
-
-        amount_ref = self.account.units_to_ref(amount, self.community)
-        ref_name = self.account.ref_name(self.community.short_currency)
 
         return (date_ts, sender, "", amount,
                 comment, transfer.state)
@@ -186,7 +204,6 @@ class HistoryTableModel(QAbstractTableModel):
         transfer = self.transfers[row]
         if role == Qt.DisplayRole:
             if type(transfer) is Received:
-                print(col, self.data_received(transfer)[col])
                 return self.data_received(transfer)[col]
             else:
                 return self.data_sent(transfer)[col]
