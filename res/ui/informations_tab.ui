@@ -91,15 +91,15 @@ QGroupBox::title {
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="group_wot">
+        <widget class="QGroupBox" name="group_rules">
          <property name="title">
-          <string>WoT</string>
+          <string>Rules</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_4">
+         <layout class="QVBoxLayout" name="verticalLayout_6">
           <item>
-           <widget class="QLabel" name="label_wot">
+           <widget class="QLabel" name="label_rules">
             <property name="text">
-             <string>label_wot</string>
+             <string>label_rules</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -110,15 +110,15 @@ QGroupBox::title {
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="group_rules">
+        <widget class="QGroupBox" name="group_wot">
          <property name="title">
-          <string>Rules</string>
+          <string>WoT</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_6">
+         <layout class="QVBoxLayout" name="verticalLayout_4">
           <item>
-           <widget class="QLabel" name="label_rules">
+           <widget class="QLabel" name="label_wot">
             <property name="text">
-             <string>label_rules</string>
+             <string>label_wot</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>

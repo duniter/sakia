@@ -10,7 +10,7 @@ import requests
 
 from ucoinpy.api import bma
 from PyQt5.QtWidgets import QWidget, QMenu, QAction, QApplication, \
-                            QMessageBox, QDialog, QAbstractItemView
+                            QMessageBox, QDialog, QAbstractItemView, QHeaderView
 from PyQt5.QtCore import QModelIndex, Qt, pyqtSlot, QObject, \
                         QThread, pyqtSignal, QDateTime
 from PyQt5.QtGui import QIcon
@@ -92,6 +92,25 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
 
         self.watcher_thread.start()
 
+        person = Person.lookup(self.app.current_account.pubkey, self.community)
+        join_block = person.membership(self.community).block_number
+        join_date = self.community.get_block(join_block).mediantime
+        parameters = self.community.get_parameters()
+        expiration_date = join_date + parameters['sigValidity']
+        current_time = time.time()
+        sig_validity = self.community.get_parameters()['sigValidity']
+        warning_expiration_time = int(sig_validity / 3)
+        will_expire_soon = (current_time > expiration_date - warning_expiration_time)
+
+        if will_expire_soon:
+            days = QDateTime().currentDateTime().daysTo(QDateTime.fromTime_t(expiration_date))
+            QMessageBox.warning(
+                self,
+                "Membership expiration",
+                "Warning : Membership expiration in {0} days".format(days),
+                QMessageBox.Ok
+            )
+
     def refresh(self):
         if self.app.current_account is None:
             self.tabs_account.setEnabled(False)
@@ -122,7 +141,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             self.table_history.setModel(proxy)
             self.table_history.setSelectionBehavior(QAbstractItemView.SelectRows)
             self.table_history.setSortingEnabled(True)
-
+            self.table_history.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
             self.tab_community = CommunityTabWidget(self.app.current_account,
                                                     self.community,
                                                     self.password_asker)
@@ -171,20 +190,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                                            QModelIndex(),
                                                            [])
 
-        person = Person.lookup(self.app.current_account.pubkey, self.community)
-        join_block = person.membership(self.community).block_number
-        join_date = self.community.get_block(join_block).mediantime
-        parameters = self.community.get_parameters()
-        expiration_date = join_date + parameters['sigValidity']
-        current_time = QDateTime().currentDateTime().toTime_t()
-        sig_validity = self.community.get_parameters()['sigValidity']
-        warning_expiration_time = int(sig_validity / 3)
-        will_expire_soon = (current_time > expiration_date*1000 - warning_expiration_time*1000)
-
         text = "Connected : Block {0}".format(block_number)
-        if will_expire_soon:
-            days = QDateTime().currentDateTime().daysTo(QDateTime(expiration_date*1000))
-            text += " - Warning : Membership expiration in {0}".format(days)
         self.status_label.setText(text)
 
     def refresh_wallets(self):

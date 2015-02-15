@@ -79,18 +79,14 @@ class Transfer(object):
             self._metadata['time'] = community.get_block().mediantime
 
     def check_registered(self, tx, block, time):
-        logging.debug("REGISTERED : BEFORE : {0}".format(self._metadata))
         if tx.signed_raw() == self.txdoc.signed_raw():
             self.state = Transfer.VALIDATED
             self._metadata['block'] = block
             self._metadata['time'] = time
-        logging.debug("REGISTERED : AFTER : {0}".format(self._metadata))
 
     def check_refused(self, block):
-        logging.debug("REFUSED : BEFORE : {0}".format(self._metadata))
         if block > self._metadata['block'] + 15:
             self.state = Transfer.REFUSED
-        logging.debug("REFUSED : AFTER : {0}".format(self._metadata))
 
     def drop(self):
         self.state = Transfer.DROPPED
