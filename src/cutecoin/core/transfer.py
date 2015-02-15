@@ -71,7 +71,7 @@ class Transfer(object):
                         post_args={'transaction': self.txdoc.signed_raw()})
             self.state = Transfer.AWAITING
         except ValueError as e:
-            if '400' in e:
+            if '400' in str(e):
                 self.state = Transfer.REFUSED
             raise
         finally:

@@ -160,7 +160,11 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
-       <widget class="QLineEdit" name="edit_message"/>
+       <widget class="QLineEdit" name="edit_message">
+        <property name="inputMask">
+         <string/>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>

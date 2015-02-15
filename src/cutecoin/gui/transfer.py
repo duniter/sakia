@@ -4,6 +4,8 @@ Created on 2 févr. 2014
 @author: inso
 '''
 from PyQt5.QtWidgets import QDialog, QMessageBox
+from PyQt5.QtCore import QRegExp
+from PyQt5.QtGui import QRegExpValidator, QValidator
 
 from ..tools.exceptions import NotEnoughMoneyError, NoPeerAvailable
 from ..gen_resources.transfer_uic import Ui_TransferMoneyDialog
@@ -23,24 +25,28 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         '''
         super().__init__()
         self.setupUi(self)
-        self.sender = sender
+        self.account = sender
         self.password_asker = password_asker
         self.recipient_trusts = []
         self.wallet = None
-        self.community = self.sender.communities[0]
-        self.wallet = self.sender.wallets[0]
+        self.community = self.account.communities[0]
+        self.wallet = self.account.wallets[0]
         self.dividend = self.community.dividend
 
-        for community in self.sender.communities:
+        regexp = QRegExp('^([ a-zA-Z0-9-_:/;*?\[\]\(\)\\\?!^+=@&~#{}|<>%.]{0,255})$')
+        validator = QRegExpValidator(regexp)
+        self.edit_message.setValidator(validator)
+
+        for community in self.account.communities:
             self.combo_community.addItem(community.currency)
 
-        for wallet in self.sender.wallets:
+        for wallet in self.account.wallets:
             self.combo_wallets.addItem(wallet.name)
 
         for contact in sender.contacts:
             self.combo_contact.addItem(contact.name)
 
-        if len(self.sender.contacts) == 0:
+        if len(self.account.contacts) == 0:
             self.combo_contact.setEnabled(False)
             self.radio_contact.setEnabled(False)
             self.radio_pubkey.setChecked(True)
@@ -50,7 +56,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
 
         if self.radio_contact.isChecked():
             index = self.combo_contact.currentIndex()
-            recipient = self.sender.contacts[index].pubkey
+            recipient = self.account.contacts[index].pubkey
         else:
             recipient = self.edit_pubkey.text()
         amount = self.spinbox_amount.value()
@@ -66,7 +72,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
             return
 
         try:
-            self.wallet.send_money(self.sender.salt, password, self.community,
+            self.wallet.send_money(self.account.salt, password, self.community,
                                        recipient, amount, comment)
             QMessageBox.information(self, "Money transfer",
                                  "Success transfering {0} {1} to {2}".format(amount,
@@ -88,7 +94,7 @@ Please try again later""")
             return
         except Exception as e:
             QMessageBox.critical(self, "Error",
-                                 "{0}".format(e),
+                                 "{0}".format(str(e)),
                                  QMessageBox.Ok)
             return
         super().accept()
@@ -108,11 +114,11 @@ Please try again later""")
         self.spinbox_amount.blockSignals(False)
 
     def change_current_community(self, index):
-        self.community = self.sender.communities[index]
+        self.community = self.account.communities[index]
         self.dividend = self.community.dividend
         amount = self.wallet.value(self.community)
-        ref_amount = self.sender.units_to_ref(amount, self.community)
-        ref_name = self.sender.ref_name(self.community.currency)
+        ref_amount = self.account.units_to_ref(amount, self.community)
+        ref_name = self.account.ref_name(self.community.currency)
         self.label_total.setText("{0} {1}".format(ref_amount, ref_name))
         self.spinbox_amount.setSuffix(" " + self.community.currency)
         self.spinbox_amount.setValue(0)
@@ -122,10 +128,10 @@ Please try again later""")
         self.spinbox_relative.setMaximum(relative)
 
     def change_displayed_wallet(self, index):
-        self.wallet = self.sender.wallets[index]
+        self.wallet = self.account.wallets[index]
         amount = self.wallet.value(self.community)
-        ref_amount = self.sender.units_to_ref(amount, self.community)
-        ref_name = self.sender.ref_name(self.community.currency)
+        ref_amount = self.account.units_to_ref(amount, self.community)
+        ref_name = self.account.ref_name(self.community.currency)
         self.label_total.setText("{0} {1}".format(ref_amount, ref_name))
         self.spinbox_amount.setValue(0)
         amount = self.wallet.value(self.community)
