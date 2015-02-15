@@ -7,7 +7,8 @@ import signal
 import sys
 import os
 
-from PyQt5.QtWidgets import QApplication, QDialog
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtCore import QLocale
 from cutecoin.gui.mainwindow import MainWindow
 from cutecoin.core.app import Application
 
@@ -17,6 +18,7 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     cutecoin = QApplication(sys.argv)
     app = Application(sys.argv)
+    QLocale.setDefault(QLocale("en_GB"))
     window = MainWindow(app)
     window.show()
     sys.exit(cutecoin.exec_())
