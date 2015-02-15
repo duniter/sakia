@@ -170,7 +170,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         server = self.lineedit_server.text()
         port = self.spinbox_port.value()
         try:
-            peer_data = bma.network.Peering(ConnectionHandler(server, port))
+            peer_data = bma.network.Peering(ConnectionHandler(server, port)).get()
 
             peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],
                                                       peer_data['signature']))
