@@ -176,7 +176,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         join_date = self.community.get_block(join_block).mediantime
         parameters = self.community.get_parameters()
         expiration_date = join_date + parameters['sigValidity']
-        current_time = QDateTime().currentDateTime()
+        current_time = QDateTime().currentDateTime().toTime_t()
         sig_validity = self.community.get_parameters()['sigValidity']
         warning_expiration_time = int(sig_validity / 3)
         will_expire_soon = (current_time > expiration_date*1000 - warning_expiration_time*1000)

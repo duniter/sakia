@@ -43,11 +43,7 @@ class PersonNotFoundError(Error):
         Constructor
         '''
         super() .__init__(
-            "Person looked by " +
-            value +
-            " in " +
-            community +
-            " not found ")
+            "Person looked by {0} in {1} not found ".format(value, community))
 
 
 class MembershipNotFoundError(Error):

@@ -23,22 +23,29 @@ class Transfer(object):
         '''
         Constructor
         '''
+        assert('receiver' in metadata)
+        assert('block' in metadata)
+        assert('time' in metadata)
+        assert('issuer' in metadata)
+        assert('amount' in metadata)
+        assert('comment' in metadata)
+
         self.txdoc = txdoc
         self.state = state
-        self.metadata = metadata
+        self._metadata = metadata
 
     @classmethod
-    def initiate(cls, block, time, amount, issuer, receiver, comment):
-        return cls(None, Transfer.TO_SEND, {'block': block,
-                                             'time': time,
-                                             'amount': amount,
-                                             'issuer': issuer,
-                                             'receiver': receiver,
-                                             'comment': comment})
+    def initiate(cls, metadata):
+        return cls(None, Transfer.TO_SEND, metadata)
 
     @classmethod
     def create_validated(cls, txdoc, metadata):
+        logging.debug("VALIDATED : {0}".format(metadata))
         return cls(txdoc, Transfer.VALIDATED, metadata)
+
+    @property
+    def metadata(self):
+        return self._metadata
 
     @classmethod
     def load(cls, data):
@@ -55,7 +62,7 @@ class Transfer(object):
             txraw = None
         return {'txdoc': txraw,
                 'state': self.state,
-                'metadata': self.metadata}
+                'metadata': self._metadata}
 
     def send(self, txdoc, community):
         try:
@@ -68,20 +75,22 @@ class Transfer(object):
                 self.state = Transfer.REFUSED
             raise
         finally:
-            self.metadata['block'] = community.current_blockid()['number']
-            self.metadata['time'] = community.get_block().mediantime
+            self._metadata['block'] = community.current_blockid()['number']
+            self._metadata['time'] = community.get_block().mediantime
 
-    def check_registered(self, tx, metadata):
-
-        logging.debug("{0} > {1} ?".format(metadata['block'],
-                                           self.metadata['block'] + 15))
+    def check_registered(self, tx, block, time):
+        logging.debug("REGISTERED : BEFORE : {0}".format(self._metadata))
         if tx.signed_raw() == self.txdoc.signed_raw():
             self.state = Transfer.VALIDATED
-            self.metadata = metadata
+            self._metadata['block'] = block
+            self._metadata['time'] = time
+        logging.debug("REGISTERED : AFTER : {0}".format(self._metadata))
 
     def check_refused(self, block):
-        if block > self.metadata['block'] + 15:
+        logging.debug("REFUSED : BEFORE : {0}".format(self._metadata))
+        if block > self._metadata['block'] + 15:
             self.state = Transfer.REFUSED
+        logging.debug("REFUSED : AFTER : {0}".format(self._metadata))
 
     def drop(self):
         self.state = Transfer.DROPPED

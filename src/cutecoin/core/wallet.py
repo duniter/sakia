@@ -65,9 +65,6 @@ class Cache():
             # Lets look if transactions took too long to be validated
             awaiting = [t for t in self._transfers
                         if t.state == Transfer.AWAITING]
-            for transfer in awaiting:
-                transfer.check_refused(current_block)
-
             with_tx = community.request(bma.blockchain.TX)
 
             # We parse only blocks with transactions
@@ -88,13 +85,15 @@ class Cache():
                 except:
                     logging.debug("Error in {0}".format(block_number))
                     raise
-                metadata = {'block': block_number,
-                            'time': block_doc.mediantime}
                 for tx in block_doc.transactions:
-                    metadata['issuer'] = tx.issuers[0]
+                    metadata = {'block': block_number,
+                            'time': block_doc.mediantime,
+                            'comment': tx.comment,
+                            'issuer': tx.issuers[0]}
                     receivers = [o.pubkey for o in tx.outputs
                                  if o.pubkey != metadata['issuer']]
                     metadata['receiver'] = receivers[0]
+                    logging.debug("RECEIVER = {0}".format(metadata['receiver']))
 
                     in_issuers = len([i for i in tx.issuers
                                  if i == self.wallet.pubkey]) > 0
@@ -109,14 +108,14 @@ class Cache():
                         awaiting = [t for t in self._transfers
                                     if t.state == Transfer.AWAITING]
                         awaiting_docs = [t.txdoc.signed_raw() for t in awaiting]
-                        logging.debug(tx.signed_raw())
-                        logging.debug(awaiting_docs)
                         if tx.signed_raw() not in awaiting_docs:
-                            transfer = Transfer.create_validated(tx, metadata)
+                            transfer = Transfer.create_validated(tx,
+                                                                 metadata.copy())
                             self._transfers.append(transfer)
                         else:
                             for transfer in awaiting:
-                                transfer.check_registered(tx, metadata)
+                                transfer.check_registered(tx, block_number,
+                                                          block_doc.mediantime)
                     else:
                         outputs = [o for o in tx.outputs
                                    if o.pubkey == self.wallet.pubkey]
@@ -125,10 +124,13 @@ class Cache():
                             for o in outputs:
                                 amount += o.amount
                             metadata['amount'] = amount
-                            self._transfers.append(Received(tx, metadata))
+                            self._transfers.append(Received(tx,
+                                                            metadata.copy()))
 
             if current_block > self.latest_block:
                     self.available_sources = self.wallet.sources(community)
+            for transfer in awaiting:
+                transfer.check_refused(current_block)
 
         except NoPeerAvailable:
             return
@@ -253,8 +255,15 @@ class Wallet(object):
             key = SigningKey("{0}{1}".format(salt, self.walletid), password)
         logging.debug("Sender pubkey:{0}".format(key.pubkey))
 
-        transfer = Transfer.initiate(block_number, time, amount,
-                                     key.pubkey, recipient, message)
+        metadata = {'block': block_number,
+                    'time': time,
+                    'amount': amount,
+                    'issuer': key.pubkey,
+                    'receiver': recipient,
+                    'comment': message
+                    }
+        transfer = Transfer.initiate(metadata)
+
         self.caches[community.currency]._transfers.append(transfer)
 
         result = self.tx_inputs(int(amount), community)
