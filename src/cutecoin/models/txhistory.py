@@ -74,18 +74,19 @@ class TxFilterProxyModel(QSortFilterProxyModel):
             if source_index.column() == self.sourceModel().columns.index('Date'):
                 date = QDateTime.fromTime_t(source_data)
                 return date.date()
-            if source_index.column() == self.sourceModel().columns.index('Payment'):
+            if source_index.column() == self.sourceModel().columns.index('Payment')  or \
+                source_index.column() == self.sourceModel().columns.index('Deposit'):
                 if source_data is not "":
                     amount_ref = self.account.units_to_diff_ref(source_data,
                                                                 self.community)
                     ref_name = self.account.diff_ref_name(self.community.short_currency)
-                    return "{0:.2f} {1}".format(amount_ref, ref_name)
-            if source_index.column() == self.sourceModel().columns.index('Deposit'):
-                if source_data is not "":
-                    amount_ref = self.account.units_to_diff_ref(source_data,
-                                                                self.community)
-                    ref_name = self.account.diff_ref_name(self.community.short_currency)
-                    return "{0:.2f} {1}".format(amount_ref, ref_name)
+
+                    if type(amount_ref) is int:
+                        formatter = "{0} {1}"
+                    else:
+                        formatter = "{0:.2f} {1}"
+
+                    return formatter.format(amount_ref, ref_name)
 
         if role == Qt.FontRole:
             font = QFont()
@@ -152,10 +153,7 @@ class HistoryTableModel(QAbstractTableModel):
 
         date_ts = transfer.metadata['time']
 
-        amount_ref = self.account.units_to_ref(amount, self.community)
-        ref_name = self.account.ref_name(self.community.short_currency)
-
-        return (date_ts, sender, "", amount, "{0:.2f} {1}".format(amount_ref, ref_name),
+        return (date_ts, sender, "", amount,
                 comment, transfer.state)
 
     def data_sent(self, transfer):

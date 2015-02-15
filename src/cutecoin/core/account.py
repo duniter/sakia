@@ -22,7 +22,7 @@ from ..tools.exceptions import NoPeerAvailable, ContactAlreadyExists
 
 
 def quantitative(units, community):
-    return units
+    return int(units)
 
 
 def relative(units, community):

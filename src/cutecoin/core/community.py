@@ -132,7 +132,7 @@ class Community(object):
             vowels = ('a', 'e', 'i', 'o', 'u', 'y')
             shortened = self.currency
             shortened = ''.join([c for c in shortened if c not in vowels])
-        return shortened
+        return shortened.upper()
 
     @property
     def currency_symbol(self):
