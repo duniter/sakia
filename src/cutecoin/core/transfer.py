@@ -40,7 +40,6 @@ class Transfer(object):
 
     @classmethod
     def create_validated(cls, txdoc, metadata):
-        logging.debug("VALIDATED : {0}".format(metadata))
         return cls(txdoc, Transfer.VALIDATED, metadata)
 
     @property

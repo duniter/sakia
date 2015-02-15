@@ -93,8 +93,6 @@ class Cache():
                     receivers = [o.pubkey for o in tx.outputs
                                  if o.pubkey != metadata['issuer']]
                     metadata['receiver'] = receivers[0]
-                    logging.debug("RECEIVER = {0}".format(metadata['receiver']))
-
                     in_issuers = len([i for i in tx.issuers
                                  if i == self.wallet.pubkey]) > 0
                     if in_issuers:
