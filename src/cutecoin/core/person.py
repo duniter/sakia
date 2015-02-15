@@ -79,19 +79,23 @@ class Person(object):
         raise PersonNotFoundError(self.pubkey, community.name())
 
     def membership(self, community):
-        search = community.request(bma.blockchain.Membership,
-                                           {'search': self.pubkey})
-        block_number = 0
-        for ms in search['memberships']:
-            if ms['blockNumber'] >= block_number:
-                if 'type' in ms:
-                    if ms['type'] is 'IN':
+        try:
+            search = community.request(bma.blockchain.Membership,
+                                               {'search': self.pubkey})
+            block_number = 0
+            for ms in search['memberships']:
+                if ms['blockNumber'] >= block_number:
+                    if 'type' in ms:
+                        if ms['type'] is 'IN':
+                            membership_data = ms
+                    else:
                         membership_data = ms
-                else:
-                    membership_data = ms
 
-        if membership_data is None:
-            raise MembershipNotFoundError(self.pubkey(), community.name())
+            if membership_data is None:
+                raise MembershipNotFoundError(self.pubkey, community.name())
+        except ValueError as e:
+            if '400' in str(e):
+                raise MembershipNotFoundError(self.pubkey, community.name())
 
         membership = Membership(PROTOCOL_VERSION, community.currency, self.pubkey,
                                 membership_data['blockNumber'],

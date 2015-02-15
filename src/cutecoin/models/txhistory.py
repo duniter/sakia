@@ -79,14 +79,13 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                 if source_data is not "":
                     amount_ref = self.account.units_to_diff_ref(source_data,
                                                                 self.community)
-                    ref_name = self.account.diff_ref_name(self.community.short_currency)
 
                     if type(amount_ref) is int:
-                        formatter = "{0} {1}"
+                        formatter = "{0}"
                     else:
-                        formatter = "{0:.2f} {1}"
+                        formatter = "{0:.2f}"
 
-                    return formatter.format(amount_ref, ref_name)
+                    return formatter.format(amount_ref)
 
         if role == Qt.FontRole:
             font = QFont()

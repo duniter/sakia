@@ -3,7 +3,7 @@ Created on 24 dec. 2014
 
 @author: inso
 '''
-from PyQt5.QtWidgets import QDialog, QMessageBox
+from PyQt5.QtWidgets import QDialog, QMessageBox, QDialogButtonBox
 from ..tools.exceptions import NoPeerAvailable
 from ..gen_resources.certification_uic import Ui_CertificationDialog
 
@@ -20,11 +20,11 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
         '''
         super().__init__()
         self.setupUi(self)
-        self.certifier = certifier
+        self.account = certifier
         self.password_asker = password_asker
-        self.community = self.certifier.communities[0]
+        self.community = self.account.communities[0]
 
-        for community in self.certifier.communities:
+        for community in self.account.communities:
             self.combo_community.addItem(community.currency)
 
         for contact in certifier.contacts:
@@ -33,7 +33,7 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
     def accept(self):
         if self.radio_contact.isChecked():
             index = self.combo_contact.currentIndex()
-            pubkey = self.certifier.contacts[index].pubkey
+            pubkey = self.account.contacts[index].pubkey
         else:
             pubkey = self.edit_pubkey.text()
 
@@ -42,7 +42,7 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
             return
 
         try:
-            self.certifier.certify(password, self.community, pubkey)
+            self.account.certify(password, self.community, pubkey)
             QMessageBox.information(self, "Certification",
                                  "Success certifying {0} from {1}".format(pubkey,
                                                                           self.community.currency))
@@ -65,7 +65,11 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
         super().accept()
 
     def change_current_community(self, index):
-        self.community = self.certifier.communities[index]
+        self.community = self.account.communities[index]
+        if self.account.pubkey in self.community.members_pubkeys():
+            self.button_box.button(QDialogButtonBox.Ok).setEnabled(True)
+        else:
+            self.button_box.button(QDialogButtonBox.Ok).setEnabled(False)
 
     def recipient_mode_changed(self, pubkey_toggled):
         self.edit_pubkey.setEnabled(pubkey_toggled)
