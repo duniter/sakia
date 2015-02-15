@@ -51,7 +51,7 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
             <tr><td align="right"><b>{:2.2%} / {:} days</b></td><td>{:}</td></tr>
             </table>
             """.format(
-                self.get_referential_value(block['dividend']),
+                self.get_referential_diff_value(block['dividend']),
                 'Universal Dividend UD(t) in',
                 self.get_referential_name(),
                 self.get_referential_value(block['monetaryMass']),
@@ -117,7 +117,7 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 'UD(t+1) = MAX { UD(t) ; c * M(t) / N(t) }',
                 'Universal Dividend (formula)',
                 'UD(t+1) = MAX {{ {:.2f} {:} ; {:2.0%} * {:.2f} {:} / {:} }}'.format(
-                    self.get_referential_value(block['dividend']),
+                    self.get_referential_diff_value(block['dividend']),
                     self.get_referential_name(),
                     params['c'],
                     self.get_referential_value(block['monetaryMass']),
@@ -157,6 +157,9 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
 
     def get_referential_value(self, value):
         return self.account.units_to_ref(value, self.community)
+
+    def get_referential_diff_value(self, value):
+        return self.account.units_to_diff_ref(value, self.community)
 
     def get_referential_name(self):
         return self.account.ref_name(self.community.short_currency)
