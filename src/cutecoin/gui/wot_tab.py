@@ -3,7 +3,7 @@
 import time
 import datetime
 import logging
-from PyQt5.QtWidgets import QWidget, QComboBox
+from PyQt5.QtWidgets import QWidget, QComboBox, QDialog
 
 from ..gen_resources.wot_tab_uic import Ui_WotTabWidget
 from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_SELECTED, NODE_STATUS_OUT, ARC_STATUS_STRONG, ARC_STATUS_WEAK
@@ -356,7 +356,10 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         dialog.edit_pubkey.setText(metadata['id'])
         dialog.combo_community.setCurrentText(self.community.name())
         dialog.radio_pubkey.setChecked(True)
-        dialog.exec_()
+
+        if dialog.exec_() == QDialog.Accepted:
+            currency_tab = self.window().currencies_tabwidget.currentWidget()
+            currency_tab.table_history.model().invalidate()
 
     def add_node_as_contact(self, metadata):
         # check if contact already exists...

@@ -101,7 +101,9 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         dialog.edit_pubkey.setText(person.pubkey)
         dialog.combo_community.setCurrentText(self.community.name())
         dialog.radio_pubkey.setChecked(True)
-        dialog.exec_()
+        if dialog.exec_() == QDialog.Accepted:
+            currency_tab = self.window().currencies_tabwidget.currentWidget()
+            currency_tab.table_history.model().invalidate()
 
     def certify_member(self):
         dialog = CertificationDialog(self.account, self.password_asker)
