@@ -117,7 +117,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
                 'status': arc_status,
                 'tooltip': datetime.datetime.fromtimestamp(
                     certifier['cert_time']['medianTime'] + self.signature_validity
-                ).strftime("%Y/%m/%d"),
+                ).strftime("%d/%m/%Y"),
                 'cert_time': certifier['cert_time']['medianTime']
             }
             graph[certifier['pubkey']]['arcs'] = [arc]
@@ -151,7 +151,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
                 'status': arc_status,
                 'tooltip': datetime.datetime.fromtimestamp(
                     certified['cert_time']['medianTime'] + self.signature_validity
-                ).strftime("%Y/%m/%d"),
+                ).strftime("%d/%m/%Y"),
                 'cert_time': certified['cert_time']['medianTime']
             }
 
