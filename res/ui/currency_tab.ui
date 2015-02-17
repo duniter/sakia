@@ -33,29 +33,8 @@
          <bool>false</bool>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
-        <widget class="QWidget" name="tab_wallets">
-         <attribute name="icon">
-          <iconset resource="../icons/icons.qrc">
-           <normaloff>:/icons/wallet_icon</normaloff>:/icons/wallet_icon</iconset>
-         </attribute>
-         <attribute name="title">
-          <string>Wallets</string>
-         </attribute>
-         <layout class="QHBoxLayout" name="horizontalLayout">
-          <item>
-           <widget class="QListView" name="list_wallets">
-            <property name="contextMenuPolicy">
-             <enum>Qt::CustomContextMenu</enum>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QListView" name="list_wallet_content"/>
-          </item>
-         </layout>
-        </widget>
         <widget class="QWidget" name="tab_transactions">
          <attribute name="icon">
           <iconset resource="../icons/icons.qrc">
@@ -125,38 +104,6 @@
   <include location="../icons/icons.qrc"/>
  </resources>
  <connections>
-  <connection>
-   <sender>list_wallets</sender>
-   <signal>clicked(QModelIndex)</signal>
-   <receiver>CurrencyTabWidget</receiver>
-   <slot>refresh_wallet_content(QModelIndex)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>113</x>
-     <y>162</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>149</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>list_wallets</sender>
-   <signal>customContextMenuRequested(QPoint)</signal>
-   <receiver>CurrencyTabWidget</receiver>
-   <slot>wallet_context_menu(QPoint)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>113</x>
-     <y>162</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>149</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>date_from</sender>
    <signal>dateTimeChanged(QDateTime)</signal>

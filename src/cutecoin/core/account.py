@@ -200,6 +200,12 @@ class Account(object):
                 sent.append(transfer)
         return sent
 
+    def amount(self, community):
+        value = 0
+        for w in self.wallets:
+            value += w.value(community)
+        return value
+
     def member_of(self, community):
         pubkeys = community.members_pubkeys()
         if self.pubkey not in pubkeys:

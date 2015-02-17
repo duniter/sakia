@@ -17,6 +17,7 @@ from PyQt5.QtGui import QIcon
 from ..gen_resources.currency_tab_uic import Ui_CurrencyTabWidget
 from .community_tab import CommunityTabWidget
 from .transfer import TransferMoneyDialog
+from .wallets_tab import WalletsTabWidget
 from ..models.txhistory import HistoryTableModel, TxFilterProxyModel
 from .informations_tab import InformationsTabWidget
 from ..models.wallets import WalletsListModel
@@ -81,6 +82,9 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         self.tab_community = CommunityTabWidget(self.app.current_account,
                                                     self.community,
                                                     self.password_asker)
+        self.tab_wallets = WalletsTabWidget(self.app.current_account,
+                                            self.community)
+
         self.bc_watcher = BlockchainWatcher(self.app.current_account,
                                                 community)
         self.bc_watcher.new_block_mined.connect(self.refresh_block)
@@ -148,6 +152,12 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             self.tab_community = CommunityTabWidget(self.app.current_account,
                                                     self.community,
                                                     self.password_asker)
+
+            self.tab_wallets = WalletsTabWidget(self.app.current_account,
+                                                self.community)
+            self.tabs_account.addTab(self.tab_wallets,
+                                    "Wallets")
+
             self.tabs_account.addTab(self.tab_community,
                                      QIcon(':/icons/community_icon'),
                                     "Community")
@@ -170,11 +180,8 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
 
     @pyqtSlot(int)
     def refresh_block(self, block_number):
-        if self.list_wallets.model():
-            self.list_wallets.model().dataChanged.emit(
-                                                 QModelIndex(),
-                                                 QModelIndex(),
-                                                 [])
+        if self.tab_wallets:
+            self.tab_wallets.refresh()
 
         if self.list_wallet_content.model():
             self.list_wallet_content.model().dataChanged.emit(
@@ -197,12 +204,15 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         self.status_label.setText(text)
 
     def refresh_wallets(self):
+        self.tab_wallets.refresh()
+    '''
         if self.app.current_account:
             wallets_list_model = WalletsListModel(self.app.current_account,
                                                   self.community)
             wallets_list_model.dataChanged.connect(self.wallet_changed)
             self.list_wallets.setModel(wallets_list_model)
             self.refresh_wallet_content(QModelIndex())
+            '''
 
     def refresh_wallet_content(self, index):
         if self.app.current_account:
@@ -333,10 +343,8 @@ QMessageBox.Ok | QMessageBox.Cancel)
                                                      QModelIndex(),
                                                      [])
 
-        if self.list_wallets.model():
-            self.list_wallets.model().dataChanged.emit(
-                                                 QModelIndex(),
-                                                 QModelIndex(),
-                                                 [])
+        if self.tab_wallets:
+            self.tab_wallets.refresh()
+
         if self.tab_informations:
             self.tab_informations.refresh()
