@@ -32,18 +32,20 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
         parameters = self.community.get_parameters()
         last_renewal = ""
         expiration = ""
+        certifiers = 0
+        certified = 0
+
         try:
             person = Person.lookup(self.account.pubkey, self.community)
             membership = person.membership(self.community)
+            certified = person.certified_by(self.community)
+            certifiers = person.certifiers_of(self.community)
 
             renew_block = membership.block_number
             last_renewal = self.community.get_block(renew_block).mediantime
             expiration = last_renewal + parameters['sigValidity']
         except MembershipNotFoundError:
             pass
-
-        certifiers = 0
-        certified = 0
         date_renewal = QDateTime.fromTime_t(last_renewal).date().toString()
         date_expiration = QDateTime.fromTime_t(expiration).date().toString()
 
@@ -60,7 +62,8 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
                     "Membership",
                     "Last renewal on {:}, expiration on {:}".format(date_renewal, date_expiration),
                     "Your web of trust :",
-                    "Certified by : {0} ; Certifier of : {0}".format(certifiers, certified)
+                    "Certified by : {0} ; Certifier of : {0}".format(len(certified),
+                                                                     len(certifiers))
             )
         )
 
