@@ -103,6 +103,68 @@ class Person(object):
                                 search['sigDate'], None)
         return membership
 
+    def is_member(self, community):
+        try:
+            certifiers = community.request(bma.wot.CertifiersOf, {'search': self.pubkey})
+            return certifiers['isMember']
+        except ValueError:
+            return False
+
+    def certifiers_of(self, community):
+        try:
+            certifiers = community.request(bma.wot.CertifiersOf, {'search': self.pubkey})
+        except ValueError as e:
+            logging.debug('bma.wot.CertifiersOf request ValueError : ' + str(e))
+            try:
+                data = community.request(bma.wot.Lookup, {'search': self.pubkey})
+            except ValueError as e:
+                logging.debug('bma.wot.Lookup request ValueError : ' + str(e))
+                return list()
+
+            # convert api data to certifiers list
+            certifiers = list()
+            # add certifiers of uid
+            for certifier in data['results'][0]['uids'][0]['others']:
+                # for each uid found for this pubkey...
+                for uid in certifier['uids']:
+                    # add a certifier
+                    certifier['uid'] = uid
+                    certifier['cert_time'] = dict()
+                    certifier['cert_time']['medianTime'] = community.get_block(certifier['meta']['block_number']).mediantime
+                    certifiers.append(certifier)
+
+            return certifiers
+
+        except Exception as e:
+            logging.debug('bma.wot.CertifiersOf request error : ' + str(e))
+            return list()
+
+        return certifiers['certifications']
+
+    def certified_by(self, community):
+        try:
+            certified_list = community.request(bma.wot.CertifiedBy, {'search': self.pubkey})
+        except ValueError as e:
+            logging.debug('bma.wot.CertifiersOf request ValueError : ' + str(e))
+            try:
+                data = community.request(bma.wot.Lookup, {'search': self.pubkey})
+            except ValueError as e:
+                logging.debug('bma.wot.Lookup request ValueError : ' + str(e))
+                return list()
+            certified_list = list()
+            for certified in data['results'][0]['signed']:
+                certified['cert_time'] = dict()
+                certified['cert_time']['medianTime'] = certified['meta']['timestamp']
+                certified_list.append(certified)
+
+            return certified_list
+
+        except Exception as e:
+            logging.debug('bma.wot.CertifiersOf request error : ' + str(e))
+            return list()
+
+        return certified_list['certifications']
+
     def jsonify(self):
         data = {'name': self.name,
                 'pubkey': self.pubkey}

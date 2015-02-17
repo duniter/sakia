@@ -57,7 +57,7 @@ class WotView(QGraphicsView):
 class Scene(QGraphicsScene):
 
     # This defines signals taking string arguments
-    node_clicked = pyqtSignal(str, name='nodeClicked')
+    node_clicked = pyqtSignal(dict, name='nodeClicked')
     node_signed = pyqtSignal(dict, name='nodeSigned')
     node_transaction = pyqtSignal(dict, name='nodeTransaction')
     node_contact = pyqtSignal(dict, name='nodeContact')
@@ -228,7 +228,7 @@ class Node(QGraphicsEllipseItem):
         """
         if event.button() == Qt.LeftButton:
             # trigger scene signal
-            self.scene().node_clicked.emit(self.metadata['id'])
+            self.scene().node_clicked.emit(self.metadata)
 
     def hoverEnterEvent(self, event: QGraphicsSceneHoverEvent):
         """
