@@ -8,6 +8,7 @@ import logging
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import QDateTime
 from ..core.person import Person
+from ..models.wallets import WalletsTableModel
 from ..tools.exceptions import MembershipNotFoundError
 from ..gen_resources.wallets_tab_uic import Ui_WalletsTab
 
@@ -83,6 +84,9 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
                                                                    self.get_referential_value(maximum))
             )
         )
+
+        wallets_model = WalletsTableModel(self.account, self.community)
+        self.table_wallets.setModel(wallets_model)
 
     def get_referential_value(self, value):
         return self.account.units_to_ref(value, self.community)

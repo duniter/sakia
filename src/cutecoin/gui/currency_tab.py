@@ -20,8 +20,6 @@ from .transfer import TransferMoneyDialog
 from .wallets_tab import WalletsTabWidget
 from ..models.txhistory import HistoryTableModel, TxFilterProxyModel
 from .informations_tab import InformationsTabWidget
-from ..models.wallets import WalletsListModel
-from ..models.wallet import WalletListModel
 from ..tools.exceptions import NoPeerAvailable, MembershipNotFoundError
 from ..core.wallet import Wallet
 from ..core.person import Person
