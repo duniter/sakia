@@ -5,6 +5,7 @@ Created on 31 janv. 2015
 """
 
 import logging
+import datetime
 from PyQt5.QtWidgets import QWidget
 from ..gen_resources.informations_tab_uic import Ui_InformationsTabWidget
 
@@ -49,6 +50,7 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:.2f}</b></td><td>{:} {:}</td></tr>
             <tr><td align="right"><b>{:2.2%} / {:} days</b></td><td>{:}</td></tr>
+            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             </table>
             """.format(
                 self.get_referential_diff_value(block['dividend']),
@@ -64,7 +66,9 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 self.get_referential_name(),
                 block['dividend'] / (block['monetaryMass'] / block['membersCount']),
                 params['dt'] / 86400,
-                'Actual growth c = UD(t)/[M(t-1)/N(t)]'
+                'Actual growth c = UD(t)/[M(t-1)/N(t)]',
+                datetime.datetime.fromtimestamp(block['medianTime'] + params['dt']).strftime("%d/%m/%Y %I:%M"),
+                'Next UD date and time (t+1)'
             )
         )
 
