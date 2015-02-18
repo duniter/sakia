@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import QWidget, QMenu, QAction, QApplication, \
                             QMessageBox, QDialog, QAbstractItemView, QHeaderView
 from PyQt5.QtCore import QModelIndex, Qt, pyqtSlot, QObject, \
                         QThread, pyqtSignal, QDateTime
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QCursor
 from ..gen_resources.currency_tab_uic import Ui_CurrencyTabWidget
 from .community_tab import CommunityTabWidget
 from .transfer import TransferMoneyDialog
@@ -80,9 +80,9 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         self.tab_community = CommunityTabWidget(self.app.current_account,
                                                     self.community,
                                                     self.password_asker)
-        self.tab_wallets = WalletsTabWidget(self.app.current_account,
+        self.tab_wallets = WalletsTabWidget(self.app,
+                                            self.app.current_account,
                                             self.community)
-
         self.bc_watcher = BlockchainWatcher(self.app.current_account,
                                                 community)
         self.bc_watcher.new_block_mined.connect(self.refresh_block)
@@ -150,16 +150,17 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             self.tab_community = CommunityTabWidget(self.app.current_account,
                                                     self.community,
                                                     self.password_asker)
+            self.tabs_account.addTab(self.tab_community,
+                                     QIcon(':/icons/community_icon'),
+                                    "Community")
 
-            self.tab_wallets = WalletsTabWidget(self.app.current_account,
+            self.tab_wallets = WalletsTabWidget(self.app,
+                                                self.app.current_account,
                                                 self.community)
             self.tabs_account.addTab(self.tab_wallets,
                                      QIcon(':/icons/wallet_icon'),
                                     "Wallets")
 
-            self.tabs_account.addTab(self.tab_community,
-                                     QIcon(':/icons/community_icon'),
-                                    "Community")
             self.tab_informations = InformationsTabWidget(self.app.current_account,
                                                     self.community)
             self.tabs_account.addTab(self.tab_informations,
@@ -182,11 +183,6 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         if self.tab_wallets:
             self.tab_wallets.refresh()
 
-        if self.list_wallet_content.model():
-            self.list_wallet_content.model().dataChanged.emit(
-                                                 QModelIndex(),
-                                                 QModelIndex(),
-                                                 [])
         if self.table_history.model():
             self.table_history.model().dataChanged.emit(
                                                      QModelIndex(),
@@ -203,35 +199,8 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         self.status_label.setText(text)
 
     def refresh_wallets(self):
-        self.tab_wallets.refresh()
-    '''
         if self.app.current_account:
-            wallets_list_model = WalletsListModel(self.app.current_account,
-                                                  self.community)
-            wallets_list_model.dataChanged.connect(self.wallet_changed)
-            self.list_wallets.setModel(wallets_list_model)
-            self.refresh_wallet_content(QModelIndex())
-            '''
-
-    def wallet_context_menu(self, point):
-        index = self.list_wallets.indexAt(point)
-        model = self.list_wallets.model()
-        if index.row() < model.rowCount(QModelIndex()):
-            wallet = model.wallets[index.row()]
-            menu = QMenu(model.data(index, Qt.DisplayRole), self)
-
-            rename = QAction("Rename", self)
-            rename.triggered.connect(self.rename_wallet)
-            rename.setData(index)
-
-            copy_pubkey = QAction("Copy pubkey to clipboard", self)
-            copy_pubkey.triggered.connect(self.copy_pubkey_to_clipboard)
-            copy_pubkey.setData(wallet)
-
-            menu.addAction(rename)
-            menu.addAction(copy_pubkey)
-            # Show the context menu.
-            menu.exec_(self.list_wallets.mapToGlobal(point))
+            self.tab_wallets.refresh()
 
     def history_context_menu(self, point):
         index = self.table_history.indexAt(point)
@@ -265,11 +234,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             copy_pubkey.setData(person)
             menu.addAction(copy_pubkey)
             # Show the context menu.
-            menu.exec_(self.table_history.mapToGlobal(point))
-
-    def rename_wallet(self):
-        index = self.sender().data()
-        self.list_wallets.edit(index)
+            menu.exec_(QCursor.pos())
 
     def copy_pubkey_to_clipboard(self):
         data = self.sender().data()
@@ -308,9 +273,6 @@ QMessageBox.Ok | QMessageBox.Cancel)
             transfer = self.sender().data()
             transfer.drop()
             self.table_history.model().invalidate()
-
-    def wallet_changed(self):
-        self.app.save(self.app.current_account)
 
     def showEvent(self, event):
         blockid = self.community.current_blockid()

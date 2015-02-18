@@ -89,6 +89,15 @@ QGroupBox::title {
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="contextMenuPolicy">
+      <enum>Qt::CustomContextMenu</enum>
+     </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::SingleSelection</enum>
+     </property>
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectRows</enum>
+     </property>
      <property name="sortingEnabled">
       <bool>true</bool>
      </property>
@@ -105,5 +114,26 @@ QGroupBox::title {
  <resources>
   <include location="../icons/icons.qrc"/>
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>table_wallets</sender>
+   <signal>customContextMenuRequested(QPoint)</signal>
+   <receiver>WalletsTab</receiver>
+   <slot>wallet_context_menu(QPoint)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>346</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>225</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>wallet_context_menu(QPoint)</slot>
+  <slot>wallet_changed()</slot>
+ </slots>
 </ui>

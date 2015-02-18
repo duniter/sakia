@@ -92,13 +92,15 @@ class WalletsTableModel(QAbstractTableModel):
         if role == Qt.DisplayRole:
             return self.wallet_data(row)[col]
 
-#     def setData(self, index, value, role):
-#         if role == Qt.EditRole:
-#             row = index.row()
-#             self.wallets[row].name = value
-#             self.dataChanged.emit(index, index)
-#             return True
-#         return False
+    def setData(self, index, value, role):
+        if role == Qt.EditRole:
+            row = index.row()
+            col = index.column()
+            if col == self.columns_types.index('name'):
+                self.wallets[row].name = value
+                self.dataChanged.emit(index, index)
+                return True
+        return False
 
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsEditable

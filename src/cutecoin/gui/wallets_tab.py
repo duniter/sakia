@@ -5,9 +5,11 @@ Created on 15 févr. 2015
 '''
 
 import logging
-from PyQt5.QtWidgets import QWidget
-from PyQt5.QtCore import QDateTime
+from PyQt5.QtWidgets import QWidget, QMenu, QAction, QApplication
+from PyQt5.QtCore import QDateTime, QModelIndex, Qt
+from PyQt5.QtGui import QCursor
 from ..core.person import Person
+from ..core.wallet import Wallet
 from ..models.wallets import WalletsTableModel, WalletsFilterProxyModel
 from ..tools.exceptions import MembershipNotFoundError
 from ..gen_resources.wallets_tab_uic import Ui_WalletsTab
@@ -18,12 +20,13 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
     classdocs
     '''
 
-    def __init__(self, account, community):
+    def __init__(self, app, account, community):
         '''
         Constructor
         '''
         super().__init__()
         self.setupUi(self)
+        self.app = app
         self.account = account
         self.community = community
 
@@ -88,6 +91,7 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
         wallets_model = WalletsTableModel(self.account, self.community)
         proxy_model = WalletsFilterProxyModel()
         proxy_model.setSourceModel(wallets_model)
+        wallets_model.dataChanged.connect(self.wallet_changed)
         self.table_wallets.setModel(proxy_model)
 
     def get_referential_value(self, value):
@@ -98,3 +102,50 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
 
     def get_referential_name(self):
         return self.account.ref_name(self.community.short_currency)
+
+    def wallet_context_menu(self, point):
+        index = self.table_wallets.indexAt(point)
+        model = self.table_wallets.model()
+        if index.row() < model.rowCount(QModelIndex()):
+            source_index = model.mapToSource(index)
+
+            name_col = model.sourceModel().columns_types.index('name')
+            name_index = model.index(index.row(),
+                                    name_col)
+
+            pubkey_col = model.sourceModel().columns_types.index('pubkey')
+            pubkey_index = model.sourceModel().index(source_index.row(),
+                                                   pubkey_col)
+
+            pubkey = model.sourceModel().data(pubkey_index, Qt.DisplayRole)
+            menu = QMenu(model.data(index, Qt.DisplayRole), self)
+
+            rename = QAction("Rename", self)
+            rename.triggered.connect(self.rename_wallet)
+            rename.setData(name_index)
+
+            copy_pubkey = QAction("Copy pubkey to clipboard", self)
+            copy_pubkey.triggered.connect(self.copy_pubkey_to_clipboard)
+            copy_pubkey.setData(pubkey)
+
+            menu.addAction(rename)
+            menu.addAction(copy_pubkey)
+            # Show the context menu.
+            menu.exec_(QCursor.pos())
+
+    def rename_wallet(self):
+        index = self.sender().data()
+        self.table_wallets.edit(index)
+
+    def wallet_changed(self):
+        self.app.save(self.app.current_account)
+
+    def copy_pubkey_to_clipboard(self):
+        data = self.sender().data()
+        clipboard = QApplication.clipboard()
+        if data.__class__ is Wallet:
+            clipboard.setText(data.pubkey)
+        elif data.__class__ is Person:
+            clipboard.setText(data.pubkey)
+        elif data.__class__ is str:
+            clipboard.setText(data)
