@@ -40,6 +40,11 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
         except Exception as e:
             logging.debug('community get_ud_block error : ' + str(e))
             return False
+        try:
+            block_t_minus_1 = self.community.get_ud_block(1)
+        except Exception as e:
+            logging.debug('community get_ud_block error : ' + str(e))
+            return False
 
         # set infos in label
         self.label_general.setText(
@@ -64,7 +69,7 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 self.get_referential_value(block['monetaryMass'] / block['membersCount']),
                 'Monetary Mass per member M(t)/N(t) in',
                 self.get_referential_name(),
-                block['dividend'] / (block['monetaryMass'] / block['membersCount']),
+                block['dividend'] / (block_t_minus_1['monetaryMass'] / block['membersCount']),
                 params['dt'] / 86400,
                 'Actual growth c = UD(t)/[M(t-1)/N(t)]',
                 datetime.datetime.fromtimestamp(block['medianTime'] + params['dt']).strftime("%d/%m/%Y %I:%M"),
