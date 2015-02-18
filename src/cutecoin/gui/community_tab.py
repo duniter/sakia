@@ -6,7 +6,7 @@ Created on 2 févr. 2014
 
 import logging
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QCursor
 from PyQt5.QtWidgets import QWidget, QMessageBox, QAction, QMenu, QDialog, \
                             QAbstractItemView
 from ..models.members import MembersFilterProxyModel, MembersTableModel
@@ -86,7 +86,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             menu.addAction(view_wot)
 
             # Show the context menu.
-            menu.exec_(self.table_community_members.mapToGlobal(point))
+            menu.exec_(QCursor.pos())
 
     def add_member_as_contact(self):
         person = self.sender().data()

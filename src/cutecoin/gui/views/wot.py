@@ -2,7 +2,7 @@
 
 import math
 from PyQt5.QtGui import QPainter, QBrush, QPen, QPolygonF, QColor, QRadialGradient,\
-    QPainterPath, QMouseEvent, QWheelEvent, QTransform
+    QPainterPath, QMouseEvent, QWheelEvent, QTransform, QCursor
 from PyQt5.QtCore import Qt, QRectF, QLineF, QPoint, QPointF, QSizeF, qFuzzyCompare, pyqtSignal
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsEllipseItem,\
     QGraphicsSimpleTextItem, QGraphicsLineItem, QMenu, QAction, QGraphicsSceneHoverEvent,\

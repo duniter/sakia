@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import QWidget, QMenu, QAction, QApplication, \
                             QMessageBox, QDialog, QAbstractItemView, QHeaderView
 from PyQt5.QtCore import QModelIndex, Qt, pyqtSlot, QObject, \
                         QThread, pyqtSignal, QDateTime
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QCursor
 from ..gen_resources.currency_tab_uic import Ui_CurrencyTabWidget
 from .community_tab import CommunityTabWidget
 from .transfer import TransferMoneyDialog
@@ -228,7 +228,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             menu.addAction(rename)
             menu.addAction(copy_pubkey)
             # Show the context menu.
-            menu.exec_(self.list_wallets.mapToGlobal(point))
+            menu.exec_(QCursor.pos())
 
     def history_context_menu(self, point):
         index = self.table_history.indexAt(point)
@@ -262,7 +262,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             copy_pubkey.setData(person)
             menu.addAction(copy_pubkey)
             # Show the context menu.
-            menu.exec_(self.table_history.mapToGlobal(point))
+            menu.exec_(QCursor.pos())
 
     def rename_wallet(self):
         index = self.sender().data()
