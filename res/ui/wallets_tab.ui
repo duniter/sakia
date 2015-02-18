@@ -102,6 +102,8 @@ QGroupBox::title {
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../icons/icons.qrc"/>
+ </resources>
  <connections/>
 </ui>

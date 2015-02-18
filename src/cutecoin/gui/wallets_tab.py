@@ -8,7 +8,7 @@ import logging
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import QDateTime
 from ..core.person import Person
-from ..models.wallets import WalletsTableModel
+from ..models.wallets import WalletsTableModel, WalletsFilterProxyModel
 from ..tools.exceptions import MembershipNotFoundError
 from ..gen_resources.wallets_tab_uic import Ui_WalletsTab
 
@@ -63,7 +63,7 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
                     "Membership",
                     "Last renewal on {:}, expiration on {:}".format(date_renewal, date_expiration),
                     "Your web of trust :",
-                    "Certified by : {0} ; Certifier of : {0}".format(len(certified),
+                    "Certified by : {0} members; Certifier of : {1} members".format(len(certified),
                                                                      len(certifiers))
             )
         )
@@ -86,7 +86,9 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
         )
 
         wallets_model = WalletsTableModel(self.account, self.community)
-        self.table_wallets.setModel(wallets_model)
+        proxy_model = WalletsFilterProxyModel()
+        proxy_model.setSourceModel(wallets_model)
+        self.table_wallets.setModel(proxy_model)
 
     def get_referential_value(self, value):
         return self.account.units_to_ref(value, self.community)

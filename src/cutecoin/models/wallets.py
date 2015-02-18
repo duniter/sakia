@@ -4,8 +4,50 @@ Created on 8 févr. 2014
 @author: inso
 '''
 
-from PyQt5.QtCore import QAbstractTableModel, Qt
+from PyQt5.QtCore import QAbstractTableModel, QSortFilterProxyModel, Qt
 import logging
+
+
+class WalletsFilterProxyModel(QSortFilterProxyModel):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+    def columnCount(self, parent):
+        return self.sourceModel().columnCount(None)
+
+    def setSourceModel(self, sourceModel):
+        self.community = sourceModel.community
+        self.account = sourceModel.account
+        super().setSourceModel(sourceModel)
+
+    def lessThan(self, left, right):
+        """
+        Sort table by given column number.
+        """
+        left_data = self.sourceModel().data(left, Qt.DisplayRole)
+        right_data = self.sourceModel().data(right, Qt.DisplayRole)
+        return (left_data < right_data)
+
+    def data(self, index, role):
+        source_index = self.mapToSource(index)
+        source_data = self.sourceModel().data(source_index, role)
+        if role == Qt.DisplayRole:
+            if source_index.column() == self.sourceModel().columns_types.index('pubkey'):
+                pubkey = "pub:{0}".format(source_data[:5])
+                source_data = pubkey
+                return source_data
+            if source_index.column() == self.sourceModel().columns_types.index('amount'):
+                amount_ref = self.account.units_to_ref(source_data,
+                                                        self.community)
+                units_ref = self.account.diff_ref_name(self.community.short_currency)
+
+                if type(amount_ref) is int:
+                    formatter = "{0} {1}"
+                else:
+                    formatter = "{0:.2f} {1}"
+
+                return formatter.format(amount_ref, units_ref)
+        return source_data
 
 
 class WalletsTableModel(QAbstractTableModel):

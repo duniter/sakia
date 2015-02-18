@@ -154,6 +154,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             self.tab_wallets = WalletsTabWidget(self.app.current_account,
                                                 self.community)
             self.tabs_account.addTab(self.tab_wallets,
+                                     QIcon(':/icons/wallet_icon'),
                                     "Wallets")
 
             self.tabs_account.addTab(self.tab_community,
@@ -211,12 +212,6 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             self.list_wallets.setModel(wallets_list_model)
             self.refresh_wallet_content(QModelIndex())
             '''
-
-    def refresh_wallet_content(self, index):
-        if self.app.current_account:
-            current_wallet = self.app.current_account.wallets[index.row()]
-            wallet_list_model = WalletListModel(current_wallet, self.community)
-            self.list_wallet_content.setModel(wallet_list_model)
 
     def wallet_context_menu(self, point):
         index = self.list_wallets.indexAt(point)
