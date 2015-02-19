@@ -88,6 +88,18 @@ class Application(object):
             self.accounts[account_name] = account
 
     def load_cache(self, account):
+        for community in account.communities:
+            community_path = os.path.join(config.parameters['home'],
+                                        account.name, '__cache__',
+                                        community.currency)
+            if os.path.exists(community_path):
+                with open(community_path, 'r') as json_data:
+                    data = json.load(json_data)
+                if 'version' in data and data['version'] == __version__:
+                    community.load_cache(data)
+                else:
+                    os.remove(community_path)
+
         for wallet in account.wallets:
             wallet_path = os.path.join(config.parameters['home'],
                                         account.name, '__cache__', wallet.pubkey)
@@ -127,6 +139,15 @@ class Application(object):
                                         account.name, '__cache__', wallet.pubkey)
             with open(wallet_path, 'w') as outfile:
                 data = wallet.jsonify_caches()
+                data['version'] = __version__
+                json.dump(data, outfile, indent=4, sort_keys=True)
+
+        for community in account.communities:
+            community_path = os.path.join(config.parameters['home'],
+                                        account.name, '__cache__',
+                                        community.currency)
+            with open(community_path, 'w') as outfile:
+                data = community.jsonify_cache()
                 data['version'] = __version__
                 json.dump(data, outfile, indent=4, sort_keys=True)
 

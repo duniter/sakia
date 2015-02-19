@@ -22,9 +22,31 @@ class Cache():
         self.community = community
         self.data = {}
 
+    def load_from_json(self, data):
+        self.data = {}
+        for entry in data['cache']:
+            key = entry['key']
+            cache_key = (key[0], key[1], key[2], key[3], key[4])
+            self.data[cache_key] = entry['value']
+
+        self.latest_block = data['latest_block']
+
+    def jsonify(self):
+        saved_requests = [hash(bma.blockchain.Block)]
+        data = {k: self.data[k] for k in self.data.keys()
+                   if k[0] in saved_requests}
+        entries = []
+        for d in data:
+            entries.append({'key': d,
+                            'value': data[d]})
+        return {'latest_block': self.latest_block,
+                'cache': entries}
+
     def refresh(self):
         self.latest_block = self.community.current_blockid()['number']
-        self.data = {}
+        saved_requests = [hash(bma.blockchain.Block)]
+        self.data = {k: self.data[k] for k in self.data.keys()
+                   if k[0] in saved_requests}
 
     def request(self, request, req_args={}, get_args={}):
         cache_key = (hash(request),
@@ -115,6 +137,12 @@ class Community(object):
 
         community = cls(currency, peers)
         return community
+
+    def load_cache(self, json_data):
+        self._cache.load_from_json(json_data)
+
+    def jsonify_cache(self):
+        return self._cache.jsonify()
 
     def name(self):
         return self.currency
