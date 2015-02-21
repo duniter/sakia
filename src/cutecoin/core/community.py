@@ -176,10 +176,10 @@ class Community(object):
         else:
             return 1
 
-    def get_ud_block(self):
-        ud = self.request(bma.blockchain.UD)
-        if len(ud['result']['blocks']) > 0:
-            block_number = ud['result']['blocks'][-1]
+    def get_ud_block(self, x=0):
+        blocks = self.request(bma.blockchain.UD)['result']['blocks']
+        if len(blocks) > 0:
+            block_number = blocks[len(blocks)-(1+x)]
             block = self.request(bma.blockchain.Block,
                                  req_args={'number': block_number})
             return block

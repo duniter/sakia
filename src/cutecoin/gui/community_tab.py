@@ -6,7 +6,7 @@ Created on 2 févr. 2014
 
 import logging
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QCursor
 from PyQt5.QtWidgets import QWidget, QMessageBox, QAction, QMenu, QDialog, \
                             QAbstractItemView
 from ..models.members import MembersFilterProxyModel, MembersTableModel
@@ -49,8 +49,8 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             self.button_membership.setText("Send membership demand")
             self.button_leaving.hide()
 
-        self.wot_tab = WotTabWidget(account, community, password_asker)
-        self.tabs_information.addTab(self.wot_tab, QIcon(':/icons/wot_icon'), "Wot")
+        self.wot_tab = WotTabWidget(account, community, password_asker, self)
+        self.tabs_information.addTab(self.wot_tab, QIcon(':/icons/wot_icon'), "WoT")
 
     def member_context_menu(self, point):
         index = self.table_community_members.indexAt(point)
@@ -65,15 +65,15 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             menu = QMenu(self)
 
             add_contact = QAction("Add as contact", self)
-            add_contact.triggered.connect(self.add_member_as_contact)
+            add_contact.triggered.connect(self.menu_add_as_contact)
             add_contact.setData(member)
 
             send_money = QAction("Send money", self)
-            send_money.triggered.connect(self.send_money_to_member)
+            send_money.triggered.connect(self.menu_send_money)
             send_money.setData(member)
 
             certify = QAction("Certify identity", self)
-            certify.triggered.connect(self.certify_member)
+            certify.triggered.connect(self.menu_certify_member)
             certify.setData(member)
 
             view_wot = QAction("View in WoT", self)
@@ -86,18 +86,28 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             menu.addAction(view_wot)
 
             # Show the context menu.
-            menu.exec_(self.table_community_members.mapToGlobal(point))
+            menu.exec_(QCursor.pos())
 
-    def add_member_as_contact(self):
+    def menu_add_as_contact(self):
         person = self.sender().data()
+        self.add_member_as_contact(person)
+
+    def menu_send_money(self):
+        person = self.sender().data()
+        self.send_money_to_member(person)
+
+    def menu_certify_member(self):
+        person = self.sender().data()
+        self.certify_member(person)
+
+    def add_member_as_contact(self, person):
         dialog = ConfigureContactDialog(self.account, self.window(), person)
         result = dialog.exec_()
         if result == QDialog.Accepted:
             self.window().refresh_contacts()
 
-    def send_money_to_member(self):
+    def send_money_to_member(self, person):
         dialog = TransferMoneyDialog(self.account, self.password_asker)
-        person = self.sender().data()
         dialog.edit_pubkey.setText(person.pubkey)
         dialog.combo_community.setCurrentText(self.community.name())
         dialog.radio_pubkey.setChecked(True)
@@ -105,9 +115,8 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             currency_tab = self.window().currencies_tabwidget.currentWidget()
             currency_tab.table_history.model().invalidate()
 
-    def certify_member(self):
+    def certify_member(self, person):
         dialog = CertificationDialog(self.account, self.password_asker)
-        person = self.sender().data()
         dialog.combo_community.setCurrentText(self.community.name())
         dialog.edit_pubkey.setText(person.pubkey)
         dialog.radio_pubkey.setChecked(True)

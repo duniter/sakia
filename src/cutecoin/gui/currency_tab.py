@@ -209,6 +209,26 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         if self.app.current_account:
             self.tab_wallets.refresh()
 
+    def wallet_context_menu(self, point):
+        index = self.list_wallets.indexAt(point)
+        model = self.list_wallets.model()
+        if index.row() < model.rowCount(QModelIndex()):
+            wallet = model.wallets[index.row()]
+            menu = QMenu(model.data(index, Qt.DisplayRole), self)
+
+            rename = QAction("Rename", self)
+            rename.triggered.connect(self.rename_wallet)
+            rename.setData(index)
+
+            copy_pubkey = QAction("Copy pubkey to clipboard", self)
+            copy_pubkey.triggered.connect(self.copy_pubkey_to_clipboard)
+            copy_pubkey.setData(wallet)
+
+            menu.addAction(rename)
+            menu.addAction(copy_pubkey)
+            # Show the context menu.
+            menu.exec_(QCursor.pos())
+
     def history_context_menu(self, point):
         index = self.table_history.indexAt(point)
         model = self.table_history.model()

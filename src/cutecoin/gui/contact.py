@@ -16,7 +16,7 @@ class ConfigureContactDialog(QDialog, Ui_ConfigureContactDialog):
     classdocs
     '''
 
-    def __init__(self, account, parent=None, contact=None):
+    def __init__(self, account, parent=None, contact=None, edit=False):
         '''
         Constructor
         '''
@@ -28,8 +28,8 @@ class ConfigureContactDialog(QDialog, Ui_ConfigureContactDialog):
         if contact:
             self.edit_name.setText(contact.name)
             self.edit_pubkey.setText(contact.pubkey)
-
-        self.button_box.button(QDialogButtonBox.Ok).setEnabled(False)
+        if edit:
+            self.button_box.button(QDialogButtonBox.Ok).setEnabled(False)
 
     def accept(self):
         name = self.edit_name.text()

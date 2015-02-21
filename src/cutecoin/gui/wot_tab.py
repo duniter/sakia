@@ -4,7 +4,6 @@ import time
 import datetime
 import logging
 from PyQt5.QtWidgets import QWidget, QComboBox, QDialog
-
 from ..gen_resources.wot_tab_uic import Ui_WotTabWidget
 from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_SELECTED, NODE_STATUS_OUT, ARC_STATUS_STRONG, ARC_STATUS_WEAK
 from ucoinpy.api import bma
@@ -24,6 +23,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         :return:
         """
         super().__init__(parent)
+        self.parent = parent
 
         # construct from qtDesigner
         self.setupUi(self)
@@ -61,7 +61,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         :param dict metadata: Graph node metadata of the identity
         """
         # create Person from node metadata
-        person = Person(metadata['text'], metadata['id'])
+        person = self.get_person_from_metadata(metadata)
         certifiers = person.certifiers_of(self.community)
 
         # reset graph
@@ -231,32 +231,19 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         )
 
     def sign_node(self, metadata):
-        # open certify dialog
-        dialog = CertificationDialog(self.account, self.password_asker)
-        dialog.combo_community.setCurrentText(self.community.name())
-        dialog.edit_pubkey.setText(metadata['id'])
-        dialog.radio_pubkey.setChecked(True)
-        dialog.combo_community.setCurrentText(self.community.name())
-        dialog.exec_()
+        person = self.get_person_from_metadata(metadata)
+        self.parent.certify_member(person)
 
     def send_money_to_node(self, metadata):
-        dialog = TransferMoneyDialog(self.account, self.password_asker)
-        dialog.edit_pubkey.setText(metadata['id'])
-        dialog.combo_community.setCurrentText(self.community.name())
-        dialog.radio_pubkey.setChecked(True)
-
-        if dialog.exec_() == QDialog.Accepted:
-            currency_tab = self.window().currencies_tabwidget.currentWidget()
-            currency_tab.table_history.model().invalidate()
+        person = self.get_person_from_metadata(metadata)
+        self.parent.send_money_to_member(person)
 
     def add_node_as_contact(self, metadata):
         # check if contact already exists...
         if metadata['id'] == self.account.pubkey or metadata['id'] in [contact.pubkey for contact in self.account.contacts]:
             return False
-        dialog = ConfigureContactDialog(self.account, self.window())
-        dialog.edit_name.setText(metadata['text'])
-        dialog.edit_pubkey.setText(metadata['id'])
-        dialog.exec_()
+        person = self.get_person_from_metadata(metadata)
+        self.parent.add_member_as_contact(person)
 
     def get_block_mediantime(self, number):
         try:
@@ -265,3 +252,6 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             logging.debug('community.get_block request error : ' + str(e))
             return False
         return block.mediantime
+
+    def get_person_from_metadata(self, metadata):
+        return Person(metadata['text'], metadata['id'])

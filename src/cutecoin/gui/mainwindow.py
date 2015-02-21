@@ -138,7 +138,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     @pyqtSlot()
     def edit_contact(self):
         contact = self.sender().data()
-        dialog = ConfigureContactDialog(self.app.current_account, self, contact)
+        dialog = ConfigureContactDialog(self.app.current_account, self, contact, True)
         result = dialog.exec_()
         if result == QDialog.Accepted:
             self.window().refresh_contacts()

@@ -6,6 +6,7 @@ Created on 31 janv. 2015
 
 import logging
 import datetime
+import math
 from PyQt5.QtWidgets import QWidget
 from ..gen_resources.informations_tab_uic import Ui_InformationsTabWidget
 
@@ -40,31 +41,36 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
         except Exception as e:
             logging.debug('community get_ud_block error : ' + str(e))
             return False
+        try:
+            block_t_minus_1 = self.community.get_ud_block(1)
+        except Exception as e:
+            logging.debug('community get_ud_block error : ' + str(e))
+            return False
 
         # set infos in label
         self.label_general.setText(
             """
             <table cellpadding="5">
-            <tr><td align="right"><b>{:.2f}</b></div></td><td>{:} {:}</td></tr>
-            <tr><td align="right"><b>{:.2f}</b></td><td>{:} {:}</td></tr>
+            <tr><td align="right"><b>{:}</b></div></td><td>{:} {:}</td></tr>
+            <tr><td align="right"><b>{:}</b></td><td>{:} {:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-            <tr><td align="right"><b>{:.2f}</b></td><td>{:} {:}</td></tr>
+            <tr><td align="right"><b>{:}</b></td><td>{:} {:}</td></tr>
             <tr><td align="right"><b>{:2.2%} / {:} days</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             </table>
             """.format(
-                self.get_referential_diff_value(block['dividend']),
+                round(self.get_referential_diff_value(block['dividend'])),
                 'Universal Dividend UD(t) in',
                 self.get_referential_name(),
-                self.get_referential_value(block['monetaryMass']),
+                round(self.get_referential_value(block['monetaryMass'])),
                 'Monetary Mass M(t) in',
                 self.get_referential_name(),
                 block['membersCount'],
                 'Members N(t)',
-                self.get_referential_value(block['monetaryMass'] / block['membersCount']),
+                round(self.get_referential_value(block['monetaryMass'] / block['membersCount'])),
                 'Monetary Mass per member M(t)/N(t) in',
                 self.get_referential_name(),
-                block['dividend'] / (block['monetaryMass'] / block['membersCount']),
+                block['dividend'] / (block_t_minus_1['monetaryMass'] / block['membersCount']),
                 params['dt'] / 86400,
                 'Actual growth c = UD(t)/[M(t-1)/N(t)]',
                 datetime.datetime.fromtimestamp(block['medianTime'] + params['dt']).strftime("%d/%m/%Y %I:%M"),
@@ -120,11 +126,12 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 'Fundamental growth (c) / Delta time (dt)',
                 'UD(t+1) = MAX { UD(t) ; c * M(t) / N(t) }',
                 'Universal Dividend (formula)',
-                'UD(t+1) = MAX {{ {:.2f} {:} ; {:2.0%} * {:.2f} {:} / {:} }}'.format(
-                    self.get_referential_diff_value(block['dividend']),
+                '{:} = MAX {{ {:} {:} ; {:2.0%} * {:} {:} / {:} }}'.format(
+                    math.ceil(max(block['dividend'], params['c'] * block['monetaryMass'] / block['membersCount'])),
+                    round(self.get_referential_diff_value(block['dividend'])),
                     self.get_referential_name(),
                     params['c'],
-                    self.get_referential_value(block['monetaryMass']),
+                    round(self.get_referential_value(block['monetaryMass'])),
                     self.get_referential_name(),
                     block['membersCount']
                 ),
