@@ -50,7 +50,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             self.button_leaving.hide()
 
         self.wot_tab = WotTabWidget(account, community, password_asker, self)
-        self.tabs_information.addTab(self.wot_tab, QIcon(':/icons/wot_icon'), "Wot")
+        self.tabs_information.addTab(self.wot_tab, QIcon(':/icons/wot_icon'), "WoT")
 
     def member_context_menu(self, point):
         index = self.table_community_members.indexAt(point)
