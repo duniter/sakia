@@ -18,6 +18,7 @@ from ..gen_resources.currency_tab_uic import Ui_CurrencyTabWidget
 from .community_tab import CommunityTabWidget
 from .transfer import TransferMoneyDialog
 from .wallets_tab import WalletsTabWidget
+from .network_tab import NetworkTabWidget
 from ..models.txhistory import HistoryTableModel, TxFilterProxyModel
 from .informations_tab import InformationsTabWidget
 from ..tools.exceptions import NoPeerAvailable, MembershipNotFoundError
@@ -83,6 +84,9 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         self.tab_wallets = WalletsTabWidget(self.app,
                                             self.app.current_account,
                                             self.community)
+
+        self.tab_network = NetworkTabWidget(self.community)
+
         self.bc_watcher = BlockchainWatcher(self.app.current_account,
                                                 community)
         self.bc_watcher.new_block_mined.connect(self.refresh_block)
@@ -166,6 +170,9 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             self.tabs_account.addTab(self.tab_informations,
                                      QIcon(':/icons/informations_icon'),
                                     "Informations")
+
+            self.tab_network = NetworkTabWidget(self.community)
+            self.tabs_account.addTab(self.tab_network, "Network")
             self.tab_informations.refresh()
             blockid = self.community.current_blockid()
             block_number = blockid['number']
