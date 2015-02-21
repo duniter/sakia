@@ -9,6 +9,7 @@ from ucoinpy import PROTOCOL_VERSION
 from ucoinpy.documents.peer import Peer, Endpoint, BMAEndpoint
 from ucoinpy.documents.block import Block
 from ..tools.exceptions import NoPeerAvailable
+from .network.node import Node
 import logging
 import inspect
 import hashlib
@@ -80,6 +81,7 @@ class Community(object):
         '''
         self.currency = currency
         self.peers = [p for p in peers if p.currency == currency]
+        self._nodes = [Node.from_peer(p) for p in peers]
         self._cache = Cache(self)
 
         self._cache.refresh()
@@ -242,6 +244,10 @@ class Community(object):
 
         logging.debug("Peers found : {0}".format(peers))
         return peers
+
+    @property
+    def nodes(self):
+        return self._nodes
 
     def get_block(self, number=None):
         if number is None:

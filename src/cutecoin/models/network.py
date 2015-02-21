@@ -5,14 +5,10 @@ Created on 5 févr. 2014
 '''
 
 import logging
-from ..core.transfer import Transfer, Received
 from ..core.person import Person
 from ..tools.exceptions import PersonNotFoundError
-from ucoinpy.documents.peer import BMAEndpoint
 from ucoinpy.api import bma
-from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, \
-                        QDateTime
-from PyQt5.QtGui import QFont, QColor
+from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel
 
 
 class NetworkFilterProxyModel(QSortFilterProxyModel):
@@ -35,6 +31,19 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
         right_data = self.sourceModel().data(right, Qt.DisplayRole)
         return (left_data < right_data)
 
+    def headerData(self, section, orientation, role):
+        if role != Qt.DisplayRole:
+            return QVariant()
+
+        header_names = {'pubkey': 'Pubkey',
+                        'is_member': 'Membre',
+                        'uid': 'UID',
+                        'address': 'Address',
+                        'port': 'Port',
+                        'current_block': 'Block'}
+        type = self.sourceModel().headerData(section, orientation, role)
+        return header_names[type]
+
     def data(self, index, role):
         source_index = self.mapToSource(index)
         source_data = self.sourceModel().data(source_index, role)
@@ -54,30 +63,49 @@ class NetworkTableModel(QAbstractTableModel):
         super().__init__(parent)
         self.community = community
         self.column_types = (
+            'pubkey',
+            'is_member',
+            'uid',
             'address',
-            'port'
+            'port',
+            'current_block'
         )
 
     @property
-    def peers(self):
-        return self.community.peers
+    def nodes(self):
+        return self.community.nodes
 
     def rowCount(self, parent):
-        return len(self.peers)
+        return len(self.nodes)
 
     def columnCount(self, parent):
         return len(self.column_types)
 
     def headerData(self, section, orientation, role):
+        if role != Qt.DisplayRole:
+            return QVariant()
+
         return self.column_types[section]
 
-    def data_peer(self, peer):
-        e = next((e for e in peer.endpoints if type(e) is BMAEndpoint))
-        informations = bma.network.peering.Peers(e.conn_handler()).get()
-        if e.server:
-            address = e.server
-        elif e.ipv4:
-            address = e.port
+    def data_node(self, node):
+        try:
+            person = Person.lookup(node.pubkey, self.community)
+            uid = person.name
+        except PersonNotFoundError:
+            uid = ""
+
+        is_member = node.pubkey in self.community.members_pubkeys()
+
+        address = ""
+        if node.endpoint.server:
+            address = node.endpoint.server
+        elif node.endpoint.ipv4:
+            address = node.endpoint.ipv4
+        elif node.endpoint.ipv6:
+            address = node.endpoint.ipv6
+        port = node.endpoint.port
+
+        return (node.pubkey, is_member, uid, address, port, node.block)
 
     def data(self, index, role):
         row = index.row()
@@ -86,9 +114,9 @@ class NetworkTableModel(QAbstractTableModel):
         if not index.isValid():
             return QVariant()
 
-        peer = self.peers[row]
+        node = self.nodes[row]
         if role == Qt.DisplayRole:
-            return self.data_peer(peer)[col]
+            return self.data_node(node)[col]
 
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled

@@ -21,7 +21,7 @@ class NetworkTabWidget(QWidget, Ui_NetworkTabWidget):
         super().__init__()
         self.setupUi(self)
         model = NetworkTableModel(community)
-        proxy = NetworkFilterProxyModel()
+        proxy = NetworkFilterProxyModel(self)
         proxy.setSourceModel(model)
         self.table_network.setModel(proxy)
 
