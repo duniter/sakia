@@ -68,7 +68,7 @@ class MembersTableModel(QAbstractTableModel):
         '''
         super().__init__(parent)
         self.community = community
-        self.columns = ('UID', 'Pubkey', 'Join date', 'Expiration')
+        self.columns = ('UID', 'Pubkey', 'Last renew date', 'Expiration')
 
     @property
     def pubkeys(self):
