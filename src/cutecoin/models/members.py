@@ -32,7 +32,7 @@ class MembersFilterProxyModel(QSortFilterProxyModel):
     def data(self, index, role):
         source_index = self.mapToSource(index)
         source_data = self.sourceModel().data(source_index, role)
-        expiration_col = self.sourceModel().columns.index('Expiration')
+        expiration_col = self.sourceModel().columns_ids.index('expiration')
         expiration_index = self.sourceModel().index(source_index.row(), expiration_col)
         expiration_data = self.sourceModel().data(expiration_index, Qt.DisplayRole)
         current_time = QDateTime().currentDateTime().toMSecsSinceEpoch()
@@ -41,13 +41,13 @@ class MembersFilterProxyModel(QSortFilterProxyModel):
         #logging.debug("{0} > {1}".format(current_time, expiration_data))
         will_expire_soon = (current_time > expiration_data*1000 - warning_expiration_time*1000)
         if role == Qt.DisplayRole:
-            if source_index.column() == self.sourceModel().columns.index('Join date'):
+            if source_index.column() == self.sourceModel().columns_ids.index('renew'):
                 date = QDateTime.fromTime_t(source_data)
                 return date.date()
-            if source_index.column() == self.sourceModel().columns.index('Expiration'):
+            if source_index.column() == self.sourceModel().columns_ids.index('expiration'):
                 date = QDateTime.fromTime_t(source_data)
                 return date.date()
-            if source_index.column() == self.sourceModel().columns.index('Pubkey'):
+            if source_index.column() == self.sourceModel().columns_ids.index('pubkey'):
                 return "pub:{0}".format(source_data[:5])
 
         if role == Qt.ForegroundRole:
@@ -68,7 +68,12 @@ class MembersTableModel(QAbstractTableModel):
         '''
         super().__init__(parent)
         self.community = community
-        self.columns = ('UID', 'Pubkey', 'Last renew date', 'Expiration')
+        self.columns_titles = {
+                               'uid': 'UID',
+                               'pubkey': 'Pubkey',
+                               'renew': 'Last renew date',
+                               'expiration': 'Expiration'}
+        self.columns_ids = ('uid', 'pubkey', 'renew', 'expiration')
 
     @property
     def pubkeys(self):
@@ -78,11 +83,12 @@ class MembersTableModel(QAbstractTableModel):
         return len(self.pubkeys)
 
     def columnCount(self, parent):
-        return len(self.columns)
+        return len(self.columns_ids)
 
     def headerData(self, section, orientation, role):
         if role == Qt.DisplayRole:
-            return self.columns[section]
+            id = self.columns_ids[section]
+            return self.columns_titles[id]
 
     def member_data(self, pubkey):
         person = Person.lookup(pubkey, self.community)
