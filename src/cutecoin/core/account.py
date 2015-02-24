@@ -15,6 +15,8 @@ from ucoinpy.key import SigningKey
 import logging
 import time
 
+from PyQt5.QtCore import QObject, pyqtSignal, Qt
+
 from .wallet import Wallet
 from .community import Community
 from .person import Person
@@ -44,7 +46,7 @@ def relative_zerosum(units, community):
     return relative_value - relative_median
 
 
-class Account(object):
+class Account(QObject):
 
     '''
     An account is specific to a key.
@@ -59,11 +61,14 @@ class Account(object):
                                     relative, 'ud {0}')
                     }
 
+    loading_progressed = pyqtSignal(int, int)
+
     def __init__(self, salt, pubkey, name, communities, wallets, contacts,
                  dead_communities):
         '''
         Constructor
         '''
+        super().__init__()
         self.salt = salt
         self.pubkey = pubkey
         self.name = name
@@ -134,9 +139,18 @@ class Account(object):
         return community
 
     def refresh_cache(self):
+        loaded_wallets = 0
+
+        def progressing(value, maximum):
+            account_value = maximum * len(self.communities) * loaded_wallets + value
+            account_max = maximum * len(self.communities) * len(self.wallets)
+            self.loading_progressed.emit(account_value, account_max)
+
         for w in self.wallets:
+            w.refresh_progressed.connect(progressing, type=Qt.DirectConnection)
             for c in self.communities:
                 w.refresh_cache(c)
+                loaded_wallets = loaded_wallets + 1
 
     def set_display_referential(self, index):
         self.referential = index

@@ -9,8 +9,12 @@ from ucoinpy.api import bma
 from ucoinpy.documents.block import Block
 from ucoinpy.documents.transaction import InputSource, OutputSource, Transaction
 from ucoinpy.key import SigningKey
+
 from ..tools.exceptions import NotEnoughMoneyError, NoPeerAvailable
-from cutecoin.core.transfer import Transfer, Received
+from .transfer import Transfer, Received
+
+from PyQt5.QtCore import QObject, pyqtSignal
+
 import logging
 
 
@@ -74,6 +78,7 @@ class Cache():
                                                current_block + 1))
             parsed_blocks = [n for n in parsed_blocks
                              if n in with_tx['result']['blocks']]
+            self.wallet.refresh_progressed.emit(self.latest_block, current_block)
 
             for block_number in parsed_blocks:
                 block = community.request(bma.blockchain.Block,
@@ -124,6 +129,9 @@ class Cache():
                             metadata['amount'] = amount
                             self._transfers.append(Received(tx,
                                                             metadata.copy()))
+                logging.debug("Receivers : {0}".format(self.wallet.receivers(self.wallet.refresh_progressed)))
+                self.wallet.refresh_progressed.emit(current_block - block_number,
+                                                     current_block - self.latest_block)
 
             if current_block > self.latest_block:
                     self.available_sources = self.wallet.sources(community)
@@ -136,15 +144,18 @@ class Cache():
         self.latest_block = current_block
 
 
-class Wallet(object):
+class Wallet(QObject):
     '''
     A wallet is used to manage money with a unique key.
     '''
+
+    refresh_progressed = pyqtSignal(int, int)
 
     def __init__(self, walletid, pubkey, name):
         '''
         Constructor
         '''
+        super().__init__()
         self.coins = []
         self.walletid = walletid
         self.pubkey = pubkey

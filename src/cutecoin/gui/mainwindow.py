@@ -41,7 +41,8 @@ class Loader(QObject):
     def load(self):
         if self.account_name != "":
             try:
-                self.app.change_current_account(self.app.get_account(self.account_name))
+                account = self.app.get_account(self.account_name)
+                self.app.change_current_account(account)
             except requests.exceptions.RequestException as e:
                 self.connection_error.emit(str(e))
                 self.loaded.emit()
@@ -65,6 +66,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.app = app
         self.password_asker = None
         self.initialized = False
+
         self.busybar = QProgressBar(self.statusbar)
         self.busybar.setMinimum(0)
         self.busybar.setMaximum(0)
@@ -104,6 +106,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def loader_finished(self):
         self.refresh()
         self.busybar.hide()
+        self.app.disconnect()
 
     @pyqtSlot(str)
     def display_error(self, error):
@@ -144,6 +147,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.window().refresh_contacts()
 
     def action_change_account(self, account_name):
+        def loading_progressed(value, maximum):
+            logging.debug("Busybar : {:} : {:}".format(value, maximum))
+            self.busybar.setValue(value)
+            self.busybar.setMaximum(maximum)
+        self.app.loading_progressed.connect(loading_progressed)
         self.busybar.show()
         self.status_label.setText("Loading account {0}".format(account_name))
         self.loader.set_account_name(account_name)

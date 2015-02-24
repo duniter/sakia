@@ -10,23 +10,28 @@ import json
 import tarfile
 import shutil
 
+from PyQt5.QtCore import QObject, pyqtSignal
+
 from . import config
-from ..tools.exceptions import NameAlreadyExists, BadAccountFile, KeyAlreadyUsed
+from ..tools.exceptions import NameAlreadyExists, BadAccountFile
 from .account import Account
 from .. import __version__
 
 
-class Application(object):
+class Application(QObject):
 
     '''
     Managing core application datas :
     Accounts list and general configuration
     '''
 
+    loading_progressed = pyqtSignal(int, int)
+
     def __init__(self, argv):
         '''
         Constructor
         '''
+        super().__init__()
         self.accounts = {}
         self.default_account = ""
         self.current_account = None
@@ -61,9 +66,12 @@ class Application(object):
             self.current_account = None
 
     def change_current_account(self, account):
+        def progressing(value, maximum):
+            self.loading_progressed.emit(value, maximum)
+
         if self.current_account is not None:
             self.save_cache(self.current_account)
-
+        account.loading_progressed.connect(progressing)
         account.refresh_cache()
         self.current_account = account
 
@@ -110,8 +118,6 @@ class Application(object):
                     wallet.load_caches(data)
                 else:
                     os.remove(wallet_path)
-            for community in account.communities:
-                wallet.refresh_cache(community)
 
     def save(self, account):
         with open(config.parameters['data'], 'w') as outfile:
