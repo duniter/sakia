@@ -117,6 +117,7 @@ class NetworkTableModel(QAbstractTableModel):
         node = self.nodes[row]
         if role == Qt.DisplayRole:
             return self.data_node(node)[col]
+        #TODO: Display colors depending on node state
 
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled
