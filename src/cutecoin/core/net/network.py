@@ -12,7 +12,7 @@ from .node import Node
 import logging
 import time
 
-from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 
 
 class Network(QObject):
@@ -25,8 +25,12 @@ class Network(QObject):
         '''
         Constructor
         '''
+        super().__init__()
         self.currency = currency
         self._nodes = nodes
+        for n in self._nodes:
+            n.changed.connect(self.nodes_changed)
+        self.must_crawl = False
         #TODO: Crawl nodes at startup
 
     @classmethod
@@ -40,11 +44,29 @@ class Network(QObject):
             node.check_sync(currency, block_max)
         return cls(currency, nodes)
 
+    @classmethod
+    def create(cls, currency, node):
+        nodes = [node]
+        network = cls(currency, nodes)
+        nodes = network.crawling
+        block_max = max([n.block for n in nodes])
+        for node in nodes:
+            node.check_sync(currency, block_max)
+        network._nodes = nodes
+        return network
+
     def jsonify(self):
         data = []
         for node in self.nodes:
             data.append(node.jsonify())
         return data
+
+    def __del__(self):
+        self.must_crawl = False
+
+    @pyqtSlot()
+    def stop_crawling(self):
+        self.must_crawl = False
 
     @property
     def online_nodes(self):
@@ -54,9 +76,18 @@ class Network(QObject):
     def all_nodes(self):
         return self._nodes.copy()
 
+    def add_nodes(self, node):
+        self._nodes.append(node)
+        node.changed.connect(self.nodes_changed)
+
+    @pyqtSlot()
     def perpetual_crawling(self):
+        self.must_crawl = True
         while self.must_crawl:
-            self.crawling(interval=10)
+            self.nodes = self.crawling(interval=10)
+            self.nodes_changed.disconnect()
+            for n in self._nodes:
+                n.changed.connect(self.nodes_changed)
 
     def crawling(self, interval=0):
         nodes = []

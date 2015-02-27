@@ -175,7 +175,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
             peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],
                                                       peer_data['signature']))
             if peer.currency == self.community.currency:
-                self.community.peers.append(peer)
+                self.community.add_peer(peer)
             else:
                 QMessageBox.critical(self, "Error",
                                      "This peer doesn't use this community currency.")

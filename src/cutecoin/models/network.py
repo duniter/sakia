@@ -7,8 +7,9 @@ Created on 5 févr. 2014
 import logging
 from ..core.person import Person
 from ..tools.exceptions import PersonNotFoundError
-from ucoinpy.api import bma
+from ..core.net.node import Node
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel
+from PyQt5.QtGui import QColor
 
 
 class NetworkFilterProxyModel(QSortFilterProxyModel):
@@ -47,6 +48,10 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
     def data(self, index, role):
         source_index = self.mapToSource(index)
         source_data = self.sourceModel().data(source_index, role)
+        if index.column() == self.sourceModel().column_types.index('is_member') \
+         and role == Qt.DisplayRole:
+            value = {True: 'oui', False: 'non'}
+            return value[source_data]
         return source_data
 
 
@@ -117,6 +122,13 @@ class NetworkTableModel(QAbstractTableModel):
         node = self.nodes[row]
         if role == Qt.DisplayRole:
             return self.data_node(node)[col]
+        if role == Qt.BackgroundColorRole:
+            colors = {Node.ONLINE: QVariant(),
+                      Node.OFFLINE: QColor(Qt.darkRed),
+                      Node.DESYNCED: QColor(Qt.gray),
+                      Node.CORRUPTED: QColor(Qt.darkRed)
+                      }
+            return colors[node.state]
         #TODO: Display colors depending on node state
 
     def flags(self, index):

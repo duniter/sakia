@@ -12,8 +12,10 @@ from ...tools.exceptions import PersonNotFoundError
 import logging
 import time
 
+from PyQt5.QtCore import QObject, pyqtSignal
 
-class Node(object):
+
+class Node(QObject):
     '''
     classdocs
     '''
@@ -23,10 +25,13 @@ class Node(object):
     DESYNCED = 3
     CORRUPTED = 4
 
+    changed = pyqtSignal()
+
     def __init__(self, endpoints, pubkey, block, state):
         '''
         Constructor
         '''
+        super().__init__()
         self._endpoints = endpoints
         self._pubkey = pubkey
         self._block = block

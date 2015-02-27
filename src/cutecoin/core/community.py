@@ -5,8 +5,6 @@ Created on 1 févr. 2014
 '''
 
 from ucoinpy.api import bma
-from ucoinpy import PROTOCOL_VERSION
-from ucoinpy.documents.peer import Peer, Endpoint, BMAEndpoint
 from ucoinpy.documents.block import Block
 from ..tools.exceptions import NoPeerAvailable
 from .net.node import Node
@@ -15,7 +13,7 @@ import logging
 import inspect
 import hashlib
 import re
-from requests.exceptions import RequestException, Timeout
+from requests.exceptions import RequestException
 
 
 class Cache():
@@ -90,9 +88,6 @@ class Community(object):
     def create(cls, currency, peer):
         community = cls(currency, [peer])
         logging.debug("Creating community")
-        community.peers = community.peering()
-        logging.debug("{0} peers found".format(len(community.peers)))
-        logging.debug([peer.pubkey for peer in community.peers])
         return community
 
     @classmethod
@@ -173,6 +168,9 @@ class Community(object):
     @property
     def nodes(self):
         return self._network.all_nodes
+
+    def add_peer(self, peer):
+        self._network.add_node(Node.from_peer(peer))
 
     def get_block(self, number=None):
         if number is None:

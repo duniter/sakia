@@ -104,12 +104,8 @@ class Account(QObject):
         communities = []
         dead_communities = []
         for data in json_data['communities']:
-            try:
-                community = Community.load(data)
-                communities.append(community)
-            except NoPeerAvailable:
-                community = Community.without_network(data)
-                dead_communities.append(community)
+            community = Community.load(data)
+            communities.append(community)
 
         account = cls(salt, pubkey, name, communities, wallets,
                       contacts, dead_communities)
