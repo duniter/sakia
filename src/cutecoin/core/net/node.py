@@ -34,6 +34,7 @@ class Node(QObject):
         self._pubkey = pubkey
         self._block = block
         self._state = state
+        self._neighbours = []
 
     @classmethod
     def from_peer(cls, currency, peer):
@@ -67,6 +68,10 @@ class Node(QObject):
     def state(self):
         return self._state
 
+    @property
+    def neighbours(self):
+        return self._neighbours
+
     def check_sync(self, currency, block):
         if self._block < block:
             self._state = Node.DESYNCED
@@ -74,9 +79,17 @@ class Node(QObject):
             self._state = Node.ONLINE
 
     def refresh_state(self, currency):
+        emit_change = False
         try:
             informations = bma.network.Peering(self.endpoint.conn_handler()).get()
             block = bma.blockchain.Current(self.endpoint.conn_handler()).get()
+            peers_data = bma.network.peering.Peers(self.endpoint.conn_handler()).get()
+            neighbours = []
+            for p in peers_data:
+                peer = Peer.from_signed_raw("{0}{1}\n".format(p['value']['raw'],
+                                                            p['value']['signature']))
+                neighbours.append(peer.endpoints)
+
             block_number = block["number"]
             node_pubkey = informations["pubkey"]
             node_currency = informations["currency"]
@@ -85,14 +98,34 @@ class Node(QObject):
                 block_number = 0
         except RequestException:
             self._state = Node.OFFLINE
+            emit_change = True
 
         if node_currency != currency:
             self.state = Node.CORRUPTED
+            emit_change = True
 
-        self._block = block_number
-        self._pubkey = node_pubkey
+        if block_number != self._block:
+            self._block = block_number
+            emit_change = True
 
-    def peering_traversal(self, currency, found_nodes, traversed_pubkeys, interval):
+        if node_pubkey != self._pubkey:
+            self._pubkey = node_pubkey
+            emit_change = True
+
+        new_inlines = [e.inline() for e in [n for n in self._neighbours]]
+        last_inlines = [e.inline() for e in [n for n in self._neighbours]]
+
+        hash_new_neighbours = hash(tuple(frozenset(sorted(new_inlines))))
+        hash_last_neighbours = hash(tuple(frozenset(sorted(last_inlines))))
+        if hash_new_neighbours != hash_last_neighbours:
+            self._neighbours = neighbours
+            emit_change = True
+
+        if emit_change:
+            self.changed.emit()
+
+    def peering_traversal(self, currency, found_nodes,
+                          traversed_pubkeys, interval):
         logging.debug("Read {0} peering".format(self.pubkey))
         traversed_pubkeys.append(self.pubkey)
         self.refresh_state(currency)
@@ -100,16 +133,18 @@ class Node(QObject):
             found_nodes.append(self)
 
         try:
-            next_peers = bma.network.peering.Peers(self.endpoint.conn_handler()).get()
-            for p in next_peers:
-                next_peer = Peer.from_signed_raw("{0}{1}\n".format(p['value']['raw'],
-                                                            p['value']['signature']))
+            for n in self.neighbours:
+                e = next((e for e in self._endpoints if type(e) is BMAEndpoint))
+                peering = bma.network.Peering(self.endpoint.conn_handler()).get()
+                peer = Peer.from_signed_raw("{0}{1}\n".format(peering['raw'],
+                                                            peering['signature']))
+                node = Node.from_peer(peer)
                 logging.debug(traversed_pubkeys)
-                logging.debug("Traversing : next to read : {0} : {1}".format(next_peer.pubkey,
-                              (next_peer.pubkey not in traversed_pubkeys)))
-                next_node = Node.from_peer(next_peer)
-                if next_node.pubkey not in traversed_pubkeys:
-                    next_node.peering_traversal(currency, found_nodes, traversed_pubkeys)
+                logging.debug("Traversing : next to read : {0} : {1}".format(node.pubkey,
+                              (node.pubkey not in traversed_pubkeys)))
+                if node.pubkey not in traversed_pubkeys:
+                    node.peering_traversal(currency, found_nodes,
+                                        traversed_pubkeys, interval)
                     time.sleep(interval)
         except RequestException as e:
             self._state = Node.OFFLINE

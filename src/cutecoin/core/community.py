@@ -169,6 +169,10 @@ class Community(object):
     def nodes(self):
         return self._network.all_nodes
 
+    @property
+    def network(self):
+        return self._network
+
     def add_peer(self, peer):
         self._network.add_node(Node.from_peer(peer))
 

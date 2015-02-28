@@ -64,7 +64,6 @@ class Network(QObject):
     def __del__(self):
         self.must_crawl = False
 
-    @pyqtSlot()
     def stop_crawling(self):
         self.must_crawl = False
 
@@ -80,19 +79,17 @@ class Network(QObject):
         self._nodes.append(node)
         node.changed.connect(self.nodes_changed)
 
-    @pyqtSlot()
-    def perpetual_crawling(self):
+    def start_perpetual_crawling(self):
         self.must_crawl = True
         while self.must_crawl:
             self.nodes = self.crawling(interval=10)
-            self.nodes_changed.disconnect()
             for n in self._nodes:
                 n.changed.connect(self.nodes_changed)
 
     def crawling(self, interval=0):
         nodes = []
         traversed_pubkeys = []
-        for n in self._nodes:
+        for n in self.nodes:
             logging.debug(traversed_pubkeys)
             logging.debug("Peering : next to read : {0} : {1}".format(n.pubkey,
                           (n.pubkey not in traversed_pubkeys)))
@@ -103,7 +100,7 @@ class Network(QObject):
 
         block_max = max([n.block for n in nodes])
         for node in [n for n in nodes if n.state == Node.ONLINE]:
-            node.check_sync(block_max)
+            node.check_sync(self.currency, block_max)
 
         #TODO: Offline nodes for too long have to be removed
         #TODO: Corrupted nodes should maybe be removed faster ?
