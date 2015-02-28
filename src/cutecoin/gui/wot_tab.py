@@ -62,7 +62,8 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
 
         :param dict metadata: Graph node metadata of the identity
         """
-        print("draw graph !!!!!!!!!!!! - " + metadata['text'])
+        logging.debug("draw graph !!!!!!!!!!!! - " + metadata['text'])
+
         # create Person from node metadata
         person = get_person_from_metadata(metadata)
         person_account = Person(self.account.name, self.account.pubkey)
@@ -95,13 +96,15 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         # populate graph with certified-by
         self.add_certified_list_to_graph(graph, certified_list, person, person_account)
 
+        # draw graph in qt scene
+        self.graphicsView.scene().update_wot(graph)
+
         # if selected member is not the account member...
         if person.pubkey != person_account.pubkey:
             # add path from selected member to account member
-            self.get_path_from_member(graph, person, person_account)
-
-        # draw graph in qt scene
-        self.graphicsView.scene().update_wot(graph)
+            path = self.get_path_from_member(graph, person, person_account)
+            if path:
+                self.graphicsView.scene().update_path(path)
 
     def reset(self):
         """
@@ -181,35 +184,29 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         if person_account.pubkey not in graph_tmp.keys():
             # recursively feed graph searching for account node...
             self.feed_graph_to_find_account(graph_tmp, graph_tmp[person_selected.pubkey]['nodes'], person_account, list())
-        print(graph_tmp.keys())
         if len(graph_tmp[person_selected.pubkey]['nodes']) > 0:
             # calculate path of nodes between person and person_account
             path = self.find_shortest_path(graph_tmp, graph_tmp[person_selected.pubkey], graph_tmp[person_account.pubkey])
 
         if path:
-            for node in path:
-                print(node['text'])
+            logging.debug([node['text'] for node in path])
         else:
-            print('no path...')
+            logging.debug('no wot path')
 
         return path
 
     def feed_graph_to_find_account(self, graph, nodes, person_account, done=list()):
-        print('feed graph on %d nodes' % len(nodes))
         for node in tuple(nodes):
-            print("len done = %d " % len(done))
             if node['id'] in tuple(done):
                 continue
             person_selected = Person(node['text'], node['id'])
             certifier_list = person_selected.certifiers_of(self.community)
             self.add_certifier_list_to_graph(graph, certifier_list, person_selected, person_account)
             if person_account.pubkey in tuple(graph.keys()):
-                print("ACCOUNT IN CERTFIERS END!")
                 return False
             certified_list = person_selected.certified_by(self.community)
             self.add_certified_list_to_graph(graph, certified_list, person_selected, person_account)
             if person_account.pubkey in tuple(graph.keys()):
-                print("ACCOUNT IN CERTIFIED END!")
                 return False
             if node['id'] not in tuple(done):
                 done.append(node['id'])
@@ -222,16 +219,13 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         return True
 
     def find_shortest_path(self, graph, start, end, path=list()):
-        #print('start:', start)
         path = path + [start]
         if start['id'] == end['id']:
             return path
         if start['id'] not in graph.keys():
             return None
         shortest = None
-        print('scan nodes of ' + start['text'])
         for node in tuple(graph[start['id']]['nodes']):
-            print("try path from node " + node['text'])
             if node not in path:
                 newpath = self.find_shortest_path(graph, node, end, path)
                 if newpath:
@@ -281,7 +275,6 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             }
             # add arc to certifier
             graph[certifier['pubkey']]['arcs'].append(arc)
-            print("CERTIFIER GRAPH LEN = %d " % len(graph[person.pubkey]['nodes']))
             # if certifier node not in person nodes
             if graph[certifier['pubkey']] not in tuple(graph[person.pubkey]['nodes']):
                 # add certifier node to person node
@@ -337,7 +330,6 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             if new_arc:
                 # add arc in graph
                 graph[person.pubkey]['arcs'].append(arc)
-            print("CERTIFIED GRAPH LEN = %d " % len(graph[person.pubkey]['nodes']))
             # if certified node not in person nodes
             if graph[certified['pubkey']] not in tuple(graph[person.pubkey]['nodes']):
                 # add certified node to person node

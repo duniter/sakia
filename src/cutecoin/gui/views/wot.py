@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import math
-from PyQt5.QtGui import QPainter, QBrush, QPen, QPolygonF, QColor, QRadialGradient,\
+from PyQt5.QtGui import QPainter, QBrush, QPen, QPolygonF, QColor, QRadialGradient, \
     QPainterPath, QMouseEvent, QWheelEvent, QTransform, QCursor
 from PyQt5.QtCore import Qt, QRectF, QLineF, QPoint, QPointF, QSizeF, qFuzzyCompare, pyqtSignal
-from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsEllipseItem,\
-    QGraphicsSimpleTextItem, QGraphicsLineItem, QMenu, QAction, QGraphicsSceneHoverEvent,\
+from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsEllipseItem, \
+    QGraphicsSimpleTextItem, QGraphicsLineItem, QMenu, QAction, QGraphicsSceneHoverEvent, \
     QGraphicsSceneContextMenuEvent
 
 NODE_STATUS_HIGHLIGHTED = 1
@@ -48,14 +48,13 @@ class WotView(QGraphicsView):
             self.scale(sc, sc)
             self.centerOn(self.mapToScene(event.pos()))
             event.accept()
-        # act normally on scrollbar
+        #  act normally on scrollbar
         else:
             # transmit event to parent class wheelevent
             super(QGraphicsView, self).wheelEvent(event)
 
 
 class Scene(QGraphicsScene):
-
     # This defines signals taking string arguments
     node_clicked = pyqtSignal(dict, name='nodeClicked')
     node_signed = pyqtSignal(dict, name='nodeSigned')
@@ -73,7 +72,9 @@ class Scene(QGraphicsScene):
         self.lastDragPos = QPoint()
         self.setItemIndexMethod(QGraphicsScene.NoIndex)
 
-        # axis of the scene for debug purpose
+        # list of nodes in scene
+        self.nodes = dict()
+        #  axis of the scene for debug purpose
         # self.addLine(-100, 0, 100, 0)
         # self.addLine(0, -100, 0, 100)
 
@@ -88,6 +89,7 @@ class Scene(QGraphicsScene):
         """
         node = Node(metadata, pos)
         self.addItem(node)
+        self.nodes[node.id] = node
         return node
 
     def add_arc(self, source_node, destination_node, metadata):
@@ -110,7 +112,7 @@ class Scene(QGraphicsScene):
 
         :param dict graph: graph to draw
         """
-        # clear scene
+        #  clear scene
         self.clear()
 
         # capture selected node (to draw it in the center)
@@ -140,7 +142,8 @@ class Scene(QGraphicsScene):
         y = 0
         x = -200
         # sort by text
-        nodes = ((k, v) for (k, v) in sorted(graph.items(), key=lambda kv: kv[1]['text'].lower()) if selected_id in (arc['id'] for arc in v['arcs']))
+        nodes = ((k, v) for (k, v) in sorted(graph.items(), key=lambda kv: kv[1]['text'].lower()) if
+                 selected_id in (arc['id'] for arc in v['arcs']))
         # add nodes and arcs
         for _id, certifier_node in nodes:
             node = self.add_node(certifier_node, (x, y))
@@ -150,6 +153,31 @@ class Scene(QGraphicsScene):
             y += 50
 
         self.update()
+
+    def update_path(self, path):
+        x = 0
+        y = 0
+        for json_node in path:
+            if json_node['status'] & NODE_STATUS_SELECTED:
+                previous_node = json_node
+                y -= 100
+                continue
+            node = self.add_node(json_node, (x, y))
+            skip_reverse_arc = False
+            for arc in json_node['arcs']:
+                if arc['id'] == previous_node['id']:
+                    #print("arc from %s to %s" % (node.id, previous_node['id']))
+                    self.add_arc(node, self.nodes[previous_node['id']], arc)
+                    skip_reverse_arc = True
+                    break
+            if not skip_reverse_arc:
+                for arc in previous_node['arcs']:
+                    if arc['id'] == json_node['id']:
+                        #print("arc from %s to %s" % (previous_node['id'], node.id))
+                        self.add_arc(self.nodes[previous_node['id']], node, arc)
+
+            previous_node = json_node
+            y -= 100
 
 
 class Node(QGraphicsEllipseItem):
@@ -166,6 +194,7 @@ class Node(QGraphicsEllipseItem):
         super(Node, self).__init__()
 
         self.metadata = metadata
+        self.id = metadata['id']
         self.status_wallet = self.metadata['status'] & NODE_STATUS_HIGHLIGHTED
         self.status_member = not self.metadata['status'] & NODE_STATUS_OUT
         self.text = self.metadata['text']
@@ -203,8 +232,9 @@ class Node(QGraphicsEllipseItem):
             self.text_item.boundingRect().height() * 2
         )
 
-        # set anchor to the center
-        self.setTransform(QTransform().translate(-self.boundingRect().width()/2.0, -self.boundingRect().height()/2.0))
+        #  set anchor to the center
+        self.setTransform(
+            QTransform().translate(-self.boundingRect().width() / 2.0, -self.boundingRect().height() / 2.0))
         self.setPos(x, y)
         #print(x, y)
         # center text in ellipse
@@ -245,7 +275,7 @@ class Node(QGraphicsEllipseItem):
 
         :param event: scene context menu event
         """
-        # no menu on the wallet node
+        #  no menu on the wallet node
         if self.status_wallet:
             return None
         # create node context menus
@@ -294,6 +324,7 @@ class Node(QGraphicsEllipseItem):
         # trigger scene signal
         self.scene().node_contact.emit(self.metadata)
 
+
 class Arc(QGraphicsLineItem):
     def __init__(self, source_node, destination_node, metadata):
         """
@@ -319,7 +350,7 @@ class Arc(QGraphicsLineItem):
 
         self.setAcceptedMouseButtons(Qt.NoButton)
 
-        # cursor change on hover
+        #  cursor change on hover
         self.setAcceptHoverEvents(True)
         self.adjust()
         self.setZValue(0)
@@ -405,11 +436,9 @@ class Arc(QGraphicsLineItem):
         if line.dy() >= 0:
             angle = (2.0 * math.pi) - angle
 
-        # arrow in the middle of the arc
-        hpx = (line.p2().x() + line.p1().x()) / 2.0
-        hpy = (line.p2().y() - line.p1().y()) / 2.0
-        if line.dy() < 0:
-            hpy = -hpy
+        #  arrow in the middle of the arc
+        hpx = line.p1().x() + (line.dx() / 2.0)
+        hpy = line.p1().y() + (line.dy() / 2.0)
         head_point = QPointF(hpx, hpy)
 
         painter.setPen(QPen(color, 1, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
@@ -440,17 +469,17 @@ class Arc(QGraphicsLineItem):
         # detection mouse hover on arc path
         path = QPainterPath()
         path.addPolygon(QPolygonF([self.line().p1(), self.line().p2()]))
-        # add handles at the start and end of arc
+        #  add handles at the start and end of arc
         path.addRect(QRectF(
-            self.line().p1().x()-5,
-            self.line().p1().y()-5,
-            self.line().p1().x()+5,
-            self.line().p1().y()+5
+            self.line().p1().x() - 5,
+            self.line().p1().y() - 5,
+            self.line().p1().x() + 5,
+            self.line().p1().y() + 5
         ))
         path.addRect(QRectF(
-            self.line().p2().x()-5,
-            self.line().p2().y()-5,
-            self.line().p2().x()+5,
-            self.line().p2().y()+5
+            self.line().p2().x() - 5,
+            self.line().p2().y() - 5,
+            self.line().p2().x() + 5,
+            self.line().p2().y() + 5
         ))
         return path
