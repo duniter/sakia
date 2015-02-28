@@ -7,8 +7,6 @@ Created on 21 févr. 2015
 from ucoinpy.documents.peer import Peer, BMAEndpoint, Endpoint
 from ucoinpy.api import bma
 from requests.exceptions import RequestException
-from ...core.person import Person
-from ...tools.exceptions import PersonNotFoundError
 import logging
 import time
 

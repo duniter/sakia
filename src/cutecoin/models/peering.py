@@ -7,9 +7,82 @@ Created on 5 févr. 2014
 from ucoinpy.api import bma
 from ucoinpy.documents.peer import BMAEndpoint, Peer
 from PyQt5.QtCore import QAbstractItemModel, QModelIndex, Qt
-from .peer import PeerItem, RootItem
 from requests.exceptions import Timeout
 import logging
+
+
+class RootItem(object):
+
+    def __init__(self, name):
+        self.name = name
+        self.node_items = []
+
+    def appendChild(self, item):
+        self.node_items.append(item)
+
+    def child(self, row):
+        return self.node_items[row]
+
+    def childCount(self):
+        return len(self.node_items)
+
+    def columnCount(self):
+        return 1
+
+    def data(self, column):
+        try:
+            return self.name
+        except IndexError:
+            return None
+
+    def parent(self):
+        return None
+
+    def row(self):
+        return 0
+
+
+class NodeItem(object):
+
+    def __init__(self, node, root_item):
+        e = node.endpoint
+        if e.server:
+            self.address = "{0}:{1}".format(e.server, e.port)
+        elif e.ipv4:
+            self.address = "{0}:{1}".format(e.ipv4, e.port)
+        elif e.ipv6:
+            self.address = "{0}:{1}".format(e.ipv6, e.port)
+        else:
+            self.address = "{0}".format(node.pubkey)
+
+        self.root_item = root_item
+        self.node_items = []
+
+    def appendChild(self, node_item):
+        self.node_items.append(node_item)
+
+    def child(self, row):
+        return self.node_items[row]
+
+    def childCount(self):
+        return len(self.node_items)
+
+    def columnCount(self):
+        return 1
+
+    def data(self, column):
+        try:
+            return self.address
+        except IndexError:
+            return None
+
+    def parent(self):
+        return self.root_item
+
+    def row(self):
+        if self.root_item:
+            return self.root_item.node_items.index(self)
+        return 0
 
 
 class PeeringTreeModel(QAbstractItemModel):
@@ -23,7 +96,7 @@ class PeeringTreeModel(QAbstractItemModel):
         Constructor
         '''
         super().__init__(None)
-        self.peers = community.peering()
+        self.nodes = community.nodes
         self.root_item = RootItem(community.currency)
         self.refresh_tree()
 
@@ -98,21 +171,6 @@ class PeeringTreeModel(QAbstractItemModel):
 
     def refresh_tree(self):
         logging.debug("root : " + self.root_item.data(0))
-        for peer in self.peers:
-            logging.debug("Browser peers")
-            peer_item = PeerItem(peer, self.root_item)
-            self.root_item.appendChild(peer_item)
-            try:
-                e = next((e for e in peer.endpoints if type(e) is BMAEndpoint))
-                peers = bma.network.peering.Peers(e.conn_handler()).get()
-                try:
-                    for peer_data in peers:
-                        peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['value']['raw'],
-                                                                    peer_data['value']['signature']))
-                        child_node_item = PeerItem(peer, peer_item)
-                        peer_item.appendChild(child_node_item)
-                except Timeout:
-                    continue
-
-            except StopIteration as e:
-                continue
+        for node in self.nodes:
+            node_item = NodeItem(node, self.root_item)
+            self.root_item.appendChild(node_item)

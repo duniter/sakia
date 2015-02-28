@@ -92,8 +92,7 @@ class StepPageAddpeers(Step):
 
     def display_page(self):
         # We add already known peers to the displayed list
-        for peer in self.config_dialog.community.peers:
-            self.config_dialog.peers.append(peer)
+        self.config_dialog.nodes = self.config_dialog.community.nodes
         try:
             tree_model = PeeringTreeModel(self.config_dialog.community)
         except requests.exceptions.RequestException:
@@ -119,7 +118,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         self.account = account
         self.password_asker = password_asker
         self.step = None
-        self.peers = []
+        self.nodes = []
 
         step_init = StepPageInit(self)
         step_add_peers = StepPageAddpeers(self)
@@ -189,7 +188,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
             menu = QMenu()
             action = menu.addAction("Delete", self.removeNode)
             if self.community is not None:
-                if len(self.peers) == 1:
+                if len(self.nodes) == 1:
                     action.setEnabled(False)
             menu.exec_(self.mapToGlobal(point))
 
