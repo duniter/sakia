@@ -1,0 +1,654 @@
+['/home/inso/code/ucoin/cutecoin', '/usr/lib/python34.zip', '/usr/lib/python3.4', '/usr/lib/python3.4/plat-linux', '/usr/lib/python3.4/lib-dynload', '/usr/lib/python3.4/site-packages', '/home/inso/code/ucoin/cutecoin/lib', '/home/inso/code/ucoin/cutecoin/src']
+running build
+running build_exe
+copying /usr/lib/python3.4/site-packages/cx_Freeze/bases/Console -> build/exe.linux-x86_64-3.4/cutecoin
+copying /usr/lib/libpython3.4m.so.1.0 -> build/exe.linux-x86_64-3.4/libpython3.4m.so.1.0
+writing zip file build/exe.linux-x86_64-3.4/library.zip
+
+  Name                      File
+  ----                      ----
+m BUILD_CONSTANTS           
+P PyQt5                     /usr/lib/python3.4/site-packages/PyQt5/__init__.py
+m PyQt5.QtCore              /usr/lib/python3.4/site-packages/PyQt5/QtCore.so
+m PyQt5.QtGui               /usr/lib/python3.4/site-packages/PyQt5/QtGui.so
+m PyQt5.QtWidgets           /usr/lib/python3.4/site-packages/PyQt5/QtWidgets.so
+m __future__                /usr/lib/python3.4/__future__.py
+m _ast                      
+m _bisect                   /usr/lib/python3.4/lib-dynload/_bisect.cpython-34m.so
+m _bootlocale               
+m _bz2                      /usr/lib/python3.4/lib-dynload/_bz2.cpython-34m.so
+m _codecs                   
+m _codecs_cn                /usr/lib/python3.4/lib-dynload/_codecs_cn.cpython-34m.so
+m _codecs_hk                /usr/lib/python3.4/lib-dynload/_codecs_hk.cpython-34m.so
+m _codecs_iso2022           /usr/lib/python3.4/lib-dynload/_codecs_iso2022.cpython-34m.so
+m _codecs_jp                /usr/lib/python3.4/lib-dynload/_codecs_jp.cpython-34m.so
+m _codecs_kr                /usr/lib/python3.4/lib-dynload/_codecs_kr.cpython-34m.so
+m _codecs_tw                /usr/lib/python3.4/lib-dynload/_codecs_tw.cpython-34m.so
+m _collections              
+m _collections_abc          
+m _ctypes                   /usr/lib/python3.4/lib-dynload/_ctypes.cpython-34m.so
+m _datetime                 /usr/lib/python3.4/lib-dynload/_datetime.cpython-34m.so
+m _dummy_thread             
+m _functools                
+m _hashlib                  /usr/lib/python3.4/lib-dynload/_hashlib.cpython-34m.so
+m _heapq                    /usr/lib/python3.4/lib-dynload/_heapq.cpython-34m.so
+m _imp                      
+m _io                       
+m _json                     /usr/lib/python3.4/lib-dynload/_json.cpython-34m.so
+m _locale                   
+m _lzma                     /usr/lib/python3.4/lib-dynload/_lzma.cpython-34m.so
+m _md5                      /usr/lib/python3.4/lib-dynload/_md5.cpython-34m.so
+m _multibytecodec           /usr/lib/python3.4/lib-dynload/_multibytecodec.cpython-34m.so
+m _opcode                   /usr/lib/python3.4/lib-dynload/_opcode.cpython-34m.so
+m _operator                 
+m _osx_support              /usr/lib/python3.4/_osx_support.py
+m _posixsubprocess          /usr/lib/python3.4/lib-dynload/_posixsubprocess.cpython-34m.so
+m _random                   /usr/lib/python3.4/lib-dynload/_random.cpython-34m.so
+m _sha1                     /usr/lib/python3.4/lib-dynload/_sha1.cpython-34m.so
+m _sha256                   /usr/lib/python3.4/lib-dynload/_sha256.cpython-34m.so
+m _sha512                   /usr/lib/python3.4/lib-dynload/_sha512.cpython-34m.so
+m _socket                   /usr/lib/python3.4/lib-dynload/_socket.cpython-34m.so
+m _sre                      
+m _ssl                      /usr/lib/python3.4/lib-dynload/_ssl.cpython-34m.so
+m _stat                     
+m _string                   
+m _strptime                 
+m _struct                   /usr/lib/python3.4/lib-dynload/_struct.cpython-34m.so
+m _thread                   
+m _threading_local          
+m _warnings                 
+m _weakref                  
+m _weakrefset               
+m abc                       
+m argparse                  
+m array                     /usr/lib/python3.4/lib-dynload/array.cpython-34m.so
+m ast                       /usr/lib/python3.4/ast.py
+m atexit                    
+m base58                    /usr/lib/python3.4/site-packages/base58.py
+m base64                    
+m bdb                       /usr/lib/python3.4/bdb.py
+m binascii                  /usr/lib/python3.4/lib-dynload/binascii.cpython-34m.so
+m bisect                    /usr/lib/python3.4/bisect.py
+m builtins                  
+m bz2                       
+m calendar                  
+m cgi                       /usr/lib/python3.4/cgi.py
+m cmd                       /usr/lib/python3.4/cmd.py
+m code                      /usr/lib/python3.4/code.py
+m codecs                    
+m codeop                    /usr/lib/python3.4/codeop.py
+P collections               
+m collections.abc           
+m contextlib                
+m copy                      
+m copyreg                   
+P ctypes                    /usr/lib/python3.4/ctypes/__init__.py
+m ctypes._endian            /usr/lib/python3.4/ctypes/_endian.py
+P ctypes.macholib           /usr/lib/python3.4/ctypes/macholib/__init__.py
+m ctypes.macholib.dyld      /usr/lib/python3.4/ctypes/macholib/dyld.py
+m ctypes.macholib.dylib     /usr/lib/python3.4/ctypes/macholib/dylib.py
+m ctypes.macholib.framework /usr/lib/python3.4/ctypes/macholib/framework.py
+m ctypes.util               /usr/lib/python3.4/ctypes/util.py
+P cutecoin                  /home/inso/code/ucoin/cutecoin/src/cutecoin/__init__.py
+m cutecoin.__init__         /home/inso/code/ucoin/cutecoin/src/cutecoin/__init__.py
+P cutecoin.core             /home/inso/code/ucoin/cutecoin/src/cutecoin/core/__init__.py
+m cutecoin.core.account     /home/inso/code/ucoin/cutecoin/src/cutecoin/core/account.py
+m cutecoin.core.app         /home/inso/code/ucoin/cutecoin/src/cutecoin/core/app.py
+m cutecoin.core.community   /home/inso/code/ucoin/cutecoin/src/cutecoin/core/community.py
+m cutecoin.core.config      /home/inso/code/ucoin/cutecoin/src/cutecoin/core/config.py
+m cutecoin.core.person      /home/inso/code/ucoin/cutecoin/src/cutecoin/core/person.py
+m cutecoin.core.wallet      /home/inso/code/ucoin/cutecoin/src/cutecoin/core/wallet.py
+P cutecoin.gen_resources    /home/inso/code/ucoin/cutecoin/src/cutecoin/gen_resources/__init__.py
+m cutecoin.gen_resources.account_cfg_uic /home/inso/code/ucoin/cutecoin/src/cutecoin/gen_resources/account_cfg_uic.py
+m cutecoin.gen_resources.add_contact_uic /home/inso/code/ucoin/cutecoin/src/cutecoin/gen_resources/add_contact_uic.py
+m cutecoin.gen_resources.certification_uic /home/inso/code/ucoin/cutecoin/src/cutecoin/gen_resources/certification_uic.py
+m cutecoin.gen_resources.community_cfg_uic /home/inso/code/ucoin/cutecoin/src/cutecoin/gen_resources/community_cfg_uic.py
+m cutecoin.gen_resources.community_tab_uic /home/inso/code/ucoin/cutecoin/src/cutecoin/gen_resources/community_tab_uic.py
+m cutecoin.gen_resources.currency_tab_uic /home/inso/code/ucoin/cutecoin/src/cutecoin/gen_resources/currency_tab_uic.py
+m cutecoin.gen_resources.import_account_uic /home/inso/code/ucoin/cutecoin/src/cutecoin/gen_resources/import_account_uic.py
+m cutecoin.gen_resources.mainwindow_uic /home/inso/code/ucoin/cutecoin/src/cutecoin/gen_resources/mainwindow_uic.py
+m cutecoin.gen_resources.password_asker_uic /home/inso/code/ucoin/cutecoin/src/cutecoin/gen_resources/password_asker_uic.py
+m cutecoin.gen_resources.transfer_uic /home/inso/code/ucoin/cutecoin/src/cutecoin/gen_resources/transfer_uic.py
+m cutecoin.gen_resources.wot_tab_uic /home/inso/code/ucoin/cutecoin/src/cutecoin/gen_resources/wot_tab_uic.py
+P cutecoin.gui              /home/inso/code/ucoin/cutecoin/src/cutecoin/gui/__init__.py
+m cutecoin.gui.add_contact  /home/inso/code/ucoin/cutecoin/src/cutecoin/gui/add_contact.py
+m cutecoin.gui.certification /home/inso/code/ucoin/cutecoin/src/cutecoin/gui/certification.py
+m cutecoin.gui.community_tab /home/inso/code/ucoin/cutecoin/src/cutecoin/gui/community_tab.py
+m cutecoin.gui.currency_tab /home/inso/code/ucoin/cutecoin/src/cutecoin/gui/currency_tab.py
+m cutecoin.gui.import_account /home/inso/code/ucoin/cutecoin/src/cutecoin/gui/import_account.py
+m cutecoin.gui.mainwindow   /home/inso/code/ucoin/cutecoin/src/cutecoin/gui/mainwindow.py
+m cutecoin.gui.password_asker /home/inso/code/ucoin/cutecoin/src/cutecoin/gui/password_asker.py
+m cutecoin.gui.process_cfg_account /home/inso/code/ucoin/cutecoin/src/cutecoin/gui/process_cfg_account.py
+m cutecoin.gui.process_cfg_community /home/inso/code/ucoin/cutecoin/src/cutecoin/gui/process_cfg_community.py
+m cutecoin.gui.transfer     /home/inso/code/ucoin/cutecoin/src/cutecoin/gui/transfer.py
+P cutecoin.gui.views        /home/inso/code/ucoin/cutecoin/src/cutecoin/gui/views/__init__.py
+m cutecoin.gui.views.wot    /home/inso/code/ucoin/cutecoin/src/cutecoin/gui/views/wot.py
+m cutecoin.gui.wot_tab      /home/inso/code/ucoin/cutecoin/src/cutecoin/gui/wot_tab.py
+P cutecoin.models           /home/inso/code/ucoin/cutecoin/src/cutecoin/models/__init__.py
+m cutecoin.models.communities /home/inso/code/ucoin/cutecoin/src/cutecoin/models/communities.py
+m cutecoin.models.members   /home/inso/code/ucoin/cutecoin/src/cutecoin/models/members.py
+m cutecoin.models.peer      /home/inso/code/ucoin/cutecoin/src/cutecoin/models/peer.py
+m cutecoin.models.peering   /home/inso/code/ucoin/cutecoin/src/cutecoin/models/peering.py
+m cutecoin.models.received  /home/inso/code/ucoin/cutecoin/src/cutecoin/models/received.py
+m cutecoin.models.sent      /home/inso/code/ucoin/cutecoin/src/cutecoin/models/sent.py
+m cutecoin.models.wallet    /home/inso/code/ucoin/cutecoin/src/cutecoin/models/wallet.py
+m cutecoin.models.wallets   /home/inso/code/ucoin/cutecoin/src/cutecoin/models/wallets.py
+P cutecoin.tools            /home/inso/code/ucoin/cutecoin/src/cutecoin/tools/__init__.py
+m cutecoin.tools.exceptions /home/inso/code/ucoin/cutecoin/src/cutecoin/tools/exceptions.py
+m cutecoin__main__          src/cutecoin/main.py
+m cx_Freeze__init__         /usr/lib/python3.4/site-packages/cx_Freeze/initscripts/Console.py
+m datetime                  
+m difflib                   /usr/lib/python3.4/difflib.py
+m dis                       /usr/lib/python3.4/dis.py
+P distutils                 /usr/lib/python3.4/distutils/__init__.py
+m distutils.debug           /usr/lib/python3.4/distutils/debug.py
+m distutils.errors          /usr/lib/python3.4/distutils/errors.py
+m distutils.log             /usr/lib/python3.4/distutils/log.py
+m distutils.spawn           /usr/lib/python3.4/distutils/spawn.py
+m distutils.sysconfig       /usr/lib/python3.4/distutils/sysconfig.py
+m distutils.text_file       /usr/lib/python3.4/distutils/text_file.py
+m doctest                   /usr/lib/python3.4/doctest.py
+m dummy_threading           
+P email                     /usr/lib/python3.4/email/__init__.py
+m email._encoded_words      /usr/lib/python3.4/email/_encoded_words.py
+m email._header_value_parser /usr/lib/python3.4/email/_header_value_parser.py
+m email._parseaddr          /usr/lib/python3.4/email/_parseaddr.py
+m email._policybase         /usr/lib/python3.4/email/_policybase.py
+m email.base64mime          /usr/lib/python3.4/email/base64mime.py
+m email.charset             /usr/lib/python3.4/email/charset.py
+m email.contentmanager      /usr/lib/python3.4/email/contentmanager.py
+m email.encoders            /usr/lib/python3.4/email/encoders.py
+m email.errors              /usr/lib/python3.4/email/errors.py
+m email.feedparser          /usr/lib/python3.4/email/feedparser.py
+m email.generator           /usr/lib/python3.4/email/generator.py
+m email.header              /usr/lib/python3.4/email/header.py
+m email.headerregistry      /usr/lib/python3.4/email/headerregistry.py
+m email.iterators           /usr/lib/python3.4/email/iterators.py
+m email.message             /usr/lib/python3.4/email/message.py
+m email.parser              /usr/lib/python3.4/email/parser.py
+m email.policy              /usr/lib/python3.4/email/policy.py
+m email.quoprimime          /usr/lib/python3.4/email/quoprimime.py
+m email.utils               /usr/lib/python3.4/email/utils.py
+P encodings                 
+m encodings.aliases         
+m encodings.ascii           
+m encodings.base64_codec    
+m encodings.big5            
+m encodings.big5hkscs       
+m encodings.bz2_codec       
+m encodings.charmap         
+m encodings.cp037           
+m encodings.cp1006          
+m encodings.cp1026          
+m encodings.cp1125          
+m encodings.cp1140          
+m encodings.cp1250          
+m encodings.cp1251          
+m encodings.cp1252          
+m encodings.cp1253          
+m encodings.cp1254          
+m encodings.cp1255          
+m encodings.cp1256          
+m encodings.cp1257          
+m encodings.cp1258          
+m encodings.cp273           
+m encodings.cp424           
+m encodings.cp437           
+m encodings.cp500           
+m encodings.cp65001         
+m encodings.cp720           
+m encodings.cp737           
+m encodings.cp775           
+m encodings.cp850           
+m encodings.cp852           
+m encodings.cp855           
+m encodings.cp856           
+m encodings.cp857           
+m encodings.cp858           
+m encodings.cp860           
+m encodings.cp861           
+m encodings.cp862           
+m encodings.cp863           
+m encodings.cp864           
+m encodings.cp865           
+m encodings.cp866           
+m encodings.cp869           
+m encodings.cp874           
+m encodings.cp875           
+m encodings.cp932           
+m encodings.cp949           
+m encodings.cp950           
+m encodings.euc_jis_2004    
+m encodings.euc_jisx0213    
+m encodings.euc_jp          
+m encodings.euc_kr          
+m encodings.gb18030         
+m encodings.gb2312          
+m encodings.gbk             
+m encodings.hex_codec       
+m encodings.hp_roman8       
+m encodings.hz              
+m encodings.idna            
+m encodings.iso2022_jp      
+m encodings.iso2022_jp_1    
+m encodings.iso2022_jp_2    
+m encodings.iso2022_jp_2004 
+m encodings.iso2022_jp_3    
+m encodings.iso2022_jp_ext  
+m encodings.iso2022_kr      
+m encodings.iso8859_1       
+m encodings.iso8859_10      
+m encodings.iso8859_11      
+m encodings.iso8859_13      
+m encodings.iso8859_14      
+m encodings.iso8859_15      
+m encodings.iso8859_16      
+m encodings.iso8859_2       
+m encodings.iso8859_3       
+m encodings.iso8859_4       
+m encodings.iso8859_5       
+m encodings.iso8859_6       
+m encodings.iso8859_7       
+m encodings.iso8859_8       
+m encodings.iso8859_9       
+m encodings.johab           
+m encodings.koi8_r          
+m encodings.koi8_u          
+m encodings.latin_1         
+m encodings.mac_arabic      
+m encodings.mac_centeuro    
+m encodings.mac_croatian    
+m encodings.mac_cyrillic    
+m encodings.mac_farsi       
+m encodings.mac_greek       
+m encodings.mac_iceland     
+m encodings.mac_latin2      
+m encodings.mac_roman       
+m encodings.mac_romanian    
+m encodings.mac_turkish     
+m encodings.mbcs            
+m encodings.palmos          
+m encodings.ptcp154         
+m encodings.punycode        
+m encodings.quopri_codec    
+m encodings.raw_unicode_escape 
+m encodings.rot_13          
+m encodings.shift_jis       
+m encodings.shift_jis_2004  
+m encodings.shift_jisx0213  
+m encodings.tis_620         
+m encodings.undefined       
+m encodings.unicode_escape  
+m encodings.unicode_internal 
+m encodings.utf_16          
+m encodings.utf_16_be       
+m encodings.utf_16_le       
+m encodings.utf_32          
+m encodings.utf_32_be       
+m encodings.utf_32_le       
+m encodings.utf_7           
+m encodings.utf_8           
+m encodings.utf_8_sig       
+m encodings.uu_codec        
+m encodings.zlib_codec      
+m enum                      /usr/lib/python3.4/enum.py
+m errno                     
+m fnmatch                   /usr/lib/python3.4/fnmatch.py
+m ftplib                    /usr/lib/python3.4/ftplib.py
+m functools                 
+m gc                        
+m genericpath               
+m getopt                    /usr/lib/python3.4/getopt.py
+m getpass                   /usr/lib/python3.4/getpass.py
+m gettext                   
+m glob                      /usr/lib/python3.4/glob.py
+m grp                       /usr/lib/python3.4/lib-dynload/grp.cpython-34m.so
+m gzip                      /usr/lib/python3.4/gzip.py
+m hashlib                   /usr/lib/python3.4/hashlib.py
+m heapq                     
+m hmac                      /usr/lib/python3.4/hmac.py
+P html                      /usr/lib/python3.4/html/__init__.py
+m html.entities             /usr/lib/python3.4/html/entities.py
+P http                      /usr/lib/python3.4/http/__init__.py
+m http.client               /usr/lib/python3.4/http/client.py
+m http.cookiejar            /usr/lib/python3.4/http/cookiejar.py
+m http.cookies              /usr/lib/python3.4/http/cookies.py
+m http.server               /usr/lib/python3.4/http/server.py
+m icons_rc                  /home/inso/code/ucoin/cutecoin/src/icons_rc.py
+m imp                       /usr/lib/python3.4/imp.py
+P importlib                 /usr/lib/python3.4/importlib/__init__.py
+P importlib                 /usr/lib/python3.4/importlib/__init__.py
+m importlib._bootstrap      
+m importlib._bootstrap      /usr/lib/python3.4/importlib/_bootstrap.py
+m importlib.machinery       /usr/lib/python3.4/importlib/machinery.py
+m importlib.util            /usr/lib/python3.4/importlib/util.py
+m inspect                   /usr/lib/python3.4/inspect.py
+m io                        
+m itertools                 
+P json                      /usr/lib/python3.4/json/__init__.py
+m json.decoder              /usr/lib/python3.4/json/decoder.py
+m json.encoder              /usr/lib/python3.4/json/encoder.py
+m json.scanner              /usr/lib/python3.4/json/scanner.py
+m keyword                   
+P libnacl                   /usr/lib/python3.4/site-packages/libnacl/__init__.py
+m libnacl.base              /usr/lib/python3.4/site-packages/libnacl/base.py
+m libnacl.blake             /usr/lib/python3.4/site-packages/libnacl/blake.py
+m libnacl.dual              /usr/lib/python3.4/site-packages/libnacl/dual.py
+m libnacl.encode            /usr/lib/python3.4/site-packages/libnacl/encode.py
+m libnacl.public            /usr/lib/python3.4/site-packages/libnacl/public.py
+m libnacl.secret            /usr/lib/python3.4/site-packages/libnacl/secret.py
+m libnacl.sign              /usr/lib/python3.4/site-packages/libnacl/sign.py
+m libnacl.utils             /usr/lib/python3.4/site-packages/libnacl/utils.py
+m libnacl.version           /usr/lib/python3.4/site-packages/libnacl/version.py
+m linecache                 
+m locale                    
+P logging                   /usr/lib/python3.4/logging/__init__.py
+m lzma                      /usr/lib/python3.4/lzma.py
+m marshal                   
+m math                      /usr/lib/python3.4/lib-dynload/math.cpython-34m.so
+m mimetypes                 /usr/lib/python3.4/mimetypes.py
+m netrc                     /usr/lib/python3.4/netrc.py
+m numbers                   /usr/lib/python3.4/numbers.py
+m opcode                    /usr/lib/python3.4/opcode.py
+m operator                  
+m optparse                  
+m os                        
+m pdb                       /usr/lib/python3.4/pdb.py
+m pkgutil                   /usr/lib/python3.4/pkgutil.py
+m platform                  /usr/lib/python3.4/platform.py
+m plistlib                  /usr/lib/python3.4/plistlib.py
+m posix                     
+m posixpath                 
+m pprint                    /usr/lib/python3.4/pprint.py
+m pwd                       
+m py_compile                /usr/lib/python3.4/py_compile.py
+m pydoc                     /usr/lib/python3.4/pydoc.py
+P pydoc_data                /usr/lib/python3.4/pydoc_data/__init__.py
+m pydoc_data.topics         /usr/lib/python3.4/pydoc_data/topics.py
+m pyexpat                   /usr/lib/python3.4/lib-dynload/pyexpat.cpython-34m.so
+P pylibscrypt               /usr/lib/python3.4/site-packages/pylibscrypt/__init__.py
+m pylibscrypt.common        /usr/lib/python3.4/site-packages/pylibscrypt/common.py
+m pylibscrypt.mcf           /usr/lib/python3.4/site-packages/pylibscrypt/mcf.py
+m pylibscrypt.pbkdf2        /usr/lib/python3.4/site-packages/pylibscrypt/pbkdf2.py
+m pylibscrypt.pylibscrypt   /usr/lib/python3.4/site-packages/pylibscrypt/pylibscrypt.py
+m pylibscrypt.pylibsodium   /usr/lib/python3.4/site-packages/pylibscrypt/pylibsodium.py
+m pylibscrypt.pylibsodium_salsa /usr/lib/python3.4/site-packages/pylibscrypt/pylibsodium_salsa.py
+m pylibscrypt.pypyscrypt_inline /usr/lib/python3.4/site-packages/pylibscrypt/pypyscrypt_inline.py
+m pylibscrypt.pyscrypt      /usr/lib/python3.4/site-packages/pylibscrypt/pyscrypt.py
+m pylibscrypt.tests         /usr/lib/python3.4/site-packages/pylibscrypt/tests.py
+m queue                     /usr/lib/python3.4/queue.py
+m quopri                    
+m random                    /usr/lib/python3.4/random.py
+m re                        
+m readline                  /usr/lib/python3.4/lib-dynload/readline.cpython-34m.so
+m reprlib                   
+P requests                  /usr/lib/python3.4/site-packages/requests/__init__.py
+m requests.adapters         /usr/lib/python3.4/site-packages/requests/adapters.py
+m requests.api              /usr/lib/python3.4/site-packages/requests/api.py
+m requests.auth             /usr/lib/python3.4/site-packages/requests/auth.py
+m requests.certs            /usr/lib/python3.4/site-packages/requests/certs.py
+m requests.compat           /usr/lib/python3.4/site-packages/requests/compat.py
+m requests.cookies          /usr/lib/python3.4/site-packages/requests/cookies.py
+m requests.exceptions       /usr/lib/python3.4/site-packages/requests/exceptions.py
+m requests.hooks            /usr/lib/python3.4/site-packages/requests/hooks.py
+m requests.models           /usr/lib/python3.4/site-packages/requests/models.py
+P requests.packages         /usr/lib/python3.4/site-packages/requests/packages/__init__.py
+P requests.packages.chardet /usr/lib/python3.4/site-packages/requests/packages/chardet/__init__.py
+m requests.packages.chardet.big5freq /usr/lib/python3.4/site-packages/requests/packages/chardet/big5freq.py
+m requests.packages.chardet.big5prober /usr/lib/python3.4/site-packages/requests/packages/chardet/big5prober.py
+m requests.packages.chardet.chardistribution /usr/lib/python3.4/site-packages/requests/packages/chardet/chardistribution.py
+m requests.packages.chardet.charsetgroupprober /usr/lib/python3.4/site-packages/requests/packages/chardet/charsetgroupprober.py
+m requests.packages.chardet.charsetprober /usr/lib/python3.4/site-packages/requests/packages/chardet/charsetprober.py
+m requests.packages.chardet.codingstatemachine /usr/lib/python3.4/site-packages/requests/packages/chardet/codingstatemachine.py
+m requests.packages.chardet.compat /usr/lib/python3.4/site-packages/requests/packages/chardet/compat.py
+m requests.packages.chardet.constants /usr/lib/python3.4/site-packages/requests/packages/chardet/constants.py
+m requests.packages.chardet.cp949prober /usr/lib/python3.4/site-packages/requests/packages/chardet/cp949prober.py
+m requests.packages.chardet.escprober /usr/lib/python3.4/site-packages/requests/packages/chardet/escprober.py
+m requests.packages.chardet.escsm /usr/lib/python3.4/site-packages/requests/packages/chardet/escsm.py
+m requests.packages.chardet.eucjpprober /usr/lib/python3.4/site-packages/requests/packages/chardet/eucjpprober.py
+m requests.packages.chardet.euckrfreq /usr/lib/python3.4/site-packages/requests/packages/chardet/euckrfreq.py
+m requests.packages.chardet.euckrprober /usr/lib/python3.4/site-packages/requests/packages/chardet/euckrprober.py
+m requests.packages.chardet.euctwfreq /usr/lib/python3.4/site-packages/requests/packages/chardet/euctwfreq.py
+m requests.packages.chardet.euctwprober /usr/lib/python3.4/site-packages/requests/packages/chardet/euctwprober.py
+m requests.packages.chardet.gb2312freq /usr/lib/python3.4/site-packages/requests/packages/chardet/gb2312freq.py
+m requests.packages.chardet.gb2312prober /usr/lib/python3.4/site-packages/requests/packages/chardet/gb2312prober.py
+m requests.packages.chardet.hebrewprober /usr/lib/python3.4/site-packages/requests/packages/chardet/hebrewprober.py
+m requests.packages.chardet.jisfreq /usr/lib/python3.4/site-packages/requests/packages/chardet/jisfreq.py
+m requests.packages.chardet.jpcntx /usr/lib/python3.4/site-packages/requests/packages/chardet/jpcntx.py
+m requests.packages.chardet.langbulgarianmodel /usr/lib/python3.4/site-packages/requests/packages/chardet/langbulgarianmodel.py
+m requests.packages.chardet.langcyrillicmodel /usr/lib/python3.4/site-packages/requests/packages/chardet/langcyrillicmodel.py
+m requests.packages.chardet.langgreekmodel /usr/lib/python3.4/site-packages/requests/packages/chardet/langgreekmodel.py
+m requests.packages.chardet.langhebrewmodel /usr/lib/python3.4/site-packages/requests/packages/chardet/langhebrewmodel.py
+m requests.packages.chardet.langhungarianmodel /usr/lib/python3.4/site-packages/requests/packages/chardet/langhungarianmodel.py
+m requests.packages.chardet.langthaimodel /usr/lib/python3.4/site-packages/requests/packages/chardet/langthaimodel.py
+m requests.packages.chardet.latin1prober /usr/lib/python3.4/site-packages/requests/packages/chardet/latin1prober.py
+m requests.packages.chardet.mbcharsetprober /usr/lib/python3.4/site-packages/requests/packages/chardet/mbcharsetprober.py
+m requests.packages.chardet.mbcsgroupprober /usr/lib/python3.4/site-packages/requests/packages/chardet/mbcsgroupprober.py
+m requests.packages.chardet.mbcssm /usr/lib/python3.4/site-packages/requests/packages/chardet/mbcssm.py
+m requests.packages.chardet.sbcharsetprober /usr/lib/python3.4/site-packages/requests/packages/chardet/sbcharsetprober.py
+m requests.packages.chardet.sbcsgroupprober /usr/lib/python3.4/site-packages/requests/packages/chardet/sbcsgroupprober.py
+m requests.packages.chardet.sjisprober /usr/lib/python3.4/site-packages/requests/packages/chardet/sjisprober.py
+m requests.packages.chardet.universaldetector /usr/lib/python3.4/site-packages/requests/packages/chardet/universaldetector.py
+m requests.packages.chardet.utf8prober /usr/lib/python3.4/site-packages/requests/packages/chardet/utf8prober.py
+P requests.packages.urllib3 /usr/lib/python3.4/site-packages/requests/packages/urllib3/__init__.py
+m requests.packages.urllib3._collections /usr/lib/python3.4/site-packages/requests/packages/urllib3/_collections.py
+m requests.packages.urllib3.connection /usr/lib/python3.4/site-packages/requests/packages/urllib3/connection.py
+m requests.packages.urllib3.connectionpool /usr/lib/python3.4/site-packages/requests/packages/urllib3/connectionpool.py
+P requests.packages.urllib3.contrib /usr/lib/python3.4/site-packages/requests/packages/urllib3/contrib/__init__.py
+m requests.packages.urllib3.contrib.pyopenssl /usr/lib/python3.4/site-packages/requests/packages/urllib3/contrib/pyopenssl.py
+m requests.packages.urllib3.exceptions /usr/lib/python3.4/site-packages/requests/packages/urllib3/exceptions.py
+m requests.packages.urllib3.fields /usr/lib/python3.4/site-packages/requests/packages/urllib3/fields.py
+m requests.packages.urllib3.filepost /usr/lib/python3.4/site-packages/requests/packages/urllib3/filepost.py
+P requests.packages.urllib3.packages /usr/lib/python3.4/site-packages/requests/packages/urllib3/packages/__init__.py
+m requests.packages.urllib3.packages.ordered_dict /usr/lib/python3.4/site-packages/requests/packages/urllib3/packages/ordered_dict.py
+m requests.packages.urllib3.packages.six /usr/lib/python3.4/site-packages/requests/packages/urllib3/packages/six.py
+P requests.packages.urllib3.packages.ssl_match_hostname /usr/lib/python3.4/site-packages/requests/packages/urllib3/packages/ssl_match_hostname/__init__.py
+m requests.packages.urllib3.packages.ssl_match_hostname._implementation /usr/lib/python3.4/site-packages/requests/packages/urllib3/packages/ssl_match_hostname/_implementation.py
+m requests.packages.urllib3.poolmanager /usr/lib/python3.4/site-packages/requests/packages/urllib3/poolmanager.py
+m requests.packages.urllib3.request /usr/lib/python3.4/site-packages/requests/packages/urllib3/request.py
+m requests.packages.urllib3.response /usr/lib/python3.4/site-packages/requests/packages/urllib3/response.py
+P requests.packages.urllib3.util /usr/lib/python3.4/site-packages/requests/packages/urllib3/util/__init__.py
+m requests.packages.urllib3.util.connection /usr/lib/python3.4/site-packages/requests/packages/urllib3/util/connection.py
+m requests.packages.urllib3.util.request /usr/lib/python3.4/site-packages/requests/packages/urllib3/util/request.py
+m requests.packages.urllib3.util.response /usr/lib/python3.4/site-packages/requests/packages/urllib3/util/response.py
+m requests.packages.urllib3.util.retry /usr/lib/python3.4/site-packages/requests/packages/urllib3/util/retry.py
+m requests.packages.urllib3.util.ssl_ /usr/lib/python3.4/site-packages/requests/packages/urllib3/util/ssl_.py
+m requests.packages.urllib3.util.timeout /usr/lib/python3.4/site-packages/requests/packages/urllib3/util/timeout.py
+m requests.packages.urllib3.util.url /usr/lib/python3.4/site-packages/requests/packages/urllib3/util/url.py
+m requests.sessions         /usr/lib/python3.4/site-packages/requests/sessions.py
+m requests.status_codes     /usr/lib/python3.4/site-packages/requests/status_codes.py
+m requests.structures       /usr/lib/python3.4/site-packages/requests/structures.py
+m requests.utils            /usr/lib/python3.4/site-packages/requests/utils.py
+m scrypt                    /usr/lib/python3.4/site-packages/scrypt.py
+m select                    /usr/lib/python3.4/lib-dynload/select.cpython-34m.so
+m selectors                 /usr/lib/python3.4/selectors.py
+m shlex                     /usr/lib/python3.4/shlex.py
+m shutil                    /usr/lib/python3.4/shutil.py
+m signal                    
+m sip                       /usr/lib/python3.4/site-packages/sip.so
+m socket                    /usr/lib/python3.4/socket.py
+m socketserver              /usr/lib/python3.4/socketserver.py
+m sre_compile               
+m sre_constants             
+m sre_parse                 
+m ssl                       /usr/lib/python3.4/ssl.py
+m stat                      
+m string                    /usr/lib/python3.4/string.py
+m stringprep                
+m struct                    
+m subprocess                /usr/lib/python3.4/subprocess.py
+m sys                       
+m tarfile                   /usr/lib/python3.4/tarfile.py
+m tempfile                  /usr/lib/python3.4/tempfile.py
+m termios                   /usr/lib/python3.4/lib-dynload/termios.cpython-34m.so
+m textwrap                  
+m threading                 
+m time                      /usr/lib/python3.4/lib-dynload/time.cpython-34m.so
+m token                     
+m tokenize                  
+m traceback                 
+m tty                       /usr/lib/python3.4/tty.py
+m types                     
+P ucoinpy                   /home/inso/code/ucoin/cutecoin/lib/ucoinpy/__init__.py
+P ucoinpy.api               /home/inso/code/ucoin/cutecoin/lib/ucoinpy/api/__init__.py
+P ucoinpy.api.bma           /home/inso/code/ucoin/cutecoin/lib/ucoinpy/api/bma/__init__.py
+P ucoinpy.api.bma.blockchain /home/inso/code/ucoin/cutecoin/lib/ucoinpy/api/bma/blockchain/__init__.py
+P ucoinpy.api.bma.network   /home/inso/code/ucoin/cutecoin/lib/ucoinpy/api/bma/network/__init__.py
+P ucoinpy.api.bma.network.peering /home/inso/code/ucoin/cutecoin/lib/ucoinpy/api/bma/network/peering/__init__.py
+P ucoinpy.api.bma.tx        /home/inso/code/ucoin/cutecoin/lib/ucoinpy/api/bma/tx/__init__.py
+P ucoinpy.api.bma.wot       /home/inso/code/ucoin/cutecoin/lib/ucoinpy/api/bma/wot/__init__.py
+P ucoinpy.documents         /home/inso/code/ucoin/cutecoin/lib/ucoinpy/documents/__init__.py
+m ucoinpy.documents.block   /home/inso/code/ucoin/cutecoin/lib/ucoinpy/documents/block.py
+m ucoinpy.documents.certification /home/inso/code/ucoin/cutecoin/lib/ucoinpy/documents/certification.py
+m ucoinpy.documents.membership /home/inso/code/ucoin/cutecoin/lib/ucoinpy/documents/membership.py
+m ucoinpy.documents.peer    /home/inso/code/ucoin/cutecoin/lib/ucoinpy/documents/peer.py
+m ucoinpy.documents.transaction /home/inso/code/ucoin/cutecoin/lib/ucoinpy/documents/transaction.py
+P ucoinpy.key               /home/inso/code/ucoin/cutecoin/lib/ucoinpy/key/__init__.py
+m unicodedata               /usr/lib/python3.4/lib-dynload/unicodedata.cpython-34m.so
+P unittest                  /usr/lib/python3.4/unittest/__init__.py
+m unittest.case             /usr/lib/python3.4/unittest/case.py
+m unittest.loader           /usr/lib/python3.4/unittest/loader.py
+m unittest.main             /usr/lib/python3.4/unittest/main.py
+m unittest.result           /usr/lib/python3.4/unittest/result.py
+m unittest.runner           /usr/lib/python3.4/unittest/runner.py
+m unittest.signals          /usr/lib/python3.4/unittest/signals.py
+m unittest.suite            /usr/lib/python3.4/unittest/suite.py
+m unittest.util             /usr/lib/python3.4/unittest/util.py
+P urllib                    /usr/lib/python3.4/urllib/__init__.py
+m urllib.error              /usr/lib/python3.4/urllib/error.py
+m urllib.parse              /usr/lib/python3.4/urllib/parse.py
+m urllib.request            /usr/lib/python3.4/urllib/request.py
+m urllib.response           /usr/lib/python3.4/urllib/response.py
+m uu                        /usr/lib/python3.4/uu.py
+m uuid                      /usr/lib/python3.4/uuid.py
+m warnings                  
+m weakref                   
+m webbrowser                /usr/lib/python3.4/webbrowser.py
+P xml                       /usr/lib/python3.4/xml/__init__.py
+P xml.parsers               /usr/lib/python3.4/xml/parsers/__init__.py
+m xml.parsers.expat         /usr/lib/python3.4/xml/parsers/expat.py
+m zipfile                   /usr/lib/python3.4/zipfile.py
+m zipimport                 
+m zlib                      /usr/lib/python3.4/lib-dynload/zlib.cpython-34m.so
+
+Missing modules:
+? Cookie imported from requests.compat
+? OpenSSL.SSL imported from requests.packages.urllib3.contrib.pyopenssl
+? Queue imported from requests.packages.urllib3.connectionpool
+? StringIO imported from requests.compat, requests.packages.urllib3.packages.six
+? __main__ imported from bdb, pdb
+? _abcoll imported from requests.packages.urllib3.packages.ordered_dict
+? _dummy_threading imported from dummy_threading
+? _scproxy imported from urllib.request
+? _winapi imported from subprocess
+? backports.ssl_match_hostname imported from requests.packages.urllib3.packages.ssl_match_hostname
+? ce imported from os
+? certifi imported from requests.certs
+? cookielib imported from requests.compat
+? dummy_thread imported from requests.packages.urllib3.packages.ordered_dict
+? httplib imported from requests.packages.urllib3.connection
+? java.lang imported from platform
+? msgpack imported from libnacl.base, libnacl.utils
+? msvcrt imported from getpass, subprocess
+? ndg.httpsclient.ssl_peer_verification imported from requests.packages.urllib3.contrib.pyopenssl
+? ndg.httpsclient.subj_alt_name imported from requests.packages.urllib3.contrib.pyopenssl
+? netbios imported from uuid
+? nt imported from os, shutil
+? ntpath imported from os
+? nturl2path imported from urllib.request
+? org.python.core imported from copy
+? os.path imported from os, pkgutil, py_compile, requests.certs, shutil, unittest.util
+? pbkdf2 imported from pylibscrypt.pylibsodium_salsa, pylibscrypt.pypyscrypt_inline
+? pyasn1.codec.der imported from requests.packages.urllib3.contrib.pyopenssl
+? pyasn1.type imported from requests.packages.urllib3.contrib.pyopenssl
+? simplejson imported from requests.compat
+? thread imported from requests.packages.urllib3.packages.ordered_dict
+? ucoinpy.api.bma.network.logging imported from ucoinpy.api.bma.network.peering
+? urllib.getproxies imported from requests.compat
+? urllib.proxy_bypass imported from requests.compat
+? urllib.quote imported from requests.compat
+? urllib.quote_plus imported from requests.compat
+? urllib.unquote imported from requests.compat
+? urllib.unquote_plus imported from requests.compat
+? urllib.urlencode imported from requests.compat, requests.packages.urllib3.request
+? urllib2 imported from requests.compat
+? urlparse imported from requests.compat, requests.packages.urllib3.poolmanager
+? vms_lib imported from platform
+? win32api imported from platform
+? win32con imported from platform
+? win32wnet imported from uuid
+? winreg imported from mimetypes, platform, urllib.request
+This is not necessarily a problem - the modules may not be needed on this platform.
+
+copying /usr/lib/python3.4/site-packages/PyQt5/QtCore.so -> build/exe.linux-x86_64-3.4/PyQt5.QtCore.so
+copying /usr/lib/python3.4/site-packages/PyQt5/QtGui.so -> build/exe.linux-x86_64-3.4/PyQt5.QtGui.so
+copying /usr/lib/python3.4/site-packages/PyQt5/QtWidgets.so -> build/exe.linux-x86_64-3.4/PyQt5.QtWidgets.so
+copying /usr/lib/python3.4/lib-dynload/_bisect.cpython-34m.so -> build/exe.linux-x86_64-3.4/_bisect.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/_bz2.cpython-34m.so -> build/exe.linux-x86_64-3.4/_bz2.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/_codecs_cn.cpython-34m.so -> build/exe.linux-x86_64-3.4/_codecs_cn.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/_codecs_hk.cpython-34m.so -> build/exe.linux-x86_64-3.4/_codecs_hk.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/_codecs_iso2022.cpython-34m.so -> build/exe.linux-x86_64-3.4/_codecs_iso2022.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/_codecs_jp.cpython-34m.so -> build/exe.linux-x86_64-3.4/_codecs_jp.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/_codecs_kr.cpython-34m.so -> build/exe.linux-x86_64-3.4/_codecs_kr.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/_codecs_tw.cpython-34m.so -> build/exe.linux-x86_64-3.4/_codecs_tw.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/_ctypes.cpython-34m.so -> build/exe.linux-x86_64-3.4/_ctypes.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/_datetime.cpython-34m.so -> build/exe.linux-x86_64-3.4/_datetime.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/_hashlib.cpython-34m.so -> build/exe.linux-x86_64-3.4/_hashlib.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/_heapq.cpython-34m.so -> build/exe.linux-x86_64-3.4/_heapq.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/_json.cpython-34m.so -> build/exe.linux-x86_64-3.4/_json.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/_lzma.cpython-34m.so -> build/exe.linux-x86_64-3.4/_lzma.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/_md5.cpython-34m.so -> build/exe.linux-x86_64-3.4/_md5.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/_multibytecodec.cpython-34m.so -> build/exe.linux-x86_64-3.4/_multibytecodec.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/_opcode.cpython-34m.so -> build/exe.linux-x86_64-3.4/_opcode.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/_posixsubprocess.cpython-34m.so -> build/exe.linux-x86_64-3.4/_posixsubprocess.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/_random.cpython-34m.so -> build/exe.linux-x86_64-3.4/_random.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/_sha1.cpython-34m.so -> build/exe.linux-x86_64-3.4/_sha1.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/_sha256.cpython-34m.so -> build/exe.linux-x86_64-3.4/_sha256.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/_sha512.cpython-34m.so -> build/exe.linux-x86_64-3.4/_sha512.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/_socket.cpython-34m.so -> build/exe.linux-x86_64-3.4/_socket.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/_ssl.cpython-34m.so -> build/exe.linux-x86_64-3.4/_ssl.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/_struct.cpython-34m.so -> build/exe.linux-x86_64-3.4/_struct.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/array.cpython-34m.so -> build/exe.linux-x86_64-3.4/array.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/binascii.cpython-34m.so -> build/exe.linux-x86_64-3.4/binascii.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/grp.cpython-34m.so -> build/exe.linux-x86_64-3.4/grp.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/math.cpython-34m.so -> build/exe.linux-x86_64-3.4/math.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/pyexpat.cpython-34m.so -> build/exe.linux-x86_64-3.4/pyexpat.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/readline.cpython-34m.so -> build/exe.linux-x86_64-3.4/readline.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/select.cpython-34m.so -> build/exe.linux-x86_64-3.4/select.cpython-34m.so
+copying /usr/lib/python3.4/site-packages/sip.so -> build/exe.linux-x86_64-3.4/sip.so
+copying /usr/lib/python3.4/lib-dynload/termios.cpython-34m.so -> build/exe.linux-x86_64-3.4/termios.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/time.cpython-34m.so -> build/exe.linux-x86_64-3.4/time.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/unicodedata.cpython-34m.so -> build/exe.linux-x86_64-3.4/unicodedata.cpython-34m.so
+copying /usr/lib/python3.4/lib-dynload/zlib.cpython-34m.so -> build/exe.linux-x86_64-3.4/zlib.cpython-34m.so
+copying /usr/lib/qt/plugins/imageformats/libqjp2.so -> build/exe.linux-x86_64-3.4/imageformats/libqjp2.so
+copying /usr/lib/qt/plugins/imageformats/libqsvg.so -> build/exe.linux-x86_64-3.4/imageformats/libqsvg.so
+copying /usr/lib/qt/plugins/imageformats/libqwbmp.so -> build/exe.linux-x86_64-3.4/imageformats/libqwbmp.so
+copying /usr/lib/qt/plugins/imageformats/libqtga.so -> build/exe.linux-x86_64-3.4/imageformats/libqtga.so
+copying /usr/lib/qt/plugins/imageformats/libqdds.so -> build/exe.linux-x86_64-3.4/imageformats/libqdds.so
+copying /usr/lib/qt/plugins/imageformats/libqicns.so -> build/exe.linux-x86_64-3.4/imageformats/libqicns.so
+copying /usr/lib/qt/plugins/imageformats/libqgif.so -> build/exe.linux-x86_64-3.4/imageformats/libqgif.so
+copying /usr/lib/qt/plugins/imageformats/libqmng.so -> build/exe.linux-x86_64-3.4/imageformats/libqmng.so
+copying /usr/lib/qt/plugins/imageformats/libqwebp.so -> build/exe.linux-x86_64-3.4/imageformats/libqwebp.so
+copying /usr/lib/qt/plugins/imageformats/libqjpeg.so -> build/exe.linux-x86_64-3.4/imageformats/libqjpeg.so
+copying /usr/lib/qt/plugins/imageformats/libqtiff.so -> build/exe.linux-x86_64-3.4/imageformats/libqtiff.so
+copying /usr/lib/qt/plugins/imageformats/libqico.so -> build/exe.linux-x86_64-3.4/imageformats/libqico.so
+copying /usr/lib/kde4/plugins/imageformats/kimg_eps.so -> build/exe.linux-x86_64-3.4/imageformats/kimg_eps.so
+copying /usr/lib/kde4/plugins/imageformats/kimg_webp.so -> build/exe.linux-x86_64-3.4/imageformats/kimg_webp.so
+copying /usr/lib/kde4/plugins/imageformats/kimg_ras.so -> build/exe.linux-x86_64-3.4/imageformats/kimg_ras.so
+copying /usr/lib/kde4/plugins/imageformats/kimg_exr.so -> build/exe.linux-x86_64-3.4/imageformats/kimg_exr.so
+copying /usr/lib/kde4/plugins/imageformats/kimg_dds.so -> build/exe.linux-x86_64-3.4/imageformats/kimg_dds.so
+copying /usr/lib/kde4/plugins/imageformats/kimg_jp2.so -> build/exe.linux-x86_64-3.4/imageformats/kimg_jp2.so
+copying /usr/lib/kde4/plugins/imageformats/kimg_pcx.so -> build/exe.linux-x86_64-3.4/imageformats/kimg_pcx.so
+copying /usr/lib/kde4/plugins/imageformats/kimg_tga.so -> build/exe.linux-x86_64-3.4/imageformats/kimg_tga.so
+copying /usr/lib/kde4/plugins/imageformats/kimg_rgb.so -> build/exe.linux-x86_64-3.4/imageformats/kimg_rgb.so
+copying /usr/lib/kde4/plugins/imageformats/kimg_xview.so -> build/exe.linux-x86_64-3.4/imageformats/kimg_xview.so
+copying /usr/lib/kde4/plugins/imageformats/kimg_pic.so -> build/exe.linux-x86_64-3.4/imageformats/kimg_pic.so
+copying /usr/lib/kde4/plugins/imageformats/kimg_xcf.so -> build/exe.linux-x86_64-3.4/imageformats/kimg_xcf.so
+copying /usr/lib/kde4/plugins/imageformats/kimg_psd.so -> build/exe.linux-x86_64-3.4/imageformats/kimg_psd.so
+copying /usr/lib/qt/plugins/platforms/libqminimalegl.so -> build/exe.linux-x86_64-3.4/platforms/libqminimalegl.so
+copying /usr/lib/qt/plugins/platforms/libqeglfs.so -> build/exe.linux-x86_64-3.4/platforms/libqeglfs.so
+copying /usr/lib/qt/plugins/platforms/libqminimal.so -> build/exe.linux-x86_64-3.4/platforms/libqminimal.so
+copying /usr/lib/qt/plugins/platforms/libqkms.so -> build/exe.linux-x86_64-3.4/platforms/libqkms.so
+copying /usr/lib/qt/plugins/platforms/libqxcb.so -> build/exe.linux-x86_64-3.4/platforms/libqxcb.so
+copying /usr/lib/qt/plugins/platforms/libqlinuxfb.so -> build/exe.linux-x86_64-3.4/platforms/libqlinuxfb.so
+copying /usr/lib/qt/plugins/platforms/libqoffscreen.so -> build/exe.linux-x86_64-3.4/platforms/libqoffscreen.so

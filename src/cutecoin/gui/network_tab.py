@@ -38,4 +38,8 @@ class NetworkTabWidget(QWidget, Ui_NetworkTabWidget):
     def refresh_nodes(self):
         self.table_network.model().sourceModel().modelReset.emit()
 
+    def closeEvent(self, event):
+        super().closeEvent(event)
+        self.network_watcher.deleteLater()
+        self.watcher_thread.deleteLater()
 

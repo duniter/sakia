@@ -270,6 +270,7 @@ QMessageBox.Ok | QMessageBox.Cancel)
                                          .format(block_number))
 
     def closeEvent(self, event):
+        super().closeEvent(event)
         self.bc_watcher.deleteLater()
         self.watcher_thread.deleteLater()
 
