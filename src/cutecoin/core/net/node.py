@@ -112,8 +112,9 @@ class Node(QObject):
             self._pubkey = node_pubkey
             emit_change = True
 
-        new_inlines = [e.inline() for e in [n for n in self._neighbours]]
-        last_inlines = [e.inline() for e in [n for n in self._neighbours]]
+        logging.debug(neighbours)
+        new_inlines = [e.inline() for n in neighbours for e in n]
+        last_inlines = [e.inline() for n in self._neighbours for e in n]
 
         hash_new_neighbours = hash(tuple(frozenset(sorted(new_inlines))))
         hash_last_neighbours = hash(tuple(frozenset(sorted(last_inlines))))
@@ -138,7 +139,7 @@ class Node(QObject):
                 peering = bma.network.Peering(self.endpoint.conn_handler()).get()
                 peer = Peer.from_signed_raw("{0}{1}\n".format(peering['raw'],
                                                             peering['signature']))
-                node = Node.from_peer(peer)
+                node = Node.from_peer(currency, peer)
                 logging.debug(traversed_pubkeys)
                 logging.debug("Traversing : next to read : {0} : {1}".format(node.pubkey,
                               (node.pubkey not in traversed_pubkeys)))

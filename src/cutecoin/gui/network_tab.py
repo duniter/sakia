@@ -36,6 +36,6 @@ class NetworkTabWidget(QWidget, Ui_NetworkTabWidget):
         community.network.nodes_changed.connect(self.refresh_nodes)
 
     def refresh_nodes(self):
-        self.table_network.sourceModel.dataChanged.emit(QModelIndex(), QModelIndex())
+        self.table_network.model().sourceModel().modelReset.emit()
 
 

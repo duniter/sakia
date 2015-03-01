@@ -47,6 +47,8 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
 
     def data(self, index, role):
         source_index = self.mapToSource(index)
+        if not source_index.isValid():
+            return QVariant()
         source_data = self.sourceModel().data(source_index, role)
         if index.column() == self.sourceModel().column_types.index('is_member') \
          and role == Qt.DisplayRole:

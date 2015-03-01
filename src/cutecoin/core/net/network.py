@@ -82,14 +82,24 @@ class Network(QObject):
     def start_perpetual_crawling(self):
         self.must_crawl = True
         while self.must_crawl:
-            self.nodes = self.crawling(interval=10)
-            for n in self._nodes:
-                n.changed.connect(self.nodes_changed)
+            nodes = self.crawling(interval=10)
+
+            new_inlines = [n.endpoint.inline() for n in nodes]
+            last_inlines = [n.endpoint.inline() for n in self._nodes]
+
+            hash_new_nodes = hash(tuple(frozenset(sorted(new_inlines))))
+            hash_last_nodes= hash(tuple(frozenset(sorted(last_inlines))))
+
+            if hash_new_nodes != hash_last_nodes:
+                self._nodes = nodes
+                self.nodes_changed.emit()
+                for n in self._nodes:
+                    n.changed.connect(self.nodes_changed)
 
     def crawling(self, interval=0):
         nodes = []
         traversed_pubkeys = []
-        for n in self.nodes:
+        for n in self._nodes.copy():
             logging.debug(traversed_pubkeys)
             logging.debug("Peering : next to read : {0} : {1}".format(n.pubkey,
                           (n.pubkey not in traversed_pubkeys)))
