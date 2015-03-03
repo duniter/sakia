@@ -273,12 +273,12 @@ class Community(object):
         if not ok:
             raise value_error
 
-        if tries == len(self.peers):
+        if tries == len(self.nodes):
             raise NoPeerAvailable(self.currency, len(nodes))
 
     def jsonify(self):
         data = {'currency': self.currency,
-                'peers': self.network.jsonify()}
+                'peers': self._network.jsonify()}
         return data
 
     def get_parameters(self):

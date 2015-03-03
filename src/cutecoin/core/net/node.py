@@ -52,6 +52,14 @@ class Node(QObject):
         node.refresh_state(currency)
         return node
 
+    def jsonify(self):
+        data = {'pubkey': self._pubkey}
+        endpoints = []
+        for e in self._endpoints:
+            endpoints.append(e.inline())
+        data['endpoints'] = endpoints
+        return data
+
     @property
     def pubkey(self):
         return self._pubkey

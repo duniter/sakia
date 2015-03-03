@@ -39,6 +39,7 @@ class Network(QObject):
         for data in json_data:
             node = Node.from_json(currency, data)
             nodes.append(node)
+            logging.debug("Loading : {:}".format(data['pubkey']))
         block_max = max([n.block for n in nodes])
         for node in nodes:
             node.check_sync(currency, block_max)
@@ -88,7 +89,7 @@ class Network(QObject):
             last_inlines = [n.endpoint.inline() for n in self._nodes]
 
             hash_new_nodes = hash(tuple(frozenset(sorted(new_inlines))))
-            hash_last_nodes= hash(tuple(frozenset(sorted(last_inlines))))
+            hash_last_nodes = hash(tuple(frozenset(sorted(last_inlines))))
 
             if hash_new_nodes != hash_last_nodes:
                 self._nodes = nodes

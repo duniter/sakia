@@ -134,7 +134,9 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                     "Informations")
 
             self.tab_network = NetworkTabWidget(self.community)
-            self.tabs_account.addTab(self.tab_network, "Network")
+            self.tabs_account.addTab(self.tab_network,
+                                     QIcon(":/icons/network_icon"),
+                                     "Network")
             self.tab_informations.refresh()
             blockid = self.community.current_blockid()
             block_number = blockid['number']

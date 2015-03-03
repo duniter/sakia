@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="icons">
+    <file alias="network_icon">noun_21549_cc.svg</file>
     <file alias="informations_icon">iconmonstr-info-2-icon.svg</file>
     <file alias="community_icon">noun_22441_cc.svg</file>
     <file alias="wot_icon">noun_2651_cc.svg</file>
