@@ -57,7 +57,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         model = self.table_community_members.model()
         if index.row() < model.rowCount():
             source_index = model.mapToSource(index)
-            pubkey_col = model.sourceModel().columns.index('Pubkey')
+            pubkey_col = model.sourceModel().columns_ids.index('pubkey')
             pubkey_index = model.sourceModel().index(source_index.row(),
                                                    pubkey_col)
             pubkey = model.sourceModel().data(pubkey_index, Qt.DisplayRole)

@@ -85,8 +85,9 @@ class Community(object):
         self._cache.refresh()
 
     @classmethod
-    def create(cls, currency, peer):
-        community = cls(currency, [peer])
+    def create(cls, node):
+        network = Network.create(node)
+        community = cls(node.currency, network)
         logging.debug("Creating community")
         return community
 

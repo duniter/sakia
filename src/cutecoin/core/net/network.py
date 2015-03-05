@@ -42,23 +42,23 @@ class Network(QObject):
             logging.debug("Loading : {:}".format(data['pubkey']))
         block_max = max([n.block for n in nodes])
         for node in nodes:
-            node.check_sync(currency, block_max)
+            node.check_sync(block_max)
         return cls(currency, nodes)
 
     @classmethod
-    def create(cls, currency, node):
+    def create(cls, node):
         nodes = [node]
-        network = cls(currency, nodes)
-        nodes = network.crawling
+        network = cls(node.currency, nodes)
+        nodes = network.crawling()
         block_max = max([n.block for n in nodes])
         for node in nodes:
-            node.check_sync(currency, block_max)
+            node.check_sync(block_max)
         network._nodes = nodes
         return network
 
     def jsonify(self):
         data = []
-        for node in self.nodes:
+        for node in self._nodes:
             data.append(node.jsonify())
         return data
 
@@ -105,13 +105,13 @@ class Network(QObject):
             logging.debug("Peering : next to read : {0} : {1}".format(n.pubkey,
                           (n.pubkey not in traversed_pubkeys)))
             if n.pubkey not in traversed_pubkeys:
-                n.peering_traversal(self.currency, nodes,
+                n.peering_traversal(nodes,
                                     traversed_pubkeys, interval)
                 time.sleep(interval)
 
         block_max = max([n.block for n in nodes])
         for node in [n for n in nodes if n.state == Node.ONLINE]:
-            node.check_sync(self.currency, block_max)
+            node.check_sync(block_max)
 
         #TODO: Offline nodes for too long have to be removed
         #TODO: Corrupted nodes should maybe be removed faster ?

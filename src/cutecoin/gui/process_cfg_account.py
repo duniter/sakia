@@ -121,16 +121,11 @@ class StepPageCommunities(Step):
         nb_wallets = self.config_dialog.spinbox_wallets.value()
         self.config_dialog.account.set_walletpool_size(nb_wallets, password)
 
+        self.config_dialog.app.add_account(self.config_dialog.account)
         if len(self.config_dialog.app.accounts) == 1:
             self.config_dialog.app.default_account = self.config_dialog.account.name
-
-        try:
-            self.config_dialog.app.add_account(self.config_dialog.account)
-        except KeyAlreadyUsed as e:
-            QMessageBox.critical(self, "Error",
-                                 str(e), QMessageBox.Ok)
-            return
         self.config_dialog.app.save(self.config_dialog.account)
+        self.config_dialog.app.current_account = self.config_dialog.account
 
     def display_page(self):
         logging.debug("Communities DISPLAY")
