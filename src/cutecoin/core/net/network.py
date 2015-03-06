@@ -31,10 +31,13 @@ class Network(QObject):
         for n in self._nodes:
             n.changed.connect(self.nodes_changed)
         self.must_crawl = False
-        #TODO: Crawl nodes at startup
 
     @classmethod
     def from_json(cls, currency, json_data):
+        '''
+        We load the nodes which we know for sure since we
+        used them at the community creation
+        '''
         nodes = []
         for data in json_data:
             node = Node.from_json(currency, data)
@@ -44,6 +47,17 @@ class Network(QObject):
         for node in nodes:
             node.check_sync(block_max)
         return cls(currency, nodes)
+
+    def merge_with_json(self, json_data):
+        '''
+        We merge with dynamic nodes detected when we
+        last stopped cutecoin
+        '''
+        for data in json_data:
+            node = Node.from_json(self.currency, data)
+            self._nodes.append(node)
+            logging.debug("Loading : {:}".format(data['pubkey']))
+        self._nodes = self.crawling()
 
     @classmethod
     def create(cls, node):

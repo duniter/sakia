@@ -100,6 +100,19 @@ class Application(QObject):
             community_path = os.path.join(config.parameters['home'],
                                         account.name, '__cache__',
                                         community.currency)
+
+            network_path = os.path.join(config.parameters['home'],
+                                        account.name, '__cache__',
+                                        community.currency + '_network')
+
+            if os.path.exists(network_path):
+                with open(network_path, 'r') as json_data:
+                    data = json.load(json_data)
+                if 'version' in data and data['version'] == __version__:
+                    community.load_network(data)
+                else:
+                    os.remove(network_path)
+
             if os.path.exists(community_path):
                 with open(community_path, 'r') as json_data:
                     data = json.load(json_data)
@@ -152,6 +165,16 @@ class Application(QObject):
             community_path = os.path.join(config.parameters['home'],
                                         account.name, '__cache__',
                                         community.currency)
+
+            network_path = os.path.join(config.parameters['home'],
+                                        account.name, '__cache__',
+                                        community.currency + '_network')
+
+            with open(network_path, 'w') as outfile:
+                data = community.jsonify_network()
+                data['version'] = __version__
+                json.dump(data, outfile, indent=4, sort_keys=True)
+
             with open(community_path, 'w') as outfile:
                 data = community.jsonify_cache()
                 data['version'] = __version__

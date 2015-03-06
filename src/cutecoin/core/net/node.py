@@ -50,7 +50,7 @@ class Node(QObject):
             if peer.currency != currency:
                 raise InvalidNodeCurrency(peer.currency, currency)
 
-        node = cls(peer.currency, peer.endpoints, peer.pubkey, 0, Node.ONLINE)
+        node = cls(peer.currency, peer.endpoints, peer.pubkey, 0, Node.ONLINE, 0)
         node.refresh_state()
         return node
 
@@ -137,27 +137,30 @@ class Node(QObject):
             self._state = Node.OFFLINE
             emit_change = True
 
-        if node_currency != self._currency:
-            self.state = Node.CORRUPTED
-            emit_change = True
+        # If not is offline, do not refresh last data
+        if self._state != Node.OFFLINE:
+            # If not changed its currency, consider it corrupted
+            if node_currency != self._currency:
+                self.state = Node.CORRUPTED
+                emit_change = True
+            else:
+                if block_number != self._block:
+                    self._block = block_number
+                    emit_change = True
 
-        if block_number != self._block:
-            self._block = block_number
-            emit_change = True
+                if node_pubkey != self._pubkey:
+                    self._pubkey = node_pubkey
+                    emit_change = True
 
-        if node_pubkey != self._pubkey:
-            self._pubkey = node_pubkey
-            emit_change = True
+                logging.debug(neighbours)
+                new_inlines = [e.inline() for n in neighbours for e in n]
+                last_inlines = [e.inline() for n in self._neighbours for e in n]
 
-        logging.debug(neighbours)
-        new_inlines = [e.inline() for n in neighbours for e in n]
-        last_inlines = [e.inline() for n in self._neighbours for e in n]
-
-        hash_new_neighbours = hash(tuple(frozenset(sorted(new_inlines))))
-        hash_last_neighbours = hash(tuple(frozenset(sorted(last_inlines))))
-        if hash_new_neighbours != hash_last_neighbours:
-            self._neighbours = neighbours
-            emit_change = True
+                hash_new_neighbours = hash(tuple(frozenset(sorted(new_inlines))))
+                hash_last_neighbours = hash(tuple(frozenset(sorted(last_inlines))))
+                if hash_new_neighbours != hash_last_neighbours:
+                    self._neighbours = neighbours
+                    emit_change = True
 
         if emit_change:
             self.changed.emit()
@@ -167,9 +170,11 @@ class Node(QObject):
         logging.debug("Read {0} peering".format(self.pubkey))
         traversed_pubkeys.append(self.pubkey)
         self.refresh_state()
-        if self.pubkey not in [n.pubkey for n in found_nodes]:
-            found_nodes.append(self)
 
+        if self.pubkey not in [n.pubkey for n in found_nodes]:
+            # if node is corrupted remove it
+            if self._state != Node.CORRUPTED:
+                found_nodes.append(self)
         try:
             logging.debug(self.neighbours)
             for n in self.neighbours:

@@ -94,17 +94,21 @@ class Community(object):
     @classmethod
     def load(cls, json_data):
         currency = json_data['currency']
-
         network = Network.from_json(currency, json_data['peers'])
-
         community = cls(currency, network)
         return community
+
+    def load_network(self, json_data):
+        self._network.merge_with_json(json_data['network'])
 
     def load_cache(self, json_data):
         self._cache.load_from_json(json_data)
 
     def jsonify_cache(self):
         return self._cache.jsonify()
+
+    def jsonify_network(self):
+        return {'network': self._network.jsonify()}
 
     def name(self):
         return self.currency
