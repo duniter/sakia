@@ -60,6 +60,7 @@ class Scene(QGraphicsScene):
     node_signed = pyqtSignal(dict, name='nodeSigned')
     node_transaction = pyqtSignal(dict, name='nodeTransaction')
     node_contact = pyqtSignal(dict, name='nodeContact')
+    node_member = pyqtSignal(dict, name='nodeMember')
 
     def __init__(self, parent=None):
         """
@@ -110,7 +111,7 @@ class Scene(QGraphicsScene):
         """
         draw community graph
 
-        :param dict graph: graph to draw
+        :param cutecoin.core.graph.Graph graph: graph to draw
         """
         #  clear scene
         self.clear()
@@ -204,6 +205,7 @@ class Node(QGraphicsEllipseItem):
         self.action_sign = None
         self.action_transaction = None
         self.action_contact = None
+        self.action_show_member = None
 
         # color around ellipse
         outline_color = QColor('grey')
@@ -236,7 +238,6 @@ class Node(QGraphicsEllipseItem):
         self.setTransform(
             QTransform().translate(-self.boundingRect().width() / 2.0, -self.boundingRect().height() / 2.0))
         self.setPos(x, y)
-        #print(x, y)
         # center text in ellipse
         self.text_item.setPos(self.boundingRect().width() / 4.0, self.boundingRect().height() / 4.0)
 
@@ -280,6 +281,10 @@ class Node(QGraphicsEllipseItem):
             return None
         # create node context menus
         self.menu = QMenu()
+        # action show member
+        self.action_show_member = QAction('Show member', self.scene())
+        self.menu.addAction(self.action_show_member)
+        self.action_show_member.triggered.connect(self.member_action)
         # action add identity as contact
         self.action_contact = QAction('Add as contact', self.scene())
         self.menu.addAction(self.action_contact)
@@ -303,6 +308,20 @@ class Node(QGraphicsEllipseItem):
         """
         self.arcs.append(arc)
 
+    def member_action(self):
+        """
+        Transaction action to identity node
+        """
+        # trigger scene signal
+        self.scene().node_member.emit(self.metadata)
+
+    def contact_action(self):
+        """
+        Transaction action to identity node
+        """
+        # trigger scene signal
+        self.scene().node_contact.emit(self.metadata)
+
     def sign_action(self):
         """
         Sign identity node
@@ -316,13 +335,6 @@ class Node(QGraphicsEllipseItem):
         """
         # trigger scene signal
         self.scene().node_transaction.emit(self.metadata)
-
-    def contact_action(self):
-        """
-        Transaction action to identity node
-        """
-        # trigger scene signal
-        self.scene().node_contact.emit(self.metadata)
 
 
 class Arc(QGraphicsLineItem):

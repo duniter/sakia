@@ -5,6 +5,7 @@ Created on 11 févr. 2014
 '''
 
 import logging
+import datetime
 from ucoinpy.api import bma
 from ucoinpy import PROTOCOL_VERSION
 from ucoinpy.documents.certification import SelfCertification
@@ -78,13 +79,27 @@ class Person(object):
                                              signature)
         raise PersonNotFoundError(self.pubkey, community.name())
 
+    def get_join_date(self, community):
+        try:
+            search = community.request(bma.blockchain.Membership, {'search': self.pubkey})
+            membership_data = None
+            if len(search['memberships']) > 0:
+                membership_data = search['memberships'][0]
+                return datetime.datetime.fromtimestamp(community.get_block(membership_data['blockNumber']).mediantime).strftime("%d/%m/%Y %I:%M")
+            else:
+                return None
+        except ValueError as e:
+            if '400' in str(e):
+                raise MembershipNotFoundError(self.pubkey, community.name())
+
     def membership(self, community):
         try:
             search = community.request(bma.blockchain.Membership,
                                                {'search': self.pubkey})
-            block_number = 0
+            block_number = -1
             for ms in search['memberships']:
-                if ms['blockNumber'] >= block_number:
+                if ms['blockNumber'] > block_number:
+                    block_number = ms['blockNumber']
                     if 'type' in ms:
                         if ms['type'] is 'IN':
                             membership_data = ms

@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import QWidget, QMessageBox, QAction, QMenu, QDialog, \
 from ..models.members import MembersFilterProxyModel, MembersTableModel
 from ..gen_resources.community_tab_uic import Ui_CommunityTabWidget
 from cutecoin.gui.contact import ConfigureContactDialog
+from cutecoin.gui.member import MemberDialog
 from .wot_tab import WotTabWidget
 from .transfer import TransferMoneyDialog
 from .password_asker import PasswordAskerDialog
@@ -99,6 +100,10 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
     def menu_certify_member(self):
         person = self.sender().data()
         self.certify_member(person)
+
+    def show_member(self, person):
+        dialog = MemberDialog(self.account, self.community, person)
+        dialog.exec_()
 
     def add_member_as_contact(self, person):
         dialog = ConfigureContactDialog(self.account, self.window(), person)
