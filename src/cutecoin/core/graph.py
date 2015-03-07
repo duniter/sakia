@@ -18,6 +18,13 @@ class Graph(dict):
         path = list()
         graph_tmp = copy.deepcopy(self)
 
+        if from_person.pubkey not in graph_tmp.keys():
+            graph_tmp.add_person(from_person)
+            certifier_list = from_person.certifiers_of(self.community)
+            graph_tmp.add_certifier_list(certifier_list, from_person, to_person)
+            certified_list = from_person.certified_by(self.community)
+            graph_tmp.add_certified_list(certified_list, from_person, to_person)
+
         if to_person.pubkey not in graph_tmp.keys():
             # recursively feed graph searching for account node...
             graph_tmp.explore_to_find_member(to_person, graph_tmp[from_person.pubkey]['nodes'], list())
