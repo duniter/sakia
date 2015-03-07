@@ -282,7 +282,7 @@ class Node(QGraphicsEllipseItem):
         # create node context menus
         self.menu = QMenu()
         # action show member
-        self.action_show_member = QAction('Show member', self.scene())
+        self.action_show_member = QAction('Informations', self.scene())
         self.menu.addAction(self.action_show_member)
         self.action_show_member.triggered.connect(self.member_action)
         # action add identity as contact

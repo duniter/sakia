@@ -58,7 +58,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
 
         :param dict metadata: Graph node metadata of the identity
         """
-        logging.debug("draw graph !!!!!!!!!!!! - " + metadata['text'])
+        logging.debug("Draw graph - " + metadata['text'])
 
         # create Person from node metadata
         person = get_person_from_metadata(metadata)

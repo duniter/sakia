@@ -9,15 +9,27 @@ from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_OUT, ARC
 class Graph(dict):
 
     def __init__(self, community):
+        """
+        Init Graph instance
+        :param cutecoin.core.community.Community community:
+        :return:
+        """
         self.community = community
         self.signature_validity = self.community.get_parameters()['sigValidity']
         # arc considered strong during 75% of signature validity time
         self.ARC_STATUS_STRONG_time = int(self.signature_validity * 0.75)
 
     def get_shortest_path_between_members(self, from_person, to_person):
+        """
+        Return path list of nodes from from_person to to_person
+        :param Person from_person:
+        :param Person to_person:
+        :return:
+        """
         path = list()
         graph_tmp = copy.deepcopy(self)
 
+        logging.debug("path between %s to %s..." % (from_person.name, to_person.name))
         if from_person.pubkey not in graph_tmp.keys():
             graph_tmp.add_person(from_person)
             certifier_list = from_person.certifiers_of(self.community)
@@ -39,7 +51,12 @@ class Graph(dict):
 
         return path
 
-    def explore_to_find_member(self, person, nodes=list(), done=list()):
+    def explore_to_find_member(self, person, nodes=None, done=None):
+        # functions keywords args are persistent... Need to reset it with None trick
+        nodes = nodes or (list() and (nodes is None))
+        done = done or (list() and (done is None))
+        logging.debug("search %s in " % person.name)
+        logging.debug([node['text'] for node in nodes])
         for node in tuple(nodes):
             if node['id'] in tuple(done):
                 continue
@@ -180,8 +197,8 @@ class Graph(dict):
 
     def add_person(self, person, status=0, arcs=None, nodes=None):
         # functions keywords args are persistent... Need to reset it with None trick
-        arcs = list() and (arcs is None)
-        nodes = list() and (nodes is None)
+        arcs = arcs or (list() and (arcs is None))
+        nodes = nodes or (list() and (nodes is None))
         self[person.pubkey] = {
             'id': person.pubkey,
             'arcs': arcs,
