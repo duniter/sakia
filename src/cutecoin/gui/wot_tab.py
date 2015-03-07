@@ -39,7 +39,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         self.graphicsView.scene().node_signed.connect(self.sign_node)
         self.graphicsView.scene().node_transaction.connect(self.send_money_to_node)
         self.graphicsView.scene().node_contact.connect(self.add_node_as_contact)
-        self.graphicsView.scene().node_member.connect(self.show_member)
+        self.graphicsView.scene().node_member.connect(self.member_informations)
 
         self.account = account
         self.community = community
@@ -141,9 +141,9 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             metadata
         )
 
-    def show_member(self, metadata):
+    def member_informations(self, metadata):
         person = get_person_from_metadata(metadata)
-        self.parent.show_member(person)
+        self.parent.member_informations(person)
 
     def sign_node(self, metadata):
         person = get_person_from_metadata(metadata)

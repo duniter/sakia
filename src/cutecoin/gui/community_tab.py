@@ -65,6 +65,10 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             member = Person.lookup(pubkey, self.community)
             menu = QMenu(self)
 
+            informations = QAction("Informations", self)
+            informations.triggered.connect(self.menu_informations)
+            informations.setData(member)
+
             add_contact = QAction("Add as contact", self)
             add_contact.triggered.connect(self.menu_add_as_contact)
             add_contact.setData(member)
@@ -81,6 +85,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             view_wot.triggered.connect(self.view_wot)
             view_wot.setData(member)
 
+            menu.addAction(informations)
             menu.addAction(add_contact)
             menu.addAction(send_money)
             menu.addAction(certify)
@@ -88,6 +93,10 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
 
             # Show the context menu.
             menu.exec_(QCursor.pos())
+
+    def menu_informations(self):
+        person = self.sender().data()
+        self.member_informations(person)
 
     def menu_add_as_contact(self):
         person = self.sender().data()
@@ -101,7 +110,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         person = self.sender().data()
         self.certify_member(person)
 
-    def show_member(self, person):
+    def member_informations(self, person):
         dialog = MemberDialog(self.account, self.community, person)
         dialog.exec_()
 

@@ -52,6 +52,13 @@ class Graph(dict):
         return path
 
     def explore_to_find_member(self, person, nodes=None, done=None):
+        """
+        Scan graph recursively to find person
+        :param Person person:   Person instance to find
+        :param list nodes:      Optional, default=None, List of nodes around the person
+        :param list done:       Optional, default=None, List of node already scanned
+        :return:
+        """
         # functions keywords args are persistent... Need to reset it with None trick
         nodes = nodes or (list() and (nodes is None))
         done = done or (list() and (done is None))
@@ -80,6 +87,13 @@ class Graph(dict):
         return True
 
     def find_shortest_path(self, start, end, path=list()):
+        """
+        Find recursively the shortest path between two nodes
+        :param dict start:
+        :param dict end:
+        :param list path:
+        :return:
+        """
         path = path + [start]
         if start['id'] == end['id']:
             return path
@@ -94,9 +108,16 @@ class Graph(dict):
                         shortest = newpath
         return shortest
 
-    def add_certifier_list(self, certifiers, person, person_account):
+    def add_certifier_list(self, certifier_list, person, person_account):
+        """
+        Add list of certifiers to graph
+        :param list certifier_list: List of certifiers from api
+        :param Person person:   Person instance which is certified
+        :param Person person_account:   Account person instance
+        :return:
+        """
         # add certifiers of uid
-        for certifier in tuple(certifiers):
+        for certifier in tuple(certifier_list):
             # add only valid certification...
             if (time.time() - certifier['cert_time']['medianTime']) > self.signature_validity:
                 continue
@@ -141,6 +162,13 @@ class Graph(dict):
                 self[person.pubkey]['nodes'].append(self[certifier['pubkey']])
 
     def add_certified_list(self, certified_list, person, person_account):
+        """
+        Add list of certified from api to graph
+        :param list certified_list: List of certified from api
+        :param Person person:   Person instance which is certifier
+        :param Person person_account:   Account person instance
+        :return:
+        """
         # add certified by uid
         for certified in tuple(certified_list):
             # add only valid certification...
@@ -196,6 +224,14 @@ class Graph(dict):
                 self[person.pubkey]['nodes'].append(self[certified['pubkey']])
 
     def add_person(self, person, status=0, arcs=None, nodes=None):
+        """
+        Add person as a new node in graph
+        :param Person person: Person instance
+        :param int status:  Node status (see cutecoin.gui.views.wot)
+        :param list arcs:  List of arcs (certified by person)
+        :param list nodes:  List of nodes around person
+        :return:
+        """
         # functions keywords args are persistent... Need to reset it with None trick
         arcs = arcs or (list() and (arcs is None))
         nodes = nodes or (list() and (nodes is None))
