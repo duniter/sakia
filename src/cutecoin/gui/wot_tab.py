@@ -254,4 +254,4 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         return block.mediantime
 
     def get_person_from_metadata(self, metadata):
-        return Person(metadata['text'], metadata['id'])
+        return Person.from_metadata(metadata['text'], metadata['id'])

@@ -5,6 +5,8 @@ Created on 11 févr. 2014
 '''
 
 import logging
+import functools
+import collections
 from ucoinpy.api import bma
 from ucoinpy import PROTOCOL_VERSION
 from ucoinpy.documents.certification import SelfCertification
@@ -13,48 +15,129 @@ from cutecoin.tools.exceptions import PersonNotFoundError,\
                                         MembershipNotFoundError
 
 
-class Person(object):
+def load_cache(json_data):
+    for person_data in json_data:
+        person = Person.from_json(person_data)
+        Person._instances[person.pubkey] = person
 
+
+class cached(object):
+    '''
+    Decorator. Caches a function's return value each time it is called.
+    If called later with the same arguments, the cached value is returned
+    (not reevaluated).
+    Delete it to clear it from the cache
+    '''
+    def __init__(self, func):
+        self.func = func
+        self.cache = {}
+
+    def __call__(self, inst, community):
+        try:
+            inst.__cache
+        except AttributeError:
+            inst.__cache = {}
+
+        if community.currency in inst.__cache:
+            if self.func.__name__ in inst.__cache[community.currency]:
+                return inst.__cache[community.currency][self.func.__name__]
+        else:
+            inst.__cache[community.currency] = {}
+
+        value = self.func(inst, community)
+        inst.__cache[community.currency][self.func.__name__] = value
+        return value
+
+    def __repr__(self):
+        '''Return the function's docstring.'''
+        return self.func.__doc__
+
+    def __get__(self, inst, objtype):
+        if inst is None:
+            return self.func
+        return functools.partial(self, inst)
+
+    def reload(self, inst, community):
+        try:
+            del inst.__cache[community.currency][self.func.__name__]
+            self.__call__(inst, community)
+        except KeyError:
+            pass
+
+    def load(self, inst, data):
+        inst.cache = data
+
+
+class Person(object):
     '''
     A person with a name, a fingerprint and an email
-    Created by the person.factory
     '''
+    _instances = {}
 
-    def __init__(self, name, pubkey):
+    def __init__(self, name, pubkey, cache):
         '''
         Constructor
         '''
         self.name = name
         self.pubkey = pubkey
+        self.__cache = cache
 
     @classmethod
     def lookup(cls, pubkey, community, cached=True):
         '''
         Create a person from the pubkey found in a community
         '''
-        data = community.request(bma.wot.Lookup, req_args={'search': pubkey},
-                                 cached=cached)
-        timestamp = 0
+        if pubkey in Person._instances:
+            return Person._instances[pubkey]
+        else:
+            logging.debug("{0} : {1} in ? {2}".format(len(Person._instances),
+                                                      pubkey, pubkey in Person._instances))
+            logging.debug("{0}".format(Person._instances.keys()))
+            data = community.request(bma.wot.Lookup, req_args={'search': pubkey},
+                                     cached=cached)
+            timestamp = 0
 
-        for result in data['results']:
-            if result["pubkey"] == pubkey:
-                uids = result['uids']
-                for uid in uids:
-                    if uid["meta"]["timestamp"] > timestamp:
-                        timestamp = uid["meta"]["timestamp"]
-                        name = uid["uid"]
+            for result in data['results']:
+                if result["pubkey"] == pubkey:
+                    uids = result['uids']
+                    for uid in uids:
+                        if uid["meta"]["timestamp"] > timestamp:
+                            timestamp = uid["meta"]["timestamp"]
+                            name = uid["uid"]
 
-                return cls(name, pubkey)
+                        person = cls(name, pubkey, {})
+                        Person._instances[pubkey] = person
+                        logging.debug("{0}".format(Person._instances.keys()))
+                        return person
         raise PersonNotFoundError(pubkey, community.name())
 
     @classmethod
+    def from_metadata(cls, name, pubkey):
+        if pubkey in Person._instances:
+            return Person._instances[pubkey]
+        else:
+            person = cls(name, pubkey, {})
+            Person._instances[pubkey] = person
+            return person
+
+    @classmethod
+    #TODO: Remove name from person, contats should not use the person class
     def from_json(cls, json_person):
         '''
         Create a person from json data
         '''
-        name = json_person['name']
         pubkey = json_person['pubkey']
-        return cls(name, pubkey)
+        if pubkey in Person._instances:
+            return Person._instances[pubkey]
+        else:
+            name = json_person['name']
+            if 'cache' in json_person:
+                cache = json_person['cache']
+            else:
+                cache = {}
+            person = cls(name, pubkey, cache)
+            Person._instances[pubkey] = person
+            return person
 
     def selfcert(self, community):
         data = community.request(bma.wot.Lookup, req_args={'search': self.pubkey})
@@ -78,6 +161,7 @@ class Person(object):
                                              signature)
         raise PersonNotFoundError(self.pubkey, community.name())
 
+    @cached
     def membership(self, community):
         try:
             search = community.request(bma.blockchain.Membership,
@@ -103,6 +187,7 @@ class Person(object):
                                 search['sigDate'], None)
         return membership
 
+    @cached
     def is_member(self, community):
         try:
             certifiers = community.request(bma.wot.CertifiersOf, {'search': self.pubkey})
@@ -110,6 +195,7 @@ class Person(object):
         except ValueError:
             return False
 
+    @cached
     def certifiers_of(self, community):
         try:
             certifiers = community.request(bma.wot.CertifiersOf, {'search': self.pubkey})
@@ -141,6 +227,7 @@ class Person(object):
 
         return certifiers['certifications']
 
+    @cached
     def certified_by(self, community):
         try:
             certified_list = community.request(bma.wot.CertifiedBy, {'search': self.pubkey})
@@ -151,6 +238,7 @@ class Person(object):
             except ValueError as e:
                 logging.debug('bma.wot.Lookup request ValueError : ' + str(e))
                 return list()
+
             certified_list = list()
             for certified in data['results'][0]['signed']:
                 certified['cert_time'] = dict()
@@ -167,5 +255,6 @@ class Person(object):
 
     def jsonify(self):
         data = {'name': self.name,
-                'pubkey': self.pubkey}
+                'pubkey': self.pubkey,
+                'cache': self.__cache}
         return data

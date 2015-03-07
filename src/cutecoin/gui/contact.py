@@ -39,7 +39,7 @@ class ConfigureContactDialog(QDialog, Ui_ConfigureContactDialog):
             self.contact.pubkey = pubkey
         else:
             try:
-                self.account.add_contact(Person(name, pubkey))
+                self.account.add_contact(Person.from_metadata(name, pubkey))
             except ContactAlreadyExists as e:
                 QMessageBox.critical(self, "Contact already exists",
                             str(e),

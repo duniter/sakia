@@ -17,6 +17,9 @@ from requests.exceptions import RequestException
 
 
 class Cache():
+    _saved_requests = [hash(bma.blockchain.Block),
+                       hash(bma.wot.Lookup)]
+
     def __init__(self, community):
         self.latest_block = 0
         self.community = community
@@ -32,9 +35,8 @@ class Cache():
         self.latest_block = data['latest_block']
 
     def jsonify(self):
-        saved_requests = [hash(bma.blockchain.Block)]
         data = {k: self.data[k] for k in self.data.keys()
-                   if k[0] in saved_requests}
+                   if k[0] in Cache._saved_requests}
         entries = []
         for d in data:
             entries.append({'key': d,
@@ -44,9 +46,8 @@ class Cache():
 
     def refresh(self):
         self.latest_block = self.community.current_blockid()['number']
-        saved_requests = [hash(bma.blockchain.Block)]
         self.data = {k: self.data[k] for k in self.data.keys()
-                   if k[0] in saved_requests}
+                   if k[0] in Cache._saved_requests}
 
     def request(self, request, req_args={}, get_args={}):
         cache_key = (hash(request),
