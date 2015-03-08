@@ -7,7 +7,6 @@ from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_OUT, ARC
 
 
 class Graph(dict):
-
     def __init__(self, community):
         """
         Init Graph instance
@@ -16,7 +15,7 @@ class Graph(dict):
         """
         self.community = community
         self.signature_validity = self.community.get_parameters()['sigValidity']
-        # arc considered strong during 75% of signature validity time
+        #  arc considered strong during 75% of signature validity time
         self.ARC_STATUS_STRONG_time = int(self.signature_validity * 0.75)
 
     def get_shortest_path_between_members(self, from_person, to_person):
@@ -39,8 +38,8 @@ class Graph(dict):
 
         if to_person.pubkey not in graph_tmp.keys():
             # recursively feed graph searching for account node...
-            graph_tmp.explore_to_find_member(to_person, graph_tmp[from_person.pubkey]['nodes'], list())
-        if len(graph_tmp[from_person.pubkey]['nodes']) > 0:
+            graph_tmp.explore_to_find_member(to_person, graph_tmp[from_person.pubkey]['connected'], list())
+        if len(graph_tmp[from_person.pubkey]['connected']) > 0:
             # calculate path of nodes between person and to_person
             path = graph_tmp.find_shortest_path(graph_tmp[from_person.pubkey], graph_tmp[to_person.pubkey])
 
@@ -51,20 +50,24 @@ class Graph(dict):
 
         return path
 
-    def explore_to_find_member(self, person, nodes=None, done=None):
+    def explore_to_find_member(self, person, connected=None, done=None):
         """
         Scan graph recursively to find person
         :param Person person:   Person instance to find
-        :param list nodes:      Optional, default=None, List of nodes around the person
+        :param list connected:  Optional, default=None, Pubkey list of the connected nodes
+        around the current scanned node
         :param list done:       Optional, default=None, List of node already scanned
         :return:
         """
         # functions keywords args are persistent... Need to reset it with None trick
-        nodes = nodes or (list() and (nodes is None))
+        connected = connected or (list() and (connected is None))
         done = done or (list() and (done is None))
         logging.debug("search %s in " % person.name)
-        logging.debug([node['text'] for node in nodes])
-        for node in tuple(nodes):
+        logging.debug([self[pubkey]['text'] for pubkey in connected])
+        # for each pubkey connected...
+        for pubkey in tuple(connected):
+            # capture node connected
+            node = self[pubkey]
             if node['id'] in tuple(done):
                 continue
             person_selected = Person(node['text'], node['id'])
@@ -80,27 +83,29 @@ class Graph(dict):
                 done.append(node['id'])
             if len(done) >= len(self):
                 return True
-            result = self.explore_to_find_member(person, self[person_selected.pubkey]['nodes'], done)
+            result = self.explore_to_find_member(person, self[person_selected.pubkey]['connected'], done)
             if not result:
                 return False
 
         return True
 
-    def find_shortest_path(self, start, end, path=list()):
+    def find_shortest_path(self, start, end, path=None):
         """
         Find recursively the shortest path between two nodes
-        :param dict start:
-        :param dict end:
-        :param list path:
+        :param dict start:  Start node
+        :param dict end:    End node
+        :param list path:   Optional, default=None, List of nodes
         :return:
         """
+        path = path or (list() and (path is None))
         path = path + [start]
         if start['id'] == end['id']:
             return path
         if start['id'] not in self.keys():
             return None
         shortest = None
-        for node in tuple(self[start['id']]['nodes']):
+        for pubkey in tuple(self[start['id']]['connected']):
+            node = self[pubkey]
             if node not in path:
                 newpath = self.find_shortest_path(node, end, path)
                 if newpath:
@@ -116,7 +121,7 @@ class Graph(dict):
         :param Person person_account:   Account person instance
         :return:
         """
-        # add certifiers of uid
+        #  add certifiers of uid
         for certifier in tuple(certifier_list):
             # add only valid certification...
             if (time.time() - certifier['cert_time']['medianTime']) > self.signature_validity:
@@ -134,7 +139,7 @@ class Graph(dict):
                     'text': certifier['uid'],
                     'tooltip': certifier['pubkey'],
                     'status': node_status,
-                    'nodes': [self[person.pubkey]]
+                    'connected': [person.pubkey]
                 }
 
             # keep only the latest certification
@@ -154,12 +159,12 @@ class Graph(dict):
                 ).strftime("%d/%m/%Y"),
                 'cert_time': certifier['cert_time']['medianTime']
             }
-            # add arc to certifier
+            #  add arc to certifier
             self[certifier['pubkey']]['arcs'].append(arc)
             # if certifier node not in person nodes
-            if self[certifier['pubkey']] not in tuple(self[person.pubkey]['nodes']):
+            if certifier['pubkey'] not in tuple(self[person.pubkey]['connected']):
                 # add certifier node to person node
-                self[person.pubkey]['nodes'].append(self[certifier['pubkey']])
+                self[person.pubkey]['connected'].append(certifier['pubkey'])
 
     def add_certified_list(self, certified_list, person, person_account):
         """
@@ -186,7 +191,7 @@ class Graph(dict):
                     'text': certified['uid'],
                     'tooltip': certified['pubkey'],
                     'status': node_status,
-                    'nodes': [self[person.pubkey]]
+                    'connected': [person.pubkey]
                 }
             # display validity status
             if (time.time() - certified['cert_time']['medianTime']) > self.ARC_STATUS_STRONG_time:
@@ -214,32 +219,33 @@ class Graph(dict):
                     new_arc = False
                 index += 1
 
-            # if arc not in graph...
+            #  if arc not in graph...
             if new_arc:
                 # add arc in graph
                 self[person.pubkey]['arcs'].append(arc)
             # if certified node not in person nodes
-            if self[certified['pubkey']] not in tuple(self[person.pubkey]['nodes']):
+            if certified['pubkey'] not in tuple(self[person.pubkey]['connected']):
                 # add certified node to person node
-                self[person.pubkey]['nodes'].append(self[certified['pubkey']])
+                self[person.pubkey]['connected'].append(certified['pubkey'])
 
-    def add_person(self, person, status=0, arcs=None, nodes=None):
+    def add_person(self, person, status=None, arcs=None, connected=None):
         """
         Add person as a new node in graph
         :param Person person: Person instance
-        :param int status:  Node status (see cutecoin.gui.views.wot)
-        :param list arcs:  List of arcs (certified by person)
-        :param list nodes:  List of nodes around person
+        :param int status:  Optional, default=None, Node status (see cutecoin.gui.views.wot)
+        :param list arcs:  Optional, default=None, List of arcs (certified by person)
+        :param list connected:  Optional, default=None, Public key list of the connected nodes around the person
         :return:
         """
         # functions keywords args are persistent... Need to reset it with None trick
+        status = status or (0 and (status is None))
         arcs = arcs or (list() and (arcs is None))
-        nodes = nodes or (list() and (nodes is None))
+        connected = connected or (list() and (connected is None))
         self[person.pubkey] = {
             'id': person.pubkey,
             'arcs': arcs,
             'text': person.name,
-            'tooltip':  person.pubkey,
+            'tooltip': person.pubkey,
             'status': status,
-            'nodes': nodes
+            'connected': connected
         }
