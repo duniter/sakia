@@ -92,7 +92,7 @@ class MembersTableModel(QAbstractTableModel):
 
     def member_data(self, pubkey):
         person = Person.lookup(pubkey, self.community)
-        join_block = person.membership(self.community).block_number
+        join_block = person.membership(self.community)['blockNumber']
         join_date = self.community.get_block(join_block).mediantime
         parameters = self.community.get_parameters()
         expiration_date = join_date + parameters['sigValidity']

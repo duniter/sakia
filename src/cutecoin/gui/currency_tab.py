@@ -62,7 +62,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
 
         person = Person.lookup(self.app.current_account.pubkey, self.community)
         try:
-            join_block = person.membership(self.community).block_number
+            join_block = person.membership(self.community)['blockNumber']
             join_date = self.community.get_block(join_block).mediantime
             parameters = self.community.get_parameters()
             expiration_date = join_date + parameters['sigValidity']

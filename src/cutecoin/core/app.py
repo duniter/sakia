@@ -15,6 +15,7 @@ from PyQt5.QtCore import QObject, pyqtSignal
 from . import config
 from ..tools.exceptions import NameAlreadyExists, BadAccountFile
 from .account import Account
+from . import person
 from .. import __version__
 
 
@@ -76,8 +77,8 @@ class Application(QObject):
         self.current_account = account
 
     def load(self):
-        if (os.path.exists(config.parameters['data'])
-                and os.path.isfile(config.parameters['data'])):
+        self.load_persons()
+        try:
             logging.debug("Loading data...")
             with open(config.parameters['data'], 'r') as json_data:
                 data = json.load(json_data)
@@ -85,6 +86,18 @@ class Application(QObject):
                     self.default_account = data['default_account']
                 for account_name in data['local_accounts']:
                     self.accounts[account_name] = None
+        except FileNotFoundError:
+            pass
+
+    def load_persons(self):
+        try:
+            persons_path = os.path.join(config.parameters['home'],
+                                        '__persons__')
+            with open(persons_path, 'r') as persons_path:
+                data = json.load(persons_path)
+                person.load_cache(data)
+        except FileNotFoundError:
+            pass
 
     def load_account(self, account_name):
         account_path = os.path.join(config.parameters['home'],
@@ -147,6 +160,14 @@ class Application(QObject):
         else:
             account_path = os.path.join(config.parameters['home'], account.name)
             shutil.rmtree(account_path)
+
+    def save_persons(self):
+        persons_path = os.path.join(config.parameters['home'],
+                                    '__persons__')
+        with open(persons_path, 'w')as outfile:
+            data = person.jsonify_cache()
+            data['version'] = __version__
+            json.dump(data, outfile, indent=4, sort_keys=True)
 
     def save_cache(self, account):
         if not os.path.exists(os.path.join(config.parameters['home'],

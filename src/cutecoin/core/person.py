@@ -16,9 +16,16 @@ from cutecoin.tools.exceptions import PersonNotFoundError,\
 
 
 def load_cache(json_data):
-    for person_data in json_data:
+    for person_data in json_data['persons']:
         person = Person.from_json(person_data)
         Person._instances[person.pubkey] = person
+
+
+def jsonify_cache():
+    data = []
+    for person in Person._instances.values():
+        data.append(person.jsonify())
+    return {'persons': data}
 
 
 class cached(object):
@@ -30,22 +37,17 @@ class cached(object):
     '''
     def __init__(self, func):
         self.func = func
-        self.cache = {}
 
     def __call__(self, inst, community):
-        try:
-            inst.__cache
-        except AttributeError:
-            inst.__cache = {}
-
-        if community.currency in inst.__cache:
-            if self.func.__name__ in inst.__cache[community.currency]:
-                return inst.__cache[community.currency][self.func.__name__]
+        if community.currency in inst._cache:
+            if self.func.__name__ in inst._cache[community.currency]:
+                return inst._cache[community.currency][self.func.__name__]
         else:
-            inst.__cache[community.currency] = {}
+            inst._cache[community.currency] = {}
 
         value = self.func(inst, community)
-        inst.__cache[community.currency][self.func.__name__] = value
+        inst._cache[community.currency][self.func.__name__] = value
+
         return value
 
     def __repr__(self):
@@ -59,7 +61,7 @@ class cached(object):
 
     def reload(self, inst, community):
         try:
-            del inst.__cache[community.currency][self.func.__name__]
+            del inst._cache[community.currency][self.func.__name__]
             self.__call__(inst, community)
         except KeyError:
             pass
@@ -80,7 +82,7 @@ class Person(object):
         '''
         self.name = name
         self.pubkey = pubkey
-        self.__cache = cache
+        self._cache = cache
 
     @classmethod
     def lookup(cls, pubkey, community, cached=True):
@@ -90,9 +92,6 @@ class Person(object):
         if pubkey in Person._instances:
             return Person._instances[pubkey]
         else:
-            logging.debug("{0} : {1} in ? {2}".format(len(Person._instances),
-                                                      pubkey, pubkey in Person._instances))
-            logging.debug("{0}".format(Person._instances.keys()))
             data = community.request(bma.wot.Lookup, req_args={'search': pubkey},
                                      cached=cached)
             timestamp = 0
@@ -135,6 +134,7 @@ class Person(object):
                 cache = json_person['cache']
             else:
                 cache = {}
+
             person = cls(name, pubkey, cache)
             Person._instances[pubkey] = person
             return person
@@ -181,11 +181,7 @@ class Person(object):
             if '400' in str(e):
                 raise MembershipNotFoundError(self.pubkey, community.name())
 
-        membership = Membership(PROTOCOL_VERSION, community.currency, self.pubkey,
-                                membership_data['blockNumber'],
-                                membership_data['blockHash'], 'IN', search['uid'],
-                                search['sigDate'], None)
-        return membership
+        return membership_data
 
     @cached
     def is_member(self, community):
@@ -256,5 +252,5 @@ class Person(object):
     def jsonify(self):
         data = {'name': self.name,
                 'pubkey': self.pubkey,
-                'cache': self.__cache}
+                'cache': self._cache}
         return data
