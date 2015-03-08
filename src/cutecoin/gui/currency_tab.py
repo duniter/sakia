@@ -22,6 +22,7 @@ from ..core.wallet import Wallet
 from ..core.person import Person
 from ..core.transfer import Transfer
 from ..core.watchers.blockchain import BlockchainWatcher
+from ..core.watchers.persons import PersonsWatcher
 
 
 class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
@@ -59,6 +60,14 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         self.watcher_thread.started.connect(self.bc_watcher.watch)
 
         self.watcher_thread.start()
+
+        self.persons_watcher = PersonsWatcher(self.community)
+        self.persons_watcher.person_changed.connect(self.tab_community.refresh_person)
+        self.persons_watcher_thread = QThread()
+        self.persons_watcher.moveToThread(self.persons_watcher_thread)
+        self.persons_watcher_thread.started.connect(self.persons_watcher.watch)
+        self.persons_watcher.end_watching.connect(self.persons_watcher_thread.finished)
+        self.persons_watcher_thread.start()
 
         person = Person.lookup(self.app.current_account.pubkey, self.community)
         try:
@@ -160,11 +169,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                                      QModelIndex(),
                                                      [])
 
-        if self.tab_community.table_community_members.model():
-            self.tab_community.table_community_members.model().dataChanged.emit(
-                                                           QModelIndex(),
-                                                           QModelIndex(),
-                                                           [])
+        self.persons_watcher_thread.start()
 
         text = "Connected : Block {0}".format(block_number)
         self.status_label.setText(text)

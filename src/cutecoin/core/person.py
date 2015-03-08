@@ -6,13 +6,13 @@ Created on 11 févr. 2014
 
 import logging
 import functools
-import collections
 from ucoinpy.api import bma
 from ucoinpy import PROTOCOL_VERSION
 from ucoinpy.documents.certification import SelfCertification
 from ucoinpy.documents.membership import Membership
 from cutecoin.tools.exceptions import PersonNotFoundError,\
                                         MembershipNotFoundError
+from PyQt5.QtCore import QMutex
 
 
 def load_cache(json_data):
@@ -39,35 +39,29 @@ class cached(object):
         self.func = func
 
     def __call__(self, inst, community):
-        if community.currency in inst._cache:
-            if self.func.__name__ in inst._cache[community.currency]:
-                return inst._cache[community.currency][self.func.__name__]
-        else:
+        inst._cache_mutex.lock()
+        try:
+            inst._cache[community.currency]
+        except KeyError:
             inst._cache[community.currency] = {}
 
-        value = self.func(inst, community)
-        inst._cache[community.currency][self.func.__name__] = value
+        try:
+            value = inst._cache[community.currency][self.func.__name__]
+        except KeyError:
+            value = self.func(inst, community)
+            inst._cache[community.currency][self.func.__name__] = value
 
+        inst._cache_mutex.unlock()
         return value
 
     def __repr__(self):
         '''Return the function's docstring.'''
-        return self.func.__doc__
+        return self.func.__repr__
 
     def __get__(self, inst, objtype):
         if inst is None:
             return self.func
         return functools.partial(self, inst)
-
-    def reload(self, inst, community):
-        try:
-            del inst._cache[community.currency][self.func.__name__]
-            self.__call__(inst, community)
-        except KeyError:
-            pass
-
-    def load(self, inst, data):
-        inst.cache = data
 
 
 class Person(object):
@@ -83,6 +77,7 @@ class Person(object):
         self.name = name
         self.pubkey = pubkey
         self._cache = cache
+        self._cache_mutex = QMutex()
 
     @classmethod
     def lookup(cls, pubkey, community, cached=True):
@@ -248,6 +243,33 @@ class Person(object):
             return list()
 
         return certified_list['certifications']
+
+    def reload(self, func, community):
+        self._cache_mutex.lock()
+        if community.currency not in self._cache:
+            self._cache[community.currency] = {}
+
+        change = False
+        try:
+            before = self._cache[community.currency][func.__name__]
+        except KeyError:
+            change = True
+
+        value = func(self, community)
+
+        if not change:
+            if type(value) is dict:
+                hash_before = (hash(tuple(frozenset(sorted(before.keys())))),
+                             hash(tuple(frozenset(sorted(before.items())))))
+                hash_after = (hash(tuple(frozenset(sorted(value.keys())))),
+                             hash(tuple(frozenset(sorted(value.items())))))
+                change = hash_before != hash_after
+            elif type(value) is bool:
+                change = before != value
+
+        self._cache[community.currency][func.__name__] = value
+        self._cache_mutex.unlock()
+        return change
 
     def jsonify(self):
         data = {'name': self.name,

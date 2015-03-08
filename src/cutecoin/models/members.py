@@ -7,7 +7,7 @@ Created on 5 févr. 2014
 from ucoinpy.api import bma
 from ..core.person import Person
 from PyQt5.QtCore import QAbstractTableModel, QSortFilterProxyModel, Qt, \
-                        QDateTime
+                        QDateTime, QModelIndex
 from PyQt5.QtGui import QColor
 import logging
 
@@ -103,6 +103,15 @@ class MembersTableModel(QAbstractTableModel):
             row = index.row()
             col = index.column()
             return self.member_data(self.pubkeys[row])[col]
+
+    def person_index(self, pubkey):
+        try:
+            row = self.pubkeys.index(pubkey)
+            index_start = self.index(row, 0)
+            index_end = self.index(row, len(self.columns_ids))
+            return (index_start, index_end)
+        except ValueError:
+            return (QModelIndex(), QModelIndex())
 
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled
