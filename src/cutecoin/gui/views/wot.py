@@ -216,7 +216,7 @@ class Node(QGraphicsEllipseItem):
             outline_width = 2
         if not self.status_member:
             outline_color = QColor('red')
-            outline_style = Qt.DashLine
+            outline_style = Qt.SolidLine
         self.setPen(QPen(outline_color, outline_width, outline_style))
 
         # text inside ellipse
