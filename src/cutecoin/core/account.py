@@ -277,4 +277,5 @@ class Account(QObject):
         return data
 
     def get_person(self):
-        return Person(self.name, self.pubkey)
+        return Person.from_metadata({'text': self.name,
+                                     'id': self.pubkey})
