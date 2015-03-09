@@ -9,10 +9,6 @@ from ucoinpy.api import bma
 from cutecoin.core.person import Person
 
 
-def get_person_from_metadata(metadata):
-    return Person(metadata['text'], metadata['id'])
-
-
 class WotTabWidget(QWidget, Ui_WotTabWidget):
     def __init__(self, account, community, password_asker, parent=None):
         """
@@ -61,7 +57,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         logging.debug("Draw graph - " + metadata['text'])
 
         # create Person from node metadata
-        person = get_person_from_metadata(metadata)
+        person = Person.from_metadata(metadata)
         person_account = Person(self.account.name, self.account.pubkey)
         certifier_list = person.certifiers_of(self.community)
         certified_list = person.certified_by(self.community)
@@ -142,22 +138,22 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         )
 
     def member_informations(self, metadata):
-        person = get_person_from_metadata(metadata)
+        person = Person.from_metadata(metadata)
         self.parent.member_informations(person)
 
     def sign_node(self, metadata):
-        person = get_person_from_metadata(metadata)
+        person = Person.from_metadata(metadata)
         self.parent.certify_member(person)
 
     def send_money_to_node(self, metadata):
-        person = get_person_from_metadata(metadata)
+        person = Person.from_metadata(metadata)
         self.parent.send_money_to_member(person)
 
     def add_node_as_contact(self, metadata):
         # check if contact already exists...
         if metadata['id'] == self.account.pubkey or metadata['id'] in [contact.pubkey for contact in self.account.contacts]:
             return False
-        person = get_person_from_metadata(metadata)
+        person = Person.from_metadata(metadata)
         self.parent.add_member_as_contact(person)
 
     def get_block_mediantime(self, number):
@@ -167,6 +163,3 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             logging.debug('community.get_block request error : ' + str(e))
             return False
         return block.mediantime
-
-    def get_person_from_metadata(self, metadata):
-        return Person.from_metadata(metadata['text'], metadata['id'])

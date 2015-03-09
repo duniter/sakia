@@ -107,7 +107,9 @@ class Person(object):
         raise PersonNotFoundError(pubkey, community.name())
 
     @classmethod
-    def from_metadata(cls, name, pubkey):
+    def from_metadata(cls, metadata):
+        name = metadata['text']
+        pubkey = metadata['id']
         if pubkey in Person._instances:
             return Person._instances[pubkey]
         else:
