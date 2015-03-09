@@ -17,6 +17,9 @@ from requests.exceptions import RequestException
 
 
 class Cache():
+    _saved_requests = [hash(bma.blockchain.Block),
+                       hash(bma.wot.Lookup)]
+
     def __init__(self, community):
         self.latest_block = 0
         self.community = community
@@ -32,9 +35,8 @@ class Cache():
         self.latest_block = data['latest_block']
 
     def jsonify(self):
-        saved_requests = [hash(bma.blockchain.Block)]
         data = {k: self.data[k] for k in self.data.keys()
-                   if k[0] in saved_requests}
+                   if k[0] in Cache._saved_requests}
         entries = []
         for d in data:
             entries.append({'key': d,
@@ -44,9 +46,8 @@ class Cache():
 
     def refresh(self):
         self.latest_block = self.community.current_blockid()['number']
-        saved_requests = [hash(bma.blockchain.Block)]
         self.data = {k: self.data[k] for k in self.data.keys()
-                   if k[0] in saved_requests}
+                   if k[0] in Cache._saved_requests}
 
     def request(self, request, req_args={}, get_args={}):
         cache_key = (hash(request),
@@ -85,25 +86,30 @@ class Community(object):
         self._cache.refresh()
 
     @classmethod
-    def create(cls, currency, peer):
-        community = cls(currency, [peer])
+    def create(cls, node):
+        network = Network.create(node)
+        community = cls(node.currency, network)
         logging.debug("Creating community")
         return community
 
     @classmethod
     def load(cls, json_data):
         currency = json_data['currency']
-
         network = Network.from_json(currency, json_data['peers'])
-
         community = cls(currency, network)
         return community
+
+    def load_network(self, json_data):
+        self._network.merge_with_json(json_data['network'])
 
     def load_cache(self, json_data):
         self._cache.load_from_json(json_data)
 
     def jsonify_cache(self):
         return self._cache.jsonify()
+
+    def jsonify_network(self):
+        return {'network': self._network.jsonify()}
 
     def name(self):
         return self.currency

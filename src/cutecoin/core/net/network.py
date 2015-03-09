@@ -31,10 +31,13 @@ class Network(QObject):
         for n in self._nodes:
             n.changed.connect(self.nodes_changed)
         self.must_crawl = False
-        #TODO: Crawl nodes at startup
 
     @classmethod
     def from_json(cls, currency, json_data):
+        '''
+        We load the nodes which we know for sure since we
+        used them at the community creation
+        '''
         nodes = []
         for data in json_data:
             node = Node.from_json(currency, data)
@@ -42,23 +45,34 @@ class Network(QObject):
             logging.debug("Loading : {:}".format(data['pubkey']))
         block_max = max([n.block for n in nodes])
         for node in nodes:
-            node.check_sync(currency, block_max)
+            node.check_sync(block_max)
         return cls(currency, nodes)
 
+    def merge_with_json(self, json_data):
+        '''
+        We merge with dynamic nodes detected when we
+        last stopped cutecoin
+        '''
+        for data in json_data:
+            node = Node.from_json(self.currency, data)
+            self._nodes.append(node)
+            logging.debug("Loading : {:}".format(data['pubkey']))
+        self._nodes = self.crawling()
+
     @classmethod
-    def create(cls, currency, node):
+    def create(cls, node):
         nodes = [node]
-        network = cls(currency, nodes)
-        nodes = network.crawling
+        network = cls(node.currency, nodes)
+        nodes = network.crawling()
         block_max = max([n.block for n in nodes])
         for node in nodes:
-            node.check_sync(currency, block_max)
+            node.check_sync(block_max)
         network._nodes = nodes
         return network
 
     def jsonify(self):
         data = []
-        for node in self.nodes:
+        for node in self._nodes:
             data.append(node.jsonify())
         return data
 
@@ -105,13 +119,13 @@ class Network(QObject):
             logging.debug("Peering : next to read : {0} : {1}".format(n.pubkey,
                           (n.pubkey not in traversed_pubkeys)))
             if n.pubkey not in traversed_pubkeys:
-                n.peering_traversal(self.currency, nodes,
+                n.peering_traversal(nodes,
                                     traversed_pubkeys, interval)
                 time.sleep(interval)
 
         block_max = max([n.block for n in nodes])
         for node in [n for n in nodes if n.state == Node.ONLINE]:
-            node.check_sync(self.currency, block_max)
+            node.check_sync(block_max)
 
         #TODO: Offline nodes for too long have to be removed
         #TODO: Corrupted nodes should maybe be removed faster ?

@@ -17,6 +17,7 @@ from ..gen_resources.community_cfg_uic import Ui_CommunityConfigurationDialog
 from ..models.peering import PeeringTreeModel
 from ..core.community import Community
 from ..core.person import Person
+from ..core.net.node import Node
 from ..tools.exceptions import PersonNotFoundError, NoPeerAvailable
 
 
@@ -33,6 +34,7 @@ class StepPageInit(Step):
     '''
     def __init__(self, config_dialog):
         super().__init__(config_dialog)
+        self.node = None
         logging.debug("Init")
 
     def is_valid(self):
@@ -40,38 +42,21 @@ class StepPageInit(Step):
         port = self.config_dialog.spinbox_port.value()
         logging.debug("Is valid ? ")
         try:
-            peer_data = bma.network.Peering(ConnectionHandler(server, port))
-            peer_data.get()['raw']
-        except:
-            QMessageBox.critical(self.config_dialog, "Server error",
-                              "Cannot get node peering")
-            return False
+            self.node = Node.from_address(None, server, port)
+        except Exception as e:
+            QMessageBox.critical(self.config_dialog, ":(",
+                        str(e),
+                        QMessageBox.Ok)
+
         return True
 
     def process_next(self):
         '''
         We create the community
         '''
-        server = self.config_dialog.lineedit_server.text()
-        port = self.config_dialog.spinbox_port.value()
         account = self.config_dialog.account
         logging.debug("Account : {0}".format(account))
-        try:
-            peering = bma.network.Peering(ConnectionHandler(server, port))
-            peer_data = peering.get()
-            peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],
-                                                          peer_data['signature']))
-            currency = peer.currency
-            self.config_dialog.community = Community.create(currency, peer)
-        except NoPeerAvailable:
-            QMessageBox.critical(self.config_dialog, "Server Error",
-                              "Cannot join any peer in this community.")
-            raise
-        except requests.exceptions.RequestException as e:
-            QMessageBox.critical(self.config_dialog, ":(",
-                        str(e),
-                        QMessageBox.Ok)
-            raise
+        self.config_dialog.community = Community.create(self.node)
 
     def display_page(self):
         self.config_dialog.button_previous.setEnabled(False)
@@ -168,19 +153,13 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         '''
         server = self.lineedit_server.text()
         port = self.spinbox_port.value()
-        try:
-            peer_data = bma.network.Peering(ConnectionHandler(server, port)).get()
 
-            peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],
-                                                      peer_data['signature']))
-            if peer.currency == self.community.currency:
-                self.community.add_peer(peer)
-            else:
-                QMessageBox.critical(self, "Error",
-                                     "This peer doesn't use this community currency.")
-        except requests.exceptions.RequestException as e:
-            QMessageBox.critical(self, "Server error",
-                              "Cannot get node peering")
+        try:
+            node = Node.from_address(self.community.currency, server, port)
+            self.community.add_node(node)
+        except Exception as e:
+            QMessageBox.critical(self, "Error",
+                                 str(e))
         self.tree_peers.setModel(PeeringTreeModel(self.community))
 
     def showContextMenu(self, point):

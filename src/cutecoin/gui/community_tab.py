@@ -57,7 +57,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         model = self.table_community_members.model()
         if index.row() < model.rowCount():
             source_index = model.mapToSource(index)
-            pubkey_col = model.sourceModel().columns.index('Pubkey')
+            pubkey_col = model.sourceModel().columns_ids.index('pubkey')
             pubkey_index = model.sourceModel().index(source_index.row(),
                                                    pubkey_col)
             pubkey = model.sourceModel().data(pubkey_index, Qt.DisplayRole)
@@ -183,3 +183,6 @@ The process to join back the community later will have to be done again."""
                                      "{0}".format(e),
                                      QMessageBox.Ok)
 
+    def refresh_person(self, pubkey):
+        index = self.table_community_members.model().sourceModel().person_index(pubkey)
+        self.table_community_members.model().sourceModel().dataChanged.emit(index[0], index[1])

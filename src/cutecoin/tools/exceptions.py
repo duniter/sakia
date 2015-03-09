@@ -163,6 +163,19 @@ class NoPeerAvailable(Error):
             .format(currency, peers))
 
 
+class InvalidNodeCurrency(Error):
+    '''
+    Exception raised when a node doesn't use the intended currency
+    '''
+    def __init__(self, currency, node_currency):
+        '''
+        Constructor
+        '''
+        super() .__init__(
+            "Node is working for {0} currency, but should be {1}"
+            .format(node_currency, currency))
+
+
 class ContactAlreadyExists(Error):
     '''
     Exception raised when a community doesn't have any

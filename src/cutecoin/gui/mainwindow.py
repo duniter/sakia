@@ -179,7 +179,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def open_configure_account_dialog(self):
         dialog = ProcessConfigureAccount(self.app, self.app.current_account)
         dialog.accepted.connect(self.refresh)
-        dialog.exec_()
+        result = dialog.exec_()
+        if result == QDialog.Accepted:
+            self.action_change_account(self.app.current_account.name)
 
     def open_about_popup(self):
         """
@@ -320,6 +322,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def closeEvent(self, event):
         if self.app.current_account:
             self.app.save_cache(self.app.current_account)
+        self.app.save_persons()
         self.loader.deleteLater()
         self.loader_thread.deleteLater()
         super().closeEvent(event)
