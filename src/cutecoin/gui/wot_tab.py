@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 
-import time
-import datetime
 import logging
-from PyQt5.QtWidgets import QWidget, QComboBox, QDialog
+from cutecoin.core.graph import Graph
+from PyQt5.QtWidgets import QWidget, QComboBox
 from ..gen_resources.wot_tab_uic import Ui_WotTabWidget
 from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_SELECTED, NODE_STATUS_OUT, ARC_STATUS_STRONG, ARC_STATUS_WEAK
 from ucoinpy.api import bma
-from .certification import CertificationDialog
-from cutecoin.gui.contact import ConfigureContactDialog
-from .transfer import TransferMoneyDialog
 from cutecoin.core.person import Person
+
+
+def get_person_from_metadata(metadata):
+    return Person(metadata['text'], metadata['id'])
 
 
 class WotTabWidget(QWidget, Ui_WotTabWidget):
@@ -39,6 +39,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         self.graphicsView.scene().node_signed.connect(self.sign_node)
         self.graphicsView.scene().node_transaction.connect(self.send_money_to_node)
         self.graphicsView.scene().node_contact.connect(self.add_node_as_contact)
+        self.graphicsView.scene().node_member.connect(self.member_informations)
 
         self.account = account
         self.community = community
@@ -46,9 +47,6 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
 
         # nodes list for menu from search
         self.nodes = list()
-        self.signature_validity = self.community.get_parameters()['sigValidity']
-        # arc considered strong during 75% of signature validity time
-        self.ARC_STATUS_STRONG_time = int(self.signature_validity * 0.75)
 
         # create node metadata from account
         metadata = {'text': self.account.name, 'id': self.account.pubkey}
@@ -60,120 +58,40 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
 
         :param dict metadata: Graph node metadata of the identity
         """
-        # create Person from node metadata
-        person = self.get_person_from_metadata(metadata)
-        certifiers = person.certifiers_of(self.community)
+        logging.debug("Draw graph - " + metadata['text'])
 
-        # reset graph
-        graph = dict()
+        # create Person from node metadata
+        person = get_person_from_metadata(metadata)
+        person_account = Person(self.account.name, self.account.pubkey)
+        certifier_list = person.certifiers_of(self.community)
+        certified_list = person.certified_by(self.community)
+
+        # create empty graph instance
+        graph = Graph(self.community)
 
         # add wallet node
         node_status = 0
-        if person.pubkey == self.account.pubkey:
+        if person.pubkey == person_account.pubkey:
             node_status += NODE_STATUS_HIGHLIGHTED
         if person.is_member(self.community) is False:
             node_status += NODE_STATUS_OUT
         node_status += NODE_STATUS_SELECTED
+        graph.add_person(person, node_status)
 
-        # center node
-        graph[person.pubkey] = {
-            'id': person.pubkey,
-            'arcs': list(),
-            'text': person.name,
-            'tooltip':  person.pubkey,
-            'status': node_status
-        }
-
-        # add certifiers of uid
-        for certifier in certifiers:
-            # new node
-            if certifier['pubkey'] not in graph.keys():
-                node_status = 0
-                if certifier['pubkey'] == self.account.pubkey:
-                    node_status += NODE_STATUS_HIGHLIGHTED
-                if certifier['isMember'] is False:
-                    node_status += NODE_STATUS_OUT
-                graph[certifier['pubkey']] = {
-                    'id': certifier['pubkey'],
-                    'arcs': list(),
-                    'text': certifier['uid'],
-                    'tooltip': certifier['pubkey'],
-                    'status': node_status
-                }
-            # add only valid certification...
-            if (time.time() - certifier['cert_time']['medianTime']) > self.signature_validity:
-                continue
-            # keep only the latest certification
-            if graph[certifier['pubkey']]['arcs']:
-                if certifier['cert_time']['medianTime'] < graph[certifier['pubkey']]['arcs'][0]['cert_time']:
-                    continue
-                # display validity status
-            if (time.time() - certifier['cert_time']['medianTime']) > self.ARC_STATUS_STRONG_time:
-                arc_status = ARC_STATUS_WEAK
-            else:
-                arc_status = ARC_STATUS_STRONG
-            arc = {
-                'id': person.pubkey,
-                'status': arc_status,
-                'tooltip': datetime.datetime.fromtimestamp(
-                    certifier['cert_time']['medianTime'] + self.signature_validity
-                ).strftime("%d/%m/%Y"),
-                'cert_time': certifier['cert_time']['medianTime']
-            }
-            graph[certifier['pubkey']]['arcs'] = [arc]
-
-        # add certified by uid
-        for certified in person.certified_by(self.community):
-            if certified['pubkey'] not in graph.keys():
-                node_status = 0
-                if certified['pubkey'] == self.account.pubkey:
-                    node_status += NODE_STATUS_HIGHLIGHTED
-                if certified['isMember'] is False:
-                    node_status += NODE_STATUS_OUT
-
-                graph[certified['pubkey']] = {
-                    'id': certified['pubkey'],
-                    'arcs': list(),
-                    'text': certified['uid'],
-                    'tooltip': certified['pubkey'],
-                    'status': node_status
-                }
-            # add only valid certification...
-            if (time.time() - certified['cert_time']['medianTime']) > self.signature_validity:
-                continue
-            # display validity status
-            if (time.time() - certified['cert_time']['medianTime']) > self.ARC_STATUS_STRONG_time:
-                arc_status = ARC_STATUS_WEAK
-            else:
-                arc_status = ARC_STATUS_STRONG
-            arc = {
-                'id': certified['pubkey'],
-                'status': arc_status,
-                'tooltip': datetime.datetime.fromtimestamp(
-                    certified['cert_time']['medianTime'] + self.signature_validity
-                ).strftime("%d/%m/%Y"),
-                'cert_time': certified['cert_time']['medianTime']
-            }
-
-            # replace old arc if this one is more recent
-            new_arc = True
-            index = 0
-            for a in graph[person.pubkey]['arcs']:
-                # if same arc already exists...
-                if a['id'] == arc['id']:
-                    # if arc more recent, dont keep old one...
-                    if arc['cert_time'] >= a['cert_time']:
-                        graph[person.pubkey]['arcs'][index] = arc
-                    new_arc = False
-                index += 1
-
-            # if arc not in graph...
-            if new_arc:
-                # add arc in graph
-                graph[person.pubkey]['arcs'].append(arc)
+        # populate graph with certifiers-of
+        graph.add_certifier_list(certifier_list, person, person_account)
+        # populate graph with certified-by
+        graph.add_certified_list(certified_list, person, person_account)
 
         # draw graph in qt scene
         self.graphicsView.scene().update_wot(graph)
+
+        # if selected member is not the account member...
+        if person.pubkey != person_account.pubkey:
+            # add path from selected member to account member
+            path = graph.get_shortest_path_between_members(person, person_account)
+            if path:
+                self.graphicsView.scene().update_path(path)
 
     def reset(self):
         """
@@ -211,13 +129,6 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
                 self.comboBoxSearch.addItem(uid)
             self.comboBoxSearch.showPopup()
 
-        if len(nodes) == 1:
-            node = self.nodes[0]
-            metadata = {'id': node['pubkey'], 'text': node['uid']}
-            self.draw_graph(
-                metadata
-            )
-
     def select_node(self, index):
         """
         Select node in graph when item is selected in combobox
@@ -230,19 +141,23 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             metadata
         )
 
+    def member_informations(self, metadata):
+        person = get_person_from_metadata(metadata)
+        self.parent.member_informations(person)
+
     def sign_node(self, metadata):
-        person = self.get_person_from_metadata(metadata)
+        person = get_person_from_metadata(metadata)
         self.parent.certify_member(person)
 
     def send_money_to_node(self, metadata):
-        person = self.get_person_from_metadata(metadata)
+        person = get_person_from_metadata(metadata)
         self.parent.send_money_to_member(person)
 
     def add_node_as_contact(self, metadata):
         # check if contact already exists...
         if metadata['id'] == self.account.pubkey or metadata['id'] in [contact.pubkey for contact in self.account.contacts]:
             return False
-        person = self.get_person_from_metadata(metadata)
+        person = get_person_from_metadata(metadata)
         self.parent.add_member_as_contact(person)
 
     def get_block_mediantime(self, number):

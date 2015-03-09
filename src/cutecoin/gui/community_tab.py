@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import QWidget, QMessageBox, QAction, QMenu, QDialog, \
 from ..models.members import MembersFilterProxyModel, MembersTableModel
 from ..gen_resources.community_tab_uic import Ui_CommunityTabWidget
 from cutecoin.gui.contact import ConfigureContactDialog
+from cutecoin.gui.member import MemberDialog
 from .wot_tab import WotTabWidget
 from .transfer import TransferMoneyDialog
 from .password_asker import PasswordAskerDialog
@@ -64,6 +65,10 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             member = Person.lookup(pubkey, self.community)
             menu = QMenu(self)
 
+            informations = QAction("Informations", self)
+            informations.triggered.connect(self.menu_informations)
+            informations.setData(member)
+
             add_contact = QAction("Add as contact", self)
             add_contact.triggered.connect(self.menu_add_as_contact)
             add_contact.setData(member)
@@ -80,6 +85,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             view_wot.triggered.connect(self.view_wot)
             view_wot.setData(member)
 
+            menu.addAction(informations)
             menu.addAction(add_contact)
             menu.addAction(send_money)
             menu.addAction(certify)
@@ -87,6 +93,10 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
 
             # Show the context menu.
             menu.exec_(QCursor.pos())
+
+    def menu_informations(self):
+        person = self.sender().data()
+        self.member_informations(person)
 
     def menu_add_as_contact(self):
         person = self.sender().data()
@@ -99,6 +109,10 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
     def menu_certify_member(self):
         person = self.sender().data()
         self.certify_member(person)
+
+    def member_informations(self, person):
+        dialog = MemberDialog(self.account, self.community, person)
+        dialog.exec_()
 
     def add_member_as_contact(self, person):
         dialog = ConfigureContactDialog(self.account, self.window(), person)

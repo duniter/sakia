@@ -275,3 +275,6 @@ class Account(QObject):
                 'wallets': data_wallets,
                 'contacts': data_contacts}
         return data
+
+    def get_person(self):
+        return Person(self.name, self.pubkey)
