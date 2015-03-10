@@ -111,7 +111,7 @@ class Scene(QGraphicsScene):
         """
         draw community graph
 
-        :param cutecoin.core.graph.Graph graph: graph to draw
+        :param dict graph: graph to draw
         """
         #  clear scene
         self.clear()

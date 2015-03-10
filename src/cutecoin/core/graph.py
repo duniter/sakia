@@ -6,17 +6,35 @@ from cutecoin.core.person import Person
 from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_OUT, ARC_STATUS_STRONG, ARC_STATUS_WEAK
 
 
-class Graph(dict):
-    def __init__(self, community):
+class Graph(object):
+    def __init__(self, community, graph=None):
         """
         Init Graph instance
         :param cutecoin.core.community.Community community:
         :return:
         """
+
         self.community = community
         self.signature_validity = self.community.get_parameters()['sigValidity']
         #  arc considered strong during 75% of signature validity time
         self.ARC_STATUS_STRONG_time = int(self.signature_validity * 0.75)
+        # graph empty if None parameter
+        self._graph = graph or (dict() and (graph is None))
+
+    def set(self, graph):
+        """
+        Set the graph from dict
+        :param dict graph:
+        :return:
+        """
+        self._graph = graph
+
+    def get(self):
+        """
+        Return the graph dict
+        :return:
+        """
+        return self._graph
 
     def get_shortest_path_between_members(self, from_person, to_person):
         """
@@ -26,22 +44,21 @@ class Graph(dict):
         :return:
         """
         path = list()
-        graph_tmp = copy.deepcopy(self)
 
         logging.debug("path between %s to %s..." % (from_person.name, to_person.name))
-        if from_person.pubkey not in graph_tmp.keys():
-            graph_tmp.add_person(from_person)
+        if from_person.pubkey not in self._graph.keys():
+            self.add_person(from_person)
             certifier_list = from_person.certifiers_of(self.community)
-            graph_tmp.add_certifier_list(certifier_list, from_person, to_person)
+            self.add_certifier_list(certifier_list, from_person, to_person)
             certified_list = from_person.certified_by(self.community)
-            graph_tmp.add_certified_list(certified_list, from_person, to_person)
+            self.add_certified_list(certified_list, from_person, to_person)
 
-        if to_person.pubkey not in graph_tmp.keys():
+        if to_person.pubkey not in self._graph.keys():
             # recursively feed graph searching for account node...
-            graph_tmp.explore_to_find_member(to_person, graph_tmp[from_person.pubkey]['connected'], list())
-        if len(graph_tmp[from_person.pubkey]['connected']) > 0:
+            self.explore_to_find_member(to_person, self._graph[from_person.pubkey]['connected'], list())
+        if len(self._graph[from_person.pubkey]['connected']) > 0:
             # calculate path of nodes between person and to_person
-            path = graph_tmp.find_shortest_path(graph_tmp[from_person.pubkey], graph_tmp[to_person.pubkey])
+            path = self.find_shortest_path(self._graph[from_person.pubkey], self._graph[to_person.pubkey])
 
         if path:
             logging.debug([node['text'] for node in path])
@@ -63,27 +80,27 @@ class Graph(dict):
         connected = connected or (list() and (connected is None))
         done = done or (list() and (done is None))
         logging.debug("search %s in " % person.name)
-        logging.debug([self[pubkey]['text'] for pubkey in connected])
+        logging.debug([self._graph[pubkey]['text'] for pubkey in connected])
         # for each pubkey connected...
         for pubkey in tuple(connected):
             # capture node connected
-            node = self[pubkey]
+            node = self._graph[pubkey]
             if node['id'] in tuple(done):
                 continue
             person_selected = Person(node['text'], node['id'])
             certifier_list = person_selected.certifiers_of(self.community)
             self.add_certifier_list(certifier_list, person_selected, person)
-            if person.pubkey in tuple(self.keys()):
+            if person.pubkey in tuple(self._graph.keys()):
                 return False
             certified_list = person_selected.certified_by(self.community)
             self.add_certified_list(certified_list, person_selected, person)
-            if person.pubkey in tuple(self.keys()):
+            if person.pubkey in tuple(self._graph.keys()):
                 return False
             if node['id'] not in tuple(done):
                 done.append(node['id'])
-            if len(done) >= len(self):
+            if len(done) >= len(self._graph):
                 return True
-            result = self.explore_to_find_member(person, self[person_selected.pubkey]['connected'], done)
+            result = self.explore_to_find_member(person, self._graph[person_selected.pubkey]['connected'], done)
             if not result:
                 return False
 
@@ -101,11 +118,11 @@ class Graph(dict):
         path = path + [start]
         if start['id'] == end['id']:
             return path
-        if start['id'] not in self.keys():
+        if start['id'] not in self._graph.keys():
             return None
         shortest = None
-        for pubkey in tuple(self[start['id']]['connected']):
-            node = self[pubkey]
+        for pubkey in tuple(self._graph[start['id']]['connected']):
+            node = self._graph[pubkey]
             if node not in path:
                 newpath = self.find_shortest_path(node, end, path)
                 if newpath:
@@ -127,13 +144,13 @@ class Graph(dict):
             if (time.time() - certifier['cert_time']['medianTime']) > self.signature_validity:
                 continue
             # new node
-            if certifier['pubkey'] not in self.keys():
+            if certifier['pubkey'] not in self._graph.keys():
                 node_status = 0
                 if certifier['pubkey'] == person_account.pubkey:
                     node_status += NODE_STATUS_HIGHLIGHTED
                 if certifier['isMember'] is False:
                     node_status += NODE_STATUS_OUT
-                self[certifier['pubkey']] = {
+                self._graph[certifier['pubkey']] = {
                     'id': certifier['pubkey'],
                     'arcs': list(),
                     'text': certifier['uid'],
@@ -143,8 +160,8 @@ class Graph(dict):
                 }
 
             # keep only the latest certification
-            if self[certifier['pubkey']]['arcs']:
-                if certifier['cert_time']['medianTime'] < self[certifier['pubkey']]['arcs'][0]['cert_time']:
+            if self._graph[certifier['pubkey']]['arcs']:
+                if certifier['cert_time']['medianTime'] < self._graph[certifier['pubkey']]['arcs'][0]['cert_time']:
                     continue
             # display validity status
             if (time.time() - certifier['cert_time']['medianTime']) > self.ARC_STATUS_STRONG_time:
@@ -160,11 +177,11 @@ class Graph(dict):
                 'cert_time': certifier['cert_time']['medianTime']
             }
             #  add arc to certifier
-            self[certifier['pubkey']]['arcs'].append(arc)
+            self._graph[certifier['pubkey']]['arcs'].append(arc)
             # if certifier node not in person nodes
-            if certifier['pubkey'] not in tuple(self[person.pubkey]['connected']):
+            if certifier['pubkey'] not in tuple(self._graph[person.pubkey]['connected']):
                 # add certifier node to person node
-                self[person.pubkey]['connected'].append(certifier['pubkey'])
+                self._graph[person.pubkey]['connected'].append(certifier['pubkey'])
 
     def add_certified_list(self, certified_list, person, person_account):
         """
@@ -179,13 +196,13 @@ class Graph(dict):
             # add only valid certification...
             if (time.time() - certified['cert_time']['medianTime']) > self.signature_validity:
                 continue
-            if certified['pubkey'] not in self.keys():
+            if certified['pubkey'] not in self._graph.keys():
                 node_status = 0
                 if certified['pubkey'] == person_account.pubkey:
                     node_status += NODE_STATUS_HIGHLIGHTED
                 if certified['isMember'] is False:
                     node_status += NODE_STATUS_OUT
-                self[certified['pubkey']] = {
+                self._graph[certified['pubkey']] = {
                     'id': certified['pubkey'],
                     'arcs': list(),
                     'text': certified['uid'],
@@ -210,23 +227,23 @@ class Graph(dict):
             # replace old arc if this one is more recent
             new_arc = True
             index = 0
-            for a in self[person.pubkey]['arcs']:
+            for a in self._graph[person.pubkey]['arcs']:
                 # if same arc already exists...
                 if a['id'] == arc['id']:
                     # if arc more recent, dont keep old one...
                     if arc['cert_time'] >= a['cert_time']:
-                        self[person.pubkey]['arcs'][index] = arc
+                        self._graph[person.pubkey]['arcs'][index] = arc
                     new_arc = False
                 index += 1
 
             #  if arc not in graph...
             if new_arc:
                 # add arc in graph
-                self[person.pubkey]['arcs'].append(arc)
+                self._graph[person.pubkey]['arcs'].append(arc)
             # if certified node not in person nodes
-            if certified['pubkey'] not in tuple(self[person.pubkey]['connected']):
+            if certified['pubkey'] not in tuple(self._graph[person.pubkey]['connected']):
                 # add certified node to person node
-                self[person.pubkey]['connected'].append(certified['pubkey'])
+                self._graph[person.pubkey]['connected'].append(certified['pubkey'])
 
     def add_person(self, person, status=None, arcs=None, connected=None):
         """
@@ -241,7 +258,7 @@ class Graph(dict):
         status = status or (0 and (status is None))
         arcs = arcs or (list() and (arcs is None))
         connected = connected or (list() and (connected is None))
-        self[person.pubkey] = {
+        self._graph[person.pubkey] = {
             'id': person.pubkey,
             'arcs': arcs,
             'text': person.name,
