@@ -84,7 +84,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         graph.add_certified_list(certified_list, person, person_account)
 
         # draw graph in qt scene
-        self.graphicsView.scene().update_wot(graph)
+        self.graphicsView.scene().update_wot(graph.get())
 
         # if selected member is not the account member...
         if person.pubkey != person_account.pubkey:
