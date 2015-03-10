@@ -17,8 +17,8 @@ from .wot_tab import WotTabWidget
 from .transfer import TransferMoneyDialog
 from .password_asker import PasswordAskerDialog
 from .certification import CertificationDialog
-from ..core.person import Person
 from ..tools.exceptions import PersonNotFoundError, NoPeerAvailable
+from ..core.person import Person
 
 
 class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):

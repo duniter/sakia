@@ -70,7 +70,8 @@ class Node(QObject):
         for endpoint_data in data['endpoints']:
             endpoints.append(Endpoint.from_inline(endpoint_data))
 
-        currency = data['currency']
+        if currency in data:
+            currency = data['currency']
 
         node = cls(currency, endpoints, "", 0, Node.ONLINE)
         node.refresh_state()
