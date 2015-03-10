@@ -87,7 +87,7 @@ class Graph(object):
             node = self._graph[pubkey]
             if node['id'] in tuple(done):
                 continue
-            person_selected = Person(node['text'], node['id'])
+            person_selected = Person.from_metadata(node)
             certifier_list = person_selected.certifiers_of(self.community)
             self.add_certifier_list(certifier_list, person_selected, person)
             if person.pubkey in tuple(self._graph.keys()):
