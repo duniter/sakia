@@ -46,6 +46,9 @@ class Loader(QObject):
             except requests.exceptions.RequestException as e:
                 self.connection_error.emit(str(e))
                 self.loaded.emit()
+            except NoPeerAvailable as e:
+                self.connection_error.emit(str(e))
+                self.loaded.emit()
 
         self.loaded.emit()
 
