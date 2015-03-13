@@ -123,7 +123,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
     def send_money_to_member(self, person):
         dialog = TransferMoneyDialog(self.account, self.password_asker)
         dialog.edit_pubkey.setText(person.pubkey)
-        dialog.combo_community.setCurrentText(self.community.name())
+        dialog.combo_community.setCurrentText(self.community.name)
         dialog.radio_pubkey.setChecked(True)
         if dialog.exec_() == QDialog.Accepted:
             currency_tab = self.window().currencies_tabwidget.currentWidget()
@@ -131,7 +131,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
 
     def certify_member(self, person):
         dialog = CertificationDialog(self.account, self.password_asker)
-        dialog.combo_community.setCurrentText(self.community.name())
+        dialog.combo_community.setCurrentText(self.community.name)
         dialog.edit_pubkey.setText(person.pubkey)
         dialog.radio_pubkey.setChecked(True)
         dialog.exec_()

@@ -17,7 +17,12 @@ from PyQt5.QtCore import QObject, pyqtSignal
 
 class Node(QObject):
     '''
-    classdocs
+    A node is a peer seend from the client point of view.
+    This node can have multiple states :
+    - ONLINE : The node is available for requests
+    - OFFLINE: The node is disconnected
+    - DESYNCED : The node is online but is desynced from the network
+    - CORRUPTED : The node is corrupted, some weird behaviour is going on
     '''
 
     ONLINE = 1
@@ -29,7 +34,13 @@ class Node(QObject):
 
     def __init__(self, currency, endpoints, pubkey, block, state):
         '''
-        Constructor
+        Constructor of a node
+
+        :param str currency: The currency name of this node community
+        :param list endpoints: Endpoints ucoinpy objects
+        :param str pubkey: The node pubkey
+        :param int block: The node last current block
+        :param state: The state of the node
         '''
         super().__init__()
         self._endpoints = endpoints
@@ -41,6 +52,14 @@ class Node(QObject):
 
     @classmethod
     def from_address(cls, currency, address, port):
+        '''
+        Factory method to get a node from a given address
+
+        :param str currency: The node currency. None if we don't know\
+         the currency it should have, for example if its the first one we add
+        :param str address: The node address
+        :param int port: The node port
+        '''
         peer_data = bma.network.Peering(ConnectionHandler(address, port)).get()
 
         peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],
@@ -56,6 +75,13 @@ class Node(QObject):
 
     @classmethod
     def from_peer(cls, currency, peer):
+        '''
+        Factory method to get a node from a peer document.
+
+        :param str currency: The node currency. None if we don't know\
+         the currency it should have, for example if its the first one we add
+        :param peer: The peer document
+        '''
         if currency is not None:
             if peer.currency != currency:
                 raise InvalidNodeCurrency(peer.currency, currency)

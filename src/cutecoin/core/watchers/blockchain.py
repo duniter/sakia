@@ -16,7 +16,7 @@ class BlockchainWatcher(QObject):
         super().__init__()
         self.account = account
         self.community = community
-        self.time_to_wait = int(self.community.get_parameters()['avgGenTime'] / 10)
+        self.time_to_wait = int(self.community.parameters['avgGenTime'] / 10)
         self.exiting = False
         blockid = self.community.current_blockid()
         self.last_block = blockid['number']

@@ -73,10 +73,10 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         try:
             join_block = person.membership(self.community)['blockNumber']
             join_date = self.community.get_block(join_block).mediantime
-            parameters = self.community.get_parameters()
+            parameters = self.community.parameters
             expiration_date = join_date + parameters['sigValidity']
             current_time = time.time()
-            sig_validity = self.community.get_parameters()['sigValidity']
+            sig_validity = self.community.parameters['sigValidity']
             warning_expiration_time = int(sig_validity / 3)
             will_expire_soon = (current_time > expiration_date - warning_expiration_time)
 
@@ -251,7 +251,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         wallet_index = [w.pubkey for w in self.app.current_account.wallets].index(sender)
         dialog.combo_wallets.setCurrentIndex(wallet_index)
         dialog.edit_pubkey.setText(transfer.metadata['receiver'])
-        dialog.combo_community.setCurrentText(self.community.name())
+        dialog.combo_community.setCurrentText(self.community.name)
         dialog.spinbox_amount.setValue(transfer.metadata['amount'])
         dialog.radio_pubkey.setChecked(True)
         dialog.edit_message.setText(transfer.metadata['comment'])

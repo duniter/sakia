@@ -17,13 +17,17 @@ from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 
 class Network(QObject):
     '''
-    classdocs
+    A network is managing nodes polling and crawling of a
+    given community.
     '''
     nodes_changed = pyqtSignal()
 
     def __init__(self, currency, nodes):
         '''
-        Constructor
+        Constructor of a network
+
+        :param str currency: The currency name of the community
+        :param list nodes: The nodes of the network
         '''
         super().__init__()
         self.currency = currency
@@ -33,10 +37,43 @@ class Network(QObject):
         self.must_crawl = False
 
     @classmethod
+    def create(cls, node):
+        '''
+        Create a new network with one knew node
+        Crawls the nodes from the first node to build the
+        community network
+
+        :param node: The first knew node of the network
+        '''
+        nodes = [node]
+        network = cls(node.currency, nodes)
+        nodes = network.crawling()
+        block_max = max([n.block for n in nodes])
+        for node in nodes:
+            node.check_sync(block_max)
+        network._nodes = nodes
+        return network
+
+    def merge_with_json(self, json_data):
+        '''
+        We merge with knew nodes when we
+        last stopped cutecoin
+
+        :param dict json_data: Nodes in json format
+        '''
+        for data in json_data:
+            node = Node.from_json(self.currency, data)
+            self._nodes.append(node)
+            logging.debug("Loading : {:}".format(data['pubkey']))
+        self._nodes = self.crawling()
+
+    @classmethod
     def from_json(cls, currency, json_data):
         '''
-        We load the nodes which we know for sure since we
-        used them at the community creation
+        Load a network from a configured community
+
+        :param str currency: The currency name of a community
+        :param dict json_data: A json_data view of a network
         '''
         nodes = []
         for data in json_data:
@@ -48,53 +85,49 @@ class Network(QObject):
             node.check_sync(block_max)
         return cls(currency, nodes)
 
-    def merge_with_json(self, json_data):
-        '''
-        We merge with dynamic nodes detected when we
-        last stopped cutecoin
-        '''
-        for data in json_data:
-            node = Node.from_json(self.currency, data)
-            self._nodes.append(node)
-            logging.debug("Loading : {:}".format(data['pubkey']))
-        self._nodes = self.crawling()
-
-    @classmethod
-    def create(cls, node):
-        nodes = [node]
-        network = cls(node.currency, nodes)
-        nodes = network.crawling()
-        block_max = max([n.block for n in nodes])
-        for node in nodes:
-            node.check_sync(block_max)
-        network._nodes = nodes
-        return network
-
     def jsonify(self):
+        '''
+        Get the network in json format.
+
+        :return: The network as a dict in json format.
+        '''
         data = []
         for node in self._nodes:
             data.append(node.jsonify())
         return data
 
-    def __del__(self):
-        self.must_crawl = False
-
     def stop_crawling(self):
+        '''
+        Stop network nodes crawling.
+        '''
         self.must_crawl = False
 
     @property
     def online_nodes(self):
+        '''
+        Get nodes which are in the ONLINE state.
+        '''
         return [n for n in self._nodes if n.state == Node.ONLINE]
 
     @property
     def all_nodes(self):
+        '''
+        Get all knew nodes.
+        '''
         return self._nodes.copy()
 
     def add_nodes(self, node):
+        '''
+        Add a node to the network.
+        '''
         self._nodes.append(node)
         node.changed.connect(self.nodes_changed)
 
     def start_perpetual_crawling(self):
+        '''
+        Start crawling which never stops.
+        To stop this crawling, call "stop_crawling" method.
+        '''
         self.must_crawl = True
         while self.must_crawl:
             nodes = self.crawling(interval=10)
@@ -112,6 +145,11 @@ class Network(QObject):
                     n.changed.connect(self.nodes_changed)
 
     def crawling(self, interval=0):
+        '''
+        One network crawling.
+
+        :param int interval: The interval between two nodes request.
+        '''
         nodes = []
         traversed_pubkeys = []
         for n in self._nodes.copy():

@@ -30,9 +30,9 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
     def refresh(self):
         #  try to request money parameters
         try:
-            params = self.community.get_parameters()
+            params = self.community.parameters
         except Exception as e:
-            logging.debug('community get_parameters error : ' + str(e))
+            logging.debug('community parameters error : ' + str(e))
             return False
 
         #  try to request money variables from last ud block

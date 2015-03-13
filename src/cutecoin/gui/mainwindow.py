@@ -97,6 +97,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.loader.loaded.connect(self.loader_thread.quit)
         self.loader.connection_error.connect(self.display_error)
         self.loader_thread.started.connect(self.loader.load)
+        #TODO: There are too much refresh() calls on startup
         self.refresh()
 
     def open_add_account_dialog(self):
@@ -227,7 +228,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     tab_currency.refresh()
                     self.currencies_tabwidget.addTab(tab_currency,
                                                      QIcon(":/icons/currency_icon"),
-                                                     community.name())
+                                                     community.name)
                 except NoPeerAvailable as e:
                     QMessageBox.critical(self, "Could not join {0}".format(community.currency),
                                 str(e),

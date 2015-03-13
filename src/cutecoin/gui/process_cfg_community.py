@@ -184,7 +184,7 @@ Would you like to publish the key ?""".format(self.account.pubkey))
                 if self.password_asker.result() == QDialog.Rejected:
                     return
                 try:
-                    self.account.send_pubkey(password, self.community)
+                    self.account.send_selfcert(password, self.community)
                 except ValueError as e:
                     QMessageBox.critical(self, "Pubkey publishing error",
                                       e.message)

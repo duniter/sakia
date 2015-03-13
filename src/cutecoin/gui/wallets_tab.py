@@ -33,7 +33,7 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
         self.refresh()
 
     def refresh(self):
-        parameters = self.community.get_parameters()
+        parameters = self.community.parameters
         last_renewal = ""
         expiration = ""
         certifiers = 0

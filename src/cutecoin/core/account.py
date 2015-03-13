@@ -6,8 +6,6 @@ Created on 1 févr. 2014
 
 from ucoinpy import PROTOCOL_VERSION
 from ucoinpy.api import bma
-from ucoinpy.api.bma import ConnectionHandler
-from ucoinpy.documents.peer import Peer
 from ucoinpy.documents.certification import SelfCertification, Certification
 from ucoinpy.documents.membership import Membership
 from ucoinpy.key import SigningKey
@@ -20,7 +18,7 @@ from PyQt5.QtCore import QObject, pyqtSignal, Qt
 from .wallet import Wallet
 from .community import Community
 from .person import Person
-from ..tools.exceptions import NoPeerAvailable, ContactAlreadyExists
+from ..tools.exceptions import ContactAlreadyExists
 
 
 def quantitative(units, community):
@@ -63,31 +61,53 @@ class Account(QObject):
 
     loading_progressed = pyqtSignal(int, int)
 
-    def __init__(self, salt, pubkey, name, communities, wallets, contacts,
-                 dead_communities):
+    def __init__(self, salt, pubkey, name, communities, wallets, contacts):
         '''
-        Constructor
+        Create an account
+
+        :param str salt: The root key salt
+        :param str pubkey: Known account pubkey. Used to check that password \
+         is OK by comparing (salt, given_passwd) = (pubkey, privkey) \
+         with known pubkey
+        :param str name: The account name, same as network identity uid
+        :param array communities: Community objects referenced by this account
+        :param array wallets: Wallet objects owned by this account
+        :param array contacts: Contacts of this account
+
+        .. warnings:: The class methods create and load should be used to create an account
         '''
         super().__init__()
         self.salt = salt
         self.pubkey = pubkey
         self.name = name
         self.communities = communities
-        self.dead_communities = dead_communities
         self.wallets = wallets
         self.contacts = contacts
         self.referential = 'Units'
 
     @classmethod
-    def create(cls, name, communities, wallets, confpath):
+    def create(cls, name):
         '''
-        Constructor
+        Factory method to create an empty account object
+        This new account doesn't have any key and it should be given
+        one later
+        It doesn't have any community nor does it have wallets.
+        Communities could be added later, wallets will be managed
+        by its wallet pool size.
+
+        :param str name: The account name, same as network identity uid
+        :return: A new empty account object
         '''
-        account = cls(None, None, name, communities, wallets, [], [])
+        account = cls(None, None, name, [], [], [], [])
         return account
 
     @classmethod
     def load(cls, json_data):
+        '''
+        Factory method to create an Account object from its json view.
+        :param dict json_data: The account view as a json dict
+        :return: A new account object created from the json datas
+        '''
         salt = json_data['salt']
         pubkey = json_data['pubkey']
 
@@ -102,25 +122,35 @@ class Account(QObject):
             wallets.append(Wallet.load(data))
 
         communities = []
-        dead_communities = []
         for data in json_data['communities']:
             community = Community.load(data)
             communities.append(community)
 
         account = cls(salt, pubkey, name, communities, wallets,
-                      contacts, dead_communities)
+                      contacts)
         return account
 
     def __eq__(self, other):
+        '''
+        :return: True if account.pubkey == other.pubkey
+        '''
         if other is not None:
             return other.pubkey == self.pubkey
         else:
             return False
 
     def check_password(self, password):
+        '''
+        Method to verify the key password validity
+
+        :param str password: The key password
+        :return: True if the generated pubkey is the same as the account
+        .. warnings:: Generates a new temporary SigningKey
+        '''
         key = SigningKey(self.salt, password)
         return (key.pubkey == self.pubkey)
 
+#TODO: Contacts should be pure json, not Person objects
     def add_contact(self, person):
         same_contact = [contact for contact in self.contacts
                         if person.pubkey == contact.pubkey]
@@ -130,11 +160,21 @@ class Account(QObject):
         self.contacts.append(person)
 
     def add_community(self, community):
-        logging.debug("Adding a community")
+        '''
+        Add a community to the account
+
+        :param community: A community object to add
+        '''
         self.communities.append(community)
         return community
 
     def refresh_cache(self):
+        '''
+        Refresh the local account cache
+        This needs n_wallets * n_communities cache refreshing to end
+
+        .. note:: emit the Account pyqtSignal loading_progressed during refresh
+        '''
         loaded_wallets = 0
 
         def progressing(value, maximum):
@@ -166,15 +206,29 @@ class Account(QObject):
         return Account.referentials[self.referential][3].format(currency)
 
     def set_walletpool_size(self, size, password):
+        '''
+        Change the size of the wallet pool
+
+        :param int size: The new size of the wallet pool
+        :param str password: The password of the account, same for all wallets
+        '''
         logging.debug("Defining wallet pool size")
         if len(self.wallets) < size:
             for i in range(len(self.wallets), size):
-                wallet = Wallet.create(i, self.salt, password, "Wallet {0}".format(i))
+                wallet = Wallet.create(i, self.salt, password,
+                                       "Wallet {0}".format(i))
                 self.wallets.append(wallet)
         else:
             self.wallets = self.wallets[:size]
 
     def certify(self, password, community, pubkey):
+        '''
+        Certify an other identity
+
+        :param str password: The account SigningKey password
+        :param community: The community target of the certification
+        :param str pubkey: The certified identity pubkey
+        '''
         certified = Person.lookup(pubkey, community)
         blockid = community.current_blockid()
 
@@ -196,14 +250,14 @@ class Account(QObject):
         logging.debug("Posted data : {0}".format(data))
         community.broadcast(bma.wot.Add, {}, data)
 
-    def sources(self, community):
-        sources = []
-        for w in self.wallets:
-            for s in w.sources(community):
-                sources.append(s)
-        return sources
-
     def transfers(self, community):
+        '''
+        Get all transfers done in a community by all the wallets
+        owned by this account
+
+        :param community: The target community of this request
+        :return: All account wallets transfers
+        '''
         sent = []
         for w in self.wallets:
             for transfer in w.transfers(community):
@@ -211,20 +265,35 @@ class Account(QObject):
         return sent
 
     def amount(self, community):
+        '''
+        Get amount of money owned in a community by all the wallets
+        owned by this account
+
+        :param community: The target community of this request
+        :return: The value of all wallets values accumulated
+        '''
         value = 0
         for w in self.wallets:
             value += w.value(community)
         return value
 
     def member_of(self, community):
-        pubkeys = community.members_pubkeys()
-        if self.pubkey not in pubkeys:
-            logging.debug("{0} not found in members : {1}".format(self.pubkey,
-                                                                  pubkeys))
-            return False
-        return True
+        '''
+        Check if this account identity is a member of a community
 
-    def send_pubkey(self, password, community):
+        :param community: The target community of this request
+        :return: True if the account is a member of the target community
+        '''
+        self_person = Person.lookup(self.pubkey, community)
+        return self_person.is_member()
+
+    def send_selfcert(self, password, community):
+        '''
+        Send our self certification to a target community
+
+        :param str password: The account SigningKey password
+        :param community: The community target of the self certification
+        '''
         selfcert = SelfCertification(PROTOCOL_VERSION,
                                      community.currency,
                                      self.pubkey,
@@ -238,7 +307,14 @@ class Account(QObject):
                                     'self_': selfcert.signed_raw(),
                                     'other': []})
 
-    def send_membership(self, password, community, type):
+    def send_membership(self, password, community, mstype):
+        '''
+        Send a membership document to a target community
+
+        :param str password: The account SigningKey password
+        :param community: The community target of the membership document
+        :param str mstype: The type of membership demand. "IN" to join, "OUT" to leave
+        '''
         self_ = Person.lookup(self.pubkey, community)
         selfcert = self_.selfcert(community)
 
@@ -246,7 +322,7 @@ class Account(QObject):
 
         membership = Membership(PROTOCOL_VERSION, community.currency,
                           selfcert.pubkey, blockid['number'],
-                          blockid['hash'], type, selfcert.uid,
+                          blockid['hash'], mstype, selfcert.uid,
                           selfcert.timestamp, None)
         key = SigningKey(self.salt, password)
         membership.sign([key])
@@ -255,9 +331,13 @@ class Account(QObject):
                        {'membership': membership.signed_raw()})
 
     def jsonify(self):
+        '''
+        Get the account in a json format.
+
+        :return: A dict view of the account to be saved as json
+        '''
         data_communities = []
-        communities = self.communities + self.dead_communities
-        for c in communities:
+        for c in self.communities:
             data_communities.append(c.jsonify())
 
         data_wallets = []

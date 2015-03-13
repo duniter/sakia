@@ -60,6 +60,7 @@ class Cache():
     def transfers(self):
         return [t for t in self._transfers if t.state != Transfer.DROPPED]
 
+#TODO: Refactor to reduce this method size and split it to more methods
     def refresh(self, community):
         current_block = 0
         try:
@@ -153,7 +154,11 @@ class Wallet(QObject):
 
     def __init__(self, walletid, pubkey, name):
         '''
-        Constructor
+        Constructor of a wallet object
+
+        :param int walletid: The wallet number, unique between all wallets
+        :param str pubkey: The wallet pubkey
+        :param str name: The wallet name
         '''
         super().__init__()
         self.coins = []
@@ -164,6 +169,14 @@ class Wallet(QObject):
 
     @classmethod
     def create(cls, walletid, salt, password, name):
+        '''
+        Factory method to create a new wallet
+
+        :param int walletid: The wallet number, unique between all wallets
+        :param str salt: The account salt
+        :param str password: The account password
+        :param str name: The account name
+        '''
         if walletid == 0:
             key = SigningKey(salt, password)
         else:
@@ -172,32 +185,58 @@ class Wallet(QObject):
 
     @classmethod
     def load(cls, json_data):
+        '''
+        Factory method to load a saved wallet.
+
+        :param dict json_data: The wallet as a dict in json format
+        '''
         walletid = json_data['walletid']
         pubkey = json_data['pubkey']
         name = json_data['name']
         return cls(walletid, pubkey, name)
 
-    def __eq__(self, other):
-        return (self.keyid == other.keyid)
-
     def load_caches(self, json_data):
+        '''
+        Load this wallet caches.
+        Each cache correspond to one different community.
+
+        :param dict json_data: The caches as a dict in json format
+        '''
         for currency in json_data:
             if currency != 'version':
                 self.caches[currency] = Cache(self)
                 self.caches[currency].load_from_json(json_data[currency])
 
     def jsonify_caches(self):
+        '''
+        Get this wallet caches as json.
+
+        :return: The wallet caches as a dict in json format
+        '''
         data = {}
         for currency in self.caches:
             data[currency] = self.caches[currency].jsonify()
         return data
 
     def refresh_cache(self, community):
+        '''
+        Refresh the cache of this wallet for the specified community.
+
+        :param community: The community to refresh its cache
+        '''
         if community.currency not in self.caches:
             self.caches[community.currency] = Cache(self)
         self.caches[community.currency].refresh(community)
 
     def check_password(self, salt, password):
+        '''
+        Check if wallet password is ok.
+
+        :param salt: The account salt
+        :param password: The given password
+        :return: True if (salt, password) generates the good public key
+        .. warning:: Generates a new temporary SigningKey from salt and password
+        '''
         key = None
         if self.walletid == 0:
             key = SigningKey(salt, password)
@@ -205,22 +244,39 @@ class Wallet(QObject):
             key = SigningKey("{0}{1}".format(salt, self.walletid), password)
         return (key.pubkey == self.pubkey)
 
-    def show_value(self, community):
-        return self.referential(community)
-
     def relative_value(self, community):
+        '''
+        Get wallet value relative to last generated UD
+
+        :param community: The community to get value
+        :return: The wallet relative value
+        '''
         value = self.value(community)
         ud = community.dividend
         relative_value = value / float(ud)
         return relative_value
 
     def value(self, community):
+        '''
+        Get wallet absolute value
+
+        :param community: The community to get value
+        :return: The wallet absolute value
+        '''
         value = 0
         for s in self.sources(community):
             value += s.amount
         return value
 
     def tx_inputs(self, amount, community):
+        '''
+        Get inputs to generate a transaction with a given amount of money
+
+        :param int amount: The amount target value
+        :param community: The community target of the transaction
+
+        :return: The list of inputs to use in the transaction document
+        '''
         value = 0
         inputs = []
         cache = self.caches[community.currency]
@@ -239,6 +295,15 @@ class Wallet(QObject):
                                   len(inputs), amount)
 
     def tx_outputs(self, pubkey, amount, inputs):
+        '''
+        Get outputs to generate a transaction with a given amount of money
+
+        :param str pubkey: The target pubkey of the transaction
+        :param int amount: The amount to send
+        :param list inputs: The inputs used to send the given amount of money
+
+        :return: The list of outputs to use in the transaction document
+        '''
         outputs = []
         inputs_value = 0
         for i in inputs:
@@ -253,7 +318,16 @@ class Wallet(QObject):
 
     def send_money(self, salt, password, community,
                    recipient, amount, message):
+        '''
+        Send money to a given recipient in a specified community
 
+        :param str salt: The account salt
+        :param str password: The account password
+        :param community: The community target of the transfer
+        :param str recipient: The pubkey of the recipient
+        :param int amount: The amount of money to transfer
+        :param str message: The message to send with the transfer
+        '''
         time = community.get_block().mediantime
         block_number = community.current_blockid()['number']
         key = None
@@ -292,6 +366,12 @@ class Wallet(QObject):
         transfer.send(tx, community)
 
     def sources(self, community):
+        '''
+        Get available sources in a given community
+
+        :param community: The community where we want available sources
+        :return: List of InputSource ucoinpy objects
+        '''
         data = community.request(bma.tx.Sources,
                                  req_args={'pubkey': self.pubkey})
         tx = []
@@ -300,9 +380,20 @@ class Wallet(QObject):
         return tx
 
     def transfers(self, community):
+        '''
+        Get all transfers objects of this wallet
+
+        :param community: The community we want to get the executed transfers
+        :return: A list of Transfer objects
+        '''
         return self.caches[community.currency].transfers
 
     def jsonify(self):
+        '''
+        Get the wallet as json format.
+
+        :return: The wallet as a dict in json format.
+        '''
         return {'walletid': self.walletid,
                 'pubkey': self.pubkey,
                 'name': self.name}
