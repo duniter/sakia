@@ -101,8 +101,13 @@ class Person(object):
         if cached and pubkey in Person._instances:
             return Person._instances[pubkey]
         else:
-            data = community.request(bma.wot.Lookup, req_args={'search': pubkey},
-                                     cached=cached)
+            try:
+                data = community.request(bma.wot.Lookup, req_args={'search': pubkey},
+                                         cached=cached)
+            except ValueError as e:
+                if '404' in str(e):
+                    raise PersonNotFoundError(pubkey, community.name)
+
             timestamp = 0
 
             for result in data['results']:

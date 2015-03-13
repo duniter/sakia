@@ -168,7 +168,7 @@ class Application(QObject):
                 with open(network_path, 'r') as json_data:
                     data = json.load(json_data)
                 if 'version' in data and data['version'] == __version__:
-                    community.load_merge_network(data)
+                    community.load_merge_network(data['network'])
                 else:
                     os.remove(network_path)
 

@@ -285,7 +285,7 @@ class Account(QObject):
         :return: True if the account is a member of the target community
         '''
         self_person = Person.lookup(self.pubkey, community)
-        return self_person.is_member()
+        return self_person.is_member(community)
 
     def send_selfcert(self, password, community):
         '''
