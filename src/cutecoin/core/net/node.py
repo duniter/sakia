@@ -16,9 +16,9 @@ from PyQt5.QtCore import QObject, pyqtSignal
 
 
 class Node(QObject):
-    '''
+    """
     classdocs
-    '''
+    """
 
     ONLINE = 1
     OFFLINE = 2
@@ -27,10 +27,17 @@ class Node(QObject):
 
     changed = pyqtSignal()
 
-    def __init__(self, currency, endpoints, pubkey, block, state):
-        '''
+    def __init__(self, currency: str, endpoints: list, pubkey: str, block: int, state: int):
+        """
         Constructor
-        '''
+        :param str currency: Name of the currency
+        :param list endpoints: List of BMAEndpoint
+        :param str pubkey: Public key of the node owner
+        :param int block: Last block number
+        :param int state: State of the node
+        :return:
+        """
+
         super().__init__()
         self._endpoints = endpoints
         self._pubkey = pubkey
@@ -91,7 +98,7 @@ class Node(QObject):
         return self._pubkey
 
     @property
-    def endpoint(self):
+    def endpoint(self) -> BMAEndpoint:
         return next((e for e in self._endpoints if type(e) is BMAEndpoint))
 
     @property
@@ -193,3 +200,7 @@ class Node(QObject):
                     time.sleep(interval)
         except RequestException as e:
             self._state = Node.OFFLINE
+
+    def __str__(self):
+        return ','.join([str(self.pubkey), str(self.endpoint.server), str(self.endpoint.port), str(self.block),
+                         str(self.currency), str(self.state), str(self.neighbours)])
