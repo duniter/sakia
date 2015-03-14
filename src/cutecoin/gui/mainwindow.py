@@ -102,7 +102,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.loader.connection_error.connect(self.display_error)
         self.loader_thread.started.connect(self.loader.load)
 
-        self.homescreen = HomeScreenWidget()
+        self.homescreen = HomeScreenWidget(self.app)
         self.centralWidget().layout().addWidget(self.homescreen)
         self.homescreen.button_new.clicked.connect(self.open_add_account_dialog)
         self.homescreen.button_import.clicked.connect(self.import_account)
@@ -172,7 +172,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.status_label.setText("Loading account {0}".format(account_name))
         self.loader.set_account_name(account_name)
         self.loader_thread.start(QThread.LowPriority)
-        self.homescreen.setEnabled(False)
+        self.homescreen.button_new.setEnabled(False)
+        self.homescreen.button_import.setEnabled(False)
 
     def open_transfer_money_dialog(self):
         dialog = TransferMoneyDialog(self.app.current_account,
@@ -207,12 +208,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         aboutDialog = QDialog(self)
         aboutUi = Ui_AboutPopup()
         aboutUi.setupUi(aboutDialog)
+
+        latest = self.app.latest_version()
+        version_info = ""
+        version_url = ""
+        if not latest[0]:
+            version_info = "Latest release : {version}" \
+                            .format(version='.'.join(latest[1]))
+            version_url = latest[2]
+
+        new_version_text = """
+            <p><b>{version_info}</b></p>
+            <p><a href={version_url}>Download link</a></p>
+            """.format(version_info=version_info,
+                       version_url=version_url)
         text = """
         <h1>Cutecoin</h1>
 
         <p>Python/Qt uCoin client</p>
 
         <p>Version : {:}</p>
+        {new_version_text}
 
         <p>License : MIT</p>
 
@@ -221,7 +237,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         <p>inso</p>
         <p>vit</p>
         <p>canercandan</p>
-        """.format(__version__)
+        """.format(__version__,
+                   new_version_text=new_version_text)
         aboutUi.label.setText(text)
         aboutDialog.show()
 

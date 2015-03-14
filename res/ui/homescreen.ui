@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>301</height>
+    <height>325</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -20,7 +20,11 @@
    <string>Form</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">QToolButton {
+   <string notr="true">QLabel {
+	qproperty-alignment: AlignCenter;
+}
+
+QToolButton {
     font-size: 14pt;
     font-weight: bold;
 }</string>
@@ -42,10 +46,13 @@
    <item>
     <widget class="QLabel" name="label_welcome">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:xx-large; font-weight:600;&quot;&gt;Welcome to Cutecoin !&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Would you like to...&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;TestText&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="textFormat">
       <enum>Qt::RichText</enum>
+     </property>
+     <property name="openExternalLinks">
+      <bool>true</bool>
      </property>
     </widget>
    </item>

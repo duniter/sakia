@@ -9,6 +9,8 @@ import logging
 import json
 import tarfile
 import shutil
+import requests
+import datetime
 
 from PyQt5.QtCore import QObject, pyqtSignal
 
@@ -319,3 +321,22 @@ class Application(QObject):
         data = {'default_account': self.default_account,
                 'local_accounts': self.jsonify_accounts()}
         return data
+
+    def latest_version(self):
+        version = (True, __version__)
+        releases = requests.get("https://api.github.com/repos/ucoin-io/cutecoin/releases")
+        latest = None
+        for r in releases.json():
+            if not latest:
+                latest = r
+            else:
+                latest_date = datetime.datetime.strptime(latest['published_at'], "%Y-%m-%dT%H:%M:%SZ")
+                date = datetime.datetime.strptime(r['published_at'], "%Y-%m-%dT%H:%M:%SZ")
+                if latest_date < date:
+                    latest = r
+        latest_version = tuple(latest["tag_name"].split("."))
+        version = (__version__ == latest_version,
+                   latest_version,
+                   latest["html_url"])
+        logging.debug("Found version : {0}".format(latest_version))
+        return version
