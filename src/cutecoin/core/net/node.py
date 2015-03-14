@@ -16,9 +16,14 @@ from PyQt5.QtCore import QObject, pyqtSignal
 
 
 class Node(QObject):
-    """
-    classdocs
-    """
+    '''
+    A node is a peer seend from the client point of view.
+    This node can have multiple states :
+    - ONLINE : The node is available for requests
+    - OFFLINE: The node is disconnected
+    - DESYNCED : The node is online but is desynced from the network
+    - CORRUPTED : The node is corrupted, some weird behaviour is going on
+    '''
 
     ONLINE = 1
     OFFLINE = 2
@@ -27,17 +32,10 @@ class Node(QObject):
 
     changed = pyqtSignal()
 
-    def __init__(self, currency: str, endpoints: list, pubkey: str, block: int, state: int):
-        """
+    def __init__(self, currency, endpoints, pubkey, block, state):
+        '''
         Constructor
-        :param str currency: Name of the currency
-        :param list endpoints: List of BMAEndpoint
-        :param str pubkey: Public key of the node owner
-        :param int block: Last block number
-        :param int state: State of the node
-        :return:
-        """
-
+        '''
         super().__init__()
         self._endpoints = endpoints
         self._pubkey = pubkey
@@ -48,6 +46,14 @@ class Node(QObject):
 
     @classmethod
     def from_address(cls, currency, address, port):
+        '''
+        Factory method to get a node from a given address
+
+        :param str currency: The node currency. None if we don't know\
+         the currency it should have, for example if its the first one we add
+        :param str address: The node address
+        :param int port: The node port
+        '''
         peer_data = bma.network.Peering(ConnectionHandler(address, port)).get()
 
         peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],
@@ -57,12 +63,19 @@ class Node(QObject):
             if peer.currency != currency:
                 raise InvalidNodeCurrency(peer.currency, currency)
 
-        node = cls(peer.currency, peer.endpoints, peer.pubkey, 0, Node.ONLINE, 0)
+        node = cls(peer.currency, peer.endpoints, peer.pubkey, 0, Node.ONLINE)
         node.refresh_state()
         return node
 
     @classmethod
     def from_peer(cls, currency, peer):
+        '''
+        Factory method to get a node from a peer document.
+
+        :param str currency: The node currency. None if we don't know\
+         the currency it should have, for example if its the first one we add
+        :param peer: The peer document
+        '''
         if currency is not None:
             if peer.currency != currency:
                 raise InvalidNodeCurrency(peer.currency, currency)

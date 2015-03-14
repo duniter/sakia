@@ -9,7 +9,7 @@ class CommunityItemModel(object):
 
     def __init__(self, community, communities_item=None):
         self.communities_item = communities_item
-        self.community_text = community.name()
+        self.community_text = community.name
         self.main_node_items = []
 
     def appendChild(self, item):

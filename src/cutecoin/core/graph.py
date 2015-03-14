@@ -15,7 +15,7 @@ class Graph(object):
         """
 
         self.community = community
-        self.signature_validity = self.community.get_parameters()['sigValidity']
+        self.signature_validity = self.community.parameters['sigValidity']
         #  arc considered strong during 75% of signature validity time
         self.ARC_STATUS_STRONG_time = int(self.signature_validity * 0.75)
         # graph empty if None parameter

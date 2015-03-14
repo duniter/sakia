@@ -27,7 +27,7 @@ class CommunitiesListModel(QAbstractListModel):
 
         if role == Qt.DisplayRole:
             row = index.row()
-            value = self.communities[row].name()
+            value = self.communities[row].name
             return value
 
     def flags(self, index):

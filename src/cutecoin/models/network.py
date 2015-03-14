@@ -136,7 +136,6 @@ class NetworkTableModel(QAbstractTableModel):
                       Node.CORRUPTED: QColor(Qt.darkRed)
                       }
             return colors[node.state]
-        #TODO: Display colors depending on node state
 
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled

@@ -3,23 +3,27 @@ Created on 1 févr. 2014
 
 @author: inso
 '''
-from cutecoin.gen_resources.mainwindow_uic import Ui_MainWindow
+from ..gen_resources.mainwindow_uic import Ui_MainWindow
+from ..gen_resources.about_uic import Ui_AboutPopup
+from ..gen_resources.homescreen_uic import Ui_HomeScreenWidget
+
 from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog, QProgressBar, \
         QMessageBox, QLabel, QComboBox, QDialog
-from PyQt5.QtCore import QSignalMapper, QModelIndex, QObject, QThread, \
-    pyqtSlot, pyqtSignal, QDate, QDateTime, QTimer
-from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import QSignalMapper, QObject, QThread, \
+    pyqtSlot, pyqtSignal, QDate, QDateTime, QTimer, QUrl
+from PyQt5.QtGui import QIcon, QDesktopServices
+
 from .process_cfg_account import ProcessConfigureAccount
 from .transfer import TransferMoneyDialog
 from .currency_tab import CurrencyTabWidget
-from cutecoin.gui.contact import ConfigureContactDialog
+from .contact import ConfigureContactDialog
 from .import_account import ImportAccountDialog
 from .certification import CertificationDialog
 from .password_asker import PasswordAskerDialog
 from ..tools.exceptions import NoPeerAvailable
+from .homescreen import HomeScreenWidget
 from ..core.account import Account
 from ..__init__ import __version__
-from cutecoin.gen_resources.about_uic import Ui_AboutPopup
 
 import logging
 import requests
@@ -97,6 +101,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.loader.loaded.connect(self.loader_thread.quit)
         self.loader.connection_error.connect(self.display_error)
         self.loader_thread.started.connect(self.loader.load)
+
+        self.homescreen = HomeScreenWidget()
+        self.centralWidget().layout().addWidget(self.homescreen)
+        self.homescreen.button_new.clicked.connect(self.open_add_account_dialog)
+        self.homescreen.button_import.clicked.connect(self.import_account)
+        self.open_ucoin_info = lambda: QDesktopServices.openUrl(QUrl("http://ucoin.io/theoretical/"))
+        self.homescreen.button_info.clicked.connect(self.open_ucoin_info)
+
+        #TODO: There are too much refresh() calls on startup
         self.refresh()
 
     def open_add_account_dialog(self):
@@ -159,6 +172,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.status_label.setText("Loading account {0}".format(account_name))
         self.loader.set_account_name(account_name)
         self.loader_thread.start(QThread.LowPriority)
+        self.homescreen.setEnabled(False)
 
     def open_transfer_money_dialog(self):
         dialog = TransferMoneyDialog(self.app.current_account,
@@ -227,7 +241,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     tab_currency.refresh()
                     self.currencies_tabwidget.addTab(tab_currency,
                                                      QIcon(":/icons/currency_icon"),
-                                                     community.name())
+                                                     community.name)
                 except NoPeerAvailable as e:
                     QMessageBox.critical(self, "Could not join {0}".format(community.currency),
                                 str(e),
@@ -275,6 +289,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             signal_mapper.mapped[str].connect(self.action_change_account)
 
         if self.app.current_account is None:
+            self.currencies_tabwidget.hide()
+            self.homescreen.show()
             self.setWindowTitle("CuteCoin {0}".format(__version__))
             self.menu_contacts.setEnabled(False)
             self.menu_actions.setEnabled(False)
@@ -284,6 +300,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.status_label.setText("")
             self.password_asker = None
         else:
+            self.currencies_tabwidget.show()
+            self.homescreen.hide()
             self.action_set_as_default.setEnabled(self.app.current_account.name
                                                   != self.app.default_account)
             self.password_asker = PasswordAskerDialog(self.app.current_account)

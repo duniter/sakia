@@ -36,7 +36,7 @@ class MembersFilterProxyModel(QSortFilterProxyModel):
         expiration_index = self.sourceModel().index(source_index.row(), expiration_col)
         expiration_data = self.sourceModel().data(expiration_index, Qt.DisplayRole)
         current_time = QDateTime().currentDateTime().toMSecsSinceEpoch()
-        sig_validity = self.community.get_parameters()['sigValidity']
+        sig_validity = self.community.parameters['sigValidity']
         warning_expiration_time = int(sig_validity / 3)
         #logging.debug("{0} > {1}".format(current_time, expiration_data))
         will_expire_soon = (current_time > expiration_data*1000 - warning_expiration_time*1000)
@@ -94,7 +94,7 @@ class MembersTableModel(QAbstractTableModel):
         person = Person.lookup(pubkey, self.community)
         join_block = person.membership(self.community)['blockNumber']
         join_date = self.community.get_block(join_block).mediantime
-        parameters = self.community.get_parameters()
+        parameters = self.community.parameters
         expiration_date = join_date + parameters['sigValidity']
         return (person.name, pubkey, join_date, expiration_date)
 
