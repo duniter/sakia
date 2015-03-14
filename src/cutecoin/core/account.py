@@ -115,7 +115,7 @@ class Account(QObject):
         contacts = []
 
         for contact_data in json_data['contacts']:
-            contacts.append(Person.from_json(contact_data))
+            contacts.append(contact_data)
 
         wallets = []
         for data in json_data['wallets']:
@@ -150,14 +150,13 @@ class Account(QObject):
         key = SigningKey(self.salt, password)
         return (key.pubkey == self.pubkey)
 
-#TODO: Contacts should be pure json, not Person objects
-    def add_contact(self, person):
+    def add_contact(self, new_contact):
         same_contact = [contact for contact in self.contacts
-                        if person.pubkey == contact.pubkey]
+                        if new_contact['pubkey'] == contact['pubkey']]
 
         if len(same_contact) > 0:
-            raise ContactAlreadyExists(person.uid, same_contact[0].uid)
-        self.contacts.append(person)
+            raise ContactAlreadyExists(new_contact['name'], same_contact[0]['name'])
+        self.contacts.append(new_contact)
 
     def add_community(self, community):
         '''
@@ -344,16 +343,12 @@ class Account(QObject):
         for w in self.wallets:
             data_wallets.append(w.jsonify())
 
-        data_contacts = []
-        for p in self.contacts:
-            data_contacts.append(p.jsonify())
-
         data = {'name': self.name,
                 'salt': self.salt,
                 'pubkey': self.pubkey,
                 'communities': data_communities,
                 'wallets': data_wallets,
-                'contacts': data_contacts}
+                'contacts': self.contacts}
         return data
 
     def get_person(self):

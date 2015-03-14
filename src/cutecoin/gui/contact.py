@@ -4,6 +4,8 @@ Created on 2 févr. 2014
 @author: inso
 '''
 import re
+import logging
+
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QMessageBox
 from ..core.person import Person
 from ..tools.exceptions import ContactAlreadyExists
@@ -16,7 +18,7 @@ class ConfigureContactDialog(QDialog, Ui_ConfigureContactDialog):
     classdocs
     '''
 
-    def __init__(self, account, parent=None, contact=None, edit=False):
+    def __init__(self, account, parent=None, contact=None, index_edit=None):
         '''
         Constructor
         '''
@@ -24,27 +26,36 @@ class ConfigureContactDialog(QDialog, Ui_ConfigureContactDialog):
         self.setupUi(self)
         self.account = account
         self.main_window = parent
-        self.contact = contact
-        if contact:
-            self.edit_name.setText(contact.name)
-            self.edit_pubkey.setText(contact.pubkey)
-        if edit:
+        self.index_edit = index_edit
+        if type(contact) is Person:
+            self.contact = {'name': contact.name,
+                            'pubkey': contact.pubkey}
+        elif type(contact) is dict:
+            self.contact = contact
+
+        if index_edit is not None:
+            self.contact = account.contacts[index_edit]
             self.button_box.button(QDialogButtonBox.Ok).setEnabled(False)
+
+        if self.contact:
+            self.edit_name.setText(self.contact['name'])
+            self.edit_pubkey.setText(self.contact['pubkey'])
 
     def accept(self):
         name = self.edit_name.text()
         pubkey = self.edit_pubkey.text()
-        if self.contact:
-            self.contact.name = name
-            self.contact.pubkey = pubkey
+        if self.index_edit is not None:
+            self.account.contacts[self.index_edit] = {'name': name,
+                          'pubkey': pubkey}
+            logging.debug(self.contact)
         else:
             try:
-                self.account.add_contact(Person.from_metadata(name, pubkey))
+                self.account.add_contact({'name': name,
+                                          'pubkey': pubkey})
             except ContactAlreadyExists as e:
                 QMessageBox.critical(self, "Contact already exists",
                             str(e),
                             QMessageBox.Ok)
-                return
         self.main_window.app.save(self.account)
         super().accept()
 

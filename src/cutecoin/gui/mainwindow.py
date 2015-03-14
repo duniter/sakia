@@ -156,8 +156,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @pyqtSlot()
     def edit_contact(self):
-        contact = self.sender().data()
-        dialog = ConfigureContactDialog(self.app.current_account, self, contact, True)
+        index = self.sender().data()
+        dialog = ConfigureContactDialog(self.app.current_account, self, None, index)
         result = dialog.exec_()
         if result == QDialog.Accepted:
             self.window().refresh_contacts()
@@ -272,11 +272,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def refresh_contacts(self):
         self.menu_contacts_list.clear()
         if self.app.current_account:
-            for contact in self.app.current_account.contacts:
-                contact_menu = self.menu_contacts_list.addMenu(contact.name)
+            for index, contact in enumerate(self.app.current_account.contacts):
+                contact_menu = self.menu_contacts_list.addMenu(contact['name'])
                 edit_action = contact_menu.addAction("Edit")
                 edit_action.triggered.connect(self.edit_contact)
-                edit_action.setData(contact)
+                edit_action.setData(index)
                 delete_action = contact_menu.addAction("Delete")
                 delete_action.setData(contact)
                 delete_action.triggered.connect(self.delete_contact)
@@ -287,14 +287,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.app.save(self.app.current_account)
         self.action_set_as_default.setEnabled(False)
 
-    '''
-    Refresh main window
-    When the selected account changes, all the widgets
-    in the window have to be refreshed
-    '''
-
     def refresh(self):
-        logging.debug("Refresh finished")
+        '''
+        Refresh main window
+        When the selected account changes, all the widgets
+        in the window have to be refreshed
+        '''
+        logging.debug("Refresh started")
         self.menu_change_account.clear()
         signal_mapper = QSignalMapper(self)
 

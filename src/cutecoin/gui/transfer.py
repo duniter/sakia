@@ -44,7 +44,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
             self.combo_wallets.addItem(wallet.name)
 
         for contact in sender.contacts:
-            self.combo_contact.addItem(contact.name)
+            self.combo_contact.addItem(contact['name'])
 
         if len(self.account.contacts) == 0:
             self.combo_contact.setEnabled(False)
@@ -56,7 +56,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
 
         if self.radio_contact.isChecked():
             index = self.combo_contact.currentIndex()
-            recipient = self.account.contacts[index].pubkey
+            recipient = self.account.contacts[index]['pubkey']
         else:
             recipient = self.edit_pubkey.text()
         amount = self.spinbox_amount.value()
