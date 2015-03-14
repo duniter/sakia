@@ -11,7 +11,7 @@ from ucoinpy.api import bma
 from ucoinpy import PROTOCOL_VERSION
 from ucoinpy.documents.certification import SelfCertification
 from ucoinpy.documents.membership import Membership
-from cutecoin.tools.exceptions import PersonNotFoundError,\
+from ..tools.exceptions import Error, PersonNotFoundError,\
                                         MembershipNotFoundError
 from PyQt5.QtCore import QMutex
 
@@ -51,6 +51,8 @@ class cached(object):
         except KeyError:
             value = self.func(inst, community)
             inst._cache[community.currency][self.func.__name__] = value
+        finally:
+            inst._cache_mutex.unlock()
 
         inst._cache_mutex.unlock()
         return value
@@ -341,29 +343,33 @@ class Person(object):
         :return: True if a changed was made by the reload.
         '''
         self._cache_mutex.lock()
-        if community.currency not in self._cache:
-            self._cache[community.currency] = {}
-
-        change = False
         try:
+            if community.currency not in self._cache:
+                self._cache[community.currency] = {}
+
+            change = False
             before = self._cache[community.currency][func.__name__]
+
+            value = func(self, community)
+
+            if not change:
+                if type(value) is dict:
+                    hash_before = (hash(tuple(frozenset(sorted(before.keys())))),
+                                 hash(tuple(frozenset(sorted(before.items())))))
+                    hash_after = (hash(tuple(frozenset(sorted(value.keys())))),
+                                 hash(tuple(frozenset(sorted(value.items())))))
+                    change = hash_before != hash_after
+                elif type(value) is bool:
+                    change = before != value
+
+            self._cache[community.currency][func.__name__] = value
+
         except KeyError:
             change = True
-
-        value = func(self, community)
-
-        if not change:
-            if type(value) is dict:
-                hash_before = (hash(tuple(frozenset(sorted(before.keys())))),
-                             hash(tuple(frozenset(sorted(before.items())))))
-                hash_after = (hash(tuple(frozenset(sorted(value.keys())))),
-                             hash(tuple(frozenset(sorted(value.items())))))
-                change = hash_before != hash_after
-            elif type(value) is bool:
-                change = before != value
-
-        self._cache[community.currency][func.__name__] = value
-        self._cache_mutex.unlock()
+        except Error:
+            return False
+        finally:
+            self._cache_mutex.unlock()
         return change
 
     def jsonify(self):
