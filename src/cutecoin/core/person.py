@@ -146,7 +146,6 @@ class Person(object):
             return person
 
     @classmethod
-    #TODO: Remove name from person, contats should not use the person class
     def from_json(cls, json_data):
         '''
         Create a person from json data
@@ -197,7 +196,7 @@ class Person(object):
                                              signature)
         raise PersonNotFoundError(self.pubkey, community.name)
 
-#TODO: Cache this data by returning only the timestamp instead of a datetime object
+    @cached
     def get_join_date(self, community):
         '''
         Get the person join date.
@@ -211,7 +210,7 @@ class Person(object):
             membership_data = None
             if len(search['memberships']) > 0:
                 membership_data = search['memberships'][0]
-                return datetime.datetime.fromtimestamp(community.get_block(membership_data['blockNumber']).mediantime).strftime("%d/%m/%Y %I:%M")
+                return community.get_block(membership_data['blockNumber']).mediantime
             else:
                 return None
         except ValueError as e:
