@@ -47,8 +47,6 @@ class Cache():
 
         :return: The cache as a dict in json format
         '''
-        #TODO: Change the requests caching because hashed keys are different
-        #from a cutecoin run to another
         data = {k: self.data[k] for k in self.data.keys()
                    if k[0] in Cache._saved_requests}
         entries = []

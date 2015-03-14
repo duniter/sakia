@@ -60,6 +60,73 @@ class Cache():
     def transfers(self):
         return [t for t in self._transfers if t.state != Transfer.DROPPED]
 
+    def _parse_transaction(self, community, block_number, mediantime, tx):
+
+        receivers = [o.pubkey for o in tx.outputs
+                     if o.pubkey != tx.issuers[0]]
+
+        metadata = {'block': block_number,
+                    'time': mediantime,
+                    'comment': tx.comment,
+                    'issuer': tx.issuers[0],
+                    'receiver': receivers[0]}
+
+        in_issuers = len([i for i in tx.issuers
+                     if i == self.wallet.pubkey]) > 0
+        in_outputs = len([o for o in tx.outputs
+                       if o.pubkey == self.wallet.pubkey]) > 0
+
+        # If the wallet pubkey is in the issuers we sent this transaction
+        if in_issuers:
+            outputs = [o for o in tx.outputs
+                       if o.pubkey != self.wallet.pubkey]
+            amount = 0
+            for o in outputs:
+                amount += o.amount
+            metadata['amount'] = amount
+
+            awaiting = [t for t in self._transfers
+                        if t.state == Transfer.AWAITING]
+            # We check if the transaction correspond to one we sent
+            if tx.signed_raw() not in [t.txdoc.signed_raw() for t in awaiting]:
+                transfer = Transfer.create_validated(tx,
+                                                     metadata.copy())
+                self._transfers.append(transfer)
+        # If we are not in the issuers,
+        # maybe it we are in the recipients of this transaction
+        elif in_outputs:
+            outputs = [o for o in tx.outputs
+                       if o.pubkey == self.wallet.pubkey]
+            amount = 0
+            for o in outputs:
+                amount += o.amount
+            metadata['amount'] = amount
+
+            self._transfers.append(Received(tx,
+                                            metadata.copy()))
+
+    def _parse_block(self, community, block_number):
+        block = community.request(bma.blockchain.Block,
+                                  req_args={'number': block_number})
+        signed_raw = "{0}{1}\n".format(block['raw'],
+                                       block['signature'])
+        try:
+            block_doc = Block.from_signed_raw(signed_raw)
+        except:
+            logging.debug("Error in {0}".format(block_number))
+            raise
+        for tx in block_doc.transactions:
+            self._parse_transaction(community, tx, block_number, block_doc.mediantime)
+
+        awaiting = [t for t in self._transfers
+                    if t.state == Transfer.AWAITING]
+        # After we checked all transactions, we check if
+        # sent transactions still waiting for validation
+        # have to be considered refused
+        for transfer in awaiting:
+            transfer.check_registered(tx, block_number,
+                                      block_doc.mediantime)
+
 #TODO: Refactor to reduce this method size and split it to more methods
     def refresh(self, community):
         current_block = 0
@@ -82,60 +149,13 @@ class Cache():
             self.wallet.refresh_progressed.emit(self.latest_block, current_block)
 
             for block_number in parsed_blocks:
-                block = community.request(bma.blockchain.Block,
-                                  req_args={'number': block_number})
-                signed_raw = "{0}{1}\n".format(block['raw'],
-                                               block['signature'])
-                try:
-                    block_doc = Block.from_signed_raw(signed_raw)
-                except:
-                    logging.debug("Error in {0}".format(block_number))
-                    raise
-                for tx in block_doc.transactions:
-                    metadata = {'block': block_number,
-                            'time': block_doc.mediantime,
-                            'comment': tx.comment,
-                            'issuer': tx.issuers[0]}
-                    receivers = [o.pubkey for o in tx.outputs
-                                 if o.pubkey != metadata['issuer']]
-                    metadata['receiver'] = receivers[0]
-                    in_issuers = len([i for i in tx.issuers
-                                 if i == self.wallet.pubkey]) > 0
-                    if in_issuers:
-                        outputs = [o for o in tx.outputs
-                                   if o.pubkey != self.wallet.pubkey]
-                        amount = 0
-                        for o in outputs:
-                            amount += o.amount
-                        metadata['amount'] = amount
-
-                        awaiting = [t for t in self._transfers
-                                    if t.state == Transfer.AWAITING]
-                        awaiting_docs = [t.txdoc.signed_raw() for t in awaiting]
-                        if tx.signed_raw() not in awaiting_docs:
-                            transfer = Transfer.create_validated(tx,
-                                                                 metadata.copy())
-                            self._transfers.append(transfer)
-                        else:
-                            for transfer in awaiting:
-                                transfer.check_registered(tx, block_number,
-                                                          block_doc.mediantime)
-                    else:
-                        outputs = [o for o in tx.outputs
-                                   if o.pubkey == self.wallet.pubkey]
-                        if len(outputs) > 0:
-                            amount = 0
-                            for o in outputs:
-                                amount += o.amount
-                            metadata['amount'] = amount
-                            self._transfers.append(Received(tx,
-                                                            metadata.copy()))
-                logging.debug("Receivers : {0}".format(self.wallet.receivers(self.wallet.refresh_progressed)))
+                self._parse_block(community, block_number)
                 self.wallet.refresh_progressed.emit(current_block - block_number,
                                                      current_block - self.latest_block)
 
             if current_block > self.latest_block:
-                    self.available_sources = self.wallet.sources(community)
+                self.available_sources = self.wallet.sources(community)
+
             for transfer in awaiting:
                 transfer.check_refused(current_block)
 
