@@ -31,7 +31,6 @@ class NetworkTabWidget(QWidget, Ui_NetworkTabWidget):
         self.watcher_thread = QThread()
         self.network_watcher.moveToThread(self.watcher_thread)
         self.watcher_thread.started.connect(self.network_watcher.watch)
-        self.watcher_thread.start()
 
         community.network.nodes_changed.connect(self.refresh_nodes)
 
@@ -42,4 +41,8 @@ class NetworkTabWidget(QWidget, Ui_NetworkTabWidget):
         super().closeEvent(event)
         self.network_watcher.deleteLater()
         self.watcher_thread.deleteLater()
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        self.watcher_thread.start()
 

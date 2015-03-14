@@ -251,7 +251,7 @@ class Application(QObject):
                                         community.currency + '_network')
 
             with open(network_path, 'w') as outfile:
-                data = community.jsonify_network()
+                data['network'] = community.jsonify_network()
                 data['version'] = __version__
                 json.dump(data, outfile, indent=4, sort_keys=True)
 
