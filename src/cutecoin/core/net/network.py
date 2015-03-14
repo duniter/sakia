@@ -3,10 +3,6 @@ Created on 24 févr. 2015
 
 @author: inso
 '''
-
-from ucoinpy.documents.peer import Peer, BMAEndpoint
-from ucoinpy.api import bma
-
 from .node import Node
 
 import logging
@@ -166,6 +162,7 @@ class Network(QObject):
             node.check_sync(block_max)
 
         #TODO: Offline nodes for too long have to be removed
+
         #TODO: Corrupted nodes should maybe be removed faster ?
 
         logging.debug("Nodes found : {0}".format(nodes))

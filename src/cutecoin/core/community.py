@@ -17,8 +17,7 @@ from requests.exceptions import RequestException
 
 
 class Cache():
-    _saved_requests = [hash(bma.blockchain.Block),
-                       hash(bma.wot.Lookup)]
+    _saved_requests = [str(bma.blockchain.Block)]
 
     def __init__(self, community):
         '''
@@ -48,6 +47,8 @@ class Cache():
 
         :return: The cache as a dict in json format
         '''
+        #TODO: Change the requests caching because hashed keys are different
+        #from a cutecoin run to another
         data = {k: self.data[k] for k in self.data.keys()
                    if k[0] in Cache._saved_requests}
         entries = []
@@ -75,11 +76,11 @@ class Cache():
         :param req_args: The arguments passed to the request constructor
         :param get_args: The arguments passed to the requests __get__ method
         '''
-        cache_key = (hash(request),
-                     hash(tuple(frozenset(sorted(req_args.keys())))),
-                     hash(tuple(frozenset(sorted(req_args.items())))),
-                     hash(tuple(frozenset(sorted(get_args.keys())))),
-                     hash(tuple(frozenset(sorted(get_args.items())))))
+        cache_key = (str(request),
+                     str(tuple(frozenset(sorted(req_args.keys())))),
+                     str(tuple(frozenset(sorted(req_args.items())))),
+                     str(tuple(frozenset(sorted(get_args.keys())))),
+                     str(tuple(frozenset(sorted(get_args.items())))))
 
         if cache_key not in self.data.keys():
             result = self.community.request(request, req_args, get_args,
