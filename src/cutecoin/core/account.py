@@ -98,7 +98,7 @@ class Account(QObject):
         :param str name: The account name, same as network identity uid
         :return: A new empty account object
         '''
-        account = cls(None, None, name, [], [], [], [])
+        account = cls(None, None, name, [], [], [])
         return account
 
     @classmethod

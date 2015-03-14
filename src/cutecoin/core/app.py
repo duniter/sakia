@@ -67,8 +67,7 @@ class Application(QObject):
             if a == name:
                 raise NameAlreadyExists(a)
 
-        account = Account.create(name,
-                                 config.parameters)
+        account = Account.create(name)
 
         return account
 

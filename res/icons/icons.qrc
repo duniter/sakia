@@ -1,5 +1,8 @@
 <RCC>
   <qresource prefix="icons">
+    <file alias="add_account_icon">noun_7440_cc.svg</file>
+    <file alias="ucoin_info_icon">noun_76373_cc.svg</file>
+    <file alias="import_icon">noun_62479_cc.svg</file>
     <file alias="network_icon">noun_21549_cc.svg</file>
     <file alias="member_icon">iconmonstr-user-icon.svg</file>
     <file alias="informations_icon">iconmonstr-info-2-icon.svg</file>

@@ -69,7 +69,7 @@ class Node(QObject):
             if peer.currency != currency:
                 raise InvalidNodeCurrency(peer.currency, currency)
 
-        node = cls(peer.currency, peer.endpoints, peer.pubkey, 0, Node.ONLINE, 0)
+        node = cls(peer.currency, peer.endpoints, peer.pubkey, 0, Node.ONLINE)
         node.refresh_state()
         return node
 
