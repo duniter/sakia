@@ -19,7 +19,6 @@ class NetworkWatcher(QObject):
 
     @pyqtSlot()
     def watch(self):
-        #self.community.network.moveToThread(self.thread())
         self.community.network.start_perpetual_crawling()
 
     @pyqtSlot()

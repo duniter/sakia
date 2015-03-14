@@ -5,12 +5,13 @@ Created on 15 févr. 2015
 '''
 
 import logging
-from PyQt5.QtWidgets import QWidget, QMenu, QAction, QApplication
+from PyQt5.QtWidgets import QWidget, QMenu, QAction, QApplication, QDialog
 from PyQt5.QtCore import QDateTime, QModelIndex, Qt
 from PyQt5.QtGui import QCursor
 from ..core.person import Person
 from ..core.wallet import Wallet
 from ..models.wallets import WalletsTableModel, WalletsFilterProxyModel
+from .transfer import TransferMoneyDialog
 from ..tools.exceptions import MembershipNotFoundError
 from ..gen_resources.wallets_tab_uic import Ui_WalletsTab
 
@@ -20,7 +21,7 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
     classdocs
     '''
 
-    def __init__(self, app, account, community):
+    def __init__(self, app, account, community, password_asker):
         '''
         Constructor
         '''
@@ -29,6 +30,7 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
         self.app = app
         self.account = account
         self.community = community
+        self.password_asker = password_asker
 
         self.refresh()
 
@@ -82,11 +84,12 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             </table>
             """.format("Your money share : ", "{:.2f}%".format(amount/maximum*100),
-                       "Your part : ", "{:.2f} {:} in [{:.2f} - {:.2f}] {:}".format(self.get_referential_value(amount),
-                                                                    self.get_referential_name(),
-                                                                   self.get_referential_value(0),
-                                                                   self.get_referential_value(maximum),
-                                                                   self.get_referential_name())
+                       "Your part : ", "{:.2f} {:} in [{:.2f} - {:.2f}] {:}"
+                       .format(self.get_referential_value(amount),
+                            self.get_referential_name(),
+                           self.get_referential_value(0),
+                           self.get_referential_value(maximum),
+                           self.get_referential_name())
             )
         )
 
@@ -130,8 +133,17 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
             copy_pubkey.triggered.connect(self.copy_pubkey_to_clipboard)
             copy_pubkey.setData(pubkey)
 
+            transfer_to = QMenu()
+            transfer_to.setTitle("Transfer to...")
+            for w in self.account.wallets:
+                transfer_action = QAction(w.name, self)
+                transfer_action.triggered.connect(self.transfer_to_wallet)
+                transfer_action.setData(w)
+                transfer_to.addAction(transfer_action)
+
             menu.addAction(rename)
             menu.addAction(copy_pubkey)
+            menu.addMenu(transfer_to)
             # Show the context menu.
             menu.exec_(QCursor.pos())
 
@@ -151,3 +163,13 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
             clipboard.setText(data.pubkey)
         elif data.__class__ is str:
             clipboard.setText(data)
+
+    def transfer_to_wallet(self):
+        wallet = self.sender().data()
+        dialog = TransferMoneyDialog(self.account, self.password_asker)
+        dialog.edit_pubkey.setText(wallet.pubkey)
+        dialog.combo_community.setCurrentText(self.community.name)
+        dialog.radio_pubkey.setChecked(True)
+        if dialog.exec_() == QDialog.Accepted:
+            currency_tab = self.window().currencies_tabwidget.currentWidget()
+            currency_tab.table_history.model().invalidate()

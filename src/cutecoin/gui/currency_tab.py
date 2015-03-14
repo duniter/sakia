@@ -46,7 +46,8 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                                     self.password_asker)
         self.tab_wallets = WalletsTabWidget(self.app,
                                             self.app.current_account,
-                                            self.community)
+                                            self.community,
+                                            self.password_asker)
 
         self.tab_network = NetworkTabWidget(self.community)
 
@@ -131,7 +132,8 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
 
             self.tab_wallets = WalletsTabWidget(self.app,
                                                 self.app.current_account,
-                                                self.community)
+                                                self.community,
+                                                self.password_asker)
             self.tabs_account.addTab(self.tab_wallets,
                                      QIcon(':/icons/wallet_icon'),
                                     "Wallets")
