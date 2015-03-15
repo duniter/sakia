@@ -45,7 +45,7 @@ class Graph(object):
         """
         path = list()
 
-        logging.debug("path between %s to %s..." % (from_person.name, to_person.name))
+        logging.debug("path between %s to %s..." % (from_person.uid, to_person.uid))
         if from_person.pubkey not in self._graph.keys():
             self.add_person(from_person)
             certifier_list = from_person.certifiers_of(self.community)
@@ -79,7 +79,7 @@ class Graph(object):
         # functions keywords args are persistent... Need to reset it with None trick
         connected = connected or (list() and (connected is None))
         done = done or (list() and (done is None))
-        logging.debug("search %s in " % person.name)
+        logging.debug("search %s in " % person.uid)
         logging.debug([self._graph[pubkey]['text'] for pubkey in connected])
         # for each pubkey connected...
         for pubkey in tuple(connected):
@@ -261,7 +261,7 @@ class Graph(object):
         self._graph[person.pubkey] = {
             'id': person.pubkey,
             'arcs': arcs,
-            'text': person.name,
+            'text': person.uid,
             'tooltip': person.pubkey,
             'status': status,
             'connected': connected

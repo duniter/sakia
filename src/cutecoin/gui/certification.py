@@ -28,7 +28,7 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
             self.combo_community.addItem(community.currency)
 
         for contact in certifier.contacts:
-            self.combo_contact.addItem(contact.name)
+            self.combo_contact.addItem(contact['name'])
 
     def accept(self):
         if self.radio_contact.isChecked():

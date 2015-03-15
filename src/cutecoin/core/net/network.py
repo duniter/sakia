@@ -61,7 +61,14 @@ class Network(QObject):
             node = Node.from_json(self.currency, data)
             self._nodes.append(node)
             logging.debug("Loading : {:}".format(data['pubkey']))
+        for n in self._nodes:
+            try:
+                n.changed.disconnect()
+            except TypeError:
+                pass
         self._nodes = self.crawling()
+        for n in self._nodes:
+            n.changed.connect(self.nodes_changed)
 
     @classmethod
     def from_json(cls, currency, json_data):
@@ -160,6 +167,15 @@ class Network(QObject):
         block_max = max([n.block for n in nodes])
         for node in [n for n in nodes if n.state == Node.ONLINE]:
             node.check_sync(block_max)
+
+        for node in self._nodes:
+            if node.last_change + 3600 < time.time() and \
+                node.state in (Node.OFFLINE, Node.CORRUPTED):
+                try:
+                    node.changed.disconnect()
+                except TypeError:
+                    pass
+                self._nodes.remove(node)
 
         #TODO: Offline nodes for too long have to be removed
         #TODO: Corrupted nodes should maybe be removed faster ?

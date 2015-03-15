@@ -70,19 +70,19 @@ class cached(object):
 #TODO: Change Person to Identity ?
 class Person(object):
     '''
-    A person with a name and a pubkey
+    A person with a uid and a pubkey
     '''
     _instances = {}
 
-    def __init__(self, name, pubkey, cache):
+    def __init__(self, uid, pubkey, cache):
         '''
         Initializing a person object.
 
-        :param str name: The person name, also known as its uid on the network
+        :param str uid: The person uid, also known as its uid on the network
         :param str pubkey: The person pubkey
         :param cache: The last returned values of the person properties.
         '''
-        self.name = name
+        self.uid = uid
         self.pubkey = pubkey
         self._cache = cache
         self._cache_mutex = QMutex()
@@ -118,9 +118,9 @@ class Person(object):
                     for uid in uids:
                         if uid["meta"]["timestamp"] > timestamp:
                             timestamp = uid["meta"]["timestamp"]
-                            name = uid["uid"]
+                            uid = uid["uid"]
 
-                        person = cls(name, pubkey, {})
+                        person = cls(uid, pubkey, {})
                         Person._instances[pubkey] = person
                         logging.debug("{0}".format(Person._instances.keys()))
                         return person
@@ -130,18 +130,18 @@ class Person(object):
     def from_metadata(cls, metadata):
         '''
         Get a person from a metadata dict.
-        A metadata dict has a 'text' key corresponding to the person name,
+        A metadata dict has a 'text' key corresponding to the person uid,
         and a 'id' key corresponding to the person pubkey.
 
         :param dict metadata: The person metadata
         :return: A new person if pubkey wasn't knwon, else the existing instance.
         '''
-        name = metadata['text']
+        uid = metadata['text']
         pubkey = metadata['id']
         if pubkey in Person._instances:
             return Person._instances[pubkey]
         else:
-            person = cls(name, pubkey, {})
+            person = cls(uid, pubkey, {})
             Person._instances[pubkey] = person
             return person
 
@@ -157,13 +157,16 @@ class Person(object):
         if pubkey in Person._instances:
             return Person._instances[pubkey]
         else:
-            name = json_data['name']
+            if 'name' in json_data:
+                uid = json_data['name']
+            else:
+                uid = json_data['uid']
             if 'cache' in json_data:
                 cache = json_data['cache']
             else:
                 cache = {}
 
-            person = cls(name, pubkey, cache)
+            person = cls(uid, pubkey, cache)
             Person._instances[pubkey] = person
             return person
 
@@ -185,14 +188,14 @@ class Person(object):
                 for uid in uids:
                     if uid["meta"]["timestamp"] > timestamp:
                         timestamp = uid["meta"]["timestamp"]
-                        name = uid["uid"]
+                        uid = uid["uid"]
                         signature = uid["self"]
 
                 return SelfCertification(PROTOCOL_VERSION,
                                              community.currency,
                                              self.pubkey,
                                              timestamp,
-                                             name,
+                                             uid,
                                              signature)
         raise PersonNotFoundError(self.pubkey, community.name)
 
@@ -376,7 +379,7 @@ class Person(object):
         Get the community as dict in json format.
         :return: The community as a dict in json format
         '''
-        data = {'name': self.name,
+        data = {'uid': self.uid,
                 'pubkey': self.pubkey,
                 'cache': self._cache}
         return data

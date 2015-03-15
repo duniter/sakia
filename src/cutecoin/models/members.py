@@ -96,7 +96,7 @@ class MembersTableModel(QAbstractTableModel):
         join_date = self.community.get_block(join_block).mediantime
         parameters = self.community.parameters
         expiration_date = join_date + parameters['sigValidity']
-        return (person.name, pubkey, join_date, expiration_date)
+        return (person.uid, pubkey, join_date, expiration_date)
 
     def data(self, index, role):
         if role == Qt.DisplayRole:

@@ -33,7 +33,8 @@ class Node(QObject):
 
     changed = pyqtSignal()
 
-    def __init__(self, currency, endpoints, uid, pubkey, block, state):
+    def __init__(self, currency, endpoints, uid, pubkey, block,
+                 state, last_change):
         '''
         Constructor
         '''
@@ -45,6 +46,7 @@ class Node(QObject):
         self._state = state
         self._neighbours = []
         self._currency = currency
+        self._last_change = last_change
 
     @classmethod
     def from_address(cls, currency, address, port):
@@ -65,7 +67,8 @@ class Node(QObject):
             if peer.currency != currency:
                 raise InvalidNodeCurrency(peer.currency, currency)
 
-        node = cls(peer.currency, peer.endpoints, "", peer.pubkey, 0, Node.ONLINE)
+        node = cls(peer.currency, peer.endpoints, "", peer.pubkey, 0,
+                   Node.ONLINE, time.time())
         node.refresh_state()
         return node
 
@@ -82,7 +85,8 @@ class Node(QObject):
             if peer.currency != currency:
                 raise InvalidNodeCurrency(peer.currency, currency)
 
-        node = cls(peer.currency, peer.endpoints, "", "", 0, Node.ONLINE)
+        node = cls(peer.currency, peer.endpoints, "", "", 0,
+                   Node.ONLINE, time.time())
         node.refresh_state()
         return node
 
@@ -91,6 +95,7 @@ class Node(QObject):
         endpoints = []
         uid = ""
         pubkey = ""
+        last_change = time.time()
 
         for endpoint_data in data['endpoints']:
             endpoints.append(Endpoint.from_inline(endpoint_data))
@@ -98,20 +103,25 @@ class Node(QObject):
         if currency in data:
             currency = data['currency']
 
-        if uid in data:
+        if 'uid' in data:
             uid = data['uid']
 
-        if pubkey in data:
+        if 'pubkey' in data:
             pubkey = data['pubkey']
 
-        node = cls(currency, endpoints, uid, pubkey, 0, Node.ONLINE)
+        if 'last_change' in data:
+            last_change = data['last_change']
+
+        node = cls(currency, endpoints, uid, pubkey, 0,
+                   Node.ONLINE, last_change)
         node.refresh_state()
         return node
 
     def jsonify(self):
         data = {'pubkey': self._pubkey,
                 'uid': self._uid,
-                'currency': self._currency}
+                'currency': self._currency,
+                'last_change': self._last_change}
         endpoints = []
         for e in self._endpoints:
             endpoints.append(e.inline())
@@ -146,11 +156,20 @@ class Node(QObject):
     def uid(self):
         return self._uid
 
+    @property
+    def last_change(self):
+        return self._last_change
+
+    def _change_state(self, new_state):
+        if self.state != new_state:
+            self._last_change = time.time()
+        self._state = new_state
+
     def check_sync(self, block):
         if self._block < block:
-            self._state = Node.DESYNCED
+            self._change_state(Node.DESYNCED)
         else:
-            self._state = Node.ONLINE
+            self._change_state(Node.ONLINE)
 
     def _request_uid(self):
         uid = ""
@@ -189,14 +208,14 @@ class Node(QObject):
             if '404' in e:
                 block_number = 0
         except RequestException:
-            self._state = Node.OFFLINE
+            self._change_state(Node.OFFLINE)
             emit_change = True
 
         # If not is offline, do not refresh last data
-        if self._state != Node.OFFLINE:
+        if self.state != Node.OFFLINE:
             # If not changed its currency, consider it corrupted
             if node_currency != self._currency:
-                self.state = Node.CORRUPTED
+                self._change_state(Node.CORRUPTED)
                 emit_change = True
             else:
                 node_uid = self._request_uid()
@@ -234,7 +253,7 @@ class Node(QObject):
 
         if self.pubkey not in [n.pubkey for n in found_nodes]:
             # if node is corrupted remove it
-            if self._state != Node.CORRUPTED:
+            if self.state != Node.CORRUPTED:
                 found_nodes.append(self)
         try:
             logging.debug(self.neighbours)
@@ -252,7 +271,7 @@ class Node(QObject):
                                         traversed_pubkeys, interval)
                     time.sleep(interval)
         except RequestException as e:
-            self._state = Node.OFFLINE
+            self._change_state(Node.OFFLINE)
 
     def __str__(self):
         return ','.join([str(self.pubkey), str(self.endpoint.server), str(self.endpoint.port), str(self.block),

@@ -21,7 +21,7 @@ class MemberDialog(QDialog, Ui_DialogMember):
         self.community = community
         self.account = account
         self.person = person
-        self.label_uid.setText(person.name)
+        self.label_uid.setText(person.uid)
 
         join_date = self.person.get_join_date(self.community)
         join_date = datetime.datetime.fromtimestamp(join_date).strftime("%d/%m/%Y %I:%M")

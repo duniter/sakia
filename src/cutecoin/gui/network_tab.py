@@ -49,4 +49,3 @@ class NetworkTabWidget(QWidget, Ui_NetworkTabWidget):
     def showEvent(self, event):
         super().showEvent(event)
         self.watcher_thread.start()
-

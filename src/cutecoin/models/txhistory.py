@@ -56,9 +56,9 @@ class TxFilterProxyModel(QSortFilterProxyModel):
         elif right_data == "":
             return self.sortOrder() == Qt.AscendingOrder
         if left_data.__class__ is Person:
-            left_data = left_data.name
+            left_data = left_data.uid
         if right_data.__class__ is Person:
-            right_data = right_data.name
+            right_data = right_data.uid
 
         return (left_data < right_data)
 
@@ -71,7 +71,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
         if role == Qt.DisplayRole:
             if source_index.column() == self.sourceModel().column_types.index('uid'):
                 if source_data.__class__ == Person:
-                    tx_person = source_data.name
+                    tx_person = source_data.uid
                 else:
                     tx_person = "pub:{0}".format(source_data[:5])
                 source_data = tx_person
@@ -178,10 +178,8 @@ class HistoryTableModel(QAbstractTableModel):
             comment = transfer.txdoc.comment
         pubkey = transfer.metadata['issuer']
         try:
-            #sender = Person.lookup(pubkey, self.community).name
             sender = Person.lookup(pubkey, self.community)
         except PersonNotFoundError:
-            #sender = "pub:{0}".format(pubkey[:5])
             sender = pubkey
 
         date_ts = transfer.metadata['time']
@@ -196,7 +194,6 @@ class HistoryTableModel(QAbstractTableModel):
             comment = transfer.txdoc.comment
         pubkey = transfer.metadata['receiver']
         try:
-            #receiver = Person.lookup(pubkey, self.community).name
             receiver = Person.lookup(pubkey, self.community)
         except PersonNotFoundError:
             #receiver = "pub:{0}".format(pubkey[:5])
