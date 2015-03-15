@@ -5,6 +5,7 @@ Created on 2 févr. 2014
 '''
 
 import time
+import logging
 from PyQt5.QtWidgets import QWidget, QMenu, QAction, QApplication, \
                             QMessageBox, QDialog, QAbstractItemView, QHeaderView
 from PyQt5.QtCore import QModelIndex, Qt, pyqtSlot, \
@@ -141,6 +142,13 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             self.tabs_account.addTab(self.tab_informations,
                                      QIcon(':/icons/informations_icon'),
                                     "Informations")
+
+            # fix bug refresh_nodes launch on destroyed NetworkTabWidget
+            logging.debug('Disconnect community.network.nodes_changed')
+            try:
+                self.community.network.nodes_changed.disconnect()
+            except TypeError:
+                logging.debug('No signals on community.network.nodes_changed')
 
             self.tab_network = NetworkTabWidget(self.community)
             self.tabs_account.addTab(self.tab_network,
