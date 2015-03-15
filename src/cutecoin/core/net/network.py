@@ -8,7 +8,7 @@ from .node import Node
 import logging
 import time
 
-from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import QObject, pyqtSignal
 
 
 class Network(QObject):
@@ -162,7 +162,6 @@ class Network(QObject):
             node.check_sync(block_max)
 
         #TODO: Offline nodes for too long have to be removed
-
         #TODO: Corrupted nodes should maybe be removed faster ?
 
         logging.debug("Nodes found : {0}".format(nodes))

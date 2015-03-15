@@ -217,7 +217,7 @@ class Person(object):
             if '400' in str(e):
                 raise MembershipNotFoundError(self.pubkey, community.name)
 
-#TODO: Manage 'OUT' memberships
+#TODO: Manage 'OUT' memberships ? Maybe ?
     @cached
     def membership(self, community):
         '''

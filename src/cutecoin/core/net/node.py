@@ -8,7 +8,8 @@ from ucoinpy.documents.peer import Peer, BMAEndpoint, Endpoint
 from ucoinpy.api import bma
 from ucoinpy.api.bma import ConnectionHandler
 from requests.exceptions import RequestException
-from ...tools.exceptions import InvalidNodeCurrency
+from ...tools.exceptions import InvalidNodeCurrency, PersonNotFoundError
+from ..person import Person
 import logging
 import time
 
@@ -32,12 +33,13 @@ class Node(QObject):
 
     changed = pyqtSignal()
 
-    def __init__(self, currency, endpoints, pubkey, block, state):
+    def __init__(self, currency, endpoints, uid, pubkey, block, state):
         '''
         Constructor
         '''
         super().__init__()
         self._endpoints = endpoints
+        self._uid = uid
         self._pubkey = pubkey
         self._block = block
         self._state = state
@@ -63,7 +65,7 @@ class Node(QObject):
             if peer.currency != currency:
                 raise InvalidNodeCurrency(peer.currency, currency)
 
-        node = cls(peer.currency, peer.endpoints, peer.pubkey, 0, Node.ONLINE)
+        node = cls(peer.currency, peer.endpoints, "", peer.pubkey, 0, Node.ONLINE)
         node.refresh_state()
         return node
 
@@ -80,25 +82,35 @@ class Node(QObject):
             if peer.currency != currency:
                 raise InvalidNodeCurrency(peer.currency, currency)
 
-        node = cls(peer.currency, peer.endpoints, "", 0, Node.ONLINE)
+        node = cls(peer.currency, peer.endpoints, "", "", 0, Node.ONLINE)
         node.refresh_state()
         return node
 
     @classmethod
     def from_json(cls, currency, data):
         endpoints = []
+        uid = ""
+        pubkey = ""
+
         for endpoint_data in data['endpoints']:
             endpoints.append(Endpoint.from_inline(endpoint_data))
 
         if currency in data:
             currency = data['currency']
 
-        node = cls(currency, endpoints, "", 0, Node.ONLINE)
+        if uid in data:
+            uid = data['uid']
+
+        if pubkey in data:
+            pubkey = data['pubkey']
+
+        node = cls(currency, endpoints, uid, pubkey, 0, Node.ONLINE)
         node.refresh_state()
         return node
 
     def jsonify(self):
         data = {'pubkey': self._pubkey,
+                'uid': self._uid,
                 'currency': self._currency}
         endpoints = []
         for e in self._endpoints:
@@ -130,11 +142,33 @@ class Node(QObject):
     def neighbours(self):
         return self._neighbours
 
+    @property
+    def uid(self):
+        return self._uid
+
     def check_sync(self, block):
         if self._block < block:
             self._state = Node.DESYNCED
         else:
             self._state = Node.ONLINE
+
+    def _request_uid(self):
+        uid = ""
+        try:
+            data = bma.wot.Lookup(self.endpoint.conn_handler(), self.pubkey).get()
+            timestamp = 0
+            for result in data['results']:
+                if result["pubkey"] == self.pubkey:
+                    uids = result['uids']
+                    for uid in uids:
+                        if uid["meta"]["timestamp"] > timestamp:
+                            timestamp = uid["meta"]["timestamp"]
+                            uid = uid["uid"]
+        except ValueError as e:
+            if '404' in str(e):
+                logging.debug("Error : node uid not found : {0}".format(self.pubkey))
+                uid = ""
+        return uid
 
     def refresh_state(self):
         emit_change = False
@@ -165,12 +199,18 @@ class Node(QObject):
                 self.state = Node.CORRUPTED
                 emit_change = True
             else:
+                node_uid = self._request_uid()
+
                 if block_number != self._block:
                     self._block = block_number
                     emit_change = True
 
                 if node_pubkey != self._pubkey:
                     self._pubkey = node_pubkey
+                    emit_change = True
+
+                if node_uid != self._uid:
+                    self._uid = node_uid
                     emit_change = True
 
                 logging.debug(neighbours)

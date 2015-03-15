@@ -60,7 +60,7 @@ class Cache():
     def transfers(self):
         return [t for t in self._transfers if t.state != Transfer.DROPPED]
 
-    def _parse_transaction(self, community, block_number, mediantime, tx):
+    def _parse_transaction(self, community, tx, block_number, mediantime):
 
         receivers = [o.pubkey for o in tx.outputs
                      if o.pubkey != tx.issuers[0]]
@@ -127,7 +127,6 @@ class Cache():
             transfer.check_registered(tx, block_number,
                                       block_doc.mediantime)
 
-#TODO: Refactor to reduce this method size and split it to more methods
     def refresh(self, community):
         current_block = 0
         try:

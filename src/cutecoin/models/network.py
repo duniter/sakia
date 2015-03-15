@@ -100,12 +100,6 @@ class NetworkTableModel(QAbstractTableModel):
         :param ..core.net.node.Node node: Network node
         :return:
         """
-        try:
-            person = Person.lookup(node.pubkey, self.community)
-            uid = person.name
-        except PersonNotFoundError:
-            uid = ""
-
         is_member = node.pubkey in self.community.members_pubkeys()
 
         address = ""
@@ -117,7 +111,7 @@ class NetworkTableModel(QAbstractTableModel):
             address = node.endpoint.ipv6
         port = node.endpoint.port
 
-        return node.pubkey, is_member, uid, address, port, node.block
+        return node.pubkey, is_member, node.uid, address, port, node.block
 
     def data(self, index, role):
         row = index.row()
