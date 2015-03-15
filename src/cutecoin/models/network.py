@@ -94,7 +94,12 @@ class NetworkTableModel(QAbstractTableModel):
 
         return self.column_types[section]
 
-    def data_node(self, node):
+    def data_node(self, node: Node) -> tuple:
+        """
+        Return node data tuple
+        :param ..core.net.node.Node node: Network node
+        :return:
+        """
         try:
             person = Person.lookup(node.pubkey, self.community)
             uid = person.name
@@ -112,7 +117,7 @@ class NetworkTableModel(QAbstractTableModel):
             address = node.endpoint.ipv6
         port = node.endpoint.port
 
-        return (node.pubkey, is_member, uid, address, port, node.block)
+        return node.pubkey, is_member, uid, address, port, node.block
 
     def data(self, index, role):
         row = index.row()

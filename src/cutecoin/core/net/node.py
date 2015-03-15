@@ -34,13 +34,7 @@ class Node(QObject):
 
     def __init__(self, currency, endpoints, pubkey, block, state):
         '''
-        Constructor of a node
-
-        :param str currency: The currency name of this node community
-        :param list endpoints: Endpoints ucoinpy objects
-        :param str pubkey: The node pubkey
-        :param int block: The node last current block
-        :param state: The state of the node
+        Constructor
         '''
         super().__init__()
         self._endpoints = endpoints
@@ -117,7 +111,7 @@ class Node(QObject):
         return self._pubkey
 
     @property
-    def endpoint(self):
+    def endpoint(self) -> BMAEndpoint:
         return next((e for e in self._endpoints if type(e) is BMAEndpoint))
 
     @property
@@ -219,3 +213,7 @@ class Node(QObject):
                     time.sleep(interval)
         except RequestException as e:
             self._state = Node.OFFLINE
+
+    def __str__(self):
+        return ','.join([str(self.pubkey), str(self.endpoint.server), str(self.endpoint.port), str(self.block),
+                         str(self.currency), str(self.state), str(self.neighbours)])
