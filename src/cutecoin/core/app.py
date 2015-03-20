@@ -99,7 +99,8 @@ class Application(QObject):
             self.loading_progressed.emit(value, maximum)
 
         if self.current_account is not None:
-            self.monitor.stop_watching()
+            if self.monitor:
+                self.monitor.stop_watching()
             self.save_cache(self.current_account)
         account.loading_progressed.connect(progressing)
         account.refresh_cache()
