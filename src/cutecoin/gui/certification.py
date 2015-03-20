@@ -33,7 +33,7 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
     def accept(self):
         if self.radio_contact.isChecked():
             index = self.combo_contact.currentIndex()
-            pubkey = self.account.contacts[index].pubkey
+            pubkey = self.account.contacts[index]['pubkey']
         else:
             pubkey = self.edit_pubkey.text()
 

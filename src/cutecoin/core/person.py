@@ -186,11 +186,11 @@ class Person(object):
         for result in data['results']:
             if result["pubkey"] == self.pubkey:
                 uids = result['uids']
-                for uid in uids:
-                    if uid["meta"]["timestamp"] > timestamp:
-                        timestamp = uid["meta"]["timestamp"]
-                        uid = uid["uid"]
-                        signature = uid["self"]
+                for uid_data in uids:
+                    if uid_data["meta"]["timestamp"] > timestamp:
+                        timestamp = uid_data["meta"]["timestamp"]
+                        uid = uid_data["uid"]
+                        signature = uid_data["self"]
 
                 return SelfCertification(PROTOCOL_VERSION,
                                              community.currency,
