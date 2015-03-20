@@ -34,7 +34,6 @@ class HomeScreenWidget(QWidget, Ui_HomeScreenWidget):
             <h1>Welcome to Cutecoin {version}</h1>
             <h2>{version_info}</h2>
             <h3><a href={version_url}>Download link</a></h3>
-            <p>Would you like to...</p>
             """.format(version=__version__,
                        version_info=version_info,
                        version_url=version_url))

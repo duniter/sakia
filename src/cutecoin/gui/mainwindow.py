@@ -173,8 +173,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.status_label.setText("Loading account {0}".format(account_name))
         self.loader.set_account_name(account_name)
         self.loader_thread.start(QThread.LowPriority)
-        self.homescreen.button_new.setEnabled(False)
-        self.homescreen.button_import.setEnabled(False)
+        self.homescreen.button_new.hide()
+        self.homescreen.button_import.hide()
 
     def open_transfer_money_dialog(self):
         dialog = TransferMoneyDialog(self.app.current_account,
