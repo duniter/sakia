@@ -123,6 +123,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.refresh()
         self.busybar.hide()
         self.app.disconnect()
+        self.app.monitor.start_watching()
 
     @pyqtSlot(str)
     def display_error(self, error):

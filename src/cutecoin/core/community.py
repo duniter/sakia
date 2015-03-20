@@ -4,6 +4,7 @@ Created on 1 févr. 2014
 @author: inso
 '''
 
+from PyQt5.QtCore import QObject, pyqtSignal
 from ucoinpy.api import bma
 from ucoinpy.documents.block import Block
 from ..tools.exceptions import NoPeerAvailable
@@ -94,13 +95,15 @@ class Cache():
             return self.data[cache_key]
 
 
-class Community(object):
+class Community(QObject):
     '''
     A community is a group of nodes using the same currency.
 
     .. warning:: The currency name is supposed to be unique in cutecoin
     but nothing exists in ucoin to assert that a currency name is unique.
     '''
+
+    new_block_mined = pyqtSignal()
 
     def __init__(self, currency, network):
         '''
@@ -112,6 +115,7 @@ class Community(object):
         .. warning:: The community object should be created using its factory
         class methods.
         '''
+        super().__init__()
         self.currency = currency
         self._network = network
         self._cache = Cache(self)

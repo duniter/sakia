@@ -17,6 +17,7 @@ class Network(QObject):
     given community.
     '''
     nodes_changed = pyqtSignal()
+    stopped_perpetual_crawling = pyqtSignal()
 
     def __init__(self, currency, nodes):
         '''
@@ -30,7 +31,8 @@ class Network(QObject):
         self._nodes = nodes
         for n in self._nodes:
             n.changed.connect(self.nodes_changed)
-        self.must_crawl = False
+        self._must_crawl = False
+        self._is_perpetual = False
 
     @classmethod
     def create(cls, node):
@@ -103,7 +105,13 @@ class Network(QObject):
         '''
         Stop network nodes crawling.
         '''
-        self.must_crawl = False
+        self._must_crawl = False
+
+    def continue_crawling(self):
+        if self._is_perpetual:
+            return self._must_crawl
+        else:
+            return True
 
     @property
     def online_nodes(self):
@@ -131,8 +139,8 @@ class Network(QObject):
         Start crawling which never stops.
         To stop this crawling, call "stop_crawling" method.
         '''
-        self.must_crawl = True
-        while self.must_crawl:
+        self._must_crawl = True
+        while self.continue_crawling():
             nodes = self.crawling(interval=10)
 
             new_inlines = [n.endpoint.inline() for n in nodes]
@@ -146,6 +154,7 @@ class Network(QObject):
                 self.nodes_changed.emit()
                 for n in self._nodes:
                     n.changed.connect(self.nodes_changed)
+        self.stopped_perpetual_crawling.emit()
 
     def crawling(self, interval=0):
         '''
@@ -159,9 +168,10 @@ class Network(QObject):
             logging.debug(traversed_pubkeys)
             logging.debug("Peering : next to read : {0} : {1}".format(n.pubkey,
                           (n.pubkey not in traversed_pubkeys)))
-            if n.pubkey not in traversed_pubkeys:
+            if n.pubkey not in traversed_pubkeys and self.continue_crawling():
                 n.peering_traversal(nodes,
-                                    traversed_pubkeys, interval)
+                                    traversed_pubkeys, interval,
+                                    self.continue_crawling)
                 time.sleep(interval)
 
         block_max = max([n.block for n in nodes])
@@ -176,9 +186,6 @@ class Network(QObject):
                 except TypeError:
                     pass
                 self._nodes.remove(node)
-
-        #TODO: Offline nodes for too long have to be removed
-        #TODO: Corrupted nodes should maybe be removed faster ?
 
         logging.debug("Nodes found : {0}".format(nodes))
         return nodes

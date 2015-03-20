@@ -6,7 +6,7 @@ Created on 11 févr. 2014
 
 import logging
 import functools
-import datetime
+
 from ucoinpy.api import bma
 from ucoinpy import PROTOCOL_VERSION
 from ucoinpy.documents.certification import SelfCertification
@@ -82,6 +82,7 @@ class Person(object):
         :param str pubkey: The person pubkey
         :param cache: The last returned values of the person properties.
         '''
+        super().__init__()
         self.uid = uid
         self.pubkey = pubkey
         self._cache = cache

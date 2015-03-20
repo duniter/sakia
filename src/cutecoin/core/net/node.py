@@ -246,7 +246,8 @@ class Node(QObject):
             self.changed.emit()
 
     def peering_traversal(self, found_nodes,
-                          traversed_pubkeys, interval):
+                          traversed_pubkeys, interval,
+                          continue_crawling):
         logging.debug("Read {0} peering".format(self.pubkey))
         traversed_pubkeys.append(self.pubkey)
         self.refresh_state()
@@ -254,6 +255,7 @@ class Node(QObject):
         if self.pubkey not in [n.pubkey for n in found_nodes]:
             # if node is corrupted remove it
             if self.state != Node.CORRUPTED:
+                logging.debug("Found : {0} node".format(self.pubkey))
                 found_nodes.append(self)
         try:
             logging.debug(self.neighbours)
@@ -266,9 +268,9 @@ class Node(QObject):
                 logging.debug(traversed_pubkeys)
                 logging.debug("Traversing : next to read : {0} : {1}".format(node.pubkey,
                               (node.pubkey not in traversed_pubkeys)))
-                if node.pubkey not in traversed_pubkeys:
+                if node.pubkey not in traversed_pubkeys and continue_crawling():
                     node.peering_traversal(found_nodes,
-                                        traversed_pubkeys, interval)
+                                        traversed_pubkeys, interval, continue_crawling())
                     time.sleep(interval)
         except RequestException as e:
             self._change_state(Node.OFFLINE)

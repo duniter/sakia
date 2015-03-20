@@ -22,8 +22,8 @@ from ..tools.exceptions import MembershipNotFoundError
 from ..core.wallet import Wallet
 from ..core.person import Person
 from ..core.transfer import Transfer
-from ..core.watchers.blockchain import BlockchainWatcher
-from ..core.watchers.persons import PersonsWatcher
+from cutecoin.core.watching.blockchain import BlockchainWatcher
+from cutecoin.core.watching.persons import PersonsWatcher
 
 
 class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
@@ -52,24 +52,11 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
 
         self.tab_network = NetworkTabWidget(self.community)
 
-        self.bc_watcher = BlockchainWatcher(self.app.current_account,
-                                                community)
-        self.bc_watcher.new_block_mined.connect(self.refresh_block)
-        self.bc_watcher.connection_error.connect(self.display_error)
-
-        self.watcher_thread = QThread()
-        self.bc_watcher.moveToThread(self.watcher_thread)
-        self.watcher_thread.started.connect(self.bc_watcher.watch)
-
-        self.watcher_thread.start()
-
-        self.persons_watcher = PersonsWatcher(self.community)
-        self.persons_watcher.person_changed.connect(self.tab_community.refresh_person)
-        self.persons_watcher_thread = QThread()
-        self.persons_watcher.moveToThread(self.persons_watcher_thread)
-        self.persons_watcher_thread.started.connect(self.persons_watcher.watch)
-        self.persons_watcher.end_watching.connect(self.persons_watcher_thread.finished)
-        self.persons_watcher_thread.start()
+        self.community.new_block_mined.connect(self.refresh_block)
+        persons_watcher = self.app.monitor.persons_watcher(self.community)
+        persons_watcher.person_changed.connect(self.tab_community.refresh_person)
+        bc_watcher = self.app.monitor.blockchain_watcher(self.community)
+        bc_watcher.error.connect(self.display_error)
 
         person = Person.lookup(self.app.current_account.pubkey, self.community)
         try:
@@ -286,11 +273,6 @@ QMessageBox.Ok | QMessageBox.Cancel)
         block_number = blockid['number']
         self.status_label.setText("Connected : Block {0}"
                                          .format(block_number))
-
-    def closeEvent(self, event):
-        super().closeEvent(event)
-        self.bc_watcher.deleteLater()
-        self.watcher_thread.deleteLater()
 
     def dates_changed(self, datetime):
         ts_from = self.date_from.dateTime().toTime_t()

@@ -15,10 +15,11 @@ import datetime
 from PyQt5.QtCore import QObject, pyqtSignal
 
 from . import config
-from ..tools.exceptions import NameAlreadyExists, BadAccountFile
 from .account import Account
 from . import person
+from .watching.monitor import Monitor
 from .. import __version__
+from ..tools.exceptions import NameAlreadyExists, BadAccountFile
 
 
 class Application(QObject):
@@ -41,6 +42,7 @@ class Application(QObject):
         self.accounts = {}
         self.default_account = ""
         self.current_account = None
+        self.monitor = None
         config.parse_arguments(argv)
         self.load()
 
@@ -97,9 +99,12 @@ class Application(QObject):
             self.loading_progressed.emit(value, maximum)
 
         if self.current_account is not None:
+            self.monitor.stop_watching()
             self.save_cache(self.current_account)
         account.loading_progressed.connect(progressing)
         account.refresh_cache()
+        self.monitor = Monitor(account)
+        self.monitor.prepare_watching()
         self.current_account = account
 
     def load(self):
