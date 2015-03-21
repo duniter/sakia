@@ -130,6 +130,13 @@ class NetworkTableModel(QAbstractTableModel):
                       Node.CORRUPTED: QColor(Qt.darkRed)
                       }
             return colors[node.state]
+        if role == Qt.ForegroundRole:
+            colors = {Node.ONLINE: QVariant(),
+                      Node.OFFLINE: QColor(Qt.lightGray),
+                      Node.DESYNCED: QColor(Qt.black),
+                      Node.CORRUPTED: QColor(Qt.lightGray)
+                      }
+            return colors[node.state]
 
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled
