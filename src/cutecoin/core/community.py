@@ -14,6 +14,7 @@ import logging
 import inspect
 import hashlib
 import re
+import time
 from requests.exceptions import RequestException
 
 
@@ -103,7 +104,7 @@ class Community(QObject):
     but nothing exists in ucoin to assert that a currency name is unique.
     '''
 
-    new_block_mined = pyqtSignal()
+    new_block_mined = pyqtSignal(int)
 
     def __init__(self, currency, network):
         '''
@@ -299,9 +300,15 @@ class Community(QObject):
     @property
     def parameters(self):
         '''
-
+        Return community parameters in bma format
         '''
         return self.request(bma.blockchain.Parameters)
+
+    def certification_expired(self, certtime):
+        '''
+        Return True if the certificaton time is too old
+        '''
+        return time.time() - certtime > self.parameters['sigValidity']
 
     @property
     def add_peer(self, peer):

@@ -166,8 +166,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                                      QModelIndex(),
                                                      QModelIndex(),
                                                      [])
-
-        self.persons_watcher_thread.start()
+        self.app.monitor.restart_persons_watching(self.community)
 
         text = "Connected : Block {0}".format(block_number)
         self.status_label.setText(text)

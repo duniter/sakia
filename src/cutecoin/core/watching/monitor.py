@@ -4,10 +4,11 @@ Created on 18 mars 2015
 @author: inso
 '''
 
-from PyQt5.QtCore import QThread
+from PyQt5.QtCore import QThread, Qt
 from .blockchain import BlockchainWatcher
 from .persons import PersonsWatcher
 from .network import NetworkWatcher
+import logging
 
 
 class Monitor(object):
@@ -34,14 +35,18 @@ class Monitor(object):
     def persons_watcher(self, community):
         return self._persons_watchers[community.name]
 
+    def restart_persons_watching(self, community):
+        watcher = self.persons_watcher(community)
+        thread = watcher.thread()
+        logging.debug("Persons watching thread is : {0}".format(thread.isFinished()))
+        thread.start()
+
     def connect_watcher_to_thread(self, watcher):
         thread = QThread()
         watcher.moveToThread(thread)
         thread.started.connect(watcher.watch)
-        watcher.watching_stopped.connect(thread.exit)
-        thread.finished.connect(lambda: self.threads_pool.remove(thread))
-        thread.finished.connect(watcher.deleteLater)
-        thread.finished.connect(thread.deleteLater)
+        success = watcher.watching_stopped.connect(thread.exit, Qt.DirectConnection)
+
         self.threads_pool.append(thread)
 
     def prepare_watching(self):
@@ -65,9 +70,18 @@ class Monitor(object):
     def stop_watching(self):
         for watcher in self._persons_watchers.values():
             watcher.stop()
+            self.threads_pool.remove(watcher.thread())
+            watcher.deleteLater()
+            watcher.thread().deleteLater()
 
         for watcher in self._blockchain_watchers.values():
             watcher.stop()
+            self.threads_pool.remove(watcher.thread())
+            watcher.deleteLater()
+            watcher.thread().deleteLater()
 
         for watcher in self._network_watchers.values():
             watcher.stop()
+            self.threads_pool.remove(watcher.thread())
+            watcher.deleteLater()
+            watcher.thread().deleteLater()

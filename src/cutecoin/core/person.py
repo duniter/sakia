@@ -303,6 +303,25 @@ class Person(object):
 
         return certifiers['certifications']
 
+    def unique_valid_certifiers_of(self, community):
+        certifier_list = self.certifiers_of(community)
+        unique_valid = []
+        #  add certifiers of uid
+        for certifier in tuple(certifier_list):
+            # add only valid certification...
+            if community.certification_expired(certifier['cert_time']['medianTime']):
+                continue
+
+            # keep only the latest certification
+            already_found = [c['pubkey'] for c in unique_valid]
+            if certifier['pubkey'] in already_found:
+                index = already_found.index(certifier['pubkey'])
+                if certifier['cert_time']['medianTime'] > unique_valid[index]['cert_time']['medianTime']:
+                    unique_valid[index] = certifier
+            else:
+                unique_valid.append(certifier)
+        return unique_valid
+
     @cached
     def certified_by(self, community):
         '''
@@ -334,6 +353,25 @@ class Person(object):
             return list()
 
         return certified_list['certifications']
+
+    def unique_valid_certified_by(self, community):
+        certified_list = self.certified_by(community)
+        unique_valid = []
+        #  add certifiers of uid
+        for certified in tuple(certified_list):
+            # add only valid certification...
+            if community.certification_expired(certified['cert_time']['medianTime']):
+                continue
+
+            # keep only the latest certification
+            already_found = [c['pubkey'] for c in unique_valid]
+            if certified['pubkey'] in already_found:
+                index = already_found.index(certified['pubkey'])
+                if certified['cert_time']['medianTime'] > unique_valid[index]['cert_time']['medianTime']:
+                    unique_valid[index] = certified
+            else:
+                unique_valid.append(certified)
+        return unique_valid
 
     def reload(self, func, community):
         '''

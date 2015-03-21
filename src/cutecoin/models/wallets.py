@@ -63,6 +63,9 @@ class WalletsTableModel(QAbstractTableModel):
         super().__init__(parent)
         self.account = account
         self.community = community
+        self.columns_texts = {'name': 'Name',
+                              'pubkey': 'Pubkey',
+                              'amount': 'Amount'}
         self.columns_types = ('name', 'pubkey', 'amount')
 
     @property
@@ -77,7 +80,8 @@ class WalletsTableModel(QAbstractTableModel):
 
     def headerData(self, section, orientation, role):
         if role == Qt.DisplayRole:
-            return self.columns_types[section]
+            col_type = self.columns_types[section]
+            return self.columns_texts[col_type]
 
     def wallet_data(self, row):
         name = self.wallets[row].name

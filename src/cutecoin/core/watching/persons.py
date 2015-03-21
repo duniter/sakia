@@ -35,6 +35,7 @@ class PersonsWatcher(Watcher):
                             logging.debug("Change detected on {0} about {1}".format(p.pubkey,
                                                                                 func.__name__))
                         self.person_changed.emit(p.pubkey)
+        logging.debug("Finished watching persons")
         self.watching_stopped.emit()
 
     def stop(self):
