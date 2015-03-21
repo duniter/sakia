@@ -37,7 +37,7 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
             return QVariant()
 
         header_names = {'pubkey': 'Pubkey',
-                        'is_member': 'Membre',
+                        'is_member': 'Member',
                         'uid': 'UID',
                         'address': 'Address',
                         'port': 'Port',
@@ -52,7 +52,7 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
         source_data = self.sourceModel().data(source_index, role)
         if index.column() == self.sourceModel().column_types.index('is_member') \
          and role == Qt.DisplayRole:
-            value = {True: 'oui', False: 'non'}
+            value = {True: 'yes', False: 'no'}
             return value[source_data]
         return source_data
 
