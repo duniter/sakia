@@ -41,7 +41,7 @@ class MembersFilterProxyModel(QSortFilterProxyModel):
         #logging.debug("{0} > {1}".format(current_time, expiration_data))
         will_expire_soon = (current_time > expiration_data*1000 - warning_expiration_time*1000)
         if role == Qt.DisplayRole:
-            if source_index.column() == self.sourceModel().columns_ids.index('renew'):
+            if source_index.column() == self.sourceModel().columns_ids.index('renewed'):
                 date = QDateTime.fromTime_t(source_data)
                 return date.date()
             if source_index.column() == self.sourceModel().columns_ids.index('expiration'):
@@ -71,9 +71,9 @@ class MembersTableModel(QAbstractTableModel):
         self.columns_titles = {
                                'uid': 'UID',
                                'pubkey': 'Pubkey',
-                               'renew': 'Last renew date',
+                               'renewed': 'Renewed',
                                'expiration': 'Expiration'}
-        self.columns_ids = ('uid', 'pubkey', 'renew', 'expiration')
+        self.columns_ids = ('uid', 'pubkey', 'renewed', 'expiration')
 
     @property
     def pubkeys(self):
