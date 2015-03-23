@@ -47,8 +47,6 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
             logging.debug('community get_ud_block error : ' + str(e))
             return False
 
-        block = False
-
         if block:
             # set infos in label
             self.label_general.setText(
