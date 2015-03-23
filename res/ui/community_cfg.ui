@@ -65,10 +65,10 @@
          <item>
           <widget class="QSpinBox" name="spinbox_port">
            <property name="maximum">
-            <number>25000</number>
+            <number>65535</number>
            </property>
            <property name="value">
-            <number>8081</number>
+            <number>8001</number>
            </property>
           </widget>
          </item>
