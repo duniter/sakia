@@ -272,6 +272,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                 str(e),
                                 QMessageBox.Ok)
 
+    def refresh_accounts(self):
+        self.menu_change_account.clear()
+        signal_mapper = QSignalMapper(self)
+
+        for account_name in sorted(self.app.accounts.keys()):
+            action = QAction(account_name, self)
+            self.menu_change_account.addAction(action)
+            signal_mapper.setMapping(action, account_name)
+            action.triggered.connect(signal_mapper.map)
+            signal_mapper.mapped[str].connect(self.action_change_account)
+
     def refresh_contacts(self):
         self.menu_contacts_list.clear()
         if self.app.current_account:
@@ -297,15 +308,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         in the window have to be refreshed
         '''
         logging.debug("Refresh started")
-        self.menu_change_account.clear()
-        signal_mapper = QSignalMapper(self)
-
-        for account_name in sorted(self.app.accounts.keys()):
-            action = QAction(account_name, self)
-            self.menu_change_account.addAction(action)
-            signal_mapper.setMapping(action, account_name)
-            action.triggered.connect(signal_mapper.map)
-            signal_mapper.mapped[str].connect(self.action_change_account)
+        self.refresh_accounts()
 
         if self.app.current_account is None:
             self.currencies_tabwidget.hide()
