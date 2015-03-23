@@ -38,39 +38,55 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
         parameters = self.community.parameters
         last_renewal = ""
         expiration = ""
-        certifiers = 0
-        certified = 0
-
         try:
             person = Person.lookup(self.account.pubkey, self.community)
             membership = person.membership(self.community)
-            certified = person.unique_valid_certified_by(self.community)
-            certifiers = person.unique_valid_certifiers_of(self.community)
-
             renew_block = membership['blockNumber']
             last_renewal = self.community.get_block(renew_block).mediantime
             expiration = last_renewal + parameters['sigValidity']
         except MembershipNotFoundError:
-            pass
-        date_renewal = QDateTime.fromTime_t(last_renewal).date().toString()
-        date_expiration = QDateTime.fromTime_t(expiration).date().toString()
-        # set infos in label
-        self.label_general.setText(
-            """
-            <table cellpadding="5">
-            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-            </table>
-            """.format(
-                    self.account.name, self.account.pubkey,
-                    "Membership",
-                    "Last renewal on {:}, expiration on {:}".format(date_renewal, date_expiration),
-                    "Your web of trust :",
-                    "Certified by : {0} members; Certifier of : {1} members".format(len(certifiers),
-                                                                     len(certified))
+            last_renewal = None
+            expiration = None
+
+        certified = person.unique_valid_certified_by(self.community)
+        certifiers = person.unique_valid_certifiers_of(self.community)
+        if last_renewal and expiration:
+            date_renewal = QDateTime.fromTime_t(last_renewal).date().toString()
+            date_expiration = QDateTime.fromTime_t(expiration).date().toString()
+            # set infos in label
+            self.label_general.setText(
+                """
+                <table cellpadding="5">
+                <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                </table>
+                """.format(
+                        self.account.name, self.account.pubkey,
+                        "Membership",
+                        "Last renewal on {:}, expiration on {:}".format(date_renewal, date_expiration),
+                        "Your web of trust :",
+                        "Certified by : {:} members; Certifier of : {:} members".format(len(certifiers),
+                                                                         len(certified))
+                )
             )
-        )
+        else:
+            # set infos in label
+            self.label_general.setText(
+                """
+                <table cellpadding="5">
+                <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                <tr><td align="right"><b>{:}</b></td></tr>
+                <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                </table>
+                """.format(
+                        self.account.name, self.account.pubkey,
+                        "Not a member",
+                        "Your web of trust :",
+                        "Certified by : {:} members; Certifier of : {:} members".format(len(certifiers),
+                                                                         len(certified))
+                )
+            )
 
         amount = self.account.amount(self.community)
         maximum = self.community.monetary_mass
