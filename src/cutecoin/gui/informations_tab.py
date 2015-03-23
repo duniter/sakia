@@ -47,36 +47,68 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
             logging.debug('community get_ud_block error : ' + str(e))
             return False
 
-        # set infos in label
-        self.label_general.setText(
-            """
-            <table cellpadding="5">
-            <tr><td align="right"><b>{:}</b></div></td><td>{:} {:}</td></tr>
-            <tr><td align="right"><b>{:}</b></td><td>{:} {:}</td></tr>
-            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-            <tr><td align="right"><b>{:}</b></td><td>{:} {:}</td></tr>
-            <tr><td align="right"><b>{:2.2%} / {:} days</b></td><td>{:}</td></tr>
-            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-            </table>
-            """.format(
-                round(self.get_referential_diff_value(block['dividend'])),
-                'Universal Dividend UD(t) in',
-                self.get_referential_name(),
-                round(self.get_referential_value(block['monetaryMass'])),
-                'Monetary Mass M(t) in',
-                self.get_referential_name(),
-                block['membersCount'],
-                'Members N(t)',
-                round(self.get_referential_value(block['monetaryMass'] / block['membersCount'])),
-                'Monetary Mass per member M(t)/N(t) in',
-                self.get_referential_name(),
-                block['dividend'] / (block_t_minus_1['monetaryMass'] / block['membersCount']),
-                params['dt'] / 86400,
-                'Actual growth c = UD(t)/[M(t-1)/N(t)]',
-                datetime.datetime.fromtimestamp(block['medianTime'] + params['dt']).strftime("%d/%m/%Y %I:%M"),
-                'Next UD date and time (t+1)'
+        if block:
+            # set infos in label
+            self.label_general.setText(
+                """
+                <table cellpadding="5">
+                <tr><td align="right"><b>{:}</b></div></td><td>{:} {:}</td></tr>
+                <tr><td align="right"><b>{:}</b></td><td>{:} {:}</td></tr>
+                <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                <tr><td align="right"><b>{:}</b></td><td>{:} {:}</td></tr>
+                <tr><td align="right"><b>{:2.2%} / {:} days</b></td><td>{:}</td></tr>
+                <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                </table>
+                """.format(
+                    round(self.get_referential_diff_value(block['dividend'])),
+                    'Universal Dividend UD(t) in',
+                    self.get_referential_name(),
+                    round(self.get_referential_value(block['monetaryMass'])),
+                    'Monetary Mass M(t) in',
+                    self.get_referential_name(),
+                    block['membersCount'],
+                    'Members N(t)',
+                    round(self.get_referential_value(block['monetaryMass'] / block['membersCount'])),
+                    'Monetary Mass per member M(t)/N(t) in',
+                    self.get_referential_name(),
+                    block['dividend'] / (block_t_minus_1['monetaryMass'] / block['membersCount']),
+                    params['dt'] / 86400,
+                    'Actual growth c = UD(t)/[M(t-1)/N(t)]',
+                    datetime.datetime.fromtimestamp(block['medianTime'] + params['dt']).strftime("%d/%m/%Y %I:%M"),
+                    'Next UD date and time (t+1)'
+                )
             )
-        )
+        else:
+            self.label_general.setText('No Universal Dividend created yet.')
+
+        if block:
+            # set infos in label
+            self.label_rules.setText(
+                """
+                <table cellpadding="5">
+                <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                </table>
+                """.format(
+                    '{:2.0%} / {:} days'.format(params['c'], params['dt'] / 86400),
+                    'Fundamental growth (c) / Delta time (dt)',
+                    'UD(t+1) = MAX { UD(t) ; c * M(t) / N(t) }',
+                    'Universal Dividend (formula)',
+                    '{:} = MAX {{ {:} {:} ; {:2.0%} * {:} {:} / {:} }}'.format(
+                        math.ceil(max(block['dividend'], params['c'] * block['monetaryMass'] / block['membersCount'])),
+                        round(self.get_referential_diff_value(block['dividend'])),
+                        self.get_referential_name(),
+                        params['c'],
+                        round(self.get_referential_value(block['monetaryMass'])),
+                        self.get_referential_name(),
+                        block['membersCount']
+                    ),
+                    'Universal Dividend (computed)'
+                )
+            )
+        else:
+            self.label_rules.setText('No Universal Dividend created yet.')
 
         # set infos in label
         self.label_money.setText(
@@ -110,32 +142,6 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 'The number of previous blocks to check for personalized difficulty',
                 params['percentRot'],
                 'The percent of previous issuers to reach for personalized difficulty'
-            )
-        )
-
-        # set infos in label
-        self.label_rules.setText(
-            """
-            <table cellpadding="5">
-            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-            </table>
-            """.format(
-                '{:2.0%} / {:} days'.format(params['c'], params['dt'] / 86400),
-                'Fundamental growth (c) / Delta time (dt)',
-                'UD(t+1) = MAX { UD(t) ; c * M(t) / N(t) }',
-                'Universal Dividend (formula)',
-                '{:} = MAX {{ {:} {:} ; {:2.0%} * {:} {:} / {:} }}'.format(
-                    math.ceil(max(block['dividend'], params['c'] * block['monetaryMass'] / block['membersCount'])),
-                    round(self.get_referential_diff_value(block['dividend'])),
-                    self.get_referential_name(),
-                    params['c'],
-                    round(self.get_referential_value(block['monetaryMass'])),
-                    self.get_referential_name(),
-                    block['membersCount']
-                ),
-                'Universal Dividend (computed)'
             )
         )
 

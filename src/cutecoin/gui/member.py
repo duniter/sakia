@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QDialog
 
 from ..core.graph import Graph
 from ..gen_resources.member_uic import Ui_DialogMember
-
+from ..tools.exceptions import MembershipNotFoundError
 
 class MemberDialog(QDialog, Ui_DialogMember):
     """
@@ -23,10 +23,15 @@ class MemberDialog(QDialog, Ui_DialogMember):
         self.person = person
         self.label_uid.setText(person.uid)
 
-        join_date = self.person.get_join_date(self.community)
-        join_date = datetime.datetime.fromtimestamp(join_date).strftime("%d/%m/%Y %I:%M")
+        try:
+            join_date = self.person.get_join_date(self.community)
+        except MembershipNotFoundError:
+            join_date = None
+
         if join_date is None:
             join_date = 'not a member'
+        else:
+            join_date = datetime.datetime.fromtimestamp(join_date).strftime("%d/%m/%Y %I:%M")
 
         # calculate path to account member
         graph = Graph(self.community)
