@@ -3,9 +3,9 @@ Created on 2 févr. 2014
 
 @author: inso
 '''
-from PyQt5.QtWidgets import QDialog, QMessageBox
-from PyQt5.QtCore import QRegExp
-from PyQt5.QtGui import QRegExpValidator, QValidator
+from PyQt5.QtWidgets import QDialog, QMessageBox, QApplication
+from PyQt5.QtCore import QRegExp, Qt
+from PyQt5.QtGui import QRegExpValidator
 
 from ..tools.exceptions import NotEnoughMoneyError, NoPeerAvailable
 from ..gen_resources.transfer_uic import Ui_TransferMoneyDialog
@@ -72,6 +72,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
             return
 
         try:
+            QApplication.setOverrideCursor(Qt.WaitCursor)
             self.wallet.send_money(self.account.salt, password, self.community,
                                        recipient, amount, comment)
             QMessageBox.information(self, "Money transfer",
@@ -97,6 +98,9 @@ Please try again later""")
                                  "{0}".format(str(e)),
                                  QMessageBox.Ok)
             return
+        finally:
+            QApplication.restoreOverrideCursor()
+
         super().accept()
 
     def amount_changed(self):

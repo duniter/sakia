@@ -3,7 +3,8 @@ Created on 24 dec. 2014
 
 @author: inso
 '''
-from PyQt5.QtWidgets import QDialog, QMessageBox, QDialogButtonBox
+from PyQt5.QtWidgets import QDialog, QMessageBox, QDialogButtonBox, QApplication
+from PyQt5.QtCore import Qt
 from ..tools.exceptions import NoPeerAvailable
 from ..gen_resources.certification_uic import Ui_CertificationDialog
 
@@ -42,6 +43,7 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
             return
 
         try:
+            QApplication.setOverrideCursor(Qt.WaitCursor)
             self.account.certify(password, self.community, pubkey)
             QMessageBox.information(self, "Certification",
                                  "Success certifying {0} from {1}".format(pubkey,
@@ -61,6 +63,8 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
                                  "{0}".format(e),
                                  QMessageBox.Ok)
             return
+        finally:
+            QApplication.restoreOverrideCursor()
 
         super().accept()
 

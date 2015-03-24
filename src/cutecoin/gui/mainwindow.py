@@ -8,9 +8,9 @@ from ..gen_resources.about_uic import Ui_AboutPopup
 from ..gen_resources.homescreen_uic import Ui_HomeScreenWidget
 
 from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog, QProgressBar, \
-        QMessageBox, QLabel, QComboBox, QDialog
+        QMessageBox, QLabel, QComboBox, QDialog, QApplication
 from PyQt5.QtCore import QSignalMapper, QObject, QThread, \
-    pyqtSlot, pyqtSignal, QDate, QDateTime, QTimer, QUrl
+    pyqtSlot, pyqtSignal, QDate, QDateTime, QTimer, QUrl, Qt
 from PyQt5.QtGui import QIcon, QDesktopServices
 
 from .process_cfg_account import ProcessConfigureAccount
@@ -122,6 +122,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def loader_finished(self):
         self.refresh()
         self.busybar.hide()
+        QApplication.restoreOverrideCursor()
         self.app.disconnect()
         self.app.monitor.start_watching()
 
@@ -170,6 +171,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.busybar.setMaximum(maximum)
         self.app.current_account = None
         self.refresh()
+        QApplication.setOverrideCursor(Qt.BusyCursor)
         self.app.loading_progressed.connect(loading_progressed)
         self.busybar.setMinimum(0)
         self.busybar.setMaximum(0)
