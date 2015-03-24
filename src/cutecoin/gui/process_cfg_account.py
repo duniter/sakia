@@ -66,19 +66,19 @@ class StepPageKey(Step):
 
     def is_valid(self):
         if len(self.config_dialog.edit_salt.text()) < 6:
-            self.config_dialog.label_info.setText("Warning : salt is too short")
+            self.config_dialog.label_info.setText("Forbidden : salt is too short")
             return False
 
         if len(self.config_dialog.edit_password.text()) < 6:
-            self.config_dialog.label_info.setText("Warning : password is too short")
+            self.config_dialog.label_info.setText("Forbidden : password is too short")
             return False
 
         if detect_non_printable(self.config_dialog.edit_salt.text()):
-            self.config_dialog.label_info.setText("Warning : Invalid characters in salt field")
+            self.config_dialog.label_info.setText("Forbidden : Invalid characters in salt field")
             return False
 
         if detect_non_printable(self.config_dialog.edit_password.text()):
-            self.config_dialog.label_info.setText("Warning : Invalid characters in password field")
+            self.config_dialog.label_info.setText("Forbidden : Invalid characters in password field")
             return False
 
         if self.config_dialog.edit_password.text() != \
