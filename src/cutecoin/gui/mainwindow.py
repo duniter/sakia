@@ -168,7 +168,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             logging.debug("Busybar : {:} : {:}".format(value, maximum))
             self.busybar.setValue(value)
             self.busybar.setMaximum(maximum)
+        self.app.current_account = None
+        self.refresh()
         self.app.loading_progressed.connect(loading_progressed)
+        self.busybar.setMinimum(0)
+        self.busybar.setMaximum(0)
+        self.busybar.setValue(-1)
         self.busybar.show()
         self.status_label.setText("Loading account {0}".format(account_name))
         self.loader.set_account_name(account_name)
@@ -199,10 +204,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog = ProcessConfigureAccount(self.app, self.app.current_account)
         result = dialog.exec_()
         if result == QDialog.Accepted:
-            account = self.app.current_account
-            self.app.current_account = None
-            self.refresh()
-            self.action_change_account(account.name)
+            self.action_change_account(self.app.current_account.name)
 
     def open_about_popup(self):
         """
