@@ -153,7 +153,8 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
             for w in self.account.wallets:
                 transfer_action = QAction(w.name, self)
                 transfer_action.triggered.connect(self.transfer_to_wallet)
-                transfer_action.setData(w)
+                wallets = (self.account.wallets[source_index.row()], w)
+                transfer_action.setData(wallets)
                 transfer_to.addAction(transfer_action)
 
             menu.addAction(rename)
@@ -180,10 +181,11 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
             clipboard.setText(data)
 
     def transfer_to_wallet(self):
-        wallet = self.sender().data()
+        wallets = self.sender().data()
         dialog = TransferMoneyDialog(self.account, self.password_asker)
-        dialog.edit_pubkey.setText(wallet.pubkey)
+        dialog.edit_pubkey.setText(wallets[1].pubkey)
         dialog.combo_community.setCurrentText(self.community.name)
+        dialog.combo_wallets.setCurrentText(wallets[0].name)
         dialog.radio_pubkey.setChecked(True)
         if dialog.exec_() == QDialog.Accepted:
             currency_tab = self.window().currencies_tabwidget.currentWidget()
