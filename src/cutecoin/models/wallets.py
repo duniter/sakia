@@ -11,14 +11,16 @@ import logging
 class WalletsFilterProxyModel(QSortFilterProxyModel):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.community = None
+        self.account = None
 
     def columnCount(self, parent):
         return self.sourceModel().columnCount(None)
 
-    def setSourceModel(self, sourceModel):
-        self.community = sourceModel.community
-        self.account = sourceModel.account
-        super().setSourceModel(sourceModel)
+    def setSourceModel(self, source_model):
+        self.community = source_model.community
+        self.account = source_model.account
+        super().setSourceModel(source_model)
 
     def lessThan(self, left, right):
         """
@@ -26,7 +28,7 @@ class WalletsFilterProxyModel(QSortFilterProxyModel):
         """
         left_data = self.sourceModel().data(left, Qt.DisplayRole)
         right_data = self.sourceModel().data(right, Qt.DisplayRole)
-        return (left_data < right_data)
+        return left_data < right_data
 
     def data(self, index, role):
         source_index = self.mapToSource(index)
@@ -37,16 +39,12 @@ class WalletsFilterProxyModel(QSortFilterProxyModel):
                 source_data = pubkey
                 return source_data
             if source_index.column() == self.sourceModel().columns_types.index('amount'):
-                amount_ref = self.account.units_to_ref(source_data,
-                                                        self.community)
-                units_ref = self.account.diff_ref_name(self.community.short_currency)
-
+                amount_ref = self.account.units_to_ref(source_data, self.community)
                 if type(amount_ref) is int:
-                    formatter = "{0} {1}"
+                    return "{0}".format(amount_ref)
                 else:
-                    formatter = "{0:.2f} {1}"
+                    return "{0:.2f}".format(amount_ref)
 
-                return formatter.format(amount_ref, units_ref)
         return source_data
 
 
@@ -63,9 +61,7 @@ class WalletsTableModel(QAbstractTableModel):
         super().__init__(parent)
         self.account = account
         self.community = community
-        self.columns_texts = {'name': 'Name',
-                              'pubkey': 'Pubkey',
-                              'amount': 'Amount'}
+        self.columns_headers = ('Name', 'Pubkey', 'Amount')
         self.columns_types = ('name', 'pubkey', 'amount')
 
     @property
@@ -80,15 +76,19 @@ class WalletsTableModel(QAbstractTableModel):
 
     def headerData(self, section, orientation, role):
         if role == Qt.DisplayRole:
-            col_type = self.columns_types[section]
-            return self.columns_texts[col_type]
+            if self.columns_types[section] == 'amount':
+                return '{:}\n({:})'.format(
+                    self.columns_headers[section],
+                    self.account.ref_name(self.community.short_currency)
+                )
+            return self.columns_headers[section]
 
     def wallet_data(self, row):
         name = self.wallets[row].name
         amount = self.wallets[row].value(self.community)
         pubkey = self.wallets[row].pubkey
 
-        return (name, pubkey, amount)
+        return name, pubkey, amount
 
     def data(self, index, role):
         row = index.row()
@@ -100,11 +100,16 @@ class WalletsTableModel(QAbstractTableModel):
         if role == Qt.EditRole:
             row = index.row()
             col = index.column()
-            if col == self.columns_types.index('name'):
+            # Change model only if value not empty...
+            if col == self.columns_types.index('name') and value:
                 self.wallets[row].name = value
                 self.dataChanged.emit(index, index)
                 return True
         return False
 
     def flags(self, index):
-        return Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsEditable
+        default_flags = Qt.ItemIsSelectable | Qt.ItemIsEnabled
+        # Only name column is editable
+        if index.column() == 0:
+            return default_flags | Qt.ItemIsEditable
+        return default_flags
