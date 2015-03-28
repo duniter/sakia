@@ -169,6 +169,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             logging.debug("Busybar : {:} : {:}".format(value, maximum))
             self.busybar.setValue(value)
             self.busybar.setMaximum(maximum)
+
+        if self.app.current_account:
+            self.app.save_cache(self.app.current_account)
+
         self.app.current_account = None
         self.refresh()
         QApplication.setOverrideCursor(Qt.BusyCursor)
