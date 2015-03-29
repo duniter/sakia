@@ -330,6 +330,7 @@ class Application(QObject):
 
     def latest_version(self):
         version = (True, __version__)
+        logging.debug(os.environ["REQUESTS_CA_BUNDLE"])
         releases = requests.get("https://api.github.com/repos/ucoin-io/cutecoin/releases")
         latest = None
         for r in releases.json():

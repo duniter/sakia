@@ -22,6 +22,7 @@ else:
 parameters = {'home': path.join(config_path, 'cutecoin'),
               'data': path.join(config_path, 'cutecoin', 'data')}
 
+
 if not path.exists(parameters['home']):
     logging.info("Creating home directory")
     makedirs((parameters['home']))

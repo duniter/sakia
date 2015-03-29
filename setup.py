@@ -25,6 +25,8 @@ elif sys.platform == "darwin":
 else:
     pass
     
+includefiles.append(os.path.join("res", "certs", "DigiCertHighAssuranceEVRootCA.crt"))
+
 options = {"path": sys.path,
            "includes": includes,
            "include_files": includefiles,
