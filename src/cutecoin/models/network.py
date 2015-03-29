@@ -5,8 +5,7 @@ Created on 5 févr. 2014
 '''
 
 import logging
-from ..core.person import Person
-from ..tools.exceptions import PersonNotFoundError
+from ..tools.exceptions import NoPeerAvailable
 from ..core.net.node import Node
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel
 from PyQt5.QtGui import QColor
@@ -52,7 +51,7 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
         source_data = self.sourceModel().data(source_index, role)
         if index.column() == self.sourceModel().column_types.index('is_member') \
          and role == Qt.DisplayRole:
-            value = {True: 'yes', False: 'no'}
+            value = {True: 'yes', False: 'no', None: 'offline'}
             return value[source_data]
         return source_data
 
@@ -100,7 +99,11 @@ class NetworkTableModel(QAbstractTableModel):
         :param ..core.net.node.Node node: Network node
         :return:
         """
-        is_member = node.pubkey in self.community.members_pubkeys()
+        try:
+            is_member = node.pubkey in self.community.members_pubkeys()
+        except NoPeerAvailable as e:
+            logging.error(e)
+            is_member = None
 
         address = ""
         if node.endpoint.server:
