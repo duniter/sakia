@@ -5,6 +5,7 @@
 
 import sys, os, subprocess, multiprocessing
 from cx_Freeze import setup, Executable
+from PyQt5 import QtCore
 
 #############################################################################
 # preparation des options
@@ -18,8 +19,15 @@ packages = ["libnacl"]
 
 includefiles = []
 if sys.platform == "win32":
-    includefiles.append("platforms/win32/libEGL.dll")
+    app = QtCore.QCoreApplication(sys.argv)
+    pyqt_path = QtCore.QCoreApplication.libraryPaths()[0]
+    print(pyqt_path)
+    libEGL_path = os.path.join(os.path.dirname(pyqt_path), "libEGL.dll")
+    qt5svg_path = os.path.join(os.path.dirname(pyqt_path), "Qt5Svg.dll")
+    includefiles.append(libEGL_path)
+    includefiles.append(qt5svg_path)
     includefiles.append("platforms/win32/libsodium.dll")
+    
 elif sys.platform == "darwin":
     pass
 else:
