@@ -120,6 +120,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @pyqtSlot()
     def loader_finished(self):
+        logging.debug("Finished loading")
         self.refresh()
         self.busybar.hide()
         QApplication.restoreOverrideCursor()
@@ -169,7 +170,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             logging.debug("Busybar : {:} : {:}".format(value, maximum))
             self.busybar.setValue(value)
             self.busybar.setMaximum(maximum)
-
+            
         if self.app.current_account:
             self.app.save_cache(self.app.current_account)
 
@@ -259,6 +260,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             currency_tab.refresh_wallets()
 
     def refresh_communities(self):
+        logging.debug("CLEAR")
         self.currencies_tabwidget.clear()
         if self.app.current_account:
             for community in self.app.current_account.communities:
@@ -268,8 +270,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                                      self.status_label)
                     tab_currency.refresh()
                     self.currencies_tabwidget.addTab(tab_currency,
-                                                     QIcon(":/icons/currency_icon"),
-                                                     community.name)
+                                                      QIcon(":/icons/currency_icon"),
+                                                      community.name)
                 except NoPeerAvailable as e:
                     QMessageBox.critical(self, "Could not join {0}".format(community.currency),
                                 str(e),
@@ -330,7 +332,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.status_label.setText("")
             self.password_asker = None
         else:
+            logging.debug("Show currencies loading")
             self.currencies_tabwidget.show()
+            logging.debug("Hide homescreen")
             self.homescreen.hide()
             self.action_set_as_default.setEnabled(self.app.current_account.name
                                                   != self.app.default_account)
@@ -345,7 +349,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.menu_contacts.setEnabled(True)
             self.action_configure_parameters.setEnabled(True)
             self.menu_actions.setEnabled(True)
-            self.password_asker = PasswordAskerDialog(self.app.current_account)
             self.setWindowTitle("CuteCoin {0} - Account : {1}".format(__version__,
                 self.app.current_account.name))
 

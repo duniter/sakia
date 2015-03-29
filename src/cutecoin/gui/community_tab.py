@@ -32,11 +32,14 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         Constructor
         '''
         super().__init__()
+        logging.debug("Info")
         self.setupUi(self)
         self.community = community
         self.account = account
         self.password_asker = password_asker
+        logging.debug("Table")
         members_model = MembersTableModel(community)
+        logging.debug("Filter")
         proxy_members = MembersFilterProxyModel()
         proxy_members.setSourceModel(members_model)
         self.table_community_members.setModel(proxy_members)

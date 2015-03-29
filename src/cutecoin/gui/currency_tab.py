@@ -42,21 +42,26 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         self.community = community
         self.password_asker = password_asker
         self.status_label = status_label
+        logging.debug("Com")
         self.tab_community = CommunityTabWidget(self.app.current_account,
                                                     self.community,
                                                     self.password_asker)
+        logging.debug("Wal")
         self.tab_wallets = WalletsTabWidget(self.app,
                                             self.app.current_account,
                                             self.community,
                                             self.password_asker)
-
+ 
+        logging.debug("Net")
         self.tab_network = NetworkTabWidget(self.community)
-
+ 
+        logging.debug("Connect")
         self.community.new_block_mined.connect(self.refresh_block)
         persons_watcher = self.app.monitor.persons_watcher(self.community)
         persons_watcher.person_changed.connect(self.tab_community.refresh_person)
         bc_watcher = self.app.monitor.blockchain_watcher(self.community)
         bc_watcher.error.connect(self.display_error)
+        logging.debug("Connected")
 
         person = Person.lookup(self.app.current_account.pubkey, self.community)
         try:
@@ -68,7 +73,8 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             sig_validity = self.community.parameters['sigValidity']
             warning_expiration_time = int(sig_validity / 3)
             will_expire_soon = (current_time > expiration_date - warning_expiration_time)
-
+ 
+            logging.debug("Try")
             if will_expire_soon:
                 days = QDateTime().currentDateTime().daysTo(QDateTime.fromTime_t(expiration_date))
                 if days > 0:
@@ -86,7 +92,6 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             self.tabs_account.setEnabled(False)
         else:
             self.tabs_account.setEnabled(True)
-            self.refresh_wallets()
             blockchain_init = QDateTime()
             blockchain_init.setTime_t(self.community.get_block(1).mediantime)
 
@@ -149,6 +154,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             block_number = blockid['number']
             self.status_label.setText("Connected : Block {0}"
                                              .format(block_number))
+            self.refresh_wallets()
 
     @pyqtSlot(str)
     def display_error(self, error):

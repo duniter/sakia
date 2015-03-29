@@ -54,7 +54,6 @@ class cached(object):
         finally:
             inst._cache_mutex.unlock()
 
-        inst._cache_mutex.unlock()
         return value
 
     def __repr__(self):
