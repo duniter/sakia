@@ -20,8 +20,12 @@ class HomeScreenWidget(QWidget, Ui_HomeScreenWidget):
         """
         super().__init__()
         self.setupUi(self)
+        self.app = app
+        self.refresh_text()
+        self.app.version_requested.connect(self.refresh_text)
 
-        latest = app.latest_version()
+    def refresh_text(self):
+        latest = self.app.available_version
         version_info = ""
         version_url = ""
         if not latest[0]:

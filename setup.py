@@ -11,11 +11,14 @@ from PyQt5 import QtCore
 # preparation des options
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'lib')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'res', 'certs')))
 
 print(sys.path)
-includes = ["sip", "re", "json", "logging", "hashlib", "os", "urllib", "ucoinpy", "pylibscrypt", "requests"]
+includes = ["sip", "re", "json", "logging",
+            "hashlib", "os", "urllib",
+            "ucoinpy", "pylibscrypt", "requests"]
 excludes = []
-packages = ["libnacl"]
+packages = ["libnacl", "encodings"]
 
 includefiles = []
 if sys.platform == "win32":
@@ -27,13 +30,13 @@ if sys.platform == "win32":
     includefiles.append(libEGL_path)
     includefiles.append(qt5svg_path)
     includefiles.append("platforms/win32/libsodium.dll")
-    
+
 elif sys.platform == "darwin":
     pass
 else:
     pass
-    
-includefiles.append(os.path.join("res", "certs", "DigiCertHighAssuranceEVRootCA.crt"))
+
+includefiles.append((os.path.join(os.path.dirname(__file__), 'res', 'certs', "DigiCertHighAssuranceEVRootCA.crt"), "DigiCertHighAssuranceEVRootCA.crt"))
 
 options = {"path": sys.path,
            "includes": includes,

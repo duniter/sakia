@@ -12,7 +12,6 @@ from PyQt5.QtCore import QLocale
 from cutecoin.gui.mainwindow import MainWindow
 from cutecoin.core.app import Application
 
-
 if __name__ == '__main__':
     # activate ctrl-c interrupt
     signal.signal(signal.SIGINT, signal.SIG_DFL)
@@ -25,9 +24,8 @@ if __name__ == '__main__':
         # Change this bit to match where you store your data files:
         datadir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         os.environ["REQUESTS_CA_BUNDLE"] = os.path.join(datadir,
-                                                        "res", "certs", 
+                                                        "res", "certs",
                                                         "DigiCertHighAssuranceEVRootCA.crt")
-    
 
     cutecoin = QApplication(sys.argv)
     app = Application(sys.argv)

@@ -9,10 +9,11 @@ import logging
 import json
 import tarfile
 import shutil
-import requests
+import json
 import datetime
 
-from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QUrl
+from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
 
 from . import config
 from .account import Account
@@ -31,6 +32,7 @@ class Application(QObject):
     '''
 
     loading_progressed = pyqtSignal(int, int)
+    version_requested = pyqtSignal()
 
     def __init__(self, argv):
         '''
@@ -43,7 +45,11 @@ class Application(QObject):
         self.default_account = ""
         self.current_account = None
         self.monitor = None
+        self.available_version = __version__
         config.parse_arguments(argv)
+        self._network_manager = QNetworkAccessManager()
+        self._network_manager.finished.connect(self.read_available_version)
+        self.get_last_version()
         self.load()
 
     def get_account(self, name):
@@ -328,12 +334,17 @@ class Application(QObject):
                 'local_accounts': self.jsonify_accounts()}
         return data
 
-    def latest_version(self):
-        version = (True, __version__)
-        logging.debug(os.environ["REQUESTS_CA_BUNDLE"])
-        releases = requests.get("https://api.github.com/repos/ucoin-io/cutecoin/releases")
+    def get_last_version(self):
+        url = QUrl("https://api.github.com/repos/ucoin-io/cutecoin/releases")
+        request = QNetworkRequest(url)
+        self._network_manager.get(request)
+
+    @pyqtSlot(QNetworkReply)
+    def read_available_version(self, reply):
         latest = None
-        for r in releases.json():
+        releases = reply.readAll().data().decode('utf-8')
+        logging.debug(releases)
+        for r in json.loads(releases):
             if not latest:
                 latest = r
             else:
@@ -346,4 +357,6 @@ class Application(QObject):
                    latest_version,
                    latest["html_url"])
         logging.debug("Found version : {0}".format(latest_version))
-        return version
+        if version != self.available_version:
+            self.available_version = version
+        self.version_requested.emit()
