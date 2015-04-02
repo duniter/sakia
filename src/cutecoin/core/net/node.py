@@ -221,6 +221,11 @@ class Node(QObject):
             block_number = block["number"]
             node_pubkey = informations["pubkey"]
             node_currency = informations["currency"]
+
+            #If the nodes goes back online...
+            if self.state in (Node.OFFLINE, Node.CORRUPTED):
+                self._change_state(Node.ONLINE)
+                emit_change = True
         except ValueError as e:
             if '404' in e:
                 block_number = 0
