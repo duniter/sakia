@@ -28,7 +28,6 @@ class Cache():
 
     def load_from_json(self, data):
         self._transfers = []
-        logging.debug(data)
 
         data_sent = data['transfers']
         for s in data_sent:

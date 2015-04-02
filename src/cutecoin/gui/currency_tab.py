@@ -36,26 +36,22 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         self.community = community
         self.password_asker = password_asker
         self.status_label = status_label
-        logging.debug("Com")
         self.tab_community = CommunityTabWidget(self.app.current_account,
                                                     self.community,
                                                     self.password_asker)
-        logging.debug("Wal")
+
         self.tab_wallets = WalletsTabWidget(self.app,
                                             self.app.current_account,
                                             self.community,
                                             self.password_asker)
 
-        logging.debug("Net")
         self.tab_network = NetworkTabWidget(self.community)
 
-        logging.debug("Connect")
         self.community.new_block_mined.connect(self.refresh_block)
         persons_watcher = self.app.monitor.persons_watcher(self.community)
         persons_watcher.person_changed.connect(self.tab_community.refresh_person)
         bc_watcher = self.app.monitor.blockchain_watcher(self.community)
         bc_watcher.error.connect(self.display_error)
-        logging.debug("Connected")
 
         person = Person.lookup(self.app.current_account.pubkey, self.community)
         try:

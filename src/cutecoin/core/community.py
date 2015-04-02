@@ -380,7 +380,7 @@ class Community(QObject):
         if cached:
             return self._cache.request(request, req_args, get_args)
         else:
-            nodes = self._network.online_nodes
+            nodes = self._network.synced_nodes
             for node in nodes:
                 try:
                     req = request(node.endpoint.conn_handler(), **req_args)
@@ -469,6 +469,11 @@ class Community(QObject):
 
         :return: The community as a dict in json format.
         '''
+
+        nodes_data = []
+        for node in self._network.online_nodes:
+            nodes_data.append(node.jsonify())
+
         data = {'currency': self.currency,
-                'peers': self._network.jsonify()}
+                'peers': nodes_data}
         return data

@@ -96,7 +96,8 @@ class Node(QObject):
         uid = ""
         pubkey = ""
         last_change = time.time()
-
+        state = Node.ONLINE
+        logging.debug(data)
         for endpoint_data in data['endpoints']:
             endpoints.append(Endpoint.from_inline(endpoint_data))
 
@@ -112,8 +113,13 @@ class Node(QObject):
         if 'last_change' in data:
             last_change = data['last_change']
 
+        if 'state' in data:
+            state = data['state']
+        else:
+            logging.debug("Error : no state in node")
+
         node = cls(currency, endpoints, uid, pubkey, 0,
-                   Node.ONLINE, last_change)
+                   state, last_change)
         node.refresh_state()
         return node
 
@@ -121,6 +127,7 @@ class Node(QObject):
         data = {'pubkey': self._pubkey,
                 'uid': self._uid,
                 'currency': self._currency,
+                'state': self._state,
                 'last_change': self._last_change}
         endpoints = []
         for e in self._endpoints:
@@ -160,12 +167,21 @@ class Node(QObject):
     def last_change(self):
         return self._last_change
 
+    @last_change.setter
+    def last_change(self, val):
+        logging.debug("{:} | Changed state : {:}".format(self.pubkey[:5],
+                                                         val))
+        self._last_change = val
+
     def _change_state(self, new_state):
+        logging.debug("{:} | Last state : {:} / new state : {:}".format(self.pubkey[:5],
+                                                                        self.state, new_state))
         if self.state != new_state:
-            self._last_change = time.time()
+            self.last_change = time.time()
         self._state = new_state
 
     def check_sync(self, block):
+        logging.debug("Check sync")
         if self._block < block:
             self._change_state(Node.DESYNCED)
         else:
@@ -190,6 +206,7 @@ class Node(QObject):
         return uid
 
     def refresh_state(self):
+        logging.debug("Refresh state")
         emit_change = False
         try:
             informations = bma.network.Peering(self.endpoint.conn_handler()).get()
@@ -270,7 +287,7 @@ class Node(QObject):
                               (node.pubkey not in traversed_pubkeys)))
                 if node.pubkey not in traversed_pubkeys and continue_crawling():
                     node.peering_traversal(found_nodes,
-                                        traversed_pubkeys, interval, continue_crawling())
+                                        traversed_pubkeys, interval, continue_crawling)
                     time.sleep(interval)
         except RequestException as e:
             self._change_state(Node.OFFLINE)

@@ -84,7 +84,6 @@ class Network(QObject):
         for data in json_data:
             node = Node.from_json(currency, data)
             nodes.append(node)
-            logging.debug("Loading : {:}".format(data['pubkey']))
         block_max = max([n.block for n in nodes])
         for node in nodes:
             node.check_sync(block_max)
@@ -114,11 +113,18 @@ class Network(QObject):
             return True
 
     @property
-    def online_nodes(self):
+    def synced_nodes(self):
         '''
         Get nodes which are in the ONLINE state.
         '''
         return [n for n in self._nodes if n.state == Node.ONLINE]
+
+    @property
+    def online_nodes(self):
+        '''
+        Get nodes which are in the ONLINE state.
+        '''
+        return [n for n in self._nodes if n.state in (Node.ONLINE, Node.DESYNCED)]
 
     @property
     def all_nodes(self):
@@ -178,14 +184,18 @@ class Network(QObject):
         for node in [n for n in nodes if n.state == Node.ONLINE]:
             node.check_sync(block_max)
 
-        for node in self._nodes:
+        for node in nodes:
             if node.last_change + 3600 < time.time() and \
                 node.state in (Node.OFFLINE, Node.CORRUPTED):
                 try:
                     node.changed.disconnect()
                 except TypeError:
+                    logging.debug("Error : {0} not connected".format(node.pubkey))
                     pass
-                self._nodes.remove(node)
+                nodes.remove(node)
 
+        for node in nodes:
+            logging.debug("Syncing : {0} : last changed {1} : unsynced : {2}".format(node.pubkey[:5],
+                                                            node.last_change, time.time() - node.last_change))
         logging.debug("Nodes found : {0}".format(nodes))
         return nodes
