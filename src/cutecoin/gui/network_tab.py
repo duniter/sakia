@@ -28,7 +28,7 @@ class NetworkTabWidget(QWidget, Ui_NetworkTabWidget):
         proxy.setSourceModel(model)
         self.table_network.setModel(proxy)
         self.table_network.sortByColumn(0, Qt.DescendingOrder)
-
+        self.table_network.resizeColumnsToContents()
         community.network.nodes_changed.connect(self.refresh_nodes)
 
     def refresh_nodes(self):
