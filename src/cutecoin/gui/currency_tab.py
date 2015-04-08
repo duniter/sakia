@@ -48,6 +48,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         self.tab_network = NetworkTabWidget(self.community)
 
         self.community.new_block_mined.connect(self.refresh_block)
+        self.community.network.nodes_changed.connect(self.refresh_status)
         persons_watcher = self.app.monitor.persons_watcher(self.community)
         persons_watcher.person_changed.connect(self.tab_community.refresh_person)
         bc_watcher = self.app.monitor.blockchain_watcher(self.community)
@@ -124,10 +125,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                      QIcon(":/icons/network_icon"),
                                      "Network")
             self.tab_informations.refresh()
-            blockid = self.community.current_blockid()
-            block_number = blockid['number']
-            self.status_label.setText("Connected : Block {0}"
-                                             .format(block_number))
+            self.refresh_status()
             self.refresh_wallets()
 
     @pyqtSlot(str)
@@ -146,20 +144,28 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                                      QModelIndex(),
                                                      QModelIndex(),
                                                      [])
-        self.app.monitor.restart_persons_watching(self.community)
+        self.app.monitor.blockchain_watcher(self.community).thread().start()
+        self.app.monitor.persons_watcher(self.community).thread().start()
+        self.refresh_status()
 
-        text = "Connected : Block {0}".format(block_number)
-        self.status_label.setText(text)
+    @pyqtSlot()
+    def refresh_status(self):
+        if self.community.network_quality() > 0.66:
+            text = "Connected : Block {0}".format(self.community.network.latest_block)
+            self.status_label.setText(text)
+        elif self.community.network_quality() > 0.33:
+            text = "Connected (weak link) : Block {0}".format(self.community.network.latest_block)
+            self.status_label.setText(text)
+        else:
+            text = "Disconnected : Block {0}".format(self.community.network.latest_block)
+            self.status_label.setText(text)
 
     def refresh_wallets(self):
         if self.app.current_account:
             self.tab_wallets.refresh()
 
     def showEvent(self, event):
-        blockid = self.community.current_blockid()
-        block_number = blockid['number']
-        self.status_label.setText("Connected : Block {0}"
-                                         .format(block_number))
+        self.refresh_status()
 
     def referential_changed(self):
         if self.tab_history.table_history.model():

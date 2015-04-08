@@ -17,6 +17,7 @@ class Network(QObject):
     given community.
     '''
     nodes_changed = pyqtSignal()
+    new_block_mined = pyqtSignal(int)
     stopped_perpetual_crawling = pyqtSignal()
 
     def __init__(self, currency, nodes):
@@ -44,12 +45,13 @@ class Network(QObject):
         :param node: The first knew node of the network
         '''
         nodes = [node]
-        network = cls(node.currency, nodes)
+        network = cls(node.currency, nodes, 0)
         nodes = network.crawling()
         block_max = max([n.block for n in nodes])
         for node in nodes:
             node.check_sync(block_max)
         network._nodes = nodes
+        network.latest_block = block_max
         return network
 
     def merge_with_json(self, json_data):
@@ -133,6 +135,13 @@ class Network(QObject):
         '''
         return self._nodes.copy()
 
+    @property
+    def latest_block(self):
+        '''
+        Get latest block known
+        '''
+        return max([n.block for n in self._nodes])
+
     def add_nodes(self, node):
         '''
         Add a node to the network.
@@ -147,6 +156,7 @@ class Network(QObject):
         '''
         self._must_crawl = True
         while self.continue_crawling():
+            latest_before_crawling = self.latest_block
             nodes = self.crawling(interval=10)
 
             new_inlines = [n.endpoint.inline() for n in nodes]
@@ -160,6 +170,9 @@ class Network(QObject):
                 self.nodes_changed.emit()
                 for n in self._nodes:
                     n.changed.connect(self.nodes_changed)
+
+            if self.latest_block != latest_before_crawling:
+                self.block_mined.emit(self.latest_block)
         self.stopped_perpetual_crawling.emit()
 
     def crawling(self, interval=0):

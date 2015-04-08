@@ -120,6 +120,7 @@ class Community(QObject):
         self.currency = currency
         self._network = network
         self._cache = Cache(self)
+        self._network.new_block_mined.connect(self.new_block_mined)
 
         self._cache.refresh()
 
@@ -296,6 +297,17 @@ class Community(QObject):
         :return: The community network instance.
         '''
         return self._network
+
+    def network_quality(self):
+        '''
+        Get a ratio of the synced nodes vs the rest
+        '''
+        synced = len(self._network.synced_nodes)
+        online = len(self._network.online_nodes)
+        total = len(self._network.all_nodes)
+        ratio_synced = synced * 2 / total
+        ratio_unsynced = (online - synced) / total
+        return (ratio_synced + ratio_unsynced) / 3
 
     @property
     def parameters(self):

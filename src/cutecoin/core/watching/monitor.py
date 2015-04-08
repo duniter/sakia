@@ -35,17 +35,11 @@ class Monitor(object):
     def persons_watcher(self, community):
         return self._persons_watchers[community.name]
 
-    def restart_persons_watching(self, community):
-        watcher = self.persons_watcher(community)
-        thread = watcher.thread()
-        logging.debug("Persons watching thread is : {0}".format(thread.isFinished()))
-        thread.start()
-
     def connect_watcher_to_thread(self, watcher):
         thread = QThread()
         watcher.moveToThread(thread)
         thread.started.connect(watcher.watch)
-        success = watcher.watching_stopped.connect(thread.exit, Qt.DirectConnection)
+        watcher.watching_stopped.connect(thread.exit, Qt.DirectConnection)
 
         self.threads_pool.append(thread)
 
@@ -63,9 +57,9 @@ class Monitor(object):
             self.connect_watcher_to_thread(network_watcher)
             self._network_watchers[c.name] = network_watcher
 
-    def start_watching(self):
-        for thread in self.threads_pool:
-            thread.start()
+    def start_network_watchers(self):
+        for watcher in self._network_watchers.values():
+            watcher.thread().start()
 
     def stop_watching(self):
         for watcher in self._persons_watchers.values():

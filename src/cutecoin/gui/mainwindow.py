@@ -125,7 +125,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.busybar.hide()
         QApplication.restoreOverrideCursor()
         self.app.disconnect()
-        self.app.monitor.start_watching()
+        self.app.monitor.start_network_watchers()
 
     @pyqtSlot(str)
     def display_error(self, error):
@@ -170,7 +170,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             logging.debug("Busybar : {:} : {:}".format(value, maximum))
             self.busybar.setValue(value)
             self.busybar.setMaximum(maximum)
-            
+
         if self.app.current_account:
             self.app.save_cache(self.app.current_account)
 

@@ -60,7 +60,7 @@ class Cache():
         return [t for t in self._transfers if t.state != Transfer.DROPPED]
 
     def _parse_transaction(self, community, tx, block_number, mediantime):
-
+        logging.debug(tx)
         receivers = [o.pubkey for o in tx.outputs
                      if o.pubkey != tx.issuers[0]]
 

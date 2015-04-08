@@ -22,26 +22,23 @@ class BlockchainWatcher(Watcher):
         self.last_block = blockid['number']
 
     def watch(self):
-        while not self.exiting:
-            time.sleep(self.time_to_wait)
-            try:
-                blockid = self.community.current_blockid()
-                block_number = blockid['number']
-                if self.last_block != block_number:
+        try:
+            blockid = self.community.current_blockid()
+            block_number = blockid['number']
+            if self.last_block != block_number:
+                if not self.exiting:
+                    self.community.refresh_cache()
+                for w in self.account.wallets:
                     if not self.exiting:
-                        self.community.refresh_cache()
-                    for w in self.account.wallets:
-                        if not self.exiting:
-                            w.refresh_cache(self.community)
+                        w.refresh_cache(self.community)
 
-                    logging.debug("New block, {0} mined in {1}".format(block_number,
-                                                                       self.community.currency))
-                    self.community.new_block_mined.emit(block_number)
-                    self.last_block = block_number
-            except NoPeerAvailable:
-                pass
-            except RequestException as e:
-                self.error.emit("Cannot check new block : {0}".format(str(e)))
+                logging.debug("New block, {0} mined in {1}".format(block_number,
+                                                                   self.community.currency))
+                self.last_block = block_number
+        except NoPeerAvailable:
+            pass
+        except RequestException as e:
+            self.error.emit("Cannot check new block : {0}".format(str(e)))
         self.watching_stopped.emit()
 
     def stop(self):
