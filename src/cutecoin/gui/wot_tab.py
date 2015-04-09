@@ -58,8 +58,8 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
 
         # create Person from node metadata
         person = Person.from_metadata(metadata)
-        person_account = Person.from_metadata({'text':self.account.name,
-                                               'id':self.account.pubkey})
+        person_account = Person.from_metadata({'text': self.account.name,
+                                               'id': self.account.pubkey})
         certifier_list = person.certifiers_of(self.community)
         certified_list = person.certified_by(self.community)
 

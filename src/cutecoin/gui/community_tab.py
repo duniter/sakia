@@ -140,7 +140,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         person = self.sender().data()
         index_wot_tab = self.tabs_information.indexOf(self.wot_tab)
         # redraw WoT with this member selected
-        self.wot_tab.draw_graph(person.pubkey)
+        self.wot_tab.draw_graph({'text': person.uid, 'id': person.pubkey})
         # change page to WoT
         self.tabs_information.setCurrentIndex(index_wot_tab)
 
