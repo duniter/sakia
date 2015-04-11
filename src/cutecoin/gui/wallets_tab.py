@@ -162,6 +162,8 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
             transfer_to = QMenu()
             transfer_to.setTitle("Transfer to...")
             for w in self.account.wallets:
+                if w == self.account.wallets[source_index.row()]:
+                    continue
                 transfer_action = QAction(w.name, self)
                 transfer_action.triggered.connect(self.transfer_to_wallet)
                 wallets = (self.account.wallets[source_index.row()], w)
