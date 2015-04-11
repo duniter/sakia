@@ -7,6 +7,7 @@ Created on 31 janv. 2015
 import logging
 import datetime
 import math
+from PyQt5.QtCore import QLocale
 from PyQt5.QtWidgets import QWidget
 from ..gen_resources.informations_tab_uic import Ui_InformationsTabWidget
 
@@ -48,6 +49,20 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
             return False
 
         if block:
+            ud = round(self.get_referential_diff_value(block['dividend']))
+            if isinstance(ud, int):
+                localized_ud = QLocale().toString(ud)
+                localized_monetary_mass = QLocale().toString(round(self.get_referential_value(block['monetaryMass'])))
+                localized_mass_per_member = QLocale().toString(round(self.get_referential_value(block['monetaryMass'] / block['membersCount'])))
+            else:
+                localized_ud = QLocale().toString(ud, 'f', 2)
+                localized_monetary_mass = QLocale().toString(
+                    round(self.get_referential_value(block['monetaryMass'])), 'f', 2
+                )
+                localized_mass_per_member = QLocale().toString(
+                    round(self.get_referential_value(block['monetaryMass'] / block['membersCount']), 'f', 2)
+                )
+
             # set infos in label
             self.label_general.setText(
                 """
@@ -60,15 +75,15 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
                 </table>
                 """.format(
-                    round(self.get_referential_diff_value(block['dividend'])),
+                    localized_ud,
                     'Universal Dividend UD(t) in',
                     self.get_referential_name(),
-                    round(self.get_referential_value(block['monetaryMass'])),
+                    localized_monetary_mass,
                     'Monetary Mass M(t) in',
                     self.get_referential_name(),
                     block['membersCount'],
                     'Members N(t)',
-                    round(self.get_referential_value(block['monetaryMass'] / block['membersCount'])),
+                    localized_mass_per_member,
                     'Monetary Mass per member M(t)/N(t) in',
                     self.get_referential_name(),
                     block['dividend'] / (block_t_minus_1['monetaryMass'] / block['membersCount']),
@@ -82,6 +97,21 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
             self.label_general.setText('No Universal Dividend created yet.')
 
         if block:
+            if isinstance(ud, int):
+                localized_ud_t1 = QLocale().toString(
+                    self.get_referential_diff_value(
+                        math.ceil(max(block['dividend'], params['c'] * block['monetaryMass'] / block['membersCount']))
+                    )
+                )
+            else:
+                localized_ud_t1 = QLocale().toString(
+                    self.get_referential_diff_value(
+                        math.ceil(max(block['dividend'], params['c'] * block['monetaryMass'] / block['membersCount']))
+                    ),
+                    'f',
+                    2
+                )
+
             # set infos in label
             self.label_rules.setText(
                 """
@@ -96,11 +126,11 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                     'UD(t+1) = MAX { UD(t) ; c * M(t) / N(t) }',
                     'Universal Dividend (formula)',
                     '{:} = MAX {{ {:} {:} ; {:2.0%} * {:} {:} / {:} }}'.format(
-                        math.ceil(max(block['dividend'], params['c'] * block['monetaryMass'] / block['membersCount'])),
-                        round(self.get_referential_diff_value(block['dividend'])),
+                        localized_ud_t1,
+                        localized_ud,
                         self.get_referential_name(),
                         params['c'],
-                        round(self.get_referential_value(block['monetaryMass'])),
+                        localized_monetary_mass,
                         self.get_referential_name(),
                         block['membersCount']
                     ),

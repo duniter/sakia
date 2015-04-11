@@ -9,7 +9,7 @@ from ..core.transfer import Transfer, Received
 from ..core.person import Person
 from ..tools.exceptions import PersonNotFoundError
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, \
-                        QDateTime
+    QDateTime, QLocale
 from PyQt5.QtGui import QFont, QColor
 
 
@@ -32,6 +32,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
     def filterAcceptsRow(self, sourceRow, sourceParent):
         def in_period(date_ts):
             return (date_ts in range(self.ts_from, self.ts_to))
+
         date_col = self.sourceModel().column_types.index('date')
         source_index = self.sourceModel().index(sourceRow, date_col)
         date = self.sourceModel().data(source_index, Qt.DisplayRole)
@@ -79,18 +80,15 @@ class TxFilterProxyModel(QSortFilterProxyModel):
             if source_index.column() == self.sourceModel().column_types.index('date'):
                 date = QDateTime.fromTime_t(source_data)
                 return date.date()
-            if source_index.column() == self.sourceModel().column_types.index('payment')  or \
-                source_index.column() == self.sourceModel().column_types.index('deposit'):
+            if source_index.column() == self.sourceModel().column_types.index('payment') or \
+                    source_index.column() == self.sourceModel().column_types.index('deposit'):
                 if source_data is not "":
                     amount_ref = self.account.units_to_diff_ref(source_data,
                                                                 self.community)
-
-                    if type(amount_ref) is int:
-                        formatter = "{0}"
+                    if isinstance(amount_ref, int):
+                        return QLocale().toString(amount_ref)
                     else:
-                        formatter = "{0:.2f}"
-
-                    return formatter.format(amount_ref)
+                        return QLocale().toString(amount_ref, 'f', 2)
 
         if role == Qt.FontRole:
             font = QFont()
@@ -111,7 +109,8 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                 return QColor(Qt.blue)
 
         if role == Qt.TextAlignmentRole:
-            if source_index.column() == self.sourceModel().column_types.index('deposit') or source_index.column() == self.sourceModel().column_types.index('payment'):
+            if source_index.column() == self.sourceModel().column_types.index(
+                    'deposit') or source_index.column() == self.sourceModel().column_types.index('payment'):
                 return Qt.AlignRight | Qt.AlignVCenter
             if source_index.column() == self.sourceModel().column_types.index('date'):
                 return Qt.AlignCenter
@@ -124,7 +123,6 @@ class TxFilterProxyModel(QSortFilterProxyModel):
 
 
 class HistoryTableModel(QAbstractTableModel):
-
     '''
     A Qt abstract item model to display communities in a tree
     '''
@@ -201,7 +199,7 @@ class HistoryTableModel(QAbstractTableModel):
         try:
             receiver = Person.lookup(pubkey, self.community)
         except PersonNotFoundError:
-            #receiver = "pub:{0}".format(pubkey[:5])
+            # receiver = "pub:{0}".format(pubkey[:5])
             receiver = pubkey
 
         date_ts = transfer.metadata['time']

@@ -6,7 +6,7 @@ Created on 15 févr. 2015
 
 import logging
 from PyQt5.QtWidgets import QWidget, QMenu, QAction, QApplication, QDialog
-from PyQt5.QtCore import QDateTime, QModelIndex, Qt
+from PyQt5.QtCore import QDateTime, QModelIndex, Qt, QLocale
 from PyQt5.QtGui import QCursor
 from ..core.person import Person
 from ..core.wallet import Wallet
@@ -62,12 +62,12 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
                 <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
                 </table>
                 """.format(
-                        self.account.name, self.account.pubkey,
-                        "Membership",
-                        "Last renewal on {:}, expiration on {:}".format(date_renewal, date_expiration),
-                        "Your web of trust :",
-                        "Certified by : {:} members; Certifier of : {:} members".format(len(certifiers),
-                                                                         len(certified))
+                    self.account.name, self.account.pubkey,
+                    "Membership",
+                    "Last renewal on {:}, expiration on {:}".format(date_renewal, date_expiration),
+                    "Your web of trust :",
+                    "Certified by : {:} members; Certifier of : {:} members".format(len(certifiers),
+                                                                                    len(certified))
                 )
             )
         else:
@@ -80,16 +80,26 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
                 <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
                 </table>
                 """.format(
-                        self.account.name, self.account.pubkey,
-                        "Not a member",
-                        "Your web of trust :",
-                        "Certified by : {:} members; Certifier of : {:} members".format(len(certifiers),
-                                                                         len(certified))
+                    self.account.name, self.account.pubkey,
+                    "Not a member",
+                    "Your web of trust :",
+                    "Certified by : {:} members; Certifier of : {:} members".format(len(certifiers),
+                                                                                    len(certified))
                 )
             )
 
         amount = self.account.amount(self.community)
         maximum = self.community.monetary_mass
+
+        if isinstance(amount, int):
+            localized_amount = QLocale().toString(self.get_referential_value(amount))
+        else:
+            localized_amount = QLocale().toString(self.get_referential_value(amount), 'f', 2)
+
+        if isinstance(maximum, int):
+            localized_maximum = QLocale().toString(self.get_referential_value(maximum))
+        else:
+            localized_maximum = QLocale().toString(self.get_referential_value(maximum), 'f', 2)
 
         # set infos in label
         self.label_balance.setText(
@@ -98,13 +108,14 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             </table>
-            """.format("Your money share : ", "{:.2f}%".format(amount/maximum*100),
-                       "Your part : ", "{:.2f} {:} in [{:.2f} - {:.2f}] {:}"
-                       .format(self.get_referential_value(amount),
-                            self.get_referential_name(),
-                           self.get_referential_value(0),
-                           self.get_referential_value(maximum),
-                           self.get_referential_name())
+            """.format("Your money share : ", "{:.2f}%".format(amount / maximum * 100),
+                       "Your part : ", "{:} {:} in [{:.2f} - {:}] {:}"
+                       .format(
+                    localized_amount,
+                    self.get_referential_name(),
+                    self.get_referential_value(0),
+                    localized_maximum,
+                    self.get_referential_name())
             )
         )
 
@@ -131,11 +142,11 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
 
             name_col = model.sourceModel().columns_types.index('name')
             name_index = model.index(index.row(),
-                                    name_col)
+                                     name_col)
 
             pubkey_col = model.sourceModel().columns_types.index('pubkey')
             pubkey_index = model.sourceModel().index(source_index.row(),
-                                                   pubkey_col)
+                                                     pubkey_col)
 
             pubkey = model.sourceModel().data(pubkey_index, Qt.DisplayRole)
             menu = QMenu(model.data(index, Qt.DisplayRole), self)

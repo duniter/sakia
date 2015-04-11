@@ -4,8 +4,7 @@ Created on 8 févr. 2014
 @author: inso
 '''
 
-from PyQt5.QtCore import QAbstractTableModel, QSortFilterProxyModel, Qt
-import logging
+from PyQt5.QtCore import QAbstractTableModel, QSortFilterProxyModel, Qt, QLocale
 
 
 class WalletsFilterProxyModel(QSortFilterProxyModel):
@@ -40,10 +39,10 @@ class WalletsFilterProxyModel(QSortFilterProxyModel):
                 return source_data
             if source_index.column() == self.sourceModel().columns_types.index('amount'):
                 amount_ref = self.account.units_to_ref(source_data, self.community)
-                if type(amount_ref) is int:
-                    return "{0}".format(amount_ref)
+                if isinstance(amount_ref, int):
+                    return QLocale().toString(amount_ref)
                 else:
-                    return "{0:.2f}".format(amount_ref)
+                    return QLocale().toString(amount_ref, 'f', 2)
 
         if role == Qt.TextAlignmentRole:
             if source_index.column() == self.sourceModel().columns_types.index('amount'):
