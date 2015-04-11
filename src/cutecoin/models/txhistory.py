@@ -115,6 +115,11 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                 return Qt.AlignRight | Qt.AlignVCenter
             if source_index.column() == self.sourceModel().column_types.index('date'):
                 return Qt.AlignCenter
+
+        if role == Qt.ToolTipRole:
+            if source_index.column() == self.sourceModel().column_types.index('date'):
+                return QDateTime.fromTime_t(source_data).toString(Qt.SystemLocaleLongDate)
+
         return source_data
 
 
@@ -212,11 +217,15 @@ class HistoryTableModel(QAbstractTableModel):
             return QVariant()
 
         transfer = self.transfers[row]
+
         if role == Qt.DisplayRole:
             if type(transfer) is Received:
                 return self.data_received(transfer)[col]
             else:
                 return self.data_sent(transfer)[col]
+
+        if role == Qt.ToolTipRole and col == 0:
+            return transfer.metadata['time']
 
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled
