@@ -27,13 +27,19 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
     classdocs
     '''
 
-    def __init__(self, account, community, password_asker):
-        '''
-        Constructor
-        '''
+    def __init__(self, account, community, password_asker, parent):
+        """
+        Init
+        :param cutecoin.core.account.Account account: Accoun instance
+        :param cutecoin.core.community.Community community: Community instance
+        :param cutecoin.gui.password_asker.PasswordAskerDialog password_asker: Password asker dialog
+        :param cutecoin.gui.currency_tab.CurrencyTabWidget parent: TabWidget instance
+        :return:
+        """
         super().__init__()
         logging.debug("Info")
         self.setupUi(self)
+        self.parent = parent
         self.community = community
         self.account = account
         self.password_asker = password_asker
@@ -124,8 +130,12 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             self.window().refresh_contacts()
 
     def send_money_to_member(self, person):
+        if isinstance(person, str):
+            pubkey = person
+        else:
+            pubkey = person.pubkey
         dialog = TransferMoneyDialog(self.account, self.password_asker)
-        dialog.edit_pubkey.setText(person.pubkey)
+        dialog.edit_pubkey.setText(pubkey)
         dialog.combo_community.setCurrentText(self.community.name)
         dialog.radio_pubkey.setChecked(True)
         if dialog.exec_() == QDialog.Accepted:
@@ -141,10 +151,12 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
 
     def view_wot(self):
         person = self.sender().data()
-        index_wot_tab = self.tabs_information.indexOf(self.wot_tab)
         # redraw WoT with this member selected
-        self.wot_tab.draw_graph(person.pubkey)
+        self.wot_tab.draw_graph({'text': person.uid, 'id': person.pubkey})
         # change page to WoT
+        index_community_tab = self.parent.tabs_account.indexOf(self)
+        self.parent.tabs_account.setCurrentIndex(index_community_tab)
+        index_wot_tab = self.tabs_information.indexOf(self.wot_tab)
         self.tabs_information.setCurrentIndex(index_wot_tab)
 
     def send_membership_demand(self):

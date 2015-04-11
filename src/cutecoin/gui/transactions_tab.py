@@ -17,8 +17,16 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
 
     def __init__(self, app, community, password_asker, currency_tab):
         """
-        Constructor
+        Init
+
+        :param cutecoin.core.app.Application app: Application instance
+        :param cutecoin.core.community.Community community: Community instance
+        :param cutecoin.gui.password_asker.PasswordAskerDialog password_asker: Password dialog instance
+        :param cutecoin.gui.currency_tab.CurrencyTabWidget currency_tab: Currency tab widget
+        :return:
         """
+
+
         super().__init__()
         self.setupUi(self)
         self.app = app
@@ -80,11 +88,34 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
                 cancel.triggered.connect(self.cancel_transfer)
                 cancel.setData(transfer)
                 menu.addAction(cancel)
+            else:
+                if isinstance(person, Person):
+                    informations = QAction("Informations", self)
+                    informations.triggered.connect(self.currency_tab.tab_community.menu_informations)
+                    informations.setData(person)
+                    menu.addAction(informations)
+
+                    add_as_contact = QAction("Add as contact", self)
+                    add_as_contact.triggered.connect(self.currency_tab.tab_community.menu_add_as_contact)
+                    add_as_contact.setData(person)
+                    menu.addAction(add_as_contact)
+
+                send_money = QAction("Send money to", self)
+                send_money.triggered.connect(self.currency_tab.tab_community.menu_send_money)
+                send_money.setData(person)
+                menu.addAction(send_money)
+
+                if isinstance(person, Person):
+                    view_wot = QAction("View in WoT", self)
+                    view_wot.triggered.connect(self.currency_tab.tab_community.view_wot)
+                    view_wot.setData(person)
+                    menu.addAction(view_wot)
 
             copy_pubkey = QAction("Copy pubkey to clipboard", self)
             copy_pubkey.triggered.connect(self.copy_pubkey_to_clipboard)
             copy_pubkey.setData(person)
             menu.addAction(copy_pubkey)
+
             # Show the context menu.
             menu.exec_(QCursor.pos())
 

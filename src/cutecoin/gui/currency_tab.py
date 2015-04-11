@@ -38,8 +38,9 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         self.status_label = status_label
         logging.debug("Com")
         self.tab_community = CommunityTabWidget(self.app.current_account,
-                                                    self.community,
-                                                    self.password_asker)
+                                                self.community,
+                                                self.password_asker,
+                                                self)
         logging.debug("Wal")
         self.tab_wallets = WalletsTabWidget(self.app,
                                             self.app.current_account,
@@ -105,7 +106,8 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
 
             self.tab_community = CommunityTabWidget(self.app.current_account,
                                                     self.community,
-                                                    self.password_asker)
+                                                    self.password_asker,
+                                                    self)
             self.tabs_account.addTab(self.tab_community,
                                      QIcon(':/icons/community_icon'),
                                     "Community")
