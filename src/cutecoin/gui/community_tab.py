@@ -127,7 +127,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         dialog.radio_pubkey.setChecked(True)
         if dialog.exec_() == QDialog.Accepted:
             currency_tab = self.window().currencies_tabwidget.currentWidget()
-            currency_tab.table_history.model().invalidate()
+            currency_tab.tab_history.table_history.model().invalidate()
 
     def certify_member(self, person):
         dialog = CertificationDialog(self.account, self.password_asker)
@@ -140,7 +140,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         person = self.sender().data()
         index_wot_tab = self.tabs_information.indexOf(self.wot_tab)
         # redraw WoT with this member selected
-        self.wot_tab.draw_graph(person.pubkey)
+        self.wot_tab.draw_graph({'text': person.uid, 'id': person.pubkey})
         # change page to WoT
         self.tabs_information.setCurrentIndex(index_wot_tab)
 

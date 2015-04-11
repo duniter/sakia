@@ -189,4 +189,4 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
         dialog.radio_pubkey.setChecked(True)
         if dialog.exec_() == QDialog.Accepted:
             currency_tab = self.window().currencies_tabwidget.currentWidget()
-            currency_tab.table_history.model().invalidate()
+            currency_tab.tab_history.table_history.model().invalidate()
