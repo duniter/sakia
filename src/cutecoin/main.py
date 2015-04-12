@@ -31,6 +31,6 @@ if __name__ == '__main__':
     app = Application(sys.argv)
     QLocale.setDefault(QLocale("en_GB"))
     window = MainWindow(app)
-    window.show()
+    window.showMaximized()
     sys.exit(cutecoin.exec_())
     pass

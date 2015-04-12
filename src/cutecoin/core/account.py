@@ -259,8 +259,7 @@ class Account(QObject):
         '''
         sent = []
         for w in self.wallets:
-            for transfer in w.transfers(community):
-                sent.append(transfer)
+            sent.extend(w.transfers(community))
         return sent
 
     def amount(self, community):

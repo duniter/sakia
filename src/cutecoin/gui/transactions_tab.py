@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QAbstractItemView, QHeaderView, QDialog, \
     QMenu, QAction, QApplication, QMessageBox
-from PyQt5.QtCore import Qt, QDateTime, QModelIndex
+from PyQt5.QtCore import Qt, QDateTime, QModelIndex, QLocale
 from PyQt5.QtGui import QCursor
 from ..gen_resources.transactions_tab_uic import Ui_transactionsTabWidget
 from ..models.txhistory import HistoryTableModel, TxFilterProxyModel
@@ -61,6 +61,40 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         self.table_history.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table_history.setSortingEnabled(True)
         self.table_history.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+
+        self.refresh_balance()
+
+    def refresh_balance(self):
+        proxy = self.table_history.model()
+        balance = proxy.deposits - proxy.payments
+        if isinstance(proxy.deposits, int):
+            localized_deposits = QLocale().toString(
+                self.app.current_account.units_to_ref(proxy.deposits, self.community))
+            localized_payments = QLocale().toString(
+                self.app.current_account.units_to_ref(proxy.payments, self.community))
+            localized_balance = QLocale().toString(
+                self.app.current_account.units_to_diff_ref(balance, self.community))
+
+        else:
+            localized_deposits = QLocale().toString(
+                self.app.current_account.units_to_ref(proxy.deposits, self.community), 'f', 2)
+            localized_payments = QLocale().toString(
+                self.app.current_account.units_to_ref(proxy.payments, self.community), 'f', 2)
+            localized_balance = QLocale().toString(
+                self.app.current_account.units_to_diff_ref(balance, self.community), 'f', 2)
+
+        self.label_deposit.setText("Deposits: {:} {:}".format(
+            localized_deposits,
+            self.app.current_account.ref_name(self.community.short_currency)
+        ))
+        self.label_payment.setText("Payments: {:} {:}".format(
+            localized_payments,
+            self.app.current_account.ref_name(self.community.short_currency)
+        ))
+        self.label_balance.setText("Balance: {:} {:}".format(
+            localized_balance,
+            self.app.current_account.ref_name(self.community.short_currency)
+        ))
 
     def history_context_menu(self, point):
         index = self.table_history.indexAt(point)

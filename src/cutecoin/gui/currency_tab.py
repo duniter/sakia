@@ -173,6 +173,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                                      QModelIndex(),
                                                      QModelIndex(),
                                                      [])
+            self.tab_history.refresh_balance()
 
         if self.tab_wallets:
             self.tab_wallets.refresh()

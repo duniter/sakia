@@ -20,6 +20,9 @@ class TxFilterProxyModel(QSortFilterProxyModel):
         self.account = None
         self.ts_from = ts_from
         self.ts_to = ts_to
+        # total by column
+        self.payments = 0
+        self.deposits = 0
 
     def set_period(self, ts_from, ts_to):
         """
@@ -31,11 +34,27 @@ class TxFilterProxyModel(QSortFilterProxyModel):
 
     def filterAcceptsRow(self, sourceRow, sourceParent):
         def in_period(date_ts):
-            return (date_ts in range(self.ts_from, self.ts_to))
+            return date_ts in range(self.ts_from, self.ts_to)
 
         date_col = self.sourceModel().column_types.index('date')
         source_index = self.sourceModel().index(sourceRow, date_col)
         date = self.sourceModel().data(source_index, Qt.DisplayRole)
+        if in_period(date):
+            # calculate sum total payments
+            payment = self.sourceModel().data(
+                self.sourceModel().index(sourceRow, self.sourceModel().column_types.index('payment')),
+                Qt.DisplayRole
+            )
+            if payment:
+                self.payments += int(payment)
+            # calculate sum total deposits
+            deposit = self.sourceModel().data(
+                self.sourceModel().index(sourceRow, self.sourceModel().column_types.index('deposit')),
+                Qt.DisplayRole
+            )
+            if deposit:
+                self.deposits += int(deposit)
+
         return in_period(date)
 
     def columnCount(self, parent):
