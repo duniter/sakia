@@ -285,14 +285,15 @@ class Person(object):
             # convert api data to certifiers list
             certifiers = list()
             # add certifiers of uid
-            for certifier in data['results'][0]['uids'][0]['others']:
-                # for each uid found for this pubkey...
-                for uid in certifier['uids']:
-                    # add a certifier
-                    certifier['uid'] = uid
-                    certifier['cert_time'] = dict()
-                    certifier['cert_time']['medianTime'] = community.get_block(certifier['meta']['block_number']).mediantime
-                    certifiers.append(certifier)
+
+            for result in data['results']:
+                if result["pubkey"] == self.pubkey:
+                    for certifier in [uid['others'] for uid in result['uids']]:
+                        # add a certifier
+                        certifier['uid'] = uid
+                        certifier['cert_time'] = dict()
+                        certifier['cert_time']['medianTime'] = community.get_block(certifier['meta']['block_number']).mediantime
+                        certifiers.append(certifier)
 
             return certifiers
 
