@@ -8,10 +8,11 @@ from .node import Node
 import logging
 import time
 
-from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QMutex, QCoreApplication
+from ..watching.watcher import Watcher
 
 
-class Network(QObject):
+class Network(Watcher):
     '''
     A network is managing nodes polling and crawling of a
     given community.
@@ -28,10 +29,10 @@ class Network(QObject):
         :param list nodes: The nodes of the network
         '''
         super().__init__()
+        self._nodes = []
+        self._mutex = QMutex()
         self.currency = currency
-        self._nodes = nodes
-        for n in self._nodes:
-            n.changed.connect(self.nodes_changed)
+        self.nodes = nodes
         self._must_crawl = False
         self._is_perpetual = False
 
@@ -45,12 +46,12 @@ class Network(QObject):
         :param node: The first knew node of the network
         '''
         nodes = [node]
-        network = cls(node.currency, nodes, 0)
+        network = cls(node.currency, nodes)
         nodes = network.crawling()
         block_max = max([n.block for n in nodes])
         for node in nodes:
             node.check_sync(block_max)
-        network._nodes = nodes
+        network.nodes = nodes
         network.latest_block = block_max
         return network
 
@@ -63,16 +64,15 @@ class Network(QObject):
         '''
         for data in json_data:
             node = Node.from_json(self.currency, data)
-            self._nodes.append(node)
-            logging.debug("Loading : {:}".format(data['pubkey']))
-        for n in self._nodes:
+            if node.pubkey not in [n.pubkey for n in self.nodes]:
+                self.add_node(node)
+                logging.debug("Loading : {:}".format(data['pubkey']))
+        for n in self.nodes:
             try:
                 n.changed.disconnect()
             except TypeError:
                 pass
-        self._nodes = self.crawling()
-        for n in self._nodes:
-            n.changed.connect(self.nodes_changed)
+        self.nodes = self.crawling()
 
     @classmethod
     def from_json(cls, currency, json_data):
@@ -98,7 +98,7 @@ class Network(QObject):
         :return: The network as a dict in json format.
         '''
         data = []
-        for node in self._nodes:
+        for node in self.nodes:
             data.append(node.jsonify())
         return data
 
@@ -119,35 +119,67 @@ class Network(QObject):
         '''
         Get nodes which are in the ONLINE state.
         '''
-        return [n for n in self._nodes if n.state == Node.ONLINE]
+        return [n for n in self.nodes if n.state == Node.ONLINE]
 
     @property
     def online_nodes(self):
         '''
         Get nodes which are in the ONLINE state.
         '''
-        return [n for n in self._nodes if n.state in (Node.ONLINE, Node.DESYNCED)]
+        return [n for n in self.nodes if n.state in (Node.ONLINE, Node.DESYNCED)]
 
     @property
-    def all_nodes(self):
+    def nodes(self):
         '''
         Get all knew nodes.
         '''
-        return self._nodes.copy()
+        return self._nodes
+
+    @nodes.setter
+    def nodes(self, new_nodes):
+        '''
+        Set new nodes
+        '''
+        self._mutex.lock()
+        try:
+            for n in self.nodes:
+                try:
+                    n.disconnect()
+                except TypeError:
+                    logging.debug("Error disconnecting node {0}".format(n.pubkey[:5]))
+
+            self._nodes = []
+            for n in new_nodes:
+                self.add_node(n)
+        finally:
+            self._mutex.unlock()
 
     @property
     def latest_block(self):
         '''
         Get latest block known
         '''
-        return max([n.block for n in self._nodes])
+        return max([n.block for n in self.nodes])
 
-    def add_nodes(self, node):
+    def add_node(self, node):
         '''
         Add a node to the network.
         '''
         self._nodes.append(node)
-        node.changed.connect(self.nodes_changed)
+        node.changed.connect(self.handle_change)
+        logging.debug("{:} connected".format(node.pubkey))
+
+    def moveToThread(self, thread):
+        for n in self.nodes:
+            n.moveToThread(thread)
+        super().moveToThread(thread)
+
+    def watch(self):
+        self.stopped_perpetual_crawling.connect(self.watching_stopped)
+        self.start_perpetual_crawling()
+
+    def stop(self):
+        self.stop_crawling()
 
     def start_perpetual_crawling(self):
         '''
@@ -156,24 +188,46 @@ class Network(QObject):
         '''
         self._must_crawl = True
         while self.continue_crawling():
-            latest_before_crawling = self.latest_block
             nodes = self.crawling(interval=10)
 
             new_inlines = [n.endpoint.inline() for n in nodes]
-            last_inlines = [n.endpoint.inline() for n in self._nodes]
+            last_inlines = [n.endpoint.inline() for n in self.nodes]
 
             hash_new_nodes = hash(tuple(frozenset(sorted(new_inlines))))
             hash_last_nodes = hash(tuple(frozenset(sorted(last_inlines))))
 
             if hash_new_nodes != hash_last_nodes:
-                self._nodes = nodes
-                self.nodes_changed.emit()
-                for n in self._nodes:
-                    n.changed.connect(self.nodes_changed)
+                self.nodes = nodes
+                self.handle_change()
 
-            if self.latest_block != latest_before_crawling:
-                self.block_mined.emit(self.latest_block)
         self.stopped_perpetual_crawling.emit()
+
+    @pyqtSlot()
+    def handle_change(self):
+        node = self.sender()
+        logging.debug("Handle change")
+        block_max = max([n.block for n in self.nodes])
+        if node.state in (Node.ONLINE, Node.DESYNCED):
+            node.check_sync(block_max)
+
+        if self.latest_block != block_max:
+            logging.debug("New block found : {0}".format(block_max))
+            self.latest_block = block_max
+            self.new_block_mined.emit(self.latest_block)
+
+        if node.last_change + 3600 < time.time() and \
+            node.state in (Node.OFFLINE, Node.CORRUPTED):
+            try:
+                node.changed.disconnect()
+            except TypeError:
+                logging.debug("Error : {0} not connected".format(node.pubkey))
+                pass
+            self.nodes.remove(node)
+
+        logging.debug("Syncing : {0} : last changed {1} : unsynced : {2}".format(node.pubkey[:5],
+                                                        node.last_change, time.time() - node.last_change))
+
+        self.nodes_changed.emit()
 
     def crawling(self, interval=0):
         '''
@@ -183,32 +237,17 @@ class Network(QObject):
         '''
         nodes = []
         traversed_pubkeys = []
-        for n in self._nodes.copy():
+        knew_pubkeys = [n.pubkey for n in self.nodes]
+        for n in self.nodes:
             logging.debug(traversed_pubkeys)
             logging.debug("Peering : next to read : {0} : {1}".format(n.pubkey,
                           (n.pubkey not in traversed_pubkeys)))
-            if n.pubkey not in traversed_pubkeys and self.continue_crawling():
-                n.peering_traversal(nodes,
+            if self.continue_crawling():
+                n.peering_traversal(knew_pubkeys, nodes,
                                     traversed_pubkeys, interval,
                                     self.continue_crawling)
+                QCoreApplication.processEvents()
                 time.sleep(interval)
 
-        block_max = max([n.block for n in nodes])
-        for node in [n for n in nodes if n.state == Node.ONLINE]:
-            node.check_sync(block_max)
-
-        for node in nodes:
-            if node.last_change + 3600 < time.time() and \
-                node.state in (Node.OFFLINE, Node.CORRUPTED):
-                try:
-                    node.changed.disconnect()
-                except TypeError:
-                    logging.debug("Error : {0} not connected".format(node.pubkey))
-                    pass
-                nodes.remove(node)
-
-        for node in nodes:
-            logging.debug("Syncing : {0} : last changed {1} : unsynced : {2}".format(node.pubkey[:5],
-                                                            node.last_change, time.time() - node.last_change))
         logging.debug("Nodes found : {0}".format(nodes))
         return nodes

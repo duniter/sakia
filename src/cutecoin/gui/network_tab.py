@@ -7,7 +7,6 @@ Created on 20 févr. 2015
 import logging
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import Qt, QThread
-from cutecoin.core.watching.network import NetworkWatcher
 from ..models.network import NetworkTableModel, NetworkFilterProxyModel
 from ..gen_resources.network_tab_uic import Ui_NetworkTabWidget
 
@@ -32,4 +31,5 @@ class NetworkTabWidget(QWidget, Ui_NetworkTabWidget):
         community.network.nodes_changed.connect(self.refresh_nodes)
 
     def refresh_nodes(self):
+        logging.debug("Refresh nodes")
         self.table_network.model().sourceModel().modelReset.emit()

@@ -12,5 +12,8 @@
     <file alias="wallet_icon">noun_29542_cc.svg</file>
     <file alias="tx_icon">noun_63271_cc.svg</file>
     <file alias="currency_icon">noun_43022_cc.svg</file>
+    <file alias="connected">connected.svg</file>
+    <file alias="weak_connect">weak_connect.svg</file>
+    <file alias="disconnected">disconnected.svg</file>
   </qresource>
 </RCC>

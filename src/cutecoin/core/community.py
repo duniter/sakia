@@ -104,8 +104,6 @@ class Community(QObject):
     but nothing exists in ucoin to assert that a currency name is unique.
     '''
 
-    new_block_mined = pyqtSignal(int)
-
     def __init__(self, currency, network):
         '''
         Initialize community attributes with a currency and a network.
@@ -120,8 +118,6 @@ class Community(QObject):
         self.currency = currency
         self._network = network
         self._cache = Cache(self)
-        self._network.new_block_mined.connect(self.new_block_mined)
-
         self._cache.refresh()
 
     @classmethod
@@ -281,15 +277,6 @@ class Community(QObject):
                 return 0
 
     @property
-    def nodes(self):
-        '''
-        Get the known community nodes
-
-        :return: All community known nodes
-        '''
-        return self._network.all_nodes
-
-    @property
     def network(self):
         '''
         Get the community network instance.
@@ -303,11 +290,10 @@ class Community(QObject):
         Get a ratio of the synced nodes vs the rest
         '''
         synced = len(self._network.synced_nodes)
-        online = len(self._network.online_nodes)
-        total = len(self._network.all_nodes)
-        ratio_synced = synced * 2 / total
-        ratio_unsynced = (online - synced) / total
-        return (ratio_synced + ratio_unsynced) / 3
+        #online = len(self._network.online_nodes)
+        total = len(self._network.nodes)
+        ratio_synced = synced / total
+        return ratio_synced
 
     @property
     def parameters(self):
@@ -410,9 +396,10 @@ class Community(QObject):
                         continue
                     else:
                         raise
-                except RequestException:
+                except RequestException as e:
+                    logging.debug("Error : {1} : {0}".format(str(e),
+                                                             str(request)))
                     continue
-
         raise NoPeerAvailable(self.currency, len(nodes))
 
     def post(self, request, req_args={}, post_args={}):

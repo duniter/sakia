@@ -79,7 +79,7 @@ class NetworkTableModel(QAbstractTableModel):
 
     @property
     def nodes(self):
-        return self.community.nodes
+        return self.community.network.nodes
 
     def rowCount(self, parent):
         return len(self.nodes)

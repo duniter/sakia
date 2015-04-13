@@ -86,6 +86,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.combo_referential.currentTextChanged.connect(self.referential_changed)
 
         self.status_label = QLabel("", self)
+        self.status_label.setTextFormat(Qt.RichText)
 
         self.label_time = QLabel("", self)
 

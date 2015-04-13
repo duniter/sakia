@@ -47,7 +47,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
 
         self.tab_network = NetworkTabWidget(self.community)
 
-        self.community.new_block_mined.connect(self.refresh_block)
+        self.community.network.new_block_mined.connect(self.refresh_block)
         self.community.network.nodes_changed.connect(self.refresh_status)
         persons_watcher = self.app.monitor.persons_watcher(self.community)
         persons_watcher.person_changed.connect(self.tab_community.refresh_person)
@@ -151,14 +151,15 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
     @pyqtSlot()
     def refresh_status(self):
         if self.community.network_quality() > 0.66:
+            icon = '<img src=":/icons/connected" width="12" height="12"/>'
             text = "Connected : Block {0}".format(self.community.network.latest_block)
-            self.status_label.setText(text)
         elif self.community.network_quality() > 0.33:
+            icon = '<img src=":/icons/weak_connect" width="12" height="12"/>'
             text = "Connected (weak link) : Block {0}".format(self.community.network.latest_block)
-            self.status_label.setText(text)
         else:
+            icon = '<img src=":/icons/disconnected" width="12" height="12"/>'
             text = "Disconnected : Block {0}".format(self.community.network.latest_block)
-            self.status_label.setText(text)
+        self.status_label.setText("{0}{1}".format(icon, text))
 
     def refresh_wallets(self):
         if self.app.current_account:

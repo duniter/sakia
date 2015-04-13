@@ -7,7 +7,6 @@ Created on 18 mars 2015
 from PyQt5.QtCore import QThread, Qt
 from .blockchain import BlockchainWatcher
 from .persons import PersonsWatcher
-from .network import NetworkWatcher
 import logging
 
 
@@ -30,7 +29,7 @@ class Monitor(object):
         return self._blockchain_watchers[community.name]
 
     def network_watcher(self, community):
-        return self._network_watchers[community.name]
+        return self._networks[community.name]
 
     def persons_watcher(self, community):
         return self._persons_watchers[community.name]
@@ -53,9 +52,8 @@ class Monitor(object):
             self.connect_watcher_to_thread(bc_watcher)
             self._blockchain_watchers[c.name] = bc_watcher
 
-            network_watcher = NetworkWatcher(c)
-            self.connect_watcher_to_thread(network_watcher)
-            self._network_watchers[c.name] = network_watcher
+            self.connect_watcher_to_thread(c.network)
+            self._network_watchers[c.name] = c.network
 
     def start_network_watchers(self):
         for watcher in self._network_watchers.values():
