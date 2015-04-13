@@ -77,7 +77,7 @@ class StepPageAddpeers(Step):
 
     def display_page(self):
         # We add already known peers to the displayed list
-        self.config_dialog.nodes = self.config_dialog.community.nodes
+        self.config_dialog.nodes = self.config_dialog.community.network.nodes
         try:
             tree_model = PeeringTreeModel(self.config_dialog.community)
         except requests.exceptions.RequestException:
