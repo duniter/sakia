@@ -136,6 +136,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
 
     @pyqtSlot(int)
     def refresh_block(self, block_number):
+        logging.debug("Refesh block")
         if self.tab_wallets:
             self.tab_wallets.refresh()
 
@@ -150,6 +151,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
 
     @pyqtSlot()
     def refresh_status(self):
+        logging.debug("Refresh status")
         if self.community.network_quality() > 0.66:
             icon = '<img src=":/icons/connected" width="12" height="12"/>'
             text = "Connected : Block {0}".format(self.community.network.latest_block)

@@ -35,6 +35,7 @@ class Network(Watcher):
         self.nodes = nodes
         self._must_crawl = False
         self._is_perpetual = False
+        self._block_found = 0
 
     @classmethod
     def create(cls, node):
@@ -52,7 +53,7 @@ class Network(Watcher):
         for node in nodes:
             node.check_sync(block_max)
         network.nodes = nodes
-        network.latest_block = block_max
+        network._block_found = network.latest_block
         return network
 
     def merge_with_json(self, json_data):
@@ -89,7 +90,9 @@ class Network(Watcher):
         block_max = max([n.block for n in nodes])
         for node in nodes:
             node.check_sync(block_max)
-        return cls(currency, nodes)
+        network = cls(currency, nodes)
+        network._block_found = network.latest_block
+        return network
 
     def jsonify(self):
         '''
@@ -206,13 +209,11 @@ class Network(Watcher):
     def handle_change(self):
         node = self.sender()
         logging.debug("Handle change")
-        block_max = max([n.block for n in self.nodes])
         if node.state in (Node.ONLINE, Node.DESYNCED):
-            node.check_sync(block_max)
-
-        if self.latest_block != block_max:
-            logging.debug("New block found : {0}".format(block_max))
-            self.latest_block = block_max
+            node.check_sync(self.latest_block)
+        logging.debug("{0} -> {1}".format(self.latest_block, self.latest_block))
+        if self._block_found != self.latest_block:
+            logging.debug("New block found : {0}".format(self.latest_block))
             self.new_block_mined.emit(self.latest_block)
 
         if node.last_change + 3600 < time.time() and \
@@ -224,6 +225,7 @@ class Network(Watcher):
                 pass
             self.nodes.remove(node)
 
+        QCoreApplication.processEvents()
         logging.debug("Syncing : {0} : last changed {1} : unsynced : {2}".format(node.pubkey[:5],
                                                         node.last_change, time.time() - node.last_change))
 
