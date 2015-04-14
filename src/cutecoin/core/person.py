@@ -341,10 +341,12 @@ class Person(object):
                 return list()
 
             certified_list = list()
-            for certified in data['results'][0]['signed']:
-                certified['cert_time'] = dict()
-                certified['cert_time']['medianTime'] = certified['meta']['timestamp']
-                certified_list.append(certified)
+            for result in data['results']:
+                if result["pubkey"] == self.pubkey:
+                    for certified in result['signed']:
+                        certified['cert_time'] = dict()
+                        certified['cert_time']['medianTime'] = certified['meta']['timestamp']
+                        certified_list.append(certified)
 
             return certified_list
 
