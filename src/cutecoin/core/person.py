@@ -288,12 +288,13 @@ class Person(object):
 
             for result in data['results']:
                 if result["pubkey"] == self.pubkey:
-                    for certifier in [uid['others'] for uid in result['uids']]:
-                        # add a certifier
-                        certifier['uid'] = uid
-                        certifier['cert_time'] = dict()
-                        certifier['cert_time']['medianTime'] = community.get_block(certifier['meta']['block_number']).mediantime
-                        certifiers.append(certifier)
+                    for uid in result['uids']:
+                        for certifier in uid['others']:
+                            # add a certifier
+                            certifier['uid'] = uid
+                            certifier['cert_time'] = dict()
+                            certifier['cert_time']['medianTime'] = community.get_block(certifier['meta']['block_number']).mediantime
+                            certifiers.append(certifier)
 
             return certifiers
 
