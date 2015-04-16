@@ -19,7 +19,7 @@ from requests.exceptions import RequestException
 
 
 class Cache():
-    _saved_requests = [str(bma.blockchain.Block)]
+    _saved_requests = [str(bma.blockchain.Block), str(bma.blockchain.Parameters)]
 
     def __init__(self, community):
         '''
@@ -49,8 +49,7 @@ class Cache():
 
         :return: The cache as a dict in json format
         '''
-        data = {k: self.data[k] for k in self.data.keys()
-                   if k[0] in Cache._saved_requests}
+        data = {k: self.data[k] for k in self.data.keys()}
         entries = []
         for d in data:
             entries.append({'key': d,
@@ -63,9 +62,10 @@ class Cache():
         Refreshing the cache just clears every last requests which
         cannot be saved because they can change from one block to another.
         '''
-        self.latest_block = self.community.current_blockid()['number']
-        self.data = {k: self.data[k] for k in self.data.keys()
-                   if k[0] in Cache._saved_requests}
+        if self.latest_block < self.community.network.latest_block:
+            self.latest_block = self.community.network.latest_block
+            self.data = {k: self.data[k] for k in self.data.keys()
+                       if k[0] in Cache._saved_requests}
 
     def request(self, request, req_args={}, get_args={}):
         '''

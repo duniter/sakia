@@ -44,15 +44,8 @@ class Loader(QObject):
     @pyqtSlot()
     def load(self):
         if self.account_name != "":
-            try:
-                account = self.app.get_account(self.account_name)
-                self.app.change_current_account(account)
-            except requests.exceptions.RequestException as e:
-                self.connection_error.emit(str(e))
-                self.loaded.emit()
-            except NoPeerAvailable as e:
-                self.connection_error.emit(str(e))
-                self.loaded.emit()
+            account = self.app.get_account(self.account_name)
+            self.app.change_current_account(account)
 
         self.loaded.emit()
 

@@ -7,11 +7,13 @@ Created on 21 févr. 2015
 from ucoinpy.documents.peer import Peer, BMAEndpoint, Endpoint
 from ucoinpy.api import bma
 from ucoinpy.api.bma import ConnectionHandler
-from requests.exceptions import RequestException
+from requests.exceptions import RequestException, ConnectionError
 from ...tools.exceptions import InvalidNodeCurrency, PersonNotFoundError
 from ..person import Person
 import logging
 import time
+import ctypes
+import sys
 
 from PyQt5.QtCore import QObject, pyqtSignal
 
@@ -214,7 +216,7 @@ class Node(QObject):
                 uid = ""
         return uid
 
-    def refresh_state(self, init=False):
+    def refresh_state(self):
         logging.debug("Refresh state")
         emit_change = False
         try:
@@ -237,23 +239,36 @@ class Node(QObject):
             node_currency = informations["currency"]
             node_uid = self._request_uid()
 
+            logging.debug("Continuing...")
             #If the nodes goes back online...
             if self.state in (Node.OFFLINE, Node.CORRUPTED):
                 self.state = Node.ONLINE
                 logging.debug("Change : new state online")
                 emit_change = True
-        except RequestException:
+        except ConnectionError as e:
+            logging.debug(str(e))
+
+            if self.state != Node.OFFLINE:
+                self.state = Node.OFFLINE
+                logging.debug("Change : new state offine")
+                emit_change = True
+            # Dirty hack to reload resolv.conf on linux
+            if 'Connection aborted' in str(e) and 'gaierror' in str(e):
+                logging.debug("Connection Aborted")
+                if 'linux' in sys.platform:
+                    try:
+                        libc = ctypes.CDLL('libc.so.6')
+                        res_init = getattr(libc, '__res_init')
+                        res_init(None)
+                    except:
+                        logging.error('Error calling libc.__res_init')
+        except RequestException as e:
             if self.state != Node.OFFLINE:
                 self.state = Node.OFFLINE
                 logging.debug("Change : new state offine")
                 emit_change = True
 
         # If not is offline, do not refresh last data
-        if init:
-            self.block = block_number
-            self._pubkey = node_pubkey
-            self._uid = node_uid
-            self._neighbours = neighbours
         if self.state != Node.OFFLINE:
             # If not changed its currency, consider it corrupted
             if node_currency != self._currency:

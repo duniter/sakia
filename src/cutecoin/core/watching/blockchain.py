@@ -18,13 +18,11 @@ class BlockchainWatcher(Watcher):
         self.community = community
         self.time_to_wait = int(self.community.parameters['avgGenTime'] / 10)
         self.exiting = False
-        blockid = self.community.current_blockid()
-        self.last_block = blockid['number']
+        self.last_block = self.community.network.latest_block
 
     def watch(self):
         try:
-            blockid = self.community.current_blockid()
-            block_number = blockid['number']
+            block_number = self.community.network.latest_block
             if self.last_block != block_number:
                 if not self.exiting:
                     self.community.refresh_cache()
