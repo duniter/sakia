@@ -239,7 +239,6 @@ class Node(QObject):
             node_currency = informations["currency"]
             node_uid = self._request_uid()
 
-            logging.debug("Continuing...")
             #If the nodes goes back online...
             if self.state in (Node.OFFLINE, Node.CORRUPTED):
                 self.state = Node.ONLINE
