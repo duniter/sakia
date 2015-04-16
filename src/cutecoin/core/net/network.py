@@ -29,13 +29,14 @@ class Network(Watcher):
         :param list nodes: The nodes of the network
         '''
         super().__init__()
+        self._root_nodes = nodes
         self._nodes = []
         self._mutex = QMutex()
         self.currency = currency
         self.nodes = nodes
         self._must_crawl = False
         self._is_perpetual = False
-        self._block_found = 0
+        self._block_found = self.latest_block
 
     @classmethod
     def create(cls, node):
@@ -48,12 +49,6 @@ class Network(Watcher):
         '''
         nodes = [node]
         network = cls(node.currency, nodes)
-        nodes = network.crawling()
-        block_max = max([n.block for n in nodes])
-        for node in nodes:
-            node.check_sync(block_max)
-        network.nodes = nodes
-        network._block_found = network.latest_block
         return network
 
     def merge_with_json(self, json_data):
@@ -73,7 +68,6 @@ class Network(Watcher):
                 n.changed.disconnect()
             except TypeError:
                 pass
-        self.nodes = self.crawling()
 
     @classmethod
     def from_json(cls, currency, json_data):
@@ -87,11 +81,7 @@ class Network(Watcher):
         for data in json_data:
             node = Node.from_json(currency, data)
             nodes.append(node)
-        block_max = max([n.block for n in nodes])
-        for node in nodes:
-            node.check_sync(block_max)
         network = cls(currency, nodes)
-        network._block_found = network.latest_block
         return network
 
     def jsonify(self):
@@ -138,6 +128,13 @@ class Network(Watcher):
         '''
         return self._nodes
 
+    @property
+    def root_nodes(self):
+        '''
+        Get root nodes.
+        '''
+        return self._root_nodes
+
     @nodes.setter
     def nodes(self, new_nodes):
         '''
@@ -171,6 +168,18 @@ class Network(Watcher):
         self._nodes.append(node)
         node.changed.connect(self.handle_change)
         logging.debug("{:} connected".format(node.pubkey))
+
+    def add_root_node(self, node):
+        '''
+        Add a node to the root nodes list
+        '''
+        self._root_nodes.append(node)
+
+    def remove_root_node(self, index):
+        '''
+        Remove a node from the root nodes list
+        '''
+        self._root_nodes.pop(index)
 
     def moveToThread(self, thread):
         for n in self.nodes:

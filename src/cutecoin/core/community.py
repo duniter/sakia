@@ -308,14 +308,21 @@ class Community(QObject):
         '''
         return time.time() - certtime > self.parameters['sigValidity']
 
-    @property
-    def add_peer(self, peer):
+    def add_node(self, node):
         '''
         Add a peer to the community.
 
         :param peer: The new peer as a ucoinpy Peer object.
         '''
-        self._network.add_node(Node.from_peer(peer))
+        self._network.add_root_node(node)
+
+    def remove_node(self, index):
+        '''
+        Remove a node from the community.
+
+        :param index: The index of the removed node.
+        '''
+        self._network.remove_root_node(index)
 
     def get_block(self, number=None):
         '''
@@ -470,7 +477,7 @@ class Community(QObject):
         '''
 
         nodes_data = []
-        for node in self._network.online_nodes:
+        for node in self._network.root_nodes:
             nodes_data.append(node.jsonify())
 
         data = {'currency': self.currency,

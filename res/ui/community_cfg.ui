@@ -261,5 +261,6 @@
   <slot>next()</slot>
   <slot>previous()</slot>
   <slot>current_wallet_changed(int)</slot>
+  <slot>remove_node()</slot>
  </slots>
 </ui>
