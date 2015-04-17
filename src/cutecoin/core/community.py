@@ -478,7 +478,7 @@ class Community(QObject):
 
         nodes_data = []
         for node in self._network.root_nodes:
-            nodes_data.append(node.jsonify())
+            nodes_data.append(node.jsonify_root_node())
 
         data = {'currency': self.currency,
                 'peers': nodes_data}

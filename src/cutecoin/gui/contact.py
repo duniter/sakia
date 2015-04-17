@@ -32,6 +32,8 @@ class ConfigureContactDialog(QDialog, Ui_ConfigureContactDialog):
                             'pubkey': contact.pubkey}
         elif type(contact) is dict:
             self.contact = contact
+        else:
+            self.contact = None
 
         if index_edit is not None:
             self.contact = account.contacts[index_edit]

@@ -71,7 +71,6 @@ class Node(QObject):
 
         node = cls(peer.currency, peer.endpoints, "", peer.pubkey, 0,
                    Node.ONLINE, time.time())
-        node.refresh_state()
         logging.debug("Node from address : {:}".format(str(node)))
         return node
 
@@ -90,7 +89,6 @@ class Node(QObject):
 
         node = cls(peer.currency, peer.endpoints, "", "", 0,
                    Node.ONLINE, time.time())
-        node.refresh_state()
         logging.debug("Node from peer : {:}".format(str(node)))
         return node
 
@@ -99,6 +97,7 @@ class Node(QObject):
         endpoints = []
         uid = ""
         pubkey = ""
+        block = 0
         last_change = time.time()
         state = Node.ONLINE
         logging.debug(data)
@@ -117,16 +116,29 @@ class Node(QObject):
         if 'last_change' in data:
             last_change = data['last_change']
 
+        if 'block' in data:
+            block = data['block']
+
         if 'state' in data:
             state = data['state']
         else:
             logging.debug("Error : no state in node")
 
-        node = cls(currency, endpoints, uid, pubkey, 0,
+        node = cls(currency, endpoints, uid, pubkey, block,
                    state, last_change)
-        node.refresh_state()
         logging.debug("Node from json : {:}".format(str(node)))
         return node
+
+    def jsonify_root_node(self):
+        logging.debug("Saving root node : {:}".format(str(self)))
+        data = {'pubkey': self._pubkey,
+                'uid': self._uid,
+                'currency': self._currency}
+        endpoints = []
+        for e in self._endpoints:
+            endpoints.append(e.inline())
+        data['endpoints'] = endpoints
+        return data
 
     def jsonify(self):
         logging.debug("Saving node : {:}".format(str(self)))
@@ -134,7 +146,8 @@ class Node(QObject):
                 'uid': self._uid,
                 'currency': self._currency,
                 'state': self._state,
-                'last_change': self._last_change}
+                'last_change': self._last_change,
+                'block': self.block}
         endpoints = []
         for e in self._endpoints:
             endpoints.append(e.inline())

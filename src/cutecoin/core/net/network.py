@@ -26,7 +26,7 @@ class Network(Watcher):
         Constructor of a network
 
         :param str currency: The currency name of the community
-        :param list nodes: The nodes of the network
+        :param list nodes: The root nodes of the network
         '''
         super().__init__()
         self._root_nodes = nodes
@@ -63,11 +63,12 @@ class Network(Watcher):
             if node.pubkey not in [n.pubkey for n in self.nodes]:
                 self.add_node(node)
                 logging.debug("Loading : {:}".format(data['pubkey']))
-        for n in self.nodes:
-            try:
-                n.changed.disconnect()
-            except TypeError:
-                pass
+            else:
+                other_node = [n for n in self.nodes if n.pubkey == node.pubkey][0]
+                if other_node.block < node.block:
+                    other_node.block = node.block
+                    other_node.last_change = node.last_change
+                    other_node.state = node.state
 
     @classmethod
     def from_json(cls, currency, json_data):
