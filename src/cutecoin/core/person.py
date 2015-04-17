@@ -387,31 +387,31 @@ class Person(object):
         :return: True if a changed was made by the reload.
         '''
         self._cache_mutex.lock()
+        change = False
         try:
             if community.currency not in self._cache:
                 self._cache[community.currency] = {}
 
-            change = False
-            before = self._cache[community.currency][func.__name__]
+            try:
+                before = self._cache[community.currency][func.__name__]
+            except KeyError:
+                change = True
 
-            value = func(self, community)
+            try:
+                value = func(self, community)
 
-            if not change:
-                if type(value) is dict:
-                    hash_before = (hash(tuple(frozenset(sorted(before.keys())))),
-                                 hash(tuple(frozenset(sorted(before.items())))))
-                    hash_after = (hash(tuple(frozenset(sorted(value.keys())))),
-                                 hash(tuple(frozenset(sorted(value.items())))))
-                    change = hash_before != hash_after
-                elif type(value) is bool:
-                    change = before != value
-
-            self._cache[community.currency][func.__name__] = value
-
-        except KeyError:
-            change = True
-        except Error:
-            return False
+                if not change:
+                    if type(value) is dict:
+                        hash_before = (str(tuple(frozenset(sorted(before.keys())))),
+                                     str(tuple(frozenset(sorted(before.items())))))
+                        hash_after = (str(tuple(frozenset(sorted(value.keys())))),
+                                     str(tuple(frozenset(sorted(value.items())))))
+                        change = hash_before != hash_after
+                    elif type(value) is bool:
+                        change = before != value
+                self._cache[community.currency][func.__name__] = value
+            except Error:
+                return False
         finally:
             self._cache_mutex.unlock()
         return change
