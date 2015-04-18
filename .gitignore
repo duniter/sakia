@@ -40,3 +40,5 @@ nosetests.xml
 # Generated files
 src/cutecoin/gen_resources/*
 src/icons_rc.py
+out
+.directory
