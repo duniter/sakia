@@ -466,7 +466,7 @@ class Community(QObject):
         if not ok:
             raise value_error
 
-        if tries == len(self.nodes):
+        if tries == len(nodes):
             raise NoPeerAvailable(self.currency, len(nodes))
 
     def jsonify(self):
