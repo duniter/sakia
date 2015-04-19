@@ -36,7 +36,8 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         self.community = community
         self.password_asker = password_asker
         self.status_label = status_label
-        self.tab_community = CommunityTabWidget(self.app.current_account,
+        self.tab_community = CommunityTabWidget(self.app,
+                                                self.app.current_account,
                                                     self.community,
                                                     self.password_asker)
 
@@ -100,7 +101,8 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                      QIcon(':/icons/tx_icon'),
                                     "Transactions")
 
-            self.tab_community = CommunityTabWidget(self.app.current_account,
+            self.tab_community = CommunityTabWidget(self.app,
+                                                    self.app.current_account,
                                                     self.community,
                                                     self.password_asker)
             self.tabs_account.addTab(self.tab_community,
@@ -139,9 +141,6 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         logging.debug("Refesh block")
         if self.tab_wallets:
             self.tab_wallets.refresh()
-
-        if self.tab_community:
-            self.tab_community.wot_tab.refresh()
 
         if self.tab_history.table_history.model():
             self.tab_history.table_history.model().dataChanged.emit(

@@ -27,7 +27,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
     classdocs
     '''
 
-    def __init__(self, account, community, password_asker):
+    def __init__(self, app, account, community, password_asker):
         '''
         Constructor
         '''
@@ -50,7 +50,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             self.button_membership.setText("Send membership demand")
             self.button_leaving.hide()
 
-        self.wot_tab = WotTabWidget(account, community, password_asker, self)
+        self.wot_tab = WotTabWidget(app, account, community, password_asker, self)
         self.tabs_information.addTab(self.wot_tab, QIcon(':/icons/wot_icon'), "WoT")
 
     def member_context_menu(self, point):
