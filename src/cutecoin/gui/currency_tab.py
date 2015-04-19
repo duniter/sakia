@@ -140,6 +140,9 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         if self.tab_wallets:
             self.tab_wallets.refresh()
 
+        if self.tab_community:
+            self.tab_community.wot_tab.refresh()
+
         if self.tab_history.table_history.model():
             self.tab_history.table_history.model().dataChanged.emit(
                                                      QModelIndex(),

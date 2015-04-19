@@ -45,8 +45,8 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         self.nodes = list()
 
         # create node metadata from account
-        metadata = {'text': self.account.name, 'id': self.account.pubkey}
-        self.draw_graph(metadata)
+        self._current_metadata = {'text': self.account.name, 'id': self.account.pubkey}
+        self.refresh()
 
     def draw_graph(self, metadata):
         """
@@ -55,6 +55,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         :param dict metadata: Graph node metadata of the identity
         """
         logging.debug("Draw graph - " + metadata['text'])
+        self._current_metadata = metadata
 
         # create Person from node metadata
         person = Person.from_metadata(metadata)
@@ -98,6 +99,12 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         self.draw_graph(
             metadata
         )
+
+    def refresh(self):
+        """
+        Refresh graph scene to current metadata
+        """
+        self.draw_graph(self._current_metadata)
 
     def search(self):
         """
