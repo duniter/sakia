@@ -62,6 +62,8 @@ class Cache():
         Refreshing the cache just clears every last requests which
         cannot be saved because they can change from one block to another.
         '''
+        logging.debug("Refresh : {0}/{1}".format(self.latest_block,
+                                                 self.community.network.latest_block))
         if self.latest_block < self.community.network.latest_block:
             self.latest_block = self.community.network.latest_block
             self.data = {k: self.data[k] for k in self.data.keys()
@@ -86,11 +88,7 @@ class Cache():
             result = self.community.request(request, req_args, get_args,
                                          cached=False)
 
-            # Do not cache block 0
-            if self.latest_block == 0:
-                return result
-            else:
-                self.data[cache_key] = result
+            self.data[cache_key] = result
             return self.data[cache_key]
         else:
             return self.data[cache_key]
@@ -371,6 +369,7 @@ class Community(QObject):
         '''
         Start the refresh processing of the cache
         '''
+        # We have to refresh node before refresh cache
         self._cache.refresh()
 
     def request(self, request, req_args={}, get_args={}, cached=True):
