@@ -335,11 +335,13 @@ class Node(QObject):
             if self.state != Node.CORRUPTED:
                 logging.debug("Found : {0} node".format(self.pubkey))
                 found_nodes.append(self)
-        try:
             logging.debug(self.neighbours)
             for n in self.neighbours:
-                e = next(e for e in n if type(e) is BMAEndpoint)
-                peering = bma.network.Peering(e.conn_handler()).get()
+                try:
+                    e = next(e for e in n if type(e) is BMAEndpoint)
+                    peering = bma.network.Peering(e.conn_handler()).get()
+                except:
+                    continue
                 peer = Peer.from_signed_raw("{0}{1}\n".format(peering['raw'],
                                                             peering['signature']))
                 if peer.pubkey not in traversed_pubkeys and \
@@ -351,8 +353,6 @@ class Node(QObject):
                     node.peering_traversal(knew_pubkeys, found_nodes,
                                         traversed_pubkeys, interval, continue_crawling)
                     time.sleep(interval)
-        except RequestException as e:
-            self.state = Node.OFFLINE
 
     def __str__(self):
         return ','.join([str(self.pubkey), str(self.endpoint.server), str(self.endpoint.port), str(self.block),
