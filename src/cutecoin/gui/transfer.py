@@ -73,6 +73,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
 
         try:
             QApplication.setOverrideCursor(Qt.WaitCursor)
+            QApplication.processEvents()
             self.wallet.send_money(self.account.salt, password, self.community,
                                        recipient, amount, comment)
             QMessageBox.information(self, "Money transfer",
@@ -100,6 +101,7 @@ Please try again later""")
             return
         finally:
             QApplication.restoreOverrideCursor()
+            QApplication.processEvents()
 
         super().accept()
 

@@ -112,15 +112,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if result == QDialog.Accepted:
             self.action_change_account(self.app.current_account.name)
 
-    @pyqtSlot()
-    def loader_finished(self):
-        logging.debug("Finished loading")
-        self.refresh()
-        self.busybar.hide()
-        QApplication.restoreOverrideCursor()
-        self.app.disconnect()
-        self.app.monitor.start_network_watchers()
-
     @pyqtSlot(str)
     def display_error(self, error):
         QMessageBox.critical(self, ":(",
@@ -181,6 +172,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.loader_thread.start(QThread.LowPriority)
         self.homescreen.button_new.hide()
         self.homescreen.button_import.hide()
+
+    @pyqtSlot()
+    def loader_finished(self):
+        logging.debug("Finished loading")
+        self.refresh()
+        self.busybar.hide()
+        QApplication.setOverrideCursor(Qt.ArrowCursor)
+        self.app.disconnect()
+        self.app.monitor.start_network_watchers()
+        QApplication.processEvents()
 
     def open_transfer_money_dialog(self):
         dialog = TransferMoneyDialog(self.app.current_account,
