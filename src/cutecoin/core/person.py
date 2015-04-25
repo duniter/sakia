@@ -12,7 +12,8 @@ from ucoinpy import PROTOCOL_VERSION
 from ucoinpy.documents.certification import SelfCertification
 from ucoinpy.documents.membership import Membership
 from ..tools.exceptions import Error, PersonNotFoundError,\
-                                        MembershipNotFoundError
+                                        MembershipNotFoundError, \
+                                        NoPeerAvailable
 from PyQt5.QtCore import QMutex
 
 
@@ -51,6 +52,7 @@ class cached(object):
         except KeyError:
             value = self.func(inst, community)
             inst._cache[community.currency][self.func.__name__] = value
+
         finally:
             inst._cache_mutex.unlock()
 
@@ -219,6 +221,9 @@ class Person(object):
         except ValueError as e:
             if '400' in str(e):
                 raise MembershipNotFoundError(self.pubkey, community.name)
+        except Exception as e:
+            logging.debug('bma.blockchain.Membership request error : ' + str(e))
+            raise MembershipNotFoundError(self.pubkey, community.name)
 
 #TODO: Manage 'OUT' memberships ? Maybe ?
     @cached
@@ -247,6 +252,9 @@ class Person(object):
         except ValueError as e:
             if '400' in str(e):
                 raise MembershipNotFoundError(self.pubkey, community.name)
+        except Exception as e:
+            logging.debug('bma.blockchain.Membership request error : ' + str(e))
+            raise MembershipNotFoundError(self.pubkey, community.name)
 
         return membership_data
 
@@ -262,6 +270,9 @@ class Person(object):
             certifiers = community.request(bma.wot.CertifiersOf, {'search': self.pubkey})
             return certifiers['isMember']
         except ValueError:
+            return False
+        except Exception as e:
+            logging.debug('bma.wot.CertifiersOf request error : ' + str(e))
             return False
 
     @cached

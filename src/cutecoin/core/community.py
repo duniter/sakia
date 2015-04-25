@@ -87,7 +87,9 @@ class Cache():
         if cache_key not in self.data.keys():
             result = self.community.request(request, req_args, get_args,
                                          cached=False)
-
+            # For block 0, we should have a different behaviour
+            # Community members and certifications
+            # Should be requested without caching
             self.data[cache_key] = result
             return self.data[cache_key]
         else:
@@ -254,11 +256,16 @@ class Community(QObject):
         :return: The monetary mass value
         '''
         try:
-            block = self.request(bma.blockchain.Current)
+            # Get cached block by block number
+            block_number = self.network.latest_block
+            block = self.request(bma.blockchain.Block,
+                                 req_args={'number': block_number})
             return block['monetaryMass']
         except ValueError as e:
             if '404' in e:
                 return 0
+        except NoPeerAvailable as e:
+            return 0
 
     @property
     def nb_members(self):
@@ -268,11 +275,16 @@ class Community(QObject):
         :return: The community members number
         '''
         try:
-            block = self.request(bma.blockchain.Current)
+            # Get cached block by block number
+            block_number = self.network.latest_block
+            block = self.request(bma.blockchain.Block,
+                                 req_args={'number': block_number})
             return block['membersCount']
         except ValueError as e:
             if '404' in e:
                 return 0
+        except NoPeerAvailable as e:
+            return 0
 
     @property
     def network(self):
@@ -369,7 +381,6 @@ class Community(QObject):
         '''
         Start the refresh processing of the cache
         '''
-        # We have to refresh node before refresh cache
         self._cache.refresh()
 
     def request(self, request, req_args={}, get_args={}, cached=True):

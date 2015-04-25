@@ -258,23 +258,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.currencies_tabwidget.clear()
         if self.app.current_account:
             for community in self.app.current_account.communities:
-                try:
-                    tab_currency = CurrencyTabWidget(self.app, community,
-                                                     self.password_asker,
-                                                     self.status_label)
-                    tab_currency.refresh()
-                    self.currencies_tabwidget.addTab(tab_currency,
-                                                     QIcon(":/icons/currency_icon"),
-                                                     community.name)
-                except NoPeerAvailable as e:
-                    QMessageBox.critical(self, "Could not join {0}".format(community.currency),
-                                         str(e),
-                                         QMessageBox.Ok)
-                    continue
-                except requests.exceptions.RequestException as e:
-                    QMessageBox.critical(self, ":(",
-                                         str(e),
-                                         QMessageBox.Ok)
+                tab_currency = CurrencyTabWidget(self.app, community,
+                                                 self.password_asker,
+                                                 self.status_label)
+                tab_currency.refresh()
+                self.currencies_tabwidget.addTab(tab_currency,
+                                                 QIcon(":/icons/currency_icon"),
+                                                 community.name)
 
     def refresh_accounts(self):
         self.menu_change_account.clear()
