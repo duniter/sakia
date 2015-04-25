@@ -156,13 +156,13 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         logging.debug("Refresh status")
         if self.community.network_quality() > 0.66:
             icon = '<img src=":/icons/connected" width="12" height="12"/>'
-            text = "Connected : Block {0}".format(self.community.network.latest_block)
+            text = " Block {0}".format(self.community.network.latest_block)
         elif self.community.network_quality() > 0.33:
             icon = '<img src=":/icons/weak_connect" width="12" height="12"/>'
-            text = "Connected (weak link) : Block {0}".format(self.community.network.latest_block)
+            text = " Block {0}".format(self.community.network.latest_block)
         else:
             icon = '<img src=":/icons/disconnected" width="12" height="12"/>'
-            text = "Disconnected : Block {0}".format(self.community.network.latest_block)
+            text = " Block {0}".format(self.community.network.latest_block)
         self.status_label.setText("{0}{1}".format(icon, text))
 
     def refresh_wallets(self):

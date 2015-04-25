@@ -275,6 +275,7 @@ class Node(QObject):
                     except:
                         logging.error('Error calling libc.__res_init')
         except RequestException as e:
+            logging.debug(str(e))
             if self.state != Node.OFFLINE:
                 self.state = Node.OFFLINE
                 logging.debug("Change : new state offine")
@@ -347,7 +348,7 @@ class Node(QObject):
                     logging.debug(traversed_pubkeys)
                     logging.debug("Traversing : next to read : {0} : {1}".format(node.pubkey,
                                   (node.pubkey not in traversed_pubkeys)))
-                    node.peering_traversal(found_nodes,
+                    node.peering_traversal(knew_pubkeys, found_nodes,
                                         traversed_pubkeys, interval, continue_crawling)
                     time.sleep(interval)
         except RequestException as e:

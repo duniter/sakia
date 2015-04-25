@@ -40,7 +40,7 @@
        fx="52.325901"
        fy="1005.1627"
        r="42.926411"
-       gradientTransform="matrix(1.539681,0,0,1.5451884,-48.038287,-560.37733)"
+       gradientTransform="matrix(1.539681,0,0,1.5451884,-50.51316,-559.67022)"
        gradientUnits="userSpaceOnUse" />
   </defs>
   <sodipodi:namedview
@@ -51,7 +51,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="2.8284271"
-     inkscape:cx="80.436882"
+     inkscape:cx="18.741815"
      inkscape:cy="33.829638"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -59,9 +59,9 @@
      units="px"
      inkscape:snap-bbox="false"
      inkscape:window-width="1366"
-     inkscape:window-height="725"
-     inkscape:window-x="-7"
-     inkscape:window-y="17"
+     inkscape:window-height="709"
+     inkscape:window-x="-4"
+     inkscape:window-y="0"
      inkscape:window-maximized="1" />
   <metadata
      id="metadata3341">
@@ -71,7 +71,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -81,7 +81,7 @@
      id="layer1"
      transform="translate(0,-952.36216)">
     <ellipse
-       style="opacity:1;fill:#c60002;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       style="opacity:1;fill:#c60002;fill-opacity:1;stroke:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="path3346"
        cx="51.785713"
        cy="1005.5765"
@@ -90,8 +90,8 @@
     <ellipse
        style="opacity:0.65;fill:url(#radialGradient4162);fill-opacity:1;stroke:none;stroke-width:1.25129819;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="path4148"
-       cx="32.526913"
-       cy="992.78827"
+       cx="30.05204"
+       cy="993.49536"
        rx="64.928177"
        ry="65.10495" />
   </g>

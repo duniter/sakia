@@ -201,36 +201,32 @@ class Network(Watcher):
         '''
         self._must_crawl = True
         while self.continue_crawling():
+            emit_change = False
             nodes = self.crawling(interval=10)
 
             new_inlines = [n.endpoint.inline() for n in nodes]
             last_inlines = [n.endpoint.inline() for n in self.nodes]
 
-            hash_new_nodes = hash(tuple(frozenset(sorted(new_inlines))))
-            hash_last_nodes = hash(tuple(frozenset(sorted(last_inlines))))
-            emit_change = False
-            self._mutex.lock()
-            try:
-                if hash_new_nodes != hash_last_nodes:
-                    self.nodes = nodes
+            hash_new_nodes = str(tuple(frozenset(sorted(new_inlines))))
+            hash_last_nodes = str(tuple(frozenset(sorted(last_inlines))))
+            if hash_new_nodes != hash_last_nodes:
+                logging.debug("Nodes changed...")
+                self.nodes = nodes
+                emit_change = True
+
+            for node in self.nodes:
+                if node.last_change + 3600 < time.time() and \
+                    node.state in (Node.OFFLINE, Node.CORRUPTED):
+                    try:
+                        node.changed.disconnect()
+                    except TypeError:
+                        logging.debug("Error : {0} not connected".format(node.pubkey))
+                    self.nodes.remove(node)
                     emit_change = True
 
-                for node in self.nodes:
-                    if node.last_change + 3600 < time.time() and \
-                        node.state in (Node.OFFLINE, Node.CORRUPTED):
-                        try:
-                            node.changed.disconnect()
-                        except TypeError:
-                            logging.debug("Error : {0} not connected".format(node.pubkey))
-                        self.nodes.remove(node)
-                        emit_change = True
-            except:
-                raise
-            finally:
-                self._mutex.unlock()
             if emit_change:
                 self.nodes_changed.emit()
-
+            QCoreApplication.processEvents()
 
         self.stopped_perpetual_crawling.emit()
 

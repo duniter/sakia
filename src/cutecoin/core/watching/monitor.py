@@ -77,3 +77,8 @@ class Monitor(object):
             self.threads_pool.remove(watcher.thread())
             watcher.deleteLater()
             watcher.thread().deleteLater()
+
+        self.threads_pool = []
+        self._blockchain_watchers = {}
+        self._network_watchers = {}
+        self._persons_watchers = {}
