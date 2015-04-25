@@ -80,9 +80,9 @@ class Cache():
         '''
         cache_key = (str(request),
                      str(tuple(frozenset(sorted(req_args.keys())))),
-                     str(tuple(frozenset(sorted(req_args.items())))),
+                     str(tuple(frozenset(sorted(req_args.values())))),
                      str(tuple(frozenset(sorted(get_args.keys())))),
-                     str(tuple(frozenset(sorted(get_args.items())))))
+                     str(tuple(frozenset(sorted(get_args.values())))))
 
         if cache_key not in self.data.keys():
             result = self.community.request(request, req_args, get_args,

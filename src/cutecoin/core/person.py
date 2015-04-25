@@ -117,12 +117,13 @@ class Person(object):
             for result in data['results']:
                 if result["pubkey"] == pubkey:
                     uids = result['uids']
-                    for uid in uids:
-                        if uid["meta"]["timestamp"] > timestamp:
-                            timestamp = uid["meta"]["timestamp"]
-                            uid = uid["uid"]
+                    person_uid = ""
+                    for uid_data in uids:
+                        if uid_data["meta"]["timestamp"] > timestamp:
+                            timestamp = uid_data["meta"]["timestamp"]
+                            person_uid = uid_data["uid"]
 
-                        person = cls(uid, pubkey, {})
+                        person = cls(person_uid, pubkey, {})
                         Person._instances[pubkey] = person
                         logging.debug("{0}".format(Person._instances.keys()))
                         return person
@@ -299,10 +300,10 @@ class Person(object):
 
             for result in data['results']:
                 if result["pubkey"] == self.pubkey:
-                    for uid in result['uids']:
-                        for certifier in uid['others']:
+                    for uid_data in result['uids']:
+                        for certifier in uid_data['others']:
                             # add a certifier
-                            certifier['uid'] = uid
+                            certifier['uid'] = uid_data['uid']
                             certifier['cert_time'] = dict()
                             certifier['cert_time']['medianTime'] = community.get_block(certifier['meta']['block_number']).mediantime
                             certifiers.append(certifier)
