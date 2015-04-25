@@ -15,9 +15,6 @@ qapplication = QApplication(sys.argv)
 
 
 class MainWindowTest(unittest.TestCase):
-
-    first_setup = True
-
     def setUp(self):
         QLocale.setDefault(QLocale("en_GB"))
         self.application = Application(sys.argv)

@@ -297,7 +297,7 @@ class Application(QObject):
         data = json.load(json_data)
         account = Account.load(data)
         account.name = name
-        self.accounts.append(account)
+        self.add_account(account)
         self.save(account)
 
     def export_account(self, file, account):
