@@ -383,7 +383,9 @@ class Wallet(QObject):
                     'time': time,
                     'amount': amount,
                     'issuer': key.pubkey,
+                    'issuer_uid': issuer_uid,
                     'receiver': recipient,
+                    'receiver_uid': receiver_uid,
                     'comment': message
                     }
         transfer = Transfer.initiate(metadata)
