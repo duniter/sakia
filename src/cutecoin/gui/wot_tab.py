@@ -166,10 +166,11 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
 
     def add_node_as_contact(self, metadata):
         # check if contact already exists...
-        if metadata['id'] == self.account.pubkey or metadata['id'] in [contact.pubkey for contact in self.account.contacts]:
+        if metadata['id'] == self.account.pubkey \
+            or metadata['id'] in [contact['pubkey'] for contact in self.account.contacts]:
             return False
-        person = Person.from_metadata(metadata)
-        self.parent.add_member_as_contact(person)
+        self.parent.add_member_as_contact({'name': metadata['text'],
+                                           'pubkey': metadata['id']})
 
     def get_block_mediantime(self, number):
         try:

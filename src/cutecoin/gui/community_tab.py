@@ -100,7 +100,8 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
 
     def menu_add_as_contact(self):
         person = self.sender().data()
-        self.add_member_as_contact(person)
+        self.add_member_as_contact({'name': person.uid,
+                                    'pubkey': person.pubkey})
 
     def menu_send_money(self):
         person = self.sender().data()
