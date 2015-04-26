@@ -92,6 +92,8 @@ class Application(QObject):
         self.accounts.pop(account.name)
         if self.current_account == account:
             self.current_account = None
+        with open(config.parameters['data'], 'w') as outfile:
+            json.dump(self.jsonify(), outfile, indent=4, sort_keys=True)
 
     def change_current_account(self, account):
         '''
