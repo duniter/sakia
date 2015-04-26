@@ -28,6 +28,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
         logging.debug("Filtering from {0} to {1}".format(ts_from, ts_to))
         self.ts_from = ts_from
         self.ts_to = ts_to
+        self.modelReset.emit()
 
     def filterAcceptsRow(self, sourceRow, sourceParent):
         def in_period(date_ts):
@@ -55,10 +56,6 @@ class TxFilterProxyModel(QSortFilterProxyModel):
             return self.sortOrder() == Qt.DescendingOrder
         elif right_data == "":
             return self.sortOrder() == Qt.AscendingOrder
-        if left_data.__class__ is Person:
-            left_data = left_data.uid
-        if right_data.__class__ is Person:
-            right_data = right_data.uid
 
         return (left_data < right_data)
 
@@ -70,11 +67,6 @@ class TxFilterProxyModel(QSortFilterProxyModel):
         state_data = self.sourceModel().data(state_index, Qt.DisplayRole)
         if role == Qt.DisplayRole:
             if source_index.column() == self.sourceModel().column_types.index('uid'):
-                if source_data.__class__ == Person:
-                    tx_person = source_data.uid
-                else:
-                    tx_person = "pub:{0}".format(source_data[:5])
-                source_data = tx_person
                 return source_data
             if source_index.column() == self.sourceModel().column_types.index('date'):
                 date = QDateTime.fromTime_t(source_data)
@@ -176,11 +168,10 @@ class HistoryTableModel(QAbstractTableModel):
         comment = ""
         if transfer.txdoc:
             comment = transfer.txdoc.comment
-        pubkey = transfer.metadata['issuer']
-        try:
-            sender = Person.lookup(pubkey, self.community)
-        except PersonNotFoundError:
-            sender = pubkey
+        if transfer.metadata['issuer_uid'] != "":
+            sender = transfer.metadata['issuer_uid']
+        else:
+            sender = "pub:{0}".format(transfer.metadata['issuer'][:5])
 
         date_ts = transfer.metadata['time']
 
@@ -192,12 +183,12 @@ class HistoryTableModel(QAbstractTableModel):
         comment = ""
         if transfer.txdoc:
             comment = transfer.txdoc.comment
-        pubkey = transfer.metadata['receiver']
-        try:
-            receiver = Person.lookup(pubkey, self.community)
-        except PersonNotFoundError:
-            #receiver = "pub:{0}".format(pubkey[:5])
-            receiver = pubkey
+
+        if transfer.metadata['receiver_uid'] != "":
+            receiver = transfer.metadata['receiver_uid']
+        else:
+            receiver = "pub:{0}".format(transfer.metadata['receiver'][:5])
+
 
         date_ts = transfer.metadata['time']
 

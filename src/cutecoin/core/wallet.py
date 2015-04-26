@@ -10,8 +10,9 @@ from ucoinpy.documents.block import Block
 from ucoinpy.documents.transaction import InputSource, OutputSource, Transaction
 from ucoinpy.key import SigningKey
 
-from ..tools.exceptions import NotEnoughMoneyError, NoPeerAvailable
+from ..tools.exceptions import NotEnoughMoneyError, NoPeerAvailable, PersonNotFoundError
 from .transfer import Transfer, Received
+from .person import Person
 
 from PyQt5.QtCore import QObject, pyqtSignal
 
@@ -64,11 +65,23 @@ class Cache():
         receivers = [o.pubkey for o in tx.outputs
                      if o.pubkey != tx.issuers[0]]
 
+        try:
+            issuer_uid = Person.lookup(tx.issuers[0], community).uid
+        except PersonNotFoundError:
+            issuer_uid = ""
+
+        try:
+            receiver_uid = Person.lookup(receivers[0], community).uid
+        except PersonNotFoundError:
+            receiver_uid = ""
+
         metadata = {'block': block_number,
                     'time': mediantime,
                     'comment': tx.comment,
                     'issuer': tx.issuers[0],
-                    'receiver': receivers[0]}
+                    'issuer_uid': issuer_uid,
+                    'receiver': receivers[0],
+                    'receiver_uid': receiver_uid}
 
         in_issuers = len([i for i in tx.issuers
                      if i == self.wallet.pubkey]) > 0
@@ -355,6 +368,16 @@ class Wallet(QObject):
         else:
             key = SigningKey("{0}{1}".format(salt, self.walletid), password)
         logging.debug("Sender pubkey:{0}".format(key.pubkey))
+
+        try:
+            issuer_uid = Person.lookup(key.pubkey, community).uid
+        except PersonNotFoundError:
+            issuer_uid = ""
+
+        try:
+            receiver_uid = Person.lookup(recipient, community).uid
+        except PersonNotFoundError:
+            receiver_uid = ""
 
         metadata = {'block': block_number,
                     'time': time,

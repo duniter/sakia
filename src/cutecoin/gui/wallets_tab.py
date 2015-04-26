@@ -98,7 +98,8 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             </table>
-            """.format("Your money share : ", "{:.2f}%".format(amount/maximum*100),
+            """.format("Your money share : ",
+                       "{:.2f}%".format(amount/maximum*100) if maximum != 0 else "0%",
                        "Your part : ", "{:.2f} {:} in [{:.2f} - {:.2f}] {:}"
                        .format(self.get_referential_value(amount),
                             self.get_referential_name(),

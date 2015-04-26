@@ -9,6 +9,7 @@ from ..core.wallet import Wallet
 from ..core.person import Person
 from .transfer import TransferMoneyDialog
 
+import logging
 
 class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
     """
@@ -125,3 +126,13 @@ QMessageBox.Ok | QMessageBox.Cancel)
             transfer = self.sender().data()
             transfer.drop()
             self.table_history.model().invalidate()
+
+    def dates_changed(self):
+        logging.debug("Changed dates")
+        if self.table_history.model():
+            ts_from = self.date_from.dateTime().toTime_t()
+            ts_to = self.date_to.dateTime().toTime_t()
+
+            self.table_history.model().set_period(ts_from, ts_to)
+
+
