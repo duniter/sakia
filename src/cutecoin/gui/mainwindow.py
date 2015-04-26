@@ -206,7 +206,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog = ProcessConfigureAccount(self.app, self.app.current_account)
         result = dialog.exec_()
         if result == QDialog.Accepted:
-            self.action_change_account(self.app.current_account.name)
+            if self.app.current_account:
+                self.action_change_account(self.app.current_account.name)
+            else:
+                self.refresh()
 
     def open_about_popup(self):
         """
