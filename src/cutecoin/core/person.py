@@ -301,12 +301,16 @@ class Person(object):
             for result in data['results']:
                 if result["pubkey"] == self.pubkey:
                     for uid_data in result['uids']:
-                        for certifier in uid_data['others']:
+                        for certifier_data in uid_data['others']:
+                            for uid in certifier_data['uids']:
                             # add a certifier
-                            certifier['uid'] = uid_data['uid']
-                            certifier['cert_time'] = dict()
-                            certifier['cert_time']['medianTime'] = community.get_block(certifier['meta']['block_number']).mediantime
-                            certifiers.append(certifier)
+                                certifier = {}
+                                certifier['uid'] = uid
+                                certifier['pubkey'] = certifier_data['pubkey']
+                                certifier['isMember'] = certifier_data['isMember']
+                                certifier['cert_time'] = dict()
+                                certifier['cert_time']['medianTime'] = community.get_block(certifier_data['meta']['block_number']).mediantime
+                                certifiers.append(certifier)
 
             return certifiers
 
