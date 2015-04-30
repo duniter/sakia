@@ -3,6 +3,7 @@
 import logging
 from cutecoin.core.graph import Graph
 from PyQt5.QtWidgets import QWidget, QComboBox
+from PyQt5.QtCore import pyqtSlot
 from ..gen_resources.wot_tab_uic import Ui_WotTabWidget
 from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_SELECTED, NODE_STATUS_OUT, ARC_STATUS_STRONG, ARC_STATUS_WEAK
 from ucoinpy.api import bma
@@ -10,7 +11,7 @@ from cutecoin.core.person import Person
 
 
 class WotTabWidget(QWidget, Ui_WotTabWidget):
-    def __init__(self, account, community, password_asker, parent=None):
+    def __init__(self, app, account, community, password_asker, parent=None):
         """
 
         :param cutecoin.core.account.Account account:
@@ -37,6 +38,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         self.graphicsView.scene().node_contact.connect(self.add_node_as_contact)
         self.graphicsView.scene().node_member.connect(self.member_informations)
 
+        app.monitor.persons_watcher(community).person_changed.connect(self.handle_person_change)
         self.account = account
         self.community = community
         self.password_asker = password_asker
@@ -45,8 +47,8 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         self.nodes = list()
 
         # create node metadata from account
-        metadata = {'text': self.account.name, 'id': self.account.pubkey}
-        self.draw_graph(metadata)
+        self._current_metadata = {'text': self.account.name, 'id': self.account.pubkey}
+        self.refresh()
 
     def draw_graph(self, metadata):
         """
@@ -55,11 +57,12 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         :param dict metadata: Graph node metadata of the identity
         """
         logging.debug("Draw graph - " + metadata['text'])
+        self._current_metadata = metadata
 
         # create Person from node metadata
         person = Person.from_metadata(metadata)
-        person_account = Person.from_metadata({'text':self.account.name,
-                                               'id':self.account.pubkey})
+        person_account = Person.from_metadata({'text': self.account.name,
+                                               'id': self.account.pubkey})
         certifier_list = person.certifiers_of(self.community)
         certified_list = person.certified_by(self.community)
 
@@ -98,6 +101,17 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         self.draw_graph(
             metadata
         )
+
+    def refresh(self):
+        """
+        Refresh graph scene to current metadata
+        """
+        self.draw_graph(self._current_metadata)
+
+    @pyqtSlot(str)
+    def handle_person_change(self, pubkey):
+        if pubkey == self._current_metadata['id']:
+            self.refresh()
 
     def search(self):
         """
@@ -152,10 +166,11 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
 
     def add_node_as_contact(self, metadata):
         # check if contact already exists...
-        if metadata['id'] == self.account.pubkey or metadata['id'] in [contact.pubkey for contact in self.account.contacts]:
+        if metadata['id'] == self.account.pubkey \
+            or metadata['id'] in [contact['pubkey'] for contact in self.account.contacts]:
             return False
-        person = Person.from_metadata(metadata)
-        self.parent.add_member_as_contact(person)
+        self.parent.add_member_as_contact({'name': metadata['text'],
+                                           'pubkey': metadata['id']})
 
     def get_block_mediantime(self, number):
         try:

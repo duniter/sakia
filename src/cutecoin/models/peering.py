@@ -96,7 +96,7 @@ class PeeringTreeModel(QAbstractItemModel):
         Constructor
         '''
         super().__init__(None)
-        self.nodes = community.nodes
+        self.nodes = community._network.root_nodes
         self.root_item = RootItem(community.currency)
         self.refresh_tree()
 

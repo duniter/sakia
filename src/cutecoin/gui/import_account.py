@@ -58,7 +58,7 @@ class ImportAccountDialog(QDialog, Ui_ImportAccountDialog):
             self.label_errors.setText("Please enter a name")
             return
         for account in self.app.accounts:
-            if name == account.name:
+            if name == account:
                 self.button_box.button(QDialogButtonBox.Ok).setEnabled(False)
                 self.label_errors.setText("Name already exists")
                 return

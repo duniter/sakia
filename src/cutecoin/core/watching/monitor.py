@@ -7,7 +7,6 @@ Created on 18 mars 2015
 from PyQt5.QtCore import QThread, Qt
 from .blockchain import BlockchainWatcher
 from .persons import PersonsWatcher
-from .network import NetworkWatcher
 import logging
 
 
@@ -30,22 +29,16 @@ class Monitor(object):
         return self._blockchain_watchers[community.name]
 
     def network_watcher(self, community):
-        return self._network_watchers[community.name]
+        return self._networks[community.name]
 
     def persons_watcher(self, community):
         return self._persons_watchers[community.name]
-
-    def restart_persons_watching(self, community):
-        watcher = self.persons_watcher(community)
-        thread = watcher.thread()
-        logging.debug("Persons watching thread is : {0}".format(thread.isFinished()))
-        thread.start()
 
     def connect_watcher_to_thread(self, watcher):
         thread = QThread()
         watcher.moveToThread(thread)
         thread.started.connect(watcher.watch)
-        success = watcher.watching_stopped.connect(thread.exit, Qt.DirectConnection)
+        watcher.watching_stopped.connect(thread.exit, Qt.DirectConnection)
 
         self.threads_pool.append(thread)
 
@@ -59,13 +52,12 @@ class Monitor(object):
             self.connect_watcher_to_thread(bc_watcher)
             self._blockchain_watchers[c.name] = bc_watcher
 
-            network_watcher = NetworkWatcher(c)
-            self.connect_watcher_to_thread(network_watcher)
-            self._network_watchers[c.name] = network_watcher
+            self.connect_watcher_to_thread(c.network)
+            self._network_watchers[c.name] = c.network
 
-    def start_watching(self):
-        for thread in self.threads_pool:
-            thread.start()
+    def start_network_watchers(self):
+        for watcher in self._network_watchers.values():
+            watcher.thread().start()
 
     def stop_watching(self):
         for watcher in self._persons_watchers.values():
@@ -85,3 +77,8 @@ class Monitor(object):
             self.threads_pool.remove(watcher.thread())
             watcher.deleteLater()
             watcher.thread().deleteLater()
+
+        self.threads_pool = []
+        self._blockchain_watchers = {}
+        self._network_watchers = {}
+        self._persons_watchers = {}

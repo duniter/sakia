@@ -114,8 +114,41 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>date_from</sender>
+   <signal>dateChanged(QDate)</signal>
+   <receiver>transactionsTabWidget</receiver>
+   <slot>dates_changed()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>102</x>
+     <y>28</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>date_to</sender>
+   <signal>dateChanged(QDate)</signal>
+   <receiver>transactionsTabWidget</receiver>
+   <slot>dates_changed()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>297</x>
+     <y>28</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>history_context_menu()</slot>
+  <slot>dates_changed()</slot>
  </slots>
 </ui>

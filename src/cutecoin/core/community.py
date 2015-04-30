@@ -19,7 +19,7 @@ from requests.exceptions import RequestException
 
 
 class Cache():
-    _saved_requests = [str(bma.blockchain.Block)]
+    _saved_requests = [str(bma.blockchain.Block), str(bma.blockchain.Parameters)]
 
     def __init__(self, community):
         '''
@@ -49,8 +49,7 @@ class Cache():
 
         :return: The cache as a dict in json format
         '''
-        data = {k: self.data[k] for k in self.data.keys()
-                   if k[0] in Cache._saved_requests}
+        data = {k: self.data[k] for k in self.data.keys()}
         entries = []
         for d in data:
             entries.append({'key': d,
@@ -63,9 +62,12 @@ class Cache():
         Refreshing the cache just clears every last requests which
         cannot be saved because they can change from one block to another.
         '''
-        self.latest_block = self.community.current_blockid()['number']
-        self.data = {k: self.data[k] for k in self.data.keys()
-                   if k[0] in Cache._saved_requests}
+        logging.debug("Refresh : {0}/{1}".format(self.latest_block,
+                                                 self.community.network.latest_block))
+        if self.latest_block < self.community.network.latest_block:
+            self.latest_block = self.community.network.latest_block
+            self.data = {k: self.data[k] for k in self.data.keys()
+                       if k[0] in Cache._saved_requests}
 
     def request(self, request, req_args={}, get_args={}):
         '''
@@ -78,19 +80,17 @@ class Cache():
         '''
         cache_key = (str(request),
                      str(tuple(frozenset(sorted(req_args.keys())))),
-                     str(tuple(frozenset(sorted(req_args.items())))),
+                     str(tuple(frozenset(sorted(req_args.values())))),
                      str(tuple(frozenset(sorted(get_args.keys())))),
-                     str(tuple(frozenset(sorted(get_args.items())))))
+                     str(tuple(frozenset(sorted(get_args.values())))))
 
         if cache_key not in self.data.keys():
             result = self.community.request(request, req_args, get_args,
                                          cached=False)
-
-            # Do not cache block 0
-            if self.latest_block == 0:
-                return result
-            else:
-                self.data[cache_key] = result
+            # For block 0, we should have a different behaviour
+            # Community members and certifications
+            # Should be requested without caching
+            self.data[cache_key] = result
             return self.data[cache_key]
         else:
             return self.data[cache_key]
@@ -103,8 +103,6 @@ class Community(QObject):
     .. warning:: The currency name is supposed to be unique in cutecoin
     but nothing exists in ucoin to assert that a currency name is unique.
     '''
-
-    new_block_mined = pyqtSignal(int)
 
     def __init__(self, currency, network):
         '''
@@ -120,7 +118,6 @@ class Community(QObject):
         self.currency = currency
         self._network = network
         self._cache = Cache(self)
-
         self._cache.refresh()
 
     @classmethod
@@ -259,11 +256,16 @@ class Community(QObject):
         :return: The monetary mass value
         '''
         try:
-            block = self.request(bma.blockchain.Current)
+            # Get cached block by block number
+            block_number = self.network.latest_block
+            block = self.request(bma.blockchain.Block,
+                                 req_args={'number': block_number})
             return block['monetaryMass']
         except ValueError as e:
             if '404' in e:
                 return 0
+        except NoPeerAvailable as e:
+            return 0
 
     @property
     def nb_members(self):
@@ -273,20 +275,16 @@ class Community(QObject):
         :return: The community members number
         '''
         try:
-            block = self.request(bma.blockchain.Current)
+            # Get cached block by block number
+            block_number = self.network.latest_block
+            block = self.request(bma.blockchain.Block,
+                                 req_args={'number': block_number})
             return block['membersCount']
         except ValueError as e:
             if '404' in e:
                 return 0
-
-    @property
-    def nodes(self):
-        '''
-        Get the known community nodes
-
-        :return: All community known nodes
-        '''
-        return self._network.all_nodes
+        except NoPeerAvailable as e:
+            return 0
 
     @property
     def network(self):
@@ -296,6 +294,16 @@ class Community(QObject):
         :return: The community network instance.
         '''
         return self._network
+
+    def network_quality(self):
+        '''
+        Get a ratio of the synced nodes vs the rest
+        '''
+        synced = len(self._network.synced_nodes)
+        #online = len(self._network.online_nodes)
+        total = len(self._network.nodes)
+        ratio_synced = synced / total
+        return ratio_synced
 
     @property
     def parameters(self):
@@ -310,14 +318,21 @@ class Community(QObject):
         '''
         return time.time() - certtime > self.parameters['sigValidity']
 
-    @property
-    def add_peer(self, peer):
+    def add_node(self, node):
         '''
         Add a peer to the community.
 
         :param peer: The new peer as a ucoinpy Peer object.
         '''
-        self._network.add_node(Node.from_peer(peer))
+        self._network.add_root_node(node)
+
+    def remove_node(self, index):
+        '''
+        Remove a node from the community.
+
+        :param index: The index of the removed node.
+        '''
+        self._network.remove_root_node(index)
 
     def get_block(self, number=None):
         '''
@@ -380,7 +395,7 @@ class Community(QObject):
         if cached:
             return self._cache.request(request, req_args, get_args)
         else:
-            nodes = self._network.online_nodes
+            nodes = self._network.synced_nodes
             for node in nodes:
                 try:
                     req = request(node.endpoint.conn_handler(), **req_args)
@@ -398,9 +413,10 @@ class Community(QObject):
                         continue
                     else:
                         raise
-                except RequestException:
+                except RequestException as e:
+                    logging.debug("Error : {1} : {0}".format(str(e),
+                                                             str(request)))
                     continue
-
         raise NoPeerAvailable(self.currency, len(nodes))
 
     def post(self, request, req_args={}, post_args={}):
@@ -460,7 +476,7 @@ class Community(QObject):
         if not ok:
             raise value_error
 
-        if tries == len(self.nodes):
+        if tries == len(nodes):
             raise NoPeerAvailable(self.currency, len(nodes))
 
     def jsonify(self):
@@ -469,6 +485,11 @@ class Community(QObject):
 
         :return: The community as a dict in json format.
         '''
+
+        nodes_data = []
+        for node in self._network.root_nodes:
+            nodes_data.append(node.jsonify_root_node())
+
         data = {'currency': self.currency,
-                'peers': self._network.jsonify()}
+                'peers': nodes_data}
         return data

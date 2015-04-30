@@ -12,7 +12,8 @@ from ucoinpy import PROTOCOL_VERSION
 from ucoinpy.documents.certification import SelfCertification
 from ucoinpy.documents.membership import Membership
 from ..tools.exceptions import Error, PersonNotFoundError,\
-                                        MembershipNotFoundError
+                                        MembershipNotFoundError, \
+                                        NoPeerAvailable
 from PyQt5.QtCore import QMutex
 
 
@@ -51,6 +52,7 @@ class cached(object):
         except KeyError:
             value = self.func(inst, community)
             inst._cache[community.currency][self.func.__name__] = value
+
         finally:
             inst._cache_mutex.unlock()
 
@@ -115,12 +117,13 @@ class Person(object):
             for result in data['results']:
                 if result["pubkey"] == pubkey:
                     uids = result['uids']
-                    for uid in uids:
-                        if uid["meta"]["timestamp"] > timestamp:
-                            timestamp = uid["meta"]["timestamp"]
-                            uid = uid["uid"]
+                    person_uid = ""
+                    for uid_data in uids:
+                        if uid_data["meta"]["timestamp"] > timestamp:
+                            timestamp = uid_data["meta"]["timestamp"]
+                            person_uid = uid_data["uid"]
 
-                        person = cls(uid, pubkey, {})
+                        person = cls(person_uid, pubkey, {})
                         Person._instances[pubkey] = person
                         logging.debug("{0}".format(Person._instances.keys()))
                         return person
@@ -219,6 +222,9 @@ class Person(object):
         except ValueError as e:
             if '400' in str(e):
                 raise MembershipNotFoundError(self.pubkey, community.name)
+        except Exception as e:
+            logging.debug('bma.blockchain.Membership request error : ' + str(e))
+            raise MembershipNotFoundError(self.pubkey, community.name)
 
 #TODO: Manage 'OUT' memberships ? Maybe ?
     @cached
@@ -247,6 +253,9 @@ class Person(object):
         except ValueError as e:
             if '400' in str(e):
                 raise MembershipNotFoundError(self.pubkey, community.name)
+        except Exception as e:
+            logging.debug('bma.blockchain.Membership request error : ' + str(e))
+            raise MembershipNotFoundError(self.pubkey, community.name)
 
         return membership_data
 
@@ -262,6 +271,9 @@ class Person(object):
             certifiers = community.request(bma.wot.CertifiersOf, {'search': self.pubkey})
             return certifiers['isMember']
         except ValueError:
+            return False
+        except Exception as e:
+            logging.debug('bma.wot.CertifiersOf request error : ' + str(e))
             return False
 
     @cached
@@ -285,14 +297,20 @@ class Person(object):
             # convert api data to certifiers list
             certifiers = list()
             # add certifiers of uid
-            for certifier in data['results'][0]['uids'][0]['others']:
-                # for each uid found for this pubkey...
-                for uid in certifier['uids']:
-                    # add a certifier
-                    certifier['uid'] = uid
-                    certifier['cert_time'] = dict()
-                    certifier['cert_time']['medianTime'] = community.get_block(certifier['meta']['block_number']).mediantime
-                    certifiers.append(certifier)
+
+            for result in data['results']:
+                if result["pubkey"] == self.pubkey:
+                    for uid_data in result['uids']:
+                        for certifier_data in uid_data['others']:
+                            for uid in certifier_data['uids']:
+                            # add a certifier
+                                certifier = {}
+                                certifier['uid'] = uid
+                                certifier['pubkey'] = certifier_data['pubkey']
+                                certifier['isMember'] = certifier_data['isMember']
+                                certifier['cert_time'] = dict()
+                                certifier['cert_time']['medianTime'] = community.get_block(certifier_data['meta']['block_number']).mediantime
+                                certifiers.append(certifier)
 
             return certifiers
 
@@ -340,10 +358,12 @@ class Person(object):
                 return list()
 
             certified_list = list()
-            for certified in data['results'][0]['signed']:
-                certified['cert_time'] = dict()
-                certified['cert_time']['medianTime'] = certified['meta']['timestamp']
-                certified_list.append(certified)
+            for result in data['results']:
+                if result["pubkey"] == self.pubkey:
+                    for certified in result['signed']:
+                        certified['cert_time'] = dict()
+                        certified['cert_time']['medianTime'] = certified['meta']['timestamp']
+                        certified_list.append(certified)
 
             return certified_list
 
@@ -383,31 +403,31 @@ class Person(object):
         :return: True if a changed was made by the reload.
         '''
         self._cache_mutex.lock()
+        change = False
         try:
             if community.currency not in self._cache:
                 self._cache[community.currency] = {}
 
-            change = False
-            before = self._cache[community.currency][func.__name__]
+            try:
+                before = self._cache[community.currency][func.__name__]
+            except KeyError:
+                change = True
 
-            value = func(self, community)
+            try:
+                value = func(self, community)
 
-            if not change:
-                if type(value) is dict:
-                    hash_before = (hash(tuple(frozenset(sorted(before.keys())))),
-                                 hash(tuple(frozenset(sorted(before.items())))))
-                    hash_after = (hash(tuple(frozenset(sorted(value.keys())))),
-                                 hash(tuple(frozenset(sorted(value.items())))))
-                    change = hash_before != hash_after
-                elif type(value) is bool:
-                    change = before != value
-
-            self._cache[community.currency][func.__name__] = value
-
-        except KeyError:
-            change = True
-        except Error:
-            return False
+                if not change:
+                    if type(value) is dict:
+                        hash_before = (str(tuple(frozenset(sorted(before.keys())))),
+                                     str(tuple(frozenset(sorted(before.items())))))
+                        hash_after = (str(tuple(frozenset(sorted(value.keys())))),
+                                     str(tuple(frozenset(sorted(value.items())))))
+                        change = hash_before != hash_after
+                    elif type(value) is bool:
+                        change = before != value
+                self._cache[community.currency][func.__name__] = value
+            except Error:
+                return False
         finally:
             self._cache_mutex.unlock()
         return change

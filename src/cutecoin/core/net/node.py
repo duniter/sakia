@@ -7,11 +7,13 @@ Created on 21 févr. 2015
 from ucoinpy.documents.peer import Peer, BMAEndpoint, Endpoint
 from ucoinpy.api import bma
 from ucoinpy.api.bma import ConnectionHandler
-from requests.exceptions import RequestException
+from requests.exceptions import RequestException, ConnectionError
 from ...tools.exceptions import InvalidNodeCurrency, PersonNotFoundError
 from ..person import Person
 import logging
 import time
+import ctypes
+import sys
 
 from PyQt5.QtCore import QObject, pyqtSignal
 
@@ -42,7 +44,7 @@ class Node(QObject):
         self._endpoints = endpoints
         self._uid = uid
         self._pubkey = pubkey
-        self._block = block
+        self.block = block
         self._state = state
         self._neighbours = []
         self._currency = currency
@@ -69,7 +71,7 @@ class Node(QObject):
 
         node = cls(peer.currency, peer.endpoints, "", peer.pubkey, 0,
                    Node.ONLINE, time.time())
-        node.refresh_state()
+        logging.debug("Node from address : {:}".format(str(node)))
         return node
 
     @classmethod
@@ -87,7 +89,7 @@ class Node(QObject):
 
         node = cls(peer.currency, peer.endpoints, "", "", 0,
                    Node.ONLINE, time.time())
-        node.refresh_state()
+        logging.debug("Node from peer : {:}".format(str(node)))
         return node
 
     @classmethod
@@ -95,8 +97,10 @@ class Node(QObject):
         endpoints = []
         uid = ""
         pubkey = ""
+        block = 0
         last_change = time.time()
-
+        state = Node.ONLINE
+        logging.debug(data)
         for endpoint_data in data['endpoints']:
             endpoints.append(Endpoint.from_inline(endpoint_data))
 
@@ -112,16 +116,38 @@ class Node(QObject):
         if 'last_change' in data:
             last_change = data['last_change']
 
-        node = cls(currency, endpoints, uid, pubkey, 0,
-                   Node.ONLINE, last_change)
-        node.refresh_state()
+        if 'block' in data:
+            block = data['block']
+
+        if 'state' in data:
+            state = data['state']
+        else:
+            logging.debug("Error : no state in node")
+
+        node = cls(currency, endpoints, uid, pubkey, block,
+                   state, last_change)
+        logging.debug("Node from json : {:}".format(str(node)))
         return node
 
+    def jsonify_root_node(self):
+        logging.debug("Saving root node : {:}".format(str(self)))
+        data = {'pubkey': self._pubkey,
+                'uid': self._uid,
+                'currency': self._currency}
+        endpoints = []
+        for e in self._endpoints:
+            endpoints.append(e.inline())
+        data['endpoints'] = endpoints
+        return data
+
     def jsonify(self):
+        logging.debug("Saving node : {:}".format(str(self)))
         data = {'pubkey': self._pubkey,
                 'uid': self._uid,
                 'currency': self._currency,
-                'last_change': self._last_change}
+                'state': self._state,
+                'last_change': self._last_change,
+                'block': self.block}
         endpoints = []
         for e in self._endpoints:
             endpoints.append(e.inline())
@@ -139,6 +165,10 @@ class Node(QObject):
     @property
     def block(self):
         return self._block
+
+    @block.setter
+    def block(self, new_block):
+        self._block = new_block
 
     @property
     def state(self):
@@ -160,16 +190,26 @@ class Node(QObject):
     def last_change(self):
         return self._last_change
 
-    def _change_state(self, new_state):
-        if self.state != new_state:
-            self._last_change = time.time()
+    @last_change.setter
+    def last_change(self, val):
+        logging.debug("{:} | Changed state : {:}".format(self.pubkey[:5],
+                                                         val))
+        self._last_change = val
+
+    @state.setter
+    def state(self, new_state):
+        logging.debug("{:} | Last state : {:} / new state : {:}".format(self.pubkey[:5],
+                                                                        self.state, new_state))
+        if self._state != new_state:
+            self.last_change = time.time()
         self._state = new_state
 
     def check_sync(self, block):
-        if self._block < block:
-            self._change_state(Node.DESYNCED)
+        logging.debug("Check sync")
+        if self.block < block:
+            self.state = Node.DESYNCED
         else:
-            self._change_state(Node.ONLINE)
+            self.state = Node.ONLINE
 
     def _request_uid(self):
         uid = ""
@@ -190,10 +230,18 @@ class Node(QObject):
         return uid
 
     def refresh_state(self):
+        logging.debug("Refresh state")
         emit_change = False
         try:
             informations = bma.network.Peering(self.endpoint.conn_handler()).get()
-            block = bma.blockchain.Current(self.endpoint.conn_handler()).get()
+            node_pubkey = informations["pubkey"]
+            try:
+                block = bma.blockchain.Current(self.endpoint.conn_handler()).get()
+                block_number = block["number"]
+            except ValueError as e:
+                if '404' in e:
+                    block_number = 0
+
             peers_data = bma.network.peering.Peers(self.endpoint.conn_handler()).get()
             neighbours = []
             for p in peers_data:
@@ -201,34 +249,62 @@ class Node(QObject):
                                                             p['value']['signature']))
                 neighbours.append(peer.endpoints)
 
-            block_number = block["number"]
-            node_pubkey = informations["pubkey"]
             node_currency = informations["currency"]
-        except ValueError as e:
-            if '404' in e:
-                block_number = 0
-        except RequestException:
-            self._change_state(Node.OFFLINE)
-            emit_change = True
+            node_uid = self._request_uid()
+
+            #If the nodes goes back online...
+            if self.state in (Node.OFFLINE, Node.CORRUPTED):
+                self.state = Node.ONLINE
+                logging.debug("Change : new state online")
+                emit_change = True
+        except ConnectionError as e:
+            logging.debug(str(e))
+
+            if self.state != Node.OFFLINE:
+                self.state = Node.OFFLINE
+                logging.debug("Change : new state offine")
+                emit_change = True
+            # Dirty hack to reload resolv.conf on linux
+            if 'Connection aborted' in str(e) and 'gaierror' in str(e):
+                logging.debug("Connection Aborted")
+                if 'linux' in sys.platform:
+                    try:
+                        libc = ctypes.CDLL('libc.so.6')
+                        res_init = getattr(libc, '__res_init')
+                        res_init(None)
+                    except:
+                        logging.error('Error calling libc.__res_init')
+        except RequestException as e:
+            logging.debug(str(e))
+            if self.state != Node.OFFLINE:
+                self.state = Node.OFFLINE
+                logging.debug("Change : new state offine")
+                emit_change = True
 
         # If not is offline, do not refresh last data
         if self.state != Node.OFFLINE:
             # If not changed its currency, consider it corrupted
             if node_currency != self._currency:
-                self._change_state(Node.CORRUPTED)
+                self.state = Node.CORRUPTED
+                logging.debug("Change : new state corrupted")
                 emit_change = True
             else:
-                node_uid = self._request_uid()
-
-                if block_number != self._block:
-                    self._block = block_number
+                if block_number != self.block:
+                    logging.debug("Change : new block {0} -> {1}".format(self.block,
+                                                                         block_number))
+                    self.block = block_number
+                    logging.debug("Changed block {0} -> {1}".format(self.block,
+                                                                         block_number))
                     emit_change = True
 
                 if node_pubkey != self._pubkey:
+                    logging.debug("Change : new pubkey {0} -> {1}".format(self._pubkey,
+                                                                          node_pubkey))
                     self._pubkey = node_pubkey
                     emit_change = True
 
                 if node_uid != self._uid:
+                    logging.debug("Change : new uid")
                     self._uid = node_uid
                     emit_change = True
 
@@ -240,12 +316,14 @@ class Node(QObject):
                 hash_last_neighbours = hash(tuple(frozenset(sorted(last_inlines))))
                 if hash_new_neighbours != hash_last_neighbours:
                     self._neighbours = neighbours
+                    logging.debug("Change : new neighbours {0} -> {1}".format(last_inlines,
+                                                                              new_inlines))
                     emit_change = True
 
         if emit_change:
             self.changed.emit()
 
-    def peering_traversal(self, found_nodes,
+    def peering_traversal(self, knew_pubkeys, found_nodes,
                           traversed_pubkeys, interval,
                           continue_crawling):
         logging.debug("Read {0} peering".format(self.pubkey))
@@ -257,23 +335,24 @@ class Node(QObject):
             if self.state != Node.CORRUPTED:
                 logging.debug("Found : {0} node".format(self.pubkey))
                 found_nodes.append(self)
-        try:
             logging.debug(self.neighbours)
             for n in self.neighbours:
-                e = next(e for e in n if type(e) is BMAEndpoint)
-                peering = bma.network.Peering(e.conn_handler()).get()
+                try:
+                    e = next(e for e in n if type(e) is BMAEndpoint)
+                    peering = bma.network.Peering(e.conn_handler()).get()
+                except:
+                    continue
                 peer = Peer.from_signed_raw("{0}{1}\n".format(peering['raw'],
                                                             peering['signature']))
-                node = Node.from_peer(self._currency, peer)
-                logging.debug(traversed_pubkeys)
-                logging.debug("Traversing : next to read : {0} : {1}".format(node.pubkey,
-                              (node.pubkey not in traversed_pubkeys)))
-                if node.pubkey not in traversed_pubkeys and continue_crawling():
-                    node.peering_traversal(found_nodes,
-                                        traversed_pubkeys, interval, continue_crawling())
+                if peer.pubkey not in traversed_pubkeys and \
+                    peer.pubkey not in knew_pubkeys and continue_crawling():
+                    node = Node.from_peer(self._currency, peer)
+                    logging.debug(traversed_pubkeys)
+                    logging.debug("Traversing : next to read : {0} : {1}".format(node.pubkey,
+                                  (node.pubkey not in traversed_pubkeys)))
+                    node.peering_traversal(knew_pubkeys, found_nodes,
+                                        traversed_pubkeys, interval, continue_crawling)
                     time.sleep(interval)
-        except RequestException as e:
-            self._change_state(Node.OFFLINE)
 
     def __str__(self):
         return ','.join([str(self.pubkey), str(self.endpoint.server), str(self.endpoint.port), str(self.block),

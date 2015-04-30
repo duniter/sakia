@@ -36,27 +36,25 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         self.community = community
         self.password_asker = password_asker
         self.status_label = status_label
-        logging.debug("Com")
-        self.tab_community = CommunityTabWidget(self.app.current_account,
-                                                self.community,
-                                                self.password_asker,
-                                                self)
-        logging.debug("Wal")
+        self.tab_community = CommunityTabWidget(self.app,
+                                                self.app.current_account,
+                                                    self.community,
+                                                    self.password_asker,
+                                                    self)
+
         self.tab_wallets = WalletsTabWidget(self.app,
                                             self.app.current_account,
                                             self.community,
                                             self.password_asker)
 
-        logging.debug("Net")
         self.tab_network = NetworkTabWidget(self.community)
 
-        logging.debug("Connect")
-        self.community.new_block_mined.connect(self.refresh_block)
+        self.community.network.new_block_mined.connect(self.refresh_block)
+        self.community.network.nodes_changed.connect(self.refresh_status)
         persons_watcher = self.app.monitor.persons_watcher(self.community)
         persons_watcher.person_changed.connect(self.tab_community.refresh_person)
         bc_watcher = self.app.monitor.blockchain_watcher(self.community)
         bc_watcher.error.connect(self.display_error)
-        logging.debug("Connected")
 
         person = Person.lookup(self.app.current_account.pubkey, self.community)
         try:
@@ -104,7 +102,8 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                      QIcon(':/icons/tx_icon'),
                                     "Transactions")
 
-            self.tab_community = CommunityTabWidget(self.app.current_account,
+            self.tab_community = CommunityTabWidget(self.app,
+                                                    self.app.current_account,
                                                     self.community,
                                                     self.password_asker,
                                                     self)
@@ -130,10 +129,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                      QIcon(":/icons/network_icon"),
                                      "Network")
             self.tab_informations.refresh()
-            blockid = self.community.current_blockid()
-            block_number = blockid['number']
-            self.status_label.setText("Connected : Block {0}"
-                                             .format(block_number))
+            self.refresh_status()
             self.refresh_wallets()
 
     @pyqtSlot(str)
@@ -144,6 +140,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
 
     @pyqtSlot(int)
     def refresh_block(self, block_number):
+        logging.debug("Refesh block")
         if self.tab_wallets:
             self.tab_wallets.refresh()
 
@@ -152,20 +149,30 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                                      QModelIndex(),
                                                      QModelIndex(),
                                                      [])
-        self.app.monitor.restart_persons_watching(self.community)
+        self.app.monitor.blockchain_watcher(self.community).thread().start()
+        self.app.monitor.persons_watcher(self.community).thread().start()
+        self.refresh_status()
 
-        text = "Connected : Block {0}".format(block_number)
-        self.status_label.setText(text)
+    @pyqtSlot()
+    def refresh_status(self):
+        logging.debug("Refresh status")
+        if self.community.network_quality() > 0.66:
+            icon = '<img src=":/icons/connected" width="12" height="12"/>'
+            text = " Block {0}".format(self.community.network.latest_block)
+        elif self.community.network_quality() > 0.33:
+            icon = '<img src=":/icons/weak_connect" width="12" height="12"/>'
+            text = " Block {0}".format(self.community.network.latest_block)
+        else:
+            icon = '<img src=":/icons/disconnected" width="12" height="12"/>'
+            text = " Block {0}".format(self.community.network.latest_block)
+        self.status_label.setText("{0}{1}".format(icon, text))
 
     def refresh_wallets(self):
         if self.app.current_account:
             self.tab_wallets.refresh()
 
     def showEvent(self, event):
-        blockid = self.community.current_blockid()
-        block_number = blockid['number']
-        self.status_label.setText("Connected : Block {0}"
-                                         .format(block_number))
+        self.refresh_status()
 
     def referential_changed(self):
         if self.tab_history.table_history.model():

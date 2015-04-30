@@ -12,6 +12,7 @@ from ucoinpy.api.bma import ConnectionHandler
 from ucoinpy.documents.peer import Peer
 
 from PyQt5.QtWidgets import QDialog, QMenu, QMessageBox
+from PyQt5.QtGui import QCursor
 
 from ..gen_resources.community_cfg_uic import Ui_CommunityConfigurationDialog
 from ..models.peering import PeeringTreeModel
@@ -77,7 +78,7 @@ class StepPageAddpeers(Step):
 
     def display_page(self):
         # We add already known peers to the displayed list
-        self.config_dialog.nodes = self.config_dialog.community.nodes
+        self.config_dialog.nodes = self.config_dialog.community.network.root_nodes
         try:
             tree_model = PeeringTreeModel(self.config_dialog.community)
         except requests.exceptions.RequestException:
@@ -151,8 +152,8 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         '''
         Add node slot
         '''
-        server = self.lineedit_server.text()
-        port = self.spinbox_port.value()
+        server = self.lineedit_add_address.text()
+        port = self.spinbox_add_port.value()
 
         try:
             node = Node.from_address(self.community.currency, server, port)
@@ -162,14 +163,34 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
                                  str(e))
         self.tree_peers.setModel(PeeringTreeModel(self.community))
 
+    def remove_node(self):
+        '''
+        Remove node slot
+        '''
+        logging.debug("Remove node")
+        index = self.sender().data()
+        self.community.remove_node(index)
+        self.tree_peers.setModel(PeeringTreeModel(self.community))
+
+    @property
+    def nb_steps(self):
+        s = self.step
+        nb_steps = 1
+        while s.next_step != None:
+            s = s.next_step
+            nb_steps = nb_steps + 1
+        return nb_steps
+
     def showContextMenu(self, point):
-        if self.stacked_pages.currentIndex() == 1:
+        if self.stacked_pages.currentIndex() == self.nb_steps - 1:
             menu = QMenu()
-            action = menu.addAction("Delete", self.removeNode)
+            index = self.tree_peers.indexAt(point)
+            action = menu.addAction("Delete", self.remove_node)
+            action.setData(index.row())
             if self.community is not None:
                 if len(self.nodes) == 1:
                     action.setEnabled(False)
-            menu.exec_(self.mapToGlobal(point))
+            menu.exec_(QCursor.pos())
 
     def accept(self):
         try:

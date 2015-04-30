@@ -5,10 +5,9 @@ Created on 1 févr. 2014
 '''
 from ..gen_resources.mainwindow_uic import Ui_MainWindow
 from ..gen_resources.about_uic import Ui_AboutPopup
-from ..gen_resources.homescreen_uic import Ui_HomeScreenWidget
 
 from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog, QProgressBar, \
-        QMessageBox, QLabel, QComboBox, QDialog, QApplication
+    QMessageBox, QLabel, QComboBox, QDialog, QApplication
 from PyQt5.QtCore import QSignalMapper, QObject, QThread, \
     pyqtSlot, pyqtSignal, QDate, QDateTime, QTimer, QUrl, Qt
 from PyQt5.QtGui import QIcon, QDesktopServices
@@ -44,33 +43,27 @@ class Loader(QObject):
     @pyqtSlot()
     def load(self):
         if self.account_name != "":
-            try:
-                account = self.app.get_account(self.account_name)
-                self.app.change_current_account(account)
-            except requests.exceptions.RequestException as e:
-                self.connection_error.emit(str(e))
-                self.loaded.emit()
-            except NoPeerAvailable as e:
-                self.connection_error.emit(str(e))
-                self.loaded.emit()
+            account = self.app.get_account(self.account_name)
+            self.app.change_current_account(account)
 
         self.loaded.emit()
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
-
     '''
     classdocs
     '''
 
     def __init__(self, app):
-        '''
-        Constructor
-        '''
+        """
+        Init
+        :param ..core.app.Application app:
+        """
         # Set up the user interface from Designer.
         super().__init__()
         self.setupUi(self)
         self.app = app
+        """:type: cutecoin.core.app.Application"""
         self.password_asker = None
         self.initialized = False
 
@@ -86,6 +79,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.combo_referential.currentTextChanged.connect(self.referential_changed)
 
         self.status_label = QLabel("", self)
+        self.status_label.setTextFormat(Qt.RichText)
 
         self.label_time = QLabel("", self)
 
@@ -109,7 +103,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.open_ucoin_info = lambda: QDesktopServices.openUrl(QUrl("http://ucoin.io/theoretical/"))
         self.homescreen.button_info.clicked.connect(self.open_ucoin_info)
 
-        #TODO: There are too much refresh() calls on startup
+        # TODO: There are too much refresh() calls on startup
         self.refresh()
 
     def open_add_account_dialog(self):
@@ -118,20 +112,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if result == QDialog.Accepted:
             self.action_change_account(self.app.current_account.name)
 
-    @pyqtSlot()
-    def loader_finished(self):
-        logging.debug("Finished loading")
-        self.refresh()
-        self.busybar.hide()
-        QApplication.restoreOverrideCursor()
-        self.app.disconnect()
-        self.app.monitor.start_watching()
-
     @pyqtSlot(str)
     def display_error(self, error):
         QMessageBox.critical(self, ":(",
-                    error,
-                    QMessageBox.Ok)
+                             error,
+                             QMessageBox.Ok)
 
     @pyqtSlot(str)
     def referential_changed(self, text):
@@ -170,7 +155,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             logging.debug("Busybar : {:} : {:}".format(value, maximum))
             self.busybar.setValue(value)
             self.busybar.setMaximum(maximum)
-            
+
         if self.app.current_account:
             self.app.save_cache(self.app.current_account)
 
@@ -188,13 +173,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.homescreen.button_new.hide()
         self.homescreen.button_import.hide()
 
+    @pyqtSlot()
+    def loader_finished(self):
+        logging.debug("Finished loading")
+        self.refresh()
+        self.busybar.hide()
+        QApplication.setOverrideCursor(Qt.ArrowCursor)
+        self.app.disconnect()
+        self.app.monitor.start_network_watchers()
+        QApplication.processEvents()
+
     def open_transfer_money_dialog(self):
         dialog = TransferMoneyDialog(self.app.current_account,
                                      self.password_asker)
         dialog.accepted.connect(self.refresh_wallets)
         if dialog.exec_() == QDialog.Accepted:
             currency_tab = self.currencies_tabwidget.currentWidget()
-            currency_tab.table_history.model().invalidate()
+            currency_tab.tab_history.table_history.model().invalidate()
 
     def open_certification_dialog(self):
         dialog = CertificationDialog(self.app.current_account,
@@ -211,7 +206,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog = ProcessConfigureAccount(self.app, self.app.current_account)
         result = dialog.exec_()
         if result == QDialog.Accepted:
-            self.action_change_account(self.app.current_account.name)
+            if self.app.current_account:
+                self.action_change_account(self.app.current_account.name)
+            else:
+                self.refresh()
 
     def open_about_popup(self):
         """
@@ -221,12 +219,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         aboutUi = Ui_AboutPopup()
         aboutUi.setupUi(aboutDialog)
 
-        latest = self.app.latest_version()
+        latest = self.app.available_version
         version_info = ""
         version_url = ""
         if not latest[0]:
             version_info = "Latest release : {version}" \
-                            .format(version='.'.join(latest[1]))
+                .format(version='.'.join(latest[1]))
             version_url = latest[2]
 
         new_version_text = """
@@ -264,23 +262,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.currencies_tabwidget.clear()
         if self.app.current_account:
             for community in self.app.current_account.communities:
-                try:
-                    tab_currency = CurrencyTabWidget(self.app, community,
-                                                     self.password_asker,
-                                                     self.status_label)
-                    tab_currency.refresh()
-                    self.currencies_tabwidget.addTab(tab_currency,
-                                                      QIcon(":/icons/currency_icon"),
-                                                      community.name)
-                except NoPeerAvailable as e:
-                    QMessageBox.critical(self, "Could not join {0}".format(community.currency),
-                                str(e),
-                                QMessageBox.Ok)
-                    continue
-                except requests.exceptions.RequestException as e:
-                    QMessageBox.critical(self, ":(",
-                                str(e),
-                                QMessageBox.Ok)
+                tab_currency = CurrencyTabWidget(self.app, community,
+                                                 self.password_asker,
+                                                 self.status_label)
+                tab_currency.refresh()
+                self.currencies_tabwidget.addTab(tab_currency,
+                                                 QIcon(":/icons/currency_icon"),
+                                                 community.name)
 
     def refresh_accounts(self):
         self.menu_change_account.clear()
@@ -350,7 +338,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.action_configure_parameters.setEnabled(True)
             self.menu_actions.setEnabled(True)
             self.setWindowTitle("CuteCoin {0} - Account : {1}".format(__version__,
-                self.app.current_account.name))
+                                                                      self.app.current_account.name))
 
         self.refresh_communities()
         self.refresh_wallets()
@@ -363,9 +351,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def export_account(self):
         selected_file = QFileDialog.getSaveFileName(self,
-                                          "Export an account",
-                                          "",
-                                          "All account files (*.acc)")
+                                                    "Export an account",
+                                                    "",
+                                                    "All account files (*.acc)")
         path = ""
         if selected_file[0][-4:] == ".acc":
             path = selected_file[0]

@@ -108,7 +108,7 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             </table>
-            """.format("Your money share : ", "{:.2f}%".format(amount / maximum * 100),
+            """.format("Your money share : ", "{:.2f}%".format(amount / maximum * 100) if maximum != 0 else "0%",
                        "Your part : ", "{:} {:} in [{:.2f} - {:}] {:}"
                        .format(
                     localized_amount,
@@ -202,4 +202,4 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
         dialog.radio_pubkey.setChecked(True)
         if dialog.exec_() == QDialog.Accepted:
             currency_tab = self.window().currencies_tabwidget.currentWidget()
-            currency_tab.table_history.model().invalidate()
+            currency_tab.tab_history.table_history.model().invalidate()

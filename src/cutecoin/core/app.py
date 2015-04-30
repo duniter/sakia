@@ -92,6 +92,8 @@ class Application(QObject):
         self.accounts.pop(account.name)
         if self.current_account == account:
             self.current_account = None
+        with open(config.parameters['data'], 'w') as outfile:
+            json.dump(self.jsonify(), outfile, indent=4, sort_keys=True)
 
     def change_current_account(self, account):
         '''
@@ -181,6 +183,7 @@ class Application(QObject):
                 with open(network_path, 'r') as json_data:
                     data = json.load(json_data)
                 if 'version' in data and data['version'] == __version__:
+                    logging.debug("Merging network : {0}".format(data))
                     community.load_merge_network(data['network'])
                 else:
                     os.remove(network_path)
@@ -296,7 +299,7 @@ class Application(QObject):
         data = json.load(json_data)
         account = Account.load(data)
         account.name = name
-        self.accounts.append(account)
+        self.add_account(account)
         self.save(account)
 
     def export_account(self, file, account):

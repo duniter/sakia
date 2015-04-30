@@ -291,6 +291,6 @@ PreviousIssuer: {1}\n".format(self.prev_hash, self.prev_issuer)
 
         doc += "Transactions:\n"
         for transaction in self.transactions:
-            doc += "{0}\n".format(transaction.inline())
+            doc += "{0}\n".format(transaction.compact())
 
         return doc
