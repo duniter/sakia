@@ -37,13 +37,34 @@
         <normaloff>:/icons/members_icon</normaloff>:/icons/members_icon</iconset>
       </attribute>
       <attribute name="title">
-       <string>Members</string>
+       <string>Identities</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_6">
          <item>
-          <widget class="QTableView" name="table_community_members">
+          <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QLineEdit" name="edit_textsearch">
+             <property name="placeholderText">
+              <string>Research a pubkey, an uid...</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="button_search">
+             <property name="text">
+              <string>Search...</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QTableView" name="table_identities">
            <property name="contextMenuPolicy">
             <enum>Qt::CustomContextMenu</enum>
            </property>
@@ -152,10 +173,43 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>edit_textsearch</sender>
+   <signal>returnPressed()</signal>
+   <receiver>CommunityTabWidget</receiver>
+   <slot>search()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>170</x>
+     <y>62</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>215</x>
+     <y>184</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button_search</sender>
+   <signal>clicked()</signal>
+   <receiver>CommunityTabWidget</receiver>
+   <slot>search()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>370</x>
+     <y>62</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>215</x>
+     <y>184</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
-  <slot>member_context_menu(QPoint)</slot>
+  <slot>identity_context_menu(QPoint)</slot>
   <slot>send_membership_demand()</slot>
   <slot>send_membership_leaving()</slot>
+  <slot>search()</slot>
  </slots>
 </ui>

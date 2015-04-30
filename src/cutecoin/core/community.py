@@ -343,6 +343,7 @@ class Community(QObject):
         if number is None:
             data = self.request(bma.blockchain.Current)
         else:
+            logging.debug("Requesting block {0}".format(number))
             data = self.request(bma.blockchain.Block,
                                 req_args={'number': number})
 

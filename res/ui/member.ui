@@ -83,7 +83,7 @@ QGroupBox::title {
  </widget>
  <resources>
   <include location="../icons/icons.qrc"/>
-  <include location="../../../../../../../../home/vit/.designer/icons/icons.qrc"/>
+  <include location="../icons/icons.qrc"/>
  </resources>
  <connections/>
 </ui>

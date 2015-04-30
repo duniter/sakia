@@ -206,15 +206,14 @@ class HistoryTableModel(QAbstractTableModel):
                 "", comment, transfer.state)
 
     def refresh_transfers(self):
+        self.beginResetModel()
         self.transfers_data = []
         for transfer in self.transfers:
             if type(transfer) is Received:
                 self.transfers_data.append(self.data_received(transfer))
             else:
                 self.transfers_data.append(self.data_sent(transfer))
-        self.dataChanged.emit(QModelIndex(),
-                             QModelIndex(),
-                             [])
+        self.endResetModel()
 
     def rowCount(self, parent):
         return len(self.transfers)
