@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog, QProgressBar, \
     QMessageBox, QLabel, QComboBox, QDialog, QApplication
 from PyQt5.QtCore import QSignalMapper, QObject, QThread, \
     pyqtSlot, pyqtSignal, QDate, QDateTime, QTimer, QUrl, Qt
-from PyQt5.QtGui import QIcon, QDesktopServices
+from PyQt5.QtGui import QIcon, QDesktopServices, QPixmap
 
 from .process_cfg_account import ProcessConfigureAccount
 from .transfer import TransferMoneyDialog
@@ -62,6 +62,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Set up the user interface from Designer.
         super().__init__()
         self.setupUi(self)
+        QApplication.setWindowIcon(QIcon(":/icons/cutecoin_logo"))
         self.app = app
         """:type: cutecoin.core.app.Application"""
         self.password_asker = None

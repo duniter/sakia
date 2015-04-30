@@ -13,10 +13,6 @@
   <property name="windowTitle">
    <string notr="true">CuteCoin</string>
   </property>
-  <property name="windowIcon">
-   <iconset resource="../icons/icons.qrc">
-    <normaloff>:/icons/cutecoin_logo</normaloff>:/icons/cutecoin_logo</iconset>
-  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_6">
     <item>
