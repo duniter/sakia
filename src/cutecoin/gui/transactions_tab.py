@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QAbstractItemView, QHeaderView, QDialog, \
     QMenu, QAction, QApplication, QMessageBox
-from PyQt5.QtCore import Qt, QDateTime, QModelIndex
+from PyQt5.QtCore import Qt, QDateTime, QModelIndex, QTime
 from PyQt5.QtGui import QCursor
 from ..gen_resources.transactions_tab_uic import Ui_transactionsTabWidget
 from ..models.txhistory import HistoryTableModel, TxFilterProxyModel
@@ -130,8 +130,12 @@ QMessageBox.Ok | QMessageBox.Cancel)
     def dates_changed(self):
         logging.debug("Changed dates")
         if self.table_history.model():
-            ts_from = self.date_from.dateTime().toTime_t()
-            ts_to = self.date_to.dateTime().toTime_t()
+            qdate_from = self.date_from
+            qdate_from.setTime(QTime(0, 0, 0))
+            qdate_to = self.date_to
+            qdate_to.setTime(QTime(0, 0, 0))
+            ts_from = qdate_from.dateTime().toTime_t()
+            ts_to = qdate_to.dateTime().toTime_t()
 
             self.table_history.model().set_period(ts_from, ts_to)
 

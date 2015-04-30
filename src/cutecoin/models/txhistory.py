@@ -32,7 +32,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
 
     def filterAcceptsRow(self, sourceRow, sourceParent):
         def in_period(date_ts):
-            return (date_ts in range(self.ts_from, self.ts_to))
+            return date_ts >= self.ts_from and date_ts <= self.ts_to
         date_col = self.sourceModel().column_types.index('date')
         source_index = self.sourceModel().index(sourceRow, date_col)
         date = self.sourceModel().data(source_index, Qt.DisplayRole)
