@@ -1,3 +1,6 @@
+![cutecoin logo](https://raw.github.com/ucoin-io/cutecoin/master/cutecoin.png)
+
+
 cutecoin
 ========
 
