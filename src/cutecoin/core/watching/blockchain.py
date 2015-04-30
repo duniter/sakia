@@ -37,7 +37,8 @@ class BlockchainWatcher(Watcher):
             pass
         except RequestException as e:
             self.error.emit("Cannot check new block : {0}".format(str(e)))
-        self.watching_stopped.emit()
+        finally:
+            self.watching_stopped.emit()
 
     def stop(self):
         self.exiting = True

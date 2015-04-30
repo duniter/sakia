@@ -9,7 +9,7 @@ from ..core.transfer import Transfer, Received
 from ..core.person import Person
 from ..tools.exceptions import PersonNotFoundError
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, \
-    QDateTime, QLocale
+    QDateTime, QLocale, QModelIndex
 from PyQt5.QtGui import QFont, QColor
 
 
@@ -37,20 +37,21 @@ class TxFilterProxyModel(QSortFilterProxyModel):
         def in_period(date_ts):
             return date_ts in range(self.ts_from, self.ts_to)
 
-        date_col = self.sourceModel().column_types.index('date')
-        source_index = self.sourceModel().index(sourceRow, date_col)
-        date = self.sourceModel().data(source_index, Qt.DisplayRole)
+        source_model = self.sourceModel()
+        date_col = source_model.column_types.index('date')
+        source_index = source_model.index(sourceRow, date_col)
+        date = source_model.data(source_index, Qt.DisplayRole)
         if in_period(date):
             # calculate sum total payments
-            payment = self.sourceModel().data(
-                self.sourceModel().index(sourceRow, self.sourceModel().column_types.index('payment')),
+            payment = source_model.data(
+                source_model.index(sourceRow, source_model.column_types.index('payment')),
                 Qt.DisplayRole
             )
             if payment:
                 self.payments += int(payment)
             # calculate sum total deposits
-            deposit = self.sourceModel().data(
-                self.sourceModel().index(sourceRow, self.sourceModel().column_types.index('deposit')),
+            deposit = source_model.data(
+                source_model.index(sourceRow, source_model.column_types.index('deposit')),
                 Qt.DisplayRole
             )
             if deposit:
@@ -70,8 +71,9 @@ class TxFilterProxyModel(QSortFilterProxyModel):
         """
         Sort table by given column number.
         """
-        left_data = self.sourceModel().data(left, Qt.DisplayRole)
-        right_data = self.sourceModel().data(right, Qt.DisplayRole)
+        source_model = self.sourceModel()
+        left_data = source_model.data(left, Qt.DisplayRole)
+        right_data = source_model.data(right, Qt.DisplayRole)
         if left_data == "":
             return self.sortOrder() == Qt.DescendingOrder
         elif right_data == "":
@@ -81,18 +83,19 @@ class TxFilterProxyModel(QSortFilterProxyModel):
 
     def data(self, index, role):
         source_index = self.mapToSource(index)
-        source_data = self.sourceModel().data(source_index, role)
-        state_col = self.sourceModel().column_types.index('state')
-        state_index = self.sourceModel().index(source_index.row(), state_col)
-        state_data = self.sourceModel().data(state_index, Qt.DisplayRole)
+        model = self.sourceModel()
+        source_data = model.data(source_index, role)
+        state_col = model.column_types.index('state')
+        state_index = model.index(source_index.row(), state_col)
+        state_data = model.data(state_index, Qt.DisplayRole)
         if role == Qt.DisplayRole:
-            if source_index.column() == self.sourceModel().column_types.index('uid'):
+            if source_index.column() == model.column_types.index('uid'):
                 return source_data
-            if source_index.column() == self.sourceModel().column_types.index('date'):
+            if source_index.column() == model.column_types.index('date'):
                 date = QDateTime.fromTime_t(source_data)
                 return date.date()
-            if source_index.column() == self.sourceModel().column_types.index('payment') or \
-                    source_index.column() == self.sourceModel().column_types.index('deposit'):
+            if source_index.column() == model.column_types.index('payment') or \
+                    source_index.column() == model.column_types.index('deposit'):
                 if source_data is not "":
                     amount_ref = self.account.units_to_diff_ref(source_data,
                                                                 self.community)
@@ -146,6 +149,8 @@ class HistoryTableModel(QAbstractTableModel):
         self.account = account
         self.community = community
         self.account.referential
+        self.transfers_data = []
+        self.refresh_transfers()
 
         self.column_types = (
             'date',
@@ -168,22 +173,6 @@ class HistoryTableModel(QAbstractTableModel):
     @property
     def transfers(self):
         return self.account.transfers(self.community)
-
-    def rowCount(self, parent):
-        return len(self.transfers)
-
-    def columnCount(self, parent):
-        return len(self.column_types)
-
-    def headerData(self, section, orientation, role):
-        if role == Qt.DisplayRole:
-            if self.column_types[section] == 'payment' or self.column_types[section] == 'deposit':
-                return '{:}\n({:})'.format(
-                    self.column_headers[section],
-                    self.account.diff_ref_name(self.community.short_currency)
-                )
-
-            return self.column_headers[section]
 
     def data_received(self, transfer):
         amount = transfer.metadata['amount']
@@ -216,6 +205,33 @@ class HistoryTableModel(QAbstractTableModel):
         return (date_ts, receiver, amount,
                 "", comment, transfer.state)
 
+    def refresh_transfers(self):
+        self.transfers_data = []
+        for transfer in self.transfers:
+            if type(transfer) is Received:
+                self.transfers_data.append(self.data_received(transfer))
+            else:
+                self.transfers_data.append(self.data_sent(transfer))
+        self.dataChanged.emit(QModelIndex(),
+                             QModelIndex(),
+                             [])
+
+    def rowCount(self, parent):
+        return len(self.transfers)
+
+    def columnCount(self, parent):
+        return len(self.column_types)
+
+    def headerData(self, section, orientation, role):
+        if role == Qt.DisplayRole:
+            if self.column_types[section] == 'payment' or self.column_types[section] == 'deposit':
+                return '{:}\n({:})'.format(
+                    self.column_headers[section],
+                    self.account.diff_ref_name(self.community.short_currency)
+                )
+
+            return self.column_headers[section]
+
     def data(self, index, role):
         row = index.row()
         col = index.column()
@@ -223,16 +239,11 @@ class HistoryTableModel(QAbstractTableModel):
         if not index.isValid():
             return QVariant()
 
-        transfer = self.transfers[row]
-
         if role == Qt.DisplayRole:
-            if type(transfer) is Received:
-                return self.data_received(transfer)[col]
-            else:
-                return self.data_sent(transfer)[col]
+            return self.transfers_data[row][col]
 
         if role == Qt.ToolTipRole and col == 0:
-            return transfer.metadata['time']
+            return self.transfers[row].metadata['time']
 
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled

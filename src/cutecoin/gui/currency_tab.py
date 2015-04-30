@@ -55,6 +55,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         persons_watcher.person_changed.connect(self.tab_community.refresh_person)
         bc_watcher = self.app.monitor.blockchain_watcher(self.community)
         bc_watcher.error.connect(self.display_error)
+        bc_watcher.watching_stopped.connect(self.refresh_data)
 
         person = Person.lookup(self.app.current_account.pubkey, self.community)
         try:
@@ -140,21 +141,31 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
 
     @pyqtSlot(int)
     def refresh_block(self, block_number):
-        logging.debug("Refesh block")
-        if self.tab_wallets:
-            self.tab_wallets.refresh()
-
-        if self.tab_history.table_history.model():
-            self.tab_history.table_history.model().dataChanged.emit(
-                                                     QModelIndex(),
-                                                     QModelIndex(),
-                                                     [])
+        '''
+        When a new block is found, start handling data.
+        @param: block_number: The number of the block mined
+        '''
+        logging.debug("Refresh block")
         self.app.monitor.blockchain_watcher(self.community).thread().start()
         self.app.monitor.persons_watcher(self.community).thread().start()
         self.refresh_status()
 
     @pyqtSlot()
+    def refresh_data(self):
+        '''
+        Refresh data when the blockchain watcher finished handling datas
+        '''
+        if self.tab_wallets:
+            self.tab_wallets.refresh()
+
+        if self.tab_history.table_history.model():
+            self.tab_history.table_history.model().refresh_transfers()
+
+    @pyqtSlot()
     def refresh_status(self):
+        '''
+        Refresh status bar
+        '''
         logging.debug("Refresh status")
         if self.community.network_quality() > 0.66:
             icon = '<img src=":/icons/connected" width="12" height="12"/>'
