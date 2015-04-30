@@ -45,21 +45,21 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
         try:
             QApplication.setOverrideCursor(Qt.WaitCursor)
             self.account.certify(password, self.community, pubkey)
-            QMessageBox.information(self, "Certification",
-                                 "Success certifying {0} from {1}".format(pubkey,
+            QMessageBox.information(self, self.tr("Certification"),
+                                 self.tr("Success certifying {0} from {1}").format(pubkey,
                                                                           self.community.currency))
         except ValueError as e:
-            QMessageBox.critical(self, "Certification",
-                                 "Something wrong happened : {0}".format(e),
+            QMessageBox.critical(self, self.tr("Certification"),
+                                 self.tr("Something wrong happened : {0}").format(e),
                                  QMessageBox.Ok)
             return
         except NoPeerAvailable as e:
-            QMessageBox.critical(self, "Certification",
-                                 "Couldn't connect to network : {0}".format(e),
+            QMessageBox.critical(self, self.tr("Certification"),
+                                 self.tr("Couldn't connect to network : {0}").format(e),
                                  QMessageBox.Ok)
             return
         except Exception as e:
-            QMessageBox.critical(self, "Error",
+            QMessageBox.critical(self, self.tr("Error"),
                                  "{0}".format(e),
                                  QMessageBox.Ok)
             return

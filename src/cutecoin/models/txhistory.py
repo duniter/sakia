@@ -162,12 +162,12 @@ class HistoryTableModel(QAbstractTableModel):
         )
 
         self.column_headers = (
-            'Date',
-            'UID/Public key',
-            'Payment',
-            'Deposit',
-            'Comment',
-            'State'
+            self.tr('Date'),
+            self.tr('UID/Public key'),
+            self.tr('Payment'),
+            self.tr('Deposit'),
+            self.tr('Comment'),
+            self.tr('State')
         )
 
     @property

@@ -31,19 +31,19 @@ class ImportAccountDialog(QDialog, Ui_ImportAccountDialog):
         try:
             self.app.import_account(self.selected_file, account_name)
         except Exception as e:
-            QMessageBox.critical(self, "Error",
+            QMessageBox.critical(self, self.tr("Error"),
                                  "{0}".format(e),
                                  QMessageBox.Ok)
             return
-        QMessageBox.information(self, "Account import",
-                                "Account imported succefully !")
+        QMessageBox.information(self, self.tr("Account import"),
+                                self.tr("Account imported succefully !"))
         super().accept()
 
     def import_account(self):
         self.selected_file = QFileDialog.getOpenFileName(self,
-                                          "Import an account file",
+                                          self.tr("Import an account file"),
                                           "",
-                                          "All account files (*.acc)")
+                                          self.tr("All account files (*.acc)"))
         self.selected_file = self.selected_file[0]
         self.edit_file.setText(self.selected_file)
         self.check()
@@ -55,16 +55,16 @@ class ImportAccountDialog(QDialog, Ui_ImportAccountDialog):
         name = self.edit_name.text()
         if name == "":
             self.button_box.button(QDialogButtonBox.Ok).setEnabled(False)
-            self.label_errors.setText("Please enter a name")
+            self.label_errors.setText(self.tr("Please enter a name"))
             return
         for account in self.app.accounts:
             if name == account:
                 self.button_box.button(QDialogButtonBox.Ok).setEnabled(False)
-                self.label_errors.setText("Name already exists")
+                self.label_errors.setText(self.tr("Name already exists"))
                 return
         if self.selected_file[-4:] != ".acc":
             self.button_box.button(QDialogButtonBox.Ok).setEnabled(False)
-            self.label_errors.setText("File is not an account format")
+            self.label_errors.setText(self.tr("File is not an account format"))
             return
         self.label_errors.setText("")
         self.button_box.button(QDialogButtonBox.Ok).setEnabled(True)

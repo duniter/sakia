@@ -66,24 +66,24 @@ class StepPageKey(Step):
 
     def is_valid(self):
         if len(self.config_dialog.edit_salt.text()) < 6:
-            self.config_dialog.label_info.setText("Forbidden : salt is too short")
+            self.config_dialog.label_info.setText(self.tr("Forbidden : salt is too short"))
             return False
 
         if len(self.config_dialog.edit_password.text()) < 6:
-            self.config_dialog.label_info.setText("Forbidden : password is too short")
+            self.config_dialog.label_info.setText(self.tr("Forbidden : password is too short"))
             return False
 
         if detect_non_printable(self.config_dialog.edit_salt.text()):
-            self.config_dialog.label_info.setText("Forbidden : Invalid characters in salt field")
+            self.config_dialog.label_info.setText(self.tr("Forbidden : Invalid characters in salt field"))
             return False
 
         if detect_non_printable(self.config_dialog.edit_password.text()):
-            self.config_dialog.label_info.setText("Forbidden : Invalid characters in password field")
+            self.config_dialog.label_info.setText(self.tr("Forbidden : Invalid characters in password field"))
             return False
 
         if self.config_dialog.edit_password.text() != \
             self.config_dialog.edit_password_repeat.text():
-            self.config_dialog.label_info.setText("Error : passwords are different")
+            self.config_dialog.label_info.setText(self.tr("Error : passwords are different"))
             return False
 
         self.config_dialog.label_info.setText("")
@@ -158,14 +158,14 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         self.step = step_init
         self.step.display_page()
         if self.account is None:
-            self.setWindowTitle("New account")
+            self.setWindowTitle(self.tr("New account"))
             self.button_delete.hide()
         else:
             self.stacked_pages.removeWidget(self.stacked_pages.widget(1))
             step_init.next_step = step_communities
             self.button_next.setEnabled(True)
             self.stacked_pages.currentWidget()
-            self.setWindowTitle("Configure " + self.account.name)
+            self.setWindowTitle(self.tr("Configure {0}".format(self.account.name)))
 
     def open_process_add_community(self):
         logging.debug("Opening configure community dialog")
@@ -179,7 +179,7 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         logging.debug("Action add community : done")
         self.list_communities.setModel(CommunitiesListModel(self.account))
         self.button_next.setEnabled(True)
-        self.button_next.setText("Ok")
+        self.button_next.setText(self.tr("Ok"))
 
     def action_remove_community(self):
         for index in self.list_communities.selectedIndexes():
@@ -200,8 +200,8 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         salt = self.edit_salt.text()
         password = self.edit_password.text()
         pubkey = SigningKey(salt, password).pubkey
-        QMessageBox.information(self, "Public key",
-                                "These parameters pubkeys are : {0}".format(pubkey))
+        QMessageBox.information(self, self.tr("Public key"),
+                                self.tr("These parameters pubkeys are : {0}").format(pubkey))
 
     def action_edit_account_parameters(self):
         if self.step.is_valid():
@@ -214,11 +214,11 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         try:
             dialog = ProcessConfigureCommunity(self.account, community, self.password_asker)
         except NoPeerAvailable as e:
-            QMessageBox.critical(self, "Error",
+            QMessageBox.critical(self, self.tr("Error"),
                                  str(e), QMessageBox.Ok)
             return
         except requests.exceptions.RequestException as e:
-            QMessageBox.critical(self, "Error",
+            QMessageBox.critical(self, self.tr("Error"),
                                  str(e), QMessageBox.Ok)
             return
 
@@ -226,11 +226,11 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         dialog.exec_()
 
     def action_delete_account(self):
-        reply = QMessageBox.question(self, "Warning",
-                             """This action will delete your account locally.
+        reply = QMessageBox.question(self, self.tr("Warning"),
+                             self.tr("""This action will delete your account locally.
 Please note your key parameters (salt and password) if you wish to recover it later.
 Your account won't be removed from the networks it joined.
-Are you sure ?""")
+Are you sure ?"""))
         if reply == QMessageBox.Yes:
             account = self.app.current_account
             self.app.delete_account(account)
@@ -249,7 +249,7 @@ Are you sure ?""")
                 else:
                     self.accept()
             except Error as e:
-                QMessageBox.critical(self, "Error",
+                QMessageBox.critical(self, self.tr("Error"),
                                      str(e), QMessageBox.Ok)
 
     def previous(self):

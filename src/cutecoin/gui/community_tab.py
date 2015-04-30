@@ -166,18 +166,18 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
 
         try:
             self.account.send_membership(password, self.community, 'IN')
-            QMessageBox.information(self, "Membership",
-                                 "Success sending membership demand")
+            QMessageBox.information(self, self.tr("Membership"),
+                                 self.tr("Success sending membership demand"))
         except ValueError as e:
-            QMessageBox.critical(self, "Join demand error",
+            QMessageBox.critical(self, self.tr("Join demand error"),
                               str(e))
         except PersonNotFoundError as e:
-            QMessageBox.critical(self, "Key not sent to community",
-                              "Your key wasn't sent in the community. \
-                              You can't request a membership.")
+            QMessageBox.critical(self, self.tr("Key not sent to community"),
+                              self.tr("Your key wasn't sent in the community. \
+                              You can't request a membership."))
         except NoPeerAvailable as e:
-            QMessageBox.critical(self, "Network error",
-                                 "Couldn't connect to network : {0}".format(e),
+            QMessageBox.critical(self, self.tr("Network error"),
+                                 self.tr("Couldn't connect to network : {0}").format(e),
                                  QMessageBox.Ok)
         except Exception as e:
             QMessageBox.critical(self, "Error",
@@ -185,10 +185,10 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
                                  QMessageBox.Ok)
 
     def send_membership_leaving(self):
-        reply = QMessageBox.warning(self, "Warning",
-                             """Are you sure ?
+        reply = QMessageBox.warning(self, self.tr("Warning"),
+                             self.tr("""Are you sure ?
 Sending a membership demand  cannot be canceled.
-The process to join back the community later will have to be done again."""
+The process to join back the community later will have to be done again.""")
 .format(self.account.pubkey), QMessageBox.Ok | QMessageBox.Cancel)
         if reply == QMessageBox.Ok:
             password_asker = PasswordAskerDialog(self.app.current_account)
@@ -198,17 +198,17 @@ The process to join back the community later will have to be done again."""
 
             try:
                 self.account.send_membership(password, self.community, 'OUT')
-                QMessageBox.information(self, "Membership",
-                                     "Success sending leaving demand")
+                QMessageBox.information(self, self.tr("Membership"),
+                                     self.tr("Success sending leaving demand"))
             except ValueError as e:
-                QMessageBox.critical(self, "Leaving demand error",
+                QMessageBox.critical(self, self.tr("Leaving demand error"),
                                   e.message)
             except NoPeerAvailable as e:
-                QMessageBox.critical(self, "Network error",
-                                     "Couldn't connect to network : {0}".format(e),
+                QMessageBox.critical(self, self.tr("Network error"),
+                                     self.tr("Couldn't connect to network : {0}").format(e),
                                      QMessageBox.Ok)
             except Exception as e:
-                QMessageBox.critical(self, "Error",
+                QMessageBox.critical(self, self.tr("Error"),
                                      "{0}".format(e),
                                      QMessageBox.Ok)
 

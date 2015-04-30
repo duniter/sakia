@@ -43,14 +43,14 @@ class PasswordAskerDialog(QDialog, Ui_PasswordAskerDialog):
         password = self.edit_password.text()
 
         if detect_non_printable(password):
-            QMessageBox.warning(self, "Bad password",
-                                "Non printable characters in password",
+            QMessageBox.warning(self, self.tr("Bad password"),
+                                self.tr("Non printable characters in password"),
                                 QMessageBox.Ok)
             return False
 
         if not self.account.check_password(password):
-            QMessageBox.warning(self, "Failed to get private key",
-                                "Wrong password typed. Cannot open the private key",
+            QMessageBox.warning(self, self.tr("Failed to get private key"),
+                                self.tr("Wrong password typed. Cannot open the private key"),
                                 QMessageBox.Ok)
             return False
 

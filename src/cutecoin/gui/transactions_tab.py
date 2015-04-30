@@ -84,15 +84,15 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
             localized_balance = QLocale().toString(
                 self.app.current_account.units_to_diff_ref(balance, self.community), 'f', 2)
 
-        self.label_deposit.setText("Deposits: {:} {:}".format(
+        self.label_deposit.setText(self.tr("Deposits: {:} {:}").format(
             localized_deposits,
             self.app.current_account.ref_name(self.community.short_currency)
         ))
-        self.label_payment.setText("Payments: {:} {:}".format(
+        self.label_payment.setText(self.tr("Payments: {:} {:}").format(
             localized_payments,
             self.app.current_account.ref_name(self.community.short_currency)
         ))
-        self.label_balance.setText("Balance: {:} {:}".format(
+        self.label_balance.setText(self.tr("Balance: {:} {:}").format(
             localized_balance,
             self.app.current_account.ref_name(self.community.short_currency)
         ))
@@ -101,7 +101,7 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         index = self.table_history.indexAt(point)
         model = self.table_history.model()
         if index.row() < model.rowCount(QModelIndex()):
-            menu = QMenu("Actions", self)
+            menu = QMenu(self.tr("Actions"), self)
             source_index = model.mapToSource(index)
             state_col = model.sourceModel().column_types.index('state')
             state_index = model.sourceModel().index(source_index.row(),
@@ -114,39 +114,39 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
             person = model.sourceModel().data(person_index, Qt.DisplayRole)
             transfer = model.sourceModel().transfers[source_index.row()]
             if state_data == Transfer.REFUSED or state_data == Transfer.TO_SEND:
-                send_back = QAction("Send again", self)
+                send_back = QAction(self.tr("Send again"), self)
                 send_back.triggered.connect(self.send_again)
                 send_back.setData(transfer)
                 menu.addAction(send_back)
 
-                cancel = QAction("Cancel", self)
+                cancel = QAction(self.tr("Cancel"), self)
                 cancel.triggered.connect(self.cancel_transfer)
                 cancel.setData(transfer)
                 menu.addAction(cancel)
             else:
                 if isinstance(person, Person):
-                    informations = QAction("Informations", self)
+                    informations = QAction(self.tr("Informations"), self)
                     informations.triggered.connect(self.currency_tab.tab_community.menu_informations)
                     informations.setData(person)
                     menu.addAction(informations)
 
-                    add_as_contact = QAction("Add as contact", self)
+                    add_as_contact = QAction(self.tr("Add as contact"), self)
                     add_as_contact.triggered.connect(self.currency_tab.tab_community.menu_add_as_contact)
                     add_as_contact.setData(person)
                     menu.addAction(add_as_contact)
 
-                send_money = QAction("Send money to", self)
+                send_money = QAction(self.tr("Send money to"), self)
                 send_money.triggered.connect(self.currency_tab.tab_community.menu_send_money)
                 send_money.setData(person)
                 menu.addAction(send_money)
 
                 if isinstance(person, Person):
-                    view_wot = QAction("View in WoT", self)
+                    view_wot = QAction(self.tr("View in WoT"), self)
                     view_wot.triggered.connect(self.currency_tab.tab_community.view_wot)
                     view_wot.setData(person)
                     menu.addAction(view_wot)
 
-            copy_pubkey = QAction("Copy pubkey to clipboard", self)
+            copy_pubkey = QAction(self.tr("Copy pubkey to clipboard"), self)
             copy_pubkey.triggered.connect(self.copy_pubkey_to_clipboard)
             copy_pubkey.setData(person)
             menu.addAction(copy_pubkey)
@@ -183,9 +183,9 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
             self.table_history.model().invalidate()
 
     def cancel_transfer(self):
-        reply = QMessageBox.warning(self, "Warning",
-                             """Are you sure ?
-This money transfer will be removed and not sent.""",
+        reply = QMessageBox.warning(self, self.tr("Warning"),
+                             self.tr("""Are you sure ?
+This money transfer will be removed and not sent."""),
 QMessageBox.Ok | QMessageBox.Cancel)
         if reply == QMessageBox.Ok:
             transfer = self.sender().data()

@@ -36,12 +36,12 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
             return QVariant()
 
         header_names = {
-            'address': 'Address',
-            'port': 'Port',
-            'current_block': 'Block',
-            'uid': 'UID',
-            'is_member': 'Member',
-            'pubkey': 'Pubkey'
+            'address': self.tr('Address'),
+            'port': self.tr('Port'),
+            'current_block': self.tr('Block'),
+            'uid': self.tr('UID'),
+            'is_member': self.tr('Member'),
+            'pubkey': self.tr('Pubkey')
         }
         _type = self.sourceModel().headerData(section, orientation, role)
         return header_names[_type]

@@ -55,7 +55,7 @@ class ConfigureContactDialog(QDialog, Ui_ConfigureContactDialog):
                 self.account.add_contact({'name': name,
                                           'pubkey': pubkey})
             except ContactAlreadyExists as e:
-                QMessageBox.critical(self, "Contact already exists",
+                QMessageBox.critical(self, self.tr("Contact already exists"),
                             str(e),
                             QMessageBox.Ok)
         self.main_window.app.save(self.account)

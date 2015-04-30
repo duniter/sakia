@@ -86,7 +86,7 @@ class StepPageAddpeers(Step):
 
         self.config_dialog.tree_peers.setModel(tree_model)
         self.config_dialog.button_previous.setEnabled(False)
-        self.config_dialog.button_next.setText("Ok")
+        self.config_dialog.button_next.setText(self.tr("Ok"))
 
 
 class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
@@ -114,11 +114,10 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         if self.community is not None:
             self.stacked_pages.removeWidget(self.page_init)
             self.step = step_add_peers
-            self.setWindowTitle("Configure community "
-                                + self.community.currency)
+            self.setWindowTitle(self.tr("Configure community {0}").format(self.community.currency))
         else:
             self.step = step_init
-            self.setWindowTitle("Add a community")
+            self.setWindowTitle(self.tr("Add a community"))
 
         self.step.display_page()
 
@@ -159,7 +158,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
             node = Node.from_address(self.community.currency, server, port)
             self.community.add_node(node)
         except Exception as e:
-            QMessageBox.critical(self, "Error",
+            QMessageBox.critical(self, self.tr("Error"),
                                  str(e))
         self.tree_peers.setModel(PeeringTreeModel(self.community))
 
@@ -185,7 +184,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         if self.stacked_pages.currentIndex() == self.nb_steps - 1:
             menu = QMenu()
             index = self.tree_peers.indexAt(point)
-            action = menu.addAction("Delete", self.remove_node)
+            action = menu.addAction(self.tr("Delete"), self.remove_node)
             action.setData(index.row())
             if self.community is not None:
                 if len(self.nodes) == 1:
@@ -196,10 +195,10 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         try:
             Person.lookup(self.account.pubkey, self.community, cached=False)
         except PersonNotFoundError as e:
-            reply = QMessageBox.question(self, "Pubkey not found",
-                                 """The public key of your account wasn't found in the community. :\n
+            reply = QMessageBox.question(self, self.tr("Pubkey not found"),
+                                 self.tr("""The public key of your account wasn't found in the community. :\n
 {0}\n
-Would you like to publish the key ?""".format(self.account.pubkey))
+Would you like to publish the key ?""").format(self.account.pubkey))
             if reply == QMessageBox.Yes:
                 password = self.password_asker.exec_()
                 if self.password_asker.result() == QDialog.Rejected:
@@ -207,14 +206,14 @@ Would you like to publish the key ?""".format(self.account.pubkey))
                 try:
                     self.account.send_selfcert(password, self.community)
                 except ValueError as e:
-                    QMessageBox.critical(self, "Pubkey publishing error",
+                    QMessageBox.critical(self, self.tr("Pubkey publishing error"),
                                       e.message)
                 except NoPeerAvailable as e:
-                    QMessageBox.critical(self, "Network error",
-                                         "Couldn't connect to network : {0}".format(e),
+                    QMessageBox.critical(self, self.tr("Network error"),
+                                         self.tr("Couldn't connect to network : {0}").format(e),
                                          QMessageBox.Ok)
                 except Exception as e:
-                    QMessageBox.critical(self, "Error",
+                    QMessageBox.critical(self, self.tr("Error"),
                                          "{0}".format(e),
                                          QMessageBox.Ok)
 

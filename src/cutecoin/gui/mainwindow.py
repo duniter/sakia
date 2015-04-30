@@ -167,7 +167,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.busybar.setMaximum(0)
         self.busybar.setValue(-1)
         self.busybar.show()
-        self.status_label.setText("Loading account {0}".format(account_name))
+        self.status_label.setText(self.tr("Loading account {0}").format(account_name))
         self.loader.set_account_name(account_name)
         self.loader_thread.start(QThread.LowPriority)
         self.homescreen.button_new.hide()
@@ -223,16 +223,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         version_info = ""
         version_url = ""
         if not latest[0]:
-            version_info = "Latest release : {version}" \
+            version_info = self.tr("Latest release : {version}") \
                 .format(version='.'.join(latest[1]))
             version_url = latest[2]
 
-        new_version_text = """
+        new_version_text = self.tr("""
             <p><b>{version_info}</b></p>
             <p><a href={version_url}>Download link</a></p>
-            """.format(version_info=version_info,
+            """).format(version_info=version_info,
                        version_url=version_url)
-        text = """
+        text = self.tr("""
         <h1>Cutecoin</h1>
 
         <p>Python/Qt uCoin client</p>
@@ -247,7 +247,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         <p>inso</p>
         <p>vit</p>
         <p>canercandan</p>
-        """.format(__version__,
+        """).format(__version__,
                    new_version_text=new_version_text)
         aboutUi.label.setText(text)
         aboutDialog.show()
@@ -286,10 +286,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.app.current_account:
             for index, contact in enumerate(self.app.current_account.contacts):
                 contact_menu = self.menu_contacts_list.addMenu(contact['name'])
-                edit_action = contact_menu.addAction("Edit")
+                edit_action = contact_menu.addAction(self.tr("Edit"))
                 edit_action.triggered.connect(self.edit_contact)
                 edit_action.setData(index)
-                delete_action = contact_menu.addAction("Delete")
+                delete_action = contact_menu.addAction(self.tr("Delete"))
                 delete_action.setData(contact)
                 delete_action.triggered.connect(self.delete_contact)
 
@@ -311,18 +311,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.app.current_account is None:
             self.currencies_tabwidget.hide()
             self.homescreen.show()
-            self.setWindowTitle("CuteCoin {0}".format(__version__))
+            self.setWindowTitle(self.tr("CuteCoin {0}").format(__version__))
             self.menu_contacts.setEnabled(False)
             self.menu_actions.setEnabled(False)
             self.action_configure_parameters.setEnabled(False)
             self.action_set_as_default.setEnabled(False)
             self.combo_referential.setEnabled(False)
-            self.status_label.setText("")
+            self.status_label.setText(self.tr(""))
             self.password_asker = None
         else:
-            logging.debug("Show currencies loading")
+            logging.debug(self.tr("Show currencies loading"))
             self.currencies_tabwidget.show()
-            logging.debug("Hide homescreen")
+            logging.debug(self.tr("Hide homescreen"))
             self.homescreen.hide()
             self.action_set_as_default.setEnabled(self.app.current_account.name
                                                   != self.app.default_account)
@@ -337,7 +337,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.menu_contacts.setEnabled(True)
             self.action_configure_parameters.setEnabled(True)
             self.menu_actions.setEnabled(True)
-            self.setWindowTitle("CuteCoin {0} - Account : {1}".format(__version__,
+            self.setWindowTitle(self.tr("CuteCoin {0} - Account : {1}").format(__version__,
                                                                       self.app.current_account.name))
 
         self.refresh_communities()
@@ -351,9 +351,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def export_account(self):
         selected_file = QFileDialog.getSaveFileName(self,
-                                                    "Export an account",
+                                                    self.tr("Export an account"),
                                                     "",
-                                                    "All account files (*.acc)")
+                                                    self.tr("All account files (*.acc)"))
         path = ""
         if selected_file[0][-4:] == ".acc":
             path = selected_file[0]

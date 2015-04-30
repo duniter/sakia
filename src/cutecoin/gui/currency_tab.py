@@ -74,8 +74,8 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                 if days > 0:
                     QMessageBox.warning(
                         self,
-                        "Membership expiration",
-                        "Warning : Membership expiration in {0} days".format(days),
+                        self.tr("Membership expiration"),
+                        self.tr("Warning : Membership expiration in {0} days").format(days),
                         QMessageBox.Ok
                     )
         except MembershipNotFoundError as e:
@@ -93,7 +93,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                                 self.password_asker)
             self.tabs_account.addTab(self.tab_wallets,
                                      QIcon(':/icons/wallet_icon'),
-                                    "Wallets")
+                                    self.tr("Wallets"))
 
             self.tab_history = TransactionsTabWidget(self.app,
                                                      self.community,
@@ -101,7 +101,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                                      self)
             self.tabs_account.addTab(self.tab_history,
                                      QIcon(':/icons/tx_icon'),
-                                    "Transactions")
+                                    self.tr("Transactions"))
 
             self.tab_community = CommunityTabWidget(self.app,
                                                     self.app.current_account,
@@ -110,13 +110,13 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                                     self)
             self.tabs_account.addTab(self.tab_community,
                                      QIcon(':/icons/community_icon'),
-                                    "Community")
+                                    self.tr("Community"))
 
             self.tab_informations = InformationsTabWidget(self.app.current_account,
                                                     self.community)
             self.tabs_account.addTab(self.tab_informations,
                                      QIcon(':/icons/informations_icon'),
-                                    "Informations")
+                                    self.tr("Informations"))
 
             # fix bug refresh_nodes launch on destroyed NetworkTabWidget
             logging.debug('Disconnect community.network.nodes_changed')
@@ -128,7 +128,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             self.tab_network = NetworkTabWidget(self.community)
             self.tabs_account.addTab(self.tab_network,
                                      QIcon(":/icons/network_icon"),
-                                     "Network")
+                                     self.tr("Network"))
             self.tab_informations.refresh()
             self.refresh_status()
             self.refresh_wallets()
@@ -167,15 +167,13 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         Refresh status bar
         '''
         logging.debug("Refresh status")
+        text = self.tr(" Block {0}").format(self.community.network.latest_block)
         if self.community.network_quality() > 0.66:
             icon = '<img src=":/icons/connected" width="12" height="12"/>'
-            text = " Block {0}".format(self.community.network.latest_block)
         elif self.community.network_quality() > 0.33:
             icon = '<img src=":/icons/weak_connect" width="12" height="12"/>'
-            text = " Block {0}".format(self.community.network.latest_block)
         else:
             icon = '<img src=":/icons/disconnected" width="12" height="12"/>'
-            text = " Block {0}".format(self.community.network.latest_block)
         self.status_label.setText("{0}{1}".format(icon, text))
 
     def refresh_wallets(self):

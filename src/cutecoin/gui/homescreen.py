@@ -29,15 +29,15 @@ class HomeScreenWidget(QWidget, Ui_HomeScreenWidget):
         version_info = ""
         version_url = ""
         if not latest[0]:
-            version_info = "Please get the latest release {version}" \
+            version_info = self.tr("Please get the latest release {version}") \
                             .format(version='.'.join(latest[1]))
             version_url = latest[2]
 
         self.label_welcome.setText(
-            """
+            self.tr("""
             <h1>Welcome to Cutecoin {version}</h1>
             <h2>{version_info}</h2>
             <h3><a href={version_url}>Download link</a></h3>
-            """.format(version=__version__,
+            """).format(version=__version__,
                        version_info=version_info,
                        version_url=version_url))

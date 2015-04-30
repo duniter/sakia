@@ -71,10 +71,10 @@ class IdentitiesTableModel(QAbstractTableModel):
         super().__init__(parent)
         self.community = community
         self.columns_titles = {
-                               'uid': 'UID',
-                               'pubkey': 'Pubkey',
-                               'renewed': 'Renewed',
-                               'expiration': 'Expiration'}
+                               'uid': self.tr('UID'),
+                               'pubkey': self.tr('Pubkey'),
+                               'renewed': self.tr('Renewed'),
+                               'expiration': self.tr('Expiration')}
         self.columns_ids = ('uid', 'pubkey', 'renewed', 'expiration')
         self.identities_data = []
 

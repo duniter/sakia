@@ -55,35 +55,35 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
             date_expiration = QDateTime.fromTime_t(expiration).date().toString()
             # set infos in label
             self.label_general.setText(
-                """
+                self.tr("""
                 <table cellpadding="5">
                 <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
                 <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
                 <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
                 </table>
-                """.format(
+                """).format(
                     self.account.name, self.account.pubkey,
-                    "Membership",
-                    "Last renewal on {:}, expiration on {:}".format(date_renewal, date_expiration),
-                    "Your web of trust :",
-                    "Certified by : {:} members; Certifier of : {:} members".format(len(certifiers),
+                    self.tr("Membership"),
+                    self.tr("Last renewal on {:}, expiration on {:}").format(date_renewal, date_expiration),
+                    self.tr("Your web of trust :"),
+                    self.tr("Certified by : {:} members; Certifier of : {:} members").format(len(certifiers),
                                                                                     len(certified))
                 )
             )
         else:
             # set infos in label
             self.label_general.setText(
-                """
+                self.tr("""
                 <table cellpadding="5">
                 <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
                 <tr><td align="right"><b>{:}</b></td></tr>
                 <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
                 </table>
-                """.format(
+                """).format(
                     self.account.name, self.account.pubkey,
-                    "Not a member",
-                    "Your web of trust :",
-                    "Certified by : {:} members; Certifier of : {:} members".format(len(certifiers),
+                    self.tr("Not a member"),
+                    self.tr("Your web of trust :"),
+                    self.tr("Certified by : {:} members; Certifier of : {:} members").format(len(certifiers),
                                                                                     len(certified))
                 )
             )
@@ -103,13 +103,13 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
 
         # set infos in label
         self.label_balance.setText(
-            """
+            self.tr("""
             <table cellpadding="5">
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             </table>
-            """.format("Your money share : ", "{:.2f}%".format(amount / maximum * 100) if maximum != 0 else "0%",
-                       "Your part : ", "{:} {:} in [{:.2f} - {:}] {:}"
+            """).format(self.tr("Your money share : ", "{:.2f}%").format(amount / maximum * 100) if maximum != 0 else "0%",
+                       self.tr("Your part : "), self.tr("{:} {:} in [{:.2f} - {:}] {:}")
                        .format(
                     localized_amount,
                     self.get_referential_name(),
@@ -151,16 +151,16 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
             pubkey = model.sourceModel().data(pubkey_index, Qt.DisplayRole)
             menu = QMenu(model.data(index, Qt.DisplayRole), self)
 
-            rename = QAction("Rename", self)
+            rename = QAction(self.tr("Rename"), self)
             rename.triggered.connect(self.rename_wallet)
             rename.setData(name_index)
 
-            copy_pubkey = QAction("Copy pubkey to clipboard", self)
+            copy_pubkey = QAction(self.tr("Copy pubkey to clipboard"), self)
             copy_pubkey.triggered.connect(self.copy_pubkey_to_clipboard)
             copy_pubkey.setData(pubkey)
 
             transfer_to = QMenu()
-            transfer_to.setTitle("Transfer to...")
+            transfer_to.setTitle(self.tr("Transfer to..."))
             for w in self.account.wallets:
                 if w == self.account.wallets[source_index.row()]:
                     continue

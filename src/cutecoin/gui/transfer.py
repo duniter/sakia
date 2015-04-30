@@ -62,8 +62,8 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         amount = self.spinbox_amount.value()
 
         if not amount:
-            QMessageBox.critical(self, "Money transfer",
-                                 "No amount. Please give the transfert amount",
+            QMessageBox.critical(self, self.tr("Money transfer"),
+                                 self.tr("No amount. Please give the transfert amount"),
                                  QMessageBox.Ok)
             return
 
@@ -76,26 +76,26 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
             QApplication.processEvents()
             self.wallet.send_money(self.account.salt, password, self.community,
                                        recipient, amount, comment)
-            QMessageBox.information(self, "Money transfer",
-                                 "Success transfering {0} {1} to {2}".format(amount,
+            QMessageBox.information(self, self.tr("Money transfer"),
+                                 self.tr("Success transfering {0} {1} to {2}").format(amount,
                                                                              self.community.currency,
                                                                              recipient))
         except ValueError as e:
-            QMessageBox.critical(self, "Money transfer",
-                                 "Something wrong happened : {0}".format(e),
+            QMessageBox.critical(self, self.tr("Money transfer"),
+                                 self.tr("Something wrong happened : {0}").format(e),
                                  QMessageBox.Ok)
             return
         except NotEnoughMoneyError as e:
-            QMessageBox.warning(self, "Money transfer",
-                                 """This transaction could not be sent on this block
-Please try again later""")
+            QMessageBox.warning(self, self.tr("Money transfer"),
+                                 self.tr("""This transaction could not be sent on this block
+Please try again later"""))
         except NoPeerAvailable as e:
-            QMessageBox.critical(self, "Money transfer",
-                                 "Couldn't connect to network : {0}".format(e),
+            QMessageBox.critical(self, self.tr("Money transfer"),
+                                 self.tr("Couldn't connect to network : {0}").format(e),
                                  QMessageBox.Ok)
             return
         except Exception as e:
-            QMessageBox.critical(self, "Error",
+            QMessageBox.critical(self, self.tr("Error"),
                                  "{0}".format(str(e)),
                                  QMessageBox.Ok)
             return
