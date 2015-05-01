@@ -16,6 +16,7 @@ from .wallets_tab import WalletsTabWidget
 from .transactions_tab import TransactionsTabWidget
 from .network_tab import NetworkTabWidget
 from .informations_tab import InformationsTabWidget
+from .toast import Toast
 from ..tools.exceptions import MembershipNotFoundError
 from ..core.person import Person
 
@@ -56,6 +57,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         bc_watcher = self.app.monitor.blockchain_watcher(self.community)
         bc_watcher.error.connect(self.display_error)
         bc_watcher.watching_stopped.connect(self.refresh_data)
+        bc_watcher.new_transfers.connect(self.notify_transfers)
 
         person = Person.lookup(self.app.current_account.pubkey, self.community)
         try:
@@ -175,6 +177,18 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         else:
             icon = '<img src=":/icons/disconnected" width="12" height="12"/>'
         self.status_label.setText("{0}{1}".format(icon, text))
+
+    @pyqtSlot(list)
+    def notify_transfers(self, transfers_list):
+        text = self.tr("Received {0} {1}")
+        amount = 0
+        currency = self.community.name
+        for t in transfers_list:
+            amount += t.metadata['amount']
+            text += """{0}
+""".format(t.metadata['uid'])
+        text.format(amount, currency)
+        Toast(text)
 
     def refresh_wallets(self):
         if self.app.current_account:

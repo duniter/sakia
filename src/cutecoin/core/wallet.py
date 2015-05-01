@@ -60,7 +60,7 @@ class Cache():
     def transfers(self):
         return [t for t in self._transfers if t.state != Transfer.DROPPED]
 
-    def _parse_transaction(self, community, tx, block_number, mediantime):
+    def _parse_transaction(self, community, tx, block_number, mediantime, received_list):
         logging.debug(tx)
         receivers = [o.pubkey for o in tx.outputs
                      if o.pubkey != tx.issuers[0]]
@@ -113,11 +113,12 @@ class Cache():
             for o in outputs:
                 amount += o.amount
             metadata['amount'] = amount
+            received = Received(tx, metadata.copy())
+            received_list.append(received)
+            self._transfers.append(received)
 
-            self._transfers.append(Received(tx,
-                                            metadata.copy()))
 
-    def _parse_block(self, community, block_number):
+    def _parse_block(self, community, block_number, received_list):
         block = community.request(bma.blockchain.Block,
                                   req_args={'number': block_number})
         signed_raw = "{0}{1}\n".format(block['raw'],
@@ -128,7 +129,8 @@ class Cache():
             logging.debug("Error in {0}".format(block_number))
             raise
         for tx in block_doc.transactions:
-            self._parse_transaction(community, tx, block_number, block_doc.mediantime)
+            self._parse_transaction(community, tx, block_number,
+                                    block_doc.mediantime, received_list)
 
         awaiting = [t for t in self._transfers
                     if t.state == Transfer.AWAITING]
@@ -139,8 +141,9 @@ class Cache():
             transfer.check_registered(tx, block_number,
                                       block_doc.mediantime)
 
-    def refresh(self, community):
+    def refresh(self, community, received_list):
         current_block = 0
+        received_list = []
         try:
             block_data = community.current_blockid()
             current_block = block_data['number']
@@ -160,7 +163,7 @@ class Cache():
             self.wallet.refresh_progressed.emit(self.latest_block, current_block)
 
             for block_number in parsed_blocks:
-                self._parse_block(community, block_number)
+                self._parse_block(community, block_number, received_list)
                 self.wallet.refresh_progressed.emit(current_block - block_number,
                                                      current_block - self.latest_block)
 
@@ -249,7 +252,7 @@ class Wallet(QObject):
             data[currency] = self.caches[currency].jsonify()
         return data
 
-    def refresh_cache(self, community):
+    def refresh_cache(self, community, received_list):
         '''
         Refresh the cache of this wallet for the specified community.
 
@@ -257,7 +260,7 @@ class Wallet(QObject):
         '''
         if community.currency not in self.caches:
             self.caches[community.currency] = Cache(self)
-        self.caches[community.currency].refresh(community)
+        self.caches[community.currency].refresh(community, received_list)
 
     def check_password(self, salt, password):
         '''
