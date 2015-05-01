@@ -59,6 +59,12 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
 
         self.wot_tab = WotTabWidget(app, account, community, password_asker, self)
         self.tabs_information.addTab(self.wot_tab, QIcon(':/icons/wot_icon'), "WoT")
+        members_action = QAction(self.tr("Members"), self)
+        members_action.triggered.connect(self.search_members)
+        self.button_search.addAction(members_action)
+        direct_connections = QAction(self.tr("Direct connections"), self)
+        direct_connections.triggered.connect(self.search_direct_connections)
+        self.button_search.addAction(direct_connections)
         self.refresh()
 
     def identity_context_menu(self, point):
@@ -212,9 +218,9 @@ The process to join back the community later will have to be done again.""")
                                      "{0}".format(e),
                                      QMessageBox.Ok)
 
-    def search(self):
+    def search_text(self):
         """
-        Search nodes when return is pressed in combobox lineEdit
+        Search text and display found identities
         """
         text = self.edit_textsearch.text()
 
@@ -227,13 +233,29 @@ The process to join back the community later will have to be done again.""")
             return False
 
         persons = []
-        logging.debug(response)
         for identity in response['results']:
             persons.append(Person.lookup(identity['pubkey'], self.community))
 
         self.edit_textsearch.clear()
         self.refresh(persons)
 
+    def search_members(self):
+        """
+        Search members of community and display found members
+        """
+        pubkeys = self.community.members_pubkeys()
+        persons = []
+        for p in pubkeys:
+            persons.append(Person.lookup(p, self.community))
+
+        self.edit_textsearch.clear()
+        self.refresh(persons)
+
+    def search_direct_connections(self):
+        """
+        Search members of community and display found members
+        """
+        self.refresh()
 
     def refresh(self, persons=None):
         '''
