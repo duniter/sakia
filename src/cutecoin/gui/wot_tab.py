@@ -36,7 +36,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         self.graphicsView.scene().node_signed.connect(self.sign_node)
         self.graphicsView.scene().node_transaction.connect(self.send_money_to_node)
         self.graphicsView.scene().node_contact.connect(self.add_node_as_contact)
-        self.graphicsView.scene().node_member.connect(self.member_informations)
+        self.graphicsView.scene().node_member.connect(self.identity_informations)
 
         app.monitor.persons_watcher(community).person_changed.connect(self.handle_person_change)
         self.account = account
@@ -152,24 +152,24 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             metadata
         )
 
-    def member_informations(self, metadata):
+    def identity_informations(self, metadata):
         person = Person.from_metadata(metadata)
-        self.parent.member_informations(person)
+        self.parent.identity_informations(person)
 
     def sign_node(self, metadata):
         person = Person.from_metadata(metadata)
-        self.parent.certify_member(person)
+        self.parent.certify_identity(person)
 
     def send_money_to_node(self, metadata):
         person = Person.from_metadata(metadata)
-        self.parent.send_money_to_member(person)
+        self.parent.send_money_to_identity(person)
 
     def add_node_as_contact(self, metadata):
         # check if contact already exists...
         if metadata['id'] == self.account.pubkey \
             or metadata['id'] in [contact['pubkey'] for contact in self.account.contacts]:
             return False
-        self.parent.add_member_as_contact({'name': metadata['text'],
+        self.parent.add_identity_as_contact({'name': metadata['text'],
                                            'pubkey': metadata['id']})
 
     def get_block_mediantime(self, number):
