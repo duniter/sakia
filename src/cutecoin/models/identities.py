@@ -6,7 +6,7 @@ Created on 5 févr. 2014
 
 from ucoinpy.api import bma
 from ..core.person import Person
-from ..tools.exceptions import NoPeerAvailable
+from ..tools.exceptions import NoPeerAvailable, MembershipNotFoundError
 from PyQt5.QtCore import QAbstractTableModel, QSortFilterProxyModel, Qt, \
                         QDateTime, QModelIndex
 from PyQt5.QtGui import QColor
@@ -29,6 +29,8 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
         source_model = self.sourceModel()
         left_data = source_model.data(left, Qt.DisplayRole)
         right_data = source_model.data(right, Qt.DisplayRole)
+        left_data = 0 if left_data is None else left_data
+        right_data = 0 if right_data is None else right_data
         return (left_data < right_data)
 
     def data(self, index, role):
@@ -41,20 +43,24 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
         sig_validity = self.community.parameters['sigValidity']
         warning_expiration_time = int(sig_validity / 3)
         #logging.debug("{0} > {1}".format(current_time, expiration_data))
-        will_expire_soon = (current_time > expiration_data*1000 - warning_expiration_time*1000)
+        if expiration_data is not None:
+            will_expire_soon = (current_time > expiration_data*1000 - warning_expiration_time*1000)
         if role == Qt.DisplayRole:
             if source_index.column() == self.sourceModel().columns_ids.index('renewed'):
-                date = QDateTime.fromTime_t(source_data)
-                return date.date()
+                date = QDateTime.fromTime_t(source_data).date() if source_data is not None else ""
+                return date
             if source_index.column() == self.sourceModel().columns_ids.index('expiration'):
-                date = QDateTime.fromTime_t(source_data)
-                return date.date()
+                date = QDateTime.fromTime_t(source_data).date() if source_data is not None else ""
+                return date
             if source_index.column() == self.sourceModel().columns_ids.index('pubkey'):
                 return "pub:{0}".format(source_data[:5])
 
         if role == Qt.ForegroundRole:
-            if will_expire_soon:
-                return QColor(Qt.red)
+            if expiration_data:
+                if will_expire_soon:
+                    return QColor(Qt.red)
+            else:
+                return QColor(Qt.blue)
         return source_data
 
 
@@ -86,14 +92,19 @@ class IdentitiesTableModel(QAbstractTableModel):
         return [i[1] for i in self.identities_data]
 
     def identity_data(self, person):
-        join_block = person.membership(self.community)['blockNumber']
-        try:
-            join_date = self.community.get_block(join_block).mediantime
-        except NoPeerAvailable:
-            join_date = 0
         parameters = self.community.parameters
-        expiration_date = join_date + parameters['sigValidity']
-        logging.debug((person.uid, person.pubkey, join_date, expiration_date))
+        try:
+            join_block = person.membership(self.community)['blockNumber']
+            try:
+                join_date = self.community.get_block(join_block).mediantime
+                expiration_date = join_date + parameters['sigValidity']
+            except NoPeerAvailable:
+                join_date = None
+                expiration_date = None
+        except MembershipNotFoundError:
+            join_date = None
+            expiration_date = None
+
         return (person.uid, person.pubkey, join_date, expiration_date)
 
     def refresh_identities(self, persons):
