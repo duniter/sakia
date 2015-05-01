@@ -227,8 +227,9 @@ The process to join back the community later will have to be done again.""")
             return False
 
         persons = []
+        logging.debug(response)
         for identity in response['results']:
-            persons.append(identity['pubkey'])
+            persons.append(Person.lookup(identity['pubkey'], self.community))
 
         self.edit_textsearch.clear()
         self.refresh(persons)
