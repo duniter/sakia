@@ -80,7 +80,10 @@ class IdentitiesTableModel(QAbstractTableModel):
 
     @property
     def pubkeys(self):
-        return [i.pubkey for i in self.identities_data]
+        '''
+        Get pubkeys of displayed identities
+        '''
+        return [i[1] for i in self.identities_data]
 
     def identity_data(self, person):
         join_block = person.membership(self.community)['blockNumber']

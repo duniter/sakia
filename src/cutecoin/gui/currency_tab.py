@@ -159,7 +159,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             self.tab_wallets.refresh()
 
         if self.tab_history.table_history.model():
-            self.tab_history.table_history.model().refresh_transfers()
+            self.tab_history.table_history.model().sourceModel().refresh_transfers()
 
     @pyqtSlot()
     def refresh_status(self):

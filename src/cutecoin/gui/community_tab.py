@@ -140,7 +140,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         dialog.radio_pubkey.setChecked(True)
         if dialog.exec_() == QDialog.Accepted:
             currency_tab = self.window().currencies_tabwidget.currentWidget()
-            currency_tab.tab_history.table_history.model().invalidate()
+            currency_tab.tab_history.table_history.model().sourceModel().refresh_transfers()
 
     def certify_identity(self, person):
         dialog = CertificationDialog(self.account, self.password_asker)

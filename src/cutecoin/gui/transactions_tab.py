@@ -180,7 +180,7 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         result = dialog.exec_()
         if result == QDialog.Accepted:
             transfer.drop()
-            self.table_history.model().invalidate()
+            self.table_history.model().sourceModel().refresh_transfers()
 
     def cancel_transfer(self):
         reply = QMessageBox.warning(self, self.tr("Warning"),
@@ -190,7 +190,7 @@ QMessageBox.Ok | QMessageBox.Cancel)
         if reply == QMessageBox.Ok:
             transfer = self.sender().data()
             transfer.drop()
-            self.table_history.model().invalidate()
+            self.table_history.model().sourceModel().refresh_transfers()
 
     def dates_changed(self):
         logging.debug("Changed dates")
