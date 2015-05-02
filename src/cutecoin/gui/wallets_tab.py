@@ -67,7 +67,7 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
                     self.tr("Last renewal on {:}, expiration on {:}").format(date_renewal, date_expiration),
                     self.tr("Your web of trust :"),
                     self.tr("Certified by : {:} members; Certifier of : {:} members").format(len(certifiers),
-                                                                                    len(certified))
+                                                                                             len(certified))
                 )
             )
         else:
@@ -84,24 +84,24 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
                     self.tr("Not a member"),
                     self.tr("Your web of trust :"),
                     self.tr("Certified by : {:} members; Certifier of : {:} members").format(len(certifiers),
-                                                                                    len(certified))
+                                                                                             len(certified))
                 )
             )
 
         amount = self.account.amount(self.community)
         maximum = self.community.monetary_mass
 
-        if isinstance(amount, int):
+        if isinstance(self.get_referential_value(amount), int):
             localized_amount = QLocale().toString(self.get_referential_value(amount))
         else:
             localized_amount = QLocale().toString(self.get_referential_value(amount), 'f', 6)
 
-        if isinstance(maximum, int):
+        if isinstance(self.get_referential_value(maximum), int):
             localized_maximum = QLocale().toString(self.get_referential_value(maximum))
         else:
             localized_maximum = QLocale().toString(self.get_referential_value(maximum), 'f', 6)
 
-        logging.debug( self.tr("{:} {:} in [{:.2f} - {:}] {:}"))
+        logging.debug(self.tr("{:} {:} in [{:.2f} - {:}] {:}"))
         # set infos in label
         self.label_balance.setText(
             self.tr("""
@@ -109,14 +109,18 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             </table>
-            """).format(self.tr("Your money share : "), self.tr("{:.2f}%").format(amount / maximum * 100) if maximum != 0 else "0%",
-                       self.tr("Your part : "), self.tr("{:} {:} in [{:.2f} - {:}] {:}")
-                       .format(
+            """).format(
+                self.tr("Your money share : "),
+                self.tr("{:.2f}%").format(amount / maximum * 100) if maximum != 0 else "0%",
+                self.tr("Your part : "),
+                self.tr("{:} {:} in [{:.2f} - {:}] {:}")
+                .format(
                     localized_amount,
                     self.get_referential_name(),
                     self.get_referential_value(0),
                     localized_maximum,
-                    self.get_referential_name())
+                    self.get_referential_name()
+                )
             )
         )
 
