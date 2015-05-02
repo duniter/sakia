@@ -14,7 +14,7 @@ from cutecoin.core.app import Application
 qapplication = QApplication(sys.argv)
 
 
-class MainWindowTest(unittest.TestCase):
+class MainWindowMenusTest(unittest.TestCase):
     def setUp(self):
         QLocale.setDefault(QLocale("en_GB"))
         self.application = Application(sys.argv)
@@ -64,19 +64,6 @@ class MainWindowTest(unittest.TestCase):
         self.assertEqual(actions[0].objectName(), 'actionTransfer_money')
         self.assertEqual(actions[1].objectName(), 'actionCertification')
 
-    def test_action_about(self):
-        # select about menu
-        self.main_window.actionAbout.trigger()
-        widgets = qapplication.topLevelWidgets()
-        dialog = None
-        for widget in widgets:
-            if isinstance(widget, PyQt5.QtWidgets.QDialog):
-                dialog = widget
-                break
-        self.assertEqual(dialog.objectName(), 'AboutPopup')
-        self.assertEqual(dialog.isVisible(), True)
 
 if __name__ == '__main__':
-    main_window_suite = unittest.TestLoader().loadTestsFromTestCase(MainWindowTest)
-    runner = unittest.TextTestRunner()
-    runner.run(main_window_suite)
+    unittest.main()

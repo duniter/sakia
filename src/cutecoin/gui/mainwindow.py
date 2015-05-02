@@ -103,6 +103,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.open_ucoin_info = lambda: QDesktopServices.openUrl(QUrl("http://ucoin.io/theoretical/"))
         self.homescreen.button_info.clicked.connect(self.open_ucoin_info)
 
+        self.export_dialog = None
+
         # TODO: There are too much refresh() calls on startup
         self.refresh()
 
@@ -350,16 +352,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog.exec_()
 
     def export_account(self):
-        selected_file = QFileDialog.getSaveFileName(self,
-                                                    self.tr("Export an account"),
-                                                    "",
-                                                    self.tr("All account files (*.acc)"))
-        path = ""
-        if selected_file[0][-4:] == ".acc":
-            path = selected_file[0]
-        else:
-            path = selected_file[0] + ".acc"
-        self.app.export_account(path, self.app.current_account)
+        # Testable way off using a QFileDialog
+        self.export_dialog = QFileDialog(self)
+        self.export_dialog.setObjectName('ExportFileDialog')
+        self.export_dialog.setWindowTitle(self.tr("Export an account"))
+        self.export_dialog.setNameFilter(self.tr("All account files (*.acc)"))
+        self.export_dialog.setLabelText(QFileDialog.Accept, self.tr('Export'))
+        self.export_dialog.accepted.connect(self.export_account_accepted)
+        self.export_dialog.show()
+
+    def export_account_accepted(self):
+        selected_file = self.export_dialog.selectedFiles()
+        if selected_file:
+            if selected_file[0][-4:] == ".acc":
+                path = selected_file[0]
+            else:
+                path = selected_file[0] + ".acc"
+            self.app.export_account(path, self.app.current_account)
 
     def closeEvent(self, event):
         if self.app.current_account:
