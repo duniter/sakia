@@ -42,7 +42,7 @@ class WalletsFilterProxyModel(QSortFilterProxyModel):
                 if isinstance(amount_ref, int):
                     return QLocale().toString(amount_ref)
                 else:
-                    return QLocale().toString(amount_ref, 'f', 2)
+                    return QLocale().toString(amount_ref, 'f', 6)
 
         if role == Qt.TextAlignmentRole:
             if source_index.column() == self.sourceModel().columns_types.index('amount'):

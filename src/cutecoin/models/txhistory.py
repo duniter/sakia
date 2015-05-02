@@ -104,7 +104,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                     if isinstance(amount_ref, int):
                         return QLocale().toString(amount_ref)
                     else:
-                        return QLocale().toString(amount_ref, 'f', 2)
+                        return QLocale().toString(amount_ref, 'f', 6)
 
         if role == Qt.FontRole:
             font = QFont()

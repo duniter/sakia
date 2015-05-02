@@ -94,12 +94,12 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
         if isinstance(amount, int):
             localized_amount = QLocale().toString(self.get_referential_value(amount))
         else:
-            localized_amount = QLocale().toString(self.get_referential_value(amount), 'f', 2)
+            localized_amount = QLocale().toString(self.get_referential_value(amount), 'f', 6)
 
         if isinstance(maximum, int):
             localized_maximum = QLocale().toString(self.get_referential_value(maximum))
         else:
-            localized_maximum = QLocale().toString(self.get_referential_value(maximum), 'f', 2)
+            localized_maximum = QLocale().toString(self.get_referential_value(maximum), 'f', 6)
 
         logging.debug( self.tr("{:} {:} in [{:.2f} - {:}] {:}"))
         # set infos in label

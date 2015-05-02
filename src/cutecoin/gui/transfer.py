@@ -4,13 +4,11 @@ Created on 2 févr. 2014
 @author: inso
 '''
 from PyQt5.QtWidgets import QDialog, QMessageBox, QApplication
-from PyQt5.QtCore import QRegExp, Qt
+from PyQt5.QtCore import QRegExp, Qt, QLocale
 from PyQt5.QtGui import QRegExpValidator
 
 from ..tools.exceptions import NotEnoughMoneyError, NoPeerAvailable
 from ..gen_resources.transfer_uic import Ui_TransferMoneyDialog
-
-import logging
 
 
 class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
@@ -125,6 +123,10 @@ Please try again later"""))
         amount = self.wallet.value(self.community)
         ref_amount = self.account.units_to_ref(amount, self.community)
         ref_name = self.account.ref_name(self.community.currency)
+        if isinstance(ref_amount, int):
+            ref_amount = QLocale().toString(ref_amount)
+        else:
+            ref_amount = QLocale().toString(ref_amount, 'f', 6)
         self.label_total.setText("{0} {1}".format(ref_amount, ref_name))
         self.spinbox_amount.setSuffix(" " + self.community.currency)
         self.spinbox_amount.setValue(0)
@@ -138,6 +140,10 @@ Please try again later"""))
         amount = self.wallet.value(self.community)
         ref_amount = self.account.units_to_ref(amount, self.community)
         ref_name = self.account.ref_name(self.community.currency)
+        if isinstance(ref_amount, int):
+            ref_amount = QLocale().toString(ref_amount)
+        else:
+            ref_amount = QLocale().toString(ref_amount, 'f', 6)
         self.label_total.setText("{0} {1}".format(ref_amount, ref_name))
         self.spinbox_amount.setValue(0)
         amount = self.wallet.value(self.community)

@@ -79,11 +79,11 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
 
         else:
             localized_deposits = QLocale().toString(
-                self.app.current_account.units_to_ref(proxy.deposits, self.community), 'f', 2)
+                self.app.current_account.units_to_ref(proxy.deposits, self.community), 'f', 6)
             localized_payments = QLocale().toString(
-                self.app.current_account.units_to_ref(proxy.payments, self.community), 'f', 2)
+                self.app.current_account.units_to_ref(proxy.payments, self.community), 'f', 6)
             localized_balance = QLocale().toString(
-                self.app.current_account.units_to_diff_ref(balance, self.community), 'f', 2)
+                self.app.current_account.units_to_diff_ref(balance, self.community), 'f', 6)
 
         self.label_deposit.setText(self.tr("Deposits: {:} {:}").format(
             localized_deposits,
