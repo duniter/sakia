@@ -16,7 +16,7 @@ from .wallets_tab import WalletsTabWidget
 from .transactions_tab import TransactionsTabWidget
 from .network_tab import NetworkTabWidget
 from .informations_tab import InformationsTabWidget
-from .toast import Toast
+from . import toast
 from ..tools.exceptions import MembershipNotFoundError
 from ..core.person import Person
 
@@ -74,12 +74,8 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             if will_expire_soon:
                 days = QDateTime().currentDateTime().daysTo(QDateTime.fromTime_t(expiration_date))
                 if days > 0:
-                    QMessageBox.warning(
-                        self,
-                        self.tr("Membership expiration"),
-                        self.tr("Warning : Membership expiration in {0} days").format(days),
-                        QMessageBox.Ok
-                    )
+                    toast.display(self.tr("Membership expiration"
+"<b>Warning : Membership expiration in {0} days</b>").format(days))
         except MembershipNotFoundError as e:
             pass
 
@@ -188,7 +184,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             text += """{0}
 """.format(t.metadata['uid'])
         text.format(amount, currency)
-        Toast(text)
+        toast.display(self.tr("New transactions received"), text)
 
     def refresh_wallets(self):
         if self.app.current_account:

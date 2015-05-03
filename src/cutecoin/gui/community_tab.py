@@ -17,6 +17,7 @@ from .wot_tab import WotTabWidget
 from .transfer import TransferMoneyDialog
 from .password_asker import PasswordAskerDialog
 from .certification import CertificationDialog
+from . import toast
 from ..tools.exceptions import PersonNotFoundError, NoPeerAvailable
 from ..core.person import Person
 from ucoinpy.api import bma
@@ -172,8 +173,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
 
         try:
             self.account.send_membership(password, self.community, 'IN')
-            QMessageBox.information(self, self.tr("Membership"),
-                                 self.tr("Success sending membership demand"))
+            toast.display(self.tr("Membership"), self.tr("Success sending membership demand"))
         except ValueError as e:
             QMessageBox.critical(self, self.tr("Join demand error"),
                               str(e))
@@ -204,8 +204,7 @@ The process to join back the community later will have to be done again.""")
 
             try:
                 self.account.send_membership(password, self.community, 'OUT')
-                QMessageBox.information(self, self.tr("Membership"),
-                                     self.tr("Success sending leaving demand"))
+                toast.display(self.tr("Membership"), self.tr("Success sending leaving demand"))
             except ValueError as e:
                 QMessageBox.critical(self, self.tr("Leaving demand error"),
                                   e.message)

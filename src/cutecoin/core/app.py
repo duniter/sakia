@@ -6,11 +6,11 @@ Created on 1 févr. 2014
 
 import os
 import logging
-import json
 import tarfile
 import shutil
 import json
 import datetime
+import sys
 
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QUrl
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
