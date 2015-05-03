@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QAbstractItemView, QHeaderView, QDialog, \
     QMenu, QAction, QApplication, QMessageBox
-from PyQt5.QtCore import Qt, QDateTime, QModelIndex, QLocale
+from PyQt5.QtCore import Qt, QDateTime, QTime, QModelIndex, QLocale
 from PyQt5.QtGui import QCursor
 from ..gen_resources.transactions_tab_uic import Ui_transactionsTabWidget
 from ..models.txhistory import HistoryTableModel, TxFilterProxyModel
@@ -10,6 +10,7 @@ from ..core.person import Person
 from .transfer import TransferMoneyDialog
 
 import logging
+
 
 class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
     """
@@ -27,7 +28,6 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         :return:
         """
 
-
         super().__init__()
         self.setupUi(self)
         self.app = app
@@ -37,14 +37,15 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         self.refresh()
 
     def refresh(self):
-        blockchain_init = QDateTime()
-        blockchain_init.setTime_t(self.community.get_block(1).mediantime)
+        minimum_datetime = QDateTime()
+        minimum_datetime.setTime_t(self.community.get_block(1).mediantime)
+        minimum_datetime.setTime(QTime(0, 0))
 
-        self.date_from.setMinimumDateTime(blockchain_init)
-        self.date_from.setDateTime(blockchain_init)
+        self.date_from.setMinimumDateTime(minimum_datetime)
+        self.date_from.setDateTime(minimum_datetime)
         self.date_from.setMaximumDateTime(QDateTime().currentDateTime())
 
-        self.date_to.setMinimumDateTime(blockchain_init)
+        self.date_to.setMinimumDateTime(minimum_datetime)
         tomorrow_datetime = QDateTime().currentDateTime().addDays(1)
         self.date_to.setDateTime(tomorrow_datetime)
         self.date_to.setMaximumDateTime(tomorrow_datetime)
@@ -78,11 +79,11 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
 
         else:
             localized_deposits = QLocale().toString(
-                self.app.current_account.units_to_ref(proxy.deposits, self.community), 'f', 2)
+                self.app.current_account.units_to_ref(proxy.deposits, self.community), 'f', 6)
             localized_payments = QLocale().toString(
-                self.app.current_account.units_to_ref(proxy.payments, self.community), 'f', 2)
+                self.app.current_account.units_to_ref(proxy.payments, self.community), 'f', 6)
             localized_balance = QLocale().toString(
-                self.app.current_account.units_to_diff_ref(balance, self.community), 'f', 2)
+                self.app.current_account.units_to_diff_ref(balance, self.community), 'f', 6)
 
         self.label_deposit.setText(self.tr("Deposits: {:} {:}").format(
             localized_deposits,

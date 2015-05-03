@@ -4,12 +4,11 @@ Created on 5 févr. 2014
 @author: inso
 '''
 
+import datetime
 import logging
 from ..core.transfer import Transfer, Received
-from ..core.person import Person
-from ..tools.exceptions import PersonNotFoundError
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, \
-    QDateTime, QLocale, QModelIndex
+    QDateTime, QLocale
 from PyQt5.QtGui import QFont, QColor
 
 
@@ -28,7 +27,10 @@ class TxFilterProxyModel(QSortFilterProxyModel):
         """
         Filter table by given timestamps
         """
-        logging.debug("Filtering from {0} to {1}".format(ts_from, ts_to))
+        logging.debug("Filtering from {0} to {1}".format(
+            datetime.datetime.fromtimestamp(ts_from).isoformat(' '),
+            datetime.datetime.fromtimestamp(ts_to).isoformat(' '))
+        )
         self.ts_from = ts_from
         self.ts_to = ts_to
         self.modelReset.emit()
@@ -102,7 +104,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                     if isinstance(amount_ref, int):
                         return QLocale().toString(amount_ref)
                     else:
-                        return QLocale().toString(amount_ref, 'f', 2)
+                        return QLocale().toString(amount_ref, 'f', 6)
 
         if role == Qt.FontRole:
             font = QFont()

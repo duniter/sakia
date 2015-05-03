@@ -55,12 +55,12 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 localized_monetary_mass = QLocale().toString(round(self.get_referential_value(block['monetaryMass'])))
                 localized_mass_per_member = QLocale().toString(round(self.get_referential_value(block['monetaryMass'] / block['membersCount'])))
             else:
-                localized_ud = QLocale().toString(ud, 'f', 2)
+                localized_ud = QLocale().toString(ud, 'f', 6)
                 localized_monetary_mass = QLocale().toString(
-                    round(self.get_referential_value(block['monetaryMass'])), 'f', 2
+                    round(self.get_referential_value(block['monetaryMass'])), 'f', 6
                 )
                 localized_mass_per_member = QLocale().toString(
-                    round(self.get_referential_value(block['monetaryMass'] / block['membersCount']), 'f', 2)
+                    round(self.get_referential_value(block['monetaryMass'] / block['membersCount']), 'f', 6)
                 )
 
             # set infos in label
