@@ -70,8 +70,8 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
                     self.account.name, self.account.pubkey,
                     self.tr("Membership"),
                     self.tr("Last renewal on {:}, expiration on {:}").format(date_renewal, date_expiration),
-                    self.tr("Your web of trust :"),
-                    self.tr("Certified by : {:} members; Certifier of : {:} members").format(len(certifiers),
+                    self.tr("Your web of trust"),
+                    self.tr("Certified by {:} members; Certifier of : {:} members").format(len(certifiers),
                                                                                              len(certified))
                 )
             )
@@ -87,8 +87,8 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
                 """).format(
                     self.account.name, self.account.pubkey,
                     self.tr("Not a member"),
-                    self.tr("Your web of trust :"),
-                    self.tr("Certified by : {:} members; Certifier of : {:} members").format(len(certifiers),
+                    self.tr("Your web of trust"),
+                    self.tr("Certified by {:} members; Certifier of : {:} members").format(len(certifiers),
                                                                                              len(certified))
                 )
             )
@@ -115,9 +115,9 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             </table>
             """).format(
-                self.tr("Your money share : "),
+                self.tr("Your money share "),
                 self.tr("{:.2f}%").format(amount / maximum * 100) if maximum != 0 else "0%",
-                self.tr("Your part : "),
+                self.tr("Your part "),
                 self.tr("{:} {:} in [{:.2f} - {:}] {:}")
                 .format(
                     localized_amount,
