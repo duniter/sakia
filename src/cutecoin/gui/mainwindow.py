@@ -57,7 +57,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, app):
         """
         Init
-        :param ..core.app.Application app:
+        :param cutecoin.core.app.Application app: application
         """
         # Set up the user interface from Designer.
         super().__init__()
