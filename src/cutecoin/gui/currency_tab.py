@@ -54,6 +54,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         persons_watcher.person_changed.connect(self.tab_community.refresh_person)
         bc_watcher = self.app.monitor.blockchain_watcher(self.community)
         bc_watcher.error.connect(self.display_error)
+        bc_watcher.watching_stopped.connect(self.refresh_data)
 
         person = Person.lookup(self.app.current_account.pubkey, self.community)
         try:
@@ -150,6 +151,17 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         self.app.monitor.blockchain_watcher(self.community).thread().start()
         self.app.monitor.persons_watcher(self.community).thread().start()
         self.refresh_status()
+
+    @pyqtSlot()
+    def refresh_data(self):
+        '''
+        Refresh data when the blockchain watcher finished handling datas
+        '''
+        if self.tab_wallets:
+            self.tab_wallets.refresh()
+
+        if self.tab_history.table_history.model():
+            self.tab_history.table_history.model().sourceModel().refresh_transfers()
 
     @pyqtSlot()
     def refresh_status(self):

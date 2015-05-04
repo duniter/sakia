@@ -115,7 +115,7 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         result = dialog.exec_()
         if result == QDialog.Accepted:
             transfer.drop()
-            self.table_history.model().invalidate()
+            self.table_history.model().sourceModel().refresh_transfers()
 
     def cancel_transfer(self):
         reply = QMessageBox.warning(self, "Warning",
