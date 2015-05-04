@@ -46,13 +46,6 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
-        <widget class="QLabel" name="label_balance">
-         <property name="text">
-          <string>Balance:</string>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QLabel" name="label_payment">
          <property name="text">
           <string>Payment:</string>
@@ -63,6 +56,19 @@
         <widget class="QLabel" name="label_deposit">
          <property name="text">
           <string>Deposit:</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_balance">
+         <property name="text">
+          <string>Balance:</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
          </property>
         </widget>
        </item>

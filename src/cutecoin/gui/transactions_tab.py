@@ -85,15 +85,15 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
             localized_balance = QLocale().toString(
                 self.app.current_account.units_to_diff_ref(balance, self.community), 'f', 6)
 
-        self.label_deposit.setText(self.tr("Deposits: {:} {:}").format(
+        self.label_deposit.setText(self.tr("<b>Deposits</b> {:} {:}").format(
             localized_deposits,
             self.app.current_account.ref_name(self.community.short_currency)
         ))
-        self.label_payment.setText(self.tr("Payments: {:} {:}").format(
+        self.label_payment.setText(self.tr("<b>Payments</b> {:} {:}").format(
             localized_payments,
             self.app.current_account.ref_name(self.community.short_currency)
         ))
-        self.label_balance.setText(self.tr("Balance: {:} {:}").format(
+        self.label_balance.setText(self.tr("<b>Balance</b> {:} {:}").format(
             localized_balance,
             self.app.current_account.ref_name(self.community.short_currency)
         ))
