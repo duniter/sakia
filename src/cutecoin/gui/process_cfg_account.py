@@ -27,6 +27,7 @@ class StepPageInit(Step):
     '''
     First step when adding a community
     '''
+
     def __init__(self, config_dialog):
         super().__init__(config_dialog)
 
@@ -61,29 +62,31 @@ class StepPageKey(Step):
     '''
     First step when adding a community
     '''
+
     def __init__(self, config_dialog):
         super().__init__(config_dialog)
 
     def is_valid(self):
         if len(self.config_dialog.edit_salt.text()) < 6:
-            self.config_dialog.label_info.setText(self.tr("Forbidden : salt is too short"))
+            self.config_dialog.label_info.setText(self.config_dialog.tr("Forbidden : salt is too short"))
             return False
 
         if len(self.config_dialog.edit_password.text()) < 6:
-            self.config_dialog.label_info.setText(self.tr("Forbidden : password is too short"))
+            self.config_dialog.label_info.setText(self.config_dialog.tr("Forbidden : password is too short"))
             return False
 
         if detect_non_printable(self.config_dialog.edit_salt.text()):
-            self.config_dialog.label_info.setText(self.tr("Forbidden : Invalid characters in salt field"))
+            self.config_dialog.label_info.setText(self.config_dialog.tr("Forbidden : Invalid characters in salt field"))
             return False
 
         if detect_non_printable(self.config_dialog.edit_password.text()):
-            self.config_dialog.label_info.setText(self.tr("Forbidden : Invalid characters in password field"))
+            self.config_dialog.label_info.setText(
+                self.config_dialog.tr("Forbidden : Invalid characters in password field"))
             return False
 
         if self.config_dialog.edit_password.text() != \
-            self.config_dialog.edit_password_repeat.text():
-            self.config_dialog.label_info.setText(self.tr("Error : passwords are different"))
+                self.config_dialog.edit_password_repeat.text():
+            self.config_dialog.label_info.setText(self.config_dialog.tr("Error : passwords are different"))
             return False
 
         self.config_dialog.label_info.setText("")
@@ -107,6 +110,7 @@ class StepPageCommunities(Step):
     '''
     First step when adding a community
     '''
+
     def __init__(self, config_dialog):
         super().__init__(config_dialog)
 
@@ -227,7 +231,7 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
 
     def action_delete_account(self):
         reply = QMessageBox.question(self, self.tr("Warning"),
-                             self.tr("""This action will delete your account locally.
+                                     self.tr("""This action will delete your account locally.
 Please note your key parameters (salt and password) if you wish to recover it later.
 Your account won't be removed from the networks it joined.
 Are you sure ?"""))
