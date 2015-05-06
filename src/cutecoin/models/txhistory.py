@@ -8,7 +8,8 @@ import datetime
 import logging
 from ..core.transfer import Transfer, Received
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, \
-    QDateTime, QLocale
+    QDateTime, QLocale, QModelIndex
+
 from PyQt5.QtGui import QFont, QColor
 
 
@@ -19,7 +20,6 @@ class TxFilterProxyModel(QSortFilterProxyModel):
         self.account = None
         self.ts_from = ts_from
         self.ts_to = ts_to
-        # total by column
         self.payments = 0
         self.deposits = 0
 

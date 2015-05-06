@@ -184,7 +184,7 @@ class Account(QObject):
         for w in self.wallets:
             w.refresh_progressed.connect(progressing, type=Qt.DirectConnection)
             for c in self.communities:
-                w.refresh_cache(c, [])
+                w.init_cache(c)
                 loaded_wallets = loaded_wallets + 1
 
     def set_display_referential(self, index):

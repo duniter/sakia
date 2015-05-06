@@ -10,7 +10,7 @@ from ucoinpy.documents.block import Block
 from ucoinpy.documents.transaction import InputSource, OutputSource, Transaction
 from ucoinpy.key import SigningKey
 
-from ..tools.exceptions import NotEnoughMoneyError, NoPeerAvailable, PersonNotFoundError
+from ..tools.exceptions import NotEnoughMoneyError, Error, NoPeerAvailable, PersonNotFoundError
 from .transfer import Transfer, Received
 from .person import Person
 
@@ -21,11 +21,19 @@ import logging
 
 class Cache():
     def __init__(self, wallet):
-        self.latest_block = 0
+        self._latest_block = 0
         self.wallet = wallet
 
         self._transfers = []
         self.available_sources = []
+
+    @property
+    def latest_block(self):
+        return self._latest_block
+
+    @latest_block.setter
+    def latest_block(self, value):
+        self._latest_block = value
 
     def load_from_json(self, data):
         self._transfers = []
@@ -160,6 +168,7 @@ class Cache():
                                                current_block + 1))
             parsed_blocks = [n for n in parsed_blocks
                              if n in with_tx['result']['blocks']]
+            logging.debug(parsed_blocks)
             self.wallet.refresh_progressed.emit(self.latest_block, current_block)
 
             for block_number in parsed_blocks:
@@ -169,14 +178,13 @@ class Cache():
 
             if current_block > self.latest_block:
                 self.available_sources = self.wallet.sources(community)
+                self.latest_block = current_block
 
             for transfer in awaiting:
                 transfer.check_refused(current_block)
 
         except NoPeerAvailable:
             return
-
-        self.latest_block = current_block
 
 
 class Wallet(QObject):
@@ -252,15 +260,22 @@ class Wallet(QObject):
             data[currency] = self.caches[currency].jsonify()
         return data
 
-    def refresh_cache(self, community, received_list):
+    def init_cache(self, community):
         '''
-        Refresh the cache of this wallet for the specified community.
+        Init the cache of this wallet for the specified community.
 
         :param community: The community to refresh its cache
         '''
         if community.currency not in self.caches:
             self.caches[community.currency] = Cache(self)
-        self.caches[community.currency].refresh(community, received_list)
+
+    def refresh_cache(self, community):
+        '''
+        Refresh the cache of this wallet for the specified community.
+
+        :param community: The community to refresh its cache
+        '''
+        self.caches[community.currency].refresh(community)
 
     def check_password(self, salt, password):
         '''

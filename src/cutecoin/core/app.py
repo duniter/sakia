@@ -369,11 +369,11 @@ class Application(QObject):
                 date = datetime.datetime.strptime(r['published_at'], "%Y-%m-%dT%H:%M:%SZ")
                 if latest_date < date:
                     latest = r
-        latest_version = tuple(latest["tag_name"].split("."))
+        latest_version = latest["tag_name"]
         version = (__version__ == latest_version,
                    latest_version,
                    latest["html_url"])
         logging.debug("Found version : {0}".format(latest_version))
-        if version != self.available_version:
-            self.available_version = version
+        logging.debug("Current version : {0}".format(__version__))
+        self.available_version = version
         self.version_requested.emit()

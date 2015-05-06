@@ -34,6 +34,7 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         self.community = community
         self.password_asker = password_asker
         self.currency_tab = currency_tab
+        self.progressbar.hide()
         self.refresh()
 
     def refresh(self):
@@ -196,8 +197,12 @@ QMessageBox.Ok | QMessageBox.Cancel)
     def dates_changed(self):
         logging.debug("Changed dates")
         if self.table_history.model():
-            ts_from = self.date_from.dateTime().toTime_t()
-            ts_to = self.date_to.dateTime().toTime_t()
+            qdate_from = self.date_from
+            qdate_from.setTime(QTime(0, 0, 0))
+            qdate_to = self.date_to
+            qdate_to.setTime(QTime(0, 0, 0))
+            ts_from = qdate_from.dateTime().toTime_t()
+            ts_to = qdate_to.dateTime().toTime_t()
 
             self.table_history.model().set_period(ts_from, ts_to)
 
