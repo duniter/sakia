@@ -86,7 +86,7 @@ class StepPageAddpeers(Step):
 
         self.config_dialog.tree_peers.setModel(tree_model)
         self.config_dialog.button_previous.setEnabled(False)
-        self.config_dialog.button_next.setText(self.tr("Ok"))
+        self.config_dialog.button_next.setText(self.config_dialog.tr("Ok"))
 
 
 class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):

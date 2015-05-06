@@ -239,6 +239,24 @@ class Application(QObject):
             data['version'] = __version__
             json.dump(data, outfile, indent=4, sort_keys=True)
 
+    def save_wallet(self, account, wallet):
+        """
+        Save wallet of account in cache
+
+        :param cutecoin.core.account.Account account: Account instance
+        :param cutecoin.core.wallet.Wallet wallet: Wallet instance
+        """
+        if not os.path.exists(os.path.join(config.parameters['home'],
+                                           account.name, '__cache__')):
+            os.makedirs(os.path.join(config.parameters['home'],
+                                     account.name, '__cache__'))
+        wallet_path = os.path.join(config.parameters['home'],
+                                   account.name, '__cache__', wallet.pubkey)
+        with open(wallet_path, 'w') as outfile:
+            data = wallet.jsonify_caches()
+            data['version'] = __version__
+            json.dump(data, outfile, indent=4, sort_keys=True)
+
     def save_cache(self, account):
         '''
         Save the cache of an account
@@ -250,12 +268,7 @@ class Application(QObject):
             os.makedirs(os.path.join(config.parameters['home'],
                                         account.name, '__cache__'))
         for wallet in account.wallets:
-            wallet_path = os.path.join(config.parameters['home'],
-                                        account.name, '__cache__', wallet.pubkey)
-            with open(wallet_path, 'w') as outfile:
-                data = wallet.jsonify_caches()
-                data['version'] = __version__
-                json.dump(data, outfile, indent=4, sort_keys=True)
+            self.save_wallet(account, wallet)
 
         for community in account.communities:
             community_path = os.path.join(config.parameters['home'],
@@ -267,6 +280,7 @@ class Application(QObject):
                                         community.currency + '_network')
 
             with open(network_path, 'w') as outfile:
+                data = dict()
                 data['network'] = community.jsonify_network()
                 data['version'] = __version__
                 json.dump(data, outfile, indent=4, sort_keys=True)

@@ -10,6 +10,7 @@ from PyQt5.QtCore import QDateTime, QModelIndex, Qt, QLocale
 from PyQt5.QtGui import QCursor
 from ..core.person import Person
 from ..core.wallet import Wallet
+from ..gui.password_asker import PasswordAskerDialog
 from ..models.wallets import WalletsTableModel, WalletsFilterProxyModel
 from .transfer import TransferMoneyDialog
 from ..tools.exceptions import MembershipNotFoundError
@@ -22,9 +23,13 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
     '''
 
     def __init__(self, app, account, community, password_asker):
-        '''
-        Constructor
-        '''
+        """
+        Init
+        :param cutecoin.core.app.Application app: Application instance
+        :param cutecoin.core.account.Account account: Account instance
+        :param cutecoin.core.community.Community community: Community instance
+        :param cutecoin.gui.password_asker.PasswordAskerDialog password_asker: PasswordAskerDialog instance
+        """
         super().__init__()
         self.setupUi(self)
         self.app = app
@@ -65,8 +70,8 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
                     self.account.name, self.account.pubkey,
                     self.tr("Membership"),
                     self.tr("Last renewal on {:}, expiration on {:}").format(date_renewal, date_expiration),
-                    self.tr("Your web of trust :"),
-                    self.tr("Certified by : {:} members; Certifier of : {:} members").format(len(certifiers),
+                    self.tr("Your web of trust"),
+                    self.tr("Certified by {:} members; Certifier of : {:} members").format(len(certifiers),
                                                                                              len(certified))
                 )
             )
@@ -82,8 +87,8 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
                 """).format(
                     self.account.name, self.account.pubkey,
                     self.tr("Not a member"),
-                    self.tr("Your web of trust :"),
-                    self.tr("Certified by : {:} members; Certifier of : {:} members").format(len(certifiers),
+                    self.tr("Your web of trust"),
+                    self.tr("Certified by {:} members; Certifier of : {:} members").format(len(certifiers),
                                                                                              len(certified))
                 )
             )
@@ -110,9 +115,9 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             </table>
             """).format(
-                self.tr("Your money share : "),
+                self.tr("Your money share "),
                 self.tr("{:.2f}%").format(amount / maximum * 100) if maximum != 0 else "0%",
-                self.tr("Your part : "),
+                self.tr("Your part "),
                 self.tr("{:} {:} in [{:.2f} - {:}] {:}")
                 .format(
                     localized_amount,
@@ -156,6 +161,9 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
             pubkey = model.sourceModel().data(pubkey_index, Qt.DisplayRole)
             menu = QMenu(model.data(index, Qt.DisplayRole), self)
 
+            new_wallet = QAction(self.tr("New Wallet"), self)
+            new_wallet.triggered.connect(self.new_wallet)
+
             rename = QAction(self.tr("Rename"), self)
             rename.triggered.connect(self.rename_wallet)
             rename.setData(name_index)
@@ -175,11 +183,33 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
                 transfer_action.setData(wallets)
                 transfer_to.addAction(transfer_action)
 
+            menu.addAction(new_wallet)
             menu.addAction(rename)
             menu.addAction(copy_pubkey)
             menu.addMenu(transfer_to)
             # Show the context menu.
             menu.exec_(QCursor.pos())
+
+    def new_wallet(self):
+        """
+        Create a new wallet
+        """
+        password_asker = PasswordAskerDialog(self.app.current_account)
+        password = password_asker.exec_()
+        if password_asker.result() == QDialog.Rejected:
+            return None
+        # create new wallet by increasing wallet pool size
+        self.account.set_walletpool_size(len(self.account.wallets) + 1, password)
+        # capture new wallet
+        wallet = self.account.wallets[len(self.account.wallets)-1]
+        # feed cache data of the wallet
+        wallet.refresh_cache(self.community, list())
+        # save wallet cache on disk
+        self.app.save_wallet(self.account, self.account.wallets[len(self.account.wallets)-1])
+        # save account cache on disk (update number of wallets)
+        self.app.save(self.account)
+        # refresh wallet list in gui
+        self.refresh()
 
     def rename_wallet(self):
         index = self.sender().data()
