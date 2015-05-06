@@ -26,6 +26,7 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         self.community = community
         self.password_asker = password_asker
         self.currency_tab = currency_tab
+        self.progressbar.hide()
         self.refresh()
 
     def refresh(self):

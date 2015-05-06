@@ -150,6 +150,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                                      [])
         self.app.monitor.blockchain_watcher(self.community).thread().start()
         self.app.monitor.persons_watcher(self.community).thread().start()
+        self.tab_history.progressbar.show()
         self.refresh_status()
 
     @pyqtSlot()
@@ -157,6 +158,8 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         '''
         Refresh data when the blockchain watcher finished handling datas
         '''
+        self.tab_history.progressbar.hide()
+
         if self.tab_wallets:
             self.tab_wallets.refresh()
 
