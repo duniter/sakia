@@ -10,7 +10,7 @@ from ucoinpy.documents.block import Block
 from ucoinpy.documents.transaction import InputSource, OutputSource, Transaction
 from ucoinpy.key import SigningKey
 
-from ..tools.exceptions import NotEnoughMoneyError, Error, NoPeerAvailable, PersonNotFoundError
+from ..tools.exceptions import NotEnoughMoneyError, NoPeerAvailable, PersonNotFoundError
 from .transfer import Transfer, Received
 from .person import Person
 
@@ -140,6 +140,7 @@ class Cache():
             self._parse_transaction(community, tx, block_number,
                                     block_doc.mediantime, received_list)
 
+        logging.debug("Received {0} transactions".format(len(received_list)))
         awaiting = [t for t in self._transfers
                     if t.state == Transfer.AWAITING]
         # After we checked all transactions, we check if
@@ -151,7 +152,6 @@ class Cache():
 
     def refresh(self, community, received_list):
         current_block = 0
-        received_list = []
         try:
             block_data = community.current_blockid()
             current_block = block_data['number']

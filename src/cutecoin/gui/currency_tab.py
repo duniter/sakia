@@ -162,6 +162,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
 
         self.tab_history.progressbar.hide()
         self.refresh_status()
+        self.tab_history.refresh_balance()
 
     @pyqtSlot()
     def refresh_status(self):
@@ -180,14 +181,17 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
 
     @pyqtSlot(list)
     def notify_transfers(self, transfers_list):
-        text = self.tr("Received {0} {1}")
+        transfers_txt = ""
         amount = 0
         currency = self.community.name
         for t in transfers_list:
             amount += t.metadata['amount']
-            text += """{0}
-""".format(t.metadata['uid'])
-        text.format(amount, currency)
+
+        logging.debug(transfers_txt)
+        text = self.tr("Received {0} {1} from {2} transfers").format(amount,
+                                                           currency,
+                                                           len(transfers_list))
+        text += transfers_txt
         toast.display(self.tr("New transactions received"), text)
 
     def refresh_wallets(self):
