@@ -269,13 +269,13 @@ class Wallet(QObject):
         if community.currency not in self.caches:
             self.caches[community.currency] = Cache(self)
 
-    def refresh_cache(self, community):
+    def refresh_cache(self, community, received_list):
         '''
         Refresh the cache of this wallet for the specified community.
 
         :param community: The community to refresh its cache
         '''
-        self.caches[community.currency].refresh(community)
+        self.caches[community.currency].refresh(community, received_list)
 
     def check_password(self, salt, password):
         '''
