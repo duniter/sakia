@@ -120,6 +120,13 @@
             </widget>
            </item>
            <item>
+            <widget class="QPushButton" name="button_publish_uid">
+             <property name="text">
+              <string>Publish UID</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QPushButton" name="button_membership">
              <property name="text">
               <string>Renew membership</string>

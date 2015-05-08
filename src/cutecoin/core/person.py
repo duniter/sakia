@@ -260,6 +260,30 @@ class Person(object):
         return membership_data
 
     @cached
+    def published_uid(self, community):
+        try:
+            data = community.request(bma.wot.Lookup,
+                                     req_args={'search': self.pubkey},
+                                     cached=cached)
+        except ValueError as e:
+            if '404' in str(e):
+                return False
+
+        timestamp = 0
+
+        for result in data['results']:
+            if result["pubkey"] == self.pubkey:
+                uids = result['uids']
+                person_uid = ""
+                for uid_data in uids:
+                    if uid_data["meta"]["timestamp"] > timestamp:
+                        timestamp = uid_data["meta"]["timestamp"]
+                        person_uid = uid_data["uid"]
+                    if person_uid == self.uid:
+                        return True
+        return False
+
+    @cached
     def is_member(self, community):
         '''
         Check if the person is a member of a community

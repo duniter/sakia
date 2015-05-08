@@ -217,9 +217,6 @@ Would you like to publish the key ?""").format(self.account.pubkey))
                                          "{0}".format(e),
                                          QMessageBox.Ok)
 
-            else:
-                return
-
         if self.community not in self.account.communities:
             self.account.add_community(self.community)
         super().accept()

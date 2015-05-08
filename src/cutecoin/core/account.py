@@ -275,6 +275,16 @@ class Account(QObject):
             value += w.value(community)
         return value
 
+    def published_uid(self, community):
+        '''
+        Check if this account identity is a member of a community
+
+        :param community: The target community of this request
+        :return: True if the account is a member of the target community
+        '''
+        self_person = Person.lookup(self.pubkey, community)
+        return self_person.published_uid(community)
+
     def member_of(self, community):
         '''
         Check if this account identity is a member of a community
@@ -283,6 +293,7 @@ class Account(QObject):
         :return: True if the account is a member of the target community
         '''
         self_person = Person.lookup(self.pubkey, community)
+        logging.debug("Self person : {0}".format(self_person.uid))
         return self_person.is_member(community)
 
     def send_selfcert(self, password, community):

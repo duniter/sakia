@@ -52,11 +52,24 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         self.table_identities.customContextMenuRequested.connect(self.identity_context_menu)
         self.table_identities.sortByColumn(0, Qt.AscendingOrder)
 
-        if self.account.member_of(self.community):
-            self.button_membership.setText("Renew membership")
-        else:
-            self.button_membership.setText("Send membership demand")
+        try:
+            if self.account.published_uid(self.community):
+                if self.account.member_of(self.community):
+                    self.button_membership.setText("Renew membership")
+                    self.button_publish_uid.hide()
+                    self.button_leaving.show()
+                else:
+                    self.button_membership.setText("Send membership demand")
+                    self.button_leaving.hide()
+                    self.button_publish_uid.hide()
+            else:
+                self.button_membership.hide()
+                self.button_leaving.hide()
+                self.button_publish_uid.show()
+        except PersonNotFoundError:
+            self.button_membership.hide()
             self.button_leaving.hide()
+            self.button_publish_uid.show()
 
         self.wot_tab = WotTabWidget(app, account, community, password_asker, self)
         self.tabs_information.addTab(self.wot_tab, QIcon(':/icons/wot_icon'), "WoT")

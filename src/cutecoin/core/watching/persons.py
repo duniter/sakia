@@ -24,12 +24,14 @@ class PersonsWatcher(Watcher):
 
     def watch(self):
         logging.debug("Watching persons")
-        for p in Person._instances.values():
+        instances = Person._instances.copy()
+        for p in instances.values():
             if not self.exiting:
                 for func in [Person.membership,
                              Person.is_member,
                              Person.certifiers_of,
-                             Person.certified_by]:
+                             Person.certified_by,
+                             Person.published_uid]:
                     if not self.exiting:
                         if p.reload(func, self.community):
                             logging.debug("Change detected on {0} about {1}".format(p.pubkey,
