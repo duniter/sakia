@@ -5,7 +5,7 @@ Created on 2 févr. 2014
 '''
 
 import logging
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSlot
 from PyQt5.QtGui import QIcon, QCursor
 from PyQt5.QtWidgets import QWidget, QMessageBox, QAction, QMenu, QDialog, \
                             QAbstractItemView
@@ -51,25 +51,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         self.table_identities.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table_identities.customContextMenuRequested.connect(self.identity_context_menu)
         self.table_identities.sortByColumn(0, Qt.AscendingOrder)
-
-        try:
-            if self.account.published_uid(self.community):
-                if self.account.member_of(self.community):
-                    self.button_membership.setText("Renew membership")
-                    self.button_publish_uid.hide()
-                    self.button_leaving.show()
-                else:
-                    self.button_membership.setText("Send membership demand")
-                    self.button_leaving.hide()
-                    self.button_publish_uid.hide()
-            else:
-                self.button_membership.hide()
-                self.button_leaving.hide()
-                self.button_publish_uid.show()
-        except PersonNotFoundError:
-            self.button_membership.hide()
-            self.button_leaving.hide()
-            self.button_publish_uid.show()
+        app.monitor.persons_watcher(self.community).person_changed.connect(self.refresh_person)
 
         self.wot_tab = WotTabWidget(app, account, community, password_asker, self)
         self.tabs_information.addTab(self.wot_tab, QIcon(':/icons/wot_icon'), "WoT")
@@ -80,6 +62,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         direct_connections.triggered.connect(self.search_direct_connections)
         self.button_search.addAction(direct_connections)
         self.refresh()
+        self.refresh_quality_buttons()
 
     def identity_context_menu(self, point):
         index = self.table_identities.indexAt(point)
@@ -316,9 +299,39 @@ Publishing your UID cannot be canceled.""")
 
         self.table_identities.model().sourceModel().refresh_identities(persons)
 
+    def refresh_quality_buttons(self):
+        try:
+            if self.account.published_uid(self.community):
+                logging.debug("UID Published")
+                if self.account.member_of(self.community):
+                    self.button_membership.setText("Renew membership")
+                    self.button_membership.show()
+                    self.button_publish_uid.hide()
+                    self.button_leaving.show()
+                else:
+                    logging.debug("Not a member")
+                    self.button_membership.setText("Send membership demand")
+                    self.button_membership.show()
+                    self.button_leaving.hide()
+                    self.button_publish_uid.hide()
+            else:
+                logging.debug("UID not published")
+                self.button_membership.hide()
+                self.button_leaving.hide()
+                self.button_publish_uid.show()
+        except PersonNotFoundError:
+            self.button_membership.hide()
+            self.button_leaving.hide()
+            self.button_publish_uid.show()
+
+    @pyqtSlot(str)
     def refresh_person(self, pubkey):
+        logging.debug("Refresh person {0}".format(pubkey))
         if self is None:
             logging.error("community_tab self is None in refresh_person. Watcher connected to a destroyed tab")
         else:
+            if pubkey == self.account.pubkey:
+                self.refresh_quality_buttons()
+
             index = self.table_identities.model().sourceModel().person_index(pubkey)
             self.table_identities.model().sourceModel().dataChanged.emit(index[0], index[1])

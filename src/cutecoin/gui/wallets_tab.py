@@ -106,7 +106,6 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
         else:
             localized_maximum = QLocale().toString(self.get_referential_value(maximum), 'f', 6)
 
-        logging.debug(self.tr("{:} {:} in [{:.2f} - {:}] {:}"))
         # set infos in label
         self.label_balance.setText(
             self.tr("""

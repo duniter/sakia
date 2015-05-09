@@ -52,8 +52,6 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
 
         self.community.network.new_block_mined.connect(self.refresh_block)
         self.community.network.nodes_changed.connect(self.refresh_status)
-        persons_watcher = self.app.monitor.persons_watcher(self.community)
-        persons_watcher.person_changed.connect(self.tab_community.refresh_person)
         bc_watcher = self.app.monitor.blockchain_watcher(self.community)
         bc_watcher.error.connect(self.display_error)
         bc_watcher.watching_stopped.connect(self.refresh_data)
@@ -145,7 +143,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         '''
         logging.debug("Refresh block")
         self.tab_history.progressbar.show()
-        self.app.monitor.blockchain_watcher(self.community).thread().start()
+        #self.app.monitor.blockchain_watcher(self.community).thread().start()
         self.app.monitor.persons_watcher(self.community).thread().start()
         self.refresh_status()
 
@@ -160,9 +158,9 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         if self.tab_history.table_history.model():
             self.tab_history.table_history.model().sourceModel().refresh_transfers()
 
+        #self.tab_history.refresh_balance()
         self.tab_history.progressbar.hide()
         self.refresh_status()
-        self.tab_history.refresh_balance()
 
     @pyqtSlot()
     def refresh_status(self):
