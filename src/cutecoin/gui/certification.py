@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import QDialog, QMessageBox, QDialogButtonBox, QApplication
 from PyQt5.QtCore import Qt
 from ..tools.exceptions import NoPeerAvailable
 from ..gen_resources.certification_uic import Ui_CertificationDialog
+from . import toast
 
 
 class CertificationDialog(QDialog, Ui_CertificationDialog):
@@ -45,8 +46,8 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
         try:
             QApplication.setOverrideCursor(Qt.WaitCursor)
             self.account.certify(password, self.community, pubkey)
-            QMessageBox.information(self, self.tr("Certification"),
-                                 self.tr("Success certifying {0} from {1}").format(pubkey,
+            toast.display(self.tr("Certification"),
+                          self.tr("Success certifying {0} from {1}").format(pubkey,
                                                                           self.community.currency))
         except ValueError as e:
             QMessageBox.critical(self, self.tr("Certification"),

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>431</width>
+    <width>457</width>
     <height>369</height>
    </rect>
   </property>
@@ -218,11 +218,28 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>button_publish_uid</sender>
+   <signal>clicked()</signal>
+   <receiver>CommunityTabWidget</receiver>
+   <slot>publish_uid()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>123</x>
+     <y>334</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>228</x>
+     <y>184</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>identity_context_menu(QPoint)</slot>
   <slot>send_membership_demand()</slot>
   <slot>send_membership_leaving()</slot>
   <slot>search_text()</slot>
+  <slot>publish_uid()</slot>
  </slots>
 </ui>

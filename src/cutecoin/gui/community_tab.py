@@ -230,6 +230,33 @@ The process to join back the community later will have to be done again.""")
                                      "{0}".format(e),
                                      QMessageBox.Ok)
 
+    def publish_uid(self):
+        reply = QMessageBox.warning(self, self.tr("Warning"),
+                             self.tr("""Are you sure ?
+Publishing your UID cannot be canceled.""")
+.format(self.account.pubkey), QMessageBox.Ok | QMessageBox.Cancel)
+        if reply == QMessageBox.Ok:
+            password_asker = PasswordAskerDialog(self.account)
+            password = password_asker.exec_()
+            if password_asker.result() == QDialog.Rejected:
+                return
+
+            try:
+                self.account.send_selfcert(password, self.community)
+                toast.display(self.tr("UID Publishing"),
+                              self.tr("Success publishing your UID"))
+            except ValueError as e:
+                QMessageBox.critical(self, self.tr("Leaving demand error"),
+                                  e.message)
+            except NoPeerAvailable as e:
+                QMessageBox.critical(self, self.tr("Network error"),
+                                     self.tr("Couldn't connect to network : {0}").format(e),
+                                     QMessageBox.Ok)
+            except Exception as e:
+                QMessageBox.critical(self, self.tr("Error"),
+                                     "{0}".format(e),
+                                     QMessageBox.Ok)
+
     def search_text(self):
         """
         Search text and display found identities

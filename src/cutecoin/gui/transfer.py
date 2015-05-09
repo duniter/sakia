@@ -9,6 +9,7 @@ from PyQt5.QtGui import QRegExpValidator
 
 from ..tools.exceptions import NotEnoughMoneyError, NoPeerAvailable
 from ..gen_resources.transfer_uic import Ui_TransferMoneyDialog
+from . import toast
 
 
 class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
@@ -74,8 +75,8 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
             QApplication.processEvents()
             self.wallet.send_money(self.account.salt, password, self.community,
                                        recipient, amount, comment)
-            QMessageBox.information(self, self.tr("Money transfer"),
-                                 self.tr("Success transfering {0} {1} to {2}").format(amount,
+            toast.display(self.tr("Money transfer"),
+                          self.tr("Success transfering {0} {1} to {2}").format(amount,
                                                                              self.community.currency,
                                                                              recipient))
         except ValueError as e:
