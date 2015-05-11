@@ -64,7 +64,9 @@ class WalletsTableModel(QAbstractTableModel):
         super().__init__(parent)
         self.account = account
         self.community = community
-        self.columns_headers = ('Name', 'Amount', 'Pubkey')
+        self.columns_headers = (self.tr('Name'),
+                                self.tr('Amount'),
+                                self.tr('Pubkey'))
         self.columns_types = ('name', 'amount', 'pubkey')
 
     @property

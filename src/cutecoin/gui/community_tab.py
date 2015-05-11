@@ -54,7 +54,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         app.monitor.persons_watcher(self.community).person_changed.connect(self.refresh_person)
 
         self.wot_tab = WotTabWidget(app, account, community, password_asker, self)
-        self.tabs_information.addTab(self.wot_tab, QIcon(':/icons/wot_icon'), "WoT")
+        self.tabs_information.addTab(self.wot_tab, QIcon(':/icons/wot_icon'), self.tr("Web of Trust"))
         members_action = QAction(self.tr("Members"), self)
         members_action.triggered.connect(self.search_members)
         self.button_search.addAction(members_action)

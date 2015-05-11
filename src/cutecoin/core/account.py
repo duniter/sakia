@@ -13,7 +13,7 @@ from ucoinpy.key import SigningKey
 import logging
 import time
 
-from PyQt5.QtCore import QObject, pyqtSignal, QCoreApplication
+from PyQt5.QtCore import QObject, pyqtSignal, QCoreApplication, QT_TR_NOOP
 
 from .wallet import Wallet
 from .community import Community
@@ -51,12 +51,17 @@ class Account(QObject):
     Each account has only one key, and a key can
     be locally referenced by only one account.
     '''
-    referentials = {'Units': (quantitative, '{0}', quantitative, '{0}'),
-                    'UD': (relative, 'ud {0}', relative, 'ud {0}'),
-                    'Quant Z-sum': (quantitative_zerosum, 'q0 {0}',
+    referentials = {'Units': (quantitative, '{0}',
+                              quantitative, '{0}'),
+                    'UD': (relative, QT_TR_NOOP('ud {0}'),
+                           relative, QT_TR_NOOP('ud {0}')),
+                    'Quant Z-sum': (quantitative_zerosum,
+                                    QT_TR_NOOP('q0 {0}'),
                                     quantitative, '{0}'),
-                    'Relat Z-sum': (relative_zerosum, 'r0 {0}',
-                                    relative, 'ud {0}')
+                    'Relat Z-sum': (relative_zerosum,
+                                    QT_TR_NOOP('r0 {0}'),
+                                    relative,
+                                    QT_TR_NOOP('ud {0}'))
                     }
 
     loading_progressed = pyqtSignal(int, int)

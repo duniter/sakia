@@ -2,6 +2,24 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="fr_FR" sourcelanguage="en">
 <context>
+    <name>@default</name>
+    <message>
+        <location filename="../../../src/cutecoin/core/account.py" line="61"/>
+        <source>ud {0}</source>
+        <translation>du {0}</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/core/account.py" line="58"/>
+        <source>q0 {0}</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/core/account.py" line="61"/>
+        <source>r0 {0}</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>AboutPopup</name>
     <message>
         <location filename="../../ui/about.ui" line="14"/>
@@ -322,6 +340,11 @@ The process to join back the community later will have to be done again.</source
         <translation>Êtes vous certain ?
 Envoyer une demande pour quitter la communauté ne peut être annulée.
 Le processus pour rejoindre la communauté devrait être refait à zéro.</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="57"/>
+        <source>Web of Trust</source>
+        <translation>Toile de Confiance</translation>
     </message>
 </context>
 <context>
@@ -1626,6 +1649,24 @@ Veuillez rééssayer plus tard</translation>
         <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="165"/>
         <source>New Wallet</source>
         <translation>Nouveau portefeuille</translation>
+    </message>
+</context>
+<context>
+    <name>WalletsTableModel</name>
+    <message>
+        <location filename="../../../src/cutecoin/models/wallets.py" line="67"/>
+        <source>Name</source>
+        <translation>Nom</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/models/wallets.py" line="67"/>
+        <source>Amount</source>
+        <translation>Montant</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/models/wallets.py" line="67"/>
+        <source>Pubkey</source>
+        <translation>Clé publique</translation>
     </message>
 </context>
 <context>
