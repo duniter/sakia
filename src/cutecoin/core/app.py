@@ -42,7 +42,6 @@ class Application(QObject):
         '''
         super().__init__()
         self.accounts = {}
-        self.default_account = ""
         self.current_account = None
         self.monitor = None
         self.available_version = __version__
@@ -50,6 +49,10 @@ class Application(QObject):
         self._network_manager = QNetworkAccessManager()
         self._network_manager.finished.connect(self.read_available_version)
         self.get_last_version()
+        self.preferences = {'account': "",
+                            'lang': 'English',
+                            'ref': 'Units'
+                            }
         self.load()
 
     def get_account(self, name):
@@ -125,12 +128,11 @@ class Application(QObject):
         no error is raised.
         '''
         self.load_persons()
+        self.load_preferences()
         try:
             logging.debug("Loading data...")
             with open(config.parameters['data'], 'r') as json_data:
                 data = json.load(json_data)
-                if 'default_account' in data.keys():
-                    self.default_account = data['default_account']
                 for account_name in data['local_accounts']:
                     self.accounts[account_name] = None
         except FileNotFoundError:
@@ -206,6 +208,36 @@ class Application(QObject):
                     wallet.load_caches(data)
                 else:
                     os.remove(wallet_path)
+
+    def load_preferences(self):
+        '''
+        Load the preferences.
+        '''
+
+        try:
+            preferences_path = os.path.join(config.parameters['home'],
+                                            'preferences')
+            with open(preferences_path, 'r') as json_data:
+                data = json.load(json_data)
+                self.preferences = data
+        except FileNotFoundError:
+            pass
+
+    def save_preferences(self, preferences):
+        '''
+        Save the preferences.
+
+        :param preferences: A dict containing the keys/values of the preferences
+        '''
+        assert('lang' in preferences)
+        assert('account' in preferences)
+        assert('ref' in preferences)
+
+        self.preferences = preferences
+        preferences_path = os.path.join(config.parameters['home'],
+                                        'preferences')
+        with open(preferences_path, 'w') as outfile:
+            json.dump(preferences, outfile, indent=4)
 
     def save(self, account):
         '''
@@ -347,8 +379,7 @@ class Application(QObject):
 
         :return: The accounts of the app to format as json
         '''
-        data = {'default_account': self.default_account,
-                'local_accounts': self.jsonify_accounts()}
+        data = {'local_accounts': self.jsonify_accounts()}
         return data
 
     def get_last_version(self):

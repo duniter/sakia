@@ -20,6 +20,7 @@ from .import_account import ImportAccountDialog
 from .certification import CertificationDialog
 from .password_asker import PasswordAskerDialog
 from ..tools.exceptions import NoPeerAvailable
+from .preferences import PreferencesDialog
 from .homescreen import HomeScreenWidget
 from ..core.account import Account
 from ..__init__ import __version__
@@ -214,6 +215,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             else:
                 self.refresh()
 
+    def open_preferences_dialog(self):
+        dialog = PreferencesDialog(self.app)
+        result = dialog.exec_()
+
     def open_about_popup(self):
         """
         Open about popup window
@@ -296,12 +301,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 delete_action.setData(contact)
                 delete_action.triggered.connect(self.delete_contact)
 
-    def set_as_default_account(self):
-        self.app.default_account = self.app.current_account.name
-        logging.debug(self.app.current_account)
-        self.app.save(self.app.current_account)
-        self.action_set_as_default.setEnabled(False)
-
     def refresh(self):
         '''
         Refresh main window
@@ -327,8 +326,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.currencies_tabwidget.show()
             logging.debug(self.tr("Hide homescreen"))
             self.homescreen.hide()
-            self.action_set_as_default.setEnabled(self.app.current_account.name
-                                                  != self.app.default_account)
             self.password_asker = PasswordAskerDialog(self.app.current_account)
 
             self.combo_referential.blockSignals(True)
@@ -336,7 +333,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.combo_referential.addItems(sorted(Account.referentials.keys()))
             self.combo_referential.setEnabled(True)
             self.combo_referential.blockSignals(False)
-            self.combo_referential.setCurrentText(self.app.current_account.referential)
+            self.combo_referential.setCurrentText(self.app.preferences['ref'])
             self.menu_contacts.setEnabled(True)
             self.action_configure_parameters.setEnabled(True)
             self.menu_actions.setEnabled(True)
@@ -382,7 +379,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def showEvent(self, event):
         super().showEvent(event)
         if not self.initialized:
-            if self.app.default_account != "":
+            if self.app.preferences['account'] != "":
                 logging.debug("Loading default account")
-                self.action_change_account(self.app.default_account)
+                self.action_change_account(self.app.preferences['account'])
             self.initialized = True
