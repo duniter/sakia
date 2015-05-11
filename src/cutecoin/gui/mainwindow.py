@@ -322,9 +322,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.status_label.setText(self.tr(""))
             self.password_asker = None
         else:
-            logging.debug(self.tr("Show currencies loading"))
+            logging.debug("Show currencies loading")
             self.currencies_tabwidget.show()
-            logging.debug(self.tr("Hide homescreen"))
+            logging.debug("Hide homescreen")
             self.homescreen.hide()
             self.password_asker = PasswordAskerDialog(self.app.current_account)
 

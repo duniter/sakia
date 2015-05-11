@@ -72,8 +72,8 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             if will_expire_soon:
                 days = QDateTime().currentDateTime().daysTo(QDateTime.fromTime_t(expiration_date))
                 if days > 0:
-                    toast.display(self.tr("Membership expiration"
-"<b>Warning : Membership expiration in {0} days</b>").format(days))
+                    toast.display(self.tr("Membership expiration"),
+self.tr("<b>Warning : Membership expiration in {0} days</b>").format(days))
         except MembershipNotFoundError as e:
             pass
 

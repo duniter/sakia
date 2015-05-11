@@ -175,8 +175,8 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
                               str(e))
         except PersonNotFoundError as e:
             QMessageBox.critical(self, self.tr("Key not sent to community"),
-                              self.tr("Your key wasn't sent in the community. \
-                              You can't request a membership."))
+                              self.tr(""""Your key wasn't sent in the community.
+You can't request a membership."""))
         except NoPeerAvailable as e:
             QMessageBox.critical(self, self.tr("Network error"),
                                  self.tr("Couldn't connect to network : {0}").format(e),
@@ -189,7 +189,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
     def send_membership_leaving(self):
         reply = QMessageBox.warning(self, self.tr("Warning"),
                              self.tr("""Are you sure ?
-Sending a membership demand  cannot be canceled.
+Sending a leaving demand  cannot be canceled.
 The process to join back the community later will have to be done again.""")
 .format(self.account.pubkey), QMessageBox.Ok | QMessageBox.Cancel)
         if reply == QMessageBox.Ok:

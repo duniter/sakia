@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>238</height>
+    <height>266</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,7 @@
    <item>
     <widget class="QStackedWidget" name="stacked_pages">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="page_init">
       <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -163,8 +163,11 @@
            </item>
            <item>
             <widget class="QLineEdit" name="edit_salt">
+             <property name="text">
+              <string/>
+             </property>
              <property name="placeholderText">
-              <string>Your salt</string>
+              <string>CryptoID</string>
              </property>
             </widget>
            </item>

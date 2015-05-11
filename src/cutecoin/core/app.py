@@ -50,7 +50,7 @@ class Application(QObject):
         self._network_manager.finished.connect(self.read_available_version)
         self.get_last_version()
         self.preferences = {'account': "",
-                            'lang': 'English',
+                            'lang': 'en_GB',
                             'ref': 'Units'
                             }
         self.load()
