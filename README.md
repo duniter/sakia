@@ -39,12 +39,13 @@ Qt Client for [Ucoin](http://www.ucoin.io) project.
    * __pip install libnacl__
    * __pip install requests__
    * __pip install base58__
-  * Run __python gen_resources.py__ in cutecoin folder
-  * Run __python setup.py build__ in cutecoin folder
+  * Run __python3 gen_resources.py__ in cutecoin folder
+  * Run __python3 gen_translations.py__ in cutecoin folder
+  * Run __python3 setup.py build__ in cutecoin folder
   * The executable is generated in "build" folder, named "cutecoin"
 
 ### How to download latest release
-  * Go to the [current release](https://github.com/ucoin-io/cutecoin/releases/tag/0.9.2)
+  * Go to the [current release](https://github.com/ucoin-io/cutecoin/releases/tag/0.10.0)
   * Download the package corresponding to your operating system
   * Unzip and start "cutecoin" :)
   * Join our beta community by contacting us on ucoin forums : forum.ucoin.io
