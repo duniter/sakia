@@ -31,8 +31,10 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
         self.combo_account.setCurrentText(self.app.preferences['account'])
         for ref in Account.referentials:
             self.combo_referential.addItem(ref)
+        self.combo_referential.setCurrentText(self.app.preferences['ref'])
         for lang in ('en_GB', 'fr_FR'):
             self.combo_language.addItem(lang)
+        self.combo_language.setCurrentText(self.app.preferences['lang'])
 
     def accept(self):
         pref = {'account': self.combo_account.currentText(),

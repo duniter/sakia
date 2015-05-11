@@ -1135,7 +1135,7 @@ Le processus pour rejoindre la communauté devrait être refait à zéro.</trans
     <message>
         <location filename="../../../src/cutecoin/models/network.py" line="41"/>
         <source>Block</source>
-        <translation>Blck</translation>
+        <translation>Block</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/models/network.py" line="42"/>
