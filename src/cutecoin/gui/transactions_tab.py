@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QAbstractItemView, QHeaderView, QDialog, \
     QMenu, QAction, QApplication, QMessageBox
-from PyQt5.QtCore import Qt, QDateTime, QTime, QModelIndex, QLocale
+from PyQt5.QtCore import Qt, QDateTime, QTime, QModelIndex, QLocale, QCoreApplication
 from PyQt5.QtGui import QCursor
 from ..gen_resources.transactions_tab_uic import Ui_transactionsTabWidget
 from ..models.txhistory import HistoryTableModel, TxFilterProxyModel
@@ -98,15 +98,15 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
             localized_balance = QLocale().toString(
                 self.app.current_account.units_to_diff_ref(balance, self.community), 'f', 6)
 
-        self.label_deposit.setText(self.tr("<b>Deposits</b> {:} {:}").format(
+        self.label_deposit.setText(QCoreApplication.translate("TransactionsTabWidget", "<b>Deposits</b> {:} {:}").format(
             localized_deposits,
             self.app.current_account.ref_name(self.community.short_currency)
         ))
-        self.label_payment.setText(self.tr("<b>Payments</b> {:} {:}").format(
+        self.label_payment.setText(QCoreApplication.translate("TransactionsTabWidget", "<b>Payments</b> {:} {:}").format(
             localized_payments,
             self.app.current_account.ref_name(self.community.short_currency)
         ))
-        self.label_balance.setText(self.tr("<b>Balance</b> {:} {:}").format(
+        self.label_balance.setText(QCoreApplication.translate("TransactionsTabWidget", "<b>Balance</b> {:} {:}").format(
             localized_balance,
             self.app.current_account.ref_name(self.community.short_currency)
         ))

@@ -6,9 +6,9 @@ Created on 1 févr. 2014
 import signal
 import sys
 import os
+import logging
 
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import QLocale
 from cutecoin.gui.mainwindow import MainWindow
 from cutecoin.core.app import Application
 
@@ -18,7 +18,6 @@ if __name__ == '__main__':
 
     cutecoin = QApplication(sys.argv)
     app = Application(sys.argv)
-    QLocale.setDefault(QLocale("en_GB"))
     window = MainWindow(app)
     window.showMaximized()
     sys.exit(cutecoin.exec_())

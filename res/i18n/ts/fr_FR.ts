@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="2.0" language="fr_FR" sourcelanguage="fr_FR">
+<!DOCTYPE TS>
+<TS version="2.1" language="fr_FR" sourcelanguage="en">
 <context>
     <name>AboutPopup</name>
     <message>
@@ -1469,7 +1470,7 @@ Le transfer de monnaie sera annulé et non envoyé.</translation>
     <message>
         <location filename="../../../src/cutecoin/gui/transfer.py" line="64"/>
         <source>No amount. Please give the transfert amount</source>
-        <translation type="unfinished">Pas de montant. Veuillez entrer un montant</translation>
+        <translation>Pas de montant. Veuillez entrer un montant</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/transfer.py" line="78"/>

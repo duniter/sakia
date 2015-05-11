@@ -36,6 +36,7 @@ def build_resources():
       </qresource>
     </RCC>
     """.format(files)
+    print(rccfile)
 
     qrc_filename = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                                 'res',

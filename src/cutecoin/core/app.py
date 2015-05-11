@@ -10,9 +10,10 @@ import tarfile
 import shutil
 import json
 import datetime
-import sys
+import i18n_rc
 
-from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QUrl
+from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, \
+QUrl, QTranslator, QCoreApplication, QLocale
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
 
 from . import config
@@ -53,7 +54,17 @@ class Application(QObject):
                             'lang': 'en_GB',
                             'ref': 'Units'
                             }
+
         self.load()
+
+        translator = QTranslator()
+        logging.debug("Loading translations")
+        locale = QLocale().system().name()
+        if translator.load(":/i18n/{0}".format(locale)):
+            if QCoreApplication.installTranslator(translator):
+                logging.debug("Loaded i18n/{0}".format(locale))
+        else:
+            logging.debug("Couldn't load translation")
 
     def get_account(self, name):
         '''
