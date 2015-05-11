@@ -67,6 +67,18 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
 
         self.refresh_balance()
 
+    def start_progress(self):
+        def progressing(value, maximum):
+            self.progressbar.setValue(value)
+            self.progressbar.setMaximum(maximum)
+
+        self.progressbar.show()
+        blockchain_watcher = self.app.monitor.blockchain_watcher(self.community)
+        blockchain_watcher.loading_progressed.connect(progressing)
+
+    def stop_progress(self):
+        self.progressbar.hide()
+
     def refresh_balance(self):
         proxy = self.table_history.model()
         balance = proxy.deposits - proxy.payments

@@ -142,8 +142,8 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         @param: block_number: The number of the block mined
         '''
         logging.debug("Refresh block")
-        self.tab_history.progressbar.show()
-        #self.app.monitor.blockchain_watcher(self.community).thread().start()
+        self.tab_history.start_progress()
+        self.app.monitor.blockchain_watcher(self.community).thread().start()
         self.app.monitor.persons_watcher(self.community).thread().start()
         self.refresh_status()
 
@@ -158,8 +158,8 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         if self.tab_history.table_history.model():
             self.tab_history.table_history.model().sourceModel().refresh_transfers()
 
-        #self.tab_history.refresh_balance()
-        self.tab_history.progressbar.hide()
+        self.tab_history.refresh_balance()
+        self.tab_history.stop_progress()
         self.refresh_status()
 
     @pyqtSlot()

@@ -13,7 +13,7 @@ from ucoinpy.key import SigningKey
 import logging
 import time
 
-from PyQt5.QtCore import QObject, pyqtSignal, Qt
+from PyQt5.QtCore import QObject, pyqtSignal, QCoreApplication
 
 from .wallet import Wallet
 from .community import Community
@@ -182,10 +182,11 @@ class Account(QObject):
             self.loading_progressed.emit(account_value, account_max)
 
         for w in self.wallets:
-            w.refresh_progressed.connect(progressing, type=Qt.DirectConnection)
+            w.refresh_progressed.connect(progressing)
             for c in self.communities:
                 w.init_cache(c)
                 loaded_wallets = loaded_wallets + 1
+                QCoreApplication.processEvents()
 
     def set_display_referential(self, index):
         self.referential = index

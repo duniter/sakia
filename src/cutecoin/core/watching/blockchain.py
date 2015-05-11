@@ -15,6 +15,8 @@ from PyQt5.QtCore import pyqtSignal
 class BlockchainWatcher(Watcher):
 
     new_transfers = pyqtSignal(list)
+    loading_progressed = pyqtSignal(int, int)
+
     def __init__(self, account, community):
         super().__init__()
         self.account = account
@@ -24,15 +26,26 @@ class BlockchainWatcher(Watcher):
         self.last_block = self.community.network.latest_block
 
     def watch(self):
+        loaded_wallets = 0
+        def progressing(value, maximum):
+            account_value = maximum * loaded_wallets + value
+            account_max = maximum * len(self.account.wallets)
+            self.loading_progressed.emit(account_value, account_max)
+
         try:
             received_list = []
             block_number = self.community.network.latest_block
             if self.last_block != block_number:
+
+                for w in self.account.wallets:
+                    w.refresh_progressed.connect(progressing)
+
                 if not self.exiting:
                     self.community.refresh_cache()
                 for w in self.account.wallets:
                     if not self.exiting:
                         w.refresh_cache(self.community, received_list)
+                        loaded_wallets = loaded_wallets + 1
 
                 logging.debug("New block, {0} mined in {1}".format(block_number,
                                                                    self.community.currency))
