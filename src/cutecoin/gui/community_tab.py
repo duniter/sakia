@@ -287,17 +287,18 @@ Publishing your UID cannot be canceled.""")
         if persons is None:
             self_identity = Person.lookup(self.account.pubkey, self.community)
             account_connections = []
-            persons = []
+            certifiers_of = []
+            certified_by = []
             for p in self_identity.unique_valid_certifiers_of(self.community):
                 account_connections.append(Person.lookup(p['pubkey'], self.community))
-                persons = [p for p in account_connections
-                          if p.pubkey not in [i.pubkey for i in persons]]
+            certifiers_of = [p for p in account_connections]
+            logging.debug(persons)
             for p in self_identity.unique_valid_certified_by(self.community):
                 account_connections.append(Person.lookup(p['pubkey'], self.community))
-                persons = persons + [p for p in account_connections
-                          if p.pubkey not in [i.pubkey for i in persons]]
+            certified_by = [p for p in account_connections
+                      if p.pubkey not in [i.pubkey for i in certifiers_of]]
 
-        self.table_identities.model().sourceModel().refresh_identities(persons)
+        self.table_identities.model().sourceModel().refresh_identities(certifiers_of + certified_by)
 
     def refresh_quality_buttons(self):
         try:
