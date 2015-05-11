@@ -68,7 +68,8 @@ class Cache():
     def transfers(self):
         return [t for t in self._transfers if t.state != Transfer.DROPPED]
 
-    def _parse_transaction(self, community, tx, block_number, mediantime, received_list):
+    def _parse_transaction(self, community, tx, block_number,
+                           mediantime, received_list, txid):
         logging.debug(tx)
         receivers = [o.pubkey for o in tx.outputs
                      if o.pubkey != tx.issuers[0]]
@@ -89,7 +90,8 @@ class Cache():
                     'issuer': tx.issuers[0],
                     'issuer_uid': issuer_uid,
                     'receiver': receivers[0],
-                    'receiver_uid': receiver_uid}
+                    'receiver_uid': receiver_uid,
+                    'txid': txid}
 
         in_issuers = len([i for i in tx.issuers
                      if i == self.wallet.pubkey]) > 0
@@ -136,9 +138,10 @@ class Cache():
         except:
             logging.debug("Error in {0}".format(block_number))
             raise
-        for tx in block_doc.transactions:
+        for (txid, tx) in enumerate(block_doc.transactions):
             self._parse_transaction(community, tx, block_number,
-                                    block_doc.mediantime, received_list)
+                                    block_doc.mediantime, received_list,
+                                    txid)
 
         logging.debug("Received {0} transactions".format(len(received_list)))
         awaiting = [t for t in self._transfers
@@ -379,6 +382,9 @@ class Wallet(QObject):
         '''
         time = community.get_block().mediantime
         block_number = community.current_blockid()['number']
+        block = community.request(bma.blockchain.Block,
+                                  req_args={'number': block_number})
+        txid = len(block['transactions'])
         key = None
         logging.debug("Key : {0} : {1}".format(salt, password))
         if self.walletid == 0:
@@ -404,7 +410,8 @@ class Wallet(QObject):
                     'issuer_uid': issuer_uid,
                     'receiver': recipient,
                     'receiver_uid': receiver_uid,
-                    'comment': message
+                    'comment': message,
+                    'txid': txid
                     }
         transfer = Transfer.initiate(metadata)
 

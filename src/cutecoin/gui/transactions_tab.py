@@ -122,7 +122,7 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
                                                    state_col)
             state_data = model.sourceModel().data(state_index, Qt.DisplayRole)
 
-            pubkey_col = model.sourceModel().column_types.index('uid')
+            pubkey_col = model.sourceModel().column_types.index('pubkey')
             person_index = model.sourceModel().index(source_index.row(),
                                                     pubkey_col)
             person = model.sourceModel().data(person_index, Qt.DisplayRole)

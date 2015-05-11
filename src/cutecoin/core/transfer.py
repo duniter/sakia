@@ -48,6 +48,7 @@ class Transfer(object):
         assert('comment' in metadata)
         assert('issuer_uid' in metadata)
         assert('receiver_uid' in metadata)
+        assert('txid' in metadata)
 
         self.txdoc = txdoc
         self.state = state

@@ -62,7 +62,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
         return in_period(date)
 
     def columnCount(self, parent):
-        return self.sourceModel().columnCount(None) - 1
+        return self.sourceModel().columnCount(None) - 3
 
     def setSourceModel(self, sourceModel):
         self.community = sourceModel.community
@@ -80,6 +80,11 @@ class TxFilterProxyModel(QSortFilterProxyModel):
             return self.sortOrder() == Qt.DescendingOrder
         elif right_data == "":
             return self.sortOrder() == Qt.AscendingOrder
+        if left_data == right_data:
+            txid_col = source_model.column_types.index('txid')
+            txid_left = source_model.index(left.row(), txid_col)
+            txid_right = source_model.index(right.row(), txid_col)
+            return (txid_left < txid_right)
 
         return (left_data < right_data)
 
@@ -160,7 +165,9 @@ class HistoryTableModel(QAbstractTableModel):
             'payment',
             'deposit',
             'comment',
-            'state'
+            'state',
+            'txid',
+            'pubkey'
         )
 
         self.column_headers = (
@@ -169,7 +176,9 @@ class HistoryTableModel(QAbstractTableModel):
             self.tr('Payment'),
             self.tr('Deposit'),
             self.tr('Comment'),
-            self.tr('State')
+            'State',
+            'TXID'
+            'Pubkey'
         )
 
     @property
@@ -187,9 +196,11 @@ class HistoryTableModel(QAbstractTableModel):
             sender = "pub:{0}".format(transfer.metadata['issuer'][:5])
 
         date_ts = transfer.metadata['time']
+        txid = transfer.metadata['txid']
 
         return (date_ts, sender, "", amount,
-                comment, transfer.state)
+                comment, transfer.state, txid,
+                transfer.metadata['issuer'])
 
     def data_sent(self, transfer):
         amount = transfer.metadata['amount']
@@ -203,9 +214,11 @@ class HistoryTableModel(QAbstractTableModel):
 
 
         date_ts = transfer.metadata['time']
+        txid = transfer.metadata['txid']
 
         return (date_ts, receiver, amount,
-                "", comment, transfer.state)
+                "", comment, transfer.state, txid,
+                transfer.metadata['receiver'])
 
     def refresh_transfers(self):
         self.beginResetModel()
