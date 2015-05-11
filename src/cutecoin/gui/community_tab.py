@@ -51,6 +51,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         self.table_identities.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table_identities.customContextMenuRequested.connect(self.identity_context_menu)
         self.table_identities.sortByColumn(0, Qt.AscendingOrder)
+        self.table_identities.resizeColumnsToContents()
         app.monitor.persons_watcher(self.community).person_changed.connect(self.refresh_person)
 
         self.wot_tab = WotTabWidget(app, account, community, password_asker, self)

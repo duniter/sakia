@@ -64,6 +64,7 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         self.table_history.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table_history.setSortingEnabled(True)
         self.table_history.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
+        self.table_history.resizeColumnsToContents()
 
         self.refresh_balance()
 
