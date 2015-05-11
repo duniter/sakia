@@ -17,7 +17,7 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     cutecoin = QApplication(sys.argv)
-    app = Application(sys.argv)
+    app = Application(sys.argv, cutecoin)
     window = MainWindow(app)
     window.showMaximized()
     sys.exit(cutecoin.exec_())

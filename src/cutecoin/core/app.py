@@ -35,7 +35,7 @@ class Application(QObject):
     loading_progressed = pyqtSignal(int, int)
     version_requested = pyqtSignal()
 
-    def __init__(self, argv):
+    def __init__(self, argv, qapp):
         '''
         Create a new "cutecoin" application
 
@@ -57,9 +57,9 @@ class Application(QObject):
 
         self.load()
 
-        translator = QTranslator()
+        translator = QTranslator(qapp)
         logging.debug("Loading translations")
-        locale = QLocale().system().name()
+        locale = self.preferences['lang']
         if translator.load(":/i18n/{0}".format(locale)):
             if QCoreApplication.installTranslator(translator):
                 logging.debug("Loaded i18n/{0}".format(locale))
