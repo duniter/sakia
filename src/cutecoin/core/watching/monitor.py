@@ -15,6 +15,11 @@ class Monitor(object):
     The monitor is managing watchers
     '''
 
+    # Dirty hack to avoid GC on monitors
+    # GC was causing random crashes
+    # We will get rid of QThreads asap
+    ___dirty_monitors = []
+
     def __init__(self, account):
         '''
         Constructor
@@ -25,6 +30,7 @@ class Monitor(object):
         self._blockchain_watchers = {}
         self._network_watchers = {}
         self._persons_watchers = {}
+        Monitor.___dirty_monitors.append(self)
 
     def blockchain_watcher(self, community):
         return self._blockchain_watchers[community.name]
