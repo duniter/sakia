@@ -27,7 +27,10 @@ def prepare_qm():
 
     for (ts_file, qm_file) in translations:
         # avoid conflict with qt4 lrelease by running qtchooser directly
-        subprocess.call(["qtchooser", "-run-tool=lrelease", "-qt=5", ts_file, "-qm", qm_file])
+        if sys.platform.startswith('win'):
+            subprocess.call(["lrelease", ts_file, "-qm", qm_file])
+        else:
+            subprocess.call(["qtchooser", "-run-tool=lrelease", "-qt=5", ts_file, "-qm", qm_file])
         print(ts_file + " >> " + qm_file)
 
 

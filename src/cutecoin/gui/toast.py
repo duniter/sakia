@@ -6,7 +6,7 @@ Created on 1 mai 2015
 import sys, time
 import logging
 from PyQt5.QtCore import Qt, QThread
-from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtWidgets import QMainWindow, QApplication
 from PyQt5.QtGui import QImage, QPixmap
 from ..gen_resources.toast_uic import Ui_Toast
 
@@ -49,9 +49,14 @@ class _Toast(QMainWindow, Ui_Toast):
         global window               # some space outside the local stack
         window = self               # save pointer till killed to avoid GC
         super().__init__()
-        self.setWindowFlags(Qt.FramelessWindowHint)
+        rect = QApplication.desktop().availableGeometry()
+        height = rect.height()
+        width = rect.width()
+        self.setWindowFlags(Qt.FramelessWindowHint |Qt.NoDropShadowWindowHint)
         self.setupUi(self)
-
+        x = width - self.width()
+        y = height - self.height()
+        self.move(x, y)
         self.display.setText("""<h1>{0}</h1>
 <p>{1}</p>""".format(title, msg))
 

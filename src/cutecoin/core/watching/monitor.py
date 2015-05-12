@@ -4,7 +4,7 @@ Created on 18 mars 2015
 @author: inso
 '''
 
-from PyQt5.QtCore import QThread, Qt
+from PyQt5.QtCore import QThread, Qt, QObject
 from .blockchain import BlockchainWatcher
 from .persons import PersonsWatcher
 import logging
@@ -19,6 +19,7 @@ class Monitor(object):
         '''
         Constructor
         '''
+        super().__init__()
         self.account = account
         self.threads_pool = []
         self._blockchain_watchers = {}
