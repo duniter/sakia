@@ -73,8 +73,10 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
         self.community = self.account.communities[index]
         if self.account.pubkey in self.community.members_pubkeys():
             self.button_box.button(QDialogButtonBox.Ok).setEnabled(True)
+            self.button_box.button(QDialogButtonBox.Ok).setText(self.tr("Ok"))
         else:
             self.button_box.button(QDialogButtonBox.Ok).setEnabled(False)
+            self.button_box.button(QDialogButtonBox.Ok).setText(self.tr("Not a member"))
 
     def recipient_mode_changed(self, pubkey_toggled):
         self.edit_pubkey.setEnabled(pubkey_toggled)

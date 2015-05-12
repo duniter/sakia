@@ -298,8 +298,9 @@ Publishing your UID cannot be canceled.""")
                 account_connections.append(Person.lookup(p['pubkey'], self.community))
             certified_by = [p for p in account_connections
                       if p.pubkey not in [i.pubkey for i in certifiers_of]]
+            persons = certifiers_of + certified_by
 
-        self.table_identities.model().sourceModel().refresh_identities(certifiers_of + certified_by)
+        self.table_identities.model().sourceModel().refresh_identities(persons)
 
     def refresh_quality_buttons(self):
         try:
