@@ -118,12 +118,12 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         if index.row() < model.rowCount(QModelIndex()):
             menu = QMenu(self.tr("Actions"), self)
             source_index = model.mapToSource(index)
-            state_col = model.sourceModel().column_types.index('state')
+            state_col = model.sourceModel().columns_types.index('state')
             state_index = model.sourceModel().index(source_index.row(),
                                                    state_col)
             state_data = model.sourceModel().data(state_index, Qt.DisplayRole)
 
-            pubkey_col = model.sourceModel().column_types.index('pubkey')
+            pubkey_col = model.sourceModel().columns_types.index('pubkey')
             person_index = model.sourceModel().index(source_index.row(),
                                                     pubkey_col)
             person = model.sourceModel().data(person_index, Qt.DisplayRole)

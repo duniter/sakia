@@ -52,19 +52,19 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
         if not source_index.isValid():
             return QVariant()
         source_data = source_model.data(source_index, role)
-        if index.column() == self.sourceModel().column_types.index('is_member') \
+        if index.column() == self.sourceModel().columns_types.index('is_member') \
                 and role == Qt.DisplayRole:
             value = {True: 'yes', False: 'no', None: 'offline'}
             return value[source_data]
 
         if role == Qt.TextAlignmentRole:
-            if source_index.column() == source_model.column_types.index('address') or source_index.column() == self.sourceModel().column_types.index('current_block'):
+            if source_index.column() == source_model.columns_types.index('address') or source_index.column() == self.sourceModel().columns_types.index('current_block'):
                 return Qt.AlignRight | Qt.AlignVCenter
-            if source_index.column() == source_model.column_types.index('is_member'):
+            if source_index.column() == source_model.columns_types.index('is_member'):
                 return Qt.AlignCenter
 
         if role == Qt.FontRole:
-            is_root_col = source_model.column_types.index('is_root')
+            is_root_col = source_model.columns_types.index('is_root')
             index_root_col = source_model.index(source_index.row(), is_root_col)
             if source_model.data(index_root_col, Qt.DisplayRole):
                 font = QFont()
@@ -85,7 +85,7 @@ class NetworkTableModel(QAbstractTableModel):
         '''
         super().__init__(parent)
         self.community = community
-        self.column_types = (
+        self.columns_types = (
             'address',
             'port',
             'current_block',
@@ -115,13 +115,13 @@ class NetworkTableModel(QAbstractTableModel):
         return len(self.nodes)
 
     def columnCount(self, parent):
-        return len(self.column_types)
+        return len(self.columns_types)
 
     def headerData(self, section, orientation, role):
         if role != Qt.DisplayRole:
             return QVariant()
 
-        return self.column_types[section]
+        return self.columns_types[section]
 
     def data_node(self, node: Node) -> tuple:
         """

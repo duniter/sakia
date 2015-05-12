@@ -239,52 +239,52 @@
         <translation>Quitter la communauté</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="203"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="204"/>
         <source>Membership</source>
         <translation>Statut de membre</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="172"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="173"/>
         <source>Success sending membership demand</source>
         <translation>Succès lors de l&apos;envoi d&apos;une demande de membre</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="174"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="175"/>
         <source>Join demand error</source>
         <translation>Erreur lors de l&apos;envoi d&apos;une demande de membre</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="177"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="178"/>
         <source>Key not sent to community</source>
         <translation>La clé n&apos;a pas pu être envoyée à la communauté</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="235"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="236"/>
         <source>Network error</source>
         <translation>Erreur réseau</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="235"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="236"/>
         <source>Couldn&apos;t connect to network : {0}</source>
         <translation>Impossible de se connecter au réseau : {0}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="217"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="218"/>
         <source>Warning</source>
         <translation>Attention</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="203"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="204"/>
         <source>Success sending leaving demand</source>
         <translation>Succès lors de l&apos;envoi de la demande pour quitter la communauté</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="232"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="233"/>
         <source>Leaving demand error</source>
         <translation>Erreur lors de l&apos;envoi de la demande pour quitter la communauté</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="239"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="240"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
@@ -299,41 +299,41 @@
         <translation>Publier votre UID</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="58"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="59"/>
         <source>Members</source>
         <translation>Membres</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="61"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="62"/>
         <source>Direct connections</source>
         <translation>Connections directes</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="217"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="218"/>
         <source>Are you sure ?
 Publishing your UID cannot be canceled.</source>
         <translation>Êtes vous certain ?
 Publier votre UID ne peut être annulé.</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="229"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="230"/>
         <source>UID Publishing</source>
         <translation>Publication de l&apos;UID</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="229"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="230"/>
         <source>Success publishing your UID</source>
         <translation>Succès lors de la publication de votre UID</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="177"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="178"/>
         <source>&quot;Your key wasn&apos;t sent in the community.
 You can&apos;t request a membership.</source>
         <translation>Votre clé publique n&apos;a pas été envoyée à la communauté.
 Vous ne pouvez pas envoyer de requête de membre.</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="190"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="191"/>
         <source>Are you sure ?
 Sending a leaving demand  cannot be canceled.
 The process to join back the community later will have to be done again.</source>
@@ -342,7 +342,7 @@ Envoyer une demande pour quitter la communauté ne peut être annulée.
 Le processus pour rejoindre la communauté devrait être refait à zéro.</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="57"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="58"/>
         <source>Web of Trust</source>
         <translation>Toile de Confiance</translation>
     </message>
@@ -401,32 +401,32 @@ Le processus pour rejoindre la communauté devrait être refait à zéro.</trans
         <translation></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="90"/>
+        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="77"/>
         <source>Wallets</source>
         <translation>Portefeuilles</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="98"/>
+        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="85"/>
         <source>Transactions</source>
         <translation>Transferts</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="107"/>
+        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="94"/>
         <source>Community</source>
         <translation>Communauté</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="113"/>
+        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="100"/>
         <source>Informations</source>
         <translation>Informations</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="125"/>
+        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="112"/>
         <source>Network</source>
         <translation>Réseau</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="171"/>
+        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="183"/>
         <source> Block {0}</source>
         <translation>Block {0}</translation>
     </message>
@@ -436,24 +436,44 @@ Le processus pour rejoindre la communauté devrait être refait à zéro.</trans
         <translation type="obsolete">Expiration du statut de membre</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="190"/>
+        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="206"/>
         <source>Received {0} {1} from {2} transfers</source>
         <translation>Reception de {0} {1} dans {2} transfers</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="194"/>
+        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="210"/>
         <source>New transactions received</source>
         <translation>Nouveaux transferts reçus</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="75"/>
+        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="145"/>
         <source>Membership expiration</source>
         <translation>Expiration du statut de membre</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="75"/>
+        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="145"/>
         <source>&lt;b&gt;Warning : Membership expiration in {0} days&lt;/b&gt;</source>
         <translation>&lt;b&gt;Attention : Expiration du statut de membre dans {0} jours&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="43"/>
+        <source>Warning : Your membership is expiring soon.</source>
+        <translation>Attention : Votre statut de membre expire bientôt.</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="45"/>
+        <source>Warning : Your could miss certifications soon.</source>
+        <translation>Attention : Vous pourriez manquer de certifications prochainement.</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="150"/>
+        <source>Certifications number</source>
+        <translation>Nombre de certifications</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="150"/>
+        <source>&lt;b&gt;Warning : You are certified by only {0} persons, need {1}&lt;/b&gt;</source>
+        <translation>&lt;b&gt;Attention : Vous êtes certifiés par seulement {0} personnes, besoin de {2}&lt;/b&gt;</translation>
     </message>
 </context>
 <context>
@@ -482,34 +502,34 @@ Le processus pour rejoindre la communauté devrait être refait à zéro.</trans
 <context>
     <name>HistoryTableModel</name>
     <message>
-        <location filename="../../../src/cutecoin/models/txhistory.py" line="166"/>
+        <location filename="../../../src/cutecoin/models/txhistory.py" line="173"/>
         <source>Date</source>
         <translation>Date</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/models/txhistory.py" line="166"/>
+        <location filename="../../../src/cutecoin/models/txhistory.py" line="173"/>
         <source>UID/Public key</source>
         <translation>UID/Clé publique</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/models/txhistory.py" line="166"/>
+        <location filename="../../../src/cutecoin/models/txhistory.py" line="173"/>
         <source>Payment</source>
         <translation>Paiement</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/models/txhistory.py" line="166"/>
+        <location filename="../../../src/cutecoin/models/txhistory.py" line="173"/>
         <source>Deposit</source>
         <translation>Dépôt</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/models/txhistory.py" line="166"/>
+        <location filename="../../../src/cutecoin/models/txhistory.py" line="173"/>
         <source>Comment</source>
         <translation>Commentaire</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/models/txhistory.py" line="166"/>
         <source>State</source>
-        <translation>Statut</translation>
+        <translation type="obsolete">Statut</translation>
     </message>
 </context>
 <context>
@@ -1183,6 +1203,16 @@ Le processus pour rejoindre la communauté devrait être refait à zéro.</trans
         <source>Form</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/network_tab.py" line="51"/>
+        <source>Unset root node</source>
+        <translation>Supprimer des noeuds racines</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/network_tab.py" line="57"/>
+        <source>Set as root node</source>
+        <translation>Définir comme noeud racine</translation>
+    </message>
 </context>
 <context>
     <name>PasswordAskerDialog</name>
@@ -1361,69 +1391,69 @@ Souhaitez-vous publier votre clé publique ?</translation>
 <context>
     <name>TransactionsTabWidget</name>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="118"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="119"/>
         <source>Actions</source>
         <translation>Actions</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="131"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="132"/>
         <source>Send again</source>
         <translation>Renvoyer</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="136"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="137"/>
         <source>Cancel</source>
         <translation>Annuler</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="142"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="143"/>
         <source>Informations</source>
         <translation>Informations</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="147"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="148"/>
         <source>Add as contact</source>
         <translation>Ajouter comme contact</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="152"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="153"/>
         <source>Send money to</source>
         <translation>Envoyer de la monnaie à</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="158"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="159"/>
         <source>View in WoT</source>
         <translation>Voir dans la WoT</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="163"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="164"/>
         <source>Copy pubkey to clipboard</source>
         <translation>Copier la clé publique</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="200"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="201"/>
         <source>Warning</source>
         <translation>Attention</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="200"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="201"/>
         <source>Are you sure ?
 This money transfer will be removed and not sent.</source>
         <translation>Êtes vous certain ?
 Le transfer de monnaie sera annulé et non envoyé.</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="101"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="102"/>
         <source>&lt;b&gt;Deposits&lt;/b&gt; {:} {:}</source>
         <translation>&lt;b&gt;Dépôts&lt;/b&gt; {:} {:}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="105"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="106"/>
         <source>&lt;b&gt;Payments&lt;/b&gt; {:} {:}</source>
         <translation>&lt;b&gt;Paiements&lt;/b&gt; {:} {:}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="109"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="110"/>
         <source>&lt;b&gt;Balance&lt;/b&gt; {:} {:}</source>
         <translation>&lt;b&gt;Balance&lt;/b&gt; {:} {:}</translation>
     </message>
