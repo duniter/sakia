@@ -188,6 +188,14 @@ class Network(Watcher):
         '''
         return node in self._root_nodes
 
+    def root_node_index(self, index):
+        '''
+        Get the index of a root node from its index
+        in all nodes list
+        '''
+        node = self.nodes[index]
+        return self._root_nodes.index(node)
+
     def moveToThread(self, thread):
         for n in self.nodes:
             n.moveToThread(thread)
