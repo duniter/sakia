@@ -6,6 +6,7 @@ Created on 11 févr. 2014
 
 import logging
 import functools
+import time
 
 from ucoinpy.api import bma
 from ucoinpy import PROTOCOL_VERSION
@@ -415,6 +416,14 @@ class Person(object):
             else:
                 unique_valid.append(certified)
         return unique_valid
+
+    def membership_expiration_time(self, community):
+        join_block = self.membership(community)['blockNumber']
+        join_date = community.get_block(join_block).mediantime
+        parameters = community.parameters
+        expiration_date = join_date + parameters['sigValidity']
+        current_time = time.time()
+        return expiration_date - current_time
 
     def reload(self, func, community):
         '''

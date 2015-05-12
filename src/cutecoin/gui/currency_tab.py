@@ -37,6 +37,13 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         self.community = community
         self.password_asker = password_asker
         self.status_label = status_label
+
+        self.status_info = []
+        self.status_infotext = {'membership_expire_soon':
+                            self.tr("Warning : Your membership is expiring soon."),
+                            'warning_certifications':
+                            self.tr("Warning : Your could miss certifications soon.")
+                            }
         self.tab_community = CommunityTabWidget(self.app,
                                                 self.app.current_account,
                                                     self.community,
@@ -56,26 +63,6 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         bc_watcher.error.connect(self.display_error)
         bc_watcher.watching_stopped.connect(self.refresh_data)
         bc_watcher.new_transfers.connect(self.notify_transfers)
-
-        person = Person.lookup(self.app.current_account.pubkey, self.community)
-        try:
-            join_block = person.membership(self.community)['blockNumber']
-            join_date = self.community.get_block(join_block).mediantime
-            parameters = self.community.parameters
-            expiration_date = join_date + parameters['sigValidity']
-            current_time = time.time()
-            sig_validity = self.community.parameters['sigValidity']
-            warning_expiration_time = int(sig_validity / 3)
-            will_expire_soon = (current_time > expiration_date - warning_expiration_time)
-
-            logging.debug("Try")
-            if will_expire_soon:
-                days = QDateTime().currentDateTime().daysTo(QDateTime.fromTime_t(expiration_date))
-                if days > 0:
-                    toast.display(self.tr("Membership expiration"),
-self.tr("<b>Warning : Membership expiration in {0} days</b>").format(days))
-        except MembershipNotFoundError as e:
-            pass
 
     def refresh(self):
         if self.app.current_account is None:
@@ -142,6 +129,31 @@ self.tr("<b>Warning : Membership expiration in {0} days</b>").format(days))
         @param: block_number: The number of the block mined
         '''
         logging.debug("Refresh block")
+        self.status_info.clear()
+        try:
+            person = Person.lookup(self.app.current_account.pubkey, self.community)
+            expiration_time = person.membership_expiration_time(self.community)
+            sig_validity = self.community.parameters['sigValidity']
+            warning_expiration_time = int(sig_validity / 3)
+            will_expire_soon = (expiration_time < warning_expiration_time)
+
+            logging.debug("Try")
+            if will_expire_soon:
+                days = int(expiration_time / 3600 / 24)
+                if days > 0:
+                    self.status_info.append('membership_expire_soon')
+                    toast.display(self.tr("Membership expiration"),
+                                  self.tr("<b>Warning : Membership expiration in {0} days</b>").format(days))
+            certifiers_of = person.unique_valid_certifiers_of(self.community)
+            if len(certifiers_of) < self.community.parameters['sigQty']:
+                self.status_info.append('warning_certifications')
+                toast.display(self.tr("Certifications number"),
+                              self.tr("<b>Warning : You are certified by only {0} persons, need {1}</b>").format(len(certifiers_of),
+                                                                                                                     self.community.parameters['sigQty']))
+
+        except MembershipNotFoundError as e:
+            pass
+
         self.tab_history.start_progress()
         self.app.monitor.blockchain_watcher(self.community).thread().start()
         self.app.monitor.persons_watcher(self.community).thread().start()
@@ -175,7 +187,11 @@ self.tr("<b>Warning : Membership expiration in {0} days</b>").format(days))
             icon = '<img src=":/icons/weak_connect" width="12" height="12"/>'
         else:
             icon = '<img src=":/icons/disconnected" width="12" height="12"/>'
-        self.status_label.setText("{0}{1}".format(icon, text))
+        status_infotext = " - ".join([self.status_infotext[info] for info in self.status_info])
+        label_text = "{0}{1}".format(icon, text)
+        if status_infotext != "":
+            label_text += " - {0}".format(status_infotext)
+        self.status_label.setText("{0}{1}{2}".format(icon, text, status_infotext))
 
     @pyqtSlot(list)
     def notify_transfers(self, transfers_list):
