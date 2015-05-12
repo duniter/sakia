@@ -4,7 +4,7 @@ Created on 18 mars 2015
 @author: inso
 '''
 
-from PyQt5.QtCore import QThread, Qt
+from PyQt5.QtCore import QThread, Qt, QObject
 from .blockchain import BlockchainWatcher
 from .persons import PersonsWatcher
 import logging
@@ -15,15 +15,22 @@ class Monitor(object):
     The monitor is managing watchers
     '''
 
+    # Dirty hack to avoid GC on monitors
+    # GC was causing random crashes
+    # We will get rid of QThreads asap
+    ___dirty_monitors = []
+
     def __init__(self, account):
         '''
         Constructor
         '''
+        super().__init__()
         self.account = account
         self.threads_pool = []
         self._blockchain_watchers = {}
         self._network_watchers = {}
         self._persons_watchers = {}
+        Monitor.___dirty_monitors.append(self)
 
     def blockchain_watcher(self, community):
         return self._blockchain_watchers[community.name]
