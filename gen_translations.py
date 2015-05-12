@@ -3,10 +3,13 @@ import sys, os, multiprocessing, subprocess, time
 gen_resources = os.path.abspath(os.path.join(os.path.dirname(__file__), 'src'))
 ts = os.path.abspath(os.path.join(os.path.dirname(__file__), 'res', 'i18n', 'ts'))
 qm = os.path.abspath(os.path.join(os.path.dirname(__file__), 'res', 'i18n', 'qm'))
+if not os.path.exists(qm):
+    os.mkdir(qm)
 
 translations = []
 qm_files = []
 qm_shortnames = []
+
 
 def prepare_qm():
     for root, dirs, files in os.walk(ts):
@@ -23,8 +26,10 @@ def prepare_qm():
             print(os.path.join(root, f))
 
     for (ts_file, qm_file) in translations:
-        subprocess.call(["lrelease-qt5", ts_file, "-qm", qm_file])
+        # avoid conflict with qt4 lrelease by running qtchooser directly
+        subprocess.call(["qtchooser", "-run-tool=lrelease", "-qt=5", ts_file, "-qm", qm_file])
         print(ts_file + " >> " + qm_file)
+
 
 def build_resources():
     files = ""
