@@ -8,7 +8,7 @@ import logging
 from ..tools.exceptions import NoPeerAvailable
 from ..core.net.node import Node
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel
-from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QColor, QFont
 
 
 class NetworkFilterProxyModel(QSortFilterProxyModel):
@@ -17,7 +17,7 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
         self.community = None
 
     def columnCount(self, parent):
-        return self.sourceModel().columnCount(None)
+        return self.sourceModel().columnCount(None) - 1
 
     def setSourceModel(self, sourceModel):
         self.community = sourceModel.community
@@ -48,19 +48,28 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
 
     def data(self, index, role):
         source_index = self.mapToSource(index)
+        source_model = self.sourceModel()
         if not source_index.isValid():
             return QVariant()
-        source_data = self.sourceModel().data(source_index, role)
+        source_data = source_model.data(source_index, role)
         if index.column() == self.sourceModel().column_types.index('is_member') \
                 and role == Qt.DisplayRole:
             value = {True: 'yes', False: 'no', None: 'offline'}
             return value[source_data]
 
         if role == Qt.TextAlignmentRole:
-            if source_index.column() == self.sourceModel().column_types.index('address') or source_index.column() == self.sourceModel().column_types.index('current_block'):
+            if source_index.column() == source_model.column_types.index('address') or source_index.column() == self.sourceModel().column_types.index('current_block'):
                 return Qt.AlignRight | Qt.AlignVCenter
-            if source_index.column() == self.sourceModel().column_types.index('is_member'):
+            if source_index.column() == source_model.column_types.index('is_member'):
                 return Qt.AlignCenter
+
+        if role == Qt.FontRole:
+            is_root_col = source_model.column_types.index('is_root')
+            index_root_col = source_model.index(source_index.row(), is_root_col)
+            if source_model.data(index_root_col, Qt.DisplayRole):
+                font = QFont()
+                font.setBold(True)
+                return font
 
         return source_data
 
@@ -82,7 +91,8 @@ class NetworkTableModel(QAbstractTableModel):
             'current_block',
             'uid',
             'is_member',
-            'pubkey'
+            'pubkey',
+            'is_root'
         )
         self.node_colors = {
             Node.ONLINE: QColor('#99ff99'),
@@ -134,7 +144,10 @@ class NetworkTableModel(QAbstractTableModel):
             address = node.endpoint.ipv6
         port = node.endpoint.port
 
-        return address, port, node.block, node.uid, is_member, node.pubkey
+        is_root = self.community.network.is_root_node(node)
+
+        return (address, port, node.block, node.uid,
+                is_member, node.pubkey, is_root)
 
     def data(self, index, role):
         row = index.row()

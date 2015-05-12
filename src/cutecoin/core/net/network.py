@@ -182,6 +182,12 @@ class Network(Watcher):
         '''
         self._root_nodes.pop(index)
 
+    def is_root_node(self, node):
+        '''
+        Check if this node is in the root nodes
+        '''
+        return node in self._root_nodes
+
     def moveToThread(self, thread):
         for n in self.nodes:
             n.moveToThread(thread)
