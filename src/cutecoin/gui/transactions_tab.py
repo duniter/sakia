@@ -150,13 +150,13 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
                     add_as_contact.setData(person)
                     menu.addAction(add_as_contact)
 
-                send_money = QAction(self.tr("Send money to"), self)
+                send_money = QAction(self.tr("Send money"), self)
                 send_money.triggered.connect(self.currency_tab.tab_community.menu_send_money)
                 send_money.setData(person)
                 menu.addAction(send_money)
 
                 if isinstance(person, Person):
-                    view_wot = QAction(self.tr("View in WoT"), self)
+                    view_wot = QAction(self.tr("View in Web of Trust"), self)
                     view_wot.triggered.connect(self.currency_tab.tab_community.view_wot)
                     view_wot.setData(person)
                     menu.addAction(view_wot)

@@ -13,7 +13,7 @@ from ucoinpy.key import SigningKey
 import logging
 import time
 
-from PyQt5.QtCore import QObject, pyqtSignal, QCoreApplication, QT_TR_NOOP
+from PyQt5.QtCore import QObject, pyqtSignal, QCoreApplication, QT_TRANSLATE_NOOP
 
 from .wallet import Wallet
 from .community import Community
@@ -53,15 +53,15 @@ class Account(QObject):
     '''
     referentials = {'Units': (quantitative, '{0}',
                               quantitative, '{0}'),
-                    'UD': (relative, QT_TR_NOOP('ud {0}'),
-                           relative, QT_TR_NOOP('ud {0}')),
+                    'UD': (relative, QT_TRANSLATE_NOOP('Account', 'ud {0}'),
+                           relative, QT_TRANSLATE_NOOP('Account', 'ud {0}')),
                     'Quant Z-sum': (quantitative_zerosum,
-                                    QT_TR_NOOP('q0 {0}'),
+                                    QT_TRANSLATE_NOOP('Account', 'q0 {0}'),
                                     quantitative, '{0}'),
                     'Relat Z-sum': (relative_zerosum,
-                                    QT_TR_NOOP('r0 {0}'),
+                                    QT_TRANSLATE_NOOP('Account', 'r0 {0}'),
                                     relative,
-                                    QT_TR_NOOP('ud {0}'))
+                                    QT_TRANSLATE_NOOP('Account', 'ud {0}'))
                     }
 
     loading_progressed = pyqtSignal(int, int)
@@ -205,10 +205,13 @@ class Account(QObject):
         return Account.referentials[self.referential][2]
 
     def ref_name(self, currency):
-        return Account.referentials[self.referential][1].format(currency)
+        text = QCoreApplication.translate('Account',
+                                          Account.referentials[self.referential][1])
+        return text.format(currency)
 
     def diff_ref_name(self, currency):
-        return Account.referentials[self.referential][3].format(currency)
+        text = QCoreApplication.translate('Account', Account.referentials[self.referential][3])
+        return text.format(currency)
 
     def set_walletpool_size(self, size, password):
         '''

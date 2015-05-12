@@ -3,7 +3,9 @@
 import math
 from PyQt5.QtGui import QPainter, QBrush, QPen, QPolygonF, QColor, QRadialGradient, \
     QPainterPath, QMouseEvent, QWheelEvent, QTransform, QCursor
-from PyQt5.QtCore import Qt, QRectF, QLineF, QPoint, QPointF, QSizeF, qFuzzyCompare, pyqtSignal
+from PyQt5.QtCore import Qt, QRectF, QLineF, QPoint, QPointF, QSizeF, \
+                        qFuzzyCompare, pyqtSignal, QT_TRANSLATE_NOOP, \
+                        QCoreApplication
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsEllipseItem, \
     QGraphicsSimpleTextItem, QGraphicsLineItem, QMenu, QAction, QGraphicsSceneHoverEvent, \
     QGraphicsSceneContextMenuEvent
@@ -282,19 +284,23 @@ class Node(QGraphicsEllipseItem):
         # create node context menus
         self.menu = QMenu()
         # action show member
-        self.action_show_member = QAction('Informations', self.scene())
+        QT_TRANSLATE_NOOP('WoT.Node', 'Informations')
+        self.action_show_member = QAction(QCoreApplication.translate('WoT.Node', 'Informations'), self.scene())
         self.menu.addAction(self.action_show_member)
         self.action_show_member.triggered.connect(self.member_action)
         # action add identity as contact
-        self.action_contact = QAction('Add as contact', self.scene())
+        QT_TRANSLATE_NOOP('WoT.Node', 'Add as contact')
+        self.action_contact = QAction(QCoreApplication.translate('WoT.Node', 'Add as contact'), self.scene())
         self.menu.addAction(self.action_contact)
         self.action_contact.triggered.connect(self.contact_action)
         # action transaction toward identity
-        self.action_transaction = QAction('Send money', self.scene())
+        QT_TRANSLATE_NOOP('WoT.Node', 'Send money')
+        self.action_transaction = QAction(QCoreApplication.translate('WoT.Node', 'Send money'), self.scene())
         self.menu.addAction(self.action_transaction)
         self.action_transaction.triggered.connect(self.transaction_action)
         # action sign identity
-        self.action_sign = QAction('Certify identity', self.scene())
+        QT_TRANSLATE_NOOP('WoT.Node', 'Certify identity')
+        self.action_sign = QAction(QCoreApplication.translate('WoT.Node', 'Certify identity'), self.scene())
         self.menu.addAction(self.action_sign)
         self.action_sign.triggered.connect(self.sign_action)
         # run menu

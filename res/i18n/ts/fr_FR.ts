@@ -6,17 +6,32 @@
     <message>
         <location filename="../../../src/cutecoin/core/account.py" line="61"/>
         <source>ud {0}</source>
-        <translation>du {0}</translation>
+        <translation type="obsolete">du {0}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/core/account.py" line="58"/>
-        <source>q0 {0}</source>
-        <translation></translation>
+        <location filename="../../../src/cutecoin/gui/views/wot.py" line="285"/>
+        <source>Informations</source>
+        <translation type="obsolete">Informations</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/core/account.py" line="61"/>
-        <source>r0 {0}</source>
-        <translation></translation>
+        <location filename="../../../src/cutecoin/gui/views/wot.py" line="289"/>
+        <source>Add as contact</source>
+        <translation type="obsolete">Ajouter comme contact</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/views/wot.py" line="293"/>
+        <source>Send money</source>
+        <translation type="obsolete">Envoyer de l&apos;argent</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="310"/>
+        <source>Renew membership</source>
+        <translation type="obsolete">Renouveller le statut de membre</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/views/wot.py" line="297"/>
+        <source>Certify identity</source>
+        <translation type="obsolete">Certifier cette identité</translation>
     </message>
 </context>
 <context>
@@ -29,6 +44,24 @@
     <message>
         <location filename="../../ui/about.ui" line="22"/>
         <source>TextLabel</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>Account</name>
+    <message>
+        <location filename="../../../src/cutecoin/core/account.py" line="61"/>
+        <source>ud {0}</source>
+        <translation>du {0}</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/core/account.py" line="58"/>
+        <source>q0 {0}</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/core/account.py" line="61"/>
+        <source>r0 {0}</source>
         <translation></translation>
     </message>
 </context>
@@ -162,6 +195,16 @@
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/certification.py" line="76"/>
+        <source>Ok</source>
+        <translation>Ok</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/certification.py" line="79"/>
+        <source>Not a member</source>
+        <translation>Non-membre</translation>
+    </message>
 </context>
 <context>
     <name>CommunityConfigurationDialog</name>
@@ -229,7 +272,7 @@
         <translation>Qualification : </translation>
     </message>
     <message>
-        <location filename="../../ui/community_tab.ui" line="132"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="310"/>
         <source>Renew membership</source>
         <translation>Renouveller le statut de membre</translation>
     </message>
@@ -345,6 +388,36 @@ Le processus pour rejoindre la communauté devrait être refait à zéro.</trans
         <location filename="../../../src/cutecoin/gui/community_tab.py" line="58"/>
         <source>Web of Trust</source>
         <translation>Toile de Confiance</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="80"/>
+        <source>Informations</source>
+        <translation>Informations</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="84"/>
+        <source>Add as contact</source>
+        <translation>Ajouter comme contact</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="88"/>
+        <source>Send money</source>
+        <translation>Envoyer de l&apos;argent</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="92"/>
+        <source>Certify identity</source>
+        <translation>Certifier cette identité</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="96"/>
+        <source>View in Web of Trust</source>
+        <translation>Voir dans la Toile de Confiance</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="316"/>
+        <source>Send membership demand</source>
+        <translation>Envoyer une demande de membre</translation>
     </message>
 </context>
 <context>
@@ -793,7 +866,7 @@ Le processus pour rejoindre la communauté devrait être refait à zéro.</trans
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="116"/>
         <source>Universal Dividend (formula)</source>
-        <translation>Dividend Universel (formule)</translation>
+        <translation type="unfinished">Dividende Universel (formule)</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="116"/>
@@ -1215,6 +1288,29 @@ Le processus pour rejoindre la communauté devrait être refait à zéro.</trans
     </message>
 </context>
 <context>
+    <name>Node</name>
+    <message>
+        <location filename="../../../src/cutecoin/gui/views/wot.py" line="285"/>
+        <source>Informations</source>
+        <translation type="obsolete">Informations</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/views/wot.py" line="289"/>
+        <source>Add as contact</source>
+        <translation type="obsolete">Ajouter comme contact</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/views/wot.py" line="293"/>
+        <source>Send money</source>
+        <translation type="obsolete">Envoyer de l&apos;argent</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/views/wot.py" line="297"/>
+        <source>Certify identity</source>
+        <translation type="obsolete">Certifier cette identité</translation>
+    </message>
+</context>
+<context>
     <name>PasswordAskerDialog</name>
     <message>
         <location filename="../../ui/password_asker.ui" line="14"/>
@@ -1418,12 +1514,12 @@ Souhaitez-vous publier votre clé publique ?</translation>
     <message>
         <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="153"/>
         <source>Send money to</source>
-        <translation>Envoyer de la monnaie à</translation>
+        <translation type="obsolete">Envoyer de la monnaie à</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="159"/>
         <source>View in WoT</source>
-        <translation>Voir dans la WoT</translation>
+        <translation type="obsolete">Voir dans la WoT</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="164"/>
@@ -1456,6 +1552,16 @@ Le transfer de monnaie sera annulé et non envoyé.</translation>
         <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="110"/>
         <source>&lt;b&gt;Balance&lt;/b&gt; {:} {:}</source>
         <translation>&lt;b&gt;Balance&lt;/b&gt; {:} {:}</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="153"/>
+        <source>Send money</source>
+        <translation>Envoyer de l&apos;argent</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="159"/>
+        <source>View in Web of Trust</source>
+        <translation>Voir dans la Toile de Confiance</translation>
     </message>
 </context>
 <context>
@@ -1697,6 +1803,29 @@ Veuillez rééssayer plus tard</translation>
         <location filename="../../../src/cutecoin/models/wallets.py" line="67"/>
         <source>Pubkey</source>
         <translation>Clé publique</translation>
+    </message>
+</context>
+<context>
+    <name>WoT.Node</name>
+    <message>
+        <location filename="../../../src/cutecoin/gui/views/wot.py" line="288"/>
+        <source>Informations</source>
+        <translation>Informations</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/views/wot.py" line="293"/>
+        <source>Add as contact</source>
+        <translation>Ajouter comme contact</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/views/wot.py" line="298"/>
+        <source>Send money</source>
+        <translation>Envoyer de l&apos;argent</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/views/wot.py" line="303"/>
+        <source>Certify identity</source>
+        <translation>Certifier cette identité</translation>
     </message>
 </context>
 <context>

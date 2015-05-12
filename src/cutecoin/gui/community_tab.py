@@ -77,23 +77,23 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             identity = Person.lookup(pubkey, self.community)
             menu = QMenu(self)
 
-            informations = QAction("Informations", self)
+            informations = QAction(self.tr("Informations"), self)
             informations.triggered.connect(self.menu_informations)
             informations.setData(identity)
 
-            add_contact = QAction("Add as contact", self)
+            add_contact = QAction(self.tr("Add as contact"), self)
             add_contact.triggered.connect(self.menu_add_as_contact)
             add_contact.setData(identity)
 
-            send_money = QAction("Send money", self)
+            send_money = QAction(self.tr("Send money"), self)
             send_money.triggered.connect(self.menu_send_money)
             send_money.setData(identity)
 
-            certify = QAction("Certify identity", self)
+            certify = QAction(self.tr("Certify identity"), self)
             certify.triggered.connect(self.menu_certify_member)
             certify.setData(identity)
 
-            view_wot = QAction("View in WoT", self)
+            view_wot = QAction(self.tr("View in Web of Trust"), self)
             view_wot.triggered.connect(self.view_wot)
             view_wot.setData(identity)
 
@@ -307,13 +307,13 @@ Publishing your UID cannot be canceled.""")
             if self.account.published_uid(self.community):
                 logging.debug("UID Published")
                 if self.account.member_of(self.community):
-                    self.button_membership.setText("Renew membership")
+                    self.button_membership.setText(self.tr("Renew membership"))
                     self.button_membership.show()
                     self.button_publish_uid.hide()
                     self.button_leaving.show()
                 else:
                     logging.debug("Not a member")
-                    self.button_membership.setText("Send membership demand")
+                    self.button_membership.setText(self.tr("Send membership demand"))
                     self.button_membership.show()
                     self.button_leaving.hide()
                     self.button_publish_uid.hide()
