@@ -188,6 +188,7 @@ class Account(QObject):
 
         for w in self.wallets:
             w.refresh_progressed.connect(progressing)
+            QCoreApplication.processEvents()
             for c in self.communities:
                 w.init_cache(c)
                 loaded_wallets = loaded_wallets + 1
