@@ -1,0 +1,50 @@
+@startuml
+
+QModel -->o "Core Component" : Connect to data_changed()
+QModel -> "Core Component" : Data access
+activate "Core Component"
+"Core Component" -> Community : Request data
+Community -> Cache : Request cache
+ref over Cache
+Data is obsolete
+(new block mined
+since last caching)
+end ref
+Cache -> QNetworkManager : HTTP GET
+create QNetworkReply
+QNetworkManager -> QNetworkReply : Instantiate
+Cache <- QNetworkManager : QNetworkReply
+create ReceiverSlot
+Cache -> ReceiverSlot : Instantiate Slot
+QNetworkReply o<-- ReceiverSlot : Connect to finished()
+Community <- Cache : Cached data
+"Core Component" <- Community : Cached data
+"Core Component" -> "Core Component" : Compute data
+QModel <- "Core Component" : Data
+deactivate "Core Component"
+
+...Network request is processed...
+
+ReceiverSlot <-- QNetworkReply  : finished()
+activate ReceiverSlot
+ReceiverSlot -> Cache : Update cache data
+ReceiverSlot -> "Core Component" : emit data_changed()
+deactivate ReceiverSlot
+destroy ReceiverSlot
+destroy QNetworkReply
+|||
+QModel <-- "Core Component" : data_changed()
+QModel -> "Core Component" : Data access
+activate "Core Component"
+ref over "Core Component", Community
+Community is requested again,
+and last cached data are returned
+No new block mined, so no HTTP GET
+initialized between cache
+and QNetworkManager
+end ref
+QModel <- "Core Component" : Data
+deactivate "Core Component"
+
+
+@enduml
