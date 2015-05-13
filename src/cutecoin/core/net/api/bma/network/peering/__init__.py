@@ -32,7 +32,7 @@ class Peers(Base):
     def __get__(self, **kwargs):
         """creates a generator with one peering entry per iteration."""
 
-        return self.requests_get('/peers')
+        return self.requests_get('/peers', **kwargs)
 
     def __post__(self, **kwargs):
         assert 'entry' in kwargs

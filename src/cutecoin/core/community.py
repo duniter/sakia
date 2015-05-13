@@ -9,8 +9,8 @@ from PyQt5.QtNetwork import QNetworkReply
 from ucoinpy.api import bma
 from ucoinpy.documents.block import Block
 from ..tools.exceptions import NoPeerAvailable
-from .net.network import Network
-from .net.api import qtbma
+from .net.discover.network import Network
+from cutecoin.core.net.api import bma as qtbma
 import logging
 import inspect
 import hashlib
@@ -149,17 +149,25 @@ class Cache(QObject):
                          str(tuple(frozenset(sorted(get_args.keys())))),
                          str(tuple(frozenset(sorted(get_args.values())))))
             strdata = bytes(reply.readAll()).decode('utf-8')
-            logging.debug("Data in reply : {0}".format(strdata))
+            #logging.debug("Data in reply : {0}".format(strdata))
 
             if cache_key not in self.data:
                 self.data[cache_key] = {}
-            self.data[cache_key]['value'] = json.loads(strdata)
 
             if 'metadata' not in self.data[cache_key]:
                 self.data[cache_key]['metadata'] = {}
             self.data[cache_key]['metadata']['block'] = self.latest_block
 
-            caller.data_changed.emit()
+            change = False
+            if 'value' in self.data[cache_key]:
+                if self.data[cache_key]['value'] != json.loads(strdata):
+                    change = True
+            else:
+                change = True
+
+            if change == True:
+                self.data[cache_key]['value'] = json.loads(strdata)
+                caller.data_changed.emit(request)
         else:
             logging.debug("Error in reply : {0}".format(reply.error()))
             self.community.qtrequest(caller, request, req_args, get_args)
@@ -173,7 +181,7 @@ class Community(QObject):
     .. warning:: The currency name is supposed to be unique in cutecoin
     but nothing exists in ucoin to assert that a currency name is unique.
     '''
-    data_changed = pyqtSignal()
+    data_changed = pyqtSignal(int)
 
     def __init__(self, currency, network):
         '''
@@ -495,7 +503,7 @@ class Community(QObject):
         '''
         Start a request to the community.
 
-        :param request: A qtbma request class calling for data
+        :param request: A bma request class calling for data
         :param caller: The components
         :param req_args: Arguments to pass to the request constructor
         :param get_args: Arguments to pass to the request __get__ method

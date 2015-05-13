@@ -21,6 +21,7 @@ from . import toast
 from ..tools.exceptions import PersonNotFoundError, NoPeerAvailable
 from ..core.person import Person
 from ucoinpy.api import bma
+from ..core.net.api import bma as qtbma
 
 
 class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
@@ -265,9 +266,10 @@ Publishing your UID cannot be canceled.""")
         self.edit_textsearch.clear()
         self.refresh(persons)
 
-    def handle_change(self):
-        if self._last_search == 'members':
-            self.search_members()
+    def handle_change(self, origin):
+        if origin == qtbma.wot.Members:
+            if self._last_search == 'members':
+                self.search_members()
 
     def search_members(self):
         """

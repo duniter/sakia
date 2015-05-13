@@ -184,7 +184,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.busybar.hide()
         QApplication.setOverrideCursor(Qt.ArrowCursor)
         self.app.disconnect()
-        self.app.monitor.start_network_watchers()
         QApplication.processEvents()
 
     def open_transfer_money_dialog(self):

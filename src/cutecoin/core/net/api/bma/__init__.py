@@ -90,12 +90,13 @@ class API(object):
         Arguments:
         - `path`: the request path
         """
-        query = QUrlQuery(self.reverse_url(path))
+        query = QUrlQuery()
         for k,v in kwargs.items():
             query.addQueryItem(k, v);
         url = QUrl(self.reverse_url(path))
         url.setQuery(query)
         request = QNetworkRequest(url)
+        logging.debug(url.toString())
         reply = self.conn_handler.network_manager.get(request)
 
         return reply

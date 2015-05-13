@@ -102,11 +102,11 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                     self.tr("Informations"))
 
             # fix bug refresh_nodes launch on destroyed NetworkTabWidget
-            logging.debug('Disconnect community.network.nodes_changed')
-            try:
-                self.community.network.nodes_changed.disconnect()
-            except TypeError:
-                logging.debug('No signals on community.network.nodes_changed')
+            #logging.debug('Disconnect community.network.nodes_changed')
+            #try:
+            #    self.community.network.nodes_changed.disconnect()
+            #except TypeError:
+            #    logging.debug('No signals on community.network.nodes_changed')
 
             self.tab_network = NetworkTabWidget(self.community)
             self.tabs_account.addTab(self.tab_network,
@@ -213,6 +213,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             self.tab_wallets.refresh()
 
     def showEvent(self, event):
+        self.community.network.discover_network()
         self.refresh_status()
 
     def referential_changed(self):

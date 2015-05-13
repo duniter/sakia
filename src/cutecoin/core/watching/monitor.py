@@ -28,7 +28,6 @@ class Monitor(object):
         self.account = account
         self.threads_pool = []
         self._blockchain_watchers = {}
-        self._network_watchers = {}
         self._persons_watchers = {}
         Monitor.___dirty_monitors.append(self)
 
@@ -59,13 +58,6 @@ class Monitor(object):
             self.connect_watcher_to_thread(bc_watcher)
             self._blockchain_watchers[c.name] = bc_watcher
 
-            self.connect_watcher_to_thread(c.network)
-            self._network_watchers[c.name] = c.network
-
-    def start_network_watchers(self):
-        for watcher in self._network_watchers.values():
-            watcher.thread().start()
-
     def stop_watching(self):
         for watcher in self._persons_watchers.values():
             watcher.stop()
@@ -79,13 +71,6 @@ class Monitor(object):
             watcher.deleteLater()
             watcher.thread().deleteLater()
 
-        for watcher in self._network_watchers.values():
-            watcher.stop()
-            self.threads_pool.remove(watcher.thread())
-            watcher.deleteLater()
-            watcher.thread().deleteLater()
-
         self.threads_pool = []
         self._blockchain_watchers = {}
-        self._network_watchers = {}
         self._persons_watchers = {}

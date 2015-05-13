@@ -6,7 +6,7 @@ Created on 5 févr. 2014
 
 import logging
 from ..tools.exceptions import NoPeerAvailable
-from ..core.net.node import Node
+from ..core.net.discover.node import Node
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel
 from PyQt5.QtGui import QColor, QFont
 
