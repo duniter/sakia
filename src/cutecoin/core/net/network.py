@@ -21,7 +21,7 @@ class Network(Watcher):
     new_block_mined = pyqtSignal(int)
     stopped_perpetual_crawling = pyqtSignal()
 
-    def __init__(self, currency, nodes):
+    def __init__(self, network_manager, currency, nodes):
         '''
         Constructor of a network
 
@@ -36,10 +36,11 @@ class Network(Watcher):
         self.nodes = nodes
         self._must_crawl = False
         self._is_perpetual = False
+        self.network_manager = network_manager
         self._block_found = self.latest_block
 
     @classmethod
-    def create(cls, node):
+    def create(cls, network_manager, node):
         '''
         Create a new network with one knew node
         Crawls the nodes from the first node to build the
@@ -48,7 +49,7 @@ class Network(Watcher):
         :param node: The first knew node of the network
         '''
         nodes = [node]
-        network = cls(node.currency, nodes)
+        network = cls(network_manager, node.currency, nodes)
         return network
 
     def merge_with_json(self, json_data):
@@ -59,7 +60,7 @@ class Network(Watcher):
         :param dict json_data: Nodes in json format
         '''
         for data in json_data:
-            node = Node.from_json(self.currency, data)
+            node = Node.from_json(self.network_manager, self.currency, data)
             if node.pubkey not in [n.pubkey for n in self.nodes]:
                 self.add_node(node)
                 logging.debug("Loading : {:}".format(data['pubkey']))
@@ -71,7 +72,7 @@ class Network(Watcher):
                     other_node.state = node.state
 
     @classmethod
-    def from_json(cls, currency, json_data):
+    def from_json(cls, network_manager, currency, json_data):
         '''
         Load a network from a configured community
 
@@ -80,9 +81,9 @@ class Network(Watcher):
         '''
         nodes = []
         for data in json_data:
-            node = Node.from_json(currency, data)
+            node = Node.from_json(network_manager, currency, data)
             nodes.append(node)
-        network = cls(currency, nodes)
+        network = cls(network_manager, currency, nodes)
         return network
 
     def jsonify(self):

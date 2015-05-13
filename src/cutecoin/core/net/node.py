@@ -35,12 +35,13 @@ class Node(QObject):
 
     changed = pyqtSignal()
 
-    def __init__(self, currency, endpoints, uid, pubkey, block,
+    def __init__(self, network_manager, currency, endpoints, uid, pubkey, block,
                  state, last_change):
         '''
         Constructor
         '''
         super().__init__()
+        self.network_manager = network_manager
         self._endpoints = endpoints
         self._uid = uid
         self._pubkey = pubkey
@@ -51,7 +52,7 @@ class Node(QObject):
         self._last_change = last_change
 
     @classmethod
-    def from_address(cls, currency, address, port):
+    def from_address(cls, network_manager, currency, address, port):
         '''
         Factory method to get a node from a given address
 
@@ -69,13 +70,14 @@ class Node(QObject):
             if peer.currency != currency:
                 raise InvalidNodeCurrency(peer.currency, currency)
 
-        node = cls(peer.currency, peer.endpoints, "", peer.pubkey, 0,
+        node = cls(network_manager, peer.currency, peer.endpoints,
+                   "", peer.pubkey, 0,
                    Node.ONLINE, time.time())
         logging.debug("Node from address : {:}".format(str(node)))
         return node
 
     @classmethod
-    def from_peer(cls, currency, peer):
+    def from_peer(cls, network_manager, currency, peer):
         '''
         Factory method to get a node from a peer document.
 
@@ -87,13 +89,13 @@ class Node(QObject):
             if peer.currency != currency:
                 raise InvalidNodeCurrency(peer.currency, currency)
 
-        node = cls(peer.currency, peer.endpoints, "", "", 0,
+        node = cls(network_manager, peer.currency, peer.endpoints, "", "", 0,
                    Node.ONLINE, time.time())
         logging.debug("Node from peer : {:}".format(str(node)))
         return node
 
     @classmethod
-    def from_json(cls, currency, data):
+    def from_json(cls, network_manager, currency, data):
         endpoints = []
         uid = ""
         pubkey = ""
@@ -124,7 +126,8 @@ class Node(QObject):
         else:
             logging.debug("Error : no state in node")
 
-        node = cls(currency, endpoints, uid, pubkey, block,
+        node = cls(network_manager, currency, endpoints,
+                   uid, pubkey, block,
                    state, last_change)
         logging.debug("Node from json : {:}".format(str(node)))
         return node

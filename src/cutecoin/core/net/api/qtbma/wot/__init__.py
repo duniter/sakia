@@ -22,8 +22,8 @@ logger = logging.getLogger("ucoin/wot")
 
 
 class WOT(API):
-    def __init__(self, connection_handler, module='wot'):
-        super(WOT, self).__init__(connection_handler, module)
+    def __init__(self, conn_handler, module='wot'):
+        super(WOT, self).__init__(conn_handler, module)
 
 
 class Add(WOT):
@@ -40,8 +40,8 @@ class Add(WOT):
 class Lookup(WOT):
     """GET Public key data."""
 
-    def __init__(self, connection_handler, search, module='wot'):
-        super(WOT, self).__init__(connection_handler, module)
+    def __init__(self, conn_handler, search, module='wot'):
+        super(WOT, self).__init__(conn_handler, module)
 
         self.search = search
 
@@ -54,8 +54,8 @@ class Lookup(WOT):
 class CertifiersOf(WOT):
     """GET Certification data over a member."""
 
-    def __init__(self, connection_handler, search, module='wot'):
-        super(WOT, self).__init__(connection_handler, module)
+    def __init__(self, conn_handler, search, module='wot'):
+        super(WOT, self).__init__(conn_handler, module)
 
         self.search = search
 
@@ -68,8 +68,8 @@ class CertifiersOf(WOT):
 class CertifiedBy(WOT):
     """GET Certification data from a member."""
 
-    def __init__(self, connection_handler, search, module='wot'):
-        super(WOT, self).__init__(connection_handler, module)
+    def __init__(self, conn_handler, search, module='wot'):
+        super(WOT, self).__init__(conn_handler, module)
 
         self.search = search
 
@@ -82,8 +82,8 @@ class CertifiedBy(WOT):
 class Members(WOT):
     """GET List all current members of the Web of Trust."""
 
-    def __init__(self, connection_handler, module='wot'):
-        super(WOT, self).__init__(connection_handler, module)
+    def __init__(self, conn_handler, module='wot'):
+        super(WOT, self).__init__(conn_handler, module)
 
     def __get__(self, **kwargs):
         return self.requests_get('/members', **kwargs)

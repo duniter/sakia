@@ -48,7 +48,6 @@ class Application(QObject):
         self.available_version = __version__
         config.parse_arguments(argv)
         self._network_manager = QNetworkAccessManager()
-        self._network_manager.finished.connect(self.read_available_version)
         self.get_last_version()
         self.preferences = {'account': "",
                             'lang': 'en_GB',
@@ -173,7 +172,7 @@ class Application(QObject):
                                     account_name, 'properties')
         with open(account_path, 'r') as json_data:
             data = json.load(json_data)
-            account = Account.load(data)
+            account = Account.load(self._network_manager, data)
             self.load_cache(account)
             self.accounts[account_name] = account
 
@@ -396,10 +395,12 @@ class Application(QObject):
     def get_last_version(self):
         url = QUrl("https://api.github.com/repos/ucoin-io/cutecoin/releases")
         request = QNetworkRequest(url)
-        self._network_manager.get(request)
+        reply = self._network_manager.get(request)
+        reply.finished.connect(self.read_available_version)
 
-    @pyqtSlot(QNetworkReply)
-    def read_available_version(self, reply):
+    @pyqtSlot()
+    def read_available_version(self):
+        reply = self.sender()
         latest = None
         releases = reply.readAll().data().decode('utf-8')
         logging.debug(releases)

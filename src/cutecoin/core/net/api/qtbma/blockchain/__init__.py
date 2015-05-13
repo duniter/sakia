@@ -22,8 +22,8 @@ logger = logging.getLogger("ucoin/blockchain")
 
 
 class Blockchain(API):
-    def __init__(self, connection_handler, module='blockchain'):
-        super(Blockchain, self).__init__(connection_handler, module)
+    def __init__(self, conn_handler, module='blockchain'):
+        super(Blockchain, self).__init__(conn_handler, module)
 
 
 class Parameters(Blockchain):
@@ -35,8 +35,8 @@ class Parameters(Blockchain):
 
 class Membership(Blockchain):
     """GET/POST a Membership document."""
-    def __init__(self, connection_handler, search=None):
-        super().__init__(connection_handler)
+    def __init__(self, conn_handler, search=None):
+        super().__init__(conn_handler)
         self.search = search
 
     def __post__(self, **kwargs):
@@ -52,7 +52,7 @@ class Membership(Blockchain):
 class Block(Blockchain):
     """GET/POST a block from/to the blockchain."""
 
-    def __init__(self, connection_handler, number=None):
+    def __init__(self, conn_handler, number=None):
         """
         Use the number parameter in order to select a block number.
 
@@ -60,7 +60,7 @@ class Block(Blockchain):
         - `number`: block number to select
         """
 
-        super(Block, self).__init__(connection_handler)
+        super(Block, self).__init__(conn_handler)
 
         self.number = number
 
@@ -85,7 +85,7 @@ class Current(Blockchain):
 class Hardship(Blockchain):
     """GET hardship level for given member's fingerprint for writing next block."""
 
-    def __init__(self, connection_handler, fingerprint):
+    def __init__(self, conn_handler, fingerprint):
         """
         Use the number parameter in order to select a block number.
 
@@ -93,7 +93,7 @@ class Hardship(Blockchain):
         - `fingerprint`: member fingerprint
         """
 
-        super(Hardship, self).__init__(connection_handler)
+        super(Hardship, self).__init__(conn_handler)
 
         self.fingerprint = fingerprint
 

@@ -22,8 +22,8 @@ logger = logging.getLogger("ucoin/network")
 
 
 class Network(API):
-    def __init__(self, connection_handler, module='network'):
-        super(Network, self).__init__(connection_handler, module)
+    def __init__(self, conn_handler, module='network'):
+        super(Network, self).__init__(conn_handler, module)
 
 
 class Peering(Network):

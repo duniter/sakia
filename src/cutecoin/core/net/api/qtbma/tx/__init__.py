@@ -22,8 +22,8 @@ logger = logging.getLogger("ucoin/tx")
 
 
 class Tx(API):
-    def __init__(self, connection_handler, module='tx'):
-        super(Tx, self).__init__(connection_handler, module)
+    def __init__(self, conn_handler, module='tx'):
+        super(Tx, self).__init__(conn_handler, module)
 
 
 class Process(Tx):
@@ -37,8 +37,8 @@ class Process(Tx):
 
 class Sources(Tx):
     """Get transaction sources."""
-    def __init__(self, connection_handler, pubkey, module='tx'):
-        super(Tx, self).__init__(connection_handler, module)
+    def __init__(self, conn_handler, pubkey, module='tx'):
+        super(Tx, self).__init__(conn_handler, module)
         self.pubkey = pubkey
 
     def __get__(self, **kwargs):

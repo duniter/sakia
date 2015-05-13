@@ -4,30 +4,43 @@ Created on 1 févr. 2014
 @author: inso
 '''
 
-from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
+from PyQt5.QtNetwork import QNetworkReply
 from ucoinpy.api import bma
 from ucoinpy.documents.block import Block
 from ..tools.exceptions import NoPeerAvailable
-from .net.node import Node
 from .net.network import Network
+from .net.api import qtbma
 import logging
 import inspect
 import hashlib
 import re
+import random
 import time
+import json
 from requests.exceptions import RequestException
 
 
-class Cache():
+class Cache(QObject):
     _saved_requests = [str(bma.blockchain.Block), str(bma.blockchain.Parameters)]
+    _zero_values = {qtbma.wot.Members : {
+  "results": [
+  ]
+}
+                    }
 
     def __init__(self, community):
         '''
         Init an empty cache
         '''
+        super().__init__()
         self.latest_block = 0
         self.community = community
         self.data = {}
+
+    @property
+    def network(self):
+        return self.community.network
 
     def load_from_json(self, data):
         '''
@@ -95,6 +108,63 @@ class Cache():
         else:
             return self.data[cache_key]
 
+    def qtrequest(self, caller, request, req_args={}, get_args={}):
+        cache_key = (str(request),
+                     str(tuple(frozenset(sorted(req_args.keys())))),
+                     str(tuple(frozenset(sorted(req_args.values())))),
+                     str(tuple(frozenset(sorted(get_args.keys())))),
+                     str(tuple(frozenset(sorted(get_args.values())))))
+
+        ret_data = None
+        if cache_key in self.data.keys():
+            need_reload = False
+            if 'metadata' in self.data[cache_key]:
+                if self.data[cache_key]['metadata']['block'] < self.latest_block:
+                    need_reload = True
+            else:
+                need_reload = True
+            ret_data = self.data[cache_key]['value']
+        else:
+            need_reload = True
+            ret_data = Cache._zero_values[request]
+
+        if need_reload:
+            #Move to network nstead of community
+            #after removing qthreads
+            reply = self.community.qtrequest(caller ,request, req_args, get_args,
+                                         cached=False)
+            reply.finished.connect(lambda:
+                                     self.handle_reply(caller, request, req_args, get_args))
+
+        return ret_data
+
+    @pyqtSlot(int, dict, dict, QObject)
+    def handle_reply(self, caller, request, req_args, get_args):
+        reply = self.sender()
+        logging.debug("Handling QtNetworkReply for {0}".format(str(request)))
+        if reply.error() == QNetworkReply.NoError:
+            cache_key = (str(request),
+                         str(tuple(frozenset(sorted(req_args.keys())))),
+                         str(tuple(frozenset(sorted(req_args.values())))),
+                         str(tuple(frozenset(sorted(get_args.keys())))),
+                         str(tuple(frozenset(sorted(get_args.values())))))
+            strdata = bytes(reply.readAll()).decode('utf-8')
+            logging.debug("Data in reply : {0}".format(strdata))
+
+            if cache_key not in self.data:
+                self.data[cache_key] = {}
+            self.data[cache_key]['value'] = json.loads(strdata)
+
+            if 'metadata' not in self.data[cache_key]:
+                self.data[cache_key]['metadata'] = {}
+            self.data[cache_key]['metadata']['block'] = self.latest_block
+
+            caller.data_changed.emit()
+        else:
+            logging.debug("Error in reply : {0}".format(reply.error()))
+            self.community.qtrequest(caller, request, req_args, get_args)
+
+
 
 class Community(QObject):
     '''
@@ -103,6 +173,7 @@ class Community(QObject):
     .. warning:: The currency name is supposed to be unique in cutecoin
     but nothing exists in ucoin to assert that a currency name is unique.
     '''
+    data_changed = pyqtSignal()
 
     def __init__(self, currency, network):
         '''
@@ -133,14 +204,14 @@ class Community(QObject):
         return community
 
     @classmethod
-    def load(cls, json_data):
+    def load(cls, network_manager, json_data):
         '''
         Load a community from json
 
         :param dict json_data: The community as a dict in json format
         '''
         currency = json_data['currency']
-        network = Network.from_json(currency, json_data['peers'])
+        network = Network.from_json(network_manager, currency, json_data['peers'])
         community = cls(currency, network)
         return community
 
@@ -375,7 +446,7 @@ class Community(QObject):
 
         :return: All members pubkeys.
         '''
-        memberships = self.request(bma.wot.Members)
+        memberships = self.qtrequest(self, qtbma.wot.Members)
         return [m['pubkey'] for m in memberships["results"]]
 
     def refresh_cache(self):
@@ -419,6 +490,31 @@ class Community(QObject):
                                                              str(request)))
                     continue
         raise NoPeerAvailable(self.currency, len(nodes))
+
+    def qtrequest(self, caller, request, req_args={}, get_args={}, cached=True):
+        '''
+        Start a request to the community.
+
+        :param request: A qtbma request class calling for data
+        :param caller: The components
+        :param req_args: Arguments to pass to the request constructor
+        :param get_args: Arguments to pass to the request __get__ method
+        :return: The returned data if cached = True else return the QNetworkReply
+        '''
+        if cached:
+            return self._cache.qtrequest(caller, request, req_args, get_args)
+        else:
+            nodes = self._network.synced_nodes
+            node = random.choice(nodes)
+            server = node.endpoint.conn_handler().server
+            port = node.endpoint.conn_handler().port
+            conn_handler = qtbma.ConnectionHandler(self.network.network_manager, server, port)
+            req = request(conn_handler, **req_args)
+            reply = req.get(**get_args)
+            return reply
+
+        if len(self.network.synced_nodes) == 0:
+            raise NoPeerAvailable(self.currency, len(nodes))
 
     def post(self, request, req_args={}, post_args={}):
         '''

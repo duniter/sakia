@@ -1,3 +1,5 @@
+
+
 __all__ = ['api']
 
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
@@ -11,13 +13,14 @@ logger = logging.getLogger("ucoin")
 class ConnectionHandler(object):
     """Helper class used by other API classes to ease passing server connection information."""
 
-    def __init__(self, server, port):
+    def __init__(self, network_manager, server, port):
         """
         Arguments:
         - `server`: server hostname
         - `port`: port number
         """
 
+        self.network_manager = network_manager
         self.server = server
         self.port = port
 
@@ -28,7 +31,7 @@ class ConnectionHandler(object):
 class API(object):
     """APIRequest is a class used as an interface. The intermediate derivated classes are the modules and the leaf classes are the API requests."""
 
-    def __init__(self, network_manager, connection_handler, module):
+    def __init__(self, conn_handler, module):
         """
         Asks a module in order to create the url used then by derivated classes.
 
@@ -38,8 +41,7 @@ class API(object):
         """
 
         self.module = module
-        self.network_manager = network_manager
-        self.connection_handler = connection_handler
+        self.conn_handler = conn_handler
         self.headers = {}
 
     def reverse_url(self, path):
@@ -50,7 +52,7 @@ class API(object):
         - `path`: the request path
         """
 
-        server, port = self.connection_handler.server, self.connection_handler.port
+        server, port = self.conn_handler.server, self.conn_handler.port
 
         url = 'http://%s:%d/%s' % (server, port, self.module)
         return url + path
@@ -88,12 +90,13 @@ class API(object):
         Arguments:
         - `path`: the request path
         """
-        url = QUrlQuery(self.reverse_url(path))
+        query = QUrlQuery(self.reverse_url(path))
         for k,v in kwargs.items():
-            url.addQueryItem(k, v);
+            query.addQueryItem(k, v);
+        url = QUrl(self.reverse_url(path))
+        url.setQuery(query)
         request = QNetworkRequest(url)
-        reply = request.get(self.reverse_url(path), params=kwargs,
-                                headers=self.headers, timeout=15)
+        reply = self.conn_handler.network_manager.get(request)
 
         return reply
 
@@ -110,12 +113,14 @@ class API(object):
         logging.debug("POST : {0}".format(kwargs))
         post_data = QUrlQuery()
         for k,v in kwargs.items():
-            post_data.addQueryItem(k, v);
+            post_data.addQueryItem(k, v)
+        url = QUrl(self.reverse_url(path))
+        url.setQuery(post_data)
 
-        request = QNetworkRequest(self.reverse_url(path))
+        request = QNetworkRequest(url)
         request.setHeader(QNetworkRequest.ContentTypeHeader,
-            "application/x-www-form-urlencoded");
-        reply = request.post(self.reverse_url(path),
+            "application/x-www-form-urlencoded")
+        reply = self.conn_handler.network_manager.post(request,
                              post_data.toString(QUrl.FullyEncoded).toUtf8())
 
         return reply

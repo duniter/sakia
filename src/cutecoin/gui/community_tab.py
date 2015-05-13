@@ -42,7 +42,9 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         self.setupUi(self)
         self.parent = parent
         self.community = community
+        self.community.data_changed.connect(self.handle_change)
         self.account = account
+        self._last_search = ''
         self.password_asker = password_asker
         identities_model = IdentitiesTableModel(community)
         proxy = IdentitiesFilterProxyModel()
@@ -259,8 +261,13 @@ Publishing your UID cannot be canceled.""")
         for identity in response['results']:
             persons.append(Person.lookup(identity['pubkey'], self.community))
 
+        self._last_search = 'text'
         self.edit_textsearch.clear()
         self.refresh(persons)
+
+    def handle_change(self):
+        if self._last_search == 'members':
+            self.search_members()
 
     def search_members(self):
         """
@@ -271,6 +278,8 @@ Publishing your UID cannot be canceled.""")
         for p in pubkeys:
             persons.append(Person.lookup(p, self.community))
 
+        self._last_search = 'members'
+
         self.edit_textsearch.clear()
         self.refresh(persons)
 
@@ -278,6 +287,7 @@ Publishing your UID cannot be canceled.""")
         """
         Search members of community and display found members
         """
+        self._last_search = 'direct_connections'
         self.refresh()
 
     def refresh(self, persons=None):
