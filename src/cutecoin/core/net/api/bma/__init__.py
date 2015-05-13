@@ -88,8 +88,10 @@ class API(object):
         Arguments:
         - `path`: the request path
         """
-
-        request = QNetworkRequest(self.reverse_url(path))
+        url = QUrlQuery(self.reverse_url(path))
+        for k,v in kwargs.items():
+            url.addQueryItem(k, v);
+        request = QNetworkRequest(url)
         reply = request.get(self.reverse_url(path), params=kwargs,
                                 headers=self.headers, timeout=15)
 
