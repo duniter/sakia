@@ -7,6 +7,7 @@ from .node import Node
 
 import logging
 import time
+from ucoinpy.documents.peer import Peer
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QCoreApplication, QTimer
 
@@ -150,7 +151,6 @@ class Network(QObject):
         self._nodes.append(node)
         node.changed.connect(self.handle_change)
         node.neighbour_found.connect(self.handle_new_node)
-        node.destroyed.connect(lambda: logging.debug("Node destroyed"))
         logging.debug("{:} connected".format(node.pubkey[:5]))
 
     def add_root_node(self, node):
@@ -184,13 +184,19 @@ class Network(QObject):
         Start crawling which never stops.
         To stop this crawling, call "stop_crawling" method.
         '''
-        self._must_crawl = True
-        self._is_perpetual = True
-        for node in self.nodes:
-            node.refresh()
+        if not self.continue_crawling():
+            return
+        for (i, node) in enumerate(self.nodes):
+            if not self.continue_crawling():
+                return
 
-    @pyqtSlot()
+            if node == self.nodes[-1]:
+                QTimer.singleShot((i+1)*10000, self.discover_network)
+            QTimer.singleShot(i*10000, node.refresh)
+
+    @pyqtSlot(Peer)
     def handle_new_node(self, peer):
+        logging.debug("New node found : {0}".format(peer.pubkey[:5]))
         pubkeys = [n.pubkey for n in self.nodes]
         if peer.pubkey not in pubkeys:
             node = Node.from_peer(self._currency, peer)
@@ -210,4 +216,5 @@ class Network(QObject):
         logging.debug("{0} -> {1}".format(self.latest_block, self.latest_block))
         if self._block_found < self.latest_block:
             logging.debug("New block found : {0}".format(self.latest_block))
+            self._block_found = self.latest_block
             self.new_block_mined.emit(self.latest_block)

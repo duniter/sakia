@@ -43,7 +43,7 @@ class Node(QObject):
     neighbour_found = pyqtSignal(Peer)
 
     def __init__(self, network_manager, currency, endpoints, uid, pubkey, block,
-                 state, last_change):
+                 state, last_change, last_merkle):
         '''
         Constructor
         '''
@@ -57,6 +57,7 @@ class Node(QObject):
         self._neighbours = []
         self._currency = currency
         self._last_change = last_change
+        self._last_merkle = last_merkle
 
     @classmethod
     def from_address(cls, network_manager, currency, address, port):
@@ -78,8 +79,8 @@ class Node(QObject):
                 raise InvalidNodeCurrency(peer.currency, currency)
 
         node = cls(network_manager, peer.currency, peer.endpoints,
-                   "", peer.pubkey, 0,
-                   Node.ONLINE, time.time())
+                   "", peer.pubkey, 0, Node.ONLINE, time.time(),
+                   {'root': "", 'leaves': []})
         logging.debug("Node from address : {:}".format(str(node)))
         return node
 
@@ -97,7 +98,8 @@ class Node(QObject):
                 raise InvalidNodeCurrency(peer.currency, currency)
 
         node = cls(network_manager, peer.currency, peer.endpoints, "", "", 0,
-                   Node.ONLINE, time.time())
+                   Node.ONLINE, time.time(),
+                   {'root': "", 'leaves': []})
         logging.debug("Node from peer : {:}".format(str(node)))
         return node
 
@@ -135,7 +137,8 @@ class Node(QObject):
 
         node = cls(network_manager, currency, endpoints,
                    uid, pubkey, block,
-                   state, last_change)
+                   state, last_change,
+                   {'root': "", 'leaves': []})
         logging.debug("Node from json : {:}".format(str(node)))
         return node
 
@@ -249,20 +252,12 @@ class Node(QObject):
         logging.debug("Requesting {0}".format(conn_handler))
         reply = qtbma.blockchain.Current(conn_handler).get()
 
-        reply.finished.connect(lambda: self.handle_block_reply(reply))
+        reply.finished.connect(self.handle_block_reply)
 
     @pyqtSlot()
-    def handle_block_reply(self, reply):
-        logging.debug("Handle block reply")
-        #reply = self.sender()
-        logging.debug("Found thread : {0}".format(self.thread()))
-        logging.debug("Found reply : {0}".format(reply))
-        logging.debug("Found sender : {0}".format(self.sender()))
-        logging.debug("Found url : {0}".format(reply.url().toString()))
-        logging.debug("Found manager : {0}".format(reply.manager()))
+    def handle_block_reply(self):
+        reply = self.sender()
         status_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
-        logging.debug("Status code : {0}".format(status_code))
-        logging.debug("Error : {0}".format(reply.error()))
 
         if self.check_noerror(reply.error(), status_code):
             if status_code == 200:
@@ -287,11 +282,10 @@ class Node(QObject):
                                          self.endpoint.conn_handler().port)
 
         peering_reply = qtbma.network.Peering(conn_handler).get()
-        peering_reply.finished.connect(lambda: self.handle_peering_reply(peering_reply))
+        peering_reply.finished.connect(self.handle_peering_reply)
 
     @pyqtSlot()
-    def handle_peering_reply(self, reply):
-        logging.debug("Handle peering reply")
+    def handle_peering_reply(self):
         reply = self.sender()
         status_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
 
@@ -321,13 +315,12 @@ class Node(QObject):
                                          self.endpoint.conn_handler().server,
                                          self.endpoint.conn_handler().port)
         uid_reply = qtbma.wot.Lookup(conn_handler, self.pubkey).get()
-        uid_reply.finished.connect(lambda: self.handle_uid_reply(uid_reply))
+        uid_reply.finished.connect(self.handle_uid_reply)
         uid_reply.error.connect(lambda code: logging.debug("Error : {0}".format(code)))
 
     @pyqtSlot()
-    def handle_uid_reply(self, reply):
-        logging.debug("Handle uid reply")
-        #reply = self.sender()
+    def handle_uid_reply(self):
+        reply = self.sender()
         status_code = reply.attribute( QNetworkRequest.HttpStatusCodeAttribute );
 
         if self.check_noerror(reply.error(), status_code):
@@ -358,34 +351,34 @@ class Node(QObject):
                                          self.endpoint.conn_handler().port)
 
         reply = qtbma.network.peering.Peers(conn_handler).get(leaves='true')
-        reply.finished.connect(lambda: self.handle_peers_reply(reply))
+        reply.finished.connect(self.handle_peers_reply)
         reply.error.connect(lambda code: logging.debug("Error : {0}".format(code)))
 
 
     @pyqtSlot()
-    def handle_peers_reply(self, reply):
-        logging.debug("Handle peers reply")
-        #reply = self.sender()
+    def handle_peers_reply(self):
+        reply = self.sender()
         status_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
 
         if self.check_noerror(reply.error(), status_code):
             strdata = bytes(reply.readAll()).decode('utf-8')
             peers_data = json.loads(strdata)
-            if True: #peers_data['root'] != self._last_root:
-                leaves = [leaf for leaf in peers_data['leaves']]
-                          #if leaf not in self._last_leaves]
+            if peers_data['root'] != self._last_merkle['root']:
+                leaves = [leaf for leaf in peers_data['leaves']
+                          if leaf not in self._last_merkle['leaves']]
                 for leaf_hash in leaves:
                     conn_handler = ConnectionHandler(self.network_manager,
                                                      self.endpoint.conn_handler().server,
                                                      self.endpoint.conn_handler().port)
                     leaf_reply = qtbma.network.peering.Peers(conn_handler).get(leaf=leaf_hash)
-                    leaf_reply.finished.connect(lambda: self.handle_leaf_reply(leaf_reply))
+                    leaf_reply.finished.connect(self.handle_leaf_reply)
+                self._last_merkle = {'root' : peers_data['root'],
+                                     'leaves': peers_data['leaves']}
         else:
             logging.debug("Error in peers reply")
 
     @pyqtSlot()
-    def handle_leaf_reply(self, reply):
-        logging.debug("Handle leaf reply")
+    def handle_leaf_reply(self):
         reply = self.sender()
         status_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
 

@@ -48,8 +48,7 @@ class Application(QObject):
         self.available_version = __version__
         self._network_manager = QNetworkAccessManager(self)
         config.parse_arguments(argv)
-        self._network_manager.finished.connect(lambda reply: logging.debug("Thread : {0} , Network : {1}".format(self.thread(),
-                                                                                                    reply.url().toString())))
+        self._network_manager.finished.connect(lambda reply: logging.debug("Network : {0}".format(reply.url().toString())))
         self.get_last_version()
         self.preferences = {'account': "",
                             'lang': 'en_GB',
