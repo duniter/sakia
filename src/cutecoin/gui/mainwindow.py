@@ -90,13 +90,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.statusbar.addPermanentWidget(self.combo_referential)
         self.update_time()
 
-        self.loader_thread = QThread()
         self.loader = Loader(self.app)
-        self.loader.moveToThread(self.loader_thread)
         self.loader.loaded.connect(self.loader_finished)
-        self.loader.loaded.connect(self.loader_thread.quit)
         self.loader.connection_error.connect(self.display_error)
-        self.loader_thread.started.connect(self.loader.load)
 
         self.homescreen = HomeScreenWidget(self.app)
         self.centralWidget().layout().addWidget(self.homescreen)
@@ -159,6 +155,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             logging.debug("Busybar : {:} : {:}".format(value, maximum))
             self.busybar.setValue(value)
             self.busybar.setMaximum(maximum)
+            QApplication.processEvents()
 
         if self.app.current_account:
             self.app.save_cache(self.app.current_account)
@@ -173,7 +170,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.busybar.show()
         self.status_label.setText(self.tr("Loading account {0}").format(account_name))
         self.loader.set_account_name(account_name)
-        self.loader_thread.start(QThread.LowPriority)
+        QTimer.singleShot(10, self.loader.load)
+        #self.loader_thread.start(QThread.LowPriority)
         self.homescreen.button_new.hide()
         self.homescreen.button_import.hide()
 
@@ -372,8 +370,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.app.current_account:
             self.app.save_cache(self.app.current_account)
         self.app.save_persons()
-        self.loader.deleteLater()
-        self.loader_thread.deleteLater()
         super().closeEvent(event)
 
     def showEvent(self, event):
