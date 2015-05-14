@@ -12,7 +12,9 @@ from ..gen_resources.toast_uic import Ui_Toast
 
 window = None   # global
 
+
 def display(title, msg):
+    logging.debug("NOTIFY DISPLAY")
     if sys.platform == "linux":
         import notify2
         import dbus
@@ -22,27 +24,29 @@ def display(title, msg):
         n = notify2.Notification(title,
                          msg)
 
-        # Not working... Empty icon at the moment.
-        icon = QPixmap(":/icons/cutecoin_logo/").toImage()
-        if icon.isNull():
-            logging.debug("Error converting logo")
-        else:
-            icon.convertToFormat(QImage.Format_ARGB32)
-            icon_bytes = icon.bits().asstring(icon.byteCount())
-            icon_struct = (
-                icon.width(),
-                icon.height(),
-                icon.bytesPerLine(),
-                icon.hasAlphaChannel(),
-                32,
-                4,
-                dbus.ByteArray(icon_bytes)
-                )
-            n.set_hint('icon_data', icon_struct)
-            n.set_timeout(5000)
+# fixme: https://bugs.python.org/issue11587
+        # # Not working... Empty icon at the moment.
+        # icon = QPixmap(":/icons/cutecoin_logo/").toImage()
+        # if icon.isNull():
+        #     logging.debug("Error converting logo")
+        # else:
+        #     icon.convertToFormat(QImage.Format_ARGB32)
+        #     icon_bytes = icon.bits().asstring(icon.byteCount())
+        #     icon_struct = (
+        #         icon.width(),
+        #         icon.height(),
+        #         icon.bytesPerLine(),
+        #         icon.hasAlphaChannel(),
+        #         32,
+        #         4,
+        #         dbus.ByteArray(icon_bytes)
+        #         )
+        #     n.set_hint('icon_data', icon_struct)
+        #     n.set_timeout(5000)
         n.show()
     else:
         _Toast(title, msg)
+
 
 class _Toast(QMainWindow, Ui_Toast):
     def __init__(self, title, msg):
@@ -68,6 +72,7 @@ class _Toast(QMainWindow, Ui_Toast):
     def toastDone(self):
         global window
         window = None               # kill pointer to window object to close it and GC
+
 
 class _ToastThread(QThread):
     def __init__(self):

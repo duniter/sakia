@@ -252,6 +252,7 @@ class Network(Watcher):
             node.check_sync(self.latest_block)
         logging.debug("{0} -> {1}".format(self.latest_block, self.latest_block))
         if self._block_found < self.latest_block:
+            self._block_found = self.latest_block
             logging.debug("New block found : {0}".format(self.latest_block))
             self.new_block_mined.emit(self.latest_block)
 

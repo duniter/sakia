@@ -546,7 +546,7 @@ Le processus pour rejoindre la communauté devrait être refait à zéro.</trans
     <message>
         <location filename="../../../src/cutecoin/gui/currency_tab.py" line="150"/>
         <source>&lt;b&gt;Warning : You are certified by only {0} persons, need {1}&lt;/b&gt;</source>
-        <translation>&lt;b&gt;Attention : Vous êtes certifiés par seulement {0} personnes, besoin de {2}&lt;/b&gt;</translation>
+        <translation>&lt;b&gt;Attention : Vous êtes certifiés par seulement {0} personnes, besoin de {1}&lt;/b&gt;</translation>
     </message>
 </context>
 <context>
