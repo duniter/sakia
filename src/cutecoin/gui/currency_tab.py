@@ -191,7 +191,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         label_text = "{0}{1}".format(icon, text)
         if status_infotext != "":
             label_text += " - {0}".format(status_infotext)
-        self.status_label.setText("{0}{1}{2}".format(icon, text, status_infotext))
+        self.status_label.setText(label_text)
 
     @pyqtSlot(list)
     def notify_transfers(self, transfers_list):
