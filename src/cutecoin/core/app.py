@@ -60,6 +60,7 @@ class Application(QObject):
         translator = QTranslator(qapp)
         logging.debug("Loading translations")
         locale = self.preferences['lang']
+        QLocale.setDefault(QLocale(locale))
         if translator.load(":/i18n/{0}".format(locale)):
             if QCoreApplication.installTranslator(translator):
                 logging.debug("Loaded i18n/{0}".format(locale))

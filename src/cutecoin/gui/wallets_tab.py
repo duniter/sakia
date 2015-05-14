@@ -56,8 +56,14 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
         certified = person.unique_valid_certified_by(self.community)
         certifiers = person.unique_valid_certifiers_of(self.community)
         if last_renewal and expiration:
-            date_renewal = QDateTime.fromTime_t(last_renewal).date().toString()
-            date_expiration = QDateTime.fromTime_t(expiration).date().toString()
+            date_renewal = QLocale.toString(
+                QLocale(),
+                QDateTime.fromTime_t(last_renewal).date(), QLocale.dateFormat(QLocale(), QLocale.LongFormat)
+            )
+            date_expiration = QLocale.toString(
+                QLocale(),
+                QDateTime.fromTime_t(expiration).date(), QLocale.dateFormat(QLocale(), QLocale.LongFormat)
+            )
             # set infos in label
             self.label_general.setText(
                 self.tr("""
@@ -71,7 +77,7 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
                     self.tr("Membership"),
                     self.tr("Last renewal on {:}, expiration on {:}").format(date_renewal, date_expiration),
                     self.tr("Your web of trust"),
-                    self.tr("Certified by {:} members; Certifier of : {:} members").format(len(certifiers),
+                    self.tr("Certified by {:} members; Certifier of {:} members").format(len(certifiers),
                                                                                              len(certified))
                 )
             )
@@ -88,7 +94,7 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
                     self.account.name, self.account.pubkey,
                     self.tr("Not a member"),
                     self.tr("Your web of trust"),
-                    self.tr("Certified by {:} members; Certifier of : {:} members").format(len(certifiers),
+                    self.tr("Certified by {:} members; Certifier of {:} members").format(len(certifiers),
                                                                                              len(certified))
                 )
             )

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.0" language="fr_FR" sourcelanguage="en">
+<!DOCTYPE TS><TS version="2.0" language="fr_FR" sourcelanguage="en">
 <context>
     <name>@default</name>
     <message>
@@ -1038,22 +1037,22 @@ Le processus pour rejoindre la communauté devrait être refait à zéro.</trans
         <translation>Sauvegarder</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="361"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="359"/>
         <source>Export</source>
         <translation>Exporter</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="175"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="172"/>
         <source>Loading account {0}</source>
         <translation>Chargement du compte {0}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="237"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="235"/>
         <source>Latest release : {version}</source>
         <translation>Dernière version : {version}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="241"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="239"/>
         <source>
             &lt;p&gt;&lt;b&gt;{version_info}&lt;/b&gt;&lt;/p&gt;
             &lt;p&gt;&lt;a href={version_url}&gt;Download link&lt;/a&gt;&lt;/p&gt;
@@ -1064,7 +1063,7 @@ Le processus pour rejoindre la communauté devrait être refait à zéro.</trans
             </translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="246"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="244"/>
         <source>
         &lt;h1&gt;Cutecoin&lt;/h1&gt;
 
@@ -1099,32 +1098,32 @@ Le processus pour rejoindre la communauté devrait être refait à zéro.</trans
         </translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="300"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="298"/>
         <source>Edit</source>
         <translation>Editer</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="303"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="301"/>
         <source>Delete</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="319"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="317"/>
         <source>CuteCoin {0}</source>
         <translation>CuteCoin {0}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="343"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="341"/>
         <source>CuteCoin {0} - Account : {1}</source>
         <translation>CuteCoin {0} - Compte : {1}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="359"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="357"/>
         <source>Export an account</source>
         <translation>Exporter un compte</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="360"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="358"/>
         <source>All account files (*.acc)</source>
         <translation>Tout fichier de compte (*.acc)</translation>
     </message>
@@ -1690,7 +1689,7 @@ Veuillez rééssayer plus tard</translation>
 <context>
     <name>WalletsTabWidget</name>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="64"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="70"/>
         <source>
                 &lt;table cellpadding=&quot;5&quot;&gt;
                 &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
@@ -1701,17 +1700,17 @@ Veuillez rééssayer plus tard</translation>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="64"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="70"/>
         <source>Membership</source>
         <translation>Statut de membre</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="64"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="70"/>
         <source>Last renewal on {:}, expiration on {:}</source>
         <translation>Dernier renouvellement le {:}, expire le {:}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="82"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="88"/>
         <source>
                 &lt;table cellpadding=&quot;5&quot;&gt;
                 &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
@@ -1722,12 +1721,12 @@ Veuillez rééssayer plus tard</translation>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="82"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="88"/>
         <source>Not a member</source>
         <translation>Non-membre</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="112"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="118"/>
         <source>
             &lt;table cellpadding=&quot;5&quot;&gt;
             &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
@@ -1737,54 +1736,54 @@ Veuillez rééssayer plus tard</translation>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="112"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="118"/>
         <source>{:} {:} in [{:.2f} - {:}] {:}</source>
         <translation>{:} {:} compris dans [{:.2f} - {:}] {:}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="168"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="174"/>
         <source>Rename</source>
         <translation>Renommer</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="172"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="178"/>
         <source>Copy pubkey to clipboard</source>
         <translation>Copier la clé publique</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="177"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="183"/>
         <source>Transfer to...</source>
         <translation>Transférer à...</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="82"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="88"/>
         <source>Your web of trust</source>
         <translation>Votre toile de confiance</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="82"/>
-        <source>Certified by {:} members; Certifier of : {:} members</source>
-        <translation>Certifié par {:} membres; Certifieur de : {:} membres</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="112"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="118"/>
         <source>Your money share </source>
         <translation>Votre part de monnaie</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="112"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="118"/>
         <source>{:.2f}%</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="112"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="118"/>
         <source>Your part </source>
         <translation>Votre part</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="165"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="171"/>
         <source>New Wallet</source>
         <translation>Nouveau portefeuille</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="88"/>
+        <source>Certified by {:} members; Certifier of {:} members</source>
+        <translation>Certifié par {:} membres; Certifieur de {:} membres</translation>
     </message>
 </context>
 <context>
