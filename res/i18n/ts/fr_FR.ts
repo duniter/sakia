@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="fr_FR" sourcelanguage="en">
+<TS version="2.0" language="fr_FR" sourcelanguage="en">
 <context>
     <name>@default</name>
     <message>
@@ -805,12 +805,12 @@ Le processus pour rejoindre la communauté devrait être refait à zéro.</trans
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="67"/>
         <source>Universal Dividend UD(t) in</source>
-        <translation>Dividende Universel DU(t) dans</translation>
+        <translation>Dividende Universel DU(t) en</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="67"/>
         <source>Monetary Mass M(t) in</source>
-        <translation>Masse Monétaire M(t) dans</translation>
+        <translation>Masse Monétaire M(t) en</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="67"/>
@@ -820,7 +820,7 @@ Le processus pour rejoindre la communauté devrait être refait à zéro.</trans
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="67"/>
         <source>Monetary Mass per member M(t)/N(t) in</source>
-        <translation>Masse Monétaire par membre M(t)/N(t) dans</translation>
+        <translation>Masse Monétaire par membre M(t)/N(t) en</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="67"/>
@@ -866,7 +866,7 @@ Le processus pour rejoindre la communauté devrait être refait à zéro.</trans
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="116"/>
         <source>Universal Dividend (formula)</source>
-        <translation type="unfinished">Dividende Universel (formule)</translation>
+        <translation>Dividende Universel (formule)</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="116"/>
@@ -913,7 +913,7 @@ Le processus pour rejoindre la communauté devrait être refait à zéro.</trans
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="144"/>
         <source>Initial Universal Dividend UD(0) in</source>
-        <translation>Dividend Universal Initial DU(0) dans</translation>
+        <translation>Dividende Universel Initial DU(0) en</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="144"/>
@@ -923,22 +923,22 @@ Le processus pour rejoindre la communauté devrait être refait à zéro.</trans
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="144"/>
         <source>Number of blocks used for calculating median time</source>
-        <translation>Nombre de blocks utilisés pour calculer le temps median</translation>
+        <translation>Nombre de blocs utilisés pour calculer le temps median</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="144"/>
         <source>The average time in seconds for writing 1 block (wished time)</source>
-        <translation>Le temps moyen en secondes pour écrire un block (temps espéré)</translation>
+        <translation>Le temps moyen en secondes pour écrire un bloc (temps espéré)</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="144"/>
         <source>The number of blocks required to evaluate again PoWMin value</source>
-        <translation>Le nombre de blocks requis pour évaluer une nouvelle valeur de PoWMin</translation>
+        <translation>Le nombre de blocs requis pour évaluer une nouvelle valeur de PoWMin</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="144"/>
         <source>The number of previous blocks to check for personalized difficulty</source>
-        <translation>Le nombre de blocks précédent pour vérifier la difficulté personnalisée</translation>
+        <translation>Le nombre de blocs précédents pour vérifier la difficulté personnalisée</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="144"/>
@@ -977,7 +977,7 @@ Le processus pour rejoindre la communauté devrait être refait à zéro.</trans
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="179"/>
         <source>Minimum quantity of valid made certifications to be part of the WoT for distance rule</source>
-        <translation>Quantité minimum de certifications valide pour faire parti de la WoT suivant la règle de distance</translation>
+        <translation>Quantité minimum de certifications valides pour faire partie de la WoT suivant la règle de distance</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="179"/>
