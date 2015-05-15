@@ -336,7 +336,7 @@ class Application(QObject):
 
     def import_account(self, file, name):
         '''
-        Import an account from a tar file
+        Import an account from a tar file and open it
 
         :param str file: The file path of the tar file
         :param str name: The account name
@@ -359,6 +359,7 @@ class Application(QObject):
         account.name = name
         self.add_account(account)
         self.save(account)
+        self.change_current_account(account)
 
     def export_account(self, file, account):
         '''

@@ -101,6 +101,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.open_ucoin_info = lambda: QDesktopServices.openUrl(QUrl("http://ucoin.io/theoretical/"))
         self.homescreen.button_info.clicked.connect(self.open_ucoin_info)
 
+        self.import_dialog = None
         self.export_dialog = None
 
         # TODO: There are too much refresh() calls on startup
@@ -343,12 +344,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.refresh_contacts()
 
     def import_account(self):
-        dialog = ImportAccountDialog(self.app, self)
-        dialog.accepted.connect(self.refresh)
-        dialog.exec_()
+        self.import_dialog = ImportAccountDialog(self.app, self)
+        self.import_dialog.accepted.connect(self.import_account_accepted)
+        self.import_dialog.exec_()
+
+    def import_account_accepted(self):
+        # open account after import
+        self.action_change_account(self.import_dialog.edit_name.text())
 
     def export_account(self):
-        # Testable way off using a QFileDialog
+        # Testable way of using a QFileDialog
         self.export_dialog = QFileDialog(self)
         self.export_dialog.setObjectName('ExportFileDialog')
         self.export_dialog.setWindowTitle(self.tr("Export an account"))
