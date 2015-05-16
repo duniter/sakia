@@ -1,0 +1,28 @@
+@startuml
+
+!include core-classes.pu
+!include gui-classes.pu
+!include models-classes.pu
+
+MainWindow "1" --> "1" App
+
+ContactDialog --> Contact
+CertificationDialog --> Community
+TransferDialog --> Community
+
+CurrencyTab "1" --> "1" Community
+
+CommunityTab --> IdentitiesFilterProxyModel
+NetworkTab --> NetworkFilterProxyModel
+WalletTab --> WalletsFilterProxyModel
+
+WalletsFilterProxyModel --> Wallet
+NetworkFilterProxyModel --> Network
+TxHistoryFilterProxyModel --> Transfer
+
+ConfigureAccountDialog --> CommunitiesListModel
+ConfigureCommunityDialog --> RootNodesTableModel
+
+ConfigureAccountDialog --> Account
+ConfigureCommunityDialog --> Community
+@enduml
