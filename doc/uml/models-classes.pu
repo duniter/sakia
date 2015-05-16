@@ -1,0 +1,39 @@
+@startuml
+
+package models {
+	class WalletsFilterProxyModel {
+	}
+
+	WalletsFilterProxyModel --> WalletsTableModel : source
+
+	class WalletsTableModel {
+	}
+
+	class IdentitiesFilterProxyModel {
+	}
+	IdentitiesFilterProxyModel --> IdentitiesTableModel : source
+
+	class IdentitiesTableModel {
+	}
+
+	class NetworkFilterProxyModel {
+	}
+	NetworkFilterProxyModel --> NetworkTableModel : source
+
+	class NetworkTableModel {
+	}
+
+	class TxHistoryFilterProxyModel {
+	}
+	TxHistoryFilterProxyModel --> TxHistoryTableModel : source
+	class TxHistoryTableModel {
+	}
+
+	class CommunitiesListModel {
+	}
+
+	class RootNodesTableModel {
+	}
+}
+
+@enduml
