@@ -87,7 +87,6 @@ package core {
 	}
 
 	class Identity
-	class Contact
 }
 
 

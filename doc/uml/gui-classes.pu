@@ -2,7 +2,6 @@
 
 
 package gui {
-	package tabs {
 		class MainWindow {
 		}
 		MainWindow "1" --* "*" CurrencyTab
@@ -39,14 +38,11 @@ package gui {
 
 		class WotTab {
 		}
-	}
-	package dialogs {
 		class CertificationDialog
 		class TransferDialog
 		class ContactDialog
 		class ConfigureAccountDialog
 		class ConfigureCommunityDialog
-	}
 
 	MainWindow --> CertificationDialog
 	MainWindow --> TransferDialog
@@ -54,9 +50,7 @@ package gui {
 	MainWindow --> ConfigureAccountDialog
 	ConfigureAccountDialog --> ConfigureCommunityDialog
 
-	package views {
 		class Wot
 		WotTab --> Wot
-	}
 }
 @enduml

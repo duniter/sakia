@@ -6,19 +6,18 @@
 
 MainWindow "1" --> "1" App
 
-ContactDialog --> Contact
 CertificationDialog --> Community
 TransferDialog --> Community
 
 CurrencyTab "1" --> "1" Community
 
-CommunityTab --> IdentitiesFilterProxyModel
-NetworkTab --> NetworkFilterProxyModel
-WalletTab --> WalletsFilterProxyModel
+CommunityTab -right-> IdentitiesFilterProxyModel
+NetworkTab -right-> NetworkFilterProxyModel
+WalletTab -right-> WalletsFilterProxyModel
 
-WalletsFilterProxyModel --> Wallet
-NetworkFilterProxyModel --> Network
-TxHistoryFilterProxyModel --> Transfer
+WalletsFilterProxyModel -up-> Wallet
+NetworkFilterProxyModel -up-> Network
+TxHistoryFilterProxyModel -up-> Transfer
 
 ConfigureAccountDialog --> CommunitiesListModel
 ConfigureCommunityDialog --> RootNodesTableModel
