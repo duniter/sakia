@@ -70,9 +70,12 @@ class Cache():
 
     def _parse_transaction(self, community, tx, block_number,
                            mediantime, received_list, txid):
-        logging.debug(tx)
+        #logging.debug(tx.signed_raw())
         receivers = [o.pubkey for o in tx.outputs
                      if o.pubkey != tx.issuers[0]]
+
+        if len(receivers) == 0:
+            receivers = [tx.issuers[0]]
 
         try:
             issuer_uid = Person.lookup(tx.issuers[0], community).uid

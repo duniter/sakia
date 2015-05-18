@@ -248,6 +248,7 @@ class Node(QObject):
                 peer = Peer.from_signed_raw("{0}{1}\n".format(p['value']['raw'],
                                                             p['value']['signature']))
                 neighbours.append(peer.endpoints)
+            logging.debug("Found neighbours : {0}".format(len(neighbours)))
 
             node_currency = informations["currency"]
             node_uid = self._request_uid()
