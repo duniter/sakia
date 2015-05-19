@@ -73,6 +73,9 @@ class Cache():
         receivers = [o.pubkey for o in tx.outputs
                      if o.pubkey != tx.issuers[0]]
 
+        if len(receivers) == 0:
+            receivers = [tx.issuers[0]]
+
         try:
             issuer_uid = Person.lookup(tx.issuers[0], community).uid
         except PersonNotFoundError:
