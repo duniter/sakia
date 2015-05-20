@@ -45,11 +45,12 @@ class Application(QObject):
         self.accounts = {}
         self.current_account = None
         self.monitor = None
-        self.available_version = __version__
+        self.available_version = (True,
+                                  __version__,
+                                  "")
         config.parse_arguments(argv)
         self._network_manager = QNetworkAccessManager()
         self._network_manager.finished.connect(self.read_available_version)
-        self.get_last_version()
         self.preferences = {'account': "",
                             'lang': 'en_GB',
                             'ref': 'Units'
@@ -403,24 +404,26 @@ class Application(QObject):
         request = QNetworkRequest(url)
         self._network_manager.get(request)
 
+
     @pyqtSlot(QNetworkReply)
     def read_available_version(self, reply):
         latest = None
         releases = reply.readAll().data().decode('utf-8')
         logging.debug(releases)
-        for r in json.loads(releases):
-            if not latest:
-                latest = r
-            else:
-                latest_date = datetime.datetime.strptime(latest['published_at'], "%Y-%m-%dT%H:%M:%SZ")
-                date = datetime.datetime.strptime(r['published_at'], "%Y-%m-%dT%H:%M:%SZ")
-                if latest_date < date:
+        if reply.error == QNetworkReply.NoError:
+            for r in json.loads(releases):
+                if not latest:
                     latest = r
-        latest_version = latest["tag_name"]
-        version = (__version__ == latest_version,
-                   latest_version,
-                   latest["html_url"])
-        logging.debug("Found version : {0}".format(latest_version))
-        logging.debug("Current version : {0}".format(__version__))
-        self.available_version = version
+                else:
+                    latest_date = datetime.datetime.strptime(latest['published_at'], "%Y-%m-%dT%H:%M:%SZ")
+                    date = datetime.datetime.strptime(r['published_at'], "%Y-%m-%dT%H:%M:%SZ")
+                    if latest_date < date:
+                        latest = r
+            latest_version = latest["tag_name"]
+            version = (__version__ == latest_version,
+                       latest_version,
+                       latest["html_url"])
+            logging.debug("Found version : {0}".format(latest_version))
+            logging.debug("Current version : {0}".format(__version__))
+            self.available_version = version
         self.version_requested.emit()

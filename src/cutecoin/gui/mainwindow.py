@@ -8,7 +8,7 @@ from ..gen_resources.about_uic import Ui_AboutPopup
 
 from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog, QProgressBar, \
     QMessageBox, QLabel, QComboBox, QDialog, QApplication
-from PyQt5.QtCore import QSignalMapper, QObject, QThread, \
+from PyQt5.QtCore import QSignalMapper, QObject, \
     pyqtSlot, pyqtSignal, QDate, QDateTime, QTimer, QUrl, Qt
 from PyQt5.QtGui import QIcon, QDesktopServices, QPixmap
 
@@ -24,6 +24,7 @@ from .preferences import PreferencesDialog
 from .homescreen import HomeScreenWidget
 from ..core.account import Account
 from ..__init__ import __version__
+from . import toast
 
 import logging
 import requests
@@ -59,13 +60,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
         Init
         :param cutecoin.core.app.Application app: application
+        :type: cutecoin.core.app.Application
         """
         # Set up the user interface from Designer.
         super().__init__()
         self.setupUi(self)
         QApplication.setWindowIcon(QIcon(":/icons/cutecoin_logo"))
         self.app = app
-        """:type: cutecoin.core.app.Application"""
+        logging.debug(app.thread())
+        logging.debug(self.thread())
         self.password_asker = None
         self.initialized = False
 
@@ -75,6 +78,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.busybar.setValue(-1)
         self.statusbar.addWidget(self.busybar)
         self.busybar.hide()
+        self.app.version_requested.connect(self.latest_version_requested)
+        self.app.get_last_version()
 
         self.combo_referential = QComboBox(self)
         self.combo_referential.setEnabled(False)
@@ -172,7 +177,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.status_label.setText(self.tr("Loading account {0}").format(account_name))
         self.loader.set_account_name(account_name)
         QTimer.singleShot(10, self.loader.load)
-        #self.loader_thread.start(QThread.LowPriority)
         self.homescreen.button_new.hide()
         self.homescreen.button_import.hide()
 
@@ -182,7 +186,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.refresh()
         self.busybar.hide()
         QApplication.setOverrideCursor(Qt.ArrowCursor)
-        self.app.disconnect()
+        try:
+            self.app.disconnect()
+        except:
+            logging.debug("Disconnect of app failed")
+
         self.app.monitor.start_network_watchers()
         QApplication.processEvents()
 
@@ -258,6 +266,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                    new_version_text=new_version_text)
         aboutUi.label.setText(text)
         aboutDialog.show()
+
+    @pyqtSlot()
+    def latest_version_requested(self):
+        latest = self.app.available_version
+        version_info = ""
+        version_url = ""
+        logging.debug("Latest version requested")
+        if not latest[0]:
+            version_info = self.tr("Please get the latest release {version}") \
+                            .format(version=latest[1])
+            version_url = latest[2]
+
+            toast.display("Cutecoin", """<p>{version_info}</br>
+<a href={version_url}>Download link</a></p>""".format(
+                       version_info=version_info,
+                       version_url=version_url))
 
     def refresh_wallets(self):
         currency_tab = self.currencies_tabwidget.currentWidget()
