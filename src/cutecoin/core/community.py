@@ -513,16 +513,16 @@ class Community(QObject):
             return self._cache.qtrequest(caller, request, req_args, get_args)
         else:
             nodes = self._network.synced_nodes
-            node = random.choice(nodes)
-            server = node.endpoint.conn_handler().server
-            port = node.endpoint.conn_handler().port
-            conn_handler = qtbma.ConnectionHandler(self.network.network_manager, server, port)
-            req = request(conn_handler, **req_args)
-            reply = req.get(**get_args)
-            return reply
-
-        if len(self.network.synced_nodes) == 0:
-            raise NoPeerAvailable(self.currency, len(nodes))
+            if len(nodes) > 0:
+                node = random.choice(nodes)
+                server = node.endpoint.conn_handler().server
+                port = node.endpoint.conn_handler().port
+                conn_handler = qtbma.ConnectionHandler(self.network.network_manager, server, port)
+                req = request(conn_handler, **req_args)
+                reply = req.get(**get_args)
+                return reply
+            else:
+                raise NoPeerAvailable(self.currency, len(nodes))
 
     def post(self, request, req_args={}, post_args={}):
         '''

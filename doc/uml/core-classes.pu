@@ -86,7 +86,13 @@ package core {
 	-- Methods --
 	}
 
-	class Identity
+	App --> Identity
+	class Identity {
+		{static} _identities
+		{static} load(data : dict)
+		{static} lookup(search : str)
+	}
+
 }
 
 

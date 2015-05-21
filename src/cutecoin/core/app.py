@@ -405,19 +405,19 @@ class Application(QObject):
         latest = None
         releases = reply.readAll().data().decode('utf-8')
         logging.debug(releases)
-        for r in json.loads(releases):
-            if not latest:
-                latest = r
-            else:
-                latest_date = datetime.datetime.strptime(latest['published_at'], "%Y-%m-%dT%H:%M:%SZ")
-                date = datetime.datetime.strptime(r['published_at'], "%Y-%m-%dT%H:%M:%SZ")
-                if latest_date < date:
+        if reply == QNetworkReply.NoError:
+            for r in json.loads(releases):
+                if not latest:
                     latest = r
-        latest_version = latest["tag_name"]
-        version = (__version__ == latest_version,
-                   latest_version,
-                   latest["html_url"])
-        logging.debug("Found version : {0}".format(latest_version))
+                else:
+                    latest_date = datetime.datetime.strptime(latest['published_at'], "%Y-%m-%dT%H:%M:%SZ")
+                    date = datetime.datetime.strptime(r['published_at'], "%Y-%m-%dT%H:%M:%SZ")
+                    if latest_date < date:
+                        latest = r
+            latest_version = latest["tag_name"]
+            version = (__version__ == latest_version,
+                       latest_version,
+                       latest["html_url"])
         logging.debug("Current version : {0}".format(__version__))
         self.available_version = version
         self.version_requested.emit()
