@@ -45,23 +45,25 @@ options = {"path": sys.path,
 # preparation des cibles
 base = None
 file_type=""
+icon="cutecoin.png"
 if sys.platform == "win32":
     base = "Win32GUI"
     file_type=".exe"
+    icon="cutecoin.ico"
 
 target = Executable(
     script = "src/cutecoin/main.py",
     targetName="cutecoin"+file_type,
     base = base,
     compress = False,
-    icon = None,
+    icon = icon,
     )
 
 #############################################################################
 # creation du setup
 setup(
     name = "cutecoin",
-    version = "0.5",
+    version = "0.10",
     description = "UCoin client",
     author = "Inso",
     options = {"build_exe": options},
