@@ -11,7 +11,6 @@ from PyQt5 import QtCore
 # preparation des options
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'lib')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'res', 'certs')))
 
 print(sys.path)
 includes = ["sip", "re", "json", "logging",
