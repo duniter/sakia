@@ -54,7 +54,6 @@ target = Executable(
     script = "src/cutecoin/main.py",
     targetName="cutecoin"+file_type,
     base = base,
-    compress = False,
     icon = icon,
     )
 
