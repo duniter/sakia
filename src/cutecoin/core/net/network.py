@@ -113,6 +113,10 @@ class Network(Watcher):
         '''
         Get nodes which are in the ONLINE state.
         '''
+        latest = self.latest_block
+        for n in self._nodes:
+            if n.state in (Node.ONLINE, Node.DESYNCED):
+                n.check_sync(latest)
         return [n for n in self.nodes if n.state == Node.ONLINE]
 
     @property
