@@ -38,11 +38,13 @@ package gui {
 
 		class WotTab {
 		}
+		package dialogs {
 		class CertificationDialog
 		class TransferDialog
 		class ContactDialog
 		class ConfigureAccountDialog
 		class ConfigureCommunityDialog
+		}
 
 	MainWindow --> CertificationDialog
 	MainWindow --> TransferDialog

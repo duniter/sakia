@@ -3,6 +3,7 @@
 !include core-classes.pu
 !include gui-classes.pu
 !include models-classes.pu
+!include api.pu
 
 MainWindow "1" --> "1" App
 
@@ -24,4 +25,12 @@ ConfigureCommunityDialog --> RootNodesTableModel
 
 ConfigureAccountDialog --> Account
 ConfigureCommunityDialog --> Community
+
+Account ..> BMADataAccess
+Community ..> BMADataAccess
+Wallet ..> BMADataAccess
+Transfer ..> BMADataAccess
+Identity ..> BMADataAccess
+BMADataAccess .left.> Network
+
 @enduml

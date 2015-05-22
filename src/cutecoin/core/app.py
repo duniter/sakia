@@ -418,6 +418,6 @@ class Application(QObject):
             version = (__version__ == latest_version,
                        latest_version,
                        latest["html_url"])
+            self.available_version = version
         logging.debug("Current version : {0}".format(__version__))
-        self.available_version = version
         self.version_requested.emit()

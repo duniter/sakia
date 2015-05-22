@@ -57,9 +57,19 @@ package core {
 	-- Properties --
 	network
 	-- Methods --
-	}
-	Community "1" --* "1" Network
 
+	}
+	App --> Identity
+	class Identity {
+		{static} _identities
+		{static} load(data : dict)
+		{static} lookup(search : str)
+	}
+
+}
+
+
+package net {
 	class Network {
 	-- Signals --
 	node_found(int : index)
@@ -71,6 +81,7 @@ package core {
 	root_nodes
 	-- Methods --
 	}
+	Community "1" --* "1" Network
 	Network "1" --* "*" Node
 
 	class Node {
@@ -86,15 +97,5 @@ package core {
 	-- Methods --
 	}
 
-	App --> Identity
-	class Identity {
-		{static} _identities
-		{static} load(data : dict)
-		{static} lookup(search : str)
-	}
-
 }
-
-
-
 @enduml

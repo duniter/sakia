@@ -24,7 +24,6 @@ includefiles = []
 if sys.platform == "win32":
     app = QtCore.QCoreApplication(sys.argv)
     pyqt_path = QtCore.QCoreApplication.libraryPaths()[0]
-    print(pyqt_path)
     libEGL_path = os.path.join(os.path.dirname(pyqt_path), "libEGL.dll")
     includefiles.append(libEGL_path)
     includefiles.append("platforms/win32/libsodium.dll")
