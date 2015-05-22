@@ -206,7 +206,7 @@ class Network(Watcher):
         self._must_crawl = True
         while self.continue_crawling():
             emit_change = False
-            nodes = self.crawling(interval=10)
+            nodes = self.crawling(interval=2)
 
             new_inlines = [n.endpoint.inline() for n in nodes]
             last_inlines = [n.endpoint.inline() for n in self.nodes]
