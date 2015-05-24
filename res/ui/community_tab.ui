@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>457</width>
-    <height>369</height>
+    <width>636</width>
+    <height>404</height>
    </rect>
   </property>
   <property name="contextMenuPolicy">
@@ -127,6 +127,13 @@
             </widget>
            </item>
            <item>
+            <widget class="QPushButton" name="button_revoke_uid">
+             <property name="text">
+              <string>Revoke UID</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QPushButton" name="button_membership">
              <property name="text">
               <string>Renew membership</string>
@@ -234,6 +241,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>button_revoke_uid</sender>
+   <signal>clicked()</signal>
+   <receiver>CommunityTabWidget</receiver>
+   <slot>revoke_uid()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>750</x>
+     <y>368</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>622</x>
+     <y>201</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>identity_context_menu(QPoint)</slot>
@@ -241,5 +264,6 @@
   <slot>send_membership_leaving()</slot>
   <slot>search_text()</slot>
   <slot>publish_uid()</slot>
+  <slot>revoke_uid()</slot>
  </slots>
 </ui>

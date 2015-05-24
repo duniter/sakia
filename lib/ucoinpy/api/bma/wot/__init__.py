@@ -37,6 +37,16 @@ class Add(WOT):
         return self.requests_post('/add', **kwargs).json()
 
 
+class Revoke(WOT):
+    """POST Public key data."""
+
+    def __post__(self, **kwargs):
+        assert 'pubkey' in kwargs
+        assert 'self_' in kwargs
+
+        return self.requests_post('/revoke', **kwargs).json()
+
+
 class Lookup(WOT):
     """GET Public key data."""
 

@@ -15,7 +15,6 @@ from cutecoin.gui.contact import ConfigureContactDialog
 from cutecoin.gui.member import MemberDialog
 from .wot_tab import WotTabWidget
 from .transfer import TransferMoneyDialog
-from .password_asker import PasswordAskerDialog
 from .certification import CertificationDialog
 from . import toast
 from ..tools.exceptions import PersonNotFoundError, NoPeerAvailable
@@ -194,9 +193,8 @@ Sending a leaving demand  cannot be canceled.
 The process to join back the community later will have to be done again.""")
 .format(self.account.pubkey), QMessageBox.Ok | QMessageBox.Cancel)
         if reply == QMessageBox.Ok:
-            password_asker = PasswordAskerDialog(self.app.current_account)
-            password = password_asker.exec_()
-            if password_asker.result() == QDialog.Rejected:
+            password = self.password_asker.exec_()
+            if self.password_asker.result() == QDialog.Rejected:
                 return
 
             try:
@@ -204,7 +202,7 @@ The process to join back the community later will have to be done again.""")
                 toast.display(self.tr("Membership"), self.tr("Success sending leaving demand"))
             except ValueError as e:
                 QMessageBox.critical(self, self.tr("Leaving demand error"),
-                                  e.message)
+                                  str(e))
             except NoPeerAvailable as e:
                 QMessageBox.critical(self, self.tr("Network error"),
                                      self.tr("Couldn't connect to network : {0}").format(e),
@@ -217,12 +215,11 @@ The process to join back the community later will have to be done again.""")
     def publish_uid(self):
         reply = QMessageBox.warning(self, self.tr("Warning"),
                              self.tr("""Are you sure ?
-Publishing your UID cannot be canceled.""")
+Publishing your UID can be canceled by Revoke UID.""")
 .format(self.account.pubkey), QMessageBox.Ok | QMessageBox.Cancel)
         if reply == QMessageBox.Ok:
-            password_asker = PasswordAskerDialog(self.account)
-            password = password_asker.exec_()
-            if password_asker.result() == QDialog.Rejected:
+            password = self.password_asker.exec_()
+            if self.password_asker.result() == QDialog.Rejected:
                 return
 
             try:
@@ -230,8 +227,34 @@ Publishing your UID cannot be canceled.""")
                 toast.display(self.tr("UID Publishing"),
                               self.tr("Success publishing your UID"))
             except ValueError as e:
-                QMessageBox.critical(self, self.tr("Leaving demand error"),
-                                  e.message)
+                QMessageBox.critical(self, self.tr("Publish UID error"),
+                                  str(e))
+            except NoPeerAvailable as e:
+                QMessageBox.critical(self, self.tr("Network error"),
+                                     self.tr("Couldn't connect to network : {0}").format(e),
+                                     QMessageBox.Ok)
+            except Exception as e:
+                QMessageBox.critical(self, self.tr("Error"),
+                                     "{0}".format(e),
+                                     QMessageBox.Ok)
+
+    def revoke_uid(self):
+        reply = QMessageBox.warning(self, self.tr("Warning"),
+                                 self.tr("""Are you sure ?
+Revoking your UID can only success if it is not already validated by the network.""")
+.format(self.account.pubkey), QMessageBox.Ok | QMessageBox.Cancel)
+        if reply == QMessageBox.Ok:
+            password = self.password_asker.exec_()
+            if self.password_asker.result() == QDialog.Rejected:
+                return
+
+            try:
+                self.account.revoke(password, self.community)
+                toast.display(self.tr("UID Revoking"),
+                              self.tr("Success revoking your UID"))
+            except ValueError as e:
+                QMessageBox.critical(self, self.tr("Revoke UID error"),
+                                  str(e))
             except NoPeerAvailable as e:
                 QMessageBox.critical(self, self.tr("Network error"),
                                      self.tr("Couldn't connect to network : {0}").format(e),
