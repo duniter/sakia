@@ -54,10 +54,14 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
         if not source_index.isValid():
             return QVariant()
         source_data = source_model.data(source_index, role)
-        if index.column() == self.sourceModel().columns_types.index('is_member') \
+        if index.column() == source_model.columns_types.index('is_member') \
                 and role == Qt.DisplayRole:
             value = {True: 'yes', False: 'no', None: 'offline'}
             return value[source_data]
+
+        if index.column() == source_model.columns_types.index('pubkey') \
+            and role == Qt.DisplayRole:
+            return source_data[:5]
 
         if role == Qt.TextAlignmentRole:
             if source_index.column() == source_model.columns_types.index('address') or source_index.column() == self.sourceModel().columns_types.index('current_block'):
