@@ -56,7 +56,7 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
         source_data = source_model.data(source_index, role)
         if index.column() == source_model.columns_types.index('is_member') \
                 and role == Qt.DisplayRole:
-            value = {True: 'yes', False: 'no', None: 'offline'}
+            value = {True: self.tr('yes'), False: self.tr('no'), None: self.tr('offline')}
             return value[source_data]
 
         if index.column() == source_model.columns_types.index('pubkey') \
