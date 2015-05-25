@@ -36,7 +36,7 @@ class Node(QObject):
     changed = pyqtSignal()
 
     def __init__(self, currency, endpoints, uid, pubkey, block,
-                 state, last_change):
+                 state, last_change, software, version):
         '''
         Constructor
         '''
@@ -44,6 +44,8 @@ class Node(QObject):
         self._endpoints = endpoints
         self._uid = uid
         self._pubkey = pubkey
+        self._software = software
+        self._version = version
         self.block = block
         self._state = state
         self._neighbours = []
@@ -70,7 +72,7 @@ class Node(QObject):
                 raise InvalidNodeCurrency(peer.currency, currency)
 
         node = cls(peer.currency, peer.endpoints, "", peer.pubkey, 0,
-                   Node.ONLINE, time.time())
+                   Node.ONLINE, time.time(), "", "")
         logging.debug("Node from address : {:}".format(str(node)))
         return node
 
@@ -88,7 +90,7 @@ class Node(QObject):
                 raise InvalidNodeCurrency(peer.currency, currency)
 
         node = cls(peer.currency, peer.endpoints, "", "", 0,
-                   Node.ONLINE, time.time())
+                   Node.ONLINE, time.time(), "", "")
         logging.debug("Node from peer : {:}".format(str(node)))
         return node
 
@@ -100,6 +102,8 @@ class Node(QObject):
         block = 0
         last_change = time.time()
         state = Node.ONLINE
+        software = ''
+        version = ''
         logging.debug(data)
         for endpoint_data in data['endpoints']:
             endpoints.append(Endpoint.from_inline(endpoint_data))
@@ -124,8 +128,18 @@ class Node(QObject):
         else:
             logging.debug("Error : no state in node")
 
+        if 'software' in data:
+            software = data['software']
+        else:
+            logging.debug("Error : no software in node")
+
+        if 'version' in data:
+            version = data['version']
+        else:
+            logging.debug("Error : no version in node")
+
         node = cls(currency, endpoints, uid, pubkey, block,
-                   state, last_change)
+                   state, last_change, software, version)
         logging.debug("Node from json : {:}".format(str(node)))
         return node
 
@@ -147,7 +161,9 @@ class Node(QObject):
                 'currency': self._currency,
                 'state': self._state,
                 'last_change': self._last_change,
-                'block': self.block}
+                'block': self.block,
+                'software': self.software,
+                'version': self.version}
         endpoints = []
         for e in self._endpoints:
             endpoints.append(e.inline())
@@ -165,6 +181,14 @@ class Node(QObject):
     @property
     def block(self):
         return self._block
+
+    @property
+    def version(self):
+        return self._version
+
+    @property
+    def software(self):
+        return self._software
 
     @block.setter
     def block(self, new_block):
@@ -253,6 +277,10 @@ class Node(QObject):
             node_currency = informations["currency"]
             node_uid = self._request_uid()
 
+            implementation = bma.node.Summary(self.endpoint.conn_handler()).get()
+            software = implementation["ucoin"]["software"]
+            version = implementation["ucoin"]["version"]
+
             #If the nodes goes back online...
             if self.state in (Node.OFFLINE, Node.CORRUPTED):
                 self.state = Node.ONLINE
@@ -307,6 +335,16 @@ class Node(QObject):
                 if node_uid != self._uid:
                     logging.debug("Change : new uid")
                     self._uid = node_uid
+                    emit_change = True
+
+                if software != self._software:
+                    logging.debug("Change : new software")
+                    self._software = software
+                    emit_change = True
+
+                if version != self._version:
+                    logging.debug("Change : new version")
+                    self._version = version
                     emit_change = True
 
                 logging.debug(neighbours)

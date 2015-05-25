@@ -141,4 +141,4 @@ class API(object):
         for leaf in root['leaves'][begin:end]:
             yield self.requests_get(path, leaf=leaf).json()['leaf']
 
-from . import network, blockchain, tx, wot
+from . import network, blockchain, tx, wot, node
