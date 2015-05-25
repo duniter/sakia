@@ -275,7 +275,7 @@ class Account(QObject):
         key = SigningKey(self.salt, password)
         revocation.sign(selfcert, [key])
 
-        logging.debug("Self-Revocation Document : \n{0}".format(selfcert.signed_raw() + revocation.raw()))
+        logging.debug("Self-Revocation Document : \n{0}".format(revocation.raw(selfcert)))
         logging.debug("Signature : \n{0}".format(revocation.signatures[0]))
 
         data = {

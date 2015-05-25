@@ -116,9 +116,9 @@ class Revocation(Document):
         '''
         super().__init__(version, currency, [signature])
 
-    @staticmethod
-    def raw():
-        return """META:REVOKE"""
+    def raw(self, selfcert):
+        return """{0}META:REVOKE
+""".format(selfcert.signed_raw())
 
     def sign(self, selfcert, keys):
         '''
@@ -127,6 +127,6 @@ class Revocation(Document):
         '''
         self.signatures = []
         for key in keys:
-            signing = base64.b64encode(key.signature(bytes(selfcert.signed_raw() + self.raw(), 'ascii')))
+            signing = base64.b64encode(key.signature(bytes(self.raw(selfcert), 'ascii')))
             self.signatures.append(signing.decode("ascii"))
 
