@@ -624,12 +624,12 @@ Revoking your UID can only success if it is not already validated by the network
     <message>
         <location filename="../../../src/cutecoin/models/txhistory.py" line="173"/>
         <source>Payment</source>
-        <translation>Paiement</translation>
+        <translation>Débit</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/models/txhistory.py" line="173"/>
         <source>Deposit</source>
-        <translation>Dépôt</translation>
+        <translation>Crédit</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/models/txhistory.py" line="173"/>
@@ -809,7 +809,7 @@ Revoking your UID can only success if it is not already validated by the network
     <message>
         <location filename="../../ui/informations_tab.ui" line="115"/>
         <source>WoT</source>
-        <translation>WoT</translation>
+        <translation>Toile de Confiance</translation>
     </message>
     <message>
         <location filename="../../ui/informations_tab.ui" line="121"/>
@@ -1293,7 +1293,7 @@ Revoking your UID can only success if it is not already validated by the network
     <message>
         <location filename="../../../src/cutecoin/models/network.py" line="41"/>
         <source>Block</source>
-        <translation>Block</translation>
+        <translation>Bloc</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/models/network.py" line="42"/>
@@ -1319,6 +1319,21 @@ Revoking your UID can only success if it is not already validated by the network
         <location filename="../../../src/cutecoin/models/network.py" line="46"/>
         <source>Version</source>
         <translation>Version</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/models/network.py" line="59"/>
+        <source>yes</source>
+        <translation>oui</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/models/network.py" line="59"/>
+        <source>no</source>
+        <translation>non</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/models/network.py" line="59"/>
+        <source>offline</source>
+        <translation>déconnecté</translation>
     </message>
 </context>
 <context>
@@ -1593,12 +1608,12 @@ Le transfer de monnaie sera annulé et non envoyé.</translation>
     <message>
         <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="102"/>
         <source>&lt;b&gt;Deposits&lt;/b&gt; {:} {:}</source>
-        <translation>&lt;b&gt;Dépôts&lt;/b&gt; {:} {:}</translation>
+        <translation>&lt;b&gt;Crédit&lt;/b&gt; {:} {:}</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="106"/>
         <source>&lt;b&gt;Payments&lt;/b&gt; {:} {:}</source>
-        <translation>&lt;b&gt;Paiements&lt;/b&gt; {:} {:}</translation>
+        <translation>&lt;b&gt;Débit&lt;/b&gt; {:} {:}</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="110"/>
