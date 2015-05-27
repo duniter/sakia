@@ -6,7 +6,7 @@ Created on 1 févr. 2014
 
 from ucoinpy import PROTOCOL_VERSION
 from ucoinpy.api import bma
-from ucoinpy.documents.certification import SelfCertification, Certification
+from ucoinpy.documents.certification import SelfCertification, Certification, Revocation
 from ucoinpy.documents.membership import Membership
 from ucoinpy.key import SigningKey
 
@@ -231,13 +231,13 @@ class Account(QObject):
             self.wallets = self.wallets[:size]
 
     def certify(self, password, community, pubkey):
-        '''
+        """
         Certify an other identity
 
         :param str password: The account SigningKey password
-        :param community: The community target of the certification
+        :param cutecoin.core.community.Community community: The community target of the certification
         :param str pubkey: The certified identity pubkey
-        '''
+        """
         certified = Person.lookup(pubkey, community)
         blockid = community.current_blockid()
 
@@ -258,6 +258,33 @@ class Account(QObject):
                         'other': "{0}\n".format(certification.inline())}
         logging.debug("Posted data : {0}".format(data))
         community.broadcast(bma.wot.Add, {}, data)
+
+    def revoke(self, password, community):
+        """
+        Revoke self-identity on server, not in blockchain
+
+        :param str password: The account SigningKey password
+        :param cutecoin.core.community.Community community: The community target of the revocation
+        """
+        revoked = Person.lookup(self.pubkey, community)
+
+        revocation = Revocation(PROTOCOL_VERSION, community.currency, None)
+
+        selfcert = revoked.selfcert(community)
+
+        key = SigningKey(self.salt, password)
+        revocation.sign(selfcert, [key])
+
+        logging.debug("Self-Revocation Document : \n{0}".format(revocation.raw(selfcert)))
+        logging.debug("Signature : \n{0}".format(revocation.signatures[0]))
+
+        data = {
+            'pubkey': revoked.pubkey,
+            'self_': selfcert.signed_raw(),
+            'sig': revocation.signatures[0]
+        }
+        logging.debug("Posted data : {0}".format(data))
+        community.broadcast(bma.wot.Revoke, {}, data)
 
     def transfers(self, community):
         '''

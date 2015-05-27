@@ -105,3 +105,28 @@ class Certification(Document):
         return "{0}:{1}:{2}:{3}".format(self.pubkey_from, self.pubkey_to,
                                         self.blocknumber, self.signatures[0])
 
+
+class Revocation(Document):
+    '''
+    A document describing a self-revocation.
+    '''
+    def __init__(self, version, currency, signature):
+        '''
+        Constructor
+        '''
+        super().__init__(version, currency, [signature])
+
+    def raw(self, selfcert):
+        return """{0}META:REVOKE
+""".format(selfcert.signed_raw())
+
+    def sign(self, selfcert, keys):
+        '''
+        Sign the current document.
+        Warning : current signatures will be replaced with the new ones.
+        '''
+        self.signatures = []
+        for key in keys:
+            signing = base64.b64encode(key.signature(bytes(self.raw(selfcert), 'ascii')))
+            self.signatures.append(signing.decode("ascii"))
+

@@ -261,7 +261,7 @@ class Node(QObject):
                 block = bma.blockchain.Current(self.endpoint.conn_handler()).get()
                 block_number = block["number"]
             except ValueError as e:
-                if '404' in e:
+                if '404' in str(e):
                     block_number = 0
 
             peers_data = bma.network.peering.Peers(self.endpoint.conn_handler()).get()
