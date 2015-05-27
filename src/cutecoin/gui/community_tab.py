@@ -334,10 +334,12 @@ Revoking your UID can only success if it is not already validated by the network
                     self.button_membership.show()
                     self.button_publish_uid.hide()
                     self.button_leaving.show()
+                    self.button_revoke_uid.hide()
                 else:
                     logging.debug("Not a member")
                     self.button_membership.setText(self.tr("Send membership demand"))
                     self.button_membership.show()
+                    self.button_revoke_uid.show()
                     self.button_leaving.hide()
                     self.button_publish_uid.hide()
             else:
@@ -345,6 +347,7 @@ Revoking your UID can only success if it is not already validated by the network
                 self.button_membership.hide()
                 self.button_leaving.hide()
                 self.button_publish_uid.show()
+                self.button_revoke_uid.hide()
         except PersonNotFoundError:
             self.button_membership.hide()
             self.button_leaving.hide()
