@@ -79,6 +79,7 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
 
     def stop_progress(self):
         self.progressbar.hide()
+        self.table_history.resizeColumnsToContents()
 
     def refresh_balance(self):
         proxy = self.table_history.model()
