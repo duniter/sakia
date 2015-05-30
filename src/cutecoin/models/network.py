@@ -109,10 +109,10 @@ class NetworkTableModel(QAbstractTableModel):
             Node.CORRUPTED: QColor(Qt.lightGray)
         }
         self.node_states = {
-            Node.ONLINE: 'Online',
-            Node.OFFLINE: 'Offline',
-            Node.DESYNCED: 'Unsynchronized',
-            Node.CORRUPTED: 'Corrupted'
+            Node.ONLINE: self.tr('Online'),
+            Node.OFFLINE: self.tr('Offline'),
+            Node.DESYNCED: self.tr('Unsynchronized'),
+            Node.CORRUPTED: self.tr('Corrupted')
         }
 
     @property

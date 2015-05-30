@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="fr_FR" sourcelanguage="en">
+<TS version="2.0" language="fr_FR" sourcelanguage="en">
 <context>
     <name>@default</name>
     <message>
@@ -1352,6 +1352,29 @@ Revoking your UID can only success if it is not already validated by the network
         <location filename="../../../src/cutecoin/gui/network_tab.py" line="57"/>
         <source>Set as root node</source>
         <translation>Définir comme noeud racine</translation>
+    </message>
+</context>
+<context>
+    <name>NetworkTableModel</name>
+    <message>
+        <location filename="../../../src/cutecoin/models/network.py" line="112"/>
+        <source>Online</source>
+        <translation>Connecté</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/models/network.py" line="113"/>
+        <source>Offline</source>
+        <translation>Déconnecté</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/models/network.py" line="114"/>
+        <source>Unsynchronized</source>
+        <translation>Désynchronisé</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/models/network.py" line="115"/>
+        <source>Corrupted</source>
+        <translation>Corrompu</translation>
     </message>
 </context>
 <context>
