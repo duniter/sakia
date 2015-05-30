@@ -324,6 +324,7 @@ Revoking your UID can only success if it is not already validated by the network
             persons = certifiers_of + certified_by
 
         self.table_identities.model().sourceModel().refresh_identities(persons)
+        self.table_identities.resizeColumnsToContents()
 
     def refresh_quality_buttons(self):
         try:

@@ -139,6 +139,7 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
         proxy_model.setSourceModel(wallets_model)
         wallets_model.dataChanged.connect(self.wallet_changed)
         self.table_wallets.setModel(proxy_model)
+        self.table_wallets.resizeColumnsToContents()
 
     def get_referential_value(self, value):
         return self.account.units_to_ref(value, self.community)
@@ -221,6 +222,7 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
         self.table_wallets.edit(index)
 
     def wallet_changed(self):
+        self.table_wallets.resizeColumnsToContents()
         self.app.save(self.app.current_account)
 
     def copy_pubkey_to_clipboard(self):
