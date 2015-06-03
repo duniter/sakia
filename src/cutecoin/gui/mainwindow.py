@@ -404,7 +404,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def showEvent(self, event):
         super().showEvent(event)
         if not self.initialized:
+            # if default account in preferences...
             if self.app.preferences['account'] != "":
                 logging.debug("Loading default account")
                 self.action_change_account(self.app.preferences['account'])
+            # no default account...
+            else:
+                # if at least one account exists, set it as default...
+                if len(self.app.accounts) > 0:
+                    # capture names sorted alphabetically
+                    names = list(self.app.accounts.keys())
+                    names.sort()
+                    # set first name in list as default in preferences
+                    self.app.preferences['account'] = names[0]
+                    self.app.save_preferences(self.app.preferences)
+                    # open it
+                    logging.debug("No default account in preferences. Set %s as default account." % names[0])
+                    self.action_change_account(self.app.preferences['account'])
+
             self.initialized = True
