@@ -538,7 +538,7 @@ Revoking your UID can only success if it is not already validated by the network
     <message>
         <location filename="../../../src/cutecoin/gui/currency_tab.py" line="183"/>
         <source> Block {0}</source>
-        <translation>Block {0}</translation>
+        <translation>Bloc {0}</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/currency_tab.py" line="75"/>
@@ -1735,7 +1735,7 @@ Le transfer de monnaie sera annulé et non envoyé.</translation>
         <location filename="../../../src/cutecoin/gui/transfer.py" line="88"/>
         <source>This transaction could not be sent on this block
 Please try again later</source>
-        <translation>Ce transfert ne peut être envoyer sur ce block.
+        <translation>Ce transfert ne peut être envoyer sur ce bloc.
 Veuillez rééssayer plus tard</translation>
     </message>
     <message>
