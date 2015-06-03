@@ -1,3 +1,5 @@
+[![Code Health](https://landscape.io/github/ucoin-io/cutecoin/dev/landscape.svg?style=flat)](https://landscape.io/github/ucoin-io/cutecoin/dev)
+
 ![cutecoin logo](https://raw.github.com/ucoin-io/cutecoin/master/cutecoin.png)
 
 
