@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="fr_FR" sourcelanguage="en">
+<TS version="2.0" language="fr_FR" sourcelanguage="en">
 <context>
     <name>@default</name>
     <message>
@@ -272,7 +272,7 @@
         <translation>Qualification : </translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="333"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="334"/>
         <source>Renew membership</source>
         <translation>Renouveller le statut de membre</translation>
     </message>
@@ -415,7 +415,7 @@ Le processus pour rejoindre la communauté devrait être refait à zéro.</trans
         <translation>Voir dans la Toile de Confiance</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="340"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="341"/>
         <source>Send membership demand</source>
         <translation>Envoyer une demande de membre</translation>
     </message>
@@ -538,7 +538,7 @@ Revoking your UID can only success if it is not already validated by the network
     <message>
         <location filename="../../../src/cutecoin/gui/currency_tab.py" line="183"/>
         <source> Block {0}</source>
-        <translation>Block {0}</translation>
+        <translation>Bloc {0}</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/currency_tab.py" line="75"/>
@@ -867,7 +867,7 @@ Revoking your UID can only success if it is not already validated by the network
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="67"/>
         <source>Next UD date and time (t+1)</source>
-        <translation>Prochain UD, date et heure (t+1)</translation>
+        <translation>Prochain DU, date et heure (t+1)</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="141"/>
@@ -1009,12 +1009,12 @@ Revoking your UID can only success if it is not already validated by the network
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="179"/>
         <source>Minimum quantity of signatures to be part of the WoT</source>
-        <translation>Nombre de signatures minimum pour faire parti de la WoT</translation>
+        <translation>Nombre de signatures minimum pour faire partie de la TdC</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="179"/>
         <source>Minimum quantity of valid made certifications to be part of the WoT for distance rule</source>
-        <translation>Quantité minimum de certifications valides pour faire partie de la WoT suivant la règle de distance</translation>
+        <translation>Quantité minimum de certifications valides pour faire partie de la TdC suivant la règle de distance</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="179"/>
@@ -1024,7 +1024,7 @@ Revoking your UID can only success if it is not already validated by the network
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="179"/>
         <source>Maximum distance between each WoT member and a newcomer</source>
-        <translation>Distance maximum entre chaque membre de la WoT et un nouveau venu</translation>
+        <translation>Distance maximum entre chaque membre de la TdC et un nouveau venu</translation>
     </message>
 </context>
 <context>
@@ -1355,6 +1355,29 @@ Revoking your UID can only success if it is not already validated by the network
     </message>
 </context>
 <context>
+    <name>NetworkTableModel</name>
+    <message>
+        <location filename="../../../src/cutecoin/models/network.py" line="112"/>
+        <source>Online</source>
+        <translation>Connecté</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/models/network.py" line="113"/>
+        <source>Offline</source>
+        <translation>Déconnecté</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/models/network.py" line="114"/>
+        <source>Unsynchronized</source>
+        <translation>Désynchronisé</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/models/network.py" line="115"/>
+        <source>Corrupted</source>
+        <translation>Corrompu</translation>
+    </message>
+</context>
+<context>
     <name>Node</name>
     <message>
         <location filename="../../../src/cutecoin/gui/views/wot.py" line="285"/>
@@ -1554,27 +1577,27 @@ Souhaitez-vous publier votre clé publique ?</translation>
 <context>
     <name>TransactionsTabWidget</name>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="119"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="120"/>
         <source>Actions</source>
         <translation>Actions</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="132"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="133"/>
         <source>Send again</source>
         <translation>Renvoyer</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="137"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="138"/>
         <source>Cancel</source>
         <translation>Annuler</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="143"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="144"/>
         <source>Informations</source>
         <translation>Informations</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="148"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="149"/>
         <source>Add as contact</source>
         <translation>Ajouter comme contact</translation>
     </message>
@@ -1589,44 +1612,44 @@ Souhaitez-vous publier votre clé publique ?</translation>
         <translation type="obsolete">Voir dans la WoT</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="164"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="165"/>
         <source>Copy pubkey to clipboard</source>
         <translation>Copier la clé publique</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="201"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="202"/>
         <source>Warning</source>
         <translation>Attention</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="201"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="202"/>
         <source>Are you sure ?
 This money transfer will be removed and not sent.</source>
         <translation>Êtes vous certain ?
 Le transfer de monnaie sera annulé et non envoyé.</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="102"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="103"/>
         <source>&lt;b&gt;Deposits&lt;/b&gt; {:} {:}</source>
         <translation>&lt;b&gt;Crédit&lt;/b&gt; {:} {:}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="106"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="107"/>
         <source>&lt;b&gt;Payments&lt;/b&gt; {:} {:}</source>
         <translation>&lt;b&gt;Débit&lt;/b&gt; {:} {:}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="110"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="111"/>
         <source>&lt;b&gt;Balance&lt;/b&gt; {:} {:}</source>
         <translation>&lt;b&gt;Balance&lt;/b&gt; {:} {:}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="153"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="154"/>
         <source>Send money</source>
         <translation>Envoyer de l&apos;argent</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="159"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="160"/>
         <source>View in Web of Trust</source>
         <translation>Voir dans la Toile de Confiance</translation>
     </message>
@@ -1712,7 +1735,7 @@ Le transfer de monnaie sera annulé et non envoyé.</translation>
         <location filename="../../../src/cutecoin/gui/transfer.py" line="88"/>
         <source>This transaction could not be sent on this block
 Please try again later</source>
-        <translation>Ce transfert ne peut être envoyer sur ce block.
+        <translation>Ce transfert ne peut être envoyer sur ce bloc.
 Veuillez rééssayer plus tard</translation>
     </message>
     <message>
@@ -1809,17 +1832,17 @@ Veuillez rééssayer plus tard</translation>
         <translation>{:} {:} compris dans [{:.2f} - {:}] {:}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="174"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="175"/>
         <source>Rename</source>
         <translation>Renommer</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="178"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="179"/>
         <source>Copy pubkey to clipboard</source>
         <translation>Copier la clé publique</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="183"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="184"/>
         <source>Transfer to...</source>
         <translation>Transférer à...</translation>
     </message>
@@ -1844,7 +1867,7 @@ Veuillez rééssayer plus tard</translation>
         <translation>Votre part</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="171"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="172"/>
         <source>New Wallet</source>
         <translation>Nouveau portefeuille</translation>
     </message>
