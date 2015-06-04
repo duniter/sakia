@@ -1,5 +1,4 @@
-doc-warnings: yes
-ignore-paths
+ignore-paths:
   - lib
   - build
   - res
