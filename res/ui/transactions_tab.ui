@@ -44,7 +44,7 @@
       </layout>
      </item>
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout">
+      <layout class="QHBoxLayout" name="layout_balance">
        <item>
         <widget class="QLabel" name="label_payment">
          <property name="text">

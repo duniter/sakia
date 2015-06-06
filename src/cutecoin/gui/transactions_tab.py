@@ -82,6 +82,15 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         self.table_history.resizeColumnsToContents()
 
     def refresh_balance(self):
+        if self.app.current_account.referential == 'Units':
+            self.label_balance.show()
+            self.label_deposit.show()
+            self.label_payment.show()
+        else:
+            self.label_balance.hide()
+            self.label_deposit.hide()
+            self.label_payment.hide()
+
         proxy = self.table_history.model()
         balance = proxy.deposits - proxy.payments
         if isinstance(proxy.deposits, int):

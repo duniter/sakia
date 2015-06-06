@@ -404,7 +404,6 @@ class Application(QObject):
         request = QNetworkRequest(url)
         self._network_manager.get(request)
 
-
     @pyqtSlot(QNetworkReply)
     def read_available_version(self, reply):
         latest = None
