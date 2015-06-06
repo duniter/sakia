@@ -229,4 +229,4 @@ QMessageBox.Ok | QMessageBox.Cancel)
 
             self.table_history.model().set_period(ts_from, ts_to)
 
-
+            self.refresh_balance()
