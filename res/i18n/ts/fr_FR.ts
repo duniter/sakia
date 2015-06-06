@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0" language="fr_FR" sourcelanguage="en">
+<TS version="2.1" language="fr_FR" sourcelanguage="en">
 <context>
     <name>@default</name>
     <message>
@@ -1030,47 +1030,47 @@ Revoking your UID can only success if it is not already validated by the network
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="147"/>
+        <location filename="../../ui/mainwindow.ui" line="148"/>
         <source>Account</source>
         <translation>Compte</translation>
     </message>
     <message>
         <location filename="../../ui/mainwindow.ui" line="61"/>
         <source>Contacts</source>
-        <translation>Contacts</translation>
+        <translation type="obsolete">Contacts</translation>
     </message>
     <message>
         <location filename="../../ui/mainwindow.ui" line="75"/>
         <source>Actions</source>
-        <translation>Actions</translation>
+        <translation type="obsolete">Actions</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="87"/>
+        <location filename="../../ui/mainwindow.ui" line="88"/>
         <source>Manage accounts</source>
         <translation>Gérer les comptes</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="92"/>
+        <location filename="../../ui/mainwindow.ui" line="93"/>
         <source>Configure trustable nodes</source>
         <translation>Configurer les noeuds de confiance</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="117"/>
+        <location filename="../../ui/mainwindow.ui" line="118"/>
         <source>Send a message</source>
         <translation>Envoyer un message</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="122"/>
+        <location filename="../../ui/mainwindow.ui" line="123"/>
         <source>Send money</source>
         <translation>Envoyer de l&apos;argent</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="127"/>
+        <location filename="../../ui/mainwindow.ui" line="128"/>
         <source>Remove contact</source>
         <translation>Supprimer un contact</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="137"/>
+        <location filename="../../ui/mainwindow.ui" line="138"/>
         <source>Save</source>
         <translation>Sauvegarder</translation>
     </message>
@@ -1171,62 +1171,62 @@ Revoking your UID can only success if it is not already validated by the network
         <translation>&amp;Ouvrir</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="65"/>
+        <location filename="../../ui/mainwindow.ui" line="63"/>
         <source>&amp;Contacts</source>
         <translation>&amp;Contacts</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="97"/>
+        <location filename="../../ui/mainwindow.ui" line="98"/>
         <source>&amp;Add a contact</source>
         <translation>&amp;Ajouter un compte</translation>
     </message>
     <message>
         <location filename="../../ui/mainwindow.ui" line="132"/>
         <source>&amp;Add</source>
-        <translation>&amp;Ajouter</translation>
+        <translation type="obsolete">&amp;Ajouter</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="142"/>
+        <location filename="../../ui/mainwindow.ui" line="143"/>
         <source>&amp;Quit</source>
         <translation>&amp;Quitter</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="152"/>
+        <location filename="../../ui/mainwindow.ui" line="153"/>
         <source>&amp;Transfer money</source>
         <translation>&amp;Transférer de la monnaie</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="157"/>
+        <location filename="../../ui/mainwindow.ui" line="158"/>
         <source>&amp;Configure</source>
         <translation>&amp;Configurer</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="162"/>
+        <location filename="../../ui/mainwindow.ui" line="163"/>
         <source>&amp;Import</source>
         <translation>&amp;Importer</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="167"/>
+        <location filename="../../ui/mainwindow.ui" line="168"/>
         <source>&amp;Export</source>
         <translation>&amp;Exporter</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="172"/>
+        <location filename="../../ui/mainwindow.ui" line="173"/>
         <source>&amp;Certification</source>
         <translation>&amp;Certification</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="177"/>
+        <location filename="../../ui/mainwindow.ui" line="178"/>
         <source>&amp;Set as default</source>
         <translation>&amp;Par défaut</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="182"/>
+        <location filename="../../ui/mainwindow.ui" line="183"/>
         <source>A&amp;bout</source>
         <translation>A &amp;propos</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="187"/>
+        <location filename="../../ui/mainwindow.ui" line="188"/>
         <source>&amp;Preferences</source>
         <translation>&amp;Préférences</translation>
     </message>
@@ -1234,6 +1234,21 @@ Revoking your UID can only success if it is not already validated by the network
         <location filename="../../../src/cutecoin/gui/mainwindow.py" line="282"/>
         <source>Please get the latest release {version}</source>
         <translation>Veuillez télécharger la dernière version {version}</translation>
+    </message>
+    <message>
+        <location filename="../../ui/mainwindow.ui" line="41"/>
+        <source>Fi&amp;le</source>
+        <translation>&amp;Fichier</translation>
+    </message>
+    <message>
+        <location filename="../../ui/mainwindow.ui" line="77"/>
+        <source>&amp;Help</source>
+        <translation>&amp;Aide</translation>
+    </message>
+    <message>
+        <location filename="../../ui/mainwindow.ui" line="133"/>
+        <source>&amp;Add account</source>
+        <translation>&amp;Ajouter un compte</translation>
     </message>
 </context>
 <context>

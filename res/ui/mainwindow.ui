@@ -36,9 +36,9 @@
      <height>29</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menu_account">
+   <widget class="QMenu" name="menu_file">
     <property name="title">
-     <string>Account</string>
+     <string>Fi&amp;le</string>
     </property>
     <widget class="QMenu" name="menu_change_account">
      <property name="title">
@@ -47,18 +47,16 @@
     </widget>
     <addaction name="action_add_account"/>
     <addaction name="menu_change_account"/>
-    <addaction name="action_configure_parameters"/>
     <addaction name="separator"/>
     <addaction name="action_export"/>
     <addaction name="action_import"/>
     <addaction name="separator"/>
     <addaction name="actionPreferences"/>
-    <addaction name="actionAbout"/>
     <addaction name="action_quit"/>
    </widget>
-   <widget class="QMenu" name="menu_contacts">
+   <widget class="QMenu" name="menu_account">
     <property name="title">
-     <string>Contacts</string>
+     <string>Account</string>
     </property>
     <widget class="QMenu" name="menu_contacts_list">
      <property name="title">
@@ -66,20 +64,23 @@
      </property>
      <addaction name="separator"/>
     </widget>
+    <addaction name="action_configure_parameters"/>
+    <addaction name="separator"/>
+    <addaction name="actionCertification"/>
+    <addaction name="actionTransfer_money"/>
     <addaction name="separator"/>
     <addaction name="action_add_a_contact"/>
     <addaction name="menu_contacts_list"/>
    </widget>
-   <widget class="QMenu" name="menu_actions">
+   <widget class="QMenu" name="menu_help">
     <property name="title">
-     <string>Actions</string>
+     <string>&amp;Help</string>
     </property>
-    <addaction name="actionTransfer_money"/>
-    <addaction name="actionCertification"/>
+    <addaction name="actionAbout"/>
    </widget>
+   <addaction name="menu_file"/>
    <addaction name="menu_account"/>
-   <addaction name="menu_contacts"/>
-   <addaction name="menu_actions"/>
+   <addaction name="menu_help"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionManage_accounts">
@@ -129,7 +130,7 @@
   </action>
   <action name="action_add_account">
    <property name="text">
-    <string>&amp;Add</string>
+    <string>&amp;Add account</string>
    </property>
   </action>
   <action name="action_save">

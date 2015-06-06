@@ -1,5 +1,5 @@
 '''
-Created on 5 févr. 2014
+Created on 5 fevr. 2014
 
 @author: inso
 '''

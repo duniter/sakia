@@ -337,8 +337,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.currencies_tabwidget.hide()
             self.homescreen.show()
             self.setWindowTitle(self.tr("CuteCoin {0}").format(__version__))
-            self.menu_contacts.setEnabled(False)
-            self.menu_actions.setEnabled(False)
+            self.menu_account.setEnabled(False)
             self.action_configure_parameters.setEnabled(False)
             self.action_set_as_default.setEnabled(False)
             self.combo_referential.setEnabled(False)
@@ -357,9 +356,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.combo_referential.setEnabled(True)
             self.combo_referential.blockSignals(False)
             self.combo_referential.setCurrentText(self.app.preferences['ref'])
-            self.menu_contacts.setEnabled(True)
+            self.menu_account.setEnabled(True)
             self.action_configure_parameters.setEnabled(True)
-            self.menu_actions.setEnabled(True)
             self.setWindowTitle(self.tr("CuteCoin {0} - Account : {1}").format(__version__,
                                                                       self.app.current_account.name))
 

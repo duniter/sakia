@@ -1,5 +1,5 @@
 '''
-Created on 24 févr. 2015
+Created on 24 feb. 2015
 
 @author: inso
 '''
@@ -13,10 +13,10 @@ from ..watching.watcher import Watcher
 
 
 class Network(Watcher):
-    '''
+    """
     A network is managing nodes polling and crawling of a
     given community.
-    '''
+    """
     nodes_changed = pyqtSignal()
     new_block_mined = pyqtSignal(int)
     stopped_perpetual_crawling = pyqtSignal()
