@@ -9,8 +9,8 @@ from ..gen_resources.about_uic import Ui_AboutPopup
 from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog, QProgressBar, \
     QMessageBox, QLabel, QComboBox, QDialog, QApplication
 from PyQt5.QtCore import QSignalMapper, QObject, \
-    pyqtSlot, pyqtSignal, QDate, QDateTime, QTimer, QUrl, Qt
-from PyQt5.QtGui import QIcon, QDesktopServices, QPixmap
+    pyqtSlot, pyqtSignal, QDate, QDateTime, QTimer, QUrl, Qt, QCoreApplication
+from PyQt5.QtGui import QIcon, QDesktopServices
 
 from .process_cfg_account import ProcessConfigureAccount
 from .transfer import TransferMoneyDialog
@@ -19,7 +19,6 @@ from .contact import ConfigureContactDialog
 from .import_account import ImportAccountDialog
 from .certification import CertificationDialog
 from .password_asker import PasswordAskerDialog
-from ..tools.exceptions import NoPeerAvailable
 from .preferences import PreferencesDialog
 from .homescreen import HomeScreenWidget
 from ..core.account import Account
@@ -27,7 +26,6 @@ from ..__init__ import __version__
 from . import toast
 
 import logging
-import requests
 
 
 class Loader(QObject):
@@ -83,7 +81,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.combo_referential = QComboBox(self)
         self.combo_referential.setEnabled(False)
-        self.combo_referential.currentTextChanged.connect(self.referential_changed)
+        self.combo_referential.currentIndexChanged.connect(self.referential_changed)
 
         self.status_label = QLabel("", self)
         self.status_label.setTextFormat(Qt.RichText)
@@ -125,9 +123,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                              QMessageBox.Ok)
 
     @pyqtSlot(str)
-    def referential_changed(self, text):
+    def referential_changed(self, index):
         if self.app.current_account:
-            self.app.current_account.set_display_referential(text)
+            self.app.current_account.set_display_referential(index)
             if self.currencies_tabwidget.currentWidget():
                 self.currencies_tabwidget.currentWidget().referential_changed()
 
@@ -352,10 +350,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             self.combo_referential.blockSignals(True)
             self.combo_referential.clear()
-            self.combo_referential.addItems(sorted(Account.referentials.keys()))
+            for ref in self.app.current_account.referentials:
+                self.combo_referential.addItem(QCoreApplication.translate('Account', ref[4]))
+
             self.combo_referential.setEnabled(True)
             self.combo_referential.blockSignals(False)
-            self.combo_referential.setCurrentText(self.app.preferences['ref'])
+            self.combo_referential.setCurrentIndex(self.app.preferences['ref'])
             self.menu_account.setEnabled(True)
             self.action_configure_parameters.setEnabled(True)
             self.setWindowTitle(self.tr("CuteCoin {0} - Account : {1}").format(__version__,

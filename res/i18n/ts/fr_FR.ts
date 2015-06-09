@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="fr_FR" sourcelanguage="en">
+<TS version="2.0" language="fr_FR" sourcelanguage="en">
 <context>
     <name>@default</name>
     <message>
@@ -52,17 +52,42 @@
     <message>
         <location filename="../../../src/cutecoin/core/account.py" line="61"/>
         <source>ud {0}</source>
-        <translation>du {0}</translation>
+        <translation type="obsolete">du {0}</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/core/account.py" line="54"/>
+        <source>Units</source>
+        <translation>Unités</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/core/account.py" line="56"/>
+        <source>UD</source>
+        <translation>DU</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/core/account.py" line="58"/>
-        <source>q0 {0}</source>
-        <translation></translation>
+        <source>Quant Z-sum</source>
+        <translation>Quant. som. 0</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/core/account.py" line="61"/>
-        <source>r0 {0}</source>
-        <translation></translation>
+        <source>Relat Z-sum</source>
+        <translation>Rel. som. 0</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/core/account.py" line="61"/>
+        <source>UD {0}</source>
+        <translation>DU {0}</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/core/account.py" line="58"/>
+        <source>Q0 {0}</source>
+        <translation>Q0 {0}</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/core/account.py" line="61"/>
+        <source>R0 {0}</source>
+        <translation>R0 {0}</translation>
     </message>
 </context>
 <context>
@@ -1075,7 +1100,7 @@ Revoking your UID can only success if it is not already validated by the network
         <translation>Sauvegarder</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="390"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="388"/>
         <source>Export</source>
         <translation>Exporter</translation>
     </message>
@@ -1151,17 +1176,17 @@ Revoking your UID can only success if it is not already validated by the network
         <translation>CuteCoin {0}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="368"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="366"/>
         <source>CuteCoin {0} - Account : {1}</source>
         <translation>CuteCoin {0} - Compte : {1}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="388"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="386"/>
         <source>Export an account</source>
         <translation>Exporter un compte</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="389"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="387"/>
         <source>All account files (*.acc)</source>
         <translation>Tout fichier de compte (*.acc)</translation>
     </message>
@@ -1592,27 +1617,27 @@ Souhaitez-vous publier votre clé publique ?</translation>
 <context>
     <name>TransactionsTabWidget</name>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="120"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="129"/>
         <source>Actions</source>
         <translation>Actions</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="133"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="142"/>
         <source>Send again</source>
         <translation>Renvoyer</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="138"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="147"/>
         <source>Cancel</source>
         <translation>Annuler</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="144"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="153"/>
         <source>Informations</source>
         <translation>Informations</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="149"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="158"/>
         <source>Add as contact</source>
         <translation>Ajouter comme contact</translation>
     </message>
@@ -1627,44 +1652,44 @@ Souhaitez-vous publier votre clé publique ?</translation>
         <translation type="obsolete">Voir dans la WoT</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="165"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="174"/>
         <source>Copy pubkey to clipboard</source>
         <translation>Copier la clé publique</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="202"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="211"/>
         <source>Warning</source>
         <translation>Attention</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="202"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="211"/>
         <source>Are you sure ?
 This money transfer will be removed and not sent.</source>
         <translation>Êtes vous certain ?
 Le transfer de monnaie sera annulé et non envoyé.</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="103"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="112"/>
         <source>&lt;b&gt;Deposits&lt;/b&gt; {:} {:}</source>
         <translation>&lt;b&gt;Crédit&lt;/b&gt; {:} {:}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="107"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="116"/>
         <source>&lt;b&gt;Payments&lt;/b&gt; {:} {:}</source>
         <translation>&lt;b&gt;Débit&lt;/b&gt; {:} {:}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="111"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="120"/>
         <source>&lt;b&gt;Balance&lt;/b&gt; {:} {:}</source>
         <translation>&lt;b&gt;Balance&lt;/b&gt; {:} {:}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="154"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="163"/>
         <source>Send money</source>
         <translation>Envoyer de l&apos;argent</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="160"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="169"/>
         <source>View in Web of Trust</source>
         <translation>Voir dans la Toile de Confiance</translation>
     </message>

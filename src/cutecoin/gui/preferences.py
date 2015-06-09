@@ -4,7 +4,7 @@ Created on 11 mai 2015
 @author: inso
 '''
 
-import logging
+from PyQt5.QtCore import QCoreApplication
 
 from ..core.account import Account
 from PyQt5.QtWidgets import QDialog
@@ -30,8 +30,8 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
             self.combo_account.addItem(account_name)
         self.combo_account.setCurrentText(self.app.preferences['account'])
         for ref in Account.referentials:
-            self.combo_referential.addItem(ref)
-        self.combo_referential.setCurrentText(self.app.preferences['ref'])
+            self.combo_referential.addItem(QCoreApplication.translate('Account', ref[4]))
+        self.combo_referential.setCurrentIndex(self.app.preferences['ref'])
         for lang in ('en_GB', 'fr_FR'):
             self.combo_language.addItem(lang)
         self.combo_language.setCurrentText(self.app.preferences['lang'])
@@ -39,7 +39,7 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
     def accept(self):
         pref = {'account': self.combo_account.currentText(),
                 'lang': self.combo_language.currentText(),
-                'ref': self.combo_referential.currentText()}
+                'ref': self.combo_referential.currentIndex()}
         self.app.save_preferences(pref)
         super().accept()
 

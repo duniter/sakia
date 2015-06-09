@@ -82,7 +82,8 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         self.table_history.resizeColumnsToContents()
 
     def refresh_balance(self):
-        if self.app.current_account.referential == 'Units':
+        # if referential is "units"
+        if self.app.current_account.referential == 0:
             self.label_balance.show()
             self.label_deposit.show()
             self.label_payment.show()

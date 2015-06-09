@@ -45,24 +45,20 @@ def relative_zerosum(units, community):
 
 
 class Account(QObject):
-
-    '''
+    """
     An account is specific to a key.
     Each account has only one key, and a key can
     be locally referenced by only one account.
-    '''
-    referentials = {'Units': (quantitative, '{0}',
-                              quantitative, '{0}'),
-                    'UD': (relative, QT_TRANSLATE_NOOP('Account', 'ud {0}'),
-                           relative, QT_TRANSLATE_NOOP('Account', 'ud {0}')),
-                    'Quant Z-sum': (quantitative_zerosum,
-                                    QT_TRANSLATE_NOOP('Account', 'q0 {0}'),
-                                    quantitative, '{0}'),
-                    'Relat Z-sum': (relative_zerosum,
-                                    QT_TRANSLATE_NOOP('Account', 'r0 {0}'),
-                                    relative,
-                                    QT_TRANSLATE_NOOP('Account', 'ud {0}'))
-                    }
+    """
+    referentials = (
+        (quantitative, '{0}', quantitative, '{0}', QT_TRANSLATE_NOOP('Account', 'Units')),
+        (relative, QT_TRANSLATE_NOOP('Account', 'UD {0}'), relative, QT_TRANSLATE_NOOP('Account', 'UD {0}'),
+         QT_TRANSLATE_NOOP('Account', 'UD')),
+        (quantitative_zerosum, QT_TRANSLATE_NOOP('Account', 'Q0 {0}'), quantitative, '{0}',
+         QT_TRANSLATE_NOOP('Account', 'Quant Z-sum')),
+        (relative_zerosum, QT_TRANSLATE_NOOP('Account', 'R0 {0}'), relative, QT_TRANSLATE_NOOP('Account', 'UD {0}'),
+         QT_TRANSLATE_NOOP('Account', 'Relat Z-sum'))
+    )
 
     loading_progressed = pyqtSignal(int, int)
 
@@ -88,7 +84,7 @@ class Account(QObject):
         self.communities = communities
         self.wallets = wallets
         self.contacts = contacts
-        self.referential = 'Units'
+        self.referential = 0
 
     @classmethod
     def create(cls, name):
