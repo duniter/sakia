@@ -5,9 +5,8 @@ Created on 31 janv. 2015
 """
 
 import logging
-import datetime
 import math
-from PyQt5.QtCore import QLocale
+from PyQt5.QtCore import QLocale, QDateTime
 from PyQt5.QtWidgets import QWidget
 from ..gen_resources.informations_tab_uic import Ui_InformationsTabWidget
 
@@ -94,7 +93,11 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                     block['dividend'] / (block_t_minus_1['monetaryMass'] / block['membersCount']),
                     params['dt'] / 86400,
                     self.tr('Actual growth c = UD(t)/[M(t-1)/N(t)]'),
-                    datetime.datetime.fromtimestamp(block['medianTime'] + params['dt']).strftime("%d/%m/%Y %I:%M"),
+                    QLocale.toString(
+                        QLocale(),
+                        QDateTime.fromTime_t(block['medianTime'] + params['dt']),
+                        QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
+                    ),
                     self.tr('Next UD date and time (t+1)')
                 )
             )
@@ -106,7 +109,8 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 localized_ud_t1 = QLocale().toString(
                     float(
                         self.get_referential_diff_value(
-                            math.ceil(max(block['dividend'], params['c'] * block['monetaryMass'] / block['membersCount']))
+                            math.ceil(
+                                max(block['dividend'], params['c'] * block['monetaryMass'] / block['membersCount']))
                         )
                     ),
                     'f',
@@ -116,7 +120,8 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 localized_ud_t1 = QLocale().toString(
                     float(
                         self.get_referential_diff_value(
-                            math.ceil(max(block['dividend'], params['c'] * block['monetaryMass'] / block['membersCount']))
+                            math.ceil(
+                                max(block['dividend'], params['c'] * block['monetaryMass'] / block['membersCount']))
                         )
                     ),
                     'f',
