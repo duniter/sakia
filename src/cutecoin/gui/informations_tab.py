@@ -51,16 +51,21 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
         if block:
             ud = round(self.get_referential_diff_value(block['dividend']))
             if isinstance(ud, int):
-                localized_ud = QLocale().toString(ud)
-                localized_monetary_mass = QLocale().toString(round(self.get_referential_value(block['monetaryMass'])))
-                localized_mass_per_member = QLocale().toString(round(self.get_referential_value(block['monetaryMass'] / block['membersCount'])))
+                # use the float type of 64bits, to avoid display a 32bit signed integer...
+                localized_ud = QLocale().toString(float(ud), 'f', 0)
+                localized_monetary_mass = QLocale().toString(
+                    float(self.get_referential_value(block_t_minus_1['monetaryMass'])), 'f', 0
+                )
+                localized_mass_per_member = QLocale().toString(
+                    float(self.get_referential_value(block_t_minus_1['monetaryMass'] / block['membersCount'])), 'f', 0
+                )
             else:
                 localized_ud = QLocale().toString(ud, 'f', 6)
                 localized_monetary_mass = QLocale().toString(
-                    round(self.get_referential_value(block['monetaryMass'])), 'f', 6
+                    round(self.get_referential_value(block_t_minus_1['monetaryMass'])), 'f', 6
                 )
                 localized_mass_per_member = QLocale().toString(
-                    round(self.get_referential_value(block['monetaryMass'] / block['membersCount']), 'f', 6)
+                    round(self.get_referential_value(block_t_minus_1['monetaryMass'] / block['membersCount']), 'f', 6)
                 )
 
             # set infos in label
@@ -79,12 +84,12 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                     self.tr('Universal Dividend UD(t) in'),
                     self.get_referential_name(),
                     localized_monetary_mass,
-                    self.tr('Monetary Mass M(t) in'),
+                    self.tr('Monetary Mass M(t-1) in'),
                     self.get_referential_name(),
                     block['membersCount'],
                     self.tr('Members N(t)'),
                     localized_mass_per_member,
-                    self.tr('Monetary Mass per member M(t)/N(t) in'),
+                    self.tr('Monetary Mass per member M(t-1)/N(t) in'),
                     self.get_referential_name(),
                     block['dividend'] / (block_t_minus_1['monetaryMass'] / block['membersCount']),
                     params['dt'] / 86400,
@@ -99,17 +104,23 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
         if block:
             if isinstance(ud, int):
                 localized_ud_t1 = QLocale().toString(
-                    self.get_referential_diff_value(
-                        math.ceil(max(block['dividend'], params['c'] * block['monetaryMass'] / block['membersCount']))
-                    )
+                    float(
+                        self.get_referential_diff_value(
+                            math.ceil(max(block['dividend'], params['c'] * block['monetaryMass'] / block['membersCount']))
+                        )
+                    ),
+                    'f',
+                    0
                 )
             else:
                 localized_ud_t1 = QLocale().toString(
-                    self.get_referential_diff_value(
-                        math.ceil(max(block['dividend'], params['c'] * block['monetaryMass'] / block['membersCount']))
+                    float(
+                        self.get_referential_diff_value(
+                            math.ceil(max(block['dividend'], params['c'] * block['monetaryMass'] / block['membersCount']))
+                        )
                     ),
                     'f',
-                    2
+                    6
                 )
 
             # set infos in label
@@ -123,7 +134,7 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 """).format(
                     self.tr('{:2.0%} / {:} days').format(params['c'], params['dt'] / 86400),
                     self.tr('Fundamental growth (c) / Delta time (dt)'),
-                    self.tr('UD(t+1) = MAX { UD(t) ; c * M(t) / N(t) }'),
+                    self.tr('UD(t+1) = MAX { UD(t) ; c * M(t-1) / N(t) }'),
                     self.tr('Universal Dividend (formula)'),
                     self.tr('{:} = MAX {{ {:} {:} ; {:2.0%} * {:} {:} / {:} }}').format(
                         localized_ud_t1,
