@@ -237,13 +237,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         version_url = ""
         if not latest[0]:
             version_info = self.tr("Latest release : {version}") \
-                .format(version='.'.join(latest[1]))
+                .format(version=latest[1])
             version_url = latest[2]
 
-        new_version_text = self.tr("""
-            <p><b>{version_info}</b></p>
-            <p><a href="{version_url}">Download link</a></p>
-            """).format(version_info=version_info, version_url=version_url)
+            new_version_text = """
+                <p><b>{version_info}</b></p>
+                <p><a href="{version_url}">{link_text}</a></p>
+                """.format(version_info=version_info,
+                            version_url=version_url,
+                            link_text=self.tr("Download link"))
+        else:
+            new_version_text = ""
 
         text = self.tr("""
         <h1>Cutecoin</h1>

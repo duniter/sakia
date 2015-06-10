@@ -409,7 +409,7 @@ class Application(QObject):
         latest = None
         releases = reply.readAll().data().decode('utf-8')
         logging.debug(releases)
-        if reply.error == QNetworkReply.NoError:
+        if reply.error() == QNetworkReply.NoError:
             for r in json.loads(releases):
                 if not latest:
                     latest = r

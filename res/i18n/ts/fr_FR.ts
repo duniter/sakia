@@ -1120,7 +1120,7 @@ Revoking your UID can only success if it is not already validated by the network
         <translation>Sauvegarder</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="385"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="387"/>
         <source>Export</source>
         <translation>Exporter</translation>
     </message>
@@ -1146,7 +1146,7 @@ Revoking your UID can only success if it is not already validated by the network
             </translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="251"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="253"/>
         <source>
         &lt;h1&gt;Cutecoin&lt;/h1&gt;
 
@@ -1181,32 +1181,32 @@ Revoking your UID can only success if it is not already validated by the network
         </translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="319"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="321"/>
         <source>Edit</source>
         <translation>Editer</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="322"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="324"/>
         <source>Delete</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="338"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="340"/>
         <source>CuteCoin {0}</source>
         <translation>CuteCoin {0}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="363"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="365"/>
         <source>CuteCoin {0} - Account : {1}</source>
         <translation>CuteCoin {0} - Compte : {1}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="383"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="385"/>
         <source>Export an account</source>
         <translation>Exporter un compte</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="384"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="386"/>
         <source>All account files (*.acc)</source>
         <translation>Tout fichier de compte (*.acc)</translation>
     </message>
@@ -1276,7 +1276,7 @@ Revoking your UID can only success if it is not already validated by the network
         <translation>&amp;Préférences</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="276"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="278"/>
         <source>Please get the latest release {version}</source>
         <translation>Veuillez télécharger la dernière version {version}</translation>
     </message>
@@ -1301,10 +1301,15 @@ Revoking your UID can only success if it is not already validated by the network
             &lt;p&gt;&lt;b&gt;{version_info}&lt;/b&gt;&lt;/p&gt;
             &lt;p&gt;&lt;a href=&quot;{version_url}&quot;&gt;Download link&lt;/a&gt;&lt;/p&gt;
             </source>
-        <translation>
+        <translation type="obsolete">
             &lt;p&gt;&lt;b&gt;{version_info}&lt;/b&gt;&lt;/p&gt;
             &lt;p&gt;&lt;a href=&quot;{version_url}&quot;&gt;Lien de téléchargement&lt;/a&gt;&lt;/p&gt;
             </translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="249"/>
+        <source>Download link</source>
+        <translation type="unfinished">Lien de téléchargement</translation>
     </message>
 </context>
 <context>
