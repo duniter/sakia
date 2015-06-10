@@ -234,17 +234,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         latest = self.app.available_version
         version_info = ""
-        version_url = ""
         if not latest[0]:
             version_info = self.tr("Latest release : {version}") \
                 .format(version='.'.join(latest[1]))
-            version_url = latest[2]
 
         new_version_text = self.tr("""
             <p><b>{version_info}</b></p>
-            <p><a href={version_url}>Download link</a></p>
-            """).format(version_info=version_info,
-                       version_url=version_url)
+            """).format(version_info=version_info)
         text = self.tr("""
         <h1>Cutecoin</h1>
 
@@ -261,25 +257,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         <p>vit</p>
         <p>canercandan</p>
         """).format(__version__,
-                   new_version_text=new_version_text)
+                    new_version_text=new_version_text)
         aboutUi.label.setText(text)
         aboutDialog.show()
 
     @pyqtSlot()
     def latest_version_requested(self):
         latest = self.app.available_version
-        version_info = ""
-        version_url = ""
         logging.debug("Latest version requested")
         if not latest[0]:
             version_info = self.tr("Please get the latest release {version}") \
-                            .format(version=latest[1])
+                .format(version=latest[1])
             version_url = latest[2]
 
             toast.display("Cutecoin", """<p>{version_info}</br>
 <a href={version_url}>Download link</a></p>""".format(
-                       version_info=version_info,
-                       version_url=version_url))
+                version_info=version_info,
+                version_url=version_url))
 
     def refresh_wallets(self):
         currency_tab = self.currencies_tabwidget.currentWidget()
@@ -359,7 +353,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.menu_account.setEnabled(True)
             self.action_configure_parameters.setEnabled(True)
             self.setWindowTitle(self.tr("CuteCoin {0} - Account : {1}").format(__version__,
-                                                                      self.app.current_account.name))
+                                                                               self.app.current_account.name))
 
         self.refresh_communities()
         self.refresh_wallets()
