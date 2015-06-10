@@ -103,12 +103,12 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
         maximum = self.community.monetary_mass
 
         if isinstance(self.get_referential_value(amount), int):
-            localized_amount = QLocale().toString(self.get_referential_value(amount))
+            localized_amount = QLocale().toString(float(self.get_referential_value(amount)), 'f', 0)
         else:
             localized_amount = QLocale().toString(self.get_referential_value(amount), 'f', 6)
 
         if isinstance(self.get_referential_value(maximum), int):
-            localized_maximum = QLocale().toString(self.get_referential_value(maximum))
+            localized_maximum = QLocale().toString(float(self.get_referential_value(maximum)), 'f', 0)
         else:
             localized_maximum = QLocale().toString(self.get_referential_value(maximum), 'f', 6)
 
@@ -123,7 +123,7 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
                 self.tr("Your money share "),
                 self.tr("{:.2f}%").format(amount / maximum * 100) if maximum != 0 else "0%",
                 self.tr("Your part "),
-                self.tr("{:} {:} in [{:.2f} - {:}] {:}")
+                self.tr("{:} {:} in [{:.2f} ; {:}] {:}")
                 .format(
                     localized_amount,
                     self.get_referential_name(),
