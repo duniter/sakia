@@ -7,6 +7,7 @@ Created on 11 mai 2015
 from PyQt5.QtCore import QCoreApplication
 
 from ..core.account import Account
+from . import toast
 from PyQt5.QtWidgets import QDialog
 
 from ..gen_resources.preferences_uic import Ui_PreferencesDialog
@@ -41,6 +42,8 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
                 'lang': self.combo_language.currentText(),
                 'ref': self.combo_referential.currentIndex()}
         self.app.save_preferences(pref)
+        toast.display(self.tr("Preferences"),
+                      self.tr("A restart is needed to apply your new preferences."))
         super().accept()
 
     def reject(self):
