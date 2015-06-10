@@ -99,8 +99,11 @@ class TxFilterProxyModel(QSortFilterProxyModel):
             if source_index.column() == model.columns_types.index('uid'):
                 return source_data
             if source_index.column() == model.columns_types.index('date'):
-                date = QDateTime.fromTime_t(source_data)
-                return date.date()
+                return QLocale.toString(
+                    QLocale(),
+                    QDateTime.fromTime_t(source_data).date(),
+                    QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
+                )
             if source_index.column() == model.columns_types.index('payment') or \
                     source_index.column() == model.columns_types.index('deposit'):
                 if source_data is not "":

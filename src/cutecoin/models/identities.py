@@ -8,7 +8,7 @@ from ucoinpy.api import bma
 from ..core.person import Person
 from ..tools.exceptions import NoPeerAvailable, MembershipNotFoundError
 from PyQt5.QtCore import QAbstractTableModel, QSortFilterProxyModel, Qt, \
-                        QDateTime, QModelIndex
+                        QDateTime, QModelIndex, QLocale
 from PyQt5.QtGui import QColor
 import logging
 
@@ -46,12 +46,16 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
         if expiration_data is not None:
             will_expire_soon = (current_time > expiration_data*1000 - warning_expiration_time*1000)
         if role == Qt.DisplayRole:
-            if source_index.column() == self.sourceModel().columns_ids.index('renewed'):
-                date = QDateTime.fromTime_t(source_data).date() if source_data is not None else ""
-                return date
-            if source_index.column() == self.sourceModel().columns_ids.index('expiration'):
-                date = QDateTime.fromTime_t(source_data).date() if source_data is not None else ""
-                return date
+            if source_index.column() == self.sourceModel().columns_ids.index('renewed') \
+                    or source_index.column() == self.sourceModel().columns_ids.index('expiration'):
+                if source_data is not None:
+                    return QLocale.toString(
+                        QLocale(),
+                        QDateTime.fromTime_t(source_data).date(),
+                        QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
+                    )
+                else:
+                    return ""
             if source_index.column() == self.sourceModel().columns_ids.index('pubkey'):
                 return "pub:{0}".format(source_data[:5])
 

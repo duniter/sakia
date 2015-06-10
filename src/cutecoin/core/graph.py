@@ -1,7 +1,7 @@
 import logging
-import copy
 import time
 import datetime
+from PyQt5.QtCore import QLocale, QDateTime
 from cutecoin.core.person import Person
 from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_OUT, ARC_STATUS_STRONG, ARC_STATUS_WEAK
 
@@ -171,9 +171,11 @@ class Graph(object):
             arc = {
                 'id': person.pubkey,
                 'status': arc_status,
-                'tooltip': datetime.datetime.fromtimestamp(
-                    certifier['cert_time']['medianTime'] + self.signature_validity
-                ).strftime("%d/%m/%Y"),
+                'tooltip': QLocale.toString(
+                    QLocale(),
+                    QDateTime.fromTime_t(certifier['cert_time']['medianTime'] + self.signature_validity).date(),
+                    QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
+                ),
                 'cert_time': certifier['cert_time']['medianTime']
             }
             #  add arc to certifier
@@ -218,9 +220,11 @@ class Graph(object):
             arc = {
                 'id': certified['pubkey'],
                 'status': arc_status,
-                'tooltip': datetime.datetime.fromtimestamp(
-                    certified['cert_time']['medianTime'] + self.signature_validity
-                ).strftime("%d/%m/%Y"),
+                'tooltip': QLocale.toString(
+                    QLocale(),
+                    QDateTime.fromTime_t(certified['cert_time']['medianTime'] + self.signature_validity).date(),
+                    QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
+                ),
                 'cert_time': certified['cert_time']['medianTime']
             }
 
