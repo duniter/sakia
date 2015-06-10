@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0" language="fr_FR" sourcelanguage="en">
+<TS version="2.1" language="fr_FR" sourcelanguage="en">
 <context>
     <name>@default</name>
     <message>
@@ -1120,7 +1120,7 @@ Revoking your UID can only success if it is not already validated by the network
         <translation>Sauvegarder</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="384"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="385"/>
         <source>Export</source>
         <translation>Exporter</translation>
     </message>
@@ -1196,17 +1196,17 @@ Revoking your UID can only success if it is not already validated by the network
         <translation>CuteCoin {0}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="362"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="363"/>
         <source>CuteCoin {0} - Account : {1}</source>
         <translation>CuteCoin {0} - Compte : {1}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="382"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="383"/>
         <source>Export an account</source>
         <translation>Exporter un compte</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="383"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="384"/>
         <source>All account files (*.acc)</source>
         <translation>Tout fichier de compte (*.acc)</translation>
     </message>
@@ -1527,9 +1527,14 @@ Revoking your UID can only success if it is not already validated by the network
         <translation>Langue</translation>
     </message>
     <message>
-        <location filename="../../ui/preferences.ui" line="14"/>
+        <location filename="../../../src/cutecoin/gui/preferences.py" line="45"/>
         <source>Preferences</source>
         <translation>Préférences</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/preferences.py" line="45"/>
+        <source>A restart is needed to apply your new preferences.</source>
+        <translation>Vous devez redémarrer Cutecoin pour appliquer vos nouvelles préférences.</translation>
     </message>
 </context>
 <context>
