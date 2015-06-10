@@ -353,6 +353,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             self.combo_referential.setEnabled(True)
             self.combo_referential.blockSignals(False)
+            logging.debug(self.app.preferences)
             self.combo_referential.setCurrentIndex(self.app.preferences['ref'])
             self.menu_account.setEnabled(True)
             self.action_configure_parameters.setEnabled(True)
