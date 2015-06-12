@@ -146,9 +146,9 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 """).format(
                     self.tr('{:2.0%} / {:} days').format(params['c'], params['dt'] / 86400),
                     self.tr('Fundamental growth (c) / Delta time (dt)'),
-                    self.tr('UD(t+1) = MAX { UD(t) ; c * M(t) / N(t+1) }'),
+                    self.tr('UD(t+1) = MAX { UD(t) ; c × M(t) / N(t+1) }'),
                     self.tr('Universal Dividend (formula)'),
-                    self.tr('{:} = MAX {{ {:} {:} ; {:2.0%} * {:} {:} / {:} }}').format(
+                    self.tr('{:} = MAX {{ {:} {:} ; {:2.0%} × {:} {:} / {:} }}').format(
                         localized_ud_t1,
                         localized_ud,
                         self.get_referential_name(),
