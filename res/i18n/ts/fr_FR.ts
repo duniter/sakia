@@ -1243,7 +1243,7 @@ Revoking your UID can only success if it is not already validated by the network
     <message>
         <location filename="../../ui/mainwindow.ui" line="98"/>
         <source>&amp;Add a contact</source>
-        <translation>&amp;Ajouter un compte</translation>
+        <translation type="unfinished">&amp;Ajouter un contact</translation>
     </message>
     <message>
         <location filename="../../ui/mainwindow.ui" line="132"/>
