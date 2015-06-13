@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="2.0" language="fr_FR" sourcelanguage="en">
+<!DOCTYPE TS>
+<TS version="2.0" language="fr_FR" sourcelanguage="en">
 <context>
     <name>@default</name>
     <message>
@@ -43,7 +44,7 @@
     <message>
         <location filename="../../ui/about.ui" line="22"/>
         <source>label</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
 </context>
 <context>
@@ -1068,16 +1069,26 @@ Revoking your UID can only success if it is not already validated by the network
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="74"/>
         <source>Actual growth c = UD(t)/[M(t-1)/N(t-1)]</source>
-        <translation type="unfinished">Croissance actuelle c = DU(t)/[M(t -1)/N(t-1)]</translation>
+        <translation>Croissance actuelle c = DU(t)/[M(t -1)/N(t-1)]</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="140"/>
-        <source>UD(t+1) = MAX { UD(t) ; c &#xc3;&#x97; M(t) / N(t) }</source>
-        <translation type="unfinished"></translation>
+        <source>UD(t+1) = MAX { UD(t) ; c Ã M(t) / N(t) }</source>
+        <translation type="obsolete">DU(t+1) = MAX { DU(t) ; c Ã M(t) / N(t) }</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="140"/>
-        <source>{:} = MAX {{ {:} {:} ; {:2.0%} &#xc3;&#x97; {:} {:} / {:} }}</source>
+        <source>UD(t+1) = MAX { UD(t) ; c u00D7 M(t) / N(t) }</source>
+        <translation type="obsolete">DU(t+1) = MAX { DU(t) ; c u00D7 M(t) / N(t) }</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="140"/>
+        <source>UD(t+1) = MAX { UD(t) ; c &amp;#215; M(t) / N(t) }</source>
+        <translation type="unfinished">DU(t+1) = MAX { DU(t) ; c &amp;#215; M(t) / N(t) }</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="140"/>
+        <source>{:} = MAX {{ {:} {:} ; {:2.0%} &amp;#215; {:} {:} / {:} }}</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1318,7 +1329,7 @@ Revoking your UID can only success if it is not already validated by the network
     <message>
         <location filename="../../../src/cutecoin/gui/mainwindow.py" line="249"/>
         <source>Download link</source>
-        <translation type="unfinished">Lien de téléchargement</translation>
+        <translation>Lien de téléchargement</translation>
     </message>
 </context>
 <context>
@@ -1974,7 +1985,7 @@ Veuillez rééssayer plus tard</translation>
     <message>
         <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="119"/>
         <source>{:} {:} in [{:} ; {:}] {:}</source>
-        <translation type="unfinished"></translation>
+        <translation>{:} {:} compris entre [{:} ; {:}] {:}</translation>
     </message>
 </context>
 <context>
