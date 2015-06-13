@@ -40,13 +40,6 @@
     <property name="title">
      <string>Fi&amp;le</string>
     </property>
-    <widget class="QMenu" name="menu_change_account">
-     <property name="title">
-      <string>&amp;Open</string>
-     </property>
-    </widget>
-    <addaction name="menu_change_account"/>
-    <addaction name="separator"/>
     <addaction name="action_import"/>
     <addaction name="action_export"/>
     <addaction name="separator"/>
@@ -63,6 +56,12 @@
      </property>
      <addaction name="separator"/>
     </widget>
+    <widget class="QMenu" name="menu_change_account">
+     <property name="title">
+      <string>&amp;Open</string>
+     </property>
+    </widget>
+    <addaction name="menu_change_account"/>
     <addaction name="action_configure_parameters"/>
     <addaction name="action_add_account"/>
     <addaction name="separator"/>
