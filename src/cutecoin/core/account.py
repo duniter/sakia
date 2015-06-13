@@ -1,8 +1,8 @@
-'''
+"""
 Created on 1 févr. 2014
 
 @author: inso
-'''
+"""
 
 from ucoinpy import PROTOCOL_VERSION
 from ucoinpy.api import bma
@@ -12,6 +12,7 @@ from ucoinpy.key import SigningKey
 
 import logging
 import time
+import math
 
 from PyQt5.QtCore import QObject, pyqtSignal, QCoreApplication, QT_TRANSLATE_NOOP
 
@@ -22,23 +23,62 @@ from ..tools.exceptions import ContactAlreadyExists
 
 
 def quantitative(units, community):
+    """
+    Return quantitative value of units
+
+    :param int units:   Value
+    :param cutecoin.core.community.Community community: Community instance
+    :return: int
+    """
     return int(units)
 
 
 def relative(units, community):
-    ud = community.dividend
+    """
+    Return relaive value of units
+
+    :param int units:   Value
+    :param cutecoin.core.community.Community community: Community instance
+    :return: float
+    """
+    # fixme: the value "community.nb_members" is not up to date, luckyly the good value is in "community.get_ud_block()['membersCount']"
+    # calculate ud(t+1)
+    ud = math.ceil(
+        max(community.dividend,
+            community.parameters['c'] * community.monetary_mass / community.get_ud_block()['membersCount'])
+    )
     relative_value = units / float(ud)
     return relative_value
 
 
 def quantitative_zerosum(units, community):
-    median = community.get_ud_block(1)['monetaryMass'] / community.nb_members
-    return units - median
+    """
+    Return quantitative value of units minus the average value
+
+    :param int units:   Value
+    :param cutecoin.core.community.Community community: Community instance
+    :return: int
+    """
+    # fixme: the value "community.nb_members" is not up to date, luckyly the good value is in "community.get_ud_block()['membersCount']"
+    average = community.monetary_mass / community.get_ud_block()['membersCount']
+    return units - average
 
 
 def relative_zerosum(units, community):
-    median = community.get_ud_block(1)['monetaryMass'] / community.nb_members
-    ud = community.dividend
+    """
+    Return relative value of units minus the average value
+
+    :param int units:   Value
+    :param cutecoin.core.community.Community community: Community instance
+    :return: float
+    """
+    # fixme: the value "community.nb_members" is not up to date, luckyly the good value is in "community.get_ud_block()['membersCount']"
+    median = community.monetary_mass / community.nb_members
+    # calculate ud(t+1)
+    ud = math.ceil(
+        max(community.dividend,
+            community.parameters['c'] * community.monetary_mass / community.get_ud_block()['membersCount'])
+    )
     relative_value = units / float(ud)
     relative_median = median / ud
     return relative_value - relative_median
@@ -250,8 +290,8 @@ class Account(QObject):
         logging.debug("Certification : {0}".format(signed_cert))
 
         data = {'pubkey': certified.pubkey,
-                        'self_': selfcert.signed_raw(),
-                        'other': "{0}\n".format(certification.inline())}
+                'self_': selfcert.signed_raw(),
+                'other': "{0}\n".format(certification.inline())}
         logging.debug("Posted data : {0}".format(data))
         community.broadcast(bma.wot.Add, {}, data)
 
@@ -346,8 +386,8 @@ class Account(QObject):
         selfcert.sign([key])
         logging.debug("Key publish : {0}".format(selfcert.signed_raw()))
         community.broadcast(bma.wot.Add, {}, {'pubkey': self.pubkey,
-                                    'self_': selfcert.signed_raw(),
-                                    'other': []})
+                                              'self_': selfcert.signed_raw(),
+                                              'other': []})
 
     def send_membership(self, password, community, mstype):
         '''
@@ -363,14 +403,14 @@ class Account(QObject):
         blockid = community.current_blockid()
 
         membership = Membership(PROTOCOL_VERSION, community.currency,
-                          selfcert.pubkey, blockid['number'],
-                          blockid['hash'], mstype, selfcert.uid,
-                          selfcert.timestamp, None)
+                                selfcert.pubkey, blockid['number'],
+                                blockid['hash'], mstype, selfcert.uid,
+                                selfcert.timestamp, None)
         key = SigningKey(self.salt, password)
         membership.sign([key])
         logging.debug("Membership : {0}".format(membership.signed_raw()))
         community.broadcast(bma.blockchain.Membership, {},
-                       {'membership': membership.signed_raw()})
+                            {'membership': membership.signed_raw()})
 
     def jsonify(self):
         '''

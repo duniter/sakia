@@ -48,30 +48,24 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
             return False
 
         if block:
-            ud = round(self.get_referential_diff_value(block['dividend']))
+            ud = self.get_referential_diff_value(block['dividend'])
             if isinstance(ud, int):
                 # use the float type of 64bits, to avoid display a 32bit signed integer...
                 localized_ud = QLocale().toString(float(ud), 'f', 0)
-                localized_monetary_mass_minus_1 = QLocale().toString(
-                    float(self.get_referential_value(block_t_minus_1['monetaryMass'])), 'f', 0
-                )
-                localized_mass_minus_1_per_member = QLocale().toString(
-                    float(self.get_referential_value(block_t_minus_1['monetaryMass'] / block['membersCount'])), 'f', 0
+                localized_mass_per_member = QLocale().toString(
+                    float(self.get_referential_diff_value(block['monetaryMass'] / block['membersCount'])), 'f', 0
                 )
                 localized_monetary_mass = QLocale().toString(
-                    float(self.get_referential_value(block['monetaryMass'])), 'f', 0
+                    float(self.get_referential_diff_value(block['monetaryMass'])), 'f', 0
                 )
 
             else:
                 localized_ud = QLocale().toString(ud, 'f', 6)
-                localized_monetary_mass_minus_1 = QLocale().toString(
-                    round(self.get_referential_value(block_t_minus_1['monetaryMass'])), 'f', 6
-                )
-                localized_mass_minus_1_per_member = QLocale().toString(
-                    round(self.get_referential_value(block_t_minus_1['monetaryMass'] / block['membersCount']), 'f', 6)
+                localized_mass_per_member = QLocale().toString(
+                    self.get_referential_diff_value(block['monetaryMass'] / block['membersCount']), 'f', 6
                 )
                 localized_monetary_mass = QLocale().toString(
-                    round(self.get_referential_value(block['monetaryMass'])), 'f', 6
+                    self.get_referential_diff_value(block['monetaryMass']), 'f', 6
                 )
 
             # set infos in label
@@ -88,15 +82,15 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 """).format(
                     localized_ud,
                     self.tr('Universal Dividend UD(t) in'),
-                    self.get_referential_name(),
-                    localized_monetary_mass_minus_1,
-                    self.tr('Monetary Mass M(t-1) in'),
-                    self.get_referential_name(),
+                    self.get_referential_diff_name(),
+                    localized_monetary_mass,
+                    self.tr('Monetary Mass M(t) in'),
+                    self.get_referential_diff_name(),
                     block['membersCount'],
                     self.tr('Members N(t)'),
-                    localized_mass_minus_1_per_member,
-                    self.tr('Monetary Mass per member M(t-1)/N(t) in'),
-                    self.get_referential_name(),
+                    localized_mass_per_member,
+                    self.tr('Monetary Mass per member M(t)/N(t) in'),
+                    self.get_referential_diff_name(),
                     block['dividend'] / (block_t_minus_1['monetaryMass'] / block['membersCount']),
                     params['dt'] / 86400,
                     self.tr('Actual growth c = UD(t)/[M(t-1)/N(t)]'),
@@ -117,7 +111,8 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                     float(
                         self.get_referential_diff_value(
                             math.ceil(
-                                max(block['dividend'], params['c'] * block['monetaryMass'] / block['membersCount']))
+                                max(block['dividend'], params['c'] * block['monetaryMass'] / block['membersCount'])
+                            )
                         )
                     ),
                     'f',
@@ -128,7 +123,8 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                     float(
                         self.get_referential_diff_value(
                             math.ceil(
-                                max(block['dividend'], params['c'] * block['monetaryMass'] / block['membersCount']))
+                                max(block['dividend'], params['c'] * block['monetaryMass'] / block['membersCount'])
+                            )
                         )
                     ),
                     'f',
@@ -146,15 +142,15 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 """).format(
                     self.tr('{:2.0%} / {:} days').format(params['c'], params['dt'] / 86400),
                     self.tr('Fundamental growth (c) / Delta time (dt)'),
-                    self.tr('UD(t+1) = MAX { UD(t) ; c * M(t) / N(t+1) }'),
+                    self.tr('UD(t+1) = MAX { UD(t) ; c * M(t) / N(t) }'),
                     self.tr('Universal Dividend (formula)'),
                     self.tr('{:} = MAX {{ {:} {:} ; {:2.0%} * {:} {:} / {:} }}').format(
                         localized_ud_t1,
                         localized_ud,
-                        self.get_referential_name(),
+                        self.get_referential_diff_name(),
                         params['c'],
                         localized_monetary_mass,
-                        self.get_referential_name(),
+                        self.get_referential_diff_name(),
                         block['membersCount']
                     ),
                     self.tr('Universal Dividend (computed)')
@@ -233,3 +229,6 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
 
     def get_referential_name(self):
         return self.account.ref_name(self.community.short_currency)
+
+    def get_referential_diff_name(self):
+        return self.account.diff_ref_name(self.community.short_currency)
