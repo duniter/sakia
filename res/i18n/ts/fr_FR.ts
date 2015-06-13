@@ -887,7 +887,7 @@ Revoking your UID can only success if it is not already validated by the network
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="72"/>
         <source>Actual growth c = UD(t)/[M(t-1)/N(t)]</source>
-        <translation>Croissance actuelle c = DU(t)/[M(t -1)/N(t)]</translation>
+        <translation type="obsolete">Croissance actuelle c = DU(t)/[M(t -1)/N(t)]</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="72"/>
@@ -1070,6 +1070,11 @@ Revoking your UID can only success if it is not already validated by the network
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="139"/>
         <source>UD(t+1) = MAX { UD(t) ; c * M(t) / N(t+1) }</source>
         <translation type="obsolete">DU(t+1) = MAX { DU(t) ; c * M(t) / N(t+1) }</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="72"/>
+        <source>Actual growth c = UD(t)/[M(t-1)/N(t-1)]</source>
+        <translation type="unfinished">Croissance actuelle c = DU(t)/[M(t -1)/N(t-1)]</translation>
     </message>
 </context>
 <context>
