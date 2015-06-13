@@ -109,9 +109,12 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                 if source_data is not "":
                     amount_ref = self.account.units_to_diff_ref(source_data,
                                                                 self.community)
-                    if isinstance(amount_ref, int):
-                        return QLocale().toString(amount_ref)
+                    # if referential type is quantitative...
+                    if self.account.ref_type() == 'q':
+                        # display int values
+                        return QLocale().toString(float(amount_ref), 'f', 0)
                     else:
+                        # display float values
                         return QLocale().toString(amount_ref, 'f', 6)
 
         if role == Qt.FontRole:

@@ -124,9 +124,12 @@ Please try again later"""))
         amount = self.wallet.value(self.community)
         ref_amount = self.account.units_to_ref(amount, self.community)
         ref_name = self.account.ref_name(self.community.currency)
-        if isinstance(ref_amount, int):
-            ref_amount = QLocale().toString(ref_amount)
+        # if referential type is quantitative...
+        if self.account.ref_type() == 'q':
+            # display int values
+            ref_amount = QLocale().toString(float(ref_amount), 'f', 0)
         else:
+            # display float values
             ref_amount = QLocale().toString(ref_amount, 'f', 6)
         self.label_total.setText("{0} {1}".format(ref_amount, ref_name))
         self.spinbox_amount.setSuffix(" " + self.community.currency)
@@ -141,9 +144,12 @@ Please try again later"""))
         amount = self.wallet.value(self.community)
         ref_amount = self.account.units_to_ref(amount, self.community)
         ref_name = self.account.ref_name(self.community.currency)
-        if isinstance(ref_amount, int):
-            ref_amount = QLocale().toString(ref_amount)
+        # if referential type is quantitative...
+        if self.account.ref_type() == 'q':
+            # display int values
+            ref_amount = QLocale().toString(float(ref_amount), 'f', 0)
         else:
+            # display float values
             ref_amount = QLocale().toString(ref_amount, 'f', 6)
         self.label_total.setText("{0} {1}".format(ref_amount, ref_name))
         self.spinbox_amount.setValue(0)

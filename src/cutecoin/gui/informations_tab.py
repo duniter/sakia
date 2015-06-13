@@ -49,7 +49,9 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
 
         if block:
             ud = self.get_referential_diff_value(block['dividend'])
-            if isinstance(ud, int):
+            # if referential type is quantitative...
+            if self.account.ref_type() == 'q':
+                # display int values
                 # use the float type of 64bits, to avoid display a 32bit signed integer...
                 localized_ud = QLocale().toString(float(ud), 'f', 0)
                 localized_mass_per_member = QLocale().toString(
@@ -58,8 +60,8 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 localized_monetary_mass = QLocale().toString(
                     float(self.get_referential_diff_value(block['monetaryMass'])), 'f', 0
                 )
-
             else:
+                # display float values
                 localized_ud = QLocale().toString(ud, 'f', 6)
                 localized_mass_per_member = QLocale().toString(
                     self.get_referential_diff_value(block['monetaryMass'] / block['membersCount']), 'f', 6
@@ -106,7 +108,9 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
             self.label_general.setText(self.tr('No Universal Dividend created yet.'))
 
         if block:
-            if isinstance(ud, int):
+            # if referential type is quantitative...
+            if self.account.ref_type() == 'q':
+                # display int values
                 localized_ud_t1 = QLocale().toString(
                     float(
                         self.get_referential_diff_value(
@@ -119,6 +123,7 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                     0
                 )
             else:
+                # display float values
                 localized_ud_t1 = QLocale().toString(
                     float(
                         self.get_referential_diff_value(

@@ -90,14 +90,24 @@ class Account(QObject):
     Each account has only one key, and a key can
     be locally referenced by only one account.
     """
+    # referentials are defined here
+    # it is a list of tupple, each tupple contains :
+    # (
+    #   function used to calculate value,
+    #   format string to display value,
+    #   function used to calculate on differential value,
+    #   format string to display differential value,
+    #   translated name of referential,
+    #   type relative "r" or quantitative "q" to help choose precision on display
+    # )
     referentials = (
-        (quantitative, '{0}', quantitative, '{0}', QT_TRANSLATE_NOOP('Account', 'Units')),
+        (quantitative, '{0}', quantitative, '{0}', QT_TRANSLATE_NOOP('Account', 'Units'), 'q'),
         (relative, QT_TRANSLATE_NOOP('Account', 'UD {0}'), relative, QT_TRANSLATE_NOOP('Account', 'UD {0}'),
-         QT_TRANSLATE_NOOP('Account', 'UD')),
+         QT_TRANSLATE_NOOP('Account', 'UD'), 'r'),
         (quantitative_zerosum, QT_TRANSLATE_NOOP('Account', 'Q0 {0}'), quantitative, '{0}',
-         QT_TRANSLATE_NOOP('Account', 'Quant Z-sum')),
+         QT_TRANSLATE_NOOP('Account', 'Quant Z-sum'), 'q'),
         (relative_zerosum, QT_TRANSLATE_NOOP('Account', 'R0 {0}'), relative, QT_TRANSLATE_NOOP('Account', 'UD {0}'),
-         QT_TRANSLATE_NOOP('Account', 'Relat Z-sum'))
+         QT_TRANSLATE_NOOP('Account', 'Relat Z-sum'), 'r')
     )
 
     loading_progressed = pyqtSignal(int, int)
@@ -249,6 +259,13 @@ class Account(QObject):
     def diff_ref_name(self, currency):
         text = QCoreApplication.translate('Account', Account.referentials[self.referential][3])
         return text.format(currency)
+
+    def ref_type(self):
+        """
+        Return type of referential ('q' or 'r', for quantitative or relative)
+        :return: str
+        """
+        return Account.referentials[self.referential][5]
 
     def set_walletpool_size(self, size, password):
         '''

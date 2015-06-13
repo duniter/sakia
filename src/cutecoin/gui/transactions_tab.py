@@ -94,21 +94,12 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
 
         proxy = self.table_history.model()
         balance = proxy.deposits - proxy.payments
-        if isinstance(proxy.deposits, int):
-            localized_deposits = QLocale().toString(
-                self.app.current_account.units_to_ref(proxy.deposits, self.community))
-            localized_payments = QLocale().toString(
-                self.app.current_account.units_to_ref(proxy.payments, self.community))
-            localized_balance = QLocale().toString(
-                self.app.current_account.units_to_diff_ref(balance, self.community))
-
-        else:
-            localized_deposits = QLocale().toString(
-                self.app.current_account.units_to_ref(proxy.deposits, self.community), 'f', 6)
-            localized_payments = QLocale().toString(
-                self.app.current_account.units_to_ref(proxy.payments, self.community), 'f', 6)
-            localized_balance = QLocale().toString(
-                self.app.current_account.units_to_diff_ref(balance, self.community), 'f', 6)
+        localized_deposits = QLocale().toString(
+            self.app.current_account.units_to_diff_ref(proxy.deposits, self.community))
+        localized_payments = QLocale().toString(
+            self.app.current_account.units_to_diff_ref(proxy.payments, self.community))
+        localized_balance = QLocale().toString(
+            self.app.current_account.units_to_diff_ref(balance, self.community))
 
         self.label_deposit.setText(QCoreApplication.translate("TransactionsTabWidget", "<b>Deposits</b> {:} {:}").format(
             localized_deposits,

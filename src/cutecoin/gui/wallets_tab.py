@@ -101,16 +101,17 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
 
         amount = self.account.amount(self.community)
         maximum = self.community.monetary_mass
-
-        if isinstance(self.get_referential_value(amount), int):
+        # if referential type is quantitative...
+        if self.account.ref_type() == 'q':
+            # display int values
             localized_amount = QLocale().toString(float(self.get_referential_value(amount)), 'f', 0)
-        else:
-            localized_amount = QLocale().toString(self.get_referential_value(amount), 'f', 6)
-
-        if isinstance(self.get_referential_value(maximum), int):
+            localized_minimum = QLocale().toString(float(self.get_referential_value(0)), 'f', 0)
             localized_maximum = QLocale().toString(float(self.get_referential_value(maximum)), 'f', 0)
         else:
-            localized_maximum = QLocale().toString(self.get_referential_value(maximum), 'f', 6)
+            # display float values
+            localized_amount = QLocale().toString(float(self.get_referential_value(amount)), 'f', 6)
+            localized_minimum = QLocale().toString(float(self.get_referential_value(0)), 'f', 6)
+            localized_maximum = QLocale().toString(float(self.get_referential_value(maximum)), 'f', 6)
 
         # set infos in label
         self.label_balance.setText(
@@ -123,11 +124,11 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
                 self.tr("Your money share "),
                 self.tr("{:.2f}%").format(amount / maximum * 100) if maximum != 0 else "0%",
                 self.tr("Your part "),
-                self.tr("{:} {:} in [{:.2f} ; {:}] {:}")
+                self.tr("{:} {:} in [{:} ; {:}] {:}")
                 .format(
                     localized_amount,
                     self.get_referential_name(),
-                    self.get_referential_value(0),
+                    localized_minimum,
                     localized_maximum,
                     self.get_referential_name()
                 )
