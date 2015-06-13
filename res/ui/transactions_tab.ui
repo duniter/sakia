@@ -44,37 +44,6 @@
       </layout>
      </item>
      <item>
-      <layout class="QHBoxLayout" name="layout_balance">
-       <item>
-        <widget class="QLabel" name="label_payment">
-         <property name="text">
-          <string>Payment:</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_deposit">
-         <property name="text">
-          <string>Deposit:</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_balance">
-         <property name="text">
-          <string>Balance:</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
       <widget class="QProgressBar" name="progressbar">
        <property name="maximum">
         <number>0</number>
@@ -105,6 +74,37 @@
         <bool>false</bool>
        </attribute>
       </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="layout_balance">
+       <item>
+        <widget class="QLabel" name="label_payment">
+         <property name="text">
+          <string>Payment:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_deposit">
+         <property name="text">
+          <string>Deposit:</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_balance">
+         <property name="text">
+          <string>Balance:</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>
