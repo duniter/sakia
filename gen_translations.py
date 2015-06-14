@@ -1,4 +1,4 @@
-import sys, os, multiprocessing, subprocess, time
+import sys, os, multiprocessing, subprocess, time, shutil
 
 gen_resources = os.path.abspath(os.path.join(os.path.dirname(__file__), 'src'))
 ts = os.path.abspath(os.path.join(os.path.dirname(__file__), 'res', 'i18n', 'ts'))
@@ -27,7 +27,7 @@ def prepare_qm():
 
     for (ts_file, qm_file) in translations:
         # avoid conflict with qt4 lrelease by running qtchooser directly
-        if sys.platform.startswith('win'):
+        if sys.platform.startswith('win') or shutil.which("qtchooser") == None:
             subprocess.call(["lrelease", ts_file, "-qm", qm_file])
         else:
             subprocess.call(["qtchooser", "-run-tool=lrelease", "-qt=5", ts_file, "-qm", qm_file])

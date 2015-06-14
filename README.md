@@ -1,7 +1,10 @@
-[![Code Health](https://landscape.io/github/ucoin-io/cutecoin/dev/landscape.svg?style=flat)](https://landscape.io/github/ucoin-io/cutecoin/dev)
+Landscape | [![Code Health](https://landscape.io/github/ucoin-io/cutecoin/dev/landscape.svg?style=flat)](https://landscape.io/github/ucoin-io/cutecoin/dev)
+
+Travis | [![Build Status](https://travis-ci.org/ucoin-io/cutecoin.svg?branch=travis)](https://travis-ci.org/ucoin-io/cutecoin)
+
+Appveyor | [![Build status](https://ci.appveyor.com/api/projects/status/0wmo0rk5mds5t3lr/branch/dev)](https://ci.appveyor.com/project/Insoleet/cutecoin/branch/dev)
 
 ![cutecoin logo](https://raw.github.com/ucoin-io/cutecoin/master/cutecoin.png)
-
 
 cutecoin
 ========

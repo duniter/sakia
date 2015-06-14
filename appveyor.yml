@@ -1,0 +1,57 @@
+environment:
+  global:
+    # SDK v7.0 MSVC Express 2008's SetEnv.cmd script will fail if the
+    # /E:ON and /V:ON options are not enabled in the batch script intepreter
+    # See: http://stackoverflow.com/a/13751649/163740
+    CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\ci\\appveyor\\run_with_env.cmd"
+
+  matrix:
+    - PYTHON: "C:\\Python34_64"
+      PYTHON_VERSION: "3.4"
+      PYTHON_ARCH: "64"
+      CONDA_PY: "34"
+      CONDA_NPY: "18"
+      platform: x64
+
+    - PYTHON: "C:\\Python34_32"
+      PYTHON_VERSION: "3.4"
+      PYTHON_ARCH: "32"
+      CONDA_PY: "34"
+      CONDA_NPY: "18"
+      platform: x86
+
+install:
+  # this installs the appropriate Miniconda (Py2/Py3, 32/64 bit),
+  # as well as pip, conda-build, and the binstar CLI
+  - powershell .\\ci\\appveyor\\install.ps1
+  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+  - "SET QT_QPA_PLATFORM_PLUGIN_PATH=%PYTHON%\\envs\\test-environment\\Scripts\\plugins"
+  - choco install -y vcredist2013
+  - "%CMD_IN_ENV% conda config --set always_yes yes --set changeps1 no"
+  - "%CMD_IN_ENV% conda config --add channels inso/channel/cutecoin"
+  - "%CMD_IN_ENV% conda config --add channels pyzo"
+  - "%CMD_IN_ENV% conda create -q -n test-environment python=%PYTHON_VERSION% cx_freeze pyqt5 libsodium=1.0.3"
+
+build_script:
+  - ".\\ci\\appveyor\\build.cmd"
+
+test_script:
+  - ".\\ci\\appveyor\\tests.cmd"
+  - echo %errorlevel%
+
+artifacts:
+  - path: build
+    name: Cutecoin-win$(PYTHON_ARCH)
+
+deploy:
+  release: Cutecoin $(APPVEYOR_REPO_TAG_NAME)
+  provider: GitHub
+  auth_token:
+    secure: wbzlh6nx1zY1J1avlB0C3hKGm1abFNHBdM60u/U09i5Nam//D6kazvnv5ZBKdR89 # your encrypted token from GitHub
+  artifact: Cutecoin-win$(PYTHON_ARCH)      # upload to releases
+  draft: true
+  prerelease: true
+  on:
+    branch: appveyor                 # release from master branch only
+    appveyor_repo_tag: true        # deploy on tag push only
+
