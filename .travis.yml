@@ -43,5 +43,6 @@ before_script:
 
 script:
   - export QT_QPA_PLATFORM_PLUGIN_PATH=$HOME/miniconda/envs/test-environment/lib/qt5/plugins/platforms;
+  - export QT_PLUGIN_PATH=$HOME/miniconda/envs/test-environment/lib/qt5/plugins
   - export QT_XKB_CONFIG_ROOT=/usr/share/X11/xkb
   - python run_tests.py
