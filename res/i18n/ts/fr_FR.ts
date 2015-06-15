@@ -563,7 +563,7 @@ Revoking your UID can only success if it is not already validated by the network
     <message>
         <location filename="../../../src/cutecoin/gui/currency_tab.py" line="183"></location>
         <source> Block {0}</source>
-        <translation>Bloc {0}</translation>
+        <translation> Bloc {0}</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/currency_tab.py" line="75"></location>
