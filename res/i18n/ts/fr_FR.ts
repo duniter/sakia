@@ -1084,7 +1084,7 @@ Revoking your UID can only success if it is not already validated by the network
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="140"></location>
         <source>UD(t+1) = MAX { UD(t) ; c &amp;#215; M(t) / N(t) }</source>
-        <translation type="unfinished">DU(t+1) = MAX { DU(t) ; c &amp;#215; M(t) / N(t) }</translation>
+        <translation>DU(t+1) = MAX { DU(t) ; c &amp;#215; M(t) / N(t) }</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="140"></location>
@@ -1243,7 +1243,7 @@ Revoking your UID can only success if it is not already validated by the network
     <message>
         <location filename="../../ui/mainwindow.ui" line="97"></location>
         <source>&amp;Add a contact</source>
-        <translation type="unfinished">&amp;Ajouter un contact</translation>
+        <translation>&amp;Ajouter un contact</translation>
     </message>
     <message>
         <location filename="../../ui/mainwindow.ui" line="132"></location>
