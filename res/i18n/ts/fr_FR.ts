@@ -1795,7 +1795,7 @@ Le transfer de monnaie sera annulé et non envoyé.</translation>
     <message>
         <location filename="../../ui/transfer.ui" line="125"></location>
         <source>Availalble currency : </source>
-        <translation>Monnaie disponible :</translation>
+        <translation>Monnaie disponible : </translation>
     </message>
     <message>
         <location filename="../../ui/transfer.ui" line="134"></location>
