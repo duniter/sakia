@@ -39,7 +39,7 @@
     <message>
         <location filename="../../ui/about.ui" line="14"></location>
         <source>About</source>
-        <translation>A propos</translation>
+        <translation>A proposh</translation>
     </message>
     <message>
         <location filename="../../ui/about.ui" line="22"></location>
