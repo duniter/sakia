@@ -672,7 +672,7 @@ Revoking your UID can only success if it is not already validated by the network
     <message>
         <location filename="../../ui/homescreen.ui" line="20"></location>
         <source>Form</source>
-        <translation></translation>
+        <translation>Formulaire</translation>
     </message>
     <message>
         <location filename="../../ui/homescreen.ui" line="49"></location>
