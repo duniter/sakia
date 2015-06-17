@@ -38,7 +38,6 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         self.graphicsView.scene().node_contact.connect(self.add_node_as_contact)
         self.graphicsView.scene().node_member.connect(self.identity_informations)
 
-        app.monitor.persons_watcher(community).person_changed.connect(self.handle_person_change)
         self.account = account
         self.community = community
         self.password_asker = password_asker

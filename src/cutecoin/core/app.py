@@ -19,7 +19,6 @@ from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkReques
 from . import config
 from .account import Account
 from . import person
-from .watching.monitor import Monitor
 from .. import __version__
 from ..tools.exceptions import NameAlreadyExists, BadAccountFile
 
@@ -44,13 +43,11 @@ class Application(QObject):
         super().__init__()
         self.accounts = {}
         self.current_account = None
-        self.monitor = None
         self.available_version = (True,
                                   __version__,
                                   "")
         config.parse_arguments(argv)
         self._network_manager = QNetworkAccessManager()
-        self._network_manager.finished.connect(self.read_available_version)
         self.preferences = {'account': "",
                             'lang': 'en_GB',
                             'ref': 0
@@ -126,13 +123,9 @@ class Application(QObject):
             self.loading_progressed.emit(value, maximum)
 
         if self.current_account is not None:
-            if self.monitor:
-                self.monitor.stop_watching()
             self.save_cache(self.current_account)
         account.loading_progressed.connect(progressing)
         account.refresh_cache()
-        self.monitor = Monitor(account)
-        self.monitor.prepare_watching()
         self.current_account = account
 
     def load(self):
@@ -178,7 +171,7 @@ class Application(QObject):
                                     account_name, 'properties')
         with open(account_path, 'r') as json_data:
             data = json.load(json_data)
-            account = Account.load(data)
+            account = Account.load(self._network_manager, data)
             self.load_cache(account)
             self.accounts[account_name] = account
 
@@ -189,9 +182,9 @@ class Application(QObject):
         :param account: The account object to load the cache
         '''
         for community in account.communities:
-            community_path = os.path.join(config.parameters['home'],
+            bma_path = os.path.join(config.parameters['home'],
                                         account.name, '__cache__',
-                                        community.currency)
+                                        community.currency + '_bma')
 
             network_path = os.path.join(config.parameters['home'],
                                         account.name, '__cache__',
@@ -202,17 +195,17 @@ class Application(QObject):
                     data = json.load(json_data)
                 if 'version' in data and data['version'] == __version__:
                     logging.debug("Merging network : {0}".format(data))
-                    community.load_merge_network(data['network'])
+                    community.network.merge_with_json(data['network'])
                 else:
                     os.remove(network_path)
 
-            if os.path.exists(community_path):
-                with open(community_path, 'r') as json_data:
+            if os.path.exists(bma_path):
+                with open(bma_path, 'r') as json_data:
                     data = json.load(json_data)
                 if 'version' in data and data['version'] == __version__:
-                    community.load_cache(data)
+                    community.bma_access.load_from_json(data['cache'])
                 else:
-                    os.remove(community_path)
+                    os.remove(bma_path)
 
         for wallet in account.wallets:
             wallet_path = os.path.join(config.parameters['home'],
@@ -319,9 +312,9 @@ class Application(QObject):
             self.save_wallet(account, wallet)
 
         for community in account.communities:
-            community_path = os.path.join(config.parameters['home'],
+            bma_path = os.path.join(config.parameters['home'],
                                         account.name, '__cache__',
-                                        community.currency)
+                                        community.currency + '_bma')
 
             network_path = os.path.join(config.parameters['home'],
                                         account.name, '__cache__',
@@ -329,12 +322,12 @@ class Application(QObject):
 
             with open(network_path, 'w') as outfile:
                 data = dict()
-                data['network'] = community.jsonify_network()
+                data['network'] = community.network.jsonify()
                 data['version'] = __version__
                 json.dump(data, outfile, indent=4, sort_keys=True)
 
-            with open(community_path, 'w') as outfile:
-                data = community.jsonify_cache()
+            with open(bma_path, 'w') as outfile:
+                data['cache'] = community.bma_access.jsonify()
                 data['version'] = __version__
                 json.dump(data, outfile, indent=4, sort_keys=True)
 
@@ -402,11 +395,13 @@ class Application(QObject):
     def get_last_version(self):
         url = QUrl("https://api.github.com/repos/ucoin-io/cutecoin/releases")
         request = QNetworkRequest(url)
-        self._network_manager.get(request)
+        reply = self._network_manager.get(request)
+        reply.finished.connect(self.read_available_version)
 
     @pyqtSlot(QNetworkReply)
-    def read_available_version(self, reply):
+    def read_available_version(self):
         latest = None
+        reply = self.sender()
         releases = reply.readAll().data().decode('utf-8')
         logging.debug(releases)
         if reply.error() == QNetworkReply.NoError:

@@ -419,7 +419,7 @@ class Person(object):
 
     def membership_expiration_time(self, community):
         join_block = self.membership(community)['blockNumber']
-        join_date = community.get_block(join_block).mediantime
+        join_date = community.get_block(join_block)['medianTime']
         parameters = community.parameters
         expiration_date = join_date + parameters['sigValidity']
         current_time = time.time()

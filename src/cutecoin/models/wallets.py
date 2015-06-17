@@ -4,7 +4,7 @@ Created on 8 févr. 2014
 @author: inso
 '''
 
-from PyQt5.QtCore import QAbstractTableModel, QSortFilterProxyModel, Qt, QLocale
+from PyQt5.QtCore import QAbstractTableModel, QSortFilterProxyModel, Qt, QLocale, pyqtSlot
 
 
 class WalletsFilterProxyModel(QSortFilterProxyModel):
@@ -61,11 +61,18 @@ class WalletsTableModel(QAbstractTableModel):
     '''
 
     def __init__(self, account, community, parent=None):
-        '''
-        Constructor
-        '''
+        """
+
+        :param list of cutecoin.core.wallet.Wallet wallets: The list of wallets to display
+        :param cutecoin.core.community.Community community: The community to show
+        :param PyQt5.QtCore.QObject parent: The parent widget
+        :return: The model
+        :rtype: WalletsTableModel
+        """
         super().__init__(parent)
         self.account = account
+        self.account.wallets_changed.connect(self.refresh_account_wallets)
+
         self.community = community
         self.columns_headers = (self.tr('Name'),
                                 self.tr('Amount'),
@@ -75,6 +82,25 @@ class WalletsTableModel(QAbstractTableModel):
     @property
     def wallets(self):
         return self.account.wallets
+
+    @pyqtSlot()
+    def refresh_account_wallets(self):
+        """
+        Change the current wallets, reconnect the slots
+        """
+        self.beginResetModel()
+        for w in self.account.wallets:
+            w.inner_data_changed.connect(lambda: self.refresh_wallet(w))
+        self.endResetModel()
+
+    def refresh_wallet(self, wallet):
+        """
+        Refresh the specified wallet value
+        :param cutecoin.core.wallet.Wallet wallet: The wallet to refresh
+        """
+        index = self.account.wallets.index(wallet)
+        if index > 0:
+            self.dataChanged.emit(index, index)
 
     def rowCount(self, parent):
         return len(self.wallets)

@@ -39,7 +39,7 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
 
     def refresh(self):
         minimum_datetime = QDateTime()
-        minimum_datetime.setTime_t(self.community.get_block(1).mediantime)
+        minimum_datetime.setTime_t(self.community.get_block(1)['medianTime'])
         minimum_datetime.setTime(QTime(0, 0))
 
         self.date_from.setMinimumDateTime(minimum_datetime)
@@ -74,8 +74,6 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
             self.progressbar.setMaximum(maximum)
 
         self.progressbar.show()
-        blockchain_watcher = self.app.monitor.blockchain_watcher(self.community)
-        blockchain_watcher.loading_progressed.connect(progressing)
 
     def stop_progress(self):
         self.progressbar.hide()

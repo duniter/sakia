@@ -189,7 +189,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         except:
             logging.debug("Disconnect of app failed")
 
-        self.app.monitor.start_network_watchers()
         QApplication.processEvents()
 
     def open_transfer_money_dialog(self):

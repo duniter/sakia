@@ -64,6 +64,7 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 # display float values
                 localized_ud = QLocale().toString(ud, 'f', 6)
                 localized_mass_per_member = QLocale().toString(
+                    float(0) if block['membersCount'] <= 0 else
                     self.get_referential_diff_value(block['monetaryMass'] / block['membersCount']), 'f', 6
                 )
                 localized_monetary_mass = QLocale().toString(
@@ -93,6 +94,7 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                     localized_mass_per_member,
                     self.tr('Monetary Mass per member M(t)/N(t) in'),
                     self.get_referential_diff_name(),
+                    float(0) if block_t_minus_1['membersCount'] == 0 else
                     block['dividend'] / (block_t_minus_1['monetaryMass'] / block_t_minus_1['membersCount']),
                     params['dt'] / 86400,
                     self.tr('Actual growth c = UD(t)/[M(t-1)/N(t-1)]'),
@@ -128,6 +130,7 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                     float(
                         self.get_referential_diff_value(
                             math.ceil(
+                                float(0) if block['membersCount'] == 0 else
                                 max(block['dividend'], params['c'] * block['monetaryMass'] / block['membersCount'])
                             )
                         )

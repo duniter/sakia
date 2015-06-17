@@ -20,6 +20,7 @@ from . import toast
 from ..tools.exceptions import PersonNotFoundError, NoPeerAvailable
 from ..core.person import Person
 from ucoinpy.api import bma
+from ..core.net.api import bma as qtbma
 
 
 class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
@@ -41,7 +42,9 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         self.setupUi(self)
         self.parent = parent
         self.community = community
+        self.community.inner_data_changed.connect(self.handle_change)
         self.account = account
+        self._last_search = ''
         self.password_asker = password_asker
         identities_model = IdentitiesTableModel(community)
         proxy = IdentitiesFilterProxyModel()
@@ -51,7 +54,6 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         self.table_identities.customContextMenuRequested.connect(self.identity_context_menu)
         self.table_identities.sortByColumn(0, Qt.AscendingOrder)
         self.table_identities.resizeColumnsToContents()
-        app.monitor.persons_watcher(self.community).person_changed.connect(self.refresh_person)
 
         self.wot_tab = WotTabWidget(app, account, community, password_asker, self)
         self.tabs_information.addTab(self.wot_tab, QIcon(':/icons/wot_icon'), self.tr("Web of Trust"))
@@ -282,8 +284,14 @@ Revoking your UID can only success if it is not already validated by the network
         for identity in response['results']:
             persons.append(Person.lookup(identity['pubkey'], self.community))
 
+        self._last_search = 'text'
         self.edit_textsearch.clear()
         self.refresh(persons)
+
+    def handle_change(self, origin):
+        if origin == qtbma.wot.Members:
+            if self._last_search == 'members':
+                self.search_members()
 
     def search_members(self):
         """
@@ -294,6 +302,8 @@ Revoking your UID can only success if it is not already validated by the network
         for p in pubkeys:
             persons.append(Person.lookup(p, self.community))
 
+        self._last_search = 'members'
+
         self.edit_textsearch.clear()
         self.refresh(persons)
 
@@ -301,6 +311,7 @@ Revoking your UID can only success if it is not already validated by the network
         """
         Search members of community and display found members
         """
+        self._last_search = 'direct_connections'
         self.refresh()
 
     def refresh(self, persons=None):

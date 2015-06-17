@@ -100,7 +100,7 @@ class IdentitiesTableModel(QAbstractTableModel):
         try:
             join_block = person.membership(self.community)['blockNumber']
             try:
-                join_date = self.community.get_block(join_block).mediantime
+                join_date = self.community.get_block(join_block)['medianTime']
                 expiration_date = join_date + parameters['sigValidity']
             except NoPeerAvailable:
                 join_date = None

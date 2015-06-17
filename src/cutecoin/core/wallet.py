@@ -4,12 +4,10 @@ Created on 1 févr. 2014
 @author: inso
 '''
 
-from ucoinpy import PROTOCOL_VERSION
-from ucoinpy.api import bma
-from ucoinpy.documents.block import Block
 from ucoinpy.documents.transaction import InputSource, OutputSource, Transaction
 from ucoinpy.key import SigningKey
 
+from .net.api import bma as qtbma
 from ..tools.exceptions import NotEnoughMoneyError, NoPeerAvailable, PersonNotFoundError
 from .transfer import Transfer, Received
 from .person import Person
@@ -198,6 +196,7 @@ class Wallet(QObject):
     A wallet is used to manage money with a unique key.
     '''
 
+    inner_data_changed = pyqtSignal(int)
     refresh_progressed = pyqtSignal(int, int)
 
     def __init__(self, walletid, pubkey, name):
@@ -440,10 +439,10 @@ class Wallet(QObject):
         '''
         Get available sources in a given community
 
-        :param community: The community where we want available sources
+        :param cutecoin.core.community.Community community: The community where we want available sources
         :return: List of InputSource ucoinpy objects
         '''
-        data = community.request(bma.tx.Sources,
+        data = community.bma_access.get(self, qtbma.tx.Sources,
                                  req_args={'pubkey': self.pubkey})
         tx = []
         for s in data['sources']:

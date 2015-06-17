@@ -59,10 +59,6 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
 
         self.community.network.new_block_mined.connect(self.refresh_block)
         self.community.network.nodes_changed.connect(self.refresh_status)
-        bc_watcher = self.app.monitor.blockchain_watcher(self.community)
-        bc_watcher.error.connect(self.display_error)
-        bc_watcher.watching_stopped.connect(self.refresh_data)
-        bc_watcher.new_transfers.connect(self.notify_transfers)
 
     def refresh(self):
         if self.app.current_account is None:
@@ -102,11 +98,11 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                     self.tr("Informations"))
 
             # fix bug refresh_nodes launch on destroyed NetworkTabWidget
-            logging.debug('Disconnect community.network.nodes_changed')
-            try:
-                self.community.network.nodes_changed.disconnect()
-            except TypeError:
-                logging.debug('No signals on community.network.nodes_changed')
+            #logging.debug('Disconnect community.network.nodes_changed')
+            #try:
+            #    self.community.network.nodes_changed.disconnect()
+            #except TypeError:
+            #    logging.debug('No signals on community.network.nodes_changed')
 
             self.tab_network = NetworkTabWidget(self.community)
             self.tabs_account.addTab(self.tab_network,
@@ -181,9 +177,9 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         '''
         logging.debug("Refresh status")
         text = self.tr(" Block {0}").format(self.community.network.latest_block)
-        if self.community.network_quality() > 0.66:
+        if self.community.network.quality > 0.66:
             icon = '<img src=":/icons/connected" width="12" height="12"/>'
-        elif self.community.network_quality() > 0.33:
+        elif self.community.network.quality > 0.33:
             icon = '<img src=":/icons/weak_connect" width="12" height="12"/>'
         else:
             icon = '<img src=":/icons/disconnected" width="12" height="12"/>'
@@ -213,6 +209,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             self.tab_wallets.refresh()
 
     def showEvent(self, event):
+        self.community.network.discover_network()
         self.refresh_status()
 
     def referential_changed(self):

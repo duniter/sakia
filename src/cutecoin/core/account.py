@@ -41,14 +41,21 @@ def relative(units, community):
     :param cutecoin.core.community.Community community: Community instance
     :return: float
     """
-    # fixme: the value "community.nb_members" is not up to date, luckyly the good value is in "community.get_ud_block()['membersCount']"
     # calculate ud(t+1)
-    ud = math.ceil(
-        max(community.dividend,
-            community.parameters['c'] * community.monetary_mass / community.get_ud_block()['membersCount'])
-    )
-    relative_value = units / float(ud)
-    return relative_value
+    ud_block = community.get_ud_block()
+    if ud_block:
+        ud = math.ceil(
+            max(community.dividend(),
+                float(0) if ud_block['membersCount'] == 0 else
+                community.parameters['c'] * community.monetary_mass / ud_block['membersCount']))
+
+        if ud == 0:
+            return float(0)
+        else:
+            relative_value = units / float(ud)
+            return relative_value
+    else:
+        return float(0)
 
 
 def quantitative_zerosum(units, community):
@@ -111,6 +118,8 @@ class Account(QObject):
     )
 
     loading_progressed = pyqtSignal(int, int)
+    inner_data_changed = pyqtSignal()
+    wallets_changed = pyqtSignal()
 
     def __init__(self, salt, pubkey, name, communities, wallets, contacts):
         '''
@@ -153,9 +162,10 @@ class Account(QObject):
         return account
 
     @classmethod
-    def load(cls, json_data):
+    def load(cls, network_manager, json_data):
         '''
         Factory method to create an Account object from its json view.
+        :rtype : cutecoin.core.account.Account
         :param dict json_data: The account view as a json dict
         :return: A new account object created from the json datas
         '''
@@ -174,7 +184,7 @@ class Account(QObject):
 
         communities = []
         for data in json_data['communities']:
-            community = Community.load(data)
+            community = Community.load(network_manager, data)
             communities.append(community)
 
         account = cls(salt, pubkey, name, communities, wallets,
@@ -282,6 +292,7 @@ class Account(QObject):
                 self.wallets.append(wallet)
         else:
             self.wallets = self.wallets[:size]
+        self.wallets_changed.emit()
 
     def certify(self, password, community, pubkey):
         """

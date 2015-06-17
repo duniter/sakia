@@ -47,7 +47,7 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
             person = Person.lookup(self.account.pubkey, self.community)
             membership = person.membership(self.community)
             renew_block = membership['blockNumber']
-            last_renewal = self.community.get_block(renew_block).mediantime
+            last_renewal = self.community.get_block(renew_block)['medianTime']
             expiration = last_renewal + parameters['sigValidity']
         except MembershipNotFoundError:
             last_renewal = None
