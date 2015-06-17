@@ -11,7 +11,7 @@
     <message>
         <location filename="../../ui/about.ui" line="22"></location>
         <source>label</source>
-        <translation type="unfinished"></translation>
+        <translation>label</translation>
     </message>
 </context>
 <context>
