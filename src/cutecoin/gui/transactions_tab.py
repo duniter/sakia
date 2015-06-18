@@ -6,7 +6,7 @@ from ..gen_resources.transactions_tab_uic import Ui_transactionsTabWidget
 from ..models.txhistory import HistoryTableModel, TxFilterProxyModel
 from ..core.transfer import Transfer
 from ..core.wallet import Wallet
-from ..core.person import Person
+from ..core.registry import IdentitiesRegistry
 from .transfer import TransferMoneyDialog
 
 import logging

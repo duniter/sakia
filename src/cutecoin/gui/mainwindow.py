@@ -398,7 +398,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def closeEvent(self, event):
         if self.app.current_account:
             self.app.save_cache(self.app.current_account)
-        self.app.save_persons()
+        self.app.save_registries()
         super().closeEvent(event)
 
     def showEvent(self, event):

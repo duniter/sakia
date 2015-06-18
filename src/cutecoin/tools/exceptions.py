@@ -31,7 +31,7 @@ class NotMemberOfCommunityError(Error):
             .__init__(account + " is not a member of " + community)
 
 
-class PersonNotFoundError(Error):
+class LookupFailureError(Error):
 
     '''
     Exception raised when looking for a person in a community

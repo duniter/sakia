@@ -8,9 +8,9 @@ from ucoinpy.documents.transaction import InputSource, OutputSource, Transaction
 from ucoinpy.key import SigningKey
 
 from .net.api import bma as qtbma
-from ..tools.exceptions import NotEnoughMoneyError, NoPeerAvailable, PersonNotFoundError
+from ..tools.exceptions import NotEnoughMoneyError, NoPeerAvailable, LookupFailureError
 from .transfer import Transfer, Received
-from .person import Person
+from .registry import IdentitiesRegistry, Identity
 
 from PyQt5.QtCore import QObject, pyqtSignal
 
@@ -77,12 +77,12 @@ class Cache():
 
         try:
             issuer_uid = Person.lookup(tx.issuers[0], community).uid
-        except PersonNotFoundError:
+        except LookupFailureError:
             issuer_uid = ""
 
         try:
             receiver_uid = Person.lookup(receivers[0], community).uid
-        except PersonNotFoundError:
+        except LookupFailureError:
             receiver_uid = ""
 
         metadata = {'block': block_number,
@@ -199,7 +199,7 @@ class Wallet(QObject):
     inner_data_changed = pyqtSignal(int)
     refresh_progressed = pyqtSignal(int, int)
 
-    def __init__(self, walletid, pubkey, name):
+    def __init__(self, walletid, pubkey, name, identities_registry):
         '''
         Constructor of a wallet object
 
@@ -212,10 +212,11 @@ class Wallet(QObject):
         self.walletid = walletid
         self.pubkey = pubkey
         self.name = name
+        self._identities_registry = identities_registry
         self.caches = {}
 
     @classmethod
-    def create(cls, walletid, salt, password, name):
+    def create(cls, walletid, salt, password, name, identities_registry):
         '''
         Factory method to create a new wallet
 
@@ -228,10 +229,10 @@ class Wallet(QObject):
             key = SigningKey(salt, password)
         else:
             key = SigningKey("{0}{1}".format(salt, walletid), password)
-        return cls(walletid, key.pubkey, name)
+        return cls(walletid, key.pubkey, name, identities_registry)
 
     @classmethod
-    def load(cls, json_data):
+    def load(cls, json_data, identities_registry):
         '''
         Factory method to load a saved wallet.
 
@@ -240,7 +241,7 @@ class Wallet(QObject):
         walletid = json_data['walletid']
         pubkey = json_data['pubkey']
         name = json_data['name']
-        return cls(walletid, pubkey, name)
+        return cls(walletid, pubkey, name, identities_registry)
 
     def load_caches(self, json_data):
         '''
@@ -397,12 +398,12 @@ class Wallet(QObject):
 
         try:
             issuer_uid = Person.lookup(key.pubkey, community).uid
-        except PersonNotFoundError:
+        except LookupFailureError:
             issuer_uid = ""
 
         try:
             receiver_uid = Person.lookup(recipient, community).uid
-        except PersonNotFoundError:
+        except LookupFailureError:
             receiver_uid = ""
 
         metadata = {'block': block_number,

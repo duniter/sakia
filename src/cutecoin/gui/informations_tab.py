@@ -23,6 +23,7 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
         super().__init__()
         self.setupUi(self)
         self.community = community
+        self.community.inner_data_changed.connect(self.refresh)
         self.account = account
 
         self.refresh()

@@ -18,7 +18,7 @@ from .network_tab import NetworkTabWidget
 from .informations_tab import InformationsTabWidget
 from . import toast
 from ..tools.exceptions import MembershipNotFoundError
-from ..core.person import Person
+from ..core.registry import IdentitiesRegistry
 
 
 class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
@@ -127,7 +127,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         logging.debug("Refresh block")
         self.status_info.clear()
         try:
-            person = Person.lookup(self.app.current_account.pubkey, self.community)
+            person = self.app.identities_registry.lookup(self.app.current_account.pubkey, self.community)
             expiration_time = person.membership_expiration_time(self.community)
             sig_validity = self.community.parameters['sigValidity']
             warning_expiration_time = int(sig_validity / 3)
@@ -144,15 +144,14 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             if len(certifiers_of) < self.community.parameters['sigQty']:
                 self.status_info.append('warning_certifications')
                 toast.display(self.tr("Certifications number"),
-                              self.tr("<b>Warning : You are certified by only {0} persons, need {1}</b>").format(len(certifiers_of),
-                                                                                                                     self.community.parameters['sigQty']))
+                              self.tr("<b>Warning : You are certified by only {0} persons, need {1}</b>")
+                              .format(len(certifiers_of),
+                                     self.community.parameters['sigQty']))
 
         except MembershipNotFoundError as e:
             pass
 
         self.tab_history.start_progress()
-        self.app.monitor.blockchain_watcher(self.community).thread().start()
-        self.app.monitor.persons_watcher(self.community).thread().start()
         self.refresh_status()
 
     @pyqtSlot()

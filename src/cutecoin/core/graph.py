@@ -2,7 +2,7 @@ import logging
 import time
 import datetime
 from PyQt5.QtCore import QLocale, QDateTime
-from cutecoin.core.person import Person
+from ..core.registry import Identity
 from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_OUT, ARC_STATUS_STRONG, ARC_STATUS_WEAK
 
 

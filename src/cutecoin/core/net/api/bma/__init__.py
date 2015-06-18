@@ -8,6 +8,7 @@ import logging
 
 logger = logging.getLogger("ucoin")
 
+PROTOCOL_VERSION = "1"
 
 class ConnectionHandler(object):
     """Helper class used by other API classes to ease passing server connection information."""

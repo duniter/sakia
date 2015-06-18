@@ -8,7 +8,7 @@ import logging
 from PyQt5.QtWidgets import QWidget, QMenu, QAction, QApplication, QDialog
 from PyQt5.QtCore import QDateTime, QModelIndex, Qt, QLocale
 from PyQt5.QtGui import QCursor
-from ..core.person import Person
+from ..core.registry import IdentitiesRegistry
 from ..core.wallet import Wallet
 from ..gui.password_asker import PasswordAskerDialog
 from ..models.wallets import WalletsTableModel, WalletsFilterProxyModel
@@ -44,7 +44,7 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
         last_renewal = ""
         expiration = ""
         try:
-            person = Person.lookup(self.account.pubkey, self.community)
+            person = self.app.identities_registry.lookup(self.account.pubkey, self.community)
             membership = person.membership(self.community)
             renew_block = membership['blockNumber']
             last_renewal = self.community.get_block(renew_block)['medianTime']

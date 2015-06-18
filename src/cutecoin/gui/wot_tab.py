@@ -7,7 +7,7 @@ from PyQt5.QtCore import pyqtSlot
 from ..gen_resources.wot_tab_uic import Ui_WotTabWidget
 from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_SELECTED, NODE_STATUS_OUT, ARC_STATUS_STRONG, ARC_STATUS_WEAK
 from ucoinpy.api import bma
-from cutecoin.core.person import Person
+from ..core.registry import IdentitiesRegistry
 
 
 class WotTabWidget(QWidget, Ui_WotTabWidget):
@@ -41,6 +41,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         self.account = account
         self.community = community
         self.password_asker = password_asker
+        self.app = app
 
         # nodes list for menu from search
         self.nodes = list()
@@ -59,8 +60,8 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         self._current_metadata = metadata
 
         # create Person from node metadata
-        person = Person.from_metadata(metadata)
-        person_account = Person.from_metadata({'text': self.account.name,
+        person = self.app.identities_registry.from_metadata(metadata)
+        person_account = self.app.identities_registry.from_metadata({'text': self.account.name,
                                                'id': self.account.pubkey})
         certifier_list = person.certifiers_of(self.community)
         certified_list = person.certified_by(self.community)
@@ -152,15 +153,15 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         )
 
     def identity_informations(self, metadata):
-        person = Person.from_metadata(metadata)
+        person = self.app.identities_registry.from_metadata(metadata)
         self.parent.identity_informations(person)
 
     def sign_node(self, metadata):
-        person = Person.from_metadata(metadata)
+        person = self.app.identities_registry.from_metadata(metadata)
         self.parent.certify_identity(person)
 
     def send_money_to_node(self, metadata):
-        person = Person.from_metadata(metadata)
+        person = self.app.identities_registry.from_metadata(metadata)
         self.parent.send_money_to_identity(person)
 
     def add_node_as_contact(self, metadata):

@@ -17,9 +17,9 @@ from PyQt5.QtGui import QCursor
 from ..gen_resources.community_cfg_uic import Ui_CommunityConfigurationDialog
 from ..models.peering import PeeringTreeModel
 from ..core.community import Community
-from ..core.person import Person
+from ..core.registry import IdentitiesRegistry
 from ..core.net.node import Node
-from ..tools.exceptions import PersonNotFoundError, NoPeerAvailable
+from ..tools.exceptions import LookupFailureError, NoPeerAvailable
 
 
 class Step():
@@ -194,7 +194,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
     def accept(self):
         try:
             Person.lookup(self.account.pubkey, self.community, cached=False)
-        except PersonNotFoundError as e:
+        except LookupFailureError as e:
             reply = QMessageBox.question(self, self.tr("Pubkey not found"),
                                  self.tr("""The public key of your account wasn't found in the community. :\n
 {0}\n

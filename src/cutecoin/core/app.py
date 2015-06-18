@@ -18,7 +18,7 @@ from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkReques
 
 from . import config
 from .account import Account
-from . import person
+from .registry.identities import IdentitiesRegistry
 from .. import __version__
 from ..tools.exceptions import NameAlreadyExists, BadAccountFile
 
@@ -46,8 +46,10 @@ class Application(QObject):
         self.available_version = (True,
                                   __version__,
                                   "")
+        self.identity_registry = None
         config.parse_arguments(argv)
         self._network_manager = QNetworkAccessManager()
+        self._identities_registry = IdentitiesRegistry()
         self.preferences = {'account': "",
                             'lang': 'en_GB',
                             'ref': 0
@@ -94,6 +96,10 @@ class Application(QObject):
 
         return account
 
+    @property
+    def identities_registry(self):
+        return self._identities_registry
+
     def add_account(self, account):
         self.accounts[account.name] = account
 
@@ -136,7 +142,7 @@ class Application(QObject):
         If the standard application state file can't be found,
         no error is raised.
         '''
-        self.load_persons()
+        self.load_registries()
         self.load_preferences()
         try:
             logging.debug("Loading data...")
@@ -147,17 +153,17 @@ class Application(QObject):
         except FileNotFoundError:
             pass
 
-    def load_persons(self):
+    def load_registries(self):
         '''
         Load the Person instances of the person module.
         Each instance is unique, and can be find by its public key.
         '''
         try:
-            persons_path = os.path.join(config.parameters['home'],
-                                        '__persons__')
-            with open(persons_path, 'r') as persons_path:
-                data = json.load(persons_path)
-                person.load_cache(data)
+            identities_path = os.path.join(config.parameters['home'],
+                                        '__identities__')
+            with open(identities_path, 'r') as identities_data:
+                data = json.load(identities_data)
+                self._identities_registry.load_json(data)
         except FileNotFoundError:
             pass
 
@@ -171,7 +177,7 @@ class Application(QObject):
                                     account_name, 'properties')
         with open(account_path, 'r') as json_data:
             data = json.load(json_data)
-            account = Account.load(self._network_manager, data)
+            account = Account.load(data, self._network_manager, self._identities_registry)
             self.load_cache(account)
             self.accounts[account_name] = account
 
@@ -269,14 +275,14 @@ class Application(QObject):
             account_path = os.path.join(config.parameters['home'], account.name)
             shutil.rmtree(account_path)
 
-    def save_persons(self):
-        '''
-        Save the person module cache
-        '''
-        persons_path = os.path.join(config.parameters['home'],
-                                    '__persons__')
-        with open(persons_path, 'w')as outfile:
-            data = person.jsonify_cache()
+    def save_registries(self):
+        """
+        Save the registries
+        """
+        identities_path = os.path.join(config.parameters['home'],
+                                    '__identities__')
+        with open(identities_path, 'w')as outfile:
+            data = self.identities_registry.jsonify()
             data['version'] = __version__
             json.dump(data, outfile, indent=4, sort_keys=True)
 

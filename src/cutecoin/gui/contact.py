@@ -7,7 +7,7 @@ import re
 import logging
 
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QMessageBox
-from ..core.person import Person
+from ..core.registry import IdentitiesRegistry
 from ..tools.exceptions import ContactAlreadyExists
 from ..gen_resources.contact_uic import Ui_ConfigureContactDialog
 

@@ -17,8 +17,8 @@ from .wot_tab import WotTabWidget
 from .transfer import TransferMoneyDialog
 from .certification import CertificationDialog
 from . import toast
-from ..tools.exceptions import PersonNotFoundError, NoPeerAvailable
-from ..core.person import Person
+from ..tools.exceptions import LookupFailureError, NoPeerAvailable
+from ..core.registry import IdentitiesRegistry
 from ucoinpy.api import bma
 from ..core.net.api import bma as qtbma
 
@@ -41,6 +41,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         super().__init__()
         self.setupUi(self)
         self.parent = parent
+        self.app = app
         self.community = community
         self.community.inner_data_changed.connect(self.handle_change)
         self.account = account
@@ -75,7 +76,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             pubkey_index = model.sourceModel().index(source_index.row(),
                                                    pubkey_col)
             pubkey = model.sourceModel().data(pubkey_index, Qt.DisplayRole)
-            identity = Person.lookup(pubkey, self.community)
+            identity = self.app.identities_registry(pubkey, self.community)
             menu = QMenu(self)
 
             informations = QAction(self.tr("Informations"), self)
@@ -175,7 +176,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         except ValueError as e:
             QMessageBox.critical(self, self.tr("Join demand error"),
                               str(e))
-        except PersonNotFoundError as e:
+        except LookupFailureError as e:
             QMessageBox.critical(self, self.tr("Key not sent to community"),
                               self.tr(""""Your key wasn't sent in the community.
 You can't request a membership."""))
@@ -282,7 +283,7 @@ Revoking your UID can only success if it is not already validated by the network
 
         persons = []
         for identity in response['results']:
-            persons.append(Person.lookup(identity['pubkey'], self.community))
+            persons.append(self.app.identities_registry(identity['pubkey'], self.community))
 
         self._last_search = 'text'
         self.edit_textsearch.clear()
@@ -298,14 +299,14 @@ Revoking your UID can only success if it is not already validated by the network
         Search members of community and display found members
         """
         pubkeys = self.community.members_pubkeys()
-        persons = []
+        identities = []
         for p in pubkeys:
-            persons.append(Person.lookup(p, self.community))
+            identities.append(self.app.identities_registry.lookup(p, self.community))
 
         self._last_search = 'members'
 
         self.edit_textsearch.clear()
-        self.refresh(persons)
+        self.refresh(identities)
 
     def search_direct_connections(self):
         """
@@ -320,16 +321,16 @@ Revoking your UID can only success if it is not already validated by the network
         If no identities is passed, use the account connections.
         '''
         if persons is None:
-            self_identity = Person.lookup(self.account.pubkey, self.community)
+            self_identity = self.app.identities_registry.lookup(self.account.pubkey, self.community)
             account_connections = []
             certifiers_of = []
             certified_by = []
             for p in self_identity.unique_valid_certifiers_of(self.community):
-                account_connections.append(Person.lookup(p['pubkey'], self.community))
+                account_connections.append(self.app.identities_registry.lookup(p['pubkey'], self.community))
             certifiers_of = [p for p in account_connections]
             logging.debug(persons)
             for p in self_identity.unique_valid_certified_by(self.community):
-                account_connections.append(Person.lookup(p['pubkey'], self.community))
+                account_connections.append(self.app.identities_registry.lookup(p['pubkey'], self.community))
             certified_by = [p for p in account_connections
                       if p.pubkey not in [i.pubkey for i in certifiers_of]]
             persons = certifiers_of + certified_by
@@ -360,7 +361,7 @@ Revoking your UID can only success if it is not already validated by the network
                 self.button_leaving.hide()
                 self.button_publish_uid.show()
                 self.button_revoke_uid.hide()
-        except PersonNotFoundError:
+        except LookupFailureError:
             self.button_membership.hide()
             self.button_leaving.hide()
             self.button_publish_uid.show()

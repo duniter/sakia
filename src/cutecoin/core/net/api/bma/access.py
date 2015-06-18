@@ -65,7 +65,7 @@ class BmaAccess(QObject):
                             'value': data[d]})
         return entries
 
-    def get(self, caller, request, req_args={}, get_args={}):
+    def get(self, caller, request, req_args={}, get_args={}, tries=0):
         """
         Get Json data from the specified URL
         :rtype : dict
@@ -94,16 +94,16 @@ class BmaAccess(QObject):
             #after removing qthreads
             reply = self.request(request, req_args, get_args)
             reply.finished.connect(lambda:
-                                     self.handle_reply(caller, request, req_args, get_args))
+                                     self.handle_reply(caller, request, req_args, get_args, tries))
         return ret_data
 
     def request(self, request, req_args={}, get_args={}):
         '''
         Start a request to the network.
 
-        :param request: A bma request class calling for data
-        :param req_args: Arguments to pass to the request constructor
-        :param get_args: Arguments to pass to the request __get__ method
+        :param class request: A bma request class calling for data
+        :param dict req_args: Arguments to pass to the request constructor
+        :param dict get_args: Arguments to pass to the request __get__ method
         :return: The returned data if cached = True else return the QNetworkReply
         '''
         nodes = self._network.synced_nodes
@@ -119,7 +119,7 @@ class BmaAccess(QObject):
             raise NoPeerAvailable(self.currency, len(nodes))
 
     @pyqtSlot(int, dict, dict, QObject)
-    def handle_reply(self, caller, request, req_args, get_args):
+    def handle_reply(self, caller, request, req_args, get_args, tries):
         reply = self.sender()
         #logging.debug("Handling QtNetworkReply for {0}".format(str(request)))
         if reply.error() == QNetworkReply.NoError:
@@ -144,10 +144,10 @@ class BmaAccess(QObject):
                     change = True
             else:
                 change = True
-
-            if change == True:
+            if change:
                 self._data[cache_key]['value'] = json.loads(strdata)
                 caller.inner_data_changed.emit(request)
         else:
             logging.debug("Error in reply : {0}".format(reply.error()))
-            self.community.qtrequest(caller, request, req_args, get_args)
+            if tries < 3:
+                self.get(caller, request, req_args, get_args)

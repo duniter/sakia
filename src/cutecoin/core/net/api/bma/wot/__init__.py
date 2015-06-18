@@ -39,6 +39,11 @@ class Add(WOT):
 
 class Lookup(WOT):
     """GET Public key data."""
+    null_value = \
+        {
+            "partial": False,
+            "results": []
+        }
 
     def __init__(self, conn_handler, search, module='wot'):
         super(WOT, self).__init__(conn_handler, module)
@@ -100,6 +105,7 @@ class Members(WOT):
         {
             "results": []
         }
+
     def __init__(self, conn_handler, module='wot'):
         super(WOT, self).__init__(conn_handler, module)
 

@@ -18,7 +18,7 @@ from PyQt5.QtCore import QObject, pyqtSignal, QCoreApplication, QT_TRANSLATE_NOO
 
 from .wallet import Wallet
 from .community import Community
-from .person import Person
+from .registry import Identity, IdentitiesRegistry
 from ..tools.exceptions import ContactAlreadyExists
 
 
@@ -121,7 +121,7 @@ class Account(QObject):
     inner_data_changed = pyqtSignal()
     wallets_changed = pyqtSignal()
 
-    def __init__(self, salt, pubkey, name, communities, wallets, contacts):
+    def __init__(self, salt, pubkey, name, communities, wallets, contacts, identities_registry):
         '''
         Create an account
 
@@ -133,6 +133,7 @@ class Account(QObject):
         :param array communities: Community objects referenced by this account
         :param array wallets: Wallet objects owned by this account
         :param array contacts: Contacts of this account
+        :param cutecoin.core.registry.IdentitiesRegistry: The identities registry intance
 
         .. warnings:: The class methods create and load should be used to create an account
         '''
@@ -143,10 +144,11 @@ class Account(QObject):
         self.communities = communities
         self.wallets = wallets
         self.contacts = contacts
+        self._identities_registry = identities_registry
         self.referential = 0
 
     @classmethod
-    def create(cls, name):
+    def create(cls, name, identities_registry):
         '''
         Factory method to create an empty account object
         This new account doesn't have any key and it should be given
@@ -158,15 +160,17 @@ class Account(QObject):
         :param str name: The account name, same as network identity uid
         :return: A new empty account object
         '''
-        account = cls(None, None, name, [], [], [])
+        account = cls(None, None, name, [], [], [], identities_registry)
         return account
 
     @classmethod
-    def load(cls, network_manager, json_data):
+    def load(cls, json_data, network_manager, identities_registry):
         '''
         Factory method to create an Account object from its json view.
         :rtype : cutecoin.core.account.Account
         :param dict json_data: The account view as a json dict
+        :param PyQt5.QtNetwork import QNetworkManager: network_manager
+        :param cutecoin.core.registry.self._identities_registry: identities_registry
         :return: A new account object created from the json datas
         '''
         salt = json_data['salt']
@@ -180,7 +184,7 @@ class Account(QObject):
 
         wallets = []
         for data in json_data['wallets']:
-            wallets.append(Wallet.load(data))
+            wallets.append(Wallet.load(data, identities_registry))
 
         communities = []
         for data in json_data['communities']:
@@ -188,7 +192,7 @@ class Account(QObject):
             communities.append(community)
 
         account = cls(salt, pubkey, name, communities, wallets,
-                      contacts)
+                      contacts, identities_registry)
         return account
 
     def __eq__(self, other):
@@ -229,12 +233,12 @@ class Account(QObject):
         return community
 
     def refresh_cache(self):
-        '''
+        """
         Refresh the local account cache
         This needs n_wallets * n_communities cache refreshing to end
 
         .. note:: emit the Account pyqtSignal loading_progressed during refresh
-        '''
+        """
         loaded_wallets = 0
 
         def progressing(value, maximum):
@@ -288,7 +292,7 @@ class Account(QObject):
         if len(self.wallets) < size:
             for i in range(len(self.wallets), size):
                 wallet = Wallet.create(i, self.salt, password,
-                                       "Wallet {0}".format(i))
+                                       "Wallet {0}".format(i), self._identities_registry)
                 self.wallets.append(wallet)
         else:
             self.wallets = self.wallets[:size]
@@ -302,7 +306,7 @@ class Account(QObject):
         :param cutecoin.core.community.Community community: The community target of the certification
         :param str pubkey: The certified identity pubkey
         """
-        certified = Person.lookup(pubkey, community)
+        certified = self._identities_registry.lookup(pubkey, community)
         blockid = community.current_blockid()
 
         certification = Certification(PROTOCOL_VERSION, community.currency,
@@ -330,7 +334,7 @@ class Account(QObject):
         :param str password: The account SigningKey password
         :param cutecoin.core.community.Community community: The community target of the revocation
         """
-        revoked = Person.lookup(self.pubkey, community)
+        revoked = self._identities_registry.lookup(self.pubkey, community)
 
         revocation = Revocation(PROTOCOL_VERSION, community.currency, None)
 
@@ -383,7 +387,7 @@ class Account(QObject):
         :param community: The target community of this request
         :return: True if the account is a member of the target community
         '''
-        self_person = Person.lookup(self.pubkey, community)
+        self_person = self._identities_registry.lookup(self.pubkey, community)
         return self_person.published_uid(community)
 
     def member_of(self, community):
@@ -393,7 +397,7 @@ class Account(QObject):
         :param community: The target community of this request
         :return: True if the account is a member of the target community
         '''
-        self_person = Person.lookup(self.pubkey, community)
+        self_person = self._identities_registry.lookup(self.pubkey, community)
         logging.debug("Self person : {0}".format(self_person.uid))
         return self_person.is_member(community)
 
@@ -425,7 +429,7 @@ class Account(QObject):
         :param community: The community target of the membership document
         :param str mstype: The type of membership demand. "IN" to join, "OUT" to leave
         '''
-        self_ = Person.lookup(self.pubkey, community)
+        self_ = self._identities_registry.lookup(self.pubkey, community)
         selfcert = self_.selfcert(community)
 
         blockid = community.current_blockid()

@@ -6,8 +6,8 @@ Created on 21 févr. 2015
 
 from ucoinpy.documents.peer import Peer, BMAEndpoint, Endpoint
 from requests.exceptions import RequestException, ConnectionError
-from cutecoin.tools.exceptions import InvalidNodeCurrency, PersonNotFoundError
-from cutecoin.core.person import Person
+from cutecoin.tools.exceptions import InvalidNodeCurrency, LookupFailureError
+from ..registry import IdentitiesRegistry
 from cutecoin.core.net.api import bma as qtbma
 from cutecoin.core.net.api.bma import ConnectionHandler
 

@@ -33,26 +33,35 @@ class Parameters(Blockchain):
         return self.requests_get('/parameters', **kwargs)
 
     null_value = {
-                'currency': "",
-                'c': 0,
-                'dt': 0,
-                'ud0': 0,
-                'sigDelay': 0,
-                'sigValidity': 0,
-                'sigQty': 0,
-                'sigWoT': 0,
-                'msValidity': 0,
-                'stepMax': 0,
-                'medianTimeBlocks': 0,
-                'avgGenTime': 0,
-                'dtDiffEval': 0,
-                'blocksRot': 0,
-                'percentRot': 0
-            }
+        'currency': "",
+        'c': 0,
+        'dt': 0,
+        'ud0': 0,
+        'sigDelay': 0,
+        'sigValidity': 0,
+        'sigQty': 0,
+        'sigWoT': 0,
+        'msValidity': 0,
+        'stepMax': 0,
+        'medianTimeBlocks': 0,
+        'avgGenTime': 0,
+        'dtDiffEval': 0,
+        'blocksRot': 0,
+        'percentRot': 0
+    }
 
 
 class Membership(Blockchain):
     """GET/POST a Membership document."""
+
+    null_value = \
+        {
+            "pubkey": "",
+            "uid": "",
+            "sigDate": 0,
+            "memberships": []
+        }
+
     def __init__(self, conn_handler, search=None):
         super().__init__(conn_handler)
         self.search = search
@@ -70,31 +79,31 @@ class Membership(Blockchain):
 class Block(Blockchain):
     """GET/POST a block from/to the blockchain."""
     null_value = {
-                "version": 1,
-                "nonce": 0,
-                "number": -1,
-                "powMin": 0,
-                "time": 0,
-                "medianTime": 0,
-                "membersCount": 0,
-                "monetaryMass": 0,
-                "currency": "",
-                "issuer": "",
-                "signature": "",
-                "hash": "",
-                "previousHash": "",
-                "previousIssuer": "",
-                "dividend": 0,
-                "membersChanges": [ ],
-                "identities": [],
-                "joiners": [],
-                "actives": [],
-                "leavers": [],
-                "excluded": [],
-                "certifications": [],
-                "transactions": [],
-                "raw": ""
-            }
+        "version": 1,
+        "nonce": 0,
+        "number": -1,
+        "powMin": 0,
+        "time": 0,
+        "medianTime": 0,
+        "membersCount": 0,
+        "monetaryMass": 0,
+        "currency": "",
+        "issuer": "",
+        "signature": "",
+        "hash": "",
+        "previousHash": "",
+        "previousIssuer": "",
+        "dividend": 0,
+        "membersChanges": [],
+        "identities": [],
+        "joiners": [],
+        "actives": [],
+        "leavers": [],
+        "excluded": [],
+        "certifications": [],
+        "transactions": [],
+        "raw": ""
+    }
 
     def __init__(self, conn_handler, number=None):
         """
@@ -122,31 +131,32 @@ class Block(Blockchain):
 class Current(Blockchain):
     """GET, same as block/[number], but return last accepted block."""
     null_value = {
-                "version": 1,
-                "nonce": 0,
-                "number": -1,
-                "powMin": 0,
-                "time": 0,
-                "medianTime": 0,
-                "membersCount": 0,
-                "monetaryMass": 0,
-                "currency": "",
-                "issuer": "",
-                "signature": "",
-                "hash": "",
-                "previousHash": None,
-                "previousIssuer": None,
-                "dividend": None,
-                "membersChanges": [ ],
-                "identities": [],
-                "joiners": [],
-                "actives": [],
-                "leavers": [],
-                "excluded": [],
-                "certifications": [],
-                "transactions": [],
-                "raw": ""
-            }
+        "version": 1,
+        "nonce": 0,
+        "number": -1,
+        "powMin": 0,
+        "time": 0,
+        "medianTime": 0,
+        "membersCount": 0,
+        "monetaryMass": 0,
+        "currency": "",
+        "issuer": "",
+        "signature": "",
+        "hash": "",
+        "previousHash": None,
+        "previousIssuer": None,
+        "dividend": None,
+        "membersChanges": [],
+        "identities": [],
+        "joiners": [],
+        "actives": [],
+        "leavers": [],
+        "excluded": [],
+        "certifications": [],
+        "transactions": [],
+        "raw": ""
+    }
+
     def __get__(self, **kwargs):
         return self.requests_get('/current', **kwargs)
 
@@ -215,11 +225,13 @@ class Excluded(Blockchain):
 
 class UD(Blockchain):
     """GET, return block numbers containing universal dividend."""
-    null_value = {
-                "result": {
-                "blocks": []
+    null_value = \
+        {
+            "result":
+                {
+                    "blocks": []
                 }
-            }
+        }
 
     def __get__(self, **kwargs):
         return self.requests_get('/with/ud', **kwargs)
@@ -227,6 +239,13 @@ class UD(Blockchain):
 
 class TX(Blockchain):
     """GET, return block numbers containing transactions."""
+    null_value = \
+        {
+            "result":
+                {
+                    "blocks": []
+                }
+        }
 
     def __get__(self, **kwargs):
         return self.requests_get('/with/tx', **kwargs)

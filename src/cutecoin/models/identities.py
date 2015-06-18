@@ -4,8 +4,7 @@ Created on 5 févr. 2014
 @author: inso
 '''
 
-from ucoinpy.api import bma
-from ..core.person import Person
+from ..core.registry import IdentitiesRegistry
 from ..tools.exceptions import NoPeerAvailable, MembershipNotFoundError
 from PyQt5.QtCore import QAbstractTableModel, QSortFilterProxyModel, Qt, \
                         QDateTime, QModelIndex, QLocale
