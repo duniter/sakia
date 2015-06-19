@@ -81,7 +81,7 @@ class IdentitiesRegistry:
                         identity_uid = uid_data["uid"]
                     identity.uid = identity_uid
                     identity.status = Identity.FOUND
-                    identity.inner_data_changed.emit(qtbma.wot.Lookup)
+                    identity.inner_data_changed.emit(str(qtbma.wot.Lookup))
                     return
 
     def from_metadata(self, metadata):

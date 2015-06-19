@@ -22,7 +22,7 @@ class Identity(QObject):
     FOUND = 1
     NOT_FOUND = 0
 
-    inner_data_changed = pyqtSignal(int)
+    inner_data_changed = pyqtSignal(str)
 
     def __init__(self, uid, pubkey, status):
         """
@@ -280,3 +280,9 @@ class Identity(QObject):
                 'pubkey': self.pubkey,
                 'status': self.status}
         return data
+
+    def __str__(self):
+        status_str = ("NOT_FOUND", "FOUND")
+        return "{0} - {1} - {2}".format(self.uid,
+                                        self.pubkey,
+                                        status_str[self.status])

@@ -22,6 +22,7 @@ class BmaAccess(QObject):
         """
         super().__init__()
         self._data = data
+        self._pending_requests = {}
         self._network = network
 
     @classmethod
@@ -93,8 +94,13 @@ class BmaAccess(QObject):
             #Move to network nstead of community
             #after removing qthreads
             reply = self.request(request, req_args, get_args)
-            reply.finished.connect(lambda:
-                                     self.handle_reply(caller, request, req_args, get_args, tries))
+            if cache_key in self._pending_requests:
+                if caller not in self._pending_requests[cache_key]:
+                    self._pending_requests[cache_key].append(caller)
+            else:
+                self._pending_requests[cache_key] = [caller]
+                reply.finished.connect(lambda:
+                                         self.handle_reply(request, req_args, get_args, tries))
         return ret_data
 
     def request(self, request, req_args={}, get_args={}):
@@ -119,16 +125,17 @@ class BmaAccess(QObject):
             raise NoPeerAvailable(self.currency, len(nodes))
 
     @pyqtSlot(int, dict, dict, QObject)
-    def handle_reply(self, caller, request, req_args, get_args, tries):
+    def handle_reply(self, request, req_args, get_args, tries):
         reply = self.sender()
-        #logging.debug("Handling QtNetworkReply for {0}".format(str(request)))
+        logging.debug("Handling QtNetworkReply for {0}".format(str(request)))
+        cache_key = (str(request),
+                     str(tuple(frozenset(sorted(req_args.keys())))),
+                     str(tuple(frozenset(sorted(req_args.values())))),
+                     str(tuple(frozenset(sorted(get_args.keys())))),
+                     str(tuple(frozenset(sorted(get_args.values())))))
         if reply.error() == QNetworkReply.NoError:
-            cache_key = (str(request),
-                         str(tuple(frozenset(sorted(req_args.keys())))),
-                         str(tuple(frozenset(sorted(req_args.values())))),
-                         str(tuple(frozenset(sorted(get_args.keys())))),
-                         str(tuple(frozenset(sorted(get_args.values())))))
             strdata = bytes(reply.readAll()).decode('utf-8')
+            json_data = json.loads(strdata)
             #logging.debug("Data in reply : {0}".format(strdata))
 
             if cache_key not in self._data:
@@ -136,18 +143,24 @@ class BmaAccess(QObject):
 
             if 'metadata' not in self._data[cache_key]:
                 self._data[cache_key]['metadata'] = {}
+
+            if 'value' not in self._data[cache_key]:
+                self._data[cache_key]['value'] = {}
             self._data[cache_key]['metadata']['block'] = self._network.latest_block
 
             change = False
-            if 'value' in self._data[cache_key]:
-                if self._data[cache_key]['value'] != json.loads(strdata):
-                    change = True
-            else:
+            if self._data[cache_key]['value'] != json_data:
                 change = True
             if change:
-                self._data[cache_key]['value'] = json.loads(strdata)
-                caller.inner_data_changed.emit(request)
+                self._data[cache_key]['value'] = json_data
+                logging.debug(self._pending_requests.keys())
+                for caller in self._pending_requests[cache_key]:
+                    logging.debug("Emit change for {0} : {1} ".format(caller, request))
+                    caller.inner_data_changed.emit(str(request))
+                self._pending_requests.pop(cache_key)
         else:
             logging.debug("Error in reply : {0}".format(reply.error()))
             if tries < 3:
-                self.get(caller, request, req_args, get_args)
+                self._pending_requests.pop(cache_key)
+                for caller in self._pending_requests[cache_key]:
+                    self.get(caller, request, req_args, get_args)

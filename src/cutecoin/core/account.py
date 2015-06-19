@@ -118,7 +118,7 @@ class Account(QObject):
     )
 
     loading_progressed = pyqtSignal(int, int)
-    inner_data_changed = pyqtSignal()
+    inner_data_changed = pyqtSignal(str)
     wallets_changed = pyqtSignal()
 
     def __init__(self, salt, pubkey, name, communities, wallets, contacts, identities_registry):
@@ -256,6 +256,15 @@ class Account(QObject):
 
     def set_display_referential(self, index):
         self.referential = index
+
+    def identity(self, community):
+        """
+        Get the account identity in the specified community
+        :param cutecoin.core.community.Community community: The community where to look after the identity
+        :return: The account identity in the community
+        :rtype: cutecoin.core.registry.Identity
+        """
+        return self._identities_registry.lookup(self.pubkey, community)
 
     @property
     def units_to_ref(self):

@@ -94,10 +94,10 @@ class IdentitiesTableModel(QAbstractTableModel):
         '''
         return [i[1] for i in self.identities_data]
 
-    def identity_data(self, person):
+    def identity_data(self, identity):
         parameters = self.community.parameters
         try:
-            join_block = person.membership(self.community)['blockNumber']
+            join_block = identity.membership(self.community)['blockNumber']
             try:
                 join_date = self.community.get_block(join_block)['medianTime']
                 expiration_date = join_date + parameters['sigValidity']
@@ -108,15 +108,33 @@ class IdentitiesTableModel(QAbstractTableModel):
             join_date = None
             expiration_date = None
 
-        return (person.uid, person.pubkey, join_date, expiration_date)
+        return (identity.uid, identity.pubkey, join_date, expiration_date)
 
-    def refresh_identities(self, persons):
-        logging.debug("Refresh {0} identities".format(len(persons)))
+    def refresh_identities(self, identities):
+        """
+        Change the identities to display
+
+        :param cutecoin.core.registry.IdentitiesRegistry identities: The new identities to display
+        """
+        logging.debug("Refresh {0} identities".format(len(identities)))
         self.identities_data = []
         self.beginResetModel()
-        for person in persons:
-            self.identities_data.append(self.identity_data(person))
+        for identity in identities:
+            identity.inner_data_changed.connect(lambda: self.refresh_identity(identity))
+            self.identities_data.append(self.identity_data(identity))
         self.endResetModel()
+
+    def refresh_identity(self, identity):
+        """
+        Refresh an identity when its inner_data changed
+        :param cutecoin.core.registry.Identity identity: The refreshed identity
+        """
+        try:
+            index = self.identities_data.index(identity)
+            self.identities_data[index] = self.identity_data(identity)
+            self.dataChanged.emit(index, index)
+        except ValueError:
+            logging.debug("Identity {0} is not in list".format(identity))
 
     def rowCount(self, parent):
         return len(self.identities_data)
@@ -135,7 +153,7 @@ class IdentitiesTableModel(QAbstractTableModel):
             col = index.column()
             return self.identities_data[row][col]
 
-    def person_index(self, pubkey):
+    def identity_index(self, pubkey):
         try:
             row = self.pubkeys.index(pubkey)
             index_start = self.index(row, 0)

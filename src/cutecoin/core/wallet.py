@@ -196,7 +196,7 @@ class Wallet(QObject):
     A wallet is used to manage money with a unique key.
     '''
 
-    inner_data_changed = pyqtSignal(int)
+    inner_data_changed = pyqtSignal(str)
     refresh_progressed = pyqtSignal(int, int)
 
     def __init__(self, walletid, pubkey, name, identities_registry):

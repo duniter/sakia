@@ -43,9 +43,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         self.parent = parent
         self.app = app
         self.community = community
-        self.community.inner_data_changed.connect(self.handle_change)
         self.account = account
-        self._last_search = ''
         self.password_asker = password_asker
         identities_model = IdentitiesTableModel(community)
         proxy = IdentitiesFilterProxyModel()
@@ -64,7 +62,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         direct_connections = QAction(self.tr("Direct connections"), self)
         direct_connections.triggered.connect(self.search_direct_connections)
         self.button_search.addAction(direct_connections)
-        self.refresh()
+        self.search_direct_connections()
         self.refresh_quality_buttons()
 
     def identity_context_menu(self, point):
@@ -285,14 +283,20 @@ Revoking your UID can only success if it is not already validated by the network
         for identity in response['results']:
             persons.append(self.app.identities_registry(identity['pubkey'], self.community))
 
-        self._last_search = 'text'
         self.edit_textsearch.clear()
         self.refresh(persons)
 
-    def handle_change(self, origin):
+    @pyqtSlot(str)
+    def handle_community_change(self, origin):
+        logging.debug("Handle account community {0}".format(origin))
         if origin == qtbma.wot.Members:
-            if self._last_search == 'members':
-                self.search_members()
+            self.search_members()
+
+    @pyqtSlot(str)
+    def handle_account_identity_change(self, origin):
+        logging.debug("Handle account identity change {0}".format(origin))
+        if origin in (str(qtbma.wot.CertifiedBy), str(qtbma.wot.CertifiersOf)):
+            self.search_direct_connections()
 
     def search_members(self):
         """
@@ -303,7 +307,16 @@ Revoking your UID can only success if it is not already validated by the network
         for p in pubkeys:
             identities.append(self.app.identities_registry.lookup(p, self.community))
 
-        self._last_search = 'members'
+        self_identity = self.account.identity(self.community)
+
+        try:
+            self_identity.inner_data_changed.disconnect(self.handle_account_identity_change)
+            self.community.inner_data_changed.connect(self.handle_community_change)
+        except TypeError as e:
+            if "disconnect() failed" in str(e):
+                pass
+            else:
+                raise
 
         self.edit_textsearch.clear()
         self.refresh(identities)
@@ -312,30 +325,33 @@ Revoking your UID can only success if it is not already validated by the network
         """
         Search members of community and display found members
         """
-        self._last_search = 'direct_connections'
-        self.refresh()
+        self_identity = self.account.identity(self.community)
+        try:
+            self_identity.inner_data_changed.connect(self.handle_account_identity_change)
+            self.community.inner_data_changed.disconnect(self.handle_community_change)
+        except TypeError as e:
+            if "disconnect() failed" in str(e):
+                pass
+            else:
+                raise
 
-    def refresh(self, persons=None):
+        account_connections = []
+        for p in self_identity.unique_valid_certifiers_of(self.community):
+            account_connections.append(self.app.identities_registry.lookup(p['pubkey'], self.community))
+        certifiers_of = [p for p in account_connections]
+        for p in self_identity.unique_valid_certified_by(self.community):
+            account_connections.append(self.app.identities_registry.lookup(p['pubkey'], self.community))
+        certified_by = [p for p in account_connections
+                  if p.pubkey not in [i.pubkey for i in certifiers_of]]
+        identities = certifiers_of + certified_by
+        self.refresh(identities)
+
+    def refresh(self, identities):
         '''
         Refresh the table with specified identities.
         If no identities is passed, use the account connections.
         '''
-        if persons is None:
-            self_identity = self.app.identities_registry.lookup(self.account.pubkey, self.community)
-            account_connections = []
-            certifiers_of = []
-            certified_by = []
-            for p in self_identity.unique_valid_certifiers_of(self.community):
-                account_connections.append(self.app.identities_registry.lookup(p['pubkey'], self.community))
-            certifiers_of = [p for p in account_connections]
-            logging.debug(persons)
-            for p in self_identity.unique_valid_certified_by(self.community):
-                account_connections.append(self.app.identities_registry.lookup(p['pubkey'], self.community))
-            certified_by = [p for p in account_connections
-                      if p.pubkey not in [i.pubkey for i in certifiers_of]]
-            persons = certifiers_of + certified_by
-
-        self.table_identities.model().sourceModel().refresh_identities(persons)
+        self.table_identities.model().sourceModel().refresh_identities(identities)
         self.table_identities.resizeColumnsToContents()
 
     def refresh_quality_buttons(self):
