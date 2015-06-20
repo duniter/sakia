@@ -32,7 +32,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         self.comboBoxSearch.setInsertPolicy(QComboBox.NoInsert)
 
         # add scene events
-        self.graphicsView.scene().node_clicked.connect(self.draw_graph)
+        self.graphicsView.scene().node_clicked.connect(self.handle_node_click)
         self.graphicsView.scene().node_signed.connect(self.sign_node)
         self.graphicsView.scene().node_transaction.connect(self.send_money_to_node)
         self.graphicsView.scene().node_contact.connect(self.add_node_as_contact)
@@ -49,6 +49,10 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         # create node metadata from account
         self._current_identity = None
         self.draw_graph(self.account.identity(self.community))
+
+    @pyqtSlot(dict)
+    def handle_node_click(self, metadata):
+        self.draw_graph(self.app.identities_registry.from_metadata(metadata))
 
     def draw_graph(self, identity):
         """
