@@ -68,6 +68,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
 
         self.account.identity(self.community).inner_data_changed.connect(self.handle_account_identity_change)
         self.search_direct_connections()
+        self.account.document_broadcasted.connect(self.display_broadcast_toast)
 
         self.refresh_quality_buttons()
 
@@ -80,13 +81,12 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             pubkey_index = model.sourceModel().index(source_index.row(),
                                                    pubkey_col)
             pubkey = model.sourceModel().data(pubkey_index, Qt.DisplayRole)
-            identity = self.app.identities_registry(pubkey, self.community)
+            identity = self.app.identities_registry.lookup(pubkey, self.community)
             menu = QMenu(self)
 
             informations = QAction(self.tr("Informations"), self)
             informations.triggered.connect(self.menu_informations)
             informations.setData(identity)
-
             add_contact = QAction(self.tr("Add as contact"), self)
             add_contact.triggered.connect(self.menu_add_as_contact)
             add_contact.setData(identity)
@@ -169,6 +169,10 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         index_wot_tab = self.tabs_information.indexOf(self.wot_tab)
         self.tabs_information.setCurrentIndex(index_wot_tab)
 
+    @pyqtSlot(str)
+    def display_broadcast_toast(self, document):
+        toast.display(document, self.tr("Success sending {0} demand".format(document)))
+
     def send_membership_demand(self):
         password = self.password_asker.exec_()
         if self.password_asker.result() == QDialog.Rejected:
@@ -176,7 +180,6 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
 
         try:
             self.account.send_membership(password, self.community, 'IN')
-            toast.display(self.tr("Membership"), self.tr("Success sending membership demand"))
         except ValueError as e:
             QMessageBox.critical(self, self.tr("Join demand error"),
                               str(e))
@@ -188,10 +191,10 @@ You can't request a membership."""))
             QMessageBox.critical(self, self.tr("Network error"),
                                  self.tr("Couldn't connect to network : {0}").format(e),
                                  QMessageBox.Ok)
-        except Exception as e:
-            QMessageBox.critical(self, "Error",
-                                 "{0}".format(e),
-                                 QMessageBox.Ok)
+        # except Exception as e:
+        #     QMessageBox.critical(self, "Error",
+        #                          "{0}".format(e),
+        #                          QMessageBox.Ok)
 
     def send_membership_leaving(self):
         reply = QMessageBox.warning(self, self.tr("Warning"),
@@ -206,7 +209,6 @@ The process to join back the community later will have to be done again.""")
 
             try:
                 self.account.send_membership(password, self.community, 'OUT')
-                toast.display(self.tr("Membership"), self.tr("Success sending leaving demand"))
             except ValueError as e:
                 QMessageBox.critical(self, self.tr("Leaving demand error"),
                                   str(e))
@@ -214,10 +216,10 @@ The process to join back the community later will have to be done again.""")
                 QMessageBox.critical(self, self.tr("Network error"),
                                      self.tr("Couldn't connect to network : {0}").format(e),
                                      QMessageBox.Ok)
-            except Exception as e:
-                QMessageBox.critical(self, self.tr("Error"),
-                                     "{0}".format(e),
-                                     QMessageBox.Ok)
+            # except Exception as e:
+            #     QMessageBox.critical(self, self.tr("Error"),
+            #                          "{0}".format(e),
+            #                          QMessageBox.Ok)
 
     def publish_uid(self):
         reply = QMessageBox.warning(self, self.tr("Warning"),
@@ -240,10 +242,10 @@ Publishing your UID can be canceled by Revoke UID.""")
                 QMessageBox.critical(self, self.tr("Network error"),
                                      self.tr("Couldn't connect to network : {0}").format(e),
                                      QMessageBox.Ok)
-            except Exception as e:
-                QMessageBox.critical(self, self.tr("Error"),
-                                     "{0}".format(e),
-                                     QMessageBox.Ok)
+            # except Exception as e:
+            #     QMessageBox.critical(self, self.tr("Error"),
+            #                          "{0}".format(e),
+            #                          QMessageBox.Ok)
 
     def revoke_uid(self):
         reply = QMessageBox.warning(self, self.tr("Warning"),
@@ -266,10 +268,10 @@ Revoking your UID can only success if it is not already validated by the network
                 QMessageBox.critical(self, self.tr("Network error"),
                                      self.tr("Couldn't connect to network : {0}").format(e),
                                      QMessageBox.Ok)
-            except Exception as e:
-                QMessageBox.critical(self, self.tr("Error"),
-                                     "{0}".format(e),
-                                     QMessageBox.Ok)
+            # except Exception as e:
+            #     QMessageBox.critical(self, self.tr("Error"),
+            #                          "{0}".format(e),
+            #                          QMessageBox.Ok)
 
     def search_text(self):
         """
@@ -362,9 +364,9 @@ Revoking your UID can only success if it is not already validated by the network
 
     def refresh_quality_buttons(self):
         try:
-            if self.account.published_uid(self.community):
+            if self.account.identity(self.community).published_uid(self.community):
                 logging.debug("UID Published")
-                if self.account.member_of(self.community):
+                if self.account.identity(self.community).is_member(self.community):
                     self.button_membership.setText(self.tr("Renew membership"))
                     self.button_membership.show()
                     self.button_publish_uid.hide()

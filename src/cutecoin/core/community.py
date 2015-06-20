@@ -247,23 +247,15 @@ class Community(QObject):
                                 req_args={'number': number})
         return data
 
-    def current_blockid(self):
+    def blockid(self, block):
         '''
-        Get the current block id.
+        Get the block id.
 
         :return: The current block ID as [NUMBER-HASH] format.
         '''
-        try:
-            block = self.bma_access.get(self, qtbma.blockchain.Current, cached=False)
-            signed_raw = "{0}{1}\n".format(block['raw'], block['signature'])
-            block_hash = hashlib.sha1(signed_raw.encode("ascii")).hexdigest().upper()
-            block_number = block['number']
-        except ValueError as e:
-            if '404' in str(e):
-                block_number = 0
-                block_hash = "DA39A3EE5E6B4B0D3255BFEF95601890AFD80709"
-            else:
-                raise
+        signed_raw = "{0}{1}\n".format(block['raw'], block['signature'])
+        block_hash = hashlib.sha1(signed_raw.encode("ascii")).hexdigest().upper()
+        block_number = block['number']
         return {'number': block_number, 'hash': block_hash}
 
     def members_pubkeys(self):
@@ -304,42 +296,6 @@ class Community(QObject):
             except RequestException:
                 continue
         raise NoPeerAvailable(self.currency, len(nodes))
-
-    def broadcast(self, request, req_args={}, post_args={}):
-        '''
-        Broadcast data to a community.
-        Sends the data to all knew nodes.
-
-        :param request: A ucoinpy bma request class
-        :param req_args: Arguments to pass to the request constructor
-        :param post_args: Arguments to pass to the request __post__ method
-        :return: The returned data
-
-        .. note:: If one node accept the requests (returns 200),
-        the broadcast is considered accepted by the network.
-        '''
-        tries = 0
-        ok = False
-        value_error = None
-        nodes = self._network.online_nodes
-        for node in nodes:
-            logging.debug("Trying to connect to : " + node.pubkey)
-            req = request(node.endpoint.conn_handler(), **req_args)
-            try:
-                req.post(**post_args)
-                ok = True
-            except ValueError as e:
-                value_error = e
-                continue
-            except RequestException:
-                tries = tries + 1
-                continue
-
-        if not ok:
-            raise value_error
-
-        if tries == len(nodes):
-            raise NoPeerAvailable(self.currency, len(nodes))
 
     def jsonify(self):
         '''

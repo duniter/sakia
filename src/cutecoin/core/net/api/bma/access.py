@@ -167,3 +167,29 @@ class BmaAccess(QObject):
                 self._pending_requests.pop(cache_key)
                 for caller in self._pending_requests[cache_key]:
                     self.get(caller, request, req_args, get_args)
+
+    def broadcast(self, request, req_args={}, post_args={}):
+        '''
+        Broadcast data to a network.
+        Sends the data to all knew nodes.
+
+        :param request: A ucoinpy bma request class
+        :param req_args: Arguments to pass to the request constructor
+        :param post_args: Arguments to pass to the request __post__ method
+        :return: All nodes replies
+        :rtype: tuple of QNetworkReply
+
+        .. note:: If one node accept the requests (returns 200),
+        the broadcast should be considered accepted by the network.
+        '''
+        nodes = self._network.online_nodes
+        replies = []
+        for node in nodes:
+            logging.debug("Trying to connect to : " + node.pubkey)
+            server = node.endpoint.conn_handler().server
+            port = node.endpoint.conn_handler().port
+            conn_handler = ConnectionHandler(self._network.network_manager, server, port)
+            req = request(conn_handler, **req_args)
+            reply = req.post(**post_args)
+            replies.append(reply)
+        return tuple(replies)

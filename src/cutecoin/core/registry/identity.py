@@ -60,34 +60,32 @@ class Identity(QObject):
 
         return cls(uid, pubkey, status)
 
-    def selfcert(self, community):
+    def selfcert(self, community, lookup_data):
         """
-        Get the person self certification.
+        Get the identity self certification.
         This request is not cached in the person object.
 
         :param cutecoin.core.community.Community community: The community target to request the self certification
         :return: A SelfCertification ucoinpy object
         :rtype: ucoinpy.documents.certification.SelfCertification
         """
-        data = community.bma_access.get(self, qtbma.wot.Lookup, req_args={'search': self.pubkey})
-        if data != qtbma.wot.Lookup.null_value:
-            timestamp = 0
+        timestamp = 0
 
-            for result in data['results']:
-                if result["pubkey"] == self.pubkey:
-                    uids = result['uids']
-                    for uid_data in uids:
-                        if uid_data["meta"]["timestamp"] > timestamp:
-                            timestamp = uid_data["meta"]["timestamp"]
-                            uid = uid_data["uid"]
-                            signature = uid_data["self"]
+        for result in lookup_data['results']:
+            if result["pubkey"] == self.pubkey:
+                uids = result['uids']
+                for uid_data in uids:
+                    if uid_data["meta"]["timestamp"] > timestamp:
+                        timestamp = uid_data["meta"]["timestamp"]
+                        uid = uid_data["uid"]
+                        signature = uid_data["self"]
 
-                    return SelfCertification(PROTOCOL_VERSION,
-                                             community.currency,
-                                             self.pubkey,
-                                             timestamp,
-                                             uid,
-                                             signature)
+                return SelfCertification(PROTOCOL_VERSION,
+                                         community.currency,
+                                         self.pubkey,
+                                         timestamp,
+                                         uid,
+                                         signature)
 
     def get_join_date(self, community):
         """
