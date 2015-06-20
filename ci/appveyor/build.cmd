@@ -15,6 +15,8 @@ pip install pylibscrypt
 pip install libnacl
 pip install requests
 pip install base58
+pip install quamash
+pip install asyncio
 
 python gen_resources.py
 if %errorlevel% neq 0 exit /b 1s

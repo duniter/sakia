@@ -29,6 +29,8 @@ install:
   - pip install libnacl
   - pip install requests
   - pip install base58
+  - pip install quamash
+  - pip install asyncio
   - python gen_resources.py
   - python gen_translations.py
   - python setup.py build
