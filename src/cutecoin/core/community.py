@@ -89,12 +89,6 @@ class Community(QObject):
         """
         return self.currency
 
-    def __eq__(self, other):
-        """
-        :return: True if this community has the same currency name as the other one.
-        """
-        return (other.currency == self.currency)
-
     @property
     def short_currency(self):
         """

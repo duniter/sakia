@@ -4,7 +4,7 @@ Created on 5 févr. 2014
 @author: inso
 '''
 
-from ..core.registry import IdentitiesRegistry
+from ..core.net.api import bma as qtbma
 from ..tools.exceptions import NoPeerAvailable, MembershipNotFoundError
 from PyQt5.QtCore import QAbstractTableModel, QSortFilterProxyModel, Qt, \
                         QDateTime, QModelIndex, QLocale
@@ -86,6 +86,8 @@ class IdentitiesTableModel(QAbstractTableModel):
                                'expiration': self.tr('Expiration')}
         self.columns_ids = ('uid', 'pubkey', 'renewed', 'expiration')
         self.identities_data = []
+        self._identities = []
+        self._refresh_slots = []
 
     @property
     def pubkeys(self):
@@ -95,15 +97,9 @@ class IdentitiesTableModel(QAbstractTableModel):
         return [i[1] for i in self.identities_data]
 
     def identity_data(self, identity):
-        parameters = self.community.parameters
         try:
-            join_block = identity.membership(self.community)['blockNumber']
-            try:
-                join_date = self.community.get_block(join_block)['medianTime']
-                expiration_date = join_date + parameters['sigValidity']
-            except NoPeerAvailable:
-                join_date = None
-                expiration_date = None
+            join_date = identity.get_join_date(self.community)
+            expiration_date = identity.get_expiration_date(self.community)
         except MembershipNotFoundError:
             join_date = None
             expiration_date = None
@@ -117,24 +113,48 @@ class IdentitiesTableModel(QAbstractTableModel):
         :param cutecoin.core.registry.IdentitiesRegistry identities: The new identities to display
         """
         logging.debug("Refresh {0} identities".format(len(identities)))
+
+        # We disconnect identities from their local slots
+        for (index, identity) in enumerate(self._identities):
+            identity.inner_data_changed.disconnect(self._refresh_slots[index])
+
         self.identities_data = []
+        self._identities = []
+        self._refresh_slots = []
         self.beginResetModel()
         for identity in identities:
-            identity.inner_data_changed.connect(lambda: self.refresh_identity(identity))
+            logging.debug(identity)
+
+            # Connection
+            refresh_slot = lambda req, identity=identity: self.refresh_identity(req, identity)
+            identity.inner_data_changed.connect(refresh_slot)
+
+            self._identities.append(identity)
+            self._refresh_slots.append(refresh_slot)
             self.identities_data.append(self.identity_data(identity))
         self.endResetModel()
 
-    def refresh_identity(self, identity):
+    def refresh_identity(self, request, identity):
         """
         Refresh an identity when its inner_data changed
         :param cutecoin.core.registry.Identity identity: The refreshed identity
         """
+        logging.debug("Refresh {0} because of {1}".format(identity, request))
         try:
-            index = self.identities_data.index(identity)
+            index = self._identities.index(identity)
             self.identities_data[index] = self.identity_data(identity)
-            self.dataChanged.emit(index, index)
+            if request == str(qtbma.wot.Lookup):
+                model_index_0 = self.createIndex(index, self.columns_ids.index('uid'))
+                model_index_max = self.createIndex(index, self.columns_ids.index('pubkey'))
+                self.dataChanged.emit(model_index_0, model_index_max)
+            elif request in (str(qtbma.blockchain.Membership),
+                             str(qtbma.blockchain.Block),
+                             str(qtbma.blockchain.Parameters)):
+                model_index_0 = self.createIndex(index, self.columns_ids.index('renewed'))
+                model_index_max = self.createIndex(index, self.columns_ids.index('expiration'))
+                self.dataChanged.emit(model_index_0, model_index_max)
         except ValueError:
-            logging.debug("Identity {0} is not in list".format(identity))
+            logging.debug("Identity {0} is not in list : {1}".format(identity, self.identities_data))
 
     def rowCount(self, parent):
         return len(self.identities_data)

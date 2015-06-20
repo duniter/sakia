@@ -39,13 +39,16 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         :return:
         """
         super().__init__()
-        self.setupUi(self)
         self.parent = parent
         self.app = app
         self.community = community
         self.account = account
         self.password_asker = password_asker
-        identities_model = IdentitiesTableModel(community)
+        self.setup_ui()
+
+    def setup_ui(self):
+        self.setupUi(self)
+        identities_model = IdentitiesTableModel(self.community)
         proxy = IdentitiesFilterProxyModel()
         proxy.setSourceModel(identities_model)
         self.table_identities.setModel(proxy)
@@ -54,7 +57,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         self.table_identities.sortByColumn(0, Qt.AscendingOrder)
         self.table_identities.resizeColumnsToContents()
 
-        self.wot_tab = WotTabWidget(app, account, community, password_asker, self)
+        self.wot_tab = WotTabWidget(self.app, self.account, self.community, self.password_asker, self)
         self.tabs_information.addTab(self.wot_tab, QIcon(':/icons/wot_icon'), self.tr("Web of Trust"))
         members_action = QAction(self.tr("Members"), self)
         members_action.triggered.connect(self.search_members)
@@ -62,7 +65,10 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         direct_connections = QAction(self.tr("Direct connections"), self)
         direct_connections.triggered.connect(self.search_direct_connections)
         self.button_search.addAction(direct_connections)
+
+        self.account.identity(self.community).inner_data_changed.connect(self.handle_account_identity_change)
         self.search_direct_connections()
+
         self.refresh_quality_buttons()
 
     def identity_context_menu(self, point):
@@ -327,11 +333,11 @@ Revoking your UID can only success if it is not already validated by the network
         """
         self_identity = self.account.identity(self.community)
         try:
-            self_identity.inner_data_changed.connect(self.handle_account_identity_change)
             self.community.inner_data_changed.disconnect(self.handle_community_change)
+            self_identity.inner_data_changed.connect(self.handle_account_identity_change)
         except TypeError as e:
             if "disconnect() failed" in str(e):
-                pass
+                logging.debug("Could not disconnect community")
             else:
                 raise
 

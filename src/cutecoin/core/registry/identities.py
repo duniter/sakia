@@ -4,6 +4,7 @@ from cutecoin.core.net.api import bma as qtbma
 from .identity import Identity
 
 import json
+import logging
 
 
 class IdentitiesRegistry:
@@ -55,11 +56,12 @@ class IdentitiesRegistry:
         """
         if pubkey in self._instances:
             identity = self._instances[pubkey]
+            self._instances[pubkey] = identity
         else:
             identity = Identity.empty(pubkey)
             self._instances[pubkey] = identity
-        reply = community.bma_access.request(qtbma.wot.Lookup, req_args={'search': pubkey})
-        reply.finished.connect(lambda: self.handle_lookup(reply, identity))
+            reply = community.bma_access.request(qtbma.wot.Lookup, req_args={'search': pubkey})
+            reply.finished.connect(lambda: self.handle_lookup(reply, identity))
         return identity
 
     def handle_lookup(self, reply, identity):
@@ -79,10 +81,11 @@ class IdentitiesRegistry:
                     if uid_data["meta"]["timestamp"] > timestamp:
                         timestamp = uid_data["meta"]["timestamp"]
                         identity_uid = uid_data["uid"]
-                    identity.uid = identity_uid
-                    identity.status = Identity.FOUND
-                    identity.inner_data_changed.emit(str(qtbma.wot.Lookup))
-                    return
+                identity.uid = identity_uid
+                identity.status = Identity.FOUND
+                logging.debug("Lookup : found {0}".format(identity))
+                identity.inner_data_changed.emit(str(qtbma.wot.Lookup))
+                return
 
     def from_metadata(self, metadata):
         """

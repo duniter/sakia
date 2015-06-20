@@ -264,7 +264,10 @@ class Account(QObject):
         :return: The account identity in the community
         :rtype: cutecoin.core.registry.Identity
         """
-        return self._identities_registry.lookup(self.pubkey, community)
+        identity = self._identities_registry.lookup(self.pubkey, community)
+        if identity.status == Identity.NOT_FOUND:
+            identity.uid = self.name
+        return identity
 
     @property
     def units_to_ref(self):

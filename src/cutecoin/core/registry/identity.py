@@ -8,7 +8,7 @@ import logging
 import time
 
 from ucoinpy.documents.certification import SelfCertification
-from cutecoin.tools.exceptions import Error, LookupFailureError,\
+from cutecoin.tools.exceptions import Error, NoPeerAvailable,\
                                         MembershipNotFoundError
 from cutecoin.core.net.api import bma as qtbma
 from cutecoin.core.net.api.bma import PROTOCOL_VERSION
@@ -101,11 +101,33 @@ class Identity(QObject):
         if search != qtbma.blockchain.Membership.null_value:
             if len(search['memberships']) > 0:
                 membership_data = search['memberships'][0]
-                return community.get_block(membership_data['blockNumber']).mediantime
+                return community.get_block(membership_data['blockNumber'])['medianTime']
             else:
                 return None
         else:
             raise MembershipNotFoundError(self.pubkey, community.name)
+
+    def get_expiration_date(self, community):
+        try:
+            join_block_number = self.membership(community)['blockNumber']
+            try:
+                join_block = community.bma_access.get(self, qtbma.blockchain.Block,
+                                req_args={'number': join_block_number})
+
+                parameters = community.bma_access.get(self, qtbma.blockchain.Parameters)
+                if join_block != qtbma.blockchain.Block.null_value \
+                        and parameters != qtbma.blockchain.Parameters.null_value:
+                    join_date = join_block['medianTime']
+                    expiration_date = join_date + parameters['sigValidity']
+                else:
+                    return None
+            except NoPeerAvailable:
+                expiration_date = None
+        except MembershipNotFoundError:
+            expiration_date = None
+        return expiration_date
+
+
 
 #TODO: Manage 'OUT' memberships ? Maybe ?
     def membership(self, community):
@@ -192,7 +214,7 @@ class Identity(QObject):
                                 certifier['isMember'] = certifier_data['isMember']
                                 certifier['cert_time'] = dict()
                                 certifier['cert_time']['medianTime'] = community.get_block(
-                                    certifier_data['meta']['block_number']).mediantime
+                                    certifier_data['meta']['block_number'])['medianTime']
                                 certifiers.append(certifier)
 
             return certifiers

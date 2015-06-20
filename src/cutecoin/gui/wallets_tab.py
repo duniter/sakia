@@ -8,7 +8,7 @@ import logging
 from PyQt5.QtWidgets import QWidget, QMenu, QAction, QApplication, QDialog
 from PyQt5.QtCore import QDateTime, QModelIndex, Qt, QLocale
 from PyQt5.QtGui import QCursor
-from ..core.registry import IdentitiesRegistry
+from ..core.registry import Identity
 from ..core.wallet import Wallet
 from ..gui.password_asker import PasswordAskerDialog
 from ..models.wallets import WalletsTableModel, WalletsFilterProxyModel
@@ -36,16 +36,29 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
         self.account = account
         self.community = community
         self.password_asker = password_asker
+        self.setup_connections()
 
-        self.refresh()
+    def setup_connections(self):
+        self.account.inner_data_changed.connect(self.refresh_informations_frame)
+        self.community.inner_data_changed.connect(self.refresh_informations_frame)
 
     def refresh(self):
+        self.refresh_informations_frame()
+        self.refresh_wallets()
+
+    def refresh_wallets(self):
+        wallets_model = WalletsTableModel(self.account, self.community)
+        proxy_model = WalletsFilterProxyModel()
+        proxy_model.setSourceModel(wallets_model)
+        wallets_model.dataChanged.connect(self.wallet_changed)
+        self.table_wallets.setModel(proxy_model)
+        self.table_wallets.resizeColumnsToContents()
+
+    def refresh_informations_frame(self):
         parameters = self.community.parameters
-        last_renewal = ""
-        expiration = ""
         try:
-            person = self.app.identities_registry.lookup(self.account.pubkey, self.community)
-            membership = person.membership(self.community)
+            identity = self.account.identity(self.community)
+            membership = identity.membership(self.community)
             renew_block = membership['blockNumber']
             last_renewal = self.community.get_block(renew_block)['medianTime']
             expiration = last_renewal + parameters['sigValidity']
@@ -53,8 +66,8 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
             last_renewal = None
             expiration = None
 
-        certified = person.unique_valid_certified_by(self.community)
-        certifiers = person.unique_valid_certifiers_of(self.community)
+        certified = identity.unique_valid_certified_by(self.community)
+        certifiers = identity.unique_valid_certifiers_of(self.community)
         if last_renewal and expiration:
             date_renewal = QLocale.toString(
                 QLocale(),
@@ -134,13 +147,6 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
                 )
             )
         )
-
-        wallets_model = WalletsTableModel(self.account, self.community)
-        proxy_model = WalletsFilterProxyModel()
-        proxy_model.setSourceModel(wallets_model)
-        wallets_model.dataChanged.connect(self.wallet_changed)
-        self.table_wallets.setModel(proxy_model)
-        self.table_wallets.resizeColumnsToContents()
 
     def get_referential_value(self, value):
         return self.account.units_to_ref(value, self.community)
@@ -231,7 +237,7 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
         clipboard = QApplication.clipboard()
         if data.__class__ is Wallet:
             clipboard.setText(data.pubkey)
-        elif data.__class__ is Person:
+        elif data.__class__ is Identity:
             clipboard.setText(data.pubkey)
         elif data.__class__ is str:
             clipboard.setText(data)

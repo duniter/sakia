@@ -93,11 +93,14 @@ class BmaAccess(QObject):
         if need_reload:
             #Move to network nstead of community
             #after removing qthreads
-            reply = self.request(request, req_args, get_args)
             if cache_key in self._pending_requests:
                 if caller not in self._pending_requests[cache_key]:
+                    logging.debug("New caller".format(caller))
                     self._pending_requests[cache_key].append(caller)
+                    logging.debug("Callers".format(self._pending_requests[cache_key]))
             else:
+                reply = self.request(request, req_args, get_args)
+                logging.debug("New pending request {0}, caller {1}".format(cache_key, caller))
                 self._pending_requests[cache_key] = [caller]
                 reply.finished.connect(lambda:
                                          self.handle_reply(request, req_args, get_args, tries))
