@@ -17,6 +17,7 @@ from .wot_tab import WotTabWidget
 from .transfer import TransferMoneyDialog
 from .certification import CertificationDialog
 from . import toast
+import quamash
 from ..tools.exceptions import LookupFailureError, NoPeerAvailable
 from ..core.registry import IdentitiesRegistry
 from ucoinpy.api import bma
@@ -68,8 +69,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
 
         self.account.identity(self.community).inner_data_changed.connect(self.handle_account_identity_change)
         self.search_direct_connections()
-        self.account.document_broadcasted.connect(self.display_broadcast_toast)
-
+        self.account.membership_broadcasted.connect(self.display_membership_toast)
         self.refresh_quality_buttons()
 
     def identity_context_menu(self, point):
@@ -152,10 +152,10 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             currency_tab = self.window().currencies_tabwidget.currentWidget()
             currency_tab.tab_history.table_history.model().sourceModel().refresh_transfers()
 
-    def certify_identity(self, person):
-        dialog = CertificationDialog(self.account, self.password_asker)
+    def certify_identity(self, identity):
+        dialog = CertificationDialog(self.account, self.app, self.password_asker)
         dialog.combo_community.setCurrentText(self.community.name)
-        dialog.edit_pubkey.setText(person.pubkey)
+        dialog.edit_pubkey.setText(identity.pubkey)
         dialog.radio_pubkey.setChecked(True)
         dialog.exec_()
 
@@ -169,28 +169,16 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         index_wot_tab = self.tabs_information.indexOf(self.wot_tab)
         self.tabs_information.setCurrentIndex(index_wot_tab)
 
-    @pyqtSlot(str)
-    def display_broadcast_toast(self, document):
-        toast.display(document, self.tr("Success sending {0} demand".format(document)))
+    @pyqtSlot()
+    def display_membership_toast(self):
+        toast.display(self.tr("Membership"), self.tr("Success sending Membership demand"))
 
     def send_membership_demand(self):
         password = self.password_asker.exec_()
         if self.password_asker.result() == QDialog.Rejected:
             return
-
-        try:
-            self.account.send_membership(password, self.community, 'IN')
-        except ValueError as e:
-            QMessageBox.critical(self, self.tr("Join demand error"),
-                              str(e))
-        except LookupFailureError as e:
-            QMessageBox.critical(self, self.tr("Key not sent to community"),
-                              self.tr(""""Your key wasn't sent in the community.
-You can't request a membership."""))
-        except NoPeerAvailable as e:
-            QMessageBox.critical(self, self.tr("Network error"),
-                                 self.tr("Couldn't connect to network : {0}").format(e),
-                                 QMessageBox.Ok)
+        with quamash.QEventLoop(self.app.qapp) as loop:
+                loop.run_until_complete(self.account.send_membership(password, self.community, 'IN'))
         # except Exception as e:
         #     QMessageBox.critical(self, "Error",
         #                          "{0}".format(e),
@@ -207,19 +195,8 @@ The process to join back the community later will have to be done again.""")
             if self.password_asker.result() == QDialog.Rejected:
                 return
 
-            try:
-                self.account.send_membership(password, self.community, 'OUT')
-            except ValueError as e:
-                QMessageBox.critical(self, self.tr("Leaving demand error"),
-                                  str(e))
-            except NoPeerAvailable as e:
-                QMessageBox.critical(self, self.tr("Network error"),
-                                     self.tr("Couldn't connect to network : {0}").format(e),
-                                     QMessageBox.Ok)
-            # except Exception as e:
-            #     QMessageBox.critical(self, self.tr("Error"),
-            #                          "{0}".format(e),
-            #                          QMessageBox.Ok)
+            with quamash.QEventLoop(self.app.qapp) as loop:
+                    loop.run_until_complete(self.account.send_membership(password, self.community, 'OUT'))
 
     def publish_uid(self):
         reply = QMessageBox.warning(self, self.tr("Warning"),

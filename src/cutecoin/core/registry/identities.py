@@ -53,6 +53,7 @@ class IdentitiesRegistry:
 
         :return: A new person if the pubkey was unknown or\
         the known instance if pubkey was already known.
+        :rtype: cutecoin.core.registry.Identity
         """
         if pubkey in self._instances:
             identity = self._instances[pubkey]

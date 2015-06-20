@@ -12,6 +12,7 @@ import logging
 import time
 import math
 import json
+import asyncio
 
 from PyQt5.QtCore import QObject, pyqtSignal, QCoreApplication, QT_TRANSLATE_NOOP
 from PyQt5.QtNetwork import QNetworkReply
@@ -121,7 +122,9 @@ class Account(QObject):
     loading_progressed = pyqtSignal(int, int)
     inner_data_changed = pyqtSignal(str)
     wallets_changed = pyqtSignal()
-    document_broadcasted = pyqtSignal(str)
+    membership_broadcasted = pyqtSignal()
+    certification_broadcasted = pyqtSignal()
+    broadcast_error = pyqtSignal(int, str)
 
     def __init__(self, salt, pubkey, name, communities, wallets, contacts, identities_registry):
         '''
@@ -312,6 +315,7 @@ class Account(QObject):
             self.wallets = self.wallets[:size]
         self.wallets_changed.emit()
 
+    @asyncio.coroutine
     def certify(self, password, community, pubkey):
         """
         Certify an other identity
@@ -320,26 +324,76 @@ class Account(QObject):
         :param cutecoin.core.community.Community community: The community target of the certification
         :param str pubkey: The certified identity pubkey
         """
-        certified = self._identities_registry.lookup(pubkey, community)
-        blockid = community.current_blockid()
+        blockid = ""
+        selfcert = None
+
+        def build_certification_data(reply):
+            if reply.error() == QNetworkReply.NoError:
+                strdata = bytes(reply.readAll()).decode('utf-8')
+                json_data = json.loads(strdata)
+                nonlocal blockid
+                blockid = community.blockid(json_data)
+                future_certdata.set_result(True)
+
+        def build_certification_selfcert(reply):
+            if reply.error() == QNetworkReply.NoError:
+                strdata = bytes(reply.readAll()).decode('utf-8')
+                json_data = json.loads(strdata)
+                nonlocal selfcert
+                selfcert = self._identities_registry.lookup(pubkey, community).selfcert(community, json_data)
+                future_selfcert.set_result(True)
+
+        future_certdata = asyncio.Future()
+        reply = community.bma_access.request(qtbma.blockchain.Current)
+        reply.finished.connect(lambda: build_certification_data(reply))
+        yield from future_certdata
+
+        future_selfcert = asyncio.Future()
+        reply = community.bma_access.request( qtbma.wot.Lookup, req_args={'search': pubkey})
+        reply.finished.connect(lambda: build_certification_selfcert(reply))
+        yield from future_selfcert
 
         certification = Certification(PROTOCOL_VERSION, community.currency,
-                                      self.pubkey, certified.pubkey,
+                                      self.pubkey, pubkey,
                                       blockid['number'], blockid['hash'], None)
-
-        selfcert = certified.selfcert(community)
-        logging.debug("SelfCertification : {0}".format(selfcert.raw()))
 
         key = SigningKey(self.salt, password)
         certification.sign(selfcert, [key])
         signed_cert = certification.signed_raw(selfcert)
         logging.debug("Certification : {0}".format(signed_cert))
 
-        data = {'pubkey': certified.pubkey,
+        data = {'pubkey': pubkey,
                 'self_': selfcert.signed_raw(),
                 'other': "{0}\n".format(certification.inline())}
         logging.debug("Posted data : {0}".format(data))
-        community.broadcast(qtbma.wot.Add, {}, data)
+        replies = community.bma_access.broadcast(qtbma.wot.Add, {}, data)
+        for r in replies:
+            r.finished.connect(lambda reply=r: self.__handle_certification_reply(replies, reply))
+
+    def __handle_certification_reply(self, replies, reply):
+        """
+        Handle the reply, if the request was accepted, disconnect
+        all other replies
+
+        :param QNetworkReply reply: The reply of this handler
+        :param list of QNetworkReply replies: All request replies
+        :return:
+        """
+        strdata = bytes(reply.readAll()).decode('utf-8')
+        logging.debug("Received reply : {0} : {1}".format(reply.error(), strdata))
+        if reply.error() == QNetworkReply.NoError:
+            self.certification_broadcasted.emit()
+            for r in replies:
+                try:
+                    r.disconnect()
+                except TypeError as e:
+                    if "disconnect()" in str(e):
+                        logging.debug("Could not disconnect a reply")
+        else:
+            for r in replies:
+                if not r.isFinished() or r.error() == QNetworkReply.NoError:
+                    return
+            self.broadcast_error.emit(r.error(), strdata)
 
     def revoke(self, password, community):
         """
@@ -351,7 +405,6 @@ class Account(QObject):
         revoked = self._identities_registry.lookup(self.pubkey, community)
 
         revocation = Revocation(PROTOCOL_VERSION, community.currency, None)
-
         selfcert = revoked.selfcert(community)
 
         key = SigningKey(self.salt, password)
@@ -414,47 +467,63 @@ class Account(QObject):
                                               'self_': selfcert.signed_raw(),
                                               'other': []})
 
+    @asyncio.coroutine
     def send_membership(self, password, community, mstype):
         '''
-        Send a membership document to a target community
+        Send a membership document to a target community.
+        Signal "document_broadcasted" is emitted at the end.
 
         :param str password: The account SigningKey password
         :param community: The community target of the membership document
         :param str mstype: The type of membership demand. "IN" to join, "OUT" to leave
         '''
+        blockid = ""
+        selfcert = None
+        logging.debug("Send membership")
+
+        def build_membership_data(reply):
+            if reply.error() == QNetworkReply.NoError:
+                strdata = bytes(reply.readAll()).decode('utf-8')
+                json_data = json.loads(strdata)
+                nonlocal blockid
+                blockid = community.blockid(json_data)
+                future_msdata.set_result(True)
+            else:
+                raise ConnectionError(self.tr("Failed to get data build membership document"))
+
+        def build_selfcert(reply):
+            if reply.error() == QNetworkReply.NoError:
+                strdata = bytes(reply.readAll()).decode('utf-8')
+                json_data = json.loads(strdata)
+                nonlocal selfcert
+                selfcert = self.identity(community).selfcert(community, json_data)
+                future_selfcert.set_result(True)
+            else:
+                raise ConnectionError(self.tr("Failed to get data build membership document"))
+
+        future_msdata = asyncio.Future()
         reply = community.bma_access.request(qtbma.blockchain.Current)
-        reply.finished.connect(lambda: self.__build_membership_data(password, community, mstype, reply))
+        reply.finished.connect(lambda: build_membership_data(reply))
+        logging.debug("msdata")
+        yield from future_msdata
+        future_selfcert = asyncio.Future()
+        reply = community.bma_access.request( qtbma.wot.Lookup, req_args={'search': self.pubkey})
+        reply.finished.connect(lambda: build_selfcert(reply))
+        logging.debug("selfcert")
+        yield from future_selfcert
+        membership = Membership(PROTOCOL_VERSION, community.currency,
+                                selfcert.pubkey, blockid['number'],
+                                blockid['hash'], mstype, selfcert.uid,
+                                selfcert.timestamp, None)
+        key = SigningKey(self.salt, password)
+        membership.sign([key])
+        logging.debug("Membership : {0}".format(membership.signed_raw()))
+        replies = community.bma_access.broadcast(qtbma.blockchain.Membership, {},
+                            {'membership': membership.signed_raw()})
+        for r in replies:
+            r.finished.connect(lambda reply=r: self.__handle_membership_replies(replies, reply))
 
-    def __build_membership_data(self, password, community, mstype, reply):
-        if reply.error() == QNetworkReply.NoError:
-            strdata = bytes(reply.readAll()).decode('utf-8')
-            json_data = json.loads(strdata)
-            blockid = community.blockid(json_data)
-            reply = community.bma_access.request( qtbma.wot.Lookup, req_args={'search': self.pubkey})
-            reply.finished.connect(lambda: self.__broadcast_membership(community, blockid, mstype, password, reply))
-        else:
-            raise ConnectionError(self.tr("Failed to get data build membership document"))
-
-    def __broadcast_membership(self, community, blockid, mstype, password, reply):
-        if reply.error() == QNetworkReply.NoError:
-            strdata = bytes(reply.readAll()).decode('utf-8')
-            json_data = json.loads(strdata)
-            selfcert = self.identity(community).selfcert(community, json_data)
-            membership = Membership(PROTOCOL_VERSION, community.currency,
-                                    selfcert.pubkey, blockid['number'],
-                                    blockid['hash'], mstype, selfcert.uid,
-                                    selfcert.timestamp, None)
-            key = SigningKey(self.salt, password)
-            membership.sign([key])
-            logging.debug("Membership : {0}".format(membership.signed_raw()))
-            replies = community.bma_access.broadcast(qtbma.blockchain.Membership, {},
-                                {'membership': membership.signed_raw()})
-            for r in replies:
-                r.finished.connect(lambda reply=r: self.__handle_broadcast_replies(replies, reply))
-        else:
-            raise ConnectionError(self.tr("Failed to get data build membership document"))
-
-    def __handle_broadcast_replies(self, replies, reply):
+    def __handle_membership_replies(self, replies, reply):
         """
         Handle the reply, if the request was accepted, disconnect
         all other replies
@@ -463,14 +532,21 @@ class Account(QObject):
         :param list of QNetworkReply replies: All request replies
         :return:
         """
+        strdata = bytes(reply.readAll()).decode('utf-8')
+        logging.debug("Received reply : {0} : {1}".format(reply.error(), strdata))
         if reply.error() == QNetworkReply.NoError:
-            self.document_broadcasted.emit("Membership")
+            self.membership_broadcasted.emit()
             for r in replies:
                 try:
                     r.disconnect()
                 except TypeError as e:
                     if "disconnect()" in str(e):
                         logging.debug("Could not disconnect a reply")
+        else:
+            for r in replies:
+                if not r.isFinished() or r.error() == QNetworkReply.NoError:
+                    return
+            self.broadcast_error.emit(r.error(), strdata)
 
     def jsonify(self):
         '''
@@ -493,7 +569,3 @@ class Account(QObject):
                 'wallets': data_wallets,
                 'contacts': self.contacts}
         return data
-
-    def get_person(self):
-        return Person.from_metadata({'text': self.name,
-                                     'id': self.pubkey})

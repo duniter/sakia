@@ -43,6 +43,7 @@ class Application(QObject):
         super().__init__()
         self.accounts = {}
         self.current_account = None
+        self.qapp = qapp
         self.available_version = (True,
                                   __version__,
                                   "")
@@ -215,7 +216,7 @@ class Application(QObject):
 
         for wallet in account.wallets:
             wallet_path = os.path.join(config.parameters['home'],
-                                        account.name, '__cache__', wallet.pubkey)
+                                        account.name, '__cache__', wallet.pubkey + "_wal")
             if os.path.exists(wallet_path):
                 with open(wallet_path, 'r') as json_data:
                     data = json.load(json_data)
