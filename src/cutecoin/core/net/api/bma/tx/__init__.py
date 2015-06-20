@@ -35,6 +35,27 @@ class Process(Tx):
         return self.requests_post('/process', **kwargs)
 
 
+class History(Tx):
+    """Get transaction sources."""
+
+    null_value = {
+        "currency": "",
+        "pubkey": "",
+        "history": {
+            "sent": [],
+            "received": []
+        }
+    }
+
+    def __init__(self, conn_handler, pubkey, module='tx'):
+        super(Tx, self).__init__(conn_handler, module)
+        self.pubkey = pubkey
+
+    def __get__(self, **kwargs):
+        assert self.pubkey is not None
+        return self.requests_get('/history/%s' % self.pubkey, **kwargs)
+
+
 class Sources(Tx):
     """Get transaction sources."""
 

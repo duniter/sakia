@@ -122,8 +122,8 @@ class API(object):
         request.setHeader(QNetworkRequest.ContentTypeHeader,
             "application/x-www-form-urlencoded")
         reply = self.conn_handler.network_manager.post(request,
-                             post_data.toString(QUrl.FullyEncoded))
-
+                             post_data.toString(QUrl.FullyEncoded).encode('utf-8'))
+        logging.debug(url.toString(QUrl.FullyEncoded))
         return reply
 
 from . import network, blockchain, tx, wot

@@ -4,11 +4,13 @@ Created on 31 janv. 2015
 @author: inso
 '''
 import logging
-from ucoinpy.api import bma
 from ucoinpy.documents.transaction import Transaction
+from .net.api import bma as qtbma
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
+from PyQt5.QtNetwork import QNetworkReply
+import hashlib
 
-
-class Transfer(object):
+class Transfer(QObject):
     '''
     A transfer is the lifecycle of a transaction.
     TO_SEND means the transaction wasn't sent yet
@@ -25,7 +27,10 @@ class Transfer(object):
     REFUSED = 3
     DROPPED = 5
 
-    def __init__(self, txdoc, state, metadata):
+    transfer_broadcasted = pyqtSignal()
+    broadcast_error = pyqtSignal(str, str)
+
+    def __init__(self, hash, state, metadata):
         '''
         The constructor of a transfer.
         Check for metadata keys which must be present :
@@ -50,7 +55,7 @@ class Transfer(object):
         assert('receiver_uid' in metadata)
         assert('txid' in metadata)
 
-        self.txdoc = txdoc
+        self.hash = hash
         self.state = state
         self._metadata = metadata
 
@@ -62,22 +67,18 @@ class Transfer(object):
         return cls(None, Transfer.TO_SEND, metadata)
 
     @classmethod
-    def create_validated(cls, txdoc, metadata):
+    def create_validated(cls, hash, metadata):
         '''
         Create a new transfer in a "VALIDATED" state.
         '''
-        return cls(txdoc, Transfer.VALIDATED, metadata)
+        return cls(hash, Transfer.VALIDATED, metadata)
 
     @classmethod
     def load(cls, data):
         '''
         Create a new transfer from a dict in json format.
         '''
-        if data['state'] is Transfer.TO_SEND:
-            txdoc = None
-        else:
-            txdoc = Transaction.from_signed_raw(data['txdoc'])
-        return cls(txdoc, data['state'], data['metadata'])
+        return cls(data['hash'], data['state'], data['metadata'])
 
     @property
     def metadata(self):
@@ -90,11 +91,7 @@ class Transfer(object):
         '''
         :return: The transfer as a dict in json format
         '''
-        if self.txdoc:
-            txraw = self.txdoc.signed_raw()
-        else:
-            txraw = None
-        return {'txdoc': txraw,
+        return {'hash': self.hash,
                 'state': self.state,
                 'metadata': self._metadata}
 
@@ -107,18 +104,32 @@ class Transfer(object):
         :param txdoc: A transaction ucoinpy object
         :param community: The community target of the transaction
         '''
-        try:
-            self.txdoc = txdoc
-            community.broadcast(bma.tx.Process,
-                        post_args={'transaction': self.txdoc.signed_raw()})
-            self.state = Transfer.AWAITING
-        except ValueError as e:
-            if '400' in str(e):
-                self.state = Transfer.REFUSED
-            raise
-        finally:
-            self._metadata['block'] = community.current_blockid()['number']
-            self._metadata['time'] = community.get_block().mediantime
+        replies = community.bma_access.broadcast(qtbma.tx.Process,
+                    post_args={'transaction': self.txdoc.signed_raw()})
+        for r in replies:
+            r.finished.connect(lambda reply=r: self.__handle_transfers_reply(replies, reply))
+
+        self.state = Transfer.AWAITING
+        self.hash = hashlib.sha1(txdoc.signed_raw().encode("ascii")).hexdigest().upper()
+        self._metadata['block'] = community.current_blockid()['number']
+        self._metadata['time'] = community.get_block().mediantime
+
+    def __handle_transfers_reply(self, replies, reply):
+        strdata = bytes(reply.readAll()).decode('utf-8')
+        logging.debug("Received reply : {0} : {1}".format(reply.error(), strdata))
+        if reply.error() == QNetworkReply.NoError:
+            self.transfer_broadcasted.emit()
+            for r in replies:
+                try:
+                    r.disconnect()
+                except TypeError as e:
+                    if "disconnect()" in str(e):
+                        logging.debug("Could not disconnect a reply")
+        else:
+            for r in replies:
+                if not r.isFinished() or r.error() == QNetworkReply.NoError:
+                    return
+            self.broadcast_error.emit(r.error(), strdata)
 
     def check_registered(self, tx, block, time):
         '''
@@ -154,14 +165,14 @@ class Transfer(object):
 
 
 class Received(Transfer):
-    def __init__(self, txdoc, metadata):
+    def __init__(self, hash, metadata):
         '''
         A transfer were the receiver is the local user.
 
         :param txdoc: The transaction document of the received transfer
         :param metadata: The metadata of the transfer
         '''
-        super().__init__(txdoc, Transfer.VALIDATED, metadata)
+        super().__init__(hash, Transfer.VALIDATED, metadata)
 
     @classmethod
     def load(cls, data):
@@ -170,5 +181,4 @@ class Received(Transfer):
 
         :param data: The transfer as a dict in json format
         '''
-        txdoc = Transaction.from_signed_raw(data['txdoc'])
-        return cls(txdoc, data['metadata'])
+        return cls(data['hash'], data['metadata'])

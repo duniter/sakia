@@ -66,42 +66,43 @@ class Cache():
     def transfers(self):
         return [t for t in self._transfers if t.state != Transfer.DROPPED]
 
-    def _parse_transaction(self, community, tx, block_number,
-                           mediantime, received_list, txid):
-        #logging.debug(tx.signed_raw())
-        receivers = [o.pubkey for o in tx.outputs
-                     if o.pubkey != tx.issuers[0]]
+    def _parse_transaction(self, community, txdata, received_list, txid):
+        receivers = [o.pubkey for o in txdata['outputs']
+                     if o.pubkey != txdata['issuers'][0]]
+
+        block_number = txdata['block']
+        mediantime = txdata['time']
 
         if len(receivers) == 0:
-            receivers = [tx.issuers[0]]
-
-        try:
-            issuer_uid = Person.lookup(tx.issuers[0], community).uid
-        except LookupFailureError:
-            issuer_uid = ""
-
-        try:
-            receiver_uid = Person.lookup(receivers[0], community).uid
-        except LookupFailureError:
-            receiver_uid = ""
+            receivers = [txdata['issuers'][0]]
+        #
+        # try:
+        #     issuer_uid = IdentitiesRegistry.lookup(txdata['issuers'][0], community).uid
+        # except LookupFailureError:
+        #     issuer_uid = ""
+        #
+        # try:
+        #     receiver_uid = IdentitiesRegistry.lookup(receivers[0], community).uid
+        # except LookupFailureError:
+        #     receiver_uid = ""
 
         metadata = {'block': block_number,
                     'time': mediantime,
-                    'comment': tx.comment,
-                    'issuer': tx.issuers[0],
-                    'issuer_uid': issuer_uid,
+                    'comment': txdata['comment'],
+                    'issuer': txdata['issuers'][0],
+                    'issuer_uid': "",#issuer_uid,
                     'receiver': receivers[0],
-                    'receiver_uid': receiver_uid,
+                    'receiver_uid': "",#receiver_uid,
                     'txid': txid}
 
-        in_issuers = len([i for i in tx.issuers
+        in_issuers = len([i for i in txdata['issuers']
                      if i == self.wallet.pubkey]) > 0
-        in_outputs = len([o for o in tx.outputs
+        in_outputs = len([o for o in txdata['outputs']
                        if o.pubkey == self.wallet.pubkey]) > 0
 
         # If the wallet pubkey is in the issuers we sent this transaction
         if in_issuers:
-            outputs = [o for o in tx.outputs
+            outputs = [o for o in txdata['outputs']
                        if o.pubkey != self.wallet.pubkey]
             amount = 0
             for o in outputs:
@@ -111,48 +112,22 @@ class Cache():
             awaiting = [t for t in self._transfers
                         if t.state == Transfer.AWAITING]
             # We check if the transaction correspond to one we sent
-            if tx.signed_raw() not in [t.txdoc.signed_raw() for t in awaiting]:
-                transfer = Transfer.create_validated(tx,
+            if txdata['hash'] not in [t['hash'] for t in awaiting]:
+                transfer = Transfer.create_validated(txdata,
                                                      metadata.copy())
                 self._transfers.append(transfer)
         # If we are not in the issuers,
         # maybe it we are in the recipients of this transaction
         elif in_outputs:
-            outputs = [o for o in tx.outputs
+            outputs = [o for o in txdata.outputs
                        if o.pubkey == self.wallet.pubkey]
             amount = 0
             for o in outputs:
                 amount += o.amount
             metadata['amount'] = amount
-            received = Received(tx, metadata.copy())
+            received = Received(txdata, metadata.copy())
             received_list.append(received)
             self._transfers.append(received)
-
-
-    def _parse_block(self, community, block_number, received_list):
-        block = community.request(bma.blockchain.Block,
-                                  req_args={'number': block_number})
-        signed_raw = "{0}{1}\n".format(block['raw'],
-                                       block['signature'])
-        try:
-            block_doc = Block.from_signed_raw(signed_raw)
-        except:
-            logging.debug("Error in {0}".format(block_number))
-            raise
-        for (txid, tx) in enumerate(block_doc.transactions):
-            self._parse_transaction(community, tx, block_number,
-                                    block_doc.mediantime, received_list,
-                                    txid)
-
-        logging.debug("Received {0} transactions".format(len(received_list)))
-        awaiting = [t for t in self._transfers
-                    if t.state == Transfer.AWAITING]
-        # After we checked all transactions, we check if
-        # sent transactions still waiting for validation
-        # have to be considered refused
-        for transfer in awaiting:
-            transfer.check_registered(tx, block_number,
-                                      block_doc.mediantime)
 
     def refresh(self, community, received_list):
         current_block = 0
@@ -163,22 +138,14 @@ class Cache():
             # Lets look if transactions took too long to be validated
             awaiting = [t for t in self._transfers
                         if t.state == Transfer.AWAITING]
-            with_tx = community.request(bma.blockchain.TX)
+            tx_history = community.bma_access.request(qtbma.tx.history.Blocks,
+                                                      req_args={'pubkey': self.wallet.pubkey,
+                                                             'from_':self.latest_block,
+                                                             'to_': self.current_block})
 
             # We parse only blocks with transactions
-            parsed_blocks = reversed(range(self.latest_block + 1,
-                                               current_block + 1))
-            logging.debug("Refresh from {0} to {1}".format(self.latest_block + 1,
-                                               current_block + 1))
-            parsed_blocks = [n for n in parsed_blocks
-                             if n in with_tx['result']['blocks']]
-            logging.debug(parsed_blocks)
-            self.wallet.refresh_progressed.emit(self.latest_block, current_block)
-
-            for block_number in parsed_blocks:
-                self._parse_block(community, block_number, received_list)
-                self.wallet.refresh_progressed.emit(current_block - block_number,
-                                                     current_block - self.latest_block)
+            for (txid, txdata) in enumerate(tx_history['history']['received'] + tx_history['history']['sent']):
+                self._parse_transaction(community, txdata, received_list, txid)
 
             if current_block > self.latest_block:
                 self.available_sources = self.wallet.sources(community)
@@ -397,12 +364,12 @@ class Wallet(QObject):
         logging.debug("Sender pubkey:{0}".format(key.pubkey))
 
         try:
-            issuer_uid = Person.lookup(key.pubkey, community).uid
+            issuer_uid = self.identities_registry.lookup(key.pubkey, community).uid
         except LookupFailureError:
             issuer_uid = ""
 
         try:
-            receiver_uid = Person.lookup(recipient, community).uid
+            receiver_uid = self.identities_registry.lookup(recipient, community).uid
         except LookupFailureError:
             receiver_uid = ""
 
