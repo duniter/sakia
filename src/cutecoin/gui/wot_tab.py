@@ -61,48 +61,48 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         identity_account = self.account.identity(self.community)
 
         #Disconnect old identity
+        try:
+            if self._current_identity and self._current_identity != identity:
+                self._current_identity.inner_data_changed.disconnect(self.handle_identity_change)
+        except TypeError as e:
+            if "disconnect()" in str(e):
+                logging.debug("Disconnect of old identity failed.")
+
+        #Connect new identity
         if self._current_identity != identity:
-            try:
-                if self._current_identity:
-                    self._current_identity.inner_data_changed.disconnect(self.handle_identity_change)
-            except TypeError as e:
-                if "disconnect()" in str(e):
-                    logging.debug("Disconnect of old identity failed.")
-            #Connect new identity
+            self._current_identity = identity
             identity.inner_data_changed.connect(self.handle_identity_change)
 
-            self._current_identity = identity
+        # create Identity from node metadata
+        certifier_list = identity.certifiers_of(self.community)
+        certified_list = identity.certified_by(self.community)
 
-            # create Identity from node metadata
-            certifier_list = identity.certifiers_of(self.community)
-            certified_list = identity.certified_by(self.community)
+        # create empty graph instance
+        graph = Graph(self.community)
 
-            # create empty graph instance
-            graph = Graph(self.community)
+        # add wallet node
+        node_status = 0
+        if identity == identity_account:
+            node_status += NODE_STATUS_HIGHLIGHTED
+        if identity.is_member(self.community) is False:
+            node_status += NODE_STATUS_OUT
+        node_status += NODE_STATUS_SELECTED
+        graph.add_identity(identity, node_status)
 
-            # add wallet node
-            node_status = 0
-            if identity == identity_account:
-                node_status += NODE_STATUS_HIGHLIGHTED
-            if identity.is_member(self.community) is False:
-                node_status += NODE_STATUS_OUT
-            node_status += NODE_STATUS_SELECTED
-            graph.add_identity(identity, node_status)
+        # populate graph with certifiers-of
+        graph.add_certifier_list(certifier_list, identity, identity_account)
+        # populate graph with certified-by
+        graph.add_certified_list(certified_list, identity, identity_account)
 
-            # populate graph with certifiers-of
-            graph.add_certifier_list(certifier_list, identity, identity_account)
-            # populate graph with certified-by
-            graph.add_certified_list(certified_list, identity, identity_account)
+        # draw graph in qt scene
+        self.graphicsView.scene().update_wot(graph.get())
 
-            # draw graph in qt scene
-            self.graphicsView.scene().update_wot(graph.get())
-
-            # if selected member is not the account member...
-            if identity.pubkey != identity_account.pubkey:
-                # add path from selected member to account member
-                path = graph.get_shortest_path_between_members(identity, identity_account)
-                if path:
-                    self.graphicsView.scene().update_path(path)
+        # if selected member is not the account member...
+        if identity.pubkey != identity_account.pubkey:
+            # add path from selected member to account member
+            path = graph.get_shortest_path_between_members(identity, identity_account)
+            if path:
+                self.graphicsView.scene().update_path(path)
 
     def reset(self):
         """
