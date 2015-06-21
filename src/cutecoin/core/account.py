@@ -324,42 +324,10 @@ class Account(QObject):
         :param cutecoin.core.community.Community community: The community target of the certification
         :param str pubkey: The certified identity pubkey
         """
-        blockid = ""
-        selfcert = None
-
-        def build_certification_data(reply):
-            if reply.error() == QNetworkReply.NoError:
-                strdata = bytes(reply.readAll()).decode('utf-8')
-                json_data = json.loads(strdata)
-                nonlocal blockid
-                blockid = community.blockid(json_data)
-                future_certdata.set_result(True)
-
-        def build_certification_selfcert(reply):
-            if reply.error() == QNetworkReply.NoError:
-                strdata = bytes(reply.readAll()).decode('utf-8')
-                json_data = json.loads(strdata)
-                nonlocal selfcert
-                selfcert = identity.selfcert(community, json_data)
-                future_selfcert.set_result(True)
-
         logging.debug("Certdata")
-        future_certdata = asyncio.Future()
-        reply = community.bma_access.request(qtbma.blockchain.Current)
-        reply.finished.connect(lambda: build_certification_data(reply))
-        yield from future_certdata
-
-        logging.debug("Identity")
+        blockid = yield from community.blockid()
         identity = yield from self._identities_registry.future_lookup(pubkey, community)
-        logging.debug("YEILDDDDDDDDDdD")
-
-        logging.debug("Selfcert")
-        future_selfcert = asyncio.Future()
-        reply = community.bma_access.request( qtbma.wot.Lookup, req_args={'search': pubkey})
-        reply.finished.connect(lambda: build_certification_selfcert(reply))
-        yield from future_selfcert
-
-        logging.debug("End")
+        selfcert = yield from identity.selfcert(community)
         certification = Certification(PROTOCOL_VERSION, community.currency,
                                       self.pubkey, pubkey,
                                       blockid['number'], blockid['hash'], None)
@@ -485,40 +453,12 @@ class Account(QObject):
         :param community: The community target of the membership document
         :param str mstype: The type of membership demand. "IN" to join, "OUT" to leave
         '''
-        blockid = ""
-        selfcert = None
         logging.debug("Send membership")
 
-        def build_membership_data(reply):
-            if reply.error() == QNetworkReply.NoError:
-                strdata = bytes(reply.readAll()).decode('utf-8')
-                json_data = json.loads(strdata)
-                nonlocal blockid
-                blockid = community.blockid(json_data)
-                future_msdata.set_result(True)
-            else:
-                raise ConnectionError(self.tr("Failed to get data build membership document"))
+        blockid = yield from community.blockid()
+        self_identity = yield from self._identities_registry.future_lookup(self.pubkey, community)
+        selfcert = yield from self_identity.selfcert(community)
 
-        def build_selfcert(reply):
-            if reply.error() == QNetworkReply.NoError:
-                strdata = bytes(reply.readAll()).decode('utf-8')
-                json_data = json.loads(strdata)
-                nonlocal selfcert
-                selfcert = self.identity(community).selfcert(community, json_data)
-                future_selfcert.set_result(True)
-            else:
-                raise ConnectionError(self.tr("Failed to get data build membership document"))
-
-        future_msdata = asyncio.Future()
-        reply = community.bma_access.request(qtbma.blockchain.Current)
-        reply.finished.connect(lambda: build_membership_data(reply))
-        logging.debug("msdata")
-        yield from future_msdata
-        future_selfcert = asyncio.Future()
-        reply = community.bma_access.request( qtbma.wot.Lookup, req_args={'search': self.pubkey})
-        reply.finished.connect(lambda: build_selfcert(reply))
-        logging.debug("selfcert")
-        yield from future_selfcert
         membership = Membership(PROTOCOL_VERSION, community.currency,
                                 selfcert.pubkey, blockid['number'],
                                 blockid['hash'], mstype, selfcert.uid,

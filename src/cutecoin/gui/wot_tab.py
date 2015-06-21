@@ -135,7 +135,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         if len(text) < 2:
             return False
         try:
-            response = self.community.request(bma.wot.Lookup, {'search': text})
+            response = self.community.simple_request(bma.wot.Lookup, {'search': text})
         except Exception as e:
             logging.debug('bma.wot.Lookup request error : ' + str(e))
             return False

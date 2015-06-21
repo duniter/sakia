@@ -138,7 +138,7 @@ class Cache():
             # Lets look if transactions took too long to be validated
             awaiting = [t for t in self._transfers
                         if t.state == Transfer.AWAITING]
-            tx_history = community.bma_access.request(qtbma.tx.history.Blocks,
+            tx_history = community.bma_access.simple_request(qtbma.tx.history.Blocks,
                                                       req_args={'pubkey': self.wallet.pubkey,
                                                              'from_':self.latest_block,
                                                              'to_': self.current_block})
@@ -352,7 +352,7 @@ class Wallet(QObject):
         '''
         time = community.get_block().mediantime
         block_number = community.current_blockid()['number']
-        block = community.request(bma.blockchain.Block,
+        block = community.simple_request(bma.blockchain.Block,
                                   req_args={'number': block_number})
         txid = len(block['transactions'])
         key = None

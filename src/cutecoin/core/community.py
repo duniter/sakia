@@ -8,6 +8,7 @@ import logging
 import hashlib
 import re
 import time
+import asyncio
 
 from PyQt5.QtCore import QObject, pyqtSignal
 from requests.exceptions import RequestException
@@ -247,12 +248,14 @@ class Community(QObject):
                                 req_args={'number': number})
         return data
 
-    def blockid(self, block):
+    @asyncio.coroutine
+    def blockid(self):
         '''
         Get the block id.
 
         :return: The current block ID as [NUMBER-HASH] format.
         '''
+        block = yield from self.bma_access.future_request(qtbma.blockchain.Current)
         signed_raw = "{0}{1}\n".format(block['raw'], block['signature'])
         block_hash = hashlib.sha1(signed_raw.encode("ascii")).hexdigest().upper()
         block_number = block['number']

@@ -62,7 +62,7 @@ class IdentitiesRegistry:
         else:
             identity = Identity.empty(pubkey)
             self._instances[pubkey] = identity
-            reply = community.bma_access.request(qtbma.wot.Lookup, req_args={'search': pubkey})
+            reply = community.bma_access.simple_request(qtbma.wot.Lookup, req_args={'search': pubkey})
             reply.finished.connect(lambda: self.handle_lookup(reply, identity))
         return identity
 
@@ -94,7 +94,7 @@ class IdentitiesRegistry:
         else:
             identity = Identity.empty(pubkey)
             self._instances[pubkey] = identity
-            reply = community.bma_access.request(qtbma.wot.Lookup, req_args={'search': pubkey})
+            reply = community.bma_access.simple_request(qtbma.wot.Lookup, req_args={'search': pubkey})
             reply.finished.connect(lambda: handle_reply(reply))
         logging.debug("Return")
         yield from future_identity

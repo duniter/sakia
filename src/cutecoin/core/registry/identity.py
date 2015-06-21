@@ -6,6 +6,7 @@ Created on 11 févr. 2014
 
 import logging
 import time
+import asyncio
 
 from ucoinpy.documents.certification import SelfCertification
 from cutecoin.tools.exceptions import Error, NoPeerAvailable,\
@@ -60,7 +61,8 @@ class Identity(QObject):
 
         return cls(uid, pubkey, status)
 
-    def selfcert(self, community, lookup_data):
+    @asyncio.coroutine
+    def selfcert(self, community):
         """
         Get the identity self certification.
         This request is not cached in the person object.
@@ -70,7 +72,7 @@ class Identity(QObject):
         :rtype: ucoinpy.documents.certification.SelfCertification
         """
         timestamp = 0
-
+        lookup_data = yield from community.bma_access.future_request(qtbma.wot.Lookup, req_args={'search': self.pubkey})
         for result in lookup_data['results']:
             if result["pubkey"] == self.pubkey:
                 uids = result['uids']
@@ -86,6 +88,7 @@ class Identity(QObject):
                                          timestamp,
                                          uid,
                                          signature)
+        return None
 
     def get_join_date(self, community):
         """
