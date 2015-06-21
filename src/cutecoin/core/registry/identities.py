@@ -4,6 +4,7 @@ from cutecoin.core.net.api import bma as qtbma
 from .identity import Identity
 
 import json
+import asyncio
 import logging
 
 
@@ -63,6 +64,40 @@ class IdentitiesRegistry:
             self._instances[pubkey] = identity
             reply = community.bma_access.request(qtbma.wot.Lookup, req_args={'search': pubkey})
             reply.finished.connect(lambda: self.handle_lookup(reply, identity))
+        return identity
+
+    @asyncio.coroutine
+    def future_lookup(self, pubkey, community):
+        def handle_reply(reply):
+            strdata = bytes(reply.readAll()).decode('utf-8')
+            data = json.loads(strdata)
+
+            timestamp = 0
+            for result in data['results']:
+                if result["pubkey"] == identity.pubkey:
+                    uids = result['uids']
+                    identity_uid = ""
+                    for uid_data in uids:
+                        if uid_data["meta"]["timestamp"] > timestamp:
+                            timestamp = uid_data["meta"]["timestamp"]
+                            identity_uid = uid_data["uid"]
+                    identity.uid = identity_uid
+                    identity.status = Identity.FOUND
+                    logging.debug("Lookup : found {0}".format(identity))
+                    future_identity.set_result(True)
+
+        future_identity = asyncio.Future()
+        logging.debug("Future identity")
+        if pubkey in self._instances:
+            identity = self._instances[pubkey]
+            future_identity.set_result(True)
+        else:
+            identity = Identity.empty(pubkey)
+            self._instances[pubkey] = identity
+            reply = community.bma_access.request(qtbma.wot.Lookup, req_args={'search': pubkey})
+            reply.finished.connect(lambda: handle_reply(reply))
+        logging.debug("Return")
+        yield from future_identity
         return identity
 
     def handle_lookup(self, reply, identity):

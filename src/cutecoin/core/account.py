@@ -340,19 +340,26 @@ class Account(QObject):
                 strdata = bytes(reply.readAll()).decode('utf-8')
                 json_data = json.loads(strdata)
                 nonlocal selfcert
-                selfcert = self._identities_registry.lookup(pubkey, community).selfcert(community, json_data)
+                selfcert = identity.selfcert(community, json_data)
                 future_selfcert.set_result(True)
 
+        logging.debug("Certdata")
         future_certdata = asyncio.Future()
         reply = community.bma_access.request(qtbma.blockchain.Current)
         reply.finished.connect(lambda: build_certification_data(reply))
         yield from future_certdata
 
+        logging.debug("Identity")
+        identity = yield from self._identities_registry.future_lookup(pubkey, community)
+        logging.debug("YEILDDDDDDDDDdD")
+
+        logging.debug("Selfcert")
         future_selfcert = asyncio.Future()
         reply = community.bma_access.request( qtbma.wot.Lookup, req_args={'search': pubkey})
         reply.finished.connect(lambda: build_certification_selfcert(reply))
         yield from future_selfcert
 
+        logging.debug("End")
         certification = Certification(PROTOCOL_VERSION, community.currency,
                                       self.pubkey, pubkey,
                                       blockid['number'], blockid['hash'], None)
@@ -369,6 +376,7 @@ class Account(QObject):
         replies = community.bma_access.broadcast(qtbma.wot.Add, {}, data)
         for r in replies:
             r.finished.connect(lambda reply=r: self.__handle_certification_reply(replies, reply))
+        return True
 
     def __handle_certification_reply(self, replies, reply):
         """

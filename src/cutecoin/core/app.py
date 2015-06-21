@@ -34,7 +34,7 @@ class Application(QObject):
     loading_progressed = pyqtSignal(int, int)
     version_requested = pyqtSignal()
 
-    def __init__(self, argv, qapp):
+    def __init__(self, argv, qapp, loop):
         '''
         Create a new "cutecoin" application
 
@@ -43,7 +43,7 @@ class Application(QObject):
         super().__init__()
         self.accounts = {}
         self.current_account = None
-        self.qapp = qapp
+        self.loop = loop
         self.available_version = (True,
                                   __version__,
                                   "")

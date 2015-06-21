@@ -17,7 +17,7 @@ from .wot_tab import WotTabWidget
 from .transfer import TransferMoneyDialog
 from .certification import CertificationDialog
 from . import toast
-import quamash
+import asyncio
 from ..tools.exceptions import LookupFailureError, NoPeerAvailable
 from ..core.registry import IdentitiesRegistry
 from ucoinpy.api import bma
@@ -177,12 +177,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         password = self.password_asker.exec_()
         if self.password_asker.result() == QDialog.Rejected:
             return
-        with quamash.QEventLoop(self.app.qapp) as loop:
-                loop.run_until_complete(self.account.send_membership(password, self.community, 'IN'))
-        # except Exception as e:
-        #     QMessageBox.critical(self, "Error",
-        #                          "{0}".format(e),
-        #                          QMessageBox.Ok)
+        asyncio.async(self.account.send_membership(password, self.community, 'IN'))
 
     def send_membership_leaving(self):
         reply = QMessageBox.warning(self, self.tr("Warning"),
@@ -195,8 +190,7 @@ The process to join back the community later will have to be done again.""")
             if self.password_asker.result() == QDialog.Rejected:
                 return
 
-            with quamash.QEventLoop(self.app.qapp) as loop:
-                    loop.run_until_complete(self.account.send_membership(password, self.community, 'OUT'))
+        asyncio.async(self.account.send_membership(password, self.community, 'OUT'))
 
     def publish_uid(self):
         reply = QMessageBox.warning(self, self.tr("Warning"),

@@ -8,6 +8,7 @@ from PyQt5.QtCore import Qt, pyqtSlot
 import quamash
 from ..gen_resources.certification_uic import Ui_CertificationDialog
 from . import toast
+import asyncio
 
 
 class CertificationDialog(QDialog, Ui_CertificationDialog):
@@ -49,8 +50,7 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
                                                                                                 pubkey))
         self.account.broadcast_error.connect(self.handle_error)
 
-        with quamash.QEventLoop(self.app.qapp) as loop:
-            loop.run_until_complete(self.account.certify(password, self.community, pubkey))
+        asyncio.async(self.account.certify(password, self.community, pubkey))
 
     def certification_sent(self, pubkey, currency):
         toast.display(self.tr("Certification"),

@@ -19,10 +19,12 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     cutecoin = QApplication(sys.argv)
-    app = Application(sys.argv, cutecoin)
-    loop = QEventLoop(app)
+    loop = QEventLoop(cutecoin)
+    app = Application(sys.argv, cutecoin, loop)
     asyncio.set_event_loop(loop)
-    window = MainWindow(app)
-    window.showMaximized()
+    with loop:
+        window = MainWindow(app)
+        window.showMaximized()
+        loop.run_forever()
     sys.exit(cutecoin.exec_())
     pass
