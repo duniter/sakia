@@ -5,6 +5,7 @@ Created on 1 févr. 2014
 '''
 
 from PyQt5.QtCore import QObject, pyqtSignal
+import math
 from ucoinpy.api import bma
 from ucoinpy.documents.block import Block
 from ..tools.exceptions import NoPeerAvailable
@@ -232,6 +233,29 @@ class Community(QObject):
         else:
             return 1
 
+    @property
+    def computed_dividend(self):
+        """
+        Get the computed community universal dividend.
+
+        Calculation based on t = last UD block time and on values from the that block :
+
+        UD(computed) = CEIL(MAX(UD(t) ; c * M(t) / N(t)))
+
+        :return: The computed UD or 1 if no UD was generated.
+        """
+        block = self.get_ud_block()
+        if block:
+            return math.ceil(
+                max(
+                    self.dividend,
+                    self.parameters['c'] * block['monetaryMass'] / block['membersCount']
+                )
+            )
+
+        else:
+            return 1
+
     def get_ud_block(self, x=0):
         '''
         Get a block with universal dividend
@@ -240,7 +264,8 @@ class Community(QObject):
         :return: The last block with universal dividend.
         '''
         blocks = self.request(bma.blockchain.UD)['result']['blocks']
-        if len(blocks) > 0:
+        # if ud blocks exist and index requested exists...
+        if len(blocks) > 0 and len(blocks)-(1+x) >= 0:
             block_number = blocks[len(blocks)-(1+x)]
             block = self.request(bma.blockchain.Block,
                                  req_args={'number': block_number})

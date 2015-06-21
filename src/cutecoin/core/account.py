@@ -41,13 +41,7 @@ def relative(units, community):
     :param cutecoin.core.community.Community community: Community instance
     :return: float
     """
-    # fixme: the value "community.nb_members" is not up to date, luckyly the good value is in "community.get_ud_block()['membersCount']"
-    # calculate ud(t+1)
-    ud = math.ceil(
-        max(community.dividend,
-            community.parameters['c'] * community.monetary_mass / community.get_ud_block()['membersCount'])
-    )
-    relative_value = units / float(ud)
+    relative_value = units / float(community.dividend)
     return relative_value
 
 
@@ -59,7 +53,6 @@ def quantitative_zerosum(units, community):
     :param cutecoin.core.community.Community community: Community instance
     :return: int
     """
-    # fixme: the value "community.nb_members" is not up to date, luckyly the good value is in "community.get_ud_block()['membersCount']"
     average = community.monetary_mass / community.get_ud_block()['membersCount']
     return units - average
 
@@ -72,15 +65,9 @@ def relative_zerosum(units, community):
     :param cutecoin.core.community.Community community: Community instance
     :return: float
     """
-    # fixme: the value "community.nb_members" is not up to date, luckyly the good value is in "community.get_ud_block()['membersCount']"
-    median = community.monetary_mass / community.nb_members
-    # calculate ud(t+1)
-    ud = math.ceil(
-        max(community.dividend,
-            community.parameters['c'] * community.monetary_mass / community.get_ud_block()['membersCount'])
-    )
-    relative_value = units / float(ud)
-    relative_median = median / ud
+    median = community.monetary_mass / community.get_ud_block()['membersCount']
+    relative_value = units / float(community.dividend)
+    relative_median = median / community.dividend
     return relative_value - relative_median
 
 
