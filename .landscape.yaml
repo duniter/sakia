@@ -1,0 +1,4 @@
+ignore-paths:
+  - lib
+  - build
+  - res
