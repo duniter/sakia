@@ -3,7 +3,7 @@ Created on 8 févr. 2014
 
 @author: inso
 '''
-
+import asyncio
 from PyQt5.QtCore import QAbstractTableModel, QSortFilterProxyModel, Qt, QLocale, pyqtSlot
 
 

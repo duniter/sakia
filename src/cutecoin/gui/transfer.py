@@ -4,12 +4,12 @@ Created on 2 févr. 2014
 @author: inso
 '''
 from PyQt5.QtWidgets import QDialog, QMessageBox, QApplication
-from PyQt5.QtCore import QRegExp, Qt, QLocale
+from PyQt5.QtCore import QRegExp, Qt, QLocale, pyqtSlot
 from PyQt5.QtGui import QRegExpValidator
 
-from ..tools.exceptions import NotEnoughMoneyError, NoPeerAvailable
 from ..gen_resources.transfer_uic import Ui_TransferMoneyDialog
 from . import toast
+import asyncio
 
 
 class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
@@ -73,36 +73,34 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         try:
             QApplication.setOverrideCursor(Qt.WaitCursor)
             QApplication.processEvents()
-            self.wallet.send_money(self.account.salt, password, self.community,
-                                       recipient, amount, comment)
+            self.wallet.transfer_broadcasted.connect(self.money_sent)
+            asyncio.async(self.wallet.send_money(self.account.salt, password, self.community,
+                                       recipient, amount, comment))
             toast.display(self.tr("Money transfer"),
                           self.tr("Success transfering {0} {1} to {2}").format(amount,
                                                                              self.community.currency,
                                                                              recipient))
-        except ValueError as e:
-            QMessageBox.critical(self, self.tr("Money transfer"),
-                                 self.tr("Something wrong happened : {0}").format(e),
-                                 QMessageBox.Ok)
-            return
-        except NotEnoughMoneyError as e:
-            QMessageBox.warning(self, self.tr("Money transfer"),
-                                 self.tr("""This transaction could not be sent on this block
-Please try again later"""))
-        except NoPeerAvailable as e:
-            QMessageBox.critical(self, self.tr("Money transfer"),
-                                 self.tr("Couldn't connect to network : {0}").format(e),
-                                 QMessageBox.Ok)
-            return
-        except Exception as e:
-            QMessageBox.critical(self, self.tr("Error"),
-                                 "{0}".format(str(e)),
-                                 QMessageBox.Ok)
-            return
         finally:
             QApplication.restoreOverrideCursor()
             QApplication.processEvents()
 
         super().accept()
+
+    @pyqtSlot(str)
+    def money_sent(self, receiver_uid):
+        toast.display(self.tr("Transfer"),
+                      self.tr("Success sending money to {0}").format(receiver_uid))
+        self.wallet.transfer_broadcasted.disconnect()
+        self.wallet.broadcast_error.disconnect(self.handle_error)
+        QApplication.restoreOverrideCursor()
+        super().accept()
+
+    @pyqtSlot(int, str)
+    def handle_error(self, error_code, text):
+        toast.display(self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
+        self.wallet.transfer_broadcasted.disconnect()
+        self.wallet.broadcast_error.disconnect(self.handle_error)
+        QApplication.restoreOverrideCursor()
 
     def amount_changed(self):
         amount = self.spinbox_amount.value()
@@ -113,7 +111,7 @@ Please try again later"""))
 
     def relative_amount_changed(self):
         relative = self.spinbox_relative.value()
-        amount = relative * self.dividend
+        amount = relative * self.dividend()
         self.spinbox_amount.blockSignals(True)
         self.spinbox_amount.setValue(amount)
         self.spinbox_amount.blockSignals(False)

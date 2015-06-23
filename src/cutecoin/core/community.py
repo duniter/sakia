@@ -154,17 +154,11 @@ class Community(QObject):
 
         :return: The monetary mass value
         """
-        try:
-            # Get cached block by block number
-            block_number = self.network.latest_block
-            block = self.bma_access.get(self, qtbma.blockchain.Block,
-                                 req_args={'number': block_number})
-            return block['monetaryMass']
-        except ValueError as e:
-            if '404' in e:
-                return 0
-        except NoPeerAvailable as e:
-            return 0
+        # Get cached block by block number
+        block_number = self.network.latest_block
+        block = self.bma_access.get(self, qtbma.blockchain.Block,
+                             req_args={'number': block_number})
+        return block['monetaryMass']
 
     @property
     def nb_members(self):
@@ -269,12 +263,6 @@ class Community(QObject):
         '''
         memberships = self.bma_access.get(self, qtbma.wot.Members)
         return [m['pubkey'] for m in memberships["results"]]
-
-    def refresh_cache(self):
-        '''
-        Start the refresh processing of the cache
-        '''
-        self._cache.refresh()
 
     def post(self, request, req_args={}, post_args={}):
         '''

@@ -17,6 +17,7 @@ from .transactions_tab import TransactionsTabWidget
 from .network_tab import NetworkTabWidget
 from .informations_tab import InformationsTabWidget
 from . import toast
+import asyncio
 from ..tools.exceptions import MembershipNotFoundError
 from ..core.registry import IdentitiesRegistry
 
@@ -208,7 +209,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             self.tab_wallets.refresh()
 
     def showEvent(self, event):
-        self.community.network.discover_network()
+        asyncio.async(self.community.network.discover_network())
         self.refresh_status()
 
     def referential_changed(self):

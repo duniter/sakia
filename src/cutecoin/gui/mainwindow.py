@@ -65,8 +65,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         QApplication.setWindowIcon(QIcon(":/icons/cutecoin_logo"))
         self.app = app
-        logging.debug(app.thread())
-        logging.debug(self.thread())
         self.password_asker = None
         self.initialized = False
 
@@ -399,6 +397,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.app.current_account:
             self.app.save_cache(self.app.current_account)
         self.app.save_registries()
+        self.app.stop()
         super().closeEvent(event)
 
     def showEvent(self, event):

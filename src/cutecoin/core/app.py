@@ -122,17 +122,13 @@ class Application(QObject):
         '''
         Change current account displayed and refresh its cache.
 
-        :param account: The account object to display
+        :param cutecoin.core.Account account: The account object to display
         .. note:: Emits the application pyqtSignal loading_progressed
         during cache refresh
         '''
-        def progressing(value, maximum):
-            self.loading_progressed.emit(value, maximum)
-
         if self.current_account is not None:
             self.save_cache(self.current_account)
-        account.loading_progressed.connect(progressing)
-        account.refresh_cache()
+
         self.current_account = account
 
     def load(self):
@@ -398,6 +394,11 @@ class Application(QObject):
         '''
         data = {'local_accounts': self.jsonify_accounts()}
         return data
+
+    def stop(self):
+        for c in self.current_account.communities:
+            c.network.stop_crawling()
+        self.loop.stop()
 
     def get_last_version(self):
         url = QUrl("https://api.github.com/repos/ucoin-io/cutecoin/releases")

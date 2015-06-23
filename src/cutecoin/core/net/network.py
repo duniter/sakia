@@ -7,6 +7,7 @@ from cutecoin.core.net.node import Node
 
 import logging
 import time
+import asyncio
 from ucoinpy.documents.peer import Peer
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QCoreApplication, QTimer
@@ -189,20 +190,19 @@ class Network(QObject):
         node = self.nodes[index]
         return self._root_nodes.index(node)
 
+    @asyncio.coroutine
     def discover_network(self):
         '''
         Start crawling which never stops.
         To stop this crawling, call "stop_crawling" method.
         '''
-        if not self.continue_crawling():
-            return
-        for (i, node) in enumerate(self.nodes):
-            if not self.continue_crawling():
-                return
-
-            if node == self.nodes[-1]:
-                QTimer.singleShot((i+1)*10000, self.discover_network)
-            QTimer.singleShot(i*10000, node.refresh)
+        while self.continue_crawling():
+            for (i, node) in enumerate(self.nodes):
+                if self.continue_crawling():
+                    yield from asyncio.sleep(2000)
+                    node.refresh()
+                else:
+                    return
 
     @pyqtSlot(Peer)
     def handle_new_node(self, peer):

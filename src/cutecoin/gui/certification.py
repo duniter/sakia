@@ -56,8 +56,16 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
         toast.display(self.tr("Certification"),
                       self.tr("Success certifying {0} from {1}").format(pubkey, currency))
         self.account.certification_broadcasted.disconnect()
+        self.account.broadcast_error.disconnect(self.handle_error)
         QApplication.restoreOverrideCursor()
         super().accept()
+
+    @pyqtSlot(int, str)
+    def handle_error(self, error_code, text):
+        toast.display(self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
+        self.account.certification_broadcasted.disconnect()
+        self.account.broadcast_error.disconnect(self.handle_error)
+        QApplication.restoreOverrideCursor()
 
     def change_current_community(self, index):
         self.community = self.account.communities[index]
@@ -67,13 +75,6 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
         else:
             self.button_box.button(QDialogButtonBox.Ok).setEnabled(False)
             self.button_box.button(QDialogButtonBox.Ok).setText(self.tr("Not a member"))
-
-    @pyqtSlot(int, str)
-    def handle_error(self, error_code, text):
-        toast.display(self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
-        self.account.certification_broadcasted.disconnect()
-        self.account.broadcast_error.disconnect(self.handle_error)
-        QApplication.restoreOverrideCursor()
 
     def recipient_mode_changed(self, pubkey_toggled):
         self.edit_pubkey.setEnabled(pubkey_toggled)

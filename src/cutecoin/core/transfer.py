@@ -27,7 +27,7 @@ class Transfer(QObject):
     REFUSED = 3
     DROPPED = 5
 
-    transfer_broadcasted = pyqtSignal()
+    transfer_broadcasted = pyqtSignal(str)
     broadcast_error = pyqtSignal(str, str)
 
     def __init__(self, hash, state, metadata):
@@ -118,7 +118,7 @@ class Transfer(QObject):
         strdata = bytes(reply.readAll()).decode('utf-8')
         logging.debug("Received reply : {0} : {1}".format(reply.error(), strdata))
         if reply.error() == QNetworkReply.NoError:
-            self.transfer_broadcasted.emit()
+            self.transfer_broadcasted.emit(self.metadata['receiver_uid'])
             for r in replies:
                 try:
                     r.disconnect()

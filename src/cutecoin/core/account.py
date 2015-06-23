@@ -120,6 +120,7 @@ class Account(QObject):
     )
 
     loading_progressed = pyqtSignal(int, int)
+    loading_finished = pyqtSignal(list)
     inner_data_changed = pyqtSignal(str)
     wallets_changed = pyqtSignal()
     membership_broadcasted = pyqtSignal()
@@ -135,9 +136,9 @@ class Account(QObject):
          is OK by comparing (salt, given_passwd) = (pubkey, privkey) \
          with known pubkey
         :param str name: The account name, same as network identity uid
-        :param array communities: Community objects referenced by this account
-        :param array wallets: Wallet objects owned by this account
-        :param array contacts: Contacts of this account
+        :param list of cutecoin.core.Community communities: Community objects referenced by this account
+        :param list of cutecoin.core.Wallet wallets: Wallet objects owned by this account
+        :param list of dict contacts: Contacts of this account
         :param cutecoin.core.registry.IdentitiesRegistry: The identities registry intance
 
         .. warnings:: The class methods create and load should be used to create an account
@@ -237,7 +238,7 @@ class Account(QObject):
         self.communities.append(community)
         return community
 
-    def refresh_cache(self):
+    def refresh_transactions(self, community):
         """
         Refresh the local account cache
         This needs n_wallets * n_communities cache refreshing to end
@@ -245,19 +246,21 @@ class Account(QObject):
         .. note:: emit the Account pyqtSignal loading_progressed during refresh
         """
         loaded_wallets = 0
+        received_list = []
 
         def progressing(value, maximum):
-            account_value = maximum * len(self.communities) * loaded_wallets + value
-            account_max = maximum * len(self.communities) * len(self.wallets)
+            account_value = maximum * loaded_wallets + value
+            account_max = maximum  * len(self.wallets)
             self.loading_progressed.emit(account_value, account_max)
 
         for w in self.wallets:
             w.refresh_progressed.connect(progressing)
             QCoreApplication.processEvents()
-            for c in self.communities:
-                w.init_cache(c)
-                loaded_wallets = loaded_wallets + 1
-                QCoreApplication.processEvents()
+            w.init_cache(community)
+            w.refresh_transactions(community, received_list)
+            loaded_wallets += 1
+            QCoreApplication.processEvents()
+        self.loading_finished.emit(received_list)
 
     def set_display_referential(self, index):
         self.referential = index
@@ -410,6 +413,21 @@ class Account(QObject):
             sent.extend(w.transfers(community))
         return sent
 
+    @asyncio.coroutine
+    def future_amount(self, community):
+        '''
+        Get amount of money owned in a community by all the wallets
+        owned by this account
+
+        :param community: The target community of this request
+        :return: The value of all wallets values accumulated
+        '''
+        value = 0
+        for w in self.wallets:
+            val = yield from w.future_value(community)
+            value += val
+        return value
+
     def amount(self, community):
         '''
         Get amount of money owned in a community by all the wallets
@@ -420,7 +438,8 @@ class Account(QObject):
         '''
         value = 0
         for w in self.wallets:
-            value += w.value(community)
+            val = w.value(community)
+            value += val
         return value
 
     def send_selfcert(self, password, community):

@@ -26,5 +26,4 @@ if __name__ == '__main__':
         window = MainWindow(app)
         window.showMaximized()
         loop.run_forever()
-    sys.exit(cutecoin.exec_())
-    pass
+    sys.exit()

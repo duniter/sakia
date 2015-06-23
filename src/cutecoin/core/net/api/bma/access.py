@@ -223,7 +223,7 @@ class BmaAccess(QObject):
         if reply.error() == QNetworkReply.NoError:
             strdata = bytes(reply.readAll()).decode('utf-8')
             json_data = json.loads(strdata)
-            if self._update_cache(request, req_args, get_args):
+            if self._update_cache(request, req_args, get_args, json_data):
                 logging.debug(self._pending_requests.keys())
                 for caller in self._pending_requests[cache_key]:
                     logging.debug("Emit change for {0} : {1} ".format(caller, request))

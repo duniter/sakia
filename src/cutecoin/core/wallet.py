@@ -8,6 +8,7 @@ from ucoinpy.documents.transaction import InputSource, OutputSource, Transaction
 from ucoinpy.key import SigningKey
 
 from .net.api import bma as qtbma
+from .net.api.bma import PROTOCOL_VERSION
 from ..tools.exceptions import NotEnoughMoneyError, NoPeerAvailable, LookupFailureError
 from .transfer import Transfer, Received
 from .registry import IdentitiesRegistry, Identity
@@ -15,6 +16,7 @@ from .registry import IdentitiesRegistry, Identity
 from PyQt5.QtCore import QObject, pyqtSignal
 
 import logging
+import asyncio
 
 
 class Cache():
@@ -66,6 +68,7 @@ class Cache():
     def transfers(self):
         return [t for t in self._transfers if t.state != Transfer.DROPPED]
 
+    @asyncio.coroutine
     def _parse_transaction(self, community, txdata, received_list, txid):
         receivers = [o.pubkey for o in txdata['outputs']
                      if o.pubkey != txdata['issuers'][0]]
@@ -75,24 +78,24 @@ class Cache():
 
         if len(receivers) == 0:
             receivers = [txdata['issuers'][0]]
-        #
-        # try:
-        #     issuer_uid = IdentitiesRegistry.lookup(txdata['issuers'][0], community).uid
-        # except LookupFailureError:
-        #     issuer_uid = ""
-        #
-        # try:
-        #     receiver_uid = IdentitiesRegistry.lookup(receivers[0], community).uid
-        # except LookupFailureError:
-        #     receiver_uid = ""
+
+        try:
+            issuer_uid = yield from IdentitiesRegistry.future_lookup(txdata['issuers'][0], community).uid
+        except LookupFailureError:
+            issuer_uid = ""
+
+        try:
+            receiver_uid = yield from IdentitiesRegistry.future_lookup(receivers[0], community).uid
+        except LookupFailureError:
+            receiver_uid = ""
 
         metadata = {'block': block_number,
                     'time': mediantime,
                     'comment': txdata['comment'],
                     'issuer': txdata['issuers'][0],
-                    'issuer_uid': "",#issuer_uid,
+                    'issuer_uid': issuer_uid,
                     'receiver': receivers[0],
-                    'receiver_uid': "",#receiver_uid,
+                    'receiver_uid': receiver_uid,
                     'txid': txid}
 
         in_issuers = len([i for i in txdata['issuers']
@@ -128,34 +131,42 @@ class Cache():
             received = Received(txdata, metadata.copy())
             received_list.append(received)
             self._transfers.append(received)
+        return True
 
+    @asyncio.coroutine
     def refresh(self, community, received_list):
+        """
+        Refresh last transactions
+
+        :param cutecoin.core.Community community: The community
+        :param list received_list: List of transactions received
+        """
         current_block = 0
-        try:
-            block_data = community.current_blockid()
-            current_block = block_data['number']
+        block_data = yield from community.blockid()
+        current_block = block_data['number']
 
-            # Lets look if transactions took too long to be validated
-            awaiting = [t for t in self._transfers
-                        if t.state == Transfer.AWAITING]
-            tx_history = community.bma_access.simple_request(qtbma.tx.history.Blocks,
-                                                      req_args={'pubkey': self.wallet.pubkey,
-                                                             'from_':self.latest_block,
-                                                             'to_': self.current_block})
+        # Lets look if transactions took too long to be validated
+        awaiting = [t for t in self._transfers
+                    if t.state == Transfer.AWAITING]
+        tx_history = yield from community.bma_access.future_request(qtbma.tx.history.Blocks,
+                                                  req_args={'pubkey': self.wallet.pubkey,
+                                                         'from_':self.latest_block,
+                                                         'to_': self.current_block})
 
-            # We parse only blocks with transactions
-            for (txid, txdata) in enumerate(tx_history['history']['received'] + tx_history['history']['sent']):
-                self._parse_transaction(community, txdata, received_list, txid)
+        # We parse only blocks with transactions
+        transactions = tx_history['history']['received'] + tx_history['history']['sent']
+        for (txid, txdata) in enumerate(transactions):
+            yield from self._parse_transaction(community, txdata, received_list, txid)
+            self.wallet.refresh_progressed.emit(txid, len(transactions))
 
-            if current_block > self.latest_block:
-                self.available_sources = self.wallet.sources(community)
-                self.latest_block = current_block
+        if current_block > self.latest_block:
+            self.available_sources = yield from self.wallet.sources(community)
+            self.latest_block = current_block
 
-            for transfer in awaiting:
-                transfer.check_refused(current_block)
+        for transfer in awaiting:
+            transfer.check_refused(current_block)
 
-        except NoPeerAvailable:
-            return
+        self.wallet.refresh_finished.emit()
 
 
 class Wallet(QObject):
@@ -165,6 +176,9 @@ class Wallet(QObject):
 
     inner_data_changed = pyqtSignal(str)
     refresh_progressed = pyqtSignal(int, int)
+    refresh_finished = pyqtSignal()
+    transfer_broadcasted = pyqtSignal(str)
+    broadcast_error = pyqtSignal(int, str)
 
     def __init__(self, walletid, pubkey, name, identities_registry):
         '''
@@ -242,13 +256,13 @@ class Wallet(QObject):
         if community.currency not in self.caches:
             self.caches[community.currency] = Cache(self)
 
-    def refresh_cache(self, community, received_list):
+    def refresh_transactions(self, community, received_list):
         '''
         Refresh the cache of this wallet for the specified community.
 
         :param community: The community to refresh its cache
         '''
-        self.caches[community.currency].refresh(community, received_list)
+        asyncio.async(self.caches[community.currency].refresh(community, received_list))
 
     def check_password(self, salt, password):
         '''
@@ -278,6 +292,20 @@ class Wallet(QObject):
         relative_value = value / float(ud)
         return relative_value
 
+    @asyncio.coroutine
+    def future_value(self, community):
+        '''
+        Get wallet absolute value
+
+        :param community: The community to get value
+        :return: The wallet absolute value
+        '''
+        value = 0
+        sources = yield from self.future_sources(community)
+        for s in sources:
+            value += s.amount
+        return value
+
     def value(self, community):
         '''
         Get wallet absolute value
@@ -286,7 +314,8 @@ class Wallet(QObject):
         :return: The wallet absolute value
         '''
         value = 0
-        for s in self.sources(community):
+        sources = self.sources(community)
+        for s in sources:
             value += s.amount
         return value
 
@@ -338,6 +367,7 @@ class Wallet(QObject):
             outputs.append(OutputSource(self.pubkey, overhead))
         return outputs
 
+    @asyncio.coroutine
     def send_money(self, salt, password, community,
                    recipient, amount, message):
         '''
@@ -350,10 +380,11 @@ class Wallet(QObject):
         :param int amount: The amount of money to transfer
         :param str message: The message to send with the transfer
         '''
-        time = community.get_block().mediantime
-        block_number = community.current_blockid()['number']
-        block = community.simple_request(bma.blockchain.Block,
+        blockid = yield from community.blockid()
+        block_number = blockid['number']
+        block = yield from community.bma_access.future_request(qtbma.blockchain.Block,
                                   req_args={'number': block_number})
+        time = block['medianTime']
         txid = len(block['transactions'])
         key = None
         logging.debug("Key : {0} : {1}".format(salt, password))
@@ -364,12 +395,14 @@ class Wallet(QObject):
         logging.debug("Sender pubkey:{0}".format(key.pubkey))
 
         try:
-            issuer_uid = self.identities_registry.lookup(key.pubkey, community).uid
+            issuer = yield from self.identities_registry.future_lookup(key.pubkey, community)
+            issuer_uid = issuer.uid
         except LookupFailureError:
             issuer_uid = ""
 
         try:
-            receiver_uid = self.identities_registry.lookup(recipient, community).uid
+            receiver = yield from self.identities_registry.lookup(recipient, community)
+            receiver_uid = receiver.uid
         except LookupFailureError:
             receiver_uid = ""
 
@@ -392,7 +425,7 @@ class Wallet(QObject):
         self.caches[community.currency].available_sources = result[1]
         logging.debug("Inputs : {0}".format(inputs))
 
-        outputs = self.tx_outputs(recipient, amount, inputs)
+        outputs =  self.tx_outputs(recipient, amount, inputs)
         logging.debug("Outputs : {0}".format(outputs))
         tx = Transaction(PROTOCOL_VERSION, community.currency,
                          [self.pubkey], inputs,
@@ -401,7 +434,24 @@ class Wallet(QObject):
 
         tx.sign([key])
         logging.debug("Transaction : {0}".format(tx.signed_raw()))
+        transfer.transfer_broadcasted.connect(self.transfer_broadcasted)
+        transfer.broadcast_error.connect(self.broadcast_error)
         transfer.send(tx, community)
+
+    @asyncio.coroutine
+    def future_sources(self, community):
+        '''
+        Get available sources in a given community
+
+        :param cutecoin.core.community.Community community: The community where we want available sources
+        :return: List of InputSource ucoinpy objects
+        '''
+        data = yield from community.bma_access.future_request(qtbma.tx.Sources,
+                                 req_args={'pubkey': self.pubkey})
+        tx = []
+        for s in data['sources']:
+            tx.append(InputSource.from_bma(s))
+        return tx
 
     def sources(self, community):
         '''
@@ -424,7 +474,10 @@ class Wallet(QObject):
         :param community: The community we want to get the executed transfers
         :return: A list of Transfer objects
         '''
-        return self.caches[community.currency].transfers
+        if community.currency in self.caches:
+            return self.caches[community.currency].transfers
+        else:
+            return []
 
     def jsonify(self):
         '''
