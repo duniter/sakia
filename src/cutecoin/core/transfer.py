@@ -54,6 +54,7 @@ class Transfer(QObject):
         assert('issuer_uid' in metadata)
         assert('receiver_uid' in metadata)
         assert('txid' in metadata)
+        super().__init__()
 
         self.hash = hash
         self.state = state

@@ -28,27 +28,6 @@ from . import toast
 import logging
 
 
-class Loader(QObject):
-    def __init__(self, app):
-        super().__init__()
-        self.app = app
-        self.account_name = ""
-
-    loaded = pyqtSignal()
-    connection_error = pyqtSignal(str)
-
-    def set_account_name(self, name):
-        self.account_name = name
-
-    @pyqtSlot()
-    def load(self):
-        if self.account_name != "":
-            account = self.app.get_account(self.account_name)
-            self.app.change_current_account(account)
-
-        self.loaded.emit()
-
-
 class MainWindow(QMainWindow, Ui_MainWindow):
     '''
     classdocs
@@ -65,8 +44,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         QApplication.setWindowIcon(QIcon(":/icons/cutecoin_logo"))
         self.app = app
+
+        self.app.load()
+        if self.app.preferences["account"] != "":
+            account = self.app.get_account(self.app.preferences["account"])
+            self.app.change_current_account(account)
+
         self.password_asker = None
-        self.initialized = False
 
         self.busybar = QProgressBar(self.statusbar)
         self.busybar.setMinimum(0)
@@ -90,10 +74,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.statusbar.addPermanentWidget(self.label_time)
         self.statusbar.addPermanentWidget(self.combo_referential)
         self.update_time()
-
-        self.loader = Loader(self.app)
-        self.loader.loaded.connect(self.loader_finished)
-        self.loader.connection_error.connect(self.display_error)
 
         self.homescreen = HomeScreenWidget(self.app)
         self.centralWidget().layout().addWidget(self.homescreen)
@@ -164,15 +144,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.app.current_account = None
         self.refresh()
-        QApplication.setOverrideCursor(Qt.BusyCursor)
-        self.app.loading_progressed.connect(loading_progressed)
         self.busybar.setMinimum(0)
         self.busybar.setMaximum(0)
         self.busybar.setValue(-1)
         self.busybar.show()
         self.status_label.setText(self.tr("Loading account {0}").format(account_name))
         self.loader.set_account_name(account_name)
-        QTimer.singleShot(10, self.loader.load)
         self.homescreen.button_new.hide()
         self.homescreen.button_import.hide()
 

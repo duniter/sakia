@@ -30,7 +30,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         self.wallet = None
         self.community = self.account.communities[0]
         self.wallet = self.account.wallets[0]
-        self.dividend = self.community.dividend
+        self.dividend = self.community.dividend()
 
         regexp = QRegExp('^([ a-zA-Z0-9-_:/;*?\[\]\(\)\\\?!^+=@&~#{}|<>%.]{0,255})$')
         validator = QRegExpValidator(regexp)
@@ -76,10 +76,6 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
             self.wallet.transfer_broadcasted.connect(self.money_sent)
             asyncio.async(self.wallet.send_money(self.account.salt, password, self.community,
                                        recipient, amount, comment))
-            toast.display(self.tr("Money transfer"),
-                          self.tr("Success transfering {0} {1} to {2}").format(amount,
-                                                                             self.community.currency,
-                                                                             recipient))
         finally:
             QApplication.restoreOverrideCursor()
             QApplication.processEvents()
@@ -111,14 +107,14 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
 
     def relative_amount_changed(self):
         relative = self.spinbox_relative.value()
-        amount = relative * self.dividend()
+        amount = relative * self.dividend
         self.spinbox_amount.blockSignals(True)
         self.spinbox_amount.setValue(amount)
         self.spinbox_amount.blockSignals(False)
 
     def change_current_community(self, index):
         self.community = self.account.communities[index]
-        self.dividend = self.community.dividend
+        self.dividend = self.community.dividend()
         amount = self.wallet.value(self.community)
         ref_amount = self.account.units_to_ref(amount, self.community)
         ref_name = self.account.ref_name(self.community.currency)

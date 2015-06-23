@@ -197,12 +197,12 @@ class Network(QObject):
         To stop this crawling, call "stop_crawling" method.
         '''
         while self.continue_crawling():
-            for (i, node) in enumerate(self.nodes):
+            for node in self.nodes:
                 if self.continue_crawling():
-                    yield from asyncio.sleep(2000)
+                    yield from asyncio.sleep(2)
                     node.refresh()
                 else:
-                    return
+                    return True
 
     @pyqtSlot(Peer)
     def handle_new_node(self, peer):

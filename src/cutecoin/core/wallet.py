@@ -13,7 +13,7 @@ from ..tools.exceptions import NotEnoughMoneyError, NoPeerAvailable, LookupFailu
 from .transfer import Transfer, Received
 from .registry import IdentitiesRegistry, Identity
 
-from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtCore import QObject, pyqtSignal, QCoreApplication
 
 import logging
 import asyncio
@@ -70,22 +70,29 @@ class Cache():
 
     @asyncio.coroutine
     def _parse_transaction(self, community, txdata, received_list, txid):
-        receivers = [o.pubkey for o in txdata['outputs']
+        if len(txdata['issuers']) == 0:
+            True
+
+        tx_outputs = [OutputSource.from_inline(o) for o in txdata['outputs']]
+        receivers = [o.pubkey for o in tx_outputs
                      if o.pubkey != txdata['issuers'][0]]
 
-        block_number = txdata['block']
+        block_number = txdata['block_number']
         mediantime = txdata['time']
+        logging.debug(txdata)
 
         if len(receivers) == 0:
             receivers = [txdata['issuers'][0]]
 
         try:
-            issuer_uid = yield from IdentitiesRegistry.future_lookup(txdata['issuers'][0], community).uid
+            issuer = yield from self.wallet._identities_registry.future_lookup(txdata['issuers'][0], community)
+            issuer_uid = issuer.uid
         except LookupFailureError:
             issuer_uid = ""
 
         try:
-            receiver_uid = yield from IdentitiesRegistry.future_lookup(receivers[0], community).uid
+            receiver = yield from self.wallet._identities_registry.future_lookup(receivers[0], community)
+            receiver_uid = receiver.uid
         except LookupFailureError:
             receiver_uid = ""
 
@@ -100,12 +107,12 @@ class Cache():
 
         in_issuers = len([i for i in txdata['issuers']
                      if i == self.wallet.pubkey]) > 0
-        in_outputs = len([o for o in txdata['outputs']
+        in_outputs = len([o for o in tx_outputs
                        if o.pubkey == self.wallet.pubkey]) > 0
 
         # If the wallet pubkey is in the issuers we sent this transaction
         if in_issuers:
-            outputs = [o for o in txdata['outputs']
+            outputs = [o for o in tx_outputs
                        if o.pubkey != self.wallet.pubkey]
             amount = 0
             for o in outputs:
@@ -116,19 +123,19 @@ class Cache():
                         if t.state == Transfer.AWAITING]
             # We check if the transaction correspond to one we sent
             if txdata['hash'] not in [t['hash'] for t in awaiting]:
-                transfer = Transfer.create_validated(txdata,
+                transfer = Transfer.create_validated(txdata['hash'],
                                                      metadata.copy())
                 self._transfers.append(transfer)
         # If we are not in the issuers,
         # maybe it we are in the recipients of this transaction
         elif in_outputs:
-            outputs = [o for o in txdata.outputs
+            outputs = [o for o in tx_outputs
                        if o.pubkey == self.wallet.pubkey]
             amount = 0
             for o in outputs:
                 amount += o.amount
             metadata['amount'] = amount
-            received = Received(txdata, metadata.copy())
+            received = Received(txdata['hash'], metadata.copy())
             received_list.append(received)
             self._transfers.append(received)
         return True
@@ -141,32 +148,40 @@ class Cache():
         :param cutecoin.core.Community community: The community
         :param list received_list: List of transactions received
         """
-        current_block = 0
+        parsed_block = 0
         block_data = yield from community.blockid()
         current_block = block_data['number']
+        logging.debug("Refresh from : {0} to {1}".format(self.latest_block, current_block))
 
         # Lets look if transactions took too long to be validated
         awaiting = [t for t in self._transfers
                     if t.state == Transfer.AWAITING]
-        tx_history = yield from community.bma_access.future_request(qtbma.tx.history.Blocks,
-                                                  req_args={'pubkey': self.wallet.pubkey,
-                                                         'from_':self.latest_block,
-                                                         'to_': self.current_block})
+        while parsed_block < current_block:
+            tx_history = yield from community.bma_access.future_request(qtbma.tx.history.Blocks,
+                                                      req_args={'pubkey': self.wallet.pubkey,
+                                                             'from_':str(parsed_block),
+                                                             'to_': str(parsed_block + 100)})
 
-        # We parse only blocks with transactions
-        transactions = tx_history['history']['received'] + tx_history['history']['sent']
-        for (txid, txdata) in enumerate(transactions):
-            yield from self._parse_transaction(community, txdata, received_list, txid)
-            self.wallet.refresh_progressed.emit(txid, len(transactions))
+            # We parse only blocks with transactions
+            transactions = tx_history['history']['received'] + tx_history['history']['sent']
+            for (txid, txdata) in enumerate(transactions):
+                if len(txdata['issuers']) == 0:
+                    logging.debug("Error with : {0}, from {1} to {2}".format(self.wallet.pubkey,
+                                                                             parsed_block,
+                                                                             current_block))
+                else:
+                    yield from self._parse_transaction(community, txdata, received_list, txid)
+            self.wallet.refresh_progressed.emit(parsed_block, current_block, self.wallet.pubkey)
+            parsed_block += 101
 
         if current_block > self.latest_block:
-            self.available_sources = yield from self.wallet.sources(community)
+            self.available_sources = yield from self.wallet.future_sources(community)
             self.latest_block = current_block
 
         for transfer in awaiting:
             transfer.check_refused(current_block)
 
-        self.wallet.refresh_finished.emit()
+        self.wallet.refresh_finished.emit(received_list)
 
 
 class Wallet(QObject):
@@ -175,8 +190,8 @@ class Wallet(QObject):
     '''
 
     inner_data_changed = pyqtSignal(str)
-    refresh_progressed = pyqtSignal(int, int)
-    refresh_finished = pyqtSignal()
+    refresh_progressed = pyqtSignal(int, int, str)
+    refresh_finished = pyqtSignal(list)
     transfer_broadcasted = pyqtSignal(str)
     broadcast_error = pyqtSignal(int, str)
 
@@ -262,6 +277,7 @@ class Wallet(QObject):
 
         :param community: The community to refresh its cache
         '''
+        logging.debug("Refresh transactions for {0}".format(self.pubkey))
         asyncio.async(self.caches[community.currency].refresh(community, received_list))
 
     def check_password(self, salt, password):
@@ -395,15 +411,15 @@ class Wallet(QObject):
         logging.debug("Sender pubkey:{0}".format(key.pubkey))
 
         try:
-            issuer = yield from self.identities_registry.future_lookup(key.pubkey, community)
+            issuer = yield from self._identities_registry.future_lookup(key.pubkey, community)
             issuer_uid = issuer.uid
-        except LookupFailureError:
+        except LookupFailureError as e:
             issuer_uid = ""
 
         try:
-            receiver = yield from self.identities_registry.lookup(recipient, community)
+            receiver = yield from self._identities_registry.future_lookup(recipient, community)
             receiver_uid = receiver.uid
-        except LookupFailureError:
+        except LookupFailureError as e:
             receiver_uid = ""
 
         metadata = {'block': block_number,
@@ -434,8 +450,8 @@ class Wallet(QObject):
 
         tx.sign([key])
         logging.debug("Transaction : {0}".format(tx.signed_raw()))
-        transfer.transfer_broadcasted.connect(self.transfer_broadcasted)
-        transfer.broadcast_error.connect(self.broadcast_error)
+        #transfer.transfer_broadcasted.connect(self.transfer_broadcasted)
+        #transfer.broadcast_error.connect(self.broadcast_error)
         transfer.send(tx, community)
 
     @asyncio.coroutine

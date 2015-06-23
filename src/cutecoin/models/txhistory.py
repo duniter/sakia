@@ -194,8 +194,8 @@ class HistoryTableModel(QAbstractTableModel):
     def data_received(self, transfer):
         amount = transfer.metadata['amount']
         comment = ""
-        if transfer.txdoc:
-            comment = transfer.txdoc.comment
+        if transfer.metadata['comment'] != "":
+            comment = transfer.metadata['comment']
         if transfer.metadata['issuer_uid'] != "":
             sender = transfer.metadata['issuer_uid']
         else:
@@ -211,13 +211,12 @@ class HistoryTableModel(QAbstractTableModel):
     def data_sent(self, transfer):
         amount = transfer.metadata['amount']
         comment = ""
-        if transfer.txdoc:
-            comment = transfer.txdoc.comment
+        if transfer.metadata['comment'] != "":
+            comment = transfer.metadata['comment']
         if transfer.metadata['receiver_uid'] != "":
             receiver = transfer.metadata['receiver_uid']
         else:
             receiver = "pub:{0}".format(transfer.metadata['receiver'][:5])
-
 
         date_ts = transfer.metadata['time']
         txid = transfer.metadata['txid']

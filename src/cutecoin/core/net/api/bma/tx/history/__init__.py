@@ -22,12 +22,13 @@ logger = logging.getLogger("ucoin/tx")
 
 
 class Blocks(History):
-    def __init__(self, conn_handler, pubkey, from_, to_, module='blocks'):
-        super(History, self).__init__(conn_handler, pubkey, module)
+    def __init__(self, conn_handler, pubkey, from_, to_, module='tx'):
+        super(Blocks, self).__init__(conn_handler, pubkey, module)
         self.from_ = from_
         self.to_ = to_
 
     null_value = {
+        "hash": "",
         "currency": "",
         "pubkey": "",
         "history": {
@@ -37,4 +38,4 @@ class Blocks(History):
     }
 
     def __get__(self, **kwargs):
-        return self.requests_get('/blocks/{0}/{1}'.format(self.from_, self.to_) **kwargs)
+        return self.requests_get('/history/%s/blocks/%s/%s' % (self.pubkey, self.from_, self.to_), **kwargs)

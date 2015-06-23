@@ -8,6 +8,7 @@ from ..core.transfer import Transfer
 from ..core.wallet import Wallet
 from ..core.registry import Identity
 from .transfer import TransferMoneyDialog
+from . import toast
 
 import logging
 
@@ -79,7 +80,16 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
 
     @pyqtSlot(list)
     def stop_progress(self, received_list):
+        amount = 0
+        for r in received_list:
+            amount += r.metadata['amount']
         self.progressbar.hide()
+        text = self.tr("Received {0} {1} from {2} transfers").format(amount,
+                                                           self.community.currency,
+                                                           len(received_list))
+        toast.display(self.tr("New transactions received"), text)
+
+        self.table_history.model().sourceModel().refresh_transfers()
         self.table_history.resizeColumnsToContents()
 
     def refresh_balance(self):

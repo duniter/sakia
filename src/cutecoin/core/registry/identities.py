@@ -85,9 +85,10 @@ class IdentitiesRegistry:
                     identity.status = Identity.FOUND
                     logging.debug("Lookup : found {0}".format(identity))
                     future_identity.set_result(True)
+                    return
+            future_identity.set_result(True)
 
         future_identity = asyncio.Future()
-        logging.debug("Future identity")
         if pubkey in self._instances:
             identity = self._instances[pubkey]
             future_identity.set_result(True)
@@ -96,7 +97,6 @@ class IdentitiesRegistry:
             self._instances[pubkey] = identity
             reply = community.bma_access.simple_request(qtbma.wot.Lookup, req_args={'search': pubkey})
             reply.finished.connect(lambda: handle_reply(reply))
-        logging.debug("Return")
         yield from future_identity
         return identity
 

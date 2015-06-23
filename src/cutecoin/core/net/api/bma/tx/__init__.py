@@ -74,3 +74,5 @@ class Sources(Tx):
     def __get__(self, **kwargs):
         assert self.pubkey is not None
         return self.requests_get('/sources/%s' % self.pubkey, **kwargs)
+
+from . import history

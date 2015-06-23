@@ -153,9 +153,8 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             pass
 
         self.tab_history.start_progress()
-        self.refresh_status()
+        self.refresh_data()
 
-    @pyqtSlot()
     def refresh_data(self):
         '''
         Refresh data when the blockchain watcher finished handling datas
@@ -163,11 +162,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         if self.tab_wallets:
             self.tab_wallets.refresh()
 
-        if self.tab_history.table_history.model():
-            self.tab_history.table_history.model().sourceModel().refresh_transfers()
-
         self.tab_history.refresh_balance()
-        self.tab_history.stop_progress()
         self.refresh_status()
 
     @pyqtSlot()
@@ -188,21 +183,6 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         if status_infotext != "":
             label_text += " - {0}".format(status_infotext)
         self.status_label.setText(label_text)
-
-    @pyqtSlot(list)
-    def notify_transfers(self, transfers_list):
-        transfers_txt = ""
-        amount = 0
-        currency = self.community.name
-        for t in transfers_list:
-            amount += t.metadata['amount']
-
-        logging.debug(transfers_txt)
-        text = self.tr("Received {0} {1} from {2} transfers").format(amount,
-                                                           currency,
-                                                           len(transfers_list))
-        text += transfers_txt
-        toast.display(self.tr("New transactions received"), text)
 
     def refresh_wallets(self):
         if self.app.current_account:

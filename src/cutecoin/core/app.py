@@ -31,7 +31,6 @@ class Application(QObject):
     Saving and loading the application state
     '''
 
-    loading_progressed = pyqtSignal(int, int)
     version_requested = pyqtSignal()
 
     def __init__(self, argv, qapp, loop):
@@ -211,6 +210,8 @@ class Application(QObject):
                     os.remove(bma_path)
 
         for wallet in account.wallets:
+            for c in account.communities:
+                wallet.init_cache(c)
             wallet_path = os.path.join(config.parameters['home'],
                                         account.name, '__cache__', wallet.pubkey + "_wal")
             if os.path.exists(wallet_path):
