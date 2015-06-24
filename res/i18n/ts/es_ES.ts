@@ -29,7 +29,7 @@
     <message>
         <location filename="../../../src/cutecoin/core/account.py" line="103"></location>
         <source>UD</source>
-        <translation type="unfinished"></translation>
+        <translation>DU</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/core/account.py" line="103"></location>
