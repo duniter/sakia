@@ -11,7 +11,7 @@
     <message>
         <location filename="../../ui/about.ui" line="22"></location>
         <source>label</source>
-        <translation type="unfinished"></translation>
+        <translation>label</translation>
     </message>
 </context>
 <context>
@@ -19,7 +19,7 @@
     <message>
         <location filename="../../../src/cutecoin/core/account.py" line="103"></location>
         <source>Units</source>
-        <translation>Unidad</translation>
+        <translation>Unidades</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/core/account.py" line="103"></location>
