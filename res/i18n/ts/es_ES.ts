@@ -19,7 +19,7 @@
     <message>
         <location filename="../../../src/cutecoin/core/account.py" line="103"></location>
         <source>Units</source>
-        <translation type="unfinished"></translation>
+        <translation>Unidad</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/core/account.py" line="103"></location>
