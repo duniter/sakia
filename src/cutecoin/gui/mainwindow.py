@@ -46,9 +46,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.app = app
 
         self.app.load()
+        self.initialized = False
         if self.app.preferences["account"] != "":
             account = self.app.get_account(self.app.preferences["account"])
             self.app.change_current_account(account)
+        # no default account...
+        else:
+            # if at least one account exists, set it as default...
+            if len(self.app.accounts) > 0:
+                # capture names sorted alphabetically
+                names = list(self.app.accounts.keys())
+                names.sort()
+                # set first name in list as default in preferences
+                self.app.preferences['account'] = names[0]
+                self.app.save_preferences(self.app.preferences)
+                # open it
+                logging.debug("No default account in preferences. Set %s as default account." % names[0])
+                self.action_change_account(self.app.get_account(self.app.preferences['account']))
 
         self.password_asker = None
 
@@ -132,24 +146,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if result == QDialog.Accepted:
             self.window().refresh_contacts()
 
-    def action_change_account(self, account_name):
-        def loading_progressed(value, maximum):
-            logging.debug("Busybar : {:} : {:}".format(value, maximum))
-            self.busybar.setValue(value)
-            self.busybar.setMaximum(maximum)
-            QApplication.processEvents()
+    def action_change_account(self, account):
 
         if self.app.current_account:
             self.app.save_cache(self.app.current_account)
 
-        self.app.current_account = None
+        self.app.current_account = account
         self.refresh()
         self.busybar.setMinimum(0)
         self.busybar.setMaximum(0)
         self.busybar.setValue(-1)
         self.busybar.show()
-        self.status_label.setText(self.tr("Loading account {0}").format(account_name))
-        self.loader.set_account_name(account_name)
         self.homescreen.button_new.hide()
         self.homescreen.button_import.hide()
 
@@ -377,25 +384,3 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.app.stop()
         super().closeEvent(event)
 
-    def showEvent(self, event):
-        super().showEvent(event)
-        if not self.initialized:
-            # if default account in preferences...
-            if self.app.preferences['account'] != "":
-                logging.debug("Loading default account")
-                self.action_change_account(self.app.preferences['account'])
-            # no default account...
-            else:
-                # if at least one account exists, set it as default...
-                if len(self.app.accounts) > 0:
-                    # capture names sorted alphabetically
-                    names = list(self.app.accounts.keys())
-                    names.sort()
-                    # set first name in list as default in preferences
-                    self.app.preferences['account'] = names[0]
-                    self.app.save_preferences(self.app.preferences)
-                    # open it
-                    logging.debug("No default account in preferences. Set %s as default account." % names[0])
-                    self.action_change_account(self.app.preferences['account'])
-
-            self.initialized = True

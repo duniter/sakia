@@ -4,7 +4,7 @@ Created on 31 janv. 2015
 @author: inso
 '''
 import logging
-from ucoinpy.documents.transaction import Transaction
+import asyncio
 from .net.api import bma as qtbma
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 from PyQt5.QtNetwork import QNetworkReply
@@ -28,7 +28,7 @@ class Transfer(QObject):
     DROPPED = 5
 
     transfer_broadcasted = pyqtSignal(str)
-    broadcast_error = pyqtSignal(str, str)
+    broadcast_error = pyqtSignal(int, str)
 
     def __init__(self, hash, state, metadata):
         '''
@@ -96,6 +96,7 @@ class Transfer(QObject):
                 'state': self.state,
                 'metadata': self._metadata}
 
+    @asyncio.coroutine
     def send(self, txdoc, community):
         '''
         Send a transaction and update the transfer state to AWAITING if accepted.
@@ -106,14 +107,15 @@ class Transfer(QObject):
         :param community: The community target of the transaction
         '''
         replies = community.bma_access.broadcast(qtbma.tx.Process,
-                    post_args={'transaction': self.txdoc.signed_raw()})
+                    post_args={'transaction': txdoc.signed_raw()})
         for r in replies:
             r.finished.connect(lambda reply=r: self.__handle_transfers_reply(replies, reply))
 
         self.state = Transfer.AWAITING
         self.hash = hashlib.sha1(txdoc.signed_raw().encode("ascii")).hexdigest().upper()
-        self._metadata['block'] = community.current_blockid()['number']
-        self._metadata['time'] = community.get_block().mediantime
+        blockid = yield from community.blockid()
+        self._metadata['block'] = blockid['number']
+        self._metadata['time'] = community.get_block()['medianTime']
 
     def __handle_transfers_reply(self, replies, reply):
         strdata = bytes(reply.readAll()).decode('utf-8')

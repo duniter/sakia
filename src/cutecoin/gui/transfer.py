@@ -70,17 +70,12 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         if self.password_asker.result() == QDialog.Rejected:
             return
 
-        try:
-            QApplication.setOverrideCursor(Qt.WaitCursor)
-            QApplication.processEvents()
-            self.wallet.transfer_broadcasted.connect(self.money_sent)
-            asyncio.async(self.wallet.send_money(self.account.salt, password, self.community,
-                                       recipient, amount, comment))
-        finally:
-            QApplication.restoreOverrideCursor()
-            QApplication.processEvents()
-
-        super().accept()
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.processEvents()
+        self.wallet.transfer_broadcasted.connect(self.money_sent)
+        self.wallet.broadcast_error.connect(self.handle_error)
+        asyncio.async(self.wallet.send_money(self.account.salt, password, self.community,
+                                   recipient, amount, comment))
 
     @pyqtSlot(str)
     def money_sent(self, receiver_uid):

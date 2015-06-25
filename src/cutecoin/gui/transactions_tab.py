@@ -84,13 +84,14 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         for r in received_list:
             amount += r.metadata['amount']
         self.progressbar.hide()
-        text = self.tr("Received {0} {1} from {2} transfers").format(amount,
-                                                           self.community.currency,
-                                                           len(received_list))
-        toast.display(self.tr("New transactions received"), text)
+        if len(received_list) > 0:
+            text = self.tr("Received {0} {1} from {2} transfers").format(amount,
+                                                               self.community.currency,
+                                                               len(received_list))
+            toast.display(self.tr("New transactions received"), text)
 
-        self.table_history.model().sourceModel().refresh_transfers()
-        self.table_history.resizeColumnsToContents()
+            self.table_history.model().sourceModel().refresh_transfers()
+            self.table_history.resizeColumnsToContents()
 
     def refresh_balance(self):
         # if referential is "units"

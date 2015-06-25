@@ -39,7 +39,7 @@ class MemberDialog(QDialog, Ui_DialogMember):
         # if selected member is not the account member...
         if person.pubkey != self.account.pubkey:
             # add path from selected member to account member
-            path = graph.get_shortest_path_between_members(person, self.account.get_person())
+            path = graph.get_shortest_path_between_members(person, self.account.identity(self.community))
 
         text = self.tr("""
             <table cellpadding="5">
