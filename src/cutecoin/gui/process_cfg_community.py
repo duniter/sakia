@@ -7,17 +7,12 @@ Created on 8 mars 2014
 import logging
 import requests
 
-from ucoinpy.api import bma
-from ucoinpy.api.bma import ConnectionHandler
-from ucoinpy.documents.peer import Peer
-
 from PyQt5.QtWidgets import QDialog, QMenu, QMessageBox
 from PyQt5.QtGui import QCursor
 
 from ..gen_resources.community_cfg_uic import Ui_CommunityConfigurationDialog
 from ..models.peering import PeeringTreeModel
 from ..core.community import Community
-from ..core.registry import IdentitiesRegistry
 from ..core.net.node import Node
 from ..tools.exceptions import LookupFailureError, NoPeerAvailable
 

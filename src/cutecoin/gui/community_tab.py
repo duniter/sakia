@@ -19,8 +19,6 @@ from .certification import CertificationDialog
 from . import toast
 import asyncio
 from ..tools.exceptions import LookupFailureError, NoPeerAvailable
-from ..core.registry import IdentitiesRegistry
-from ucoinpy.api import bma
 from ..core.net.api import bma as qtbma
 
 
@@ -244,6 +242,17 @@ Revoking your UID can only success if it is not already validated by the network
             #                          "{0}".format(e),
             #                          QMessageBox.Ok)
 
+    @asyncio.coroutine
+    def _execute_search_text(self, text):
+        response = yield from self.community.bma_access.future_request(qtbma.wot.Lookup, {'search': text})
+        identities = []
+        for identity_data in response['results']:
+            identity = yield from self.app.identities_registry.future_lookup(identity_data['pubkey'], self.community)
+            identities.append(identity)
+
+        self.edit_textsearch.clear()
+        self.refresh(identities)
+
     def search_text(self):
         """
         Search text and display found identities
@@ -252,18 +261,8 @@ Revoking your UID can only success if it is not already validated by the network
 
         if len(text) < 2:
             return False
-        try:
-            response = self.community.request(bma.wot.Lookup, {'search': text})
-        except Exception as e:
-            logging.debug('bma.wot.Lookup request error : ' + str(e))
-            return False
-
-        persons = []
-        for identity in response['results']:
-            persons.append(self.app.identities_registry(identity['pubkey'], self.community))
-
-        self.edit_textsearch.clear()
-        self.refresh(persons)
+        else:
+            asyncio.async(self._execute_search_text(text))
 
     @pyqtSlot(str)
     def handle_community_change(self, origin):

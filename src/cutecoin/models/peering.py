@@ -4,10 +4,7 @@ Created on 5 févr. 2014
 @author: inso
 '''
 
-from ucoinpy.api import bma
-from ucoinpy.documents.peer import BMAEndpoint, Peer
 from PyQt5.QtCore import QAbstractItemModel, QModelIndex, Qt
-from requests.exceptions import Timeout
 import logging
 
 

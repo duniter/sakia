@@ -1,8 +1,9 @@
 import asyncio
 import logging
 from .transfer import Transfer, Received
-from ucoinpy.documents.transaction import InputSource, OutputSource, Transaction
+from ucoinpy.documents.transaction import InputSource, OutputSource
 from ..tools.exceptions import LookupFailureError
+from .net.api import bma as qtbma
 
 class TxHistory():
     def __init__(self, wallet):
