@@ -114,7 +114,7 @@ class API(object):
         logging.debug("POST : {0}".format(kwargs))
         post_data = QUrlQuery()
         for k,v in kwargs.items():
-            post_data.addQueryItem(k, v)
+            post_data.addQueryItem(k.replace("+", "%2b"), v.replace("+", "%2b"))
         url = QUrl(self.reverse_url(path))
         url.setQuery(post_data)
 

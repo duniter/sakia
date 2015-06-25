@@ -296,7 +296,7 @@ class Application(QObject):
             os.makedirs(os.path.join(config.parameters['home'],
                                      account.name, '__cache__'))
         wallet_path = os.path.join(config.parameters['home'],
-                                   account.name, '__cache__', wallet.pubkey)
+                                   account.name, '__cache__', wallet.pubkey + "_wal")
         with open(wallet_path, 'w') as outfile:
             data = wallet.jsonify_caches()
             data['version'] = __version__
