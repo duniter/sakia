@@ -53,7 +53,12 @@ def quantitative_zerosum(units, community):
     :param cutecoin.core.community.Community community: Community instance
     :return: int
     """
-    average = community.monetary_mass / community.get_ud_block()['membersCount']
+    ud_block = community.get_ud_block()
+    if ud_block:
+        members = ud_block['membersCount']
+    else:
+        members = community.get_block(0)['membersCount']
+    average = community.monetary_mass / members
     return units - average
 
 
@@ -65,7 +70,12 @@ def relative_zerosum(units, community):
     :param cutecoin.core.community.Community community: Community instance
     :return: float
     """
-    median = community.monetary_mass / community.get_ud_block()['membersCount']
+    ud_block = community.get_ud_block()
+    if ud_block:
+        members = ud_block['membersCount']
+    else:
+        members = community.get_block(0)['membersCount']
+    median = community.monetary_mass / members
     relative_value = units / float(community.dividend)
     relative_median = median / community.dividend
     return relative_value - relative_median
