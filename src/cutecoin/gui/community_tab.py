@@ -230,17 +230,10 @@ Revoking your UID can only success if it is not already validated by the network
                 self.account.revoke(password, self.community)
                 toast.display(self.tr("UID Revoking"),
                               self.tr("Success revoking your UID"))
-            except ValueError as e:
-                QMessageBox.critical(self, self.tr("Revoke UID error"),
-                                  str(e))
             except NoPeerAvailable as e:
                 QMessageBox.critical(self, self.tr("Network error"),
                                      self.tr("Couldn't connect to network : {0}").format(e),
                                      QMessageBox.Ok)
-            # except Exception as e:
-            #     QMessageBox.critical(self, self.tr("Error"),
-            #                          "{0}".format(e),
-            #                          QMessageBox.Ok)
 
     @asyncio.coroutine
     def _execute_search_text(self, text):
@@ -249,6 +242,16 @@ Revoking your UID can only success if it is not already validated by the network
         for identity_data in response['results']:
             identity = yield from self.app.identities_registry.future_lookup(identity_data['pubkey'], self.community)
             identities.append(identity)
+
+        self_identity = self.account.identity(self.community)
+        try:
+            self_identity.inner_data_changed.disconnect(self.handle_account_identity_change)
+            self.community.inner_data_changed.disconnect(self.handle_community_change)
+        except TypeError as e:
+            if "disconnect() failed" in str(e):
+                pass
+            else:
+                raise
 
         self.edit_textsearch.clear()
         self.refresh(identities)

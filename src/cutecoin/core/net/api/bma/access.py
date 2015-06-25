@@ -75,6 +75,49 @@ class BmaAccess(QObject):
                      str(tuple(frozenset(sorted(get_args.keys())))),
                      str(tuple(frozenset(sorted(get_args.values())))))
 
+    def _compare_json(self, first, second):
+        """
+        Compare two json dicts
+        :param first: the first dictionnary
+        :param second: the second dictionnary
+        :return: True if the json dicts are the same
+        :rtype: bool
+        """
+        if first is not None:
+            if not isinstance(first, type(second)):
+                return False
+        if isinstance(first, dict):
+            for key in first:
+                if isinstance(second, dict):
+                    if second.has_key(key):
+                        sec = second[key]
+                    else:
+                        #  there are key in the first, that is not presented in the second
+                        return False
+                    # recursive call
+                    return self._compare_json(first[key], sec)
+                else:
+                    # second is not dict
+                    return False
+        # if object is list, loop over it and check.
+        elif isinstance(first, list):
+            for (index, item) in enumerate(first):
+                # try to get the same index from second
+                sec = None
+                if second is not None:
+                    try:
+                        sec = second[index]
+                    except (IndexError, KeyError):
+                        # goes to difference
+                        return False
+                # recursive call
+                return self._compare_json(first[index], sec)
+        # not list, not dict. check for equality
+        elif first != second:
+                return False
+        else:
+            return True
+
     def _get_from_cache(self, request, req_args, get_args):
         """
         Get data from the cache
@@ -118,7 +161,7 @@ class BmaAccess(QObject):
                 self._data[cache_key]['value'] = {}
             self._data[cache_key]['metadata']['block'] = self._network.latest_block
 
-            if self._data[cache_key]['value'] != data:
+            if not self._compare_json(self._data[cache_key]['value'], data):
                 self._data[cache_key]['value'] = data
                 return True
         return False
@@ -152,9 +195,35 @@ class BmaAccess(QObject):
                 reply = self.simple_request(request, req_args, get_args)
                 logging.debug("New pending request {0}, caller {1}".format(cache_key, caller))
                 self._pending_requests[cache_key] = [caller]
-                reply.finished.connect(lambda:
-                                         self.handle_reply(request, req_args, get_args, tries))
+                reply.finished.connect(lambda: self.handle_reply(request, req_args, get_args, tries))
         return ret_data
+
+    @pyqtSlot(int, dict, dict, int)
+    def handle_reply(self, request, req_args, get_args, tries):
+        reply = self.sender()
+        logging.debug("Handling QtNetworkReply for {0}".format(str(request)))
+        cache_key = BmaAccess._gen_cache_key(request, req_args, get_args)
+
+        if reply.error() == QNetworkReply.NoError:
+            strdata = bytes(reply.readAll()).decode('utf-8')
+            json_data = json.loads(strdata)
+            # If data changed, we emit a change signal to all callers
+            if self._update_cache(request, req_args, get_args, json_data):
+                logging.debug(self._pending_requests.keys())
+                for caller in self._pending_requests[cache_key]:
+                    logging.debug("Emit change for {0} : {1} ".format(caller, request))
+                    caller.inner_data_changed.emit(str(request))
+            self._pending_requests.pop(cache_key)
+        else:
+            logging.debug("Error in reply : {0}".format(reply.error()))
+            if tries < 3:
+                tries += 1
+                try:
+                    pending_request = self._pending_requests.pop(cache_key)
+                    for caller in pending_request:
+                        self.get(caller, request, req_args, get_args, tries=tries)
+                except KeyError:
+                    logging.debug("{0} is not present anymore in pending requests".format(cache_key))
 
     def future_request(self, request, req_args={}, get_args={}):
         '''
@@ -215,28 +284,6 @@ class BmaAccess(QObject):
             return reply
         else:
             raise NoPeerAvailable(self.currency, len(nodes))
-
-    @pyqtSlot(int, dict, dict, QObject)
-    def handle_reply(self, request, req_args, get_args, tries):
-        reply = self.sender()
-        logging.debug("Handling QtNetworkReply for {0}".format(str(request)))
-        cache_key = BmaAccess._gen_cache_key(request, req_args, get_args)
-
-        if reply.error() == QNetworkReply.NoError:
-            strdata = bytes(reply.readAll()).decode('utf-8')
-            json_data = json.loads(strdata)
-            if self._update_cache(request, req_args, get_args, json_data):
-                logging.debug(self._pending_requests.keys())
-                for caller in self._pending_requests[cache_key]:
-                    logging.debug("Emit change for {0} : {1} ".format(caller, request))
-                    caller.inner_data_changed.emit(str(request))
-                self._pending_requests.pop(cache_key)
-        else:
-            logging.debug("Error in reply : {0}".format(reply.error()))
-            if tries < 3:
-                self._pending_requests.pop(cache_key)
-                for caller in self._pending_requests[cache_key]:
-                    self.get(caller, request, req_args, get_args)
 
     def broadcast(self, request, req_args={}, post_args={}):
         '''

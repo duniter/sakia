@@ -10,7 +10,7 @@ import tarfile
 import shutil
 import json
 import datetime
-import i18n_rc
+import asyncio
 
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, \
 QUrl, QTranslator, QCoreApplication, QLocale
@@ -399,7 +399,6 @@ class Application(QObject):
     def stop(self):
         for c in self.current_account.communities:
             c.network.stop_crawling()
-        self.loop.stop()
 
     def get_last_version(self):
         url = QUrl("https://api.github.com/repos/ucoin-io/cutecoin/releases")
