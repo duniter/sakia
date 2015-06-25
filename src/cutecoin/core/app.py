@@ -127,6 +127,8 @@ class Application(QObject):
         '''
         if self.current_account is not None:
             self.save_cache(self.current_account)
+            for c in self.current_account.communities:
+                c.network.stop_crawling()
 
         self.current_account = account
 

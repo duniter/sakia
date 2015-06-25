@@ -106,7 +106,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog = ProcessConfigureAccount(self.app, None)
         result = dialog.exec_()
         if result == QDialog.Accepted:
-            self.action_change_account(self.app.current_account.name)
+            self.action_change_account(self.app.current_account)
 
     @pyqtSlot(str)
     def display_error(self, error):
@@ -146,19 +146,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if result == QDialog.Accepted:
             self.window().refresh_contacts()
 
-    def action_change_account(self, account):
-
-        if self.app.current_account:
-            self.app.save_cache(self.app.current_account)
-
-        self.app.current_account = account
+    def action_change_account(self, account_name):
+        self.app.change_current_account(self.app.get_account(account_name))
         self.refresh()
-        self.busybar.setMinimum(0)
-        self.busybar.setMaximum(0)
-        self.busybar.setValue(-1)
-        self.busybar.show()
-        self.homescreen.button_new.hide()
-        self.homescreen.button_import.hide()
 
     @pyqtSlot()
     def loader_finished(self):

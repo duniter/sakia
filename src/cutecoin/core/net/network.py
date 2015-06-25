@@ -35,7 +35,6 @@ class Network(QObject):
             self.add_node(n)
         self.currency = currency
         self._must_crawl = False
-        self._is_perpetual = False
         self.network_manager = network_manager
         self._block_found = self.latest_block
         self._timer = QTimer()
@@ -115,10 +114,7 @@ class Network(QObject):
         self._must_crawl = False
 
     def continue_crawling(self):
-        if self._is_perpetual:
-            return self._must_crawl
-        else:
-            return True
+        return self._must_crawl
 
     @property
     def synced_nodes(self):
@@ -196,13 +192,13 @@ class Network(QObject):
         Start crawling which never stops.
         To stop this crawling, call "stop_crawling" method.
         '''
+        self._must_crawl = True
         while self.continue_crawling():
             for node in self.nodes:
                 if self.continue_crawling():
                     yield from asyncio.sleep(2)
                     node.refresh()
-                else:
-                    return True
+        logging.debug("End of network discovery")
 
     @pyqtSlot(Peer)
     def handle_new_node(self, peer):

@@ -67,7 +67,15 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
 
         self.account.identity(self.community).inner_data_changed.connect(self.handle_account_identity_change)
         self.search_direct_connections()
-        self.account.membership_broadcasted.connect(self.display_membership_toast)
+        self.account.membership_broadcasted.connect(lambda:
+                                                    toast.display(self.tr("Membership"),
+                                                                self.tr("Success sending Membership demand")))
+        self.account.revoke_broadcasted.connect(lambda:
+                                                    toast.display(self.tr("Revoke"),
+                                                                self.tr("Success sending Revoke demand")))
+        self.account.selfcert_broadcased.connect(lambda:
+                                                    toast.display(self.tr("Self Certification"),
+                                                                self.tr("Success sending Self Certification document")))
         self.refresh_quality_buttons()
 
     def identity_context_menu(self, point):
@@ -167,10 +175,6 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         index_wot_tab = self.tabs_information.indexOf(self.wot_tab)
         self.tabs_information.setCurrentIndex(index_wot_tab)
 
-    @pyqtSlot()
-    def display_membership_toast(self):
-        toast.display(self.tr("Membership"), self.tr("Success sending Membership demand"))
-
     def send_membership_demand(self):
         password = self.password_asker.exec_()
         if self.password_asker.result() == QDialog.Rejected:
@@ -226,14 +230,7 @@ Revoking your UID can only success if it is not already validated by the network
             if self.password_asker.result() == QDialog.Rejected:
                 return
 
-            try:
-                self.account.revoke(password, self.community)
-                toast.display(self.tr("UID Revoking"),
-                              self.tr("Success revoking your UID"))
-            except NoPeerAvailable as e:
-                QMessageBox.critical(self, self.tr("Network error"),
-                                     self.tr("Couldn't connect to network : {0}").format(e),
-                                     QMessageBox.Ok)
+            asyncio.async(self.account.revoke(password, self.community))
 
     @asyncio.coroutine
     def _execute_search_text(self, text):
@@ -362,15 +359,3 @@ Revoking your UID can only success if it is not already validated by the network
             self.button_membership.hide()
             self.button_leaving.hide()
             self.button_publish_uid.show()
-
-    @pyqtSlot(str)
-    def refresh_person(self, pubkey):
-        logging.debug("Refresh person {0}".format(pubkey))
-        if self is None:
-            logging.error("community_tab self is None in refresh_person. Watcher connected to a destroyed tab")
-        else:
-            if pubkey == self.account.pubkey:
-                self.refresh_quality_buttons()
-
-            index = self.table_identities.model().sourceModel().person_index(pubkey)
-            self.table_identities.model().sourceModel().dataChanged.emit(index[0], index[1])

@@ -125,6 +125,8 @@ class Account(QObject):
     wallets_changed = pyqtSignal()
     membership_broadcasted = pyqtSignal()
     certification_broadcasted = pyqtSignal()
+    selfcert_broadcased = pyqtSignal()
+    revoke_broadcasted = pyqtSignal()
     broadcast_error = pyqtSignal(int, str)
 
     def __init__(self, salt, pubkey, name, communities, wallets, contacts, identities_registry):
@@ -338,88 +340,6 @@ class Account(QObject):
             self.wallets = self.wallets[:size]
         self.wallets_changed.emit()
 
-    @asyncio.coroutine
-    def certify(self, password, community, pubkey):
-        """
-        Certify an other identity
-
-        :param str password: The account SigningKey password
-        :param cutecoin.core.community.Community community: The community target of the certification
-        :param str pubkey: The certified identity pubkey
-        """
-        logging.debug("Certdata")
-        blockid = yield from community.blockid()
-        identity = yield from self._identities_registry.future_lookup(pubkey, community)
-        selfcert = yield from identity.selfcert(community)
-        certification = Certification(PROTOCOL_VERSION, community.currency,
-                                      self.pubkey, pubkey,
-                                      blockid['number'], blockid['hash'], None)
-
-        key = SigningKey(self.salt, password)
-        certification.sign(selfcert, [key])
-        signed_cert = certification.signed_raw(selfcert)
-        logging.debug("Certification : {0}".format(signed_cert))
-
-        data = {'pubkey': pubkey,
-                'self_': selfcert.signed_raw(),
-                'other': "{0}\n".format(certification.inline())}
-        logging.debug("Posted data : {0}".format(data))
-        replies = community.bma_access.broadcast(qtbma.wot.Add, {}, data)
-        for r in replies:
-            r.finished.connect(lambda reply=r: self.__handle_certification_reply(replies, reply))
-        return True
-
-    def __handle_certification_reply(self, replies, reply):
-        """
-        Handle the reply, if the request was accepted, disconnect
-        all other replies
-
-        :param QNetworkReply reply: The reply of this handler
-        :param list of QNetworkReply replies: All request replies
-        :return:
-        """
-        strdata = bytes(reply.readAll()).decode('utf-8')
-        logging.debug("Received reply : {0} : {1}".format(reply.error(), strdata))
-        if reply.error() == QNetworkReply.NoError:
-            self.certification_broadcasted.emit()
-            for r in replies:
-                try:
-                    r.disconnect()
-                except TypeError as e:
-                    if "disconnect()" in str(e):
-                        logging.debug("Could not disconnect a reply")
-        else:
-            for r in replies:
-                if not r.isFinished() or r.error() == QNetworkReply.NoError:
-                    return
-            self.broadcast_error.emit(r.error(), strdata)
-
-    def revoke(self, password, community):
-        """
-        Revoke self-identity on server, not in blockchain
-
-        :param str password: The account SigningKey password
-        :param cutecoin.core.community.Community community: The community target of the revocation
-        """
-        revoked = self._identities_registry.lookup(self.pubkey, community)
-
-        revocation = Revocation(PROTOCOL_VERSION, community.currency, None)
-        selfcert = revoked.selfcert(community)
-
-        key = SigningKey(self.salt, password)
-        revocation.sign(selfcert, [key])
-
-        logging.debug("Self-Revocation Document : \n{0}".format(revocation.raw(selfcert)))
-        logging.debug("Signature : \n{0}".format(revocation.signatures[0]))
-
-        data = {
-            'pubkey': revoked.pubkey,
-            'self_': selfcert.signed_raw(),
-            'sig': revocation.signatures[0]
-        }
-        logging.debug("Posted data : {0}".format(data))
-        community.broadcast(qtbma.wot.Revoke, {}, data)
-
     def transfers(self, community):
         '''
         Get all transfers done in a community by all the wallets
@@ -462,6 +382,7 @@ class Account(QObject):
             value += val
         return value
 
+    @asyncio.coroutine
     def send_selfcert(self, password, community):
         '''
         Send our self certification to a target community
@@ -478,9 +399,36 @@ class Account(QObject):
         key = SigningKey(self.salt, password)
         selfcert.sign([key])
         logging.debug("Key publish : {0}".format(selfcert.signed_raw()))
-        community.broadcast(qtbma.wot.Add, {}, {'pubkey': self.pubkey,
+        replies = community.broadcast(qtbma.wot.Add, {}, {'pubkey': self.pubkey,
                                               'self_': selfcert.signed_raw(),
                                               'other': []})
+        for r in replies:
+            r.finished.connect(lambda reply=r: self.__handle_selfcert_replies(replies, reply))
+
+    def __handle_selfcert_replies(self, replies, reply):
+        """
+        Handle the reply, if the request was accepted, disconnect
+        all other replies
+
+        :param QNetworkReply reply: The reply of this handler
+        :param list of QNetworkReply replies: All request replies
+        :return:
+        """
+        strdata = bytes(reply.readAll()).decode('utf-8')
+        logging.debug("Received reply : {0} : {1}".format(reply.error(), strdata))
+        if reply.error() == QNetworkReply.NoError:
+            self.selfcert_broadcasted.emit()
+            for r in replies:
+                try:
+                    r.disconnect()
+                except TypeError as e:
+                    if "disconnect()" in str(e):
+                        logging.debug("Could not disconnect a reply")
+        else:
+            for r in replies:
+                if not r.isFinished() or r.error() == QNetworkReply.NoError:
+                    return
+            self.broadcast_error.emit(r.error(), strdata)
 
     @asyncio.coroutine
     def send_membership(self, password, community, mstype):
@@ -523,6 +471,115 @@ class Account(QObject):
         logging.debug("Received reply : {0} : {1}".format(reply.error(), strdata))
         if reply.error() == QNetworkReply.NoError:
             self.membership_broadcasted.emit()
+            for r in replies:
+                try:
+                    r.disconnect()
+                except TypeError as e:
+                    if "disconnect()" in str(e):
+                        logging.debug("Could not disconnect a reply")
+        else:
+            for r in replies:
+                if not r.isFinished() or r.error() == QNetworkReply.NoError:
+                    return
+            self.broadcast_error.emit(r.error(), strdata)
+
+    @asyncio.coroutine
+    def certify(self, password, community, pubkey):
+        """
+        Certify an other identity
+
+        :param str password: The account SigningKey password
+        :param cutecoin.core.community.Community community: The community target of the certification
+        :param str pubkey: The certified identity pubkey
+        """
+        logging.debug("Certdata")
+        blockid = yield from community.blockid()
+        identity = yield from self._identities_registry.future_lookup(pubkey, community)
+        selfcert = yield from identity.selfcert(community)
+        certification = Certification(PROTOCOL_VERSION, community.currency,
+                                      self.pubkey, pubkey,
+                                      blockid['number'], blockid['hash'], None)
+
+        key = SigningKey(self.salt, password)
+        certification.sign(selfcert, [key])
+        signed_cert = certification.signed_raw(selfcert)
+        logging.debug("Certification : {0}".format(signed_cert))
+
+        data = {'pubkey': pubkey,
+                'self_': selfcert.signed_raw(),
+                'other': "{0}\n".format(certification.inline())}
+        logging.debug("Posted data : {0}".format(data))
+        replies = community.bma_access.broadcast(qtbma.wot.Add, {}, data)
+        for r in replies:
+            r.finished.connect(lambda reply=r: self.__handle_certification_reply(replies, reply))
+
+    def __handle_certification_reply(self, replies, reply):
+        """
+        Handle the reply, if the request was accepted, disconnect
+        all other replies
+
+        :param QNetworkReply reply: The reply of this handler
+        :param list of QNetworkReply replies: All request replies
+        :return:
+        """
+        strdata = bytes(reply.readAll()).decode('utf-8')
+        logging.debug("Received reply : {0} : {1}".format(reply.error(), strdata))
+        if reply.error() == QNetworkReply.NoError:
+            self.certification_broadcasted.emit()
+            for r in replies:
+                try:
+                    r.disconnect()
+                except TypeError as e:
+                    if "disconnect()" in str(e):
+                        logging.debug("Could not disconnect a reply")
+        else:
+            for r in replies:
+                if not r.isFinished() or r.error() == QNetworkReply.NoError:
+                    return
+            self.broadcast_error.emit(r.error(), strdata)
+
+    @asyncio.coroutine
+    def revoke(self, password, community):
+        """
+        Revoke self-identity on server, not in blockchain
+
+        :param str password: The account SigningKey password
+        :param cutecoin.core.community.Community community: The community target of the revocation
+        """
+        revoked = yield from self._identities_registry.future_lookup(self.pubkey, community)
+
+        revocation = Revocation(PROTOCOL_VERSION, community.currency, None)
+        selfcert = revoked.selfcert(community)
+
+        key = SigningKey(self.salt, password)
+        revocation.sign(selfcert, [key])
+
+        logging.debug("Self-Revocation Document : \n{0}".format(revocation.raw(selfcert)))
+        logging.debug("Signature : \n{0}".format(revocation.signatures[0]))
+
+        data = {
+            'pubkey': revoked.pubkey,
+            'self_': selfcert.signed_raw(),
+            'sig': revocation.signatures[0]
+        }
+        logging.debug("Posted data : {0}".format(data))
+        replies = community.broadcast(qtbma.wot.Revoke, {}, data)
+        for r in replies:
+            r.finished.connect(lambda reply=r: self.__handle_certification_reply(replies, reply))
+
+    def __handle_revoke_reply(self, replies, reply):
+        """
+        Handle the reply, if the request was accepted, disconnect
+        all other replies
+
+        :param QNetworkReply reply: The reply of this handler
+        :param list of QNetworkReply replies: All request replies
+        :return:
+        """
+        strdata = bytes(reply.readAll()).decode('utf-8')
+        logging.debug("Received reply : {0} : {1}".format(reply.error(), strdata))
+        if reply.error() == QNetworkReply.NoError:
+            self.revoke_broadcasted.emit()
             for r in replies:
                 try:
                     r.disconnect()
