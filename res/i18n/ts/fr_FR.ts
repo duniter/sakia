@@ -1957,7 +1957,7 @@ Veuillez rééssayer plus tard</translation>
     <message>
         <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="119"></location>
         <source>Your money share </source>
-        <translation>Votre part de monnaie</translation>
+        <translation>Votre part de monnaie </translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="119"></location>
@@ -1967,7 +1967,7 @@ Veuillez rééssayer plus tard</translation>
     <message>
         <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="119"></location>
         <source>Your part </source>
-        <translation>Votre part</translation>
+        <translation>Votre part </translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="173"></location>
@@ -2087,12 +2087,12 @@ Veuillez rééssayer plus tard</translation>
     <message>
         <location filename="../../ui/transactions_tab.ui" line="37"></location>
         <source>dd/MM/yyyy</source>
-        <translation></translation>
+        <translation>jj/MM/aaaa</translation>
     </message>
     <message>
         <location filename="../../ui/transactions_tab.ui" line="100"></location>
         <source>Balance:</source>
-        <translation>Solde:</translation>
+        <translation>Solde :</translation>
     </message>
     <message>
         <location filename="../../ui/transactions_tab.ui" line="83"></location>
