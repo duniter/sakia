@@ -264,29 +264,8 @@ class Community(QObject):
         memberships = self.bma_access.get(self, qtbma.wot.Members)
         return [m['pubkey'] for m in memberships["results"]]
 
-    def post(self, request, req_args={}, post_args={}):
-        '''
-        Post data to a community.
-        Only sends the data to one node.
-
-        :param request: A ucoinpy bma request class
-        :param req_args: Arguments to pass to the request constructor
-        :param post_args: Arguments to pass to the request __post__ method
-        :return: The returned data
-        '''
-        nodes = self._network.online_nodes
-        for node in nodes:
-            req = request(node.endpoint.conn_handler(), **req_args)
-            logging.debug("Trying to connect to : " + node.pubkey)
-            req = request(node.endpoint.conn_handler(), **req_args)
-            try:
-                req.post(**post_args)
-                return
-            except ValueError as e:
-                raise
-            except RequestException:
-                continue
-        raise NoPeerAvailable(self.currency, len(nodes))
+    def stop_coroutines(self):
+        self.network.stop_coroutines()
 
     def jsonify(self):
         '''

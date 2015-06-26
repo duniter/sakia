@@ -127,8 +127,7 @@ class Application(QObject):
         '''
         if self.current_account is not None:
             self.save_cache(self.current_account)
-            for c in self.current_account.communities:
-                c.network.stop_crawling()
+            self.current_account.stop_coroutines()
 
         self.current_account = account
 
@@ -399,8 +398,7 @@ class Application(QObject):
         return data
 
     def stop(self):
-        for c in self.current_account.communities:
-            c.network.stop_crawling()
+        self.current_account.stop_coroutines()
 
     def get_last_version(self):
         url = QUrl("https://api.github.com/repos/ucoin-io/cutecoin/releases")

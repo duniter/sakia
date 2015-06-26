@@ -592,6 +592,13 @@ class Account(QObject):
                     return
             self.broadcast_error.emit(r.error(), strdata)
 
+    def stop_coroutines(self):
+        for c in self.communities:
+            c.stop_coroutines()
+
+        for w in self.wallets:
+            w.stop_coroutines()
+
     def jsonify(self):
         '''
         Get the account in a json format.

@@ -331,6 +331,10 @@ class Wallet(QObject):
         else:
             return []
 
+    def stop_coroutines(self):
+        for c in self.caches.values():
+            c.stop_coroutines()
+
     def jsonify(self):
         '''
         Get the wallet as json format.

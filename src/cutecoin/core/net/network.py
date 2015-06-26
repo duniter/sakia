@@ -107,7 +107,7 @@ class Network(QObject):
         ratio_synced = synced / total
         return ratio_synced
 
-    def stop_crawling(self):
+    def stop_coroutines(self):
         '''
         Stop network nodes crawling.
         '''
@@ -202,9 +202,9 @@ class Network(QObject):
 
     @pyqtSlot(Peer)
     def handle_new_node(self, peer):
-        logging.debug("New node found : {0}".format(peer.pubkey[:5]))
         pubkeys = [n.pubkey for n in self.nodes]
         if peer.pubkey not in pubkeys:
+            logging.debug("New node found : {0}".format(peer.pubkey[:5]))
             node = Node.from_peer(self.network_manager, self.currency, peer)
             self.add_node(node)
             self.nodes_changed.emit()

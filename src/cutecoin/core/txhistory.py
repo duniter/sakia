@@ -9,6 +9,7 @@ class TxHistory():
     def __init__(self, wallet):
         self._latest_block = 0
         self.wallet = wallet
+        self._stop_coroutines = False
 
         self._transfers = []
         self.available_sources = []
@@ -54,8 +55,11 @@ class TxHistory():
     def transfers(self):
         return [t for t in self._transfers if t.state != Transfer.DROPPED]
 
+    def stop_coroutines(self):
+        self._stop_coroutines = True
+
     @asyncio.coroutine
-    def _parse_transaction(self, community, txdata, received_list, txid):
+    def _parse_transaction(self, community, txdata, new_transfers, received_list, txid):
         if len(txdata['issuers']) == 0:
             True
 
@@ -111,7 +115,7 @@ class TxHistory():
             if txdata['hash'] not in [t['hash'] for t in awaiting]:
                 transfer = Transfer.create_validated(txdata['hash'],
                                                      metadata.copy())
-                self._transfers.append(transfer)
+                new_transfers.append(transfer)
         # If we are not in the issuers,
         # maybe it we are in the recipients of this transaction
         elif in_outputs:
@@ -123,7 +127,7 @@ class TxHistory():
             metadata['amount'] = amount
             received = Received(txdata['hash'], metadata.copy())
             received_list.append(received)
-            self._transfers.append(received)
+            new_transfers.append(received)
         return True
 
     @asyncio.coroutine
@@ -138,7 +142,7 @@ class TxHistory():
         block_data = yield from community.blockid()
         current_block = block_data['number']
         logging.debug("Refresh from : {0} to {1}".format(self.latest_block, current_block))
-
+        new_transfers = []
         # Lets look if transactions took too long to be validated
         awaiting = [t for t in self._transfers
                     if t.state == Transfer.AWAITING]
@@ -147,24 +151,33 @@ class TxHistory():
                                                       req_args={'pubkey': self.wallet.pubkey,
                                                              'from_':str(parsed_block),
                                                              'to_': str(parsed_block + 100)})
+            if self._stop_coroutines:
+                return
 
             # We parse only blocks with transactions
             transactions = tx_history['history']['received'] + tx_history['history']['sent']
             for (txid, txdata) in enumerate(transactions):
+                if self._stop_coroutines:
+                    return
                 if len(txdata['issuers']) == 0:
                     logging.debug("Error with : {0}, from {1} to {2}".format(self.wallet.pubkey,
                                                                              parsed_block,
                                                                              current_block))
                 else:
-                    yield from self._parse_transaction(community, txdata, received_list, txid)
+                    yield from self._parse_transaction(community, txdata, new_transfers, received_list, txid)
+
             self.wallet.refresh_progressed.emit(parsed_block, current_block, self.wallet.pubkey)
             parsed_block += 101
 
         if current_block > self.latest_block:
             self.available_sources = yield from self.wallet.future_sources(community)
+            if self._stop_coroutines:
+                return
             self.latest_block = current_block
 
         for transfer in awaiting:
             transfer.check_refused(current_block)
+
+        self._transfers = self._transfers + new_transfers
 
         self.wallet.refresh_finished.emit(received_list)
