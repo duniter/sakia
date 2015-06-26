@@ -118,27 +118,34 @@ class Application(QObject):
             self.save_preferences(self.preferences)
 
     def change_current_account(self, account):
-        '''
+        """
         Change current account displayed and refresh its cache.
 
         :param cutecoin.core.Account account: The account object to display
         .. note:: Emits the application pyqtSignal loading_progressed
         during cache refresh
-        '''
+        """
         if self.current_account is not None:
-            self.save_cache(self.current_account)
-            self.current_account.stop_coroutines()
+            self.stop_current_account()
 
         self.current_account = account
 
+    def stop_current_account(self):
+        """
+        Save the account to the cache
+        and stop the coroutines
+        """
+        self.save_cache(self.current_account)
+        self.current_account.stop_coroutines()
+
     def load(self):
-        '''
+        """
         Load a saved application state from the data file.
         Loads only jsonified objects but not their cache.
 
         If the standard application state file can't be found,
         no error is raised.
-        '''
+        """
         self.load_registries()
         self.load_preferences()
         try:
@@ -165,11 +172,11 @@ class Application(QObject):
             pass
 
     def load_account(self, account_name):
-        '''
+        """
         Load an account from its name
 
         :param str account_name: The account name
-        '''
+        """
         account_path = os.path.join(config.parameters['home'],
                                     account_name, 'properties')
         with open(account_path, 'r') as json_data:
@@ -179,11 +186,11 @@ class Application(QObject):
             self.accounts[account_name] = account
 
     def load_cache(self, account):
-        '''
+        """
         Load an account cache
 
         :param account: The account object to load the cache
-        '''
+        """
         for community in account.communities:
             bma_path = os.path.join(config.parameters['home'],
                                         account.name, '__cache__',
@@ -224,9 +231,9 @@ class Application(QObject):
                     os.remove(wallet_path)
 
     def load_preferences(self):
-        '''
+        """
         Load the preferences.
-        '''
+        """
 
         try:
             preferences_path = os.path.join(config.parameters['home'],
@@ -238,11 +245,11 @@ class Application(QObject):
             pass
 
     def save_preferences(self, preferences):
-        '''
+        """
         Save the preferences.
 
         :param preferences: A dict containing the keys/values of the preferences
-        '''
+        """
         assert('lang' in preferences)
         assert('account' in preferences)
         assert('ref' in preferences)
@@ -254,11 +261,11 @@ class Application(QObject):
             json.dump(preferences, outfile, indent=4)
 
     def save(self, account):
-        '''
+        """
         Save an account
 
         :param account: The account object to save
-        '''
+        """
         with open(config.parameters['data'], 'w') as outfile:
             json.dump(self.jsonify(), outfile, indent=4, sort_keys=True)
         account_path = os.path.join(config.parameters['home'],
@@ -398,7 +405,10 @@ class Application(QObject):
         return data
 
     def stop(self):
-        self.current_account.stop_coroutines()
+        if self.current_account:
+            self.stop_current_account()
+
+        self.app.save_registries()
 
     def get_last_version(self):
         url = QUrl("https://api.github.com/repos/ucoin-io/cutecoin/releases")

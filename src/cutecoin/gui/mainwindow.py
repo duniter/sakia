@@ -368,9 +368,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.app.export_account(path, self.app.current_account)
 
     def closeEvent(self, event):
-        if self.app.current_account:
-            self.app.save_cache(self.app.current_account)
-        self.app.save_registries()
         self.app.stop()
         super().closeEvent(event)
 
