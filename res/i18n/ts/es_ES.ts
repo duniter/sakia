@@ -34,22 +34,22 @@
     <message>
         <location filename="../../../src/cutecoin/core/account.py" line="103"></location>
         <source>Q0 {0}</source>
-        <translation type="unfinished"></translation>
+        <translation>Q0 {0}</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/core/account.py" line="103"></location>
         <source>Quant Z-sum</source>
-        <translation type="unfinished"></translation>
+        <translation>Quant. Z-Σ</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/core/account.py" line="103"></location>
         <source>R0 {0}</source>
-        <translation type="unfinished"></translation>
+        <translation>R0 {0}</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/core/account.py" line="103"></location>
         <source>Relat Z-sum</source>
-        <translation type="unfinished"></translation>
+        <translation>Relat. Z-Σ</translation>
     </message>
 </context>
 <context>
@@ -57,77 +57,77 @@
     <message>
         <location filename="../../ui/account_cfg.ui" line="14"></location>
         <source>Add an account</source>
-        <translation type="unfinished"></translation>
+        <translation>Añadir un cuenta</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="30"></location>
         <source>Account parameters</source>
-        <translation type="unfinished"></translation>
+        <translation>Ajustes del cuenta</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="51"></location>
         <source>Account name (uid)</source>
-        <translation type="unfinished"></translation>
+        <translation>Nombre del cuenta (uid)</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="68"></location>
         <source>Wallets</source>
-        <translation type="unfinished"></translation>
+        <translation>Carteras</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="111"></location>
         <source>Delete account</source>
-        <translation type="unfinished"></translation>
+        <translation>Borrar cuenta</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="140"></location>
         <source>Key parameters</source>
-        <translation type="unfinished"></translation>
+        <translation>Adjustes de la clave</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="170"></location>
         <source>CryptoID</source>
-        <translation type="unfinished"></translation>
+        <translation>Identidad de cripto</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="180"></location>
         <source>Your password</source>
-        <translation type="unfinished"></translation>
+        <translation>Tu contraseña</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="193"></location>
         <source>Please repeat your password</source>
-        <translation type="unfinished"></translation>
+        <translation>Repita tu contraseña</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="212"></location>
         <source>Show public key</source>
-        <translation type="unfinished"></translation>
+        <translation>Mostrar clave pública</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="242"></location>
         <source>Communities membership</source>
-        <translation type="unfinished"></translation>
+        <translation>Comunidades de miembros</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="257"></location>
         <source>Add a community</source>
-        <translation type="unfinished"></translation>
+        <translation>Añadir una comunidad</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="264"></location>
         <source>Remove selected community</source>
-        <translation type="unfinished"></translation>
+        <translation>Eliminar seleccione comunidad</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="288"></location>
         <source>Previous</source>
-        <translation type="unfinished"></translation>
+        <translation>Anterior</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="308"></location>
         <source>Next</source>
-        <translation type="unfinished"></translation>
+        <translation>Siguiente</translation>
     </message>
 </context>
 <context>
@@ -135,62 +135,62 @@
     <message>
         <location filename="../../../src/cutecoin/gui/certification.py" line="58"></location>
         <source>Certification</source>
-        <translation type="unfinished"></translation>
+        <translation>Certificatión</translation>
     </message>
     <message>
         <location filename="../../ui/certification.ui" line="20"></location>
         <source>Community</source>
-        <translation type="unfinished"></translation>
+        <translation>Comunidad</translation>
     </message>
     <message>
         <location filename="../../ui/certification.ui" line="32"></location>
         <source>Certify user</source>
-        <translation type="unfinished"></translation>
+        <translation>Certificar usuario</translation>
     </message>
     <message>
         <location filename="../../ui/certification.ui" line="40"></location>
         <source>Contact</source>
-        <translation type="unfinished"></translation>
+        <translation>Contacto</translation>
     </message>
     <message>
         <location filename="../../ui/certification.ui" line="61"></location>
         <source>User public key</source>
-        <translation type="unfinished"></translation>
+        <translation>Clave pública del usuario</translation>
     </message>
     <message>
         <location filename="../../ui/certification.ui" line="80"></location>
         <source>Key</source>
-        <translation type="unfinished"></translation>
+        <translation>Clave</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/certification.py" line="49"></location>
         <source>Success certifying {0} from {1}</source>
-        <translation type="unfinished"></translation>
+        <translation>Éxisto certificar {0} de {1}</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/certification.py" line="53"></location>
         <source>Something wrong happened : {0}</source>
-        <translation type="unfinished"></translation>
+        <translation>Algo malo sucedió : {0}</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/certification.py" line="58"></location>
         <source>Couldn't connect to network : {0}</source>
-        <translation type="unfinished"></translation>
+        <translation>No se pudo conectar a la red : {0}</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/certification.py" line="63"></location>
         <source>Error</source>
-        <translation type="unfinished"></translation>
+        <translation>Error</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/certification.py" line="76"></location>
         <source>Ok</source>
-        <translation type="unfinished"></translation>
+        <translation>Ok</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/certification.py" line="79"></location>
         <source>Not a member</source>
-        <translation type="unfinished"></translation>
+        <translation>No es un miembro</translation>
     </message>
 </context>
 <context>
@@ -198,42 +198,42 @@
     <message>
         <location filename="../../ui/community_cfg.ui" line="17"></location>
         <source>Add a community</source>
-        <translation type="unfinished"></translation>
+        <translation>Añadir una comunidad</translation>
     </message>
     <message>
         <location filename="../../ui/community_cfg.ui" line="46"></location>
         <source>Please enter the address of a node :</source>
-        <translation type="unfinished"></translation>
+        <translation>Por favor escribe la direccíon de un nodo :</translation>
     </message>
     <message>
         <location filename="../../ui/community_cfg.ui" line="61"></location>
         <source>:</source>
-        <translation type="unfinished"></translation>
+        <translation>:</translation>
     </message>
     <message>
         <location filename="../../ui/community_cfg.ui" line="100"></location>
         <source>Communities nodes</source>
-        <translation type="unfinished"></translation>
+        <translation>Comunidades nodos</translation>
     </message>
     <message>
         <location filename="../../ui/community_cfg.ui" line="118"></location>
         <source>Server</source>
-        <translation type="unfinished"></translation>
+        <translation>Servidor</translation>
     </message>
     <message>
         <location filename="../../ui/community_cfg.ui" line="138"></location>
         <source>Add</source>
-        <translation type="unfinished"></translation>
+        <translation>Añadir</translation>
     </message>
     <message>
         <location filename="../../ui/community_cfg.ui" line="159"></location>
         <source>Previous</source>
-        <translation type="unfinished"></translation>
+        <translation>Anterior</translation>
     </message>
     <message>
         <location filename="../../ui/community_cfg.ui" line="182"></location>
         <source>Next</source>
-        <translation type="unfinished"></translation>
+        <translation>Siguiente</translation>
     </message>
 </context>
 <context>
@@ -241,22 +241,22 @@
     <message>
         <location filename="../../ui/community_tab.ui" line="17"></location>
         <source>communityTabWidget</source>
-        <translation type="unfinished"></translation>
+        <translation>CommunityTabWidget</translation>
     </message>
     <message>
         <location filename="../../ui/community_tab.ui" line="40"></location>
         <source>Identities</source>
-        <translation type="unfinished"></translation>
+        <translation>Identidades</translation>
     </message>
     <message>
         <location filename="../../ui/community_tab.ui" line="53"></location>
         <source>Research a pubkey, an uid...</source>
-        <translation type="unfinished"></translation>
+        <translation>Investicar a clave pública, identificatión del usuario…</translation>
     </message>
     <message>
         <location filename="../../ui/community_tab.ui" line="60"></location>
         <source>Search</source>
-        <translation type="unfinished"></translation>
+        <translation>Buscar</translation>
     </message>
     <message>
         <location filename="../../ui/community_tab.ui" line="118"></location>
