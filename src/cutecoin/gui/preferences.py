@@ -20,9 +20,11 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
     '''
 
     def __init__(self, app):
-        '''
-        Constructor
-        '''
+        """
+        Init instance
+        :param cutecoin.core.app.Application app:   Application instance
+        :return:
+        """
         super().__init__()
         self.setupUi(self)
         self.app = app

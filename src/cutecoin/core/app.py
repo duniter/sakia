@@ -42,6 +42,7 @@ class Application(QObject):
         :param argv: The argv parameters of the call
         '''
         super().__init__()
+        self.qapp = qapp
         self.accounts = {}
         self.current_account = None
         self.monitor = None
@@ -57,8 +58,10 @@ class Application(QObject):
                             }
 
         self.load()
+        self.switch_language()
 
-        translator = QTranslator(qapp)
+    def switch_language(self):
+        translator = QTranslator(self.qapp)
         logging.debug("Loading translations")
         locale = self.preferences['lang']
         QLocale.setDefault(QLocale(locale))
