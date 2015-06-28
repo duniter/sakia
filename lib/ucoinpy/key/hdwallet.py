@@ -1,9 +1,9 @@
-'''
+"""
 HD Wallet inspired from Bip32 wallets.
 
 @author: inso
-'''
-'''
+"""
+"""
 import os
 import hmac
 import hashlib
@@ -375,4 +375,4 @@ if __name__ == "__main__":
     print "* [Chain m/0/2147483647h/1/2147483646h/2]"
     m = m.ChildKey(2)
     m.dump()
-'''
+"""

@@ -1,8 +1,8 @@
-'''
+"""
 Created on 1 mai 2015
 
 @author: inso
-'''
+"""
 import sys, time
 import logging
 from PyQt5.QtCore import Qt, QThread

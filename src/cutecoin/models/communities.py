@@ -1,22 +1,22 @@
-'''
+"""
 Created on 5 févr. 2014
 
 @author: inso
-'''
+"""
 
 from PyQt5.QtCore import QAbstractListModel, Qt
 
 
 class CommunitiesListModel(QAbstractListModel):
 
-    '''
+    """
     A Qt abstract item model to display communities in a tree
-    '''
+    """
 
     def __init__(self, account, parent=None):
-        '''
+        """
         Constructor
-        '''
+        """
         super(CommunitiesListModel, self).__init__(parent)
         self.communities = account.communities
 

@@ -1,8 +1,8 @@
-'''
+"""
 Created on 15 févr. 2015
 
 @author: inso
-'''
+"""
 
 import logging
 from PyQt5.QtWidgets import QWidget, QMenu, QAction, QApplication, QDialog
@@ -18,9 +18,9 @@ from ..gen_resources.wallets_tab_uic import Ui_WalletsTab
 
 
 class WalletsTabWidget(QWidget, Ui_WalletsTab):
-    '''
+    """
     classdocs
-    '''
+    """
 
     def __init__(self, app, account, community, password_asker):
         """

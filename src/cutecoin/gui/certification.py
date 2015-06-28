@@ -1,8 +1,8 @@
-'''
+"""
 Created on 24 dec. 2014
 
 @author: inso
-'''
+"""
 from PyQt5.QtWidgets import QDialog, QMessageBox, QDialogButtonBox, QApplication
 from PyQt5.QtCore import Qt, pyqtSlot
 import quamash
@@ -13,14 +13,14 @@ import asyncio
 
 class CertificationDialog(QDialog, Ui_CertificationDialog):
 
-    '''
+    """
     classdocs
-    '''
+    """
 
     def __init__(self, certifier, app, password_asker):
-        '''
+        """
         Constructor
-        '''
+        """
         super().__init__()
         self.setupUi(self)
         self.app = app

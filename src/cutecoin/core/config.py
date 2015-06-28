@@ -1,8 +1,8 @@
-'''
+"""
 Created on 7 févr. 2014
 
 @author: inso
-'''
+"""
 
 import logging
 from logging import FileHandler

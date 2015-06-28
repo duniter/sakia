@@ -1,8 +1,8 @@
-'''
+"""
 Created on 2 févr. 2014
 
 @author: inso
-'''
+"""
 
 import time
 import logging
@@ -24,14 +24,14 @@ from ..core.registry import IdentitiesRegistry
 
 class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
 
-    '''
+    """
     classdocs
-    '''
+    """
 
     def __init__(self, app, community, password_asker, status_label):
-        '''
+        """
         Constructor
-        '''
+        """
         super().__init__()
         self.setupUi(self)
         self.app = app
@@ -121,10 +121,10 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
 
     @pyqtSlot(int)
     def refresh_block(self, block_number):
-        '''
+        """
         When a new block is found, start handling data.
         @param: block_number: The number of the block mined
-        '''
+        """
         logging.debug("Refresh block")
         self.status_info.clear()
         try:
@@ -156,9 +156,9 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         self.refresh_data()
 
     def refresh_data(self):
-        '''
+        """
         Refresh data when the blockchain watcher finished handling datas
-        '''
+        """
         if self.tab_wallets:
             self.tab_wallets.refresh()
 
@@ -167,9 +167,9 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
 
     @pyqtSlot()
     def refresh_status(self):
-        '''
+        """
         Refresh status bar
-        '''
+        """
         logging.debug("Refresh status")
         text = self.tr(" Block {0}").format(self.community.network.latest_block)
         if self.community.network.quality > 0.66:

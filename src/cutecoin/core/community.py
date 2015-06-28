@@ -1,8 +1,8 @@
-'''
+"""
 Created on 1 févr. 2014
 
 @author: inso
-'''
+"""
 
 import logging
 import hashlib
@@ -207,33 +207,33 @@ class Community(QObject):
         return self.bma_access.get(self, qtbma.blockchain.Parameters)
 
     def certification_expired(self, certtime):
-        '''
+        """
         Return True if the certificaton time is too old
-        '''
+        """
         return time.time() - certtime > self.parameters['sigValidity']
 
     def add_node(self, node):
-        '''
+        """
         Add a peer to the community.
 
         :param peer: The new peer as a ucoinpy Peer object.
-        '''
+        """
         self._network.add_root_node(node)
 
     def remove_node(self, index):
-        '''
+        """
         Remove a node from the community.
 
         :param index: The index of the removed node.
-        '''
+        """
         self._network.remove_root_node(index)
 
     def get_block(self, number=None):
-        '''
+        """
         Get a block
 
         :param int number: The block number. If none, returns current block.
-        '''
+        """
         if number is None:
             data = self.bma_access.get(self, qtbma.blockchain.Current)
         else:
@@ -244,11 +244,11 @@ class Community(QObject):
 
     @asyncio.coroutine
     def blockid(self):
-        '''
+        """
         Get the block id.
 
         :return: The current block ID as [NUMBER-HASH] format.
-        '''
+        """
         block = yield from self.bma_access.future_request(qtbma.blockchain.Current)
         signed_raw = "{0}{1}\n".format(block['raw'], block['signature'])
         block_hash = hashlib.sha1(signed_raw.encode("ascii")).hexdigest().upper()
@@ -256,11 +256,11 @@ class Community(QObject):
         return {'number': block_number, 'hash': block_hash}
 
     def members_pubkeys(self):
-        '''
+        """
         Listing members pubkeys of a community
 
         :return: All members pubkeys.
-        '''
+        """
         memberships = self.bma_access.get(self, qtbma.wot.Members)
         return [m['pubkey'] for m in memberships["results"]]
 
@@ -268,11 +268,11 @@ class Community(QObject):
         self.network.stop_coroutines()
 
     def jsonify(self):
-        '''
+        """
         Jsonify the community datas.
 
         :return: The community as a dict in json format.
-        '''
+        """
 
         nodes_data = []
         for node in self._network.root_nodes:

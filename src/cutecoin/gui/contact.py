@@ -1,8 +1,8 @@
-'''
+"""
 Created on 2 févr. 2014
 
 @author: inso
-'''
+"""
 import re
 import logging
 
@@ -14,14 +14,14 @@ from ..gen_resources.contact_uic import Ui_ConfigureContactDialog
 
 class ConfigureContactDialog(QDialog, Ui_ConfigureContactDialog):
 
-    '''
+    """
     classdocs
-    '''
+    """
 
     def __init__(self, account, parent=None, contact=None, index_edit=None):
-        '''
+        """
         Constructor
-        '''
+        """
         super().__init__()
         self.setupUi(self)
         self.account = account

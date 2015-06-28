@@ -1,8 +1,8 @@
-'''
+"""
 Created on 5 févr. 2014
 
 @author: inso
-'''
+"""
 
 from ..core.net.api import bma as qtbma
 from ..tools.exceptions import NoPeerAvailable, MembershipNotFoundError
@@ -69,14 +69,14 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
 
 class IdentitiesTableModel(QAbstractTableModel):
 
-    '''
+    """
     A Qt abstract item model to display communities in a tree
-    '''
+    """
 
     def __init__(self, community, parent=None):
-        '''
+        """
         Constructor
-        '''
+        """
         super().__init__(parent)
         self.community = community
         self.columns_titles = {
@@ -91,9 +91,9 @@ class IdentitiesTableModel(QAbstractTableModel):
 
     @property
     def pubkeys(self):
-        '''
+        """
         Get pubkeys of displayed identities
-        '''
+        """
         return [i[1] for i in self.identities_data]
 
     def identity_data(self, identity):

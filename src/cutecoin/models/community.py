@@ -1,8 +1,8 @@
-'''
+"""
 Created on 5 fevr. 2014
 
 @author: inso
-'''
+"""
 
 
 class CommunityItemModel(object):

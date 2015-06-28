@@ -1,8 +1,8 @@
-'''
+"""
 Created on 2 févr. 2014
 
 @author: inso
-'''
+"""
 
 import logging
 from PyQt5.QtCore import Qt, pyqtSlot
@@ -24,9 +24,9 @@ from ..core.net.api import bma as qtbma
 
 class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
 
-    '''
+    """
     classdocs
-    '''
+    """
 
     def __init__(self, app, account, community, password_asker, parent):
         """
@@ -325,10 +325,10 @@ Revoking your UID can only success if it is not already validated by the network
         self.refresh(identities)
 
     def refresh(self, identities):
-        '''
+        """
         Refresh the table with specified identities.
         If no identities is passed, use the account connections.
-        '''
+        """
         self.table_identities.model().sourceModel().refresh_identities(identities)
         self.table_identities.resizeColumnsToContents()
 

@@ -1,8 +1,8 @@
-'''
+"""
 Created on 20 févr. 2015
 
 @author: inso
-'''
+"""
 
 import logging
 from PyQt5.QtGui import QCursor
@@ -13,14 +13,14 @@ from ..gen_resources.network_tab_uic import Ui_NetworkTabWidget
 
 
 class NetworkTabWidget(QWidget, Ui_NetworkTabWidget):
-    '''
+    """
     classdocs
-    '''
+    """
 
     def __init__(self, community):
-        '''
+        """
         Constructor
-        '''
+        """
         super().__init__()
         self.setupUi(self)
         model = NetworkTableModel(community)

@@ -1,8 +1,8 @@
-'''
+"""
 Created on 8 mars 2014
 
 @author: inso
-'''
+"""
 
 import logging
 import requests
@@ -25,9 +25,9 @@ class Step():
 
 
 class StepPageInit(Step):
-    '''
+    """
     First step when adding a community
-    '''
+    """
     def __init__(self, config_dialog):
         super().__init__(config_dialog)
         self.node = None
@@ -47,9 +47,9 @@ class StepPageInit(Step):
         return True
 
     def process_next(self):
-        '''
+        """
         We create the community
-        '''
+        """
         account = self.config_dialog.account
         logging.debug("Account : {0}".format(account))
         self.config_dialog.community = Community.create(self.node)
@@ -59,9 +59,9 @@ class StepPageInit(Step):
 
 
 class StepPageAddpeers(Step):
-    '''
+    """
     The step where the user add peers
-    '''
+    """
     def __init__(self, config_dialog):
         super().__init__(config_dialog)
 
@@ -85,14 +85,14 @@ class StepPageAddpeers(Step):
 
 
 class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
-    '''
+    """
     Dialog to configure or add a community
-    '''
+    """
 
     def __init__(self, account, community, password_asker, default_node=None):
-        '''
+        """
         Constructor
-        '''
+        """
         super().__init__()
         self.setupUi(self)
         self.community = community
@@ -143,9 +143,9 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
             self.step.display_page()
 
     def add_node(self):
-        '''
+        """
         Add node slot
-        '''
+        """
         server = self.lineedit_add_address.text()
         port = self.spinbox_add_port.value()
 
@@ -158,9 +158,9 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         self.tree_peers.setModel(PeeringTreeModel(self.community))
 
     def remove_node(self):
-        '''
+        """
         Remove node slot
-        '''
+        """
         logging.debug("Remove node")
         index = self.sender().data()
         self.community.remove_node(index)
@@ -188,7 +188,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
 
     def accept(self):
         try:
-            Person.lookup(self.account.pubkey, self.community, cached=False)
+            yield from Person.lookup(self.account.pubkey, self.community, cached=False)
         except LookupFailureError as e:
             reply = QMessageBox.question(self, self.tr("Pubkey not found"),
                                  self.tr("""The public key of your account wasn't found in the community. :\n

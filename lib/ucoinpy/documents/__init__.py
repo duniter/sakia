@@ -1,8 +1,8 @@
-'''
+"""
 Created on 3 déc. 2014
 
 @author: inso
-'''
+"""
 import base58
 import base64
 import re
@@ -23,10 +23,10 @@ class Document:
             self.signatures = []
 
     def sign(self, keys):
-        '''
+        """
         Sign the current document.
         Warning : current signatures will be replaced with the new ones.
-        '''
+        """
         self.signatures = []
         for key in keys:
             signing = base64.b64encode(key.signature(bytes(self.raw(), 'ascii')))
@@ -34,10 +34,10 @@ class Document:
             self.signatures.append(signing.decode("ascii"))
 
     def signed_raw(self):
-        '''
+        """
         If keys are None, returns the raw + current signatures
         If keys are present, returns the raw signed by these keys
-        '''
+        """
         raw = self.raw()
         signed = "\n".join(self.signatures)
         signed_raw = raw + signed + "\n"

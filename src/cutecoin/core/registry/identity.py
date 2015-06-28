@@ -1,8 +1,8 @@
-'''
+"""
 Created on 11 févr. 2014
 
 @author: inso
-'''
+"""
 
 import logging
 import time
@@ -173,12 +173,12 @@ class Identity(QObject):
         return False
 
     def is_member(self, community):
-        '''
+        """
         Check if the person is a member of a community
 
         :param cutecoin.core.community.Community community: The community target to request the join date
         :return: True if the person is a member of a community
-        '''
+        """
         certifiers = community.bma_access.get(self, qtbma.wot.CertifiersOf, {'search': self.pubkey})
         if certifiers != qtbma.wot.CertifiersOf.null_value:
             return certifiers['isMember']
@@ -241,12 +241,12 @@ class Identity(QObject):
         return unique_valid
 
     def certified_by(self, community):
-        '''
+        """
         Get the list of persons certified by this person
 
         :param cutecoin.core.community.Community community: The community target to request the join date
         :return: The list of the certified persons of this community in BMA json format
-        '''
+        """
         certified_list = community.bma_access.get(self, qtbma.wot.CertifiedBy, {'search': self.pubkey})
         if certified_list == qtbma.wot.CertifiedBy.null_value:
             logging.debug('bma.wot.CertifiersOf request error')
@@ -295,10 +295,10 @@ class Identity(QObject):
         return expiration_date - current_time
 
     def jsonify(self):
-        '''
+        """
         Get the community as dict in json format.
         :return: The community as a dict in json format
-        '''
+        """
         data = {'uid': self.uid,
                 'pubkey': self.pubkey,
                 'status': self.status}

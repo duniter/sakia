@@ -1,8 +1,8 @@
-'''
+"""
 Created on 5 févr. 2014
 
 @author: inso
-'''
+"""
 
 from PyQt5.QtCore import QAbstractItemModel, QModelIndex, Qt
 import logging
@@ -84,14 +84,14 @@ class NodeItem(object):
 
 class PeeringTreeModel(QAbstractItemModel):
 
-    '''
+    """
     A Qt abstract item model to display nodes of a community
-    '''
+    """
 
     def __init__(self, community):
-        '''
+        """
         Constructor
-        '''
+        """
         super().__init__(None)
         self.nodes = community._network.root_nodes
         self.root_item = RootItem(community.currency)

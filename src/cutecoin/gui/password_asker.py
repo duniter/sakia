@@ -1,8 +1,8 @@
-'''
+"""
 Created on 24 dec. 2014
 
 @author: inso
-'''
+"""
 
 import logging
 import re
@@ -14,14 +14,14 @@ from ..gen_resources.password_asker_uic import Ui_PasswordAskerDialog
 
 class PasswordAskerDialog(QDialog, Ui_PasswordAskerDialog):
 
-    '''
+    """
     A dialog to get password.
-    '''
+    """
 
     def __init__(self, account):
-        '''
+        """
         Constructor
-        '''
+        """
         super().__init__()
         self.setupUi(self)
         self.account = account

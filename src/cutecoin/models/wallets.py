@@ -1,8 +1,8 @@
-'''
+"""
 Created on 8 févr. 2014
 
 @author: inso
-'''
+"""
 import asyncio
 from PyQt5.QtCore import QAbstractTableModel, QSortFilterProxyModel, Qt, QLocale, pyqtSlot
 
@@ -56,9 +56,9 @@ class WalletsFilterProxyModel(QSortFilterProxyModel):
 
 class WalletsTableModel(QAbstractTableModel):
 
-    '''
+    """
     A Qt list model to display wallets and edit their names
-    '''
+    """
 
     def __init__(self, account, community, parent=None):
         """

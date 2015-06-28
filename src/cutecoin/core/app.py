@@ -1,8 +1,8 @@
-'''
+"""
 Created on 1 févr. 2014
 
 @author: inso
-'''
+"""
 
 import os
 import logging
@@ -25,20 +25,20 @@ from ..tools.exceptions import NameAlreadyExists, BadAccountFile
 
 class Application(QObject):
 
-    '''
+    """
     Managing core application datas :
     Accounts list and general configuration
     Saving and loading the application state
-    '''
+    """
 
     version_requested = pyqtSignal()
 
     def __init__(self, argv, qapp, loop):
-        '''
+        """
         Create a new "cutecoin" application
 
         :param argv: The argv parameters of the call
-        '''
+        """
         super().__init__()
         self.accounts = {}
         self.current_account = None
@@ -68,12 +68,12 @@ class Application(QObject):
             logging.debug("Couldn't load translation")
 
     def get_account(self, name):
-        '''
+        """
         Load an account then return it
 
         :param str name: The account name
         :return: The loaded account if it's a success, else return None
-        '''
+        """
         self.load_account(name)
         if name in self.accounts.keys():
             return self.accounts[name]
@@ -81,13 +81,13 @@ class Application(QObject):
             return None
 
     def create_account(self, name):
-        '''
+        """
         Create a new account from its name
 
         :param str name: The account name
         :return: The new account
         :raise: NameAlreadyExists if the account name is already used locally
-        '''
+        """
         for a in self.accounts:
             if a == name:
                 raise NameAlreadyExists(a)
@@ -104,10 +104,10 @@ class Application(QObject):
         self.accounts[account.name] = account
 
     def delete_account(self, account):
-        '''
+        """
         Delete an account.
         Current account changes to None if it is deleted.
-        '''
+        """
         self.accounts.pop(account.name)
         if self.current_account == account:
             self.current_account = None
@@ -158,10 +158,10 @@ class Application(QObject):
             pass
 
     def load_registries(self):
-        '''
+        """
         Load the Person instances of the person module.
         Each instance is unique, and can be find by its public key.
-        '''
+        """
         try:
             identities_path = os.path.join(config.parameters['home'],
                                         '__identities__')
@@ -311,11 +311,11 @@ class Application(QObject):
             json.dump(data, outfile, indent=4, sort_keys=True)
 
     def save_cache(self, account):
-        '''
+        """
         Save the cache of an account
 
         :param account: The account object to save the cache
-        '''
+        """
         if not os.path.exists(os.path.join(config.parameters['home'],
                                         account.name, '__cache__')):
             os.makedirs(os.path.join(config.parameters['home'],
@@ -344,12 +344,12 @@ class Application(QObject):
                 json.dump(data, outfile, indent=4, sort_keys=True)
 
     def import_account(self, file, name):
-        '''
+        """
         Import an account from a tar file and open it
 
         :param str file: The file path of the tar file
         :param str name: The account name
-        '''
+        """
         with tarfile.open(file, "r") as tar:
             path = os.path.join(config.parameters['home'],
                                 name)
@@ -371,12 +371,12 @@ class Application(QObject):
         self.change_current_account(account)
 
     def export_account(self, file, account):
-        '''
+        """
         Export an account to a tar file
 
         :param str file: The filepath of the tar file
         :param account: The account object to export
-        '''
+        """
         with tarfile.open(file, "w") as tar:
             for file in ["properties"]:
                 path = os.path.join(config.parameters['home'],
@@ -384,11 +384,11 @@ class Application(QObject):
                 tar.add(path, file)
 
     def jsonify_accounts(self):
-        '''
+        """
         Jsonify an account
 
         :return: The account as a dict to format as json
-        '''
+        """
         data = []
         logging.debug("{0}".format(self.accounts))
         for account in self.accounts:
@@ -396,11 +396,11 @@ class Application(QObject):
         return data
 
     def jsonify(self):
-        '''
+        """
         Jsonify the app datas
 
         :return: The accounts of the app to format as json
-        '''
+        """
         data = {'local_accounts': self.jsonify_accounts()}
         return data
 

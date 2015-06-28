@@ -1,8 +1,8 @@
-'''
+"""
 Created on 2 déc. 2014
 
 @author: inso
-'''
+"""
 
 from .. import PROTOCOL_VERSION
 from . import Document
@@ -15,7 +15,7 @@ import logging
 
 
 class Block(Document):
-    '''
+    """
 Version: VERSION
 Type: Block
 Currency: CURRENCY
@@ -52,7 +52,7 @@ Transactions:
 COMPACT_TRANSACTION
 ...
 BOTTOM_SIGNATURE
-    '''
+    """
 
     re_type = re.compile("Type: (Block)\n")
     re_noonce = re.compile("Nonce: ([0-9]+)\n")
@@ -82,9 +82,9 @@ BOTTOM_SIGNATURE
                  parameters, members_count, identities, joiners,
                  actives, leavers, excluded, certifications,
                  transactions, signature):
-        '''
+        """
         Constructor
-        '''
+        """
         super().__init__(version, currency, [signature])
         self.noonce = noonce
         self.number = number

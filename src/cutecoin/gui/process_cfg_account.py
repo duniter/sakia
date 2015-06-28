@@ -1,8 +1,8 @@
-'''
+"""
 Created on 6 mars 2014
 
 @author: inso
-'''
+"""
 import logging
 import requests
 from ucoinpy.documents.peer import Peer
@@ -24,9 +24,9 @@ class Step():
 
 
 class StepPageInit(Step):
-    '''
+    """
     First step when adding a community
-    '''
+    """
 
     def __init__(self, config_dialog):
         super().__init__(config_dialog)
@@ -59,9 +59,9 @@ class StepPageInit(Step):
 
 
 class StepPageKey(Step):
-    '''
+    """
     First step when adding a community
-    '''
+    """
 
     def __init__(self, config_dialog):
         super().__init__(config_dialog)
@@ -107,9 +107,9 @@ class StepPageKey(Step):
 
 
 class StepPageCommunities(Step):
-    '''
+    """
     First step when adding a community
-    '''
+    """
 
     def __init__(self, config_dialog):
         super().__init__(config_dialog)
@@ -140,14 +140,14 @@ class StepPageCommunities(Step):
 
 
 class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
-    '''
+    """
     classdocs
-    '''
+    """
 
     def __init__(self, app, account):
-        '''
+        """
         Constructor
-        '''
+        """
         # Set up the user interface from Designer.
         super().__init__()
         self.setupUi(self)

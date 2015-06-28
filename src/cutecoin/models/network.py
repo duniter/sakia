@@ -1,8 +1,8 @@
-'''
+"""
 Created on 5 févr. 2014
 
 @author: inso
-'''
+"""
 
 import logging
 
@@ -83,14 +83,14 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
 
 
 class NetworkTableModel(QAbstractTableModel):
-    '''
+    """
     A Qt abstract item model to display
-    '''
+    """
 
     def __init__(self, community, parent=None):
-        '''
+        """
         Constructor
-        '''
+        """
         super().__init__(parent)
         self.community = community
         self.columns_types = (

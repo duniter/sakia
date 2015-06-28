@@ -1,8 +1,8 @@
-'''
+"""
 Created on 5 févr. 2014
 
 @author: inso
-'''
+"""
 
 import datetime
 import logging
@@ -150,14 +150,14 @@ class TxFilterProxyModel(QSortFilterProxyModel):
 
 
 class HistoryTableModel(QAbstractTableModel):
-    '''
+    """
     A Qt abstract item model to display communities in a tree
-    '''
+    """
 
     def __init__(self, account, community, parent=None):
-        '''
+        """
         Constructor
-        '''
+        """
         super().__init__(parent)
         self.account = account
         self.community = community

@@ -1,8 +1,8 @@
-'''
+"""
 Created on 21 févr. 2015
 
 @author: inso
-'''
+"""
 
 from ucoinpy.documents.peer import Peer, BMAEndpoint, Endpoint
 from requests.exceptions import RequestException, ConnectionError
@@ -21,14 +21,14 @@ from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
 
 class Node(QObject):
-    '''
+    """
     A node is a peer seend from the client point of view.
     This node can have multiple states :
     - ONLINE : The node is available for requests
     - OFFLINE: The node is disconnected
     - DESYNCED : The node is online but is desynced from the network
     - CORRUPTED : The node is corrupted, some weird behaviour is going on
-    '''
+    """
 
     ONLINE = 1
     OFFLINE = 2
@@ -40,9 +40,9 @@ class Node(QObject):
 
     def __init__(self, network_manager, currency, endpoints, uid, pubkey, block,
                  state, last_change, last_merkle, software, version):
-        '''
+        """
         Constructor
-        '''
+        """
         super().__init__()
         self.network_manager = network_manager
         self._endpoints = endpoints
@@ -59,14 +59,14 @@ class Node(QObject):
 
     @classmethod
     def from_address(cls, network_manager, currency, address, port):
-        '''
+        """
         Factory method to get a node from a given address
 
         :param str currency: The node currency. None if we don't know\
          the currency it should have, for example if its the first one we add
         :param str address: The node address
         :param int port: The node port
-        '''
+        """
         peer_data = qtbma.network.Peering(ConnectionHandler(network_manager, address, port)).get()
 
         peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],
@@ -84,13 +84,13 @@ class Node(QObject):
 
     @classmethod
     def from_peer(cls, network_manager, currency, peer):
-        '''
+        """
         Factory method to get a node from a peer document.
 
         :param str currency: The node currency. None if we don't know\
          the currency it should have, for example if its the first one we add
         :param peer: The peer document
-        '''
+        """
         if currency is not None:
             if peer.currency != currency:
                 raise InvalidNodeCurrency(peer.currency, currency)

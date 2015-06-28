@@ -1,8 +1,8 @@
-'''
+"""
 Created on 2 févr. 2014
 
 @author: inso
-'''
+"""
 from PyQt5.QtWidgets import QDialog, QMessageBox, QApplication
 from PyQt5.QtCore import QRegExp, Qt, QLocale, pyqtSlot
 from PyQt5.QtGui import QRegExpValidator
@@ -14,14 +14,14 @@ import asyncio
 
 class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
 
-    '''
+    """
     classdocs
-    '''
+    """
 
     def __init__(self, sender, password_asker):
-        '''
+        """
         Constructor
-        '''
+        """
         super().__init__()
         self.setupUi(self)
         self.account = sender

@@ -1,8 +1,8 @@
-'''
+"""
 Created on 2 déc. 2014
 
 @author: inso
-'''
+"""
 from .. import PROTOCOL_VERSION
 from . import Document
 
@@ -10,7 +10,7 @@ import re
 
 
 class Membership(Document):
-    '''
+    """
     This is a utility class to generate membership documents :
     Version: VERSION
     Type: Membership
@@ -20,7 +20,7 @@ class Membership(Document):
     Membership: MEMBERSHIP_TYPE
     UserID: USER_ID
     CertTS: CERTIFICATION_TS
-    '''
+    """
 
     # PUBLIC_KEY:SIGNATURE:NUMBER:HASH:TIMESTAMP:USER_ID
     re_inline = re.compile("([1-9A-Za-z][^OIl]{42,45}):([A-Za-z0-9+/]+(?:=|==)?):\
@@ -36,9 +36,9 @@ class Membership(Document):
 
     def __init__(self, version, currency, issuer, block_number, block_hash,
                  membership_type, uid, cert_ts, signature):
-        '''
+        """
         Constructor
-        '''
+        """
         super().__init__(version, currency, [signature])
         self.issuer = issuer
         self.block_number = block_number

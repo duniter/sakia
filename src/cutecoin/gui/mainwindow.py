@@ -1,8 +1,8 @@
-'''
+"""
 Created on 1 févr. 2014
 
 @author: inso
-'''
+"""
 from ..gen_resources.mainwindow_uic import Ui_MainWindow
 from ..gen_resources.about_uic import Ui_AboutPopup
 
@@ -29,9 +29,9 @@ import logging
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
-    '''
+    """
     classdocs
-    '''
+    """
 
     def __init__(self, app):
         """
@@ -296,11 +296,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 delete_action.triggered.connect(self.delete_contact)
 
     def refresh(self):
-        '''
+        """
         Refresh main window
         When the selected account changes, all the widgets
         in the window have to be refreshed
-        '''
+        """
         logging.debug("Refresh started")
         self.refresh_accounts()
 

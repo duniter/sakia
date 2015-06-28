@@ -130,7 +130,7 @@ class Account(QObject):
     broadcast_error = pyqtSignal(int, str)
 
     def __init__(self, salt, pubkey, name, communities, wallets, contacts, identities_registry):
-        '''
+        """
         Create an account
 
         :param str salt: The root key salt
@@ -144,7 +144,7 @@ class Account(QObject):
         :param cutecoin.core.registry.IdentitiesRegistry: The identities registry intance
 
         .. warnings:: The class methods create and load should be used to create an account
-        '''
+        """
         super().__init__()
         self.salt = salt
         self.pubkey = pubkey
@@ -158,7 +158,7 @@ class Account(QObject):
 
     @classmethod
     def create(cls, name, identities_registry):
-        '''
+        """
         Factory method to create an empty account object
         This new account doesn't have any key and it should be given
         one later
@@ -168,20 +168,20 @@ class Account(QObject):
 
         :param str name: The account name, same as network identity uid
         :return: A new empty account object
-        '''
+        """
         account = cls(None, None, name, [], [], [], identities_registry)
         return account
 
     @classmethod
     def load(cls, json_data, network_manager, identities_registry):
-        '''
+        """
         Factory method to create an Account object from its json view.
         :rtype : cutecoin.core.account.Account
         :param dict json_data: The account view as a json dict
         :param PyQt5.QtNetwork import QNetworkManager: network_manager
         :param cutecoin.core.registry.self._identities_registry: identities_registry
         :return: A new account object created from the json datas
-        '''
+        """
         salt = json_data['salt']
         pubkey = json_data['pubkey']
 
@@ -205,22 +205,22 @@ class Account(QObject):
         return account
 
     def __eq__(self, other):
-        '''
+        """
         :return: True if account.pubkey == other.pubkey
-        '''
+        """
         if other is not None:
             return other.pubkey == self.pubkey
         else:
             return False
 
     def check_password(self, password):
-        '''
+        """
         Method to verify the key password validity
 
         :param str password: The key password
         :return: True if the generated pubkey is the same as the account
         .. warnings:: Generates a new temporary SigningKey
-        '''
+        """
         key = SigningKey(self.salt, password)
         return (key.pubkey == self.pubkey)
 
@@ -233,11 +233,11 @@ class Account(QObject):
         self.contacts.append(new_contact)
 
     def add_community(self, community):
-        '''
+        """
         Add a community to the account
 
         :param community: A community object to add
-        '''
+        """
         self.communities.append(community)
         return community
 
@@ -324,12 +324,12 @@ class Account(QObject):
         return Account.referentials[self.referential][5]
 
     def set_walletpool_size(self, size, password):
-        '''
+        """
         Change the size of the wallet pool
 
         :param int size: The new size of the wallet pool
         :param str password: The password of the account, same for all wallets
-        '''
+        """
         logging.debug("Defining wallet pool size")
         if len(self.wallets) < size:
             for i in range(len(self.wallets), size):
@@ -341,13 +341,13 @@ class Account(QObject):
         self.wallets_changed.emit()
 
     def transfers(self, community):
-        '''
+        """
         Get all transfers done in a community by all the wallets
         owned by this account
 
         :param community: The target community of this request
         :return: All account wallets transfers
-        '''
+        """
         sent = []
         for w in self.wallets:
             sent.extend(w.transfers(community))
@@ -355,13 +355,13 @@ class Account(QObject):
 
     @asyncio.coroutine
     def future_amount(self, community):
-        '''
+        """
         Get amount of money owned in a community by all the wallets
         owned by this account
 
         :param community: The target community of this request
         :return: The value of all wallets values accumulated
-        '''
+        """
         value = 0
         for w in self.wallets:
             val = yield from w.future_value(community)
@@ -369,13 +369,13 @@ class Account(QObject):
         return value
 
     def amount(self, community):
-        '''
+        """
         Get amount of money owned in a community by all the wallets
         owned by this account
 
         :param community: The target community of this request
         :return: The value of all wallets values accumulated
-        '''
+        """
         value = 0
         for w in self.wallets:
             val = w.value(community)
@@ -384,12 +384,12 @@ class Account(QObject):
 
     @asyncio.coroutine
     def send_selfcert(self, password, community):
-        '''
+        """
         Send our self certification to a target community
 
         :param str password: The account SigningKey password
         :param community: The community target of the self certification
-        '''
+        """
         selfcert = SelfCertification(PROTOCOL_VERSION,
                                      community.currency,
                                      self.pubkey,
@@ -432,14 +432,14 @@ class Account(QObject):
 
     @asyncio.coroutine
     def send_membership(self, password, community, mstype):
-        '''
+        """
         Send a membership document to a target community.
         Signal "document_broadcasted" is emitted at the end.
 
         :param str password: The account SigningKey password
         :param community: The community target of the membership document
         :param str mstype: The type of membership demand. "IN" to join, "OUT" to leave
-        '''
+        """
         logging.debug("Send membership")
 
         blockid = yield from community.blockid()
@@ -600,11 +600,11 @@ class Account(QObject):
             w.stop_coroutines()
 
     def jsonify(self):
-        '''
+        """
         Get the account in a json format.
 
         :return: A dict view of the account to be saved as json
-        '''
+        """
         data_communities = []
         for c in self.communities:
             data_communities.append(c.jsonify())

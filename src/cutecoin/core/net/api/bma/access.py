@@ -8,9 +8,9 @@ import asyncio
 import random
 
 class BmaAccess(QObject):
-    '''
+    """
     This class is used to access BMA API.
-    '''
+    """
 
     __saved_requests = [str(blockchain.Block), str(blockchain.Parameters)]
 
@@ -28,13 +28,13 @@ class BmaAccess(QObject):
 
     @classmethod
     def create(cls, network):
-        '''
+        """
         Initialize a new BMAAccess object with empty data.
 
         :param cutecoin.core.net.network.Network network:
         :return: A new BmaAccess object
         :rtype: cutecoin.core.net.api.bma.access.BmaAccess
-        '''
+        """
         return cls({}, network)
 
     @property
@@ -42,11 +42,11 @@ class BmaAccess(QObject):
         return self._data.copy()
 
     def load_from_json(self, json_data):
-        '''
+        """
         Put data in the cache from json datas.
 
         :param dict data: The cache in json format
-        '''
+        """
         data = {}
         for entry in json_data:
             key = entry['key']
@@ -55,11 +55,11 @@ class BmaAccess(QObject):
         self._data = data
 
     def jsonify(self):
-        '''
+        """
         Get the cache in json format
 
         :return: The cache as a dict in json format
-        '''
+        """
         data = {k: self._data[k] for k in self._data.keys()}
         entries = []
         for d in data:
@@ -226,7 +226,7 @@ class BmaAccess(QObject):
                     logging.debug("{0} is not present anymore in pending requests".format(cache_key))
 
     def future_request(self, request, req_args={}, get_args={}):
-        '''
+        """
         Start a request to the network and returns a future.
 
         :param class request: A bma request class calling for data
@@ -234,7 +234,7 @@ class BmaAccess(QObject):
         :param dict get_args: Arguments to pass to the request __get__ method
         :return: The future data
         :rtype: dict
-        '''
+        """
         def handle_future_reply(reply):
             if reply.error() == QNetworkReply.NoError:
                 strdata = bytes(reply.readAll()).decode('utf-8')
@@ -265,14 +265,14 @@ class BmaAccess(QObject):
         return future_data
 
     def simple_request(self, request, req_args={}, get_args={}):
-        '''
+        """
         Start a request to the network but don't cache its result.
 
         :param class request: A bma request class calling for data
         :param dict req_args: Arguments to pass to the request constructor
         :param dict get_args: Arguments to pass to the request __get__ method
         :return: The returned data if cached = True else return the QNetworkReply
-        '''
+        """
         nodes = self._network.synced_nodes
         if len(nodes) > 0:
             node = random.choice(nodes)
@@ -286,7 +286,7 @@ class BmaAccess(QObject):
             raise NoPeerAvailable(self.currency, len(nodes))
 
     def broadcast(self, request, req_args={}, post_args={}):
-        '''
+        """
         Broadcast data to a network.
         Sends the data to all knew nodes.
 
@@ -298,7 +298,7 @@ class BmaAccess(QObject):
 
         .. note:: If one node accept the requests (returns 200),
         the broadcast should be considered accepted by the network.
-        '''
+        """
         nodes = self._network.online_nodes
         replies = []
         for node in nodes:

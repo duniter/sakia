@@ -1,8 +1,8 @@
-'''
+"""
 Created on 11 mai 2015
 
 @author: inso
-'''
+"""
 
 from PyQt5.QtCore import QCoreApplication
 
@@ -15,14 +15,14 @@ from ..gen_resources.preferences_uic import Ui_PreferencesDialog
 
 class PreferencesDialog(QDialog, Ui_PreferencesDialog):
 
-    '''
+    """
     A dialog to get password.
-    '''
+    """
 
     def __init__(self, app):
-        '''
+        """
         Constructor
-        '''
+        """
         super().__init__()
         self.setupUi(self)
         self.app = app
