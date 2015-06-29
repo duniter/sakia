@@ -74,8 +74,8 @@ class Application(QObject):
         :param str name: The account name
         :return: The loaded account if it's a success, else return None
         """
-        self.load_account(name)
         if name in self.accounts.keys():
+            self.load_account(name)
             return self.accounts[name]
         else:
             return None
@@ -92,7 +92,7 @@ class Application(QObject):
             if a == name:
                 raise NameAlreadyExists(a)
 
-        account = Account.create(name)
+        account = Account.create(name, self._identities_registry)
 
         return account
 
@@ -412,7 +412,7 @@ class Application(QObject):
         if self.current_account:
             self.stop_current_account()
 
-        self.app.save_registries()
+        self.save_registries()
 
     def get_last_version(self):
         url = QUrl("https://api.github.com/repos/ucoin-io/cutecoin/releases")
