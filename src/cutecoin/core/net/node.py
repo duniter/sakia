@@ -5,16 +5,13 @@ Created on 21 févr. 2015
 """
 
 from ucoinpy.documents.peer import Peer, BMAEndpoint, Endpoint
-from requests.exceptions import RequestException, ConnectionError
-from cutecoin.tools.exceptions import InvalidNodeCurrency, LookupFailureError
-from ..registry import IdentitiesRegistry
-from cutecoin.core.net.api import bma as qtbma
-from cutecoin.core.net.api.bma import ConnectionHandler
+from ...tools.exceptions import InvalidNodeCurrency
+from ..net.api import bma as qtbma
+from ..net.api.bma import ConnectionHandler
 
+import asyncio
 import logging
 import time
-import ctypes
-import sys
 import json
 
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
@@ -58,6 +55,7 @@ class Node(QObject):
         self._version = version
 
     @classmethod
+    @asyncio.coroutine
     def from_address(cls, network_manager, currency, address, port):
         """
         Factory method to get a node from a given address
@@ -67,20 +65,36 @@ class Node(QObject):
         :param str address: The node address
         :param int port: The node port
         """
-        peer_data = qtbma.network.Peering(ConnectionHandler(network_manager, address, port)).get()
+        def handle_reply(reply):
+            if reply.error() == QNetworkReply.NoError:
+                strdata = bytes(reply.readAll()).decode('utf-8')
+                nonlocal peer_data
+                peer_data = json.loads(strdata)
+                future_reply.set_result(True)
+            else:
+                future_reply.set_result(False)
 
-        peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],
-                                                  peer_data['signature']))
+        future_reply = asyncio.Future()
+        peer_data = {}
+        reply = qtbma.network.Peering(ConnectionHandler(network_manager, address, port)).get()
+        reply.finished.connect(lambda: handle_reply(reply))
 
-        if currency is not None:
-            if peer.currency != currency:
-                raise InvalidNodeCurrency(peer.currency, currency)
+        yield from future_reply
+        if future_reply.result():
+            peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],
+                                                      peer_data['signature']))
 
-        node = cls(network_manager, peer.currency, peer.endpoints,
-                   "", peer.pubkey, 0, Node.ONLINE, time.time(),
-                   {'root': "", 'leaves': []})
-        logging.debug("Node from address : {:}".format(str(node)))
-        return node
+            if currency is not None:
+                if peer.currency != currency:
+                    raise InvalidNodeCurrency(peer.currency, currency)
+
+            node = cls(network_manager, peer.currency, peer.endpoints,
+                       "", peer.pubkey, 0, Node.ONLINE, time.time(),
+                       {'root': "", 'leaves': []}, "", "")
+            logging.debug("Node from address : {:}".format(str(node)))
+            return node
+        else:
+            raise
 
     @classmethod
     def from_peer(cls, network_manager, currency, peer):

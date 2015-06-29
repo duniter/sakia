@@ -1,1 +1,2 @@
-__author__ = 'inso'
+from .node import Node
+from .network import Network

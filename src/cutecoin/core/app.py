@@ -100,6 +100,10 @@ class Application(QObject):
     def identities_registry(self):
         return self._identities_registry
 
+    @property
+    def network_manager(self):
+        return self._network_manager
+
     def add_account(self, account):
         self.accounts[account.name] = account
 

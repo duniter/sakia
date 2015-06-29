@@ -73,7 +73,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         self.account.revoke_broadcasted.connect(lambda:
                                                     toast.display(self.tr("Revoke"),
                                                                 self.tr("Success sending Revoke demand")))
-        self.account.selfcert_broadcased.connect(lambda:
+        self.account.selfcert_broadcasted.connect(lambda:
                                                     toast.display(self.tr("Self Certification"),
                                                                 self.tr("Success sending Self Certification document")))
         self.refresh_quality_buttons()

@@ -174,7 +174,8 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
     def open_process_add_community(self):
         logging.debug("Opening configure community dialog")
         logging.debug(self.password_asker)
-        dialog = ProcessConfigureCommunity(self.account, None,
+        dialog = ProcessConfigureCommunity(self.app,
+                                           self.account, None,
                                            self.password_asker)
         dialog.accepted.connect(self.action_add_community)
         dialog.exec_()
@@ -215,16 +216,7 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
 
     def open_process_edit_community(self, index):
         community = self.account.communities[index.row()]
-        try:
-            dialog = ProcessConfigureCommunity(self.account, community, self.password_asker)
-        except NoPeerAvailable as e:
-            QMessageBox.critical(self, self.tr("Error"),
-                                 str(e), QMessageBox.Ok)
-            return
-        except requests.exceptions.RequestException as e:
-            QMessageBox.critical(self, self.tr("Error"),
-                                 str(e), QMessageBox.Ok)
-            return
+        dialog = ProcessConfigureCommunity(self.app, self.account, community, self.password_asker)
 
         dialog.accepted.connect(self.action_edit_community)
         dialog.exec_()

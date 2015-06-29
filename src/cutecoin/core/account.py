@@ -125,7 +125,7 @@ class Account(QObject):
     wallets_changed = pyqtSignal()
     membership_broadcasted = pyqtSignal()
     certification_broadcasted = pyqtSignal()
-    selfcert_broadcased = pyqtSignal()
+    selfcert_broadcasted = pyqtSignal()
     revoke_broadcasted = pyqtSignal()
     broadcast_error = pyqtSignal(int, str)
 

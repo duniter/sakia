@@ -46,13 +46,13 @@ class Community(QObject):
         self._bma_access = bma_access
 
     @classmethod
-    def create(cls, node):
+    def create(cls, network_manager, node):
         """
         Create a community from its first node.
 
         :param node: The first Node of the community
         """
-        network = Network.create(node)
+        network = Network.create(network_manager, node)
         bma_access = BmaAccess.create(network)
         community = cls(node.currency, network, bma_access)
         logging.debug("Creating community")
