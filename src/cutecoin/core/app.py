@@ -10,7 +10,7 @@ import tarfile
 import shutil
 import json
 import datetime
-import asyncio
+import i18n_rc
 
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, \
 QUrl, QTranslator, QCoreApplication, QLocale

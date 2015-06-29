@@ -94,7 +94,7 @@ class Node(QObject):
             logging.debug("Node from address : {:}".format(str(node)))
             return node
         else:
-            raise
+            return None
 
     @classmethod
     def from_peer(cls, network_manager, currency, peer):
