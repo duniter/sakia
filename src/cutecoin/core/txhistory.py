@@ -150,7 +150,7 @@ class TxHistory():
             tx_history = yield from community.bma_access.future_request(qtbma.tx.history.Blocks,
                                                       req_args={'pubkey': self.wallet.pubkey,
                                                              'from_':str(parsed_block),
-                                                             'to_': str(parsed_block + 100)})
+                                                             'to_': str(parsed_block + 99)})
             if self._stop_coroutines:
                 return
 
@@ -167,7 +167,7 @@ class TxHistory():
                     yield from self._parse_transaction(community, txdata, new_transfers, received_list, txid)
 
             self.wallet.refresh_progressed.emit(parsed_block, current_block, self.wallet.pubkey)
-            parsed_block += 101
+            parsed_block += 100
 
         if current_block > self.latest_block:
             self.available_sources = yield from self.wallet.future_sources(community)

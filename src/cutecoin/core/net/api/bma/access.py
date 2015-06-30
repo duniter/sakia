@@ -89,7 +89,7 @@ class BmaAccess(QObject):
         if isinstance(first, dict):
             for key in first:
                 if isinstance(second, dict):
-                    if second.has_key(key):
+                    if key in second:
                         sec = second[key]
                     else:
                         #  there are key in the first, that is not presented in the second
@@ -159,11 +159,11 @@ class BmaAccess(QObject):
 
             if 'value' not in self._data[cache_key]:
                 self._data[cache_key]['value'] = {}
-            self._data[cache_key]['metadata']['block'] = self._network.latest_block
 
-            if not self._compare_json(self._data[cache_key]['value'], data):
-                self._data[cache_key]['value'] = data
-                return True
+        self._data[cache_key]['metadata']['block'] = self._network.latest_block
+        if not self._compare_json(self._data[cache_key]['value'], data):
+            self._data[cache_key]['value'] = data
+            return True
         return False
 
     def get(self, caller, request, req_args={}, get_args={}, tries=0):

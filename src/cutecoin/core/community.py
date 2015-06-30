@@ -9,6 +9,7 @@ import hashlib
 import re
 import time
 import asyncio
+import math
 
 from PyQt5.QtCore import QObject, pyqtSignal
 from requests.exceptions import RequestException
@@ -128,6 +129,30 @@ class Community(QObject):
         block = self.get_ud_block()
         if block:
             return block['dividend']
+        else:
+            return 1
+
+    @property
+    def computed_dividend(self):
+        """
+        Get the computed community universal dividend.
+
+        Calculation based on t = last UD block time and on values from the that block :
+
+        UD(computed) = CEIL(MAX(UD(t) ; c * M(t) / N(t)))
+
+        :return: The computed UD or 1 if no UD was generated.
+        """
+        block = self.get_ud_block()
+        if block:
+            return math.ceil(
+                max(
+                    self.dividend(),
+                    float(0) if block['membersCount'] != 0 else
+                    self.parameters['c'] * block['monetaryMass'] / block['membersCount']
+                )
+            )
+
         else:
             return 1
 

@@ -35,6 +35,7 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         self.community = community
         self.password_asker = password_asker
         self.currency_tab = currency_tab
+        self.app.current_account.loading_finished.connect(self.stop_progress)
         self.progressbar.hide()
         self.refresh()
 
