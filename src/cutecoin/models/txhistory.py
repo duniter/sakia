@@ -236,7 +236,7 @@ class HistoryTableModel(QAbstractTableModel):
         self.endResetModel()
 
     def rowCount(self, parent):
-        return len(self.transfers)
+        return len(self.transfers_data)
 
     def columnCount(self, parent):
         return len(self.columns_types)
@@ -262,7 +262,7 @@ class HistoryTableModel(QAbstractTableModel):
             return self.transfers_data[row][col]
 
         if role == Qt.ToolTipRole and col == 0:
-            return self.transfers[row].metadata['time']
+            return self.transfers_data[self.columns_types.index('date')]
 
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled

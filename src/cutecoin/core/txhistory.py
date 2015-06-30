@@ -59,10 +59,7 @@ class TxHistory():
         self._stop_coroutines = True
 
     @asyncio.coroutine
-    def _parse_transaction(self, community, txdata, new_transfers, received_list, txid):
-        if len(txdata['issuers']) == 0:
-            return True
-
+    def _parse_transaction(self, community, txdata, received_list, txid):
         tx_outputs = [OutputSource.from_inline(o) for o in txdata['outputs']]
         receivers = [o.pubkey for o in tx_outputs
                      if o.pubkey != txdata['issuers'][0]]
@@ -115,7 +112,7 @@ class TxHistory():
             if txdata['hash'] not in [t['hash'] for t in awaiting]:
                 transfer = Transfer.create_validated(txdata['hash'],
                                                      metadata.copy())
-                new_transfers.append(transfer)
+                return transfer
         # If we are not in the issuers,
         # maybe it we are in the recipients of this transaction
         elif in_outputs:
@@ -127,8 +124,8 @@ class TxHistory():
             metadata['amount'] = amount
             received = Received(txdata['hash'], metadata.copy())
             received_list.append(received)
-            new_transfers.append(received)
-        return True
+            return received
+        return None
 
     @asyncio.coroutine
     def refresh(self, community, received_list):
@@ -166,7 +163,9 @@ class TxHistory():
                                                                              parsed_block,
                                                                              current_block))
                 else:
-                    yield from self._parse_transaction(community, txdata, new_transfers, received_list, txid)
+                    transfer = yield from self._parse_transaction(community, txdata, received_list, txid)
+                    if transfer:
+                        new_transfers.append(transfer)
 
             self.wallet.refresh_progressed.emit(parsed_block, current_block, self.wallet.pubkey)
             parsed_block += 100

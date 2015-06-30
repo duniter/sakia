@@ -35,13 +35,14 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         self.community = community
         self.password_asker = password_asker
         self.currency_tab = currency_tab
-        self.app.current_account.loading_finished.connect(self.stop_progress)
         self.progressbar.hide()
+        self.community.inner_data_changed.connect(self.refresh_minimum_maximum)
         self.refresh()
 
-    def refresh(self):
+    def refresh_minimum_maximum(self):
+        block = self.community.get_block(1)
         minimum_datetime = QDateTime()
-        minimum_datetime.setTime_t(self.community.get_block(1)['medianTime'])
+        minimum_datetime.setTime_t(block['medianTime'])
         minimum_datetime.setTime(QTime(0, 0))
 
         self.date_from.setMinimumDateTime(minimum_datetime)
@@ -53,6 +54,8 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         self.date_to.setDateTime(tomorrow_datetime)
         self.date_to.setMaximumDateTime(tomorrow_datetime)
 
+    def refresh(self):
+        self.refresh_minimum_maximum()
         ts_from = self.date_from.dateTime().toTime_t()
         ts_to = self.date_to.dateTime().toTime_t()
 
