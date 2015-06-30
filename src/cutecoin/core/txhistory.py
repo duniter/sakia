@@ -61,7 +61,7 @@ class TxHistory():
     @asyncio.coroutine
     def _parse_transaction(self, community, txdata, new_transfers, received_list, txid):
         if len(txdata['issuers']) == 0:
-            True
+            return True
 
         tx_outputs = [OutputSource.from_inline(o) for o in txdata['outputs']]
         receivers = [o.pubkey for o in tx_outputs
@@ -147,10 +147,12 @@ class TxHistory():
         awaiting = [t for t in self._transfers
                     if t.state == Transfer.AWAITING]
         while parsed_block < current_block:
-            tx_history = yield from community.bma_access.future_request(qtbma.tx.history.Blocks,
-                                                      req_args={'pubkey': self.wallet.pubkey,
-                                                             'from_':str(parsed_block),
-                                                             'to_': str(parsed_block + 99)})
+            tx_history = qtbma.tx.history.Blocks.null_value
+            while tx_history == qtbma.tx.history.Blocks.null_value:
+                tx_history = yield from community.bma_access.future_request(qtbma.tx.history.Blocks,
+                                                          req_args={'pubkey': self.wallet.pubkey,
+                                                                 'from_':str(parsed_block),
+                                                                 'to_': str(parsed_block + 99)})
             if self._stop_coroutines:
                 return
 
