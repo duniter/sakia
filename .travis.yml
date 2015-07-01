@@ -50,6 +50,5 @@ script:
   - export QT_XKB_CONFIG_ROOT=/usr/share/X11/xkb
   - coverage run --source=cutecoin.core,cutecoin.gui,cutecoin.models run_tests.py
 
-after_succes:
+after_success:
   - coveralls
-
