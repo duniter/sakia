@@ -1,4 +1,4 @@
-Landscape | [![Code Health](https://landscape.io/github/ucoin-io/cutecoin/dev/landscape.svg?style=flat)](https://landscape.io/github/ucoin-io/cutecoin/dev)
+<!-- Landscape | [![Code Health](https://landscape.io/github/ucoin-io/cutecoin/dev/landscape.svg?style=flat)](https://landscape.io/github/ucoin-io/cutecoin/dev) -->
 
 Travis | [![Build Status](https://travis-ci.org/ucoin-io/cutecoin.svg?branch=travis)](https://travis-ci.org/ucoin-io/cutecoin)
 
