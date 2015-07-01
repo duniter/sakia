@@ -45,6 +45,14 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                             'warning_certifications':
                             self.tr("Warning : Your could miss certifications soon.")
                             }
+
+        self.tab_community = None
+        self.tab_wallets = None
+        self.tab_network = None
+        self.tab_history = None
+
+    def setupUi(self):
+        super().setupUi(self)
         self.tab_community = CommunityTabWidget(self.app,
                                                 self.app.current_account,
                                                     self.community,
@@ -56,7 +64,31 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                             self.community,
                                             self.password_asker)
 
+        self.tab_history = TransactionsTabWidget(self.app,
+                                                 self.community,
+                                                 self.password_asker,
+                                                 self)
+
+        self.tab_informations = InformationsTabWidget(self.app.current_account,
+                                                self.community)
+
         self.tab_network = NetworkTabWidget(self.community)
+
+        self.tabs_account.addTab(self.tab_wallets,
+                                 QIcon(':/icons/wallet_icon'),
+                                self.tr("Wallets"))
+
+        self.tabs_account.addTab(self.tab_history,
+                                 QIcon(':/icons/tx_icon'),
+                                self.tr("Transactions"))
+
+        self.tabs_account.addTab(self.tab_informations,
+                                 QIcon(':/icons/informations_icon'),
+                                self.tr("Informations"))
+
+        self.tabs_account.addTab(self.tab_network,
+                                 QIcon(":/icons/network_icon"),
+                                 self.tr("Network"))
 
         self.community.network.new_block_mined.connect(self.refresh_block)
         self.community.network.nodes_changed.connect(self.refresh_status)
@@ -67,51 +99,17 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         else:
             self.tabs_account.setEnabled(True)
 
-            self.tab_wallets = WalletsTabWidget(self.app,
-                                                self.app.current_account,
-                                                self.community,
-                                                self.password_asker)
-            self.tabs_account.addTab(self.tab_wallets,
-                                     QIcon(':/icons/wallet_icon'),
-                                    self.tr("Wallets"))
+            self.tab_wallets.refresh()
 
-            self.tab_history = TransactionsTabWidget(self.app,
-                                                     self.community,
-                                                     self.password_asker,
-                                                     self)
-            self.tabs_account.addTab(self.tab_history,
-                                     QIcon(':/icons/tx_icon'),
-                                    self.tr("Transactions"))
+            self.tab_history.refresh()
 
-            self.tab_community = CommunityTabWidget(self.app,
-                                                    self.app.current_account,
-                                                    self.community,
-                                                    self.password_asker,
-                                                    self)
-            self.tabs_account.addTab(self.tab_community,
-                                     QIcon(':/icons/community_icon'),
-                                    self.tr("Community"))
+            self.tab_community.refresh()
 
-            self.tab_informations = InformationsTabWidget(self.app.current_account,
-                                                    self.community)
-            self.tabs_account.addTab(self.tab_informations,
-                                     QIcon(':/icons/informations_icon'),
-                                    self.tr("Informations"))
-
-            # fix bug refresh_nodes launch on destroyed NetworkTabWidget
-            #logging.debug('Disconnect community.network.nodes_changed')
-            #try:
-            #    self.community.network.nodes_changed.disconnect()
-            #except TypeError:
-            #    logging.debug('No signals on community.network.nodes_changed')
-
-            self.tab_network = NetworkTabWidget(self.community)
-            self.tabs_account.addTab(self.tab_network,
-                                     QIcon(":/icons/network_icon"),
-                                     self.tr("Network"))
             self.tab_informations.refresh()
+
+            self.tab_network.refresh()
+
             self.refresh_status()
-            self.refresh_wallets()
 
     @pyqtSlot(str)
     def display_error(self, error):
@@ -183,10 +181,6 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         if status_infotext != "":
             label_text += " - {0}".format(status_infotext)
         self.status_label.setText(label_text)
-
-    def refresh_wallets(self):
-        if self.app.current_account:
-            self.tab_wallets.refresh()
 
     def showEvent(self, event):
         asyncio.async(self.community.network.discover_network())

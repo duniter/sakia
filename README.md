@@ -1,5 +1,7 @@
 <!-- Landscape | [![Code Health](https://landscape.io/github/ucoin-io/cutecoin/dev/landscape.svg?style=flat)](https://landscape.io/github/ucoin-io/cutecoin/dev) -->
 
+Coveralls | [![Coverage Status](https://coveralls.io/repos/ucoin-io/cutecoin/badge.svg)](https://coveralls.io/r/ucoin-io/cutecoin)
+
 Travis | [![Build Status](https://travis-ci.org/ucoin-io/cutecoin.svg?branch=travis)](https://travis-ci.org/ucoin-io/cutecoin)
 
 Appveyor | [![Build status](https://ci.appveyor.com/api/projects/status/0wmo0rk5mds5t3lr/branch/dev)](https://ci.appveyor.com/project/Insoleet/cutecoin/branch/dev)
