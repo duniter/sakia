@@ -1,69 +1,29 @@
-# -*- coding: utf-8 -*-
-
 import sys
 import unittest
-import gc
 import os
 import asyncio
 import quamash
-from PyQt5.QtWidgets import QApplication, QMenu
+from PyQt5.QtWidgets import QMenu
 from PyQt5.QtCore import QLocale
 from cutecoin.gui.mainwindow import MainWindow
 from cutecoin.core.app import Application
-
-# Qapplication cause a core dumped when re-run in setup
-# set it as global var
-qapplication = QApplication(sys.argv)
-
+from cutecoin.tests import get_application
 
 class MainWindowMenusTest(unittest.TestCase):
     def setUp(self):
+        self.qapplication = get_application()
         QLocale.setDefault(QLocale("en_GB"))
-        self.lp = quamash.QEventLoop(qapplication)
+        self.lp = quamash.QEventLoop(self.qapplication)
         asyncio.set_event_loop(self.lp)
 
-        self.additional_exceptions = []
-
-        self.orig_excepthook = sys.excepthook
-
-        def except_handler(loop, ctx):
-            self.additional_exceptions.append(ctx)
-
-        def excepthook(type, *args):
-            self.lp.stop()
-            self.orig_excepthook(type, *args)
-
-        sys.excepthook = excepthook
-
-        self.lp.set_exception_handler(except_handler)
-
-        self.application = Application(qapplication, self.lp, None, None)
+        self.application = Application(self.qapplication, self.lp, None, None)
         self.main_window = MainWindow(self.application)
 
     def tearDown(self):
-        # delete all top widgets from main QApplication
-
-        sys.excepthook = self.orig_excepthook
-
         try:
             self.lp.close()
         finally:
             asyncio.set_event_loop(None)
-
-        for exc in self.additional_exceptions:
-            if (
-                os.name == 'nt' and
-                isinstance(exc['exception'], WindowsError) and
-                exc['exception'].winerror == 6
-            ):
-                # ignore Invalid Handle Errors
-                continue
-            raise exc['exception']
-
-        lw = qapplication.topLevelWidgets()
-        for w in lw:
-            del w
-        gc.collect()
 
     def test_menubar(self):
         children = self.main_window.menubar.children()
@@ -93,9 +53,5 @@ class MainWindowMenusTest(unittest.TestCase):
         self.assertEqual(len(actions), 1)
         self.assertEqual(actions[0].objectName(), 'actionAbout')
 
-    def test_ignoreme(self):
-        return
-
 if __name__ == '__main__':
     unittest.main()
-    qapplication.exit()

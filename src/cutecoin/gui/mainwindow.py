@@ -48,40 +48,41 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.status_label = QLabel("", self)
         self.label_time = QLabel("", self)
         self.import_dialog = None
-        self.export_dialog = None
         self.setupUi()
 
     def setupUi(self):
         super().setupUi(self)
         QApplication.setWindowIcon(QIcon(":/icons/cutecoin_logo"))
 
-        # self.busybar = QProgressBar(self.statusbar)
-        # self.busybar.setMinimum(0)
-        # self.busybar.setMaximum(0)
-        # self.busybar.setValue(-1)
-        # #self.statusbar.addWidget(self.busybar)
-        # self.busybar.hide()
+        self.busybar = QProgressBar(self.statusbar)
+        self.busybar.setMinimum(0)
+        self.busybar.setMaximum(0)
+        self.busybar.setValue(-1)
+        #self.statusbar.addWidget(self.busybar)
+        self.busybar.hide()
         self.app.version_requested.connect(self.latest_version_requested)
 
         self.combo_referential.setEnabled(False)
         self.combo_referential.currentIndexChanged.connect(self.referential_changed)
 
         self.status_label.setTextFormat(Qt.RichText)
-        #
-        # self.statusbar.addPermanentWidget(self.status_label, 1)
-        # self.statusbar.addPermanentWidget(self.label_time)
-        # self.statusbar.addPermanentWidget(self.combo_referential)
-        #
-        # self.homescreen = HomeScreenWidget(self.app)
-        # self.centralWidget().layout().addWidget(self.homescreen)
-        # self.homescreen.button_new.clicked.connect(self.open_add_account_dialog)
-        # self.homescreen.button_import.clicked.connect(self.import_account)
-        # self.open_ucoin_info = lambda: QDesktopServices.openUrl(QUrl("http://ucoin.io/theoretical/"))
-        # self.homescreen.button_info.clicked.connect(self.open_ucoin_info)
+
+
+        self.statusbar.addPermanentWidget(self.status_label, 1)
+        self.statusbar.addPermanentWidget(self.label_time)
+        self.statusbar.addPermanentWidget(self.combo_referential)
+
+        self.homescreen = HomeScreenWidget(self.app)
+        self.centralWidget().layout().addWidget(self.homescreen)
+        self.homescreen.button_new.clicked.connect(self.open_add_account_dialog)
+        self.homescreen.button_import.clicked.connect(self.import_account)
+        self.open_ucoin_info = lambda: QDesktopServices.openUrl(QUrl("http://ucoin.io/theoretical/"))
+        self.homescreen.button_info.clicked.connect(self.open_ucoin_info)
 
     def startup(self):
         self.update_time()
         self.app.get_last_version()
+        self.refresh()
 
     def open_add_account_dialog(self):
         dialog = ProcessConfigureAccount(self.app, None)
@@ -331,16 +332,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def export_account(self):
         # Testable way of using a QFileDialog
-        self.export_dialog = QFileDialog(self)
-        self.export_dialog.setObjectName('ExportFileDialog')
-        self.export_dialog.setWindowTitle(self.tr("Export an account"))
-        self.export_dialog.setNameFilter(self.tr("All account files (*.acc)"))
-        self.export_dialog.setLabelText(QFileDialog.Accept, self.tr('Export'))
-        self.export_dialog.accepted.connect(self.export_account_accepted)
-        self.export_dialog.show()
+        export_dialog = QFileDialog(self)
+        export_dialog.setObjectName('ExportFileDialog')
+        export_dialog.setWindowTitle(self.tr("Export an account"))
+        export_dialog.setNameFilter(self.tr("All account files (*.acc)"))
+        export_dialog.setLabelText(QFileDialog.Accept, self.tr('Export'))
+        export_dialog.accepted.connect(self.export_account_accepted)
+        export_dialog.show()
 
     def export_account_accepted(self):
-        selected_file = self.export_dialog.selectedFiles()
+        export_dialog = self.sender()
+        selected_file = export_dialog.selectedFiles()
         if selected_file:
             if selected_file[0][-4:] == ".acc":
                 path = selected_file[0]

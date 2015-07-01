@@ -60,11 +60,25 @@ class Application(QObject):
         network_manager = QNetworkAccessManager()
         identities_registry = IdentitiesRegistry()
         app = cls(qapp, loop, network_manager, identities_registry)
-
         app.load()
         app.switch_language()
-        return app
+        if app.preferences["account"] != "":
+            account = app.get_account(app.preferences["account"])
+            app.change_current_account(account)
+        # no default account...
+        else:
+            # if at least one account exists, set it as default...
+            if len(app.accounts) > 0:
+                # capture names sorted alphabetically
+                names = list(app.accounts.keys())
+                names.sort()
+                # set first name in list as default in preferences
+                app.preferences['account'] = names[0]
+                app.save_preferences(app.preferences)
+                # open it
+                logging.debug("No default account in preferences. Set %s as default account." % names[0])
 
+        return app
 
     def switch_language(self):
         translator = QTranslator(self.qapp)

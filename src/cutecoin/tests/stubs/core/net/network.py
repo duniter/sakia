@@ -28,7 +28,7 @@ class Network(QObject):
         self.network_manager = network_manager
 
     @classmethod
-    def create(cls, network_manager, node)
+    def create(cls, network_manager, node):
         nodes = [node]
         network = cls(network_manager, node.currency, nodes)
         return network
