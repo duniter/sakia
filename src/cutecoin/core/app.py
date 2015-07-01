@@ -33,7 +33,7 @@ class Application(QObject):
 
     version_requested = pyqtSignal()
 
-    def __init__(self, argv, qapp, loop):
+    def __init__(self, qapp, loop, network_manager, identities_registry):
         """
         Create a new "cutecoin" application
 
@@ -47,14 +47,24 @@ class Application(QObject):
         self.available_version = (True,
                                   __version__,
                                   "")
-        self.identity_registry = None
-        config.parse_arguments(argv)
-        self._network_manager = QNetworkAccessManager()
-        self._identities_registry = IdentitiesRegistry()
+        self._identities_registry = identities_registry
+        self._network_manager = network_manager
         self.preferences = {'account': "",
                             'lang': 'en_GB',
                             'ref': 0
                             }
+
+    @classmethod
+    def startup(cls, argv, qapp, loop):
+        config.parse_arguments(argv)
+        network_manager = QNetworkAccessManager()
+        identities_registry = IdentitiesRegistry()
+        app = cls(qapp, loop, network_manager, identities_registry)
+
+        app.load()
+        app.switch_language()
+        return app
+
 
     def switch_language(self):
         translator = QTranslator(self.qapp)

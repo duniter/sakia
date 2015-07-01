@@ -7,8 +7,11 @@ import quamash
 import PyQt5
 from PyQt5.QtWidgets import QMenu
 from PyQt5.QtCore import QLocale, QTimer
+from PyQt5.QtNetwork import QNetworkAccessManager
 from cutecoin.gui.mainwindow import MainWindow
 from cutecoin.core.app import Application
+
+from cutecoin.tests.stubs.core.registry import IdentitiesRegistry
 
 # Qapplication cause a core dumped when re-run in setup
 # set it as global var
@@ -35,7 +38,9 @@ class MainWindowDialogsTest(unittest.TestCase):
 
         self.lp.set_exception_handler(except_handler)
 
-        self.application = Application(sys.argv, self.qapplication, self.lp)
+        network_manager = QNetworkAccessManager()
+
+        self.application = Application(self.qapplication, self.lp, network_manager, IdentitiesRegistry())
         self.main_window = MainWindow(self.application)
 
     def tearDown(self):
@@ -60,16 +65,15 @@ class MainWindowDialogsTest(unittest.TestCase):
             raise exc['exception']
 
     # def test_action_about(self):
-    #     pass
-        # select menu
-        # self.main_window.actionAbout.trigger()
-        # widgets = self.qapplication.topLevelWidgets()
-        # for widget in widgets:
-        #     if isinstance(widget, PyQt5.QtWidgets.QDialog):
-        #         if widget.isVisible():
-        #             self.assertEqual('AboutPopup', widget.objectName())
-        #             widget.close()
-        #             break
+    #     #select menu
+    #     self.main_window.actionAbout.trigger()
+    #     widgets = self.qapplication.topLevelWidgets()
+    #     for widget in widgets:
+    #         if isinstance(widget, PyQt5.QtWidgets.QDialog):
+    #             if widget.isVisible():
+    #                 self.assertEqual('AboutPopup', widget.objectName())
+    #                 widget.close()
+    #                 break
     #
     # def test_action_add_account(self):
     #     pass

@@ -37,7 +37,7 @@ class MainWindowMenusTest(unittest.TestCase):
 
         self.lp.set_exception_handler(except_handler)
 
-        self.application = Application(sys.argv, qapplication, self.lp)
+        self.application = Application(qapplication, self.lp, None, None)
         self.main_window = MainWindow(self.application)
 
     def tearDown(self):
@@ -98,3 +98,4 @@ class MainWindowMenusTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+    qapplication.exit()

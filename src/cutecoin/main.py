@@ -19,12 +19,11 @@ if __name__ == '__main__':
 
     cutecoin = QApplication(sys.argv)
     loop = QEventLoop(cutecoin)
-    app = Application(sys.argv, cutecoin, loop)
-    app.load()
-    app.switch_language()
     asyncio.set_event_loop(loop)
     logging.debug("Debug enabled : {0}".format(loop.get_debug()))
+
     with loop:
+        app = Application.startup(sys.argv, cutecoin, loop)
         window = MainWindow(app)
         window.showMaximized()
         loop.run_forever()

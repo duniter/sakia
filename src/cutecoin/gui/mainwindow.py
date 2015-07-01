@@ -41,30 +41,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
         # Set up the user interface from Designer.
         super().__init__()
-        self.setupUi(self)
-        QApplication.setWindowIcon(QIcon(":/icons/cutecoin_logo"))
         self.app = app
-
         self.initialized = False
-        if self.app.preferences["account"] != "":
-            account = self.app.get_account(self.app.preferences["account"])
-            self.app.change_current_account(account)
-        # no default account...
-        else:
-            # if at least one account exists, set it as default...
-            if len(self.app.accounts) > 0:
-                # capture names sorted alphabetically
-                names = list(self.app.accounts.keys())
-                names.sort()
-                # set first name in list as default in preferences
-                self.app.preferences['account'] = names[0]
-                self.app.save_preferences(self.app.preferences)
-                # open it
-                logging.debug("No default account in preferences. Set %s as default account." % names[0])
-                self.action_change_account(self.app.get_account(self.app.preferences['account']))
-
         self.password_asker = None
-        #
+        self.combo_referential = QComboBox(self)
+        self.status_label = QLabel("", self)
+        self.label_time = QLabel("", self)
+        self.import_dialog = None
+        self.export_dialog = None
+        self.setupUi()
+
+    def setupUi(self):
+        super().setupUi(self)
+        QApplication.setWindowIcon(QIcon(":/icons/cutecoin_logo"))
+
         # self.busybar = QProgressBar(self.statusbar)
         # self.busybar.setMinimum(0)
         # self.busybar.setMaximum(0)
@@ -72,21 +62,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # #self.statusbar.addWidget(self.busybar)
         # self.busybar.hide()
         self.app.version_requested.connect(self.latest_version_requested)
-        self.app.get_last_version()
 
-        self.combo_referential = QComboBox(self)
         self.combo_referential.setEnabled(False)
         self.combo_referential.currentIndexChanged.connect(self.referential_changed)
 
-        self.status_label = QLabel("", self)
         self.status_label.setTextFormat(Qt.RichText)
-
-        self.label_time = QLabel("", self)
         #
         # self.statusbar.addPermanentWidget(self.status_label, 1)
         # self.statusbar.addPermanentWidget(self.label_time)
         # self.statusbar.addPermanentWidget(self.combo_referential)
-        self.update_time()
         #
         # self.homescreen = HomeScreenWidget(self.app)
         # self.centralWidget().layout().addWidget(self.homescreen)
@@ -95,11 +79,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # self.open_ucoin_info = lambda: QDesktopServices.openUrl(QUrl("http://ucoin.io/theoretical/"))
         # self.homescreen.button_info.clicked.connect(self.open_ucoin_info)
 
-        self.import_dialog = None
-        self.export_dialog = None
-
-        # TODO: There are too much refresh() calls on startup
-        #self.refresh()
+    def startup(self):
+        self.update_time()
+        self.app.get_last_version()
 
     def open_add_account_dialog(self):
         dialog = ProcessConfigureAccount(self.app, None)
