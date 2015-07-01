@@ -54,19 +54,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super().setupUi(self)
         QApplication.setWindowIcon(QIcon(":/icons/cutecoin_logo"))
 
-        self.busybar = QProgressBar(self.statusbar)
-        self.busybar.setMinimum(0)
-        self.busybar.setMaximum(0)
-        self.busybar.setValue(-1)
-        #self.statusbar.addWidget(self.busybar)
-        self.busybar.hide()
         self.app.version_requested.connect(self.latest_version_requested)
 
         self.combo_referential.setEnabled(False)
         self.combo_referential.currentIndexChanged.connect(self.referential_changed)
 
         self.status_label.setTextFormat(Qt.RichText)
-
 
         self.statusbar.addPermanentWidget(self.status_label, 1)
         self.statusbar.addPermanentWidget(self.label_time)

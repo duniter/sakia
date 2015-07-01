@@ -1,6 +1,4 @@
-import sys
 import unittest
-import os
 import asyncio
 import quamash
 from PyQt5.QtWidgets import QDialog, QFileDialog
