@@ -43,10 +43,9 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         self.community = community
         self.account = account
         self.password_asker = password_asker
-        self.setup_ui()
 
-    def setup_ui(self):
         self.setupUi(self)
+
         identities_model = IdentitiesTableModel(self.community)
         proxy = IdentitiesFilterProxyModel()
         proxy.setSourceModel(identities_model)
@@ -251,7 +250,7 @@ Revoking your UID can only success if it is not already validated by the network
                 raise
 
         self.edit_textsearch.clear()
-        self.refresh(identities)
+        self.refresh_identities(identities)
 
     def search_text(self):
         """
@@ -297,7 +296,7 @@ Revoking your UID can only success if it is not already validated by the network
                 raise
 
         self.edit_textsearch.clear()
-        self.refresh(identities)
+        self.refresh_identities(identities)
 
     def search_direct_connections(self):
         """
@@ -322,9 +321,9 @@ Revoking your UID can only success if it is not already validated by the network
         certified_by = [p for p in account_connections
                   if p.pubkey not in [i.pubkey for i in certifiers_of]]
         identities = certifiers_of + certified_by
-        self.refresh(identities)
+        self.refresh_identities(identities)
 
-    def refresh(self, identities):
+    def refresh_identities(self, identities):
         """
         Refresh the table with specified identities.
         If no identities is passed, use the account connections.

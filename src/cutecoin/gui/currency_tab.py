@@ -33,7 +33,6 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         Constructor
         """
         super().__init__()
-        self.setupUi(self)
         self.app = app
         self.community = community
         self.password_asker = password_asker
@@ -46,13 +45,8 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                             self.tr("Warning : Your could miss certifications soon.")
                             }
 
-        self.tab_community = None
-        self.tab_wallets = None
-        self.tab_network = None
-        self.tab_history = None
-
-    def setupUi(self):
         super().setupUi(self)
+
         self.tab_community = CommunityTabWidget(self.app,
                                                 self.app.current_account,
                                                     self.community,
@@ -86,30 +80,16 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                  QIcon(':/icons/informations_icon'),
                                 self.tr("Informations"))
 
+        self.tabs_account.addTab(self.tab_community,
+                                 QIcon(':/icons/community_icon'),
+                                self.tr("Community"))
+
         self.tabs_account.addTab(self.tab_network,
                                  QIcon(":/icons/network_icon"),
                                  self.tr("Network"))
 
         self.community.network.new_block_mined.connect(self.refresh_block)
         self.community.network.nodes_changed.connect(self.refresh_status)
-
-    def refresh(self):
-        if self.app.current_account is None:
-            self.tabs_account.setEnabled(False)
-        else:
-            self.tabs_account.setEnabled(True)
-
-            self.tab_wallets.refresh()
-
-            self.tab_history.refresh()
-
-            self.tab_community.refresh()
-
-            self.tab_informations.refresh()
-
-            self.tab_network.refresh()
-
-            self.refresh_status()
 
     @pyqtSlot(str)
     def display_error(self, error):
@@ -152,6 +132,10 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
 
         self.tab_history.start_progress()
         self.refresh_data()
+
+    def refresh_wallets(self):
+        if self.tab_wallets:
+            self.tab_wallets.refresh()
 
     def refresh_data(self):
         """

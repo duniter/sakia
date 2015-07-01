@@ -29,9 +29,6 @@
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
        <widget class="QTabWidget" name="tabs_account">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
         <property name="currentIndex">
          <number>-1</number>
         </property>

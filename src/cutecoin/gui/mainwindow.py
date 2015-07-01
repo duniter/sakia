@@ -44,25 +44,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.app = app
         self.initialized = False
         self.password_asker = None
-        self.combo_referential = QComboBox(self)
-        self.status_label = QLabel("", self)
-        self.label_time = QLabel("", self)
         self.import_dialog = None
-        self.setupUi()
 
-    def setupUi(self):
         super().setupUi(self)
+
         QApplication.setWindowIcon(QIcon(":/icons/cutecoin_logo"))
 
         self.app.version_requested.connect(self.latest_version_requested)
 
+        self.status_label = QLabel("", self)
+        self.status_label.setTextFormat(Qt.RichText)
+        self.statusbar.addPermanentWidget(self.status_label, 1)
+
+        self.label_time = QLabel("", self)
+        self.statusbar.addPermanentWidget(self.label_time)
+
+        self.combo_referential = QComboBox(self)
         self.combo_referential.setEnabled(False)
         self.combo_referential.currentIndexChanged.connect(self.referential_changed)
-
-        self.status_label.setTextFormat(Qt.RichText)
-
-        self.statusbar.addPermanentWidget(self.status_label, 1)
-        self.statusbar.addPermanentWidget(self.label_time)
         self.statusbar.addPermanentWidget(self.combo_referential)
 
         self.homescreen = HomeScreenWidget(self.app)
@@ -242,7 +241,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 tab_currency = CurrencyTabWidget(self.app, community,
                                                  self.password_asker,
                                                  self.status_label)
-                tab_currency.refresh()
                 self.currencies_tabwidget.addTab(tab_currency,
                                                  QIcon(":/icons/currency_icon"),
                                                  community.name)
