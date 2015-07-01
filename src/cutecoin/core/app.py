@@ -56,9 +56,6 @@ class Application(QObject):
                             'ref': 0
                             }
 
-        self.load()
-        self.switch_language()
-
     def switch_language(self):
         translator = QTranslator(self.qapp)
         logging.debug("Loading translations")

@@ -45,7 +45,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         QApplication.setWindowIcon(QIcon(":/icons/cutecoin_logo"))
         self.app = app
 
-        self.app.load()
         self.initialized = False
         if self.app.preferences["account"] != "":
             account = self.app.get_account(self.app.preferences["account"])
@@ -65,13 +64,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.action_change_account(self.app.get_account(self.app.preferences['account']))
 
         self.password_asker = None
-
-        self.busybar = QProgressBar(self.statusbar)
-        self.busybar.setMinimum(0)
-        self.busybar.setMaximum(0)
-        self.busybar.setValue(-1)
-        self.statusbar.addWidget(self.busybar)
-        self.busybar.hide()
+        #
+        # self.busybar = QProgressBar(self.statusbar)
+        # self.busybar.setMinimum(0)
+        # self.busybar.setMaximum(0)
+        # self.busybar.setValue(-1)
+        # #self.statusbar.addWidget(self.busybar)
+        # self.busybar.hide()
         self.app.version_requested.connect(self.latest_version_requested)
         self.app.get_last_version()
 
@@ -83,24 +82,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.status_label.setTextFormat(Qt.RichText)
 
         self.label_time = QLabel("", self)
-
-        self.statusbar.addPermanentWidget(self.status_label, 1)
-        self.statusbar.addPermanentWidget(self.label_time)
-        self.statusbar.addPermanentWidget(self.combo_referential)
+        #
+        # self.statusbar.addPermanentWidget(self.status_label, 1)
+        # self.statusbar.addPermanentWidget(self.label_time)
+        # self.statusbar.addPermanentWidget(self.combo_referential)
         self.update_time()
-
-        self.homescreen = HomeScreenWidget(self.app)
-        self.centralWidget().layout().addWidget(self.homescreen)
-        self.homescreen.button_new.clicked.connect(self.open_add_account_dialog)
-        self.homescreen.button_import.clicked.connect(self.import_account)
-        self.open_ucoin_info = lambda: QDesktopServices.openUrl(QUrl("http://ucoin.io/theoretical/"))
-        self.homescreen.button_info.clicked.connect(self.open_ucoin_info)
+        #
+        # self.homescreen = HomeScreenWidget(self.app)
+        # self.centralWidget().layout().addWidget(self.homescreen)
+        # self.homescreen.button_new.clicked.connect(self.open_add_account_dialog)
+        # self.homescreen.button_import.clicked.connect(self.import_account)
+        # self.open_ucoin_info = lambda: QDesktopServices.openUrl(QUrl("http://ucoin.io/theoretical/"))
+        # self.homescreen.button_info.clicked.connect(self.open_ucoin_info)
 
         self.import_dialog = None
         self.export_dialog = None
 
         # TODO: There are too much refresh() calls on startup
-        self.refresh()
+        #self.refresh()
 
     def open_add_account_dialog(self):
         dialog = ProcessConfigureAccount(self.app, None)
