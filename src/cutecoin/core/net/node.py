@@ -33,7 +33,7 @@ class Node(QObject):
     CORRUPTED = 4
 
     changed = pyqtSignal()
-    neighbour_found = pyqtSignal(Peer)
+    neighbour_found = pyqtSignal(Peer, str)
 
     def __init__(self, network_manager, currency, endpoints, uid, pubkey, block,
                  state, last_change, last_merkle, software, version):
@@ -97,7 +97,7 @@ class Node(QObject):
             return None
 
     @classmethod
-    def from_peer(cls, network_manager, currency, peer):
+    def from_peer(cls, network_manager, currency, peer, pubkey):
         """
         Factory method to get a node from a peer document.
 
@@ -109,7 +109,7 @@ class Node(QObject):
             if peer.currency != currency:
                 raise InvalidNodeCurrency(peer.currency, currency)
 
-        node = cls(network_manager, peer.currency, peer.endpoints, "", "", 0,
+        node = cls(network_manager, peer.currency, peer.endpoints, "", pubkey, 0,
                    Node.ONLINE, time.time(),
                    {'root': "", 'leaves': []},
                    "", "")
@@ -450,7 +450,8 @@ class Node(QObject):
             leaf_data = json.loads(strdata)
             doc = Peer.from_signed_raw("{0}{1}\n".format(leaf_data['leaf']['value']['raw'],
                                                         leaf_data['leaf']['value']['signature']))
-            self.neighbour_found.emit(doc)
+            pubkey = leaf_data['leaf']['value']['pubkey']
+            self.neighbour_found.emit(doc, pubkey)
         else:
             logging.debug("Error in leaf reply")
 

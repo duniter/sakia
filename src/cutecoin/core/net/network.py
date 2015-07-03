@@ -200,12 +200,12 @@ class Network(QObject):
                     node.refresh()
         logging.debug("End of network discovery")
 
-    @pyqtSlot(Peer)
-    def handle_new_node(self, peer):
+    @pyqtSlot(Peer, str)
+    def handle_new_node(self, peer, pubkey):
         pubkeys = [n.pubkey for n in self.nodes]
         if peer.pubkey not in pubkeys:
             logging.debug("New node found : {0}".format(peer.pubkey[:5]))
-            node = Node.from_peer(self.network_manager, self.currency, peer)
+            node = Node.from_peer(self.network_manager, self.currency, peer, pubkey)
             self.add_node(node)
             self.nodes_changed.emit()
 
