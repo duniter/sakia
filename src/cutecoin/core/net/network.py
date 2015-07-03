@@ -197,7 +197,7 @@ class Network(QObject):
             for node in self.nodes:
                 if self.continue_crawling():
                     yield from asyncio.sleep(2)
-                    node.refresh_identities()
+                    node.refresh()
         logging.debug("End of network discovery")
 
     @pyqtSlot(Peer)
