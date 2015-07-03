@@ -114,7 +114,7 @@ class Wallet(QObject):
         :param community: The community to refresh its cache
         """
         logging.debug("Refresh transactions for {0}".format(self.pubkey))
-        asyncio.async(self.caches[community.currency].refresh_identities(community, received_list))
+        asyncio.async(self.caches[community.currency].refresh(community, received_list))
 
     def check_password(self, salt, password):
         """

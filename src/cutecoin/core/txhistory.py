@@ -136,8 +136,7 @@ class TxHistory():
         :param list received_list: List of transactions received
         """
         parsed_block = self.latest_block
-        block_data = yield from community.blockid()
-        current_block = block_data['number']
+        current_block = community.network.latest_block
         logging.debug("Refresh from : {0} to {1}".format(self.latest_block, current_block))
         new_transfers = []
         # Lets look if transactions took too long to be validated
