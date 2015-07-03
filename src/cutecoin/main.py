@@ -20,7 +20,7 @@ if __name__ == '__main__':
     cutecoin = QApplication(sys.argv)
     loop = QEventLoop(cutecoin)
     asyncio.set_event_loop(loop)
-    logging.debug("Debug enabled : {0}".format(loop.get_debug()))
+    print("Debug enabled : {0}".format(loop.get_debug()))
 
     with loop:
         app = Application.startup(sys.argv, cutecoin, loop)
