@@ -148,7 +148,7 @@ class Community(QObject):
             return math.ceil(
                 max(
                     self.dividend(),
-                    float(0) if block['membersCount'] != 0 else
+                    float(0) if block['membersCount'] == 0 else
                     self.parameters['c'] * block['monetaryMass'] / block['membersCount']
                 )
             )
