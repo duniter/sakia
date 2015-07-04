@@ -958,7 +958,7 @@ Sie können die UID nur widerrufen, wenn sie noch nicht vom Netzwerk validiert w
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="168"></location>
         <source>The percent of previous issuers to reach for personalized difficulty</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Prozentsatz vorhergehender Emittenten, der erreicht werden muss, um den persönlichen Schwierigkeitsgrad zu erhalten</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="203"></location>
@@ -972,22 +972,31 @@ Sie können die UID nur widerrufen, wenn sie noch nicht vom Netzwerk validiert w
             &lt;tr&gt;&lt;td align="right"&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
             &lt;/table&gt;
             </source>
-        <translation type="unfinished"></translation>
+        <translation>
+            &lt;table cellpadding="5"&gt;
+            &lt;tr&gt;&lt;td align="right"&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+            &lt;tr&gt;&lt;td align="right"&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+            &lt;tr&gt;&lt;td align="right"&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+            &lt;tr&gt;&lt;td align="right"&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+            &lt;tr&gt;&lt;td align="right"&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+            &lt;tr&gt;&lt;td align="right"&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+            &lt;/table&gt;
+            </translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="203"></location>
         <source>Minimum delay between 2 identical certifications (in days)</source>
-        <translation type="unfinished"></translation>
+        <translation>Minimale Frist (in Tagen) zwischen zwei identischen Zertifizierungen</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="203"></location>
         <source>Maximum age of a valid signature (in days)</source>
-        <translation type="unfinished"></translation>
+        <translation>Maximales Alter einer validen Unterschrift (in Tagen)</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="203"></location>
         <source>Minimum quantity of signatures to be part of the WoT</source>
-        <translation type="unfinished"></translation>
+        <translation>Mindestanzahl an Unterschriften, um ein Teil des WoT zu werden</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="203"></location>
