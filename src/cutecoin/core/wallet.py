@@ -331,6 +331,18 @@ class Wallet(QObject):
         else:
             return []
 
+    def dividends(self, community):
+        """
+        Get all the dividends received by this wallet
+
+        :param community:  The community we want to get received dividends
+        :return: Result of udhistory request
+        """
+        if community.currency in self.caches:
+            return self.caches[community.currency].dividends
+        else:
+            return []
+
     def stop_coroutines(self):
         for c in self.caches.values():
             c.stop_coroutines()

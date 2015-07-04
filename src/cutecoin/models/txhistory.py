@@ -189,7 +189,7 @@ class HistoryTableModel(QAbstractTableModel):
 
     @property
     def transfers(self):
-        return self.account.transfers(self.community)
+        return self.account.transfers(self.community) + self.account.dividends(self.community)
 
     def data_received(self, transfer):
         amount = transfer.metadata['amount']
@@ -224,6 +224,16 @@ class HistoryTableModel(QAbstractTableModel):
         return (date_ts, receiver, amount,
                 "", comment, transfer.state, txid,
                 transfer.metadata['receiver'])
+
+    def data_dividend(self, dividend):
+        amount = dividend['amount']
+        comment = ""
+        receiver = self.account.name
+        date_ts = dividend['time']
+        udid = dividend['udid']
+        return (date_ts, receiver, amount,
+                "", "", Transfer.VALIDATED, udid,
+                self.account.pubkey)
 
     def refresh_transfers(self):
         self.beginResetModel()

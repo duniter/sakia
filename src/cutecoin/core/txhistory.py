@@ -13,6 +13,7 @@ class TxHistory():
 
         self._transfers = []
         self.available_sources = []
+        self._dividends = []
 
     @property
     def latest_block(self):
@@ -35,6 +36,9 @@ class TxHistory():
         for s in data['sources']:
             self.available_sources.append(InputSource.from_inline(s['inline']))
 
+        for d in data['dividends']:
+            self._dividends.append(d)
+
         self.latest_block = data['latest_block']
 
     def jsonify(self):
@@ -47,13 +51,22 @@ class TxHistory():
             s.index = 0
             data_sources.append({'inline': "{0}\n".format(s.inline())})
 
+        data_dividends = []
+        for d in self._dividends:
+            data_dividends.append(d)
+
         return {'latest_block': self.latest_block,
                 'transfers': data_transfer,
-                'sources': data_sources}
+                'sources': data_sources,
+                'dividends': data_dividends}
 
     @property
     def transfers(self):
         return [t for t in self._transfers if t.state != Transfer.DROPPED]
+
+    @property
+    def dividends(self):
+        return self._dividends.copy()
 
     def stop_coroutines(self):
         self._stop_coroutines = True
@@ -138,7 +151,15 @@ class TxHistory():
         parsed_block = self.latest_block
         current_block = community.network.latest_block
         logging.debug("Refresh from : {0} to {1}".format(self.latest_block, current_block))
+        dividends_data = yield from community.bma_access.future_request(qtbma.ud.History,
+                                                req_args={'pubkey': self.wallet.pubkey})
+        dividends = dividends_data['history']['history']
+        for d in dividends:
+            if d['block_number'] not in range(parsed_block, parsed_block+99):
+                dividends.remove(d)
+
         new_transfers = []
+        new_dividends = []
         # Lets look if transactions took too long to be validated
         awaiting = [t for t in self._transfers
                     if t.state == Transfer.AWAITING]
@@ -152,6 +173,12 @@ class TxHistory():
             if self._stop_coroutines:
                 return
 
+            udid = 0
+            for d in dividends:
+                if d['block_number'] in range(parsed_block, parsed_block+99):
+                    new_dividends.append(d)
+                    udid += 1
+
             # We parse only blocks with transactions
             transactions = tx_history['history']['received'] + tx_history['history']['sent']
             for (txid, txdata) in enumerate(transactions):
@@ -162,7 +189,7 @@ class TxHistory():
                                                                              parsed_block,
                                                                              current_block))
                 else:
-                    transfer = yield from self._parse_transaction(community, txdata, received_list, txid)
+                    transfer = yield from self._parse_transaction(community, txdata, received_list, udid + txid)
                     if transfer:
                         new_transfers.append(transfer)
 
@@ -179,5 +206,6 @@ class TxHistory():
             transfer.check_refused(current_block)
 
         self._transfers = self._transfers + new_transfers
+        self._dividends = self._dividends + new_dividends
 
         self.wallet.refresh_finished.emit(received_list)

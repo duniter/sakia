@@ -353,6 +353,16 @@ class Account(QObject):
             sent.extend(w.transfers(community))
         return sent
 
+    def dividends(self, community):
+        """
+        Get all dividends received in this community
+        by the first wallet of this account
+
+        :param community: The target community
+        :return: All account dividends
+        """
+        return self.wallets[0].dividends(community)
+
     @asyncio.coroutine
     def future_amount(self, community):
         """
