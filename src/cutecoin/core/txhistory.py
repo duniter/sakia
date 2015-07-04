@@ -151,8 +151,11 @@ class TxHistory():
         parsed_block = self.latest_block
         current_block = community.network.latest_block
         logging.debug("Refresh from : {0} to {1}".format(self.latest_block, current_block))
-        dividends_data = yield from community.bma_access.future_request(qtbma.ud.History,
+        dividends_data = qtbma.ud.History.null_value
+        while dividends_data == qtbma.ud.History.null_value:
+            dividends_data = yield from community.bma_access.future_request(qtbma.ud.History,
                                                 req_args={'pubkey': self.wallet.pubkey})
+
         dividends = dividends_data['history']['history']
         for d in dividends:
             if d['block_number'] not in range(parsed_block, parsed_block+99):
@@ -176,6 +179,7 @@ class TxHistory():
             udid = 0
             for d in dividends:
                 if d['block_number'] in range(parsed_block, parsed_block+99):
+                    d['id'] = udid
                     new_dividends.append(d)
                     udid += 1
 

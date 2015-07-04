@@ -230,9 +230,9 @@ class HistoryTableModel(QAbstractTableModel):
         comment = ""
         receiver = self.account.name
         date_ts = dividend['time']
-        udid = dividend['udid']
+        id = dividend['id']
         return (date_ts, receiver, amount,
-                "", "", Transfer.VALIDATED, udid,
+                "", "", Transfer.VALIDATED, id,
                 self.account.pubkey)
 
     def refresh_transfers(self):
@@ -241,8 +241,10 @@ class HistoryTableModel(QAbstractTableModel):
         for transfer in self.transfers:
             if type(transfer) is Received:
                 self.transfers_data.append(self.data_received(transfer))
-            else:
+            elif type(transfer) is Transfer:
                 self.transfers_data.append(self.data_sent(transfer))
+            elif type(transfer) is dict:
+                self.transfers_data.append(self.data_dividend(transfer))
         self.endResetModel()
 
     def rowCount(self, parent):
