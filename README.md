@@ -6,6 +6,8 @@ Travis | [![Build Status](https://travis-ci.org/ucoin-io/cutecoin.svg?branch=tra
 
 Appveyor | [![Build status](https://ci.appveyor.com/api/projects/status/0wmo0rk5mds5t3lr/branch/dev)](https://ci.appveyor.com/project/Insoleet/cutecoin/branch/dev)
 
+Weblate | [![Translation status](http://weblate.ucoin.io/widgets/cutecoin/-/svg-badge.svg)](http://weblate.ucoin.io/engage/cutecoin/?utm_source=widget)
+
 ![cutecoin logo](https://raw.github.com/ucoin-io/cutecoin/master/cutecoin.png)
 
 cutecoin
