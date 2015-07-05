@@ -8,7 +8,7 @@ from ..gen_resources.about_uic import Ui_AboutPopup
 
 from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog, QProgressBar, \
     QMessageBox, QLabel, QComboBox, QDialog, QApplication
-from PyQt5.QtCore import QSignalMapper, QObject, \
+from PyQt5.QtCore import QSignalMapper, QObject, QLocale, \
     pyqtSlot, pyqtSignal, QDate, QDateTime, QTimer, QUrl, Qt, QCoreApplication
 from PyQt5.QtGui import QIcon, QDesktopServices
 
@@ -101,14 +101,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @pyqtSlot()
     def update_time(self):
-        date = QDate.currentDate()
-        self.label_time.setText("{0}".format(date.toString("dd/MM/yyyy")))
-        next_day = date.addDays(1)
-        current_time = QDateTime().currentDateTime().toMSecsSinceEpoch()
-        next_time = QDateTime(next_day).toMSecsSinceEpoch()
+        dateTime = QDateTime.currentDateTime()
+        self.label_time.setText("{0}".format(QLocale.toString(
+                        QLocale(),
+                        QDateTime.currentDateTime(),
+                        QLocale.dateTimeFormat(QLocale(), QLocale.NarrowFormat)
+                    )))
         timer = QTimer()
         timer.timeout.connect(self.update_time)
-        timer.start(next_time - current_time)
+        timer.start(1000)
 
     @pyqtSlot()
     def delete_contact(self):
