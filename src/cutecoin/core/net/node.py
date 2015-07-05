@@ -421,7 +421,7 @@ class Node(QObject):
                 leaves = [leaf for leaf in peers_data['leaves']
                           if leaf not in self._last_merkle['leaves']]
                 for leaf_hash in leaves:
-                    conn_handler = ConnectionHandler(self.network_manager)
+                    conn_handler = self.endpoint.conn_handler(self.network_manager)
                     leaf_reply = qtbma.network.peering.Peers(conn_handler).get(leaf=leaf_hash)
                     leaf_reply.finished.connect(self.handle_leaf_reply)
                 self._last_merkle = {'root' : peers_data['root'],

@@ -16,17 +16,25 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
     classdocs
     """
 
-    def __init__(self, account, community):
+    def __init__(self, app, community):
         """
-        Constructor
+        Constructor of the InformationsTabWidget
+
+        :param app: cutecoin.core.Application
+        :param community: cutecoin.core.Community
+        :return:
         """
         super().__init__()
-        self.setupUi(self)
+        self.app = app
         self.community = community
         self.community.inner_data_changed.connect(self.refresh)
-        self.account = account
 
+        self.setupUi(self)
         self.refresh()
+
+    @property
+    def account(self):
+        return self.app.current_account
 
     def refresh(self):
         #  try to request money parameters
@@ -88,7 +96,7 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                     )
             else:
                 # display float values
-                localized_ud = QLocale().toString(ud, 'f', 6)
+                localized_ud = QLocale().toString(ud, 'f', self.app.preferences['digits_after_comma'])
                 # display float values
                 localized_ud_plus_1 = QLocale().toString(
                     float(
@@ -97,25 +105,25 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                         )
                     ),
                     'f',
-                    6
+                    self.app.preferences['digits_after_comma']
                 )
                 localized_mass = QLocale().toString(
-                    float(self.get_referential_diff_value(block_ud['monetaryMass'])), 'f', 6
+                    float(self.get_referential_diff_value(block_ud['monetaryMass'])), 'f', self.app.preferences['digits_after_comma']
                 )
                 if block_ud_minus_1:
                     localized_mass_minus_1_per_member = QLocale().toString(
                         self.get_referential_diff_value(float(0) if block_ud['membersCount'] == 0 else
-                            block_ud_minus_1['monetaryMass'] / block_ud['membersCount']), 'f', 6
+                            block_ud_minus_1['monetaryMass'] / block_ud['membersCount']), 'f', self.app.preferences['digits_after_comma']
                     )
                     localized_mass_minus_1 = QLocale().toString(
-                        self.get_referential_diff_value(block_ud_minus_1['monetaryMass']), 'f', 6
+                        self.get_referential_diff_value(block_ud_minus_1['monetaryMass']), 'f', self.app.preferences['digits_after_comma']
                     )
                 else:
                     localized_mass_minus_1_per_member = QLocale().toString(
-                        float(0), 'f', 6
+                        float(0), 'f', self.app.preferences['digits_after_comma']
                     )
                     localized_mass_minus_1 = QLocale().toString(
-                        float(0), 'f', 6
+                        float(0), 'f', self.app.preferences['digits_after_comma']
                     )
 
             # set infos in label

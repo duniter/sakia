@@ -53,7 +53,7 @@ class Application(QObject):
                             'lang': 'en_GB',
                             'ref': 0,
                             'expert_mode': False,
-                            'digits_after_comma': 8,
+                            'digits_after_comma': 6,
                             'maximized': False
                             }
 

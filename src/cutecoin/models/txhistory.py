@@ -17,11 +17,15 @@ class TxFilterProxyModel(QSortFilterProxyModel):
     def __init__(self, ts_from, ts_to, parent=None):
         super().__init__(parent)
         self.community = None
-        self.account = None
+        self.app = None
         self.ts_from = ts_from
         self.ts_to = ts_to
         self.payments = 0
         self.deposits = 0
+
+    @property
+    def account(self):
+        return self.app.current_account
 
     def set_period(self, ts_from, ts_to):
         """
@@ -66,7 +70,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
 
     def setSourceModel(self, sourceModel):
         self.community = sourceModel.community
-        self.account = sourceModel.account
+        self.app = sourceModel.app
         super().setSourceModel(sourceModel)
 
     def lessThan(self, left, right):
@@ -115,7 +119,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                         return QLocale().toString(float(amount_ref), 'f', 0)
                     else:
                         # display float values
-                        return QLocale().toString(amount_ref, 'f', 6)
+                        return QLocale().toString(amount_ref, 'f', self.app.preferences['digits_after_comma'])
 
         if role == Qt.FontRole:
             font = QFont()
@@ -154,12 +158,12 @@ class HistoryTableModel(QAbstractTableModel):
     A Qt abstract item model to display communities in a tree
     """
 
-    def __init__(self, account, community, parent=None):
+    def __init__(self, app, community, parent=None):
         """
         Constructor
         """
         super().__init__(parent)
-        self.account = account
+        self.app = app
         self.community = community
         self.account.referential
         self.transfers_data = []
@@ -186,6 +190,10 @@ class HistoryTableModel(QAbstractTableModel):
             'TXID'
             'Pubkey'
         )
+
+    @property
+    def account(self):
+        return self.app.current_account
 
     @property
     def transfers(self):

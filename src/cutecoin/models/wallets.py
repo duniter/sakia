@@ -11,14 +11,18 @@ class WalletsFilterProxyModel(QSortFilterProxyModel):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.community = None
-        self.account = None
+        self.app = None
+
+    @property
+    def account(self):
+        return self.app.current_account
 
     def columnCount(self, parent):
         return self.sourceModel().columnCount(None)
 
     def setSourceModel(self, source_model):
         self.community = source_model.community
-        self.account = source_model.account
+        self.app = source_model.app
         super().setSourceModel(source_model)
 
     def lessThan(self, left, right):
@@ -45,7 +49,8 @@ class WalletsFilterProxyModel(QSortFilterProxyModel):
                     return QLocale().toString(float(amount_ref), 'f', 0)
                 else:
                     # display float values
-                    return QLocale().toString(amount_ref, 'f', 6)
+                    return QLocale().toString(amount_ref, 'f',
+                                                  self.app.preferences['digits_after_comma'])
 
         if role == Qt.TextAlignmentRole:
             if source_index.column() == self.sourceModel().columns_types.index('amount'):
@@ -60,7 +65,7 @@ class WalletsTableModel(QAbstractTableModel):
     A Qt list model to display wallets and edit their names
     """
 
-    def __init__(self, account, community, parent=None):
+    def __init__(self, app, community, parent=None):
         """
 
         :param list of cutecoin.core.wallet.Wallet wallets: The list of wallets to display
@@ -70,7 +75,7 @@ class WalletsTableModel(QAbstractTableModel):
         :rtype: WalletsTableModel
         """
         super().__init__(parent)
-        self.account = account
+        self.app = app
         self.account.wallets_changed.connect(self.refresh_account_wallets)
 
         self.community = community
@@ -78,6 +83,10 @@ class WalletsTableModel(QAbstractTableModel):
                                 self.tr('Amount'),
                                 self.tr('Pubkey'))
         self.columns_types = ('name', 'amount', 'pubkey')
+
+    @property
+    def account(self):
+        return self.app.current_account
 
     @property
     def wallets(self):

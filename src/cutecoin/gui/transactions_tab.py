@@ -55,11 +55,12 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         self.date_to.setMaximumDateTime(tomorrow_datetime)
 
     def refresh(self):
+        #TODO: Use resetmodel instead of destroy/create
         self.refresh_minimum_maximum()
         ts_from = self.date_from.dateTime().toTime_t()
         ts_to = self.date_to.dateTime().toTime_t()
 
-        model = HistoryTableModel(self.app.current_account, self.community)
+        model = HistoryTableModel(self.app, self.community)
         proxy = TxFilterProxyModel(ts_from, ts_to)
         proxy.setSourceModel(model)
         proxy.setDynamicSortFilter(True)

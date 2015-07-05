@@ -47,7 +47,8 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
         self.refresh_wallets()
 
     def refresh_wallets(self):
-        wallets_model = WalletsTableModel(self.account, self.community)
+        #TODO: Using reset model instead of destroy/create
+        wallets_model = WalletsTableModel(self.app, self.community)
         proxy_model = WalletsFilterProxyModel()
         proxy_model.setSourceModel(wallets_model)
         wallets_model.dataChanged.connect(self.wallet_changed)
@@ -122,9 +123,12 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
             localized_maximum = QLocale().toString(float(self.get_referential_value(maximum)), 'f', 0)
         else:
             # display float values
-            localized_amount = QLocale().toString(float(self.get_referential_value(amount)), 'f', 6)
-            localized_minimum = QLocale().toString(float(self.get_referential_value(0)), 'f', 6)
-            localized_maximum = QLocale().toString(float(self.get_referential_value(maximum)), 'f', 6)
+            localized_amount = QLocale().toString(float(self.get_referential_value(amount)), 'f',
+                                                  self.app.preferences['digits_after_comma'])
+            localized_minimum = QLocale().toString(float(self.get_referential_value(0)), 'f',
+                                                  self.app.preferences['digits_after_comma'])
+            localized_maximum = QLocale().toString(float(self.get_referential_value(maximum)), 'f',
+                                                  self.app.preferences['digits_after_comma'])
 
         # set infos in label
         self.label_balance.setText(

@@ -252,9 +252,7 @@ class BmaAccess(QObject):
             nodes = self._network.synced_nodes
             if len(nodes) > 0:
                 node = random.choice(nodes)
-                server = node.endpoint.conn_handler().server
-                port = node.endpoint.conn_handler().port
-                conn_handler = ConnectionHandler(self._network.network_manager, server, port)
+                conn_handler = node.endpoint.conn_handler(self._network.network_manager)
                 req = request(conn_handler, **req_args)
                 reply = req.get(**get_args)
                 reply.finished.connect(lambda: handle_future_reply(reply))
@@ -300,9 +298,7 @@ class BmaAccess(QObject):
         replies = []
         for node in nodes:
             logging.debug("Trying to connect to : " + node.pubkey)
-            server = node.endpoint.conn_handler().server
-            port = node.endpoint.conn_handler().port
-            conn_handler = ConnectionHandler(self._network.network_manager, server, port)
+            conn_handler = node.endpoint.conn_handler(self._network.network_manager)
             req = request(conn_handler, **req_args)
             reply = req.post(**post_args)
             replies.append(reply)

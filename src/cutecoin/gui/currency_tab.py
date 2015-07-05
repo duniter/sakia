@@ -63,7 +63,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                                  self.password_asker,
                                                  self)
 
-        self.tab_informations = InformationsTabWidget(self.app.current_account,
+        self.tab_informations = InformationsTabWidget(self.app,
                                                 self.community)
 
         self.tab_network = NetworkTabWidget(self.app,
