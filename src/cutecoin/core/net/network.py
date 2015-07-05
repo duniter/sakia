@@ -186,9 +186,8 @@ class Network(QObject):
         node = self.nodes[index]
         return self._root_nodes.index(node)
 
-    @asyncio.coroutine
     def refresh_once(self):
-        for node in self.nodes:
+        for node in self._nodes:
             node.refresh()
 
     @asyncio.coroutine

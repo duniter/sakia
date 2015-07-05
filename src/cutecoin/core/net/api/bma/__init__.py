@@ -126,4 +126,4 @@ class API(object):
         logging.debug(url.toString(QUrl.FullyEncoded))
         return reply
 
-from . import network, blockchain, tx, wot, ud
+from . import network, blockchain, tx, wot, ud, node

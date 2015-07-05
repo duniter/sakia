@@ -2,6 +2,7 @@ from PyQt5.QtCore import QObject, pyqtSlot
 from PyQt5.QtNetwork import QNetworkReply
 from . import blockchain, ConnectionHandler
 from .....tools.exceptions import NoPeerAvailable
+from ..... import __version__
 import logging
 import json
 import asyncio
@@ -161,6 +162,7 @@ class BmaAccess(QObject):
                 self._data[cache_key]['value'] = {}
 
         self._data[cache_key]['metadata']['block'] = self._network.latest_block
+        self._data[cache_key]['metadata']['cutecoin_version'] = __version__
         if not self._compare_json(self._data[cache_key]['value'], data):
             self._data[cache_key]['value'] = data
             return True

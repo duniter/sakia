@@ -96,6 +96,6 @@ class NetworkTabWidget(QWidget, Ui_NetworkTabWidget):
         QDesktopServices.openUrl(url)
 
     def manual_nodes_refresh(self):
-        asyncio.async(self.community.network.refresh_once())
+        self.community.network.refresh_once()
 
 
