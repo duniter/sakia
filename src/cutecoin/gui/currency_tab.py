@@ -66,7 +66,8 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         self.tab_informations = InformationsTabWidget(self.app.current_account,
                                                 self.community)
 
-        self.tab_network = NetworkTabWidget(self.community)
+        self.tab_network = NetworkTabWidget(self.app,
+                                            self.community)
 
         self.tabs_account.addTab(self.tab_wallets,
                                  QIcon(':/icons/wallet_icon'),

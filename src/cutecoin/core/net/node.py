@@ -4,9 +4,10 @@ Created on 21 févr. 2015
 @author: inso
 """
 
-from ucoinpy.documents.peer import Peer, BMAEndpoint, Endpoint
+from ucoinpy.documents.peer import Peer
 from ...tools.exceptions import InvalidNodeCurrency
 from ..net.api import bma as qtbma
+from ..net.endpoint import Endpoint, BMAEndpoint
 from ..net.api.bma import ConnectionHandler
 
 import asyncio
@@ -289,9 +290,7 @@ class Node(QObject):
         self.refresh_summary()
 
     def refresh_block(self):
-        conn_handler = ConnectionHandler(self.network_manager,
-                                         self.endpoint.conn_handler().server,
-                                         self.endpoint.conn_handler().port)
+        conn_handler = self.endpoint.conn_handler(self.network_manager)
 
         logging.debug("Requesting {0}".format(conn_handler))
         reply = qtbma.blockchain.Current(conn_handler).get()
@@ -321,9 +320,7 @@ class Node(QObject):
             logging.debug("Error in block reply")
 
     def refresh_informations(self):
-        conn_handler = ConnectionHandler(self.network_manager,
-                                         self.endpoint.conn_handler().server,
-                                         self.endpoint.conn_handler().port)
+        conn_handler = self.endpoint.conn_handler(self.network_manager)
 
         peering_reply = qtbma.network.Peering(conn_handler).get()
         peering_reply.finished.connect(self.handle_peering_reply)
@@ -356,9 +353,7 @@ class Node(QObject):
             logging.debug("Error in peering reply")
 
     def refresh_summary(self):
-        conn_handler = ConnectionHandler(self.network_manager,
-                                         self.endpoint.conn_handler().server,
-                                         self.endpoint.conn_handler().port)
+        conn_handler = self.endpoint.conn_handler(self.network_manager)
 
         summary_reply = qtbma.node.Summary(conn_handler).get()
         summary_reply.finished.connect(self.handle_summary_reply)
@@ -375,9 +370,7 @@ class Node(QObject):
             self.version = summary_data["ucoin"]["version"]
 
     def refresh_uid(self):
-        conn_handler = ConnectionHandler(self.network_manager,
-                                         self.endpoint.conn_handler().server,
-                                         self.endpoint.conn_handler().port)
+        conn_handler = self.endpoint.conn_handler(self.network_manager)
         uid_reply = qtbma.wot.Lookup(conn_handler, self.pubkey).get()
         uid_reply.finished.connect(self.handle_uid_reply)
         uid_reply.error.connect(lambda code: logging.debug("Error : {0}".format(code)))
@@ -410,9 +403,7 @@ class Node(QObject):
             logging.debug("error in uid reply")
 
     def refresh_peers(self):
-        conn_handler = ConnectionHandler(self.network_manager,
-                                         self.endpoint.conn_handler().server,
-                                         self.endpoint.conn_handler().port)
+        conn_handler = self.endpoint.conn_handler(self.network_manager)
 
         reply = qtbma.network.peering.Peers(conn_handler).get(leaves='true')
         reply.finished.connect(self.handle_peers_reply)
@@ -430,9 +421,7 @@ class Node(QObject):
                 leaves = [leaf for leaf in peers_data['leaves']
                           if leaf not in self._last_merkle['leaves']]
                 for leaf_hash in leaves:
-                    conn_handler = ConnectionHandler(self.network_manager,
-                                                     self.endpoint.conn_handler().server,
-                                                     self.endpoint.conn_handler().port)
+                    conn_handler = ConnectionHandler(self.network_manager)
                     leaf_reply = qtbma.network.peering.Peers(conn_handler).get(leaf=leaf_hash)
                     leaf_reply.finished.connect(self.handle_leaf_reply)
                 self._last_merkle = {'root' : peers_data['root'],

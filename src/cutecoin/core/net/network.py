@@ -10,7 +10,7 @@ import time
 import asyncio
 from ucoinpy.documents.peer import Peer
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QCoreApplication, QTimer
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
 
 
 class Network(QObject):

@@ -1,6 +1,6 @@
 from PyQt5.QtCore import QObject, pyqtSlot
 from PyQt5.QtNetwork import QNetworkReply
-from . import blockchain, network, node, tx, wot, ConnectionHandler
+from . import blockchain, ConnectionHandler
 from .....tools.exceptions import NoPeerAvailable
 import logging
 import json
@@ -276,10 +276,7 @@ class BmaAccess(QObject):
         nodes = self._network.synced_nodes
         if len(nodes) > 0:
             node = random.choice(nodes)
-            server = node.endpoint.conn_handler().server
-            port = node.endpoint.conn_handler().port
-            conn_handler = ConnectionHandler(self._network.network_manager, server, port)
-            req = request(conn_handler, **req_args)
+            req = request(node.endpoint.conn_handler(self._network.network_manager), **req_args)
             reply = req.get(**get_args)
             return reply
         else:
