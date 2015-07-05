@@ -7,10 +7,11 @@ Created on 2 févr. 2014
 import time
 import logging
 from PyQt5.QtWidgets import QWidget, QMessageBox
-from PyQt5.QtCore import QModelIndex, pyqtSlot, QDateTime
+from PyQt5.QtCore import QModelIndex, pyqtSlot, QDateTime, QLocale
 from PyQt5.QtGui import QIcon
 from ..gen_resources.currency_tab_uic import Ui_CurrencyTabWidget
 
+from ..core.net.api import bma as qtbma
 from .community_tab import CommunityTabWidget
 from .wallets_tab import WalletsTabWidget
 from .transactions_tab import TransactionsTabWidget
@@ -91,6 +92,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
 
         self.community.network.new_block_mined.connect(self.refresh_block)
         self.community.network.nodes_changed.connect(self.refresh_status)
+        self.community.inner_data_changed.connect(self.refresh_status)
 
     @pyqtSlot(str)
     def display_error(self, error):
@@ -159,6 +161,15 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         """
         logging.debug("Refresh status")
         text = self.tr(" Block {0}").format(self.community.network.latest_block)
+
+        blockchain_time = self.community.get_block(self.community.network.latest_block)['medianTime']
+        if blockchain_time != qtbma.blockchain.Block.null_value:
+            text += " ( {0} )".format(QLocale.toString(
+                        QLocale(),
+                        QDateTime.fromTime_t(blockchain_time),
+                        QLocale.dateTimeFormat(QLocale(), QLocale.NarrowFormat)
+                    ))
+
         if self.community.network.quality > 0.66:
             icon = '<img src=":/icons/connected" width="12" height="12"/>'
         elif self.community.network.quality > 0.33:
@@ -169,6 +180,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         label_text = "{0}{1}".format(icon, text)
         if status_infotext != "":
             label_text += " - {0}".format(status_infotext)
+
         self.status_label.setText(label_text)
 
     def showEvent(self, event):
