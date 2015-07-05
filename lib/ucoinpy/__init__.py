@@ -19,3 +19,5 @@
 PROTOCOL_VERSION="1"
 
 MANAGED_API=["BASIC_MERKLED_API"]
+
+from . import api, documents, key

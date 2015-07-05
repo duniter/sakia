@@ -1,8 +1,8 @@
-'''
+"""
 Created on 2 déc. 2014
 
 @author: inso
-'''
+"""
 import re
 import base64
 import logging
@@ -11,9 +11,9 @@ from . import Document
 
 
 class SelfCertification(Document):
-    '''
+    """
     A document discribing a self certification.
-    '''
+    """
 
     re_inline = re.compile("([1-9A-Za-z][^OIl]{42,45}):([A-Za-z0-9+/]+(?:=|==)?):([0-9]+):([^\n]+)\n")
     re_uid = re.compile("UID:([^\n]+)\n")
@@ -48,9 +48,9 @@ META:TS:{1}
 
 
 class Certification(Document):
-    '''
+    """
     A document describing a certification.
-    '''
+    """
 
     re_inline = re.compile("([1-9A-Za-z][^OIl]{42,45}):\
 ([1-9A-Za-z][^OIl]{42,45}):([0-9]+):([A-Za-z0-9+/]+(?:=|==)?)\n")
@@ -58,9 +58,9 @@ class Certification(Document):
 
     def __init__(self, version, currency, pubkey_from, pubkey_to,
                  blocknumber, blockhash, signature):
-        '''
+        """
         Constructor
-        '''
+        """
         super().__init__(version, currency, [signature])
         self.pubkey_from = pubkey_from
         self.pubkey_to = pubkey_to
@@ -85,10 +85,10 @@ class Certification(Document):
 
 
     def sign(self, selfcert, keys):
-        '''
+        """
         Sign the current document.
         Warning : current signatures will be replaced with the new ones.
-        '''
+        """
         self.signatures = []
         for key in keys:
             signing = base64.b64encode(key.signature(bytes(self.raw(selfcert), 'ascii')))
@@ -107,13 +107,13 @@ class Certification(Document):
 
 
 class Revocation(Document):
-    '''
+    """
     A document describing a self-revocation.
-    '''
+    """
     def __init__(self, version, currency, signature):
-        '''
+        """
         Constructor
-        '''
+        """
         super().__init__(version, currency, [signature])
 
     def raw(self, selfcert):
@@ -121,10 +121,10 @@ class Revocation(Document):
 """.format(selfcert.signed_raw())
 
     def sign(self, selfcert, keys):
-        '''
+        """
         Sign the current document.
         Warning : current signatures will be replaced with the new ones.
-        '''
+        """
         self.signatures = []
         for key in keys:
             signing = base64.b64encode(key.signature(bytes(self.raw(selfcert), 'ascii')))

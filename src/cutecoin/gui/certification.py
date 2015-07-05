@@ -1,27 +1,29 @@
-'''
+"""
 Created on 24 dec. 2014
 
 @author: inso
-'''
+"""
 from PyQt5.QtWidgets import QDialog, QMessageBox, QDialogButtonBox, QApplication
-from PyQt5.QtCore import Qt
-from ..tools.exceptions import NoPeerAvailable
+from PyQt5.QtCore import Qt, pyqtSlot
+import quamash
 from ..gen_resources.certification_uic import Ui_CertificationDialog
 from . import toast
+import asyncio
 
 
 class CertificationDialog(QDialog, Ui_CertificationDialog):
 
-    '''
+    """
     classdocs
-    '''
+    """
 
-    def __init__(self, certifier, password_asker):
-        '''
+    def __init__(self, certifier, app, password_asker):
+        """
         Constructor
-        '''
+        """
         super().__init__()
         self.setupUi(self)
+        self.app = app
         self.account = certifier
         self.password_asker = password_asker
         self.community = self.account.communities[0]
@@ -43,31 +45,30 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
         if password == "":
             return
 
-        try:
-            QApplication.setOverrideCursor(Qt.WaitCursor)
-            self.account.certify(password, self.community, pubkey)
-            toast.display(self.tr("Certification"),
-                          self.tr("Success certifying {0} from {1}").format(pubkey,
-                                                                          self.community.currency))
-        except ValueError as e:
-            QMessageBox.critical(self, self.tr("Certification"),
-                                 self.tr("Something wrong happened : {0}").format(e),
-                                 QMessageBox.Ok)
-            return
-        except NoPeerAvailable as e:
-            QMessageBox.critical(self, self.tr("Certification"),
-                                 self.tr("Couldn't connect to network : {0}").format(e),
-                                 QMessageBox.Ok)
-            return
-        except Exception as e:
-            QMessageBox.critical(self, self.tr("Error"),
-                                 "{0}".format(e),
-                                 QMessageBox.Ok)
-            return
-        finally:
-            QApplication.restoreOverrideCursor()
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        self.account.certification_broadcasted.connect(lambda: self.certification_sent(self.community,
+                                                                                                pubkey))
+        self.account.broadcast_error.connect(self.handle_error)
 
+        asyncio.async(self.account.certify(password, self.community, pubkey))
+
+    def certification_sent(self, pubkey, currency):
+        toast.display(self.tr("Certification"),
+                      self.tr("Success certifying {0} from {1}").format(pubkey, currency))
+        self.account.certification_broadcasted.disconnect()
+        self.account.broadcast_error.disconnect(self.handle_error)
+        QApplication.restoreOverrideCursor()
         super().accept()
+
+    @pyqtSlot(int, str)
+    def handle_error(self, error_code, text):
+        if self.app.preferences['notifications']:
+            toast.display(self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
+        else:
+            QMessageBox.Critical(self, self.tr("Error", self.tr("{0} : {1}".format(error_code, text))))
+        self.account.certification_broadcasted.disconnect()
+        self.account.broadcast_error.disconnect(self.handle_error)
+        QApplication.restoreOverrideCursor()
 
     def change_current_community(self, index):
         self.community = self.account.communities[index]

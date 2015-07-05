@@ -1,27 +1,31 @@
-'''
+"""
 Created on 2 févr. 2014
 
 @author: inso
-'''
+"""
 from PyQt5.QtWidgets import QDialog, QMessageBox, QApplication
-from PyQt5.QtCore import QRegExp, Qt, QLocale
+from PyQt5.QtCore import QRegExp, Qt, QLocale, pyqtSlot
 from PyQt5.QtGui import QRegExpValidator
 
-from ..tools.exceptions import NotEnoughMoneyError, NoPeerAvailable
 from ..gen_resources.transfer_uic import Ui_TransferMoneyDialog
 from . import toast
+import asyncio
 
 
 class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
 
-    '''
+    """
     classdocs
-    '''
+    """
 
-    def __init__(self, sender, password_asker):
-        '''
+    def __init__(self, app, sender, password_asker):
+        """
         Constructor
-        '''
+        :param cutecoin.core.Application app: The application
+        :param cutecoin.core.Account sender: The sender
+        :param cutecoin.gui.password_asker.Password_Asker password_asker: The password asker
+        :return:
+        """
         super().__init__()
         self.setupUi(self)
         self.account = sender
@@ -30,7 +34,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         self.wallet = None
         self.community = self.account.communities[0]
         self.wallet = self.account.wallets[0]
-        self.dividend = self.community.dividend
+        self.dividend = self.community.dividend()
 
         regexp = QRegExp('^([ a-zA-Z0-9-_:/;*?\[\]\(\)\\\?!^+=@&~#{}|<>%.]{0,255})$')
         validator = QRegExpValidator(regexp)
@@ -70,39 +74,35 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         if self.password_asker.result() == QDialog.Rejected:
             return
 
-        try:
-            QApplication.setOverrideCursor(Qt.WaitCursor)
-            QApplication.processEvents()
-            self.wallet.send_money(self.account.salt, password, self.community,
-                                       recipient, amount, comment)
-            toast.display(self.tr("Money transfer"),
-                          self.tr("Success transfering {0} {1} to {2}").format(amount,
-                                                                             self.community.currency,
-                                                                             recipient))
-        except ValueError as e:
-            QMessageBox.critical(self, self.tr("Money transfer"),
-                                 self.tr("Something wrong happened : {0}").format(e),
-                                 QMessageBox.Ok)
-            return
-        except NotEnoughMoneyError as e:
-            QMessageBox.warning(self, self.tr("Money transfer"),
-                                 self.tr("""This transaction could not be sent on this block
-Please try again later"""))
-        except NoPeerAvailable as e:
-            QMessageBox.critical(self, self.tr("Money transfer"),
-                                 self.tr("Couldn't connect to network : {0}").format(e),
-                                 QMessageBox.Ok)
-            return
-        except Exception as e:
-            QMessageBox.critical(self, self.tr("Error"),
-                                 "{0}".format(str(e)),
-                                 QMessageBox.Ok)
-            return
-        finally:
-            QApplication.restoreOverrideCursor()
-            QApplication.processEvents()
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.processEvents()
+        self.wallet.transfer_broadcasted.connect(self.money_sent)
+        self.wallet.broadcast_error.connect(self.handle_error)
+        asyncio.async(self.wallet.send_money(self.account.salt, password, self.community,
+                                   recipient, amount, comment))
 
+    @pyqtSlot(str)
+    def money_sent(self, receiver_uid):
+        if self.app.preferences['notifications']:
+            toast.display(self.tr("Transfer"),
+                      self.tr("Success sending money to {0}").format(receiver_uid))
+        else:
+            QMessageBox.information(self, self.tr("Transfer"),
+                      self.tr("Success sending money to {0}").format(receiver_uid))
+        self.wallet.transfer_broadcasted.disconnect()
+        self.wallet.broadcast_error.disconnect(self.handle_error)
+        QApplication.restoreOverrideCursor()
         super().accept()
+
+    @pyqtSlot(int, str)
+    def handle_error(self, error_code, text):
+        if self.app.preferences['notifications']:
+            toast.display(self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
+        else:
+            QMessageBox.critical(self, self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
+        self.wallet.transfer_broadcasted.disconnect()
+        self.wallet.broadcast_error.disconnect(self.handle_error)
+        QApplication.restoreOverrideCursor()
 
     def amount_changed(self):
         amount = self.spinbox_amount.value()
@@ -120,7 +120,7 @@ Please try again later"""))
 
     def change_current_community(self, index):
         self.community = self.account.communities[index]
-        self.dividend = self.community.dividend
+        self.dividend = self.community.dividend()
         amount = self.wallet.value(self.community)
         ref_amount = self.account.units_to_ref(amount, self.community)
         ref_name = self.account.ref_name(self.community.currency)

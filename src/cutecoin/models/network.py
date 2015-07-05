@@ -1,14 +1,16 @@
-'''
+"""
 Created on 5 févr. 2014
 
 @author: inso
-'''
+"""
 
 import logging
-from ..tools.exceptions import NoPeerAvailable
-from ..core.net.node import Node
+
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel
 from PyQt5.QtGui import QColor, QFont
+
+from ..tools.exceptions import NoPeerAvailable
+from cutecoin.core.net.node import Node
 
 
 class NetworkFilterProxyModel(QSortFilterProxyModel):
@@ -81,14 +83,14 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
 
 
 class NetworkTableModel(QAbstractTableModel):
-    '''
+    """
     A Qt abstract item model to display
-    '''
+    """
 
     def __init__(self, community, parent=None):
-        '''
+        """
         Constructor
-        '''
+        """
         super().__init__(parent)
         self.community = community
         self.columns_types = (

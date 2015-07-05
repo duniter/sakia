@@ -25,10 +25,13 @@ install:
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION cx_freeze pyqt5 libpng=1.5.13 libsodium=1.0.3
   - source activate test-environment
   - ldd $HOME/miniconda/envs/test-environment/lib/qt5/plugins/platforms/*.so
+  - pip install coveralls
   - pip install pylibscrypt
   - pip install libnacl
   - pip install requests
   - pip install base58
+  - pip install quamash
+  - pip install asyncio
   - python gen_resources.py
   - python gen_translations.py
   - python setup.py build
@@ -45,4 +48,8 @@ script:
   - export QT_QPA_PLATFORM_PLUGIN_PATH=$HOME/miniconda/envs/test-environment/lib/qt5/plugins/platforms;
   - export QT_PLUGIN_PATH=$HOME/miniconda/envs/test-environment/lib/qt5/plugins
   - export QT_XKB_CONFIG_ROOT=/usr/share/X11/xkb
-  - python run_tests.py
+  - coverage run --source=cutecoin.core,cutecoin.gui,cutecoin.models run_tests.py
+
+after_success:
+  - coverage -rm
+  - coveralls

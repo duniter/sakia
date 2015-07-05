@@ -16,37 +16,37 @@
 <context>
     <name>Account</name>
     <message>
-        <location filename="../../../src/cutecoin/core/account.py" line="103"/>
+        <location filename="../../../src/cutecoin/core/account.py" line="112"/>
         <source>Units</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/core/account.py" line="103"/>
+        <location filename="../../../src/cutecoin/core/account.py" line="112"/>
         <source>UD {0}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/core/account.py" line="103"/>
+        <location filename="../../../src/cutecoin/core/account.py" line="112"/>
         <source>UD</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/core/account.py" line="103"/>
+        <location filename="../../../src/cutecoin/core/account.py" line="112"/>
         <source>Q0 {0}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/core/account.py" line="103"/>
+        <location filename="../../../src/cutecoin/core/account.py" line="112"/>
         <source>Quant Z-sum</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/core/account.py" line="103"/>
+        <location filename="../../../src/cutecoin/core/account.py" line="112"/>
         <source>R0 {0}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/core/account.py" line="103"/>
+        <location filename="../../../src/cutecoin/core/account.py" line="112"/>
         <source>Relat Z-sum</source>
         <translation type="unfinished"></translation>
     </message>
@@ -132,7 +132,7 @@
 <context>
     <name>CertificationDialog</name>
     <message>
-        <location filename="../../../src/cutecoin/gui/certification.py" line="58"/>
+        <location filename="../../../src/cutecoin/gui/certification.py" line="56"/>
         <source>Certification</source>
         <translation type="unfinished"></translation>
     </message>
@@ -162,33 +162,28 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/certification.py" line="49"/>
+        <location filename="../../../src/cutecoin/gui/certification.py" line="56"/>
         <source>Success certifying {0} from {1}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/certification.py" line="53"/>
-        <source>Something wrong happened : {0}</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/certification.py" line="58"/>
-        <source>Couldn&apos;t connect to network : {0}</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/certification.py" line="63"/>
+        <location filename="../../../src/cutecoin/gui/certification.py" line="68"/>
         <source>Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/certification.py" line="76"/>
+        <location filename="../../../src/cutecoin/gui/certification.py" line="77"/>
         <source>Ok</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/certification.py" line="79"/>
+        <location filename="../../../src/cutecoin/gui/certification.py" line="80"/>
         <source>Not a member</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/certification.py" line="68"/>
+        <source>{0} : {1}</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -210,28 +205,33 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../ui/community_cfg.ui" line="100"/>
+        <location filename="../../ui/community_cfg.ui" line="124"/>
         <source>Communities nodes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../ui/community_cfg.ui" line="118"/>
+        <location filename="../../ui/community_cfg.ui" line="142"/>
         <source>Server</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../ui/community_cfg.ui" line="138"/>
+        <location filename="../../ui/community_cfg.ui" line="162"/>
         <source>Add</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../ui/community_cfg.ui" line="159"/>
+        <location filename="../../ui/community_cfg.ui" line="183"/>
         <source>Previous</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../ui/community_cfg.ui" line="182"/>
+        <location filename="../../ui/community_cfg.ui" line="206"/>
         <source>Next</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../ui/community_cfg.ui" line="98"/>
+        <source>Check node connectivity</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -273,7 +273,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="334"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="351"/>
         <source>Renew membership</source>
         <translation type="unfinished"></translation>
     </message>
@@ -283,153 +283,127 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="57"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="59"/>
         <source>Web of Trust</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="58"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="60"/>
         <source>Members</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="61"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="63"/>
         <source>Direct connections</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="79"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="104"/>
         <source>Informations</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="83"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="107"/>
         <source>Add as contact</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="87"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="111"/>
         <source>Send money</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="91"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="115"/>
         <source>Certify identity</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="95"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="119"/>
         <source>View in Web of Trust</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="202"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="78"/>
         <source>Membership</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="172"/>
-        <source>Success sending membership demand</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="174"/>
-        <source>Join demand error</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="177"/>
-        <source>Key not sent to community</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="177"/>
-        <source>&quot;Your key wasn&apos;t sent in the community.
-You can&apos;t request a membership.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="259"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="226"/>
         <source>Network error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="259"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="226"/>
         <source>Couldn&apos;t connect to network : {0}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="242"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="235"/>
         <source>Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="190"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="196"/>
         <source>Are you sure ?
 Sending a leaving demand  cannot be canceled.
 The process to join back the community later will have to be done again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="202"/>
-        <source>Success sending leaving demand</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="204"/>
-        <source>Leaving demand error</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="263"/>
-        <source>Error</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="216"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="209"/>
         <source>Are you sure ?
 Publishing your UID can be canceled by Revoke UID.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="227"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="220"/>
         <source>UID Publishing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="227"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="220"/>
         <source>Success publishing your UID</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="230"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="223"/>
         <source>Publish UID error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="242"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="235"/>
         <source>Are you sure ?
 Revoking your UID can only success if it is not already validated by the network.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="253"/>
-        <source>UID Revoking</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="253"/>
-        <source>Success revoking your UID</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="256"/>
-        <source>Revoke UID error</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="341"/>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="358"/>
         <source>Send membership demand</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="78"/>
+        <source>Success sending Membership demand</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="84"/>
+        <source>Revoke</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="84"/>
+        <source>Success sending Revoke demand</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="90"/>
+        <source>Self Certification</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/community_tab.py" line="90"/>
+        <source>Success sending Self Certification document</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -497,63 +471,53 @@ Revoking your UID can only success if it is not already validated by the network
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="77"/>
+        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="72"/>
         <source>Wallets</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="85"/>
+        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="76"/>
         <source>Transactions</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="94"/>
+        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="84"/>
         <source>Community</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="100"/>
+        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="80"/>
         <source>Informations</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="112"/>
+        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="88"/>
         <source>Network</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="145"/>
+        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="123"/>
         <source>Membership expiration</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="145"/>
+        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="123"/>
         <source>&lt;b&gt;Warning : Membership expiration in {0} days&lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="150"/>
+        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="130"/>
         <source>Certifications number</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="150"/>
+        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="130"/>
         <source>&lt;b&gt;Warning : You are certified by only {0} persons, need {1}&lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="183"/>
+        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="161"/>
         <source> Block {0}</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="206"/>
-        <source>Received {0} {1} from {2} transfers</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="210"/>
-        <source>New transactions received</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -583,27 +547,27 @@ Revoking your UID can only success if it is not already validated by the network
 <context>
     <name>HistoryTableModel</name>
     <message>
-        <location filename="../../../src/cutecoin/models/txhistory.py" line="179"/>
+        <location filename="../../../src/cutecoin/models/txhistory.py" line="183"/>
         <source>Date</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/models/txhistory.py" line="179"/>
+        <location filename="../../../src/cutecoin/models/txhistory.py" line="183"/>
         <source>UID/Public key</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/models/txhistory.py" line="179"/>
+        <location filename="../../../src/cutecoin/models/txhistory.py" line="183"/>
         <source>Payment</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/models/txhistory.py" line="179"/>
+        <location filename="../../../src/cutecoin/models/txhistory.py" line="183"/>
         <source>Deposit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/models/txhistory.py" line="179"/>
+        <location filename="../../../src/cutecoin/models/txhistory.py" line="183"/>
         <source>Comment</source>
         <translation type="unfinished"></translation>
     </message>
@@ -653,22 +617,22 @@ Revoking your UID can only success if it is not already validated by the network
 <context>
     <name>IdentitiesTableModel</name>
     <message>
-        <location filename="../../../src/cutecoin/models/identities.py" line="85"/>
+        <location filename="../../../src/cutecoin/models/identities.py" line="84"/>
         <source>UID</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/models/identities.py" line="86"/>
+        <location filename="../../../src/cutecoin/models/identities.py" line="85"/>
         <source>Pubkey</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/models/identities.py" line="87"/>
+        <location filename="../../../src/cutecoin/models/identities.py" line="86"/>
         <source>Renewed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/models/identities.py" line="88"/>
+        <location filename="../../../src/cutecoin/models/identities.py" line="87"/>
         <source>Expiration</source>
         <translation type="unfinished"></translation>
     </message>
@@ -779,56 +743,27 @@ Revoking your UID can only success if it is not already validated by the network
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="74"/>
-        <source>
-                &lt;table cellpadding=&quot;5&quot;&gt;
-                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/div&gt;&lt;/td&gt;&lt;td&gt;{:} {:}&lt;/td&gt;&lt;/tr&gt;
-                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:} {:}&lt;/td&gt;&lt;/tr&gt;
-                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
-                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:} {:}&lt;/td&gt;&lt;/tr&gt;
-                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:2.2%} / {:} days&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
-                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
-                &lt;/table&gt;
-                </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="74"/>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="130"/>
         <source>Universal Dividend UD(t) in</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="74"/>
-        <source>Monetary Mass M(t) in</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="74"/>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="130"/>
         <source>Members N(t)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="74"/>
-        <source>Monetary Mass per member M(t)/N(t) in</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="74"/>
-        <source>Actual growth c = UD(t)/[M(t-1)/N(t-1)]</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="74"/>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="130"/>
         <source>Next UD date and time (t+1)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="165"/>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="202"/>
         <source>No Universal Dividend created yet.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="140"/>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="177"/>
         <source>
                 &lt;table cellpadding=&quot;5&quot;&gt;
                 &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
@@ -839,37 +774,32 @@ Revoking your UID can only success if it is not already validated by the network
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="140"/>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="177"/>
         <source>{:2.0%} / {:} days</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="140"/>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="177"/>
         <source>Fundamental growth (c) / Delta time (dt)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="140"/>
-        <source>UD(t+1) = MAX { UD(t) ; c &amp;#215; M(t) / N(t) }</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="140"/>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="177"/>
         <source>Universal Dividend (formula)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="140"/>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="177"/>
         <source>{:} = MAX {{ {:} {:} ; {:2.0%} &amp;#215; {:} {:} / {:} }}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="140"/>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="177"/>
         <source>Universal Dividend (computed)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="168"/>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="205"/>
         <source>
             &lt;table cellpadding=&quot;5&quot;&gt;
             &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:2.0%} / {:} days&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
@@ -885,47 +815,47 @@ Revoking your UID can only success if it is not already validated by the network
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="168"/>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="205"/>
         <source>Fundamental growth (c)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="168"/>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="205"/>
         <source>Initial Universal Dividend UD(0) in</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="168"/>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="205"/>
         <source>Time period (dt) in days (86400 seconds) between two UD</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="168"/>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="205"/>
         <source>Number of blocks used for calculating median time</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="168"/>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="205"/>
         <source>The average time in seconds for writing 1 block (wished time)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="168"/>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="205"/>
         <source>The number of blocks required to evaluate again PoWMin value</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="168"/>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="205"/>
         <source>The number of previous blocks to check for personalized difficulty</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="168"/>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="205"/>
         <source>The percent of previous issuers to reach for personalized difficulty</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="203"/>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="240"/>
         <source>
             &lt;table cellpadding=&quot;5&quot;&gt;
             &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
@@ -939,33 +869,73 @@ Revoking your UID can only success if it is not already validated by the network
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="203"/>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="240"/>
         <source>Minimum delay between 2 identical certifications (in days)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="203"/>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="240"/>
         <source>Maximum age of a valid signature (in days)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="203"/>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="240"/>
         <source>Minimum quantity of signatures to be part of the WoT</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="203"/>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="240"/>
         <source>Minimum quantity of valid made certifications to be part of the WoT for distance rule</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="203"/>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="240"/>
         <source>Maximum age of a valid membership (in days)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="203"/>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="240"/>
         <source>Maximum distance between each WoT member and a newcomer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="130"/>
+        <source>
+                &lt;table cellpadding=&quot;5&quot;&gt;
+                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/div&gt;&lt;/td&gt;&lt;td&gt;{:} {:}&lt;/td&gt;&lt;/tr&gt;
+                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:} {:}&lt;/td&gt;&lt;/tr&gt;
+                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:} {:}&lt;/td&gt;&lt;/tr&gt;
+                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:2.2%} / {:} days&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+                &lt;/table&gt;
+                </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="130"/>
+        <source>Monetary Mass M(t-1) in</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="130"/>
+        <source>Monetary Mass per member M(t-1)/N(t) in</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="130"/>
+        <source>Actual growth c = UD(t)/[M(t-1)/N(t)]</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="130"/>
+        <source>Last UD date and time (t)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="177"/>
+        <source>UD(t+1) = MAX { UD(t) ; c &amp;#215; M(t) / N(t+1) }</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1082,22 +1052,17 @@ Revoking your UID can only success if it is not already validated by the network
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="176"/>
-        <source>Loading account {0}</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="242"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="190"/>
         <source>Latest release : {version}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="249"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="197"/>
         <source>Download link</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="256"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="204"/>
         <source>
         &lt;h1&gt;Cutecoin&lt;/h1&gt;
 
@@ -1117,42 +1082,42 @@ Revoking your UID can only success if it is not already validated by the network
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="281"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="229"/>
         <source>Please get the latest release {version}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="324"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="272"/>
         <source>Edit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="327"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="275"/>
         <source>Delete</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="343"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="291"/>
         <source>CuteCoin {0}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="368"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="316"/>
         <source>CuteCoin {0} - Account : {1}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="388"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="336"/>
         <source>Export an account</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="389"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="337"/>
         <source>All account files (*.acc)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="390"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="338"/>
         <source>Export</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1202,57 +1167,57 @@ Revoking your UID can only success if it is not already validated by the network
 <context>
     <name>NetworkFilterProxyModel</name>
     <message>
-        <location filename="../../../src/cutecoin/models/network.py" line="39"/>
+        <location filename="../../../src/cutecoin/models/network.py" line="41"/>
         <source>Address</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/models/network.py" line="40"/>
+        <location filename="../../../src/cutecoin/models/network.py" line="42"/>
         <source>Port</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/models/network.py" line="41"/>
+        <location filename="../../../src/cutecoin/models/network.py" line="43"/>
         <source>Block</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/models/network.py" line="42"/>
+        <location filename="../../../src/cutecoin/models/network.py" line="44"/>
         <source>UID</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/models/network.py" line="43"/>
+        <location filename="../../../src/cutecoin/models/network.py" line="45"/>
         <source>Member</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/models/network.py" line="44"/>
+        <location filename="../../../src/cutecoin/models/network.py" line="46"/>
         <source>Pubkey</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/models/network.py" line="45"/>
+        <location filename="../../../src/cutecoin/models/network.py" line="47"/>
         <source>Software</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/models/network.py" line="46"/>
+        <location filename="../../../src/cutecoin/models/network.py" line="48"/>
         <source>Version</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/models/network.py" line="59"/>
+        <location filename="../../../src/cutecoin/models/network.py" line="61"/>
         <source>yes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/models/network.py" line="59"/>
+        <location filename="../../../src/cutecoin/models/network.py" line="61"/>
         <source>no</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/models/network.py" line="59"/>
+        <location filename="../../../src/cutecoin/models/network.py" line="61"/>
         <source>offline</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1265,35 +1230,40 @@ Revoking your UID can only success if it is not already validated by the network
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/network_tab.py" line="51"/>
+        <location filename="../../../src/cutecoin/gui/network_tab.py" line="61"/>
         <source>Unset root node</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/network_tab.py" line="57"/>
+        <location filename="../../../src/cutecoin/gui/network_tab.py" line="67"/>
         <source>Set as root node</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/network_tab.py" line="73"/>
+        <source>Open in browser</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>NetworkTableModel</name>
     <message>
-        <location filename="../../../src/cutecoin/models/network.py" line="112"/>
+        <location filename="../../../src/cutecoin/models/network.py" line="114"/>
         <source>Online</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/models/network.py" line="113"/>
+        <location filename="../../../src/cutecoin/models/network.py" line="115"/>
         <source>Offline</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/models/network.py" line="114"/>
+        <location filename="../../../src/cutecoin/models/network.py" line="116"/>
         <source>Unsynchronized</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/models/network.py" line="115"/>
+        <location filename="../../../src/cutecoin/models/network.py" line="117"/>
         <source>Corrupted</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1339,28 +1309,48 @@ Revoking your UID can only success if it is not already validated by the network
 <context>
     <name>PreferencesDialog</name>
     <message>
-        <location filename="../../../src/cutecoin/gui/preferences.py" line="45"/>
+        <location filename="../../../src/cutecoin/gui/preferences.py" line="60"/>
         <source>Preferences</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../ui/preferences.ui" line="22"/>
+        <location filename="../../ui/preferences.ui" line="108"/>
         <source>Default account</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../ui/preferences.ui" line="36"/>
-        <source>Default referential</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../ui/preferences.ui" line="50"/>
+        <location filename="../../ui/preferences.ui" line="205"/>
         <source>Language</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/preferences.py" line="45"/>
+        <location filename="../../../src/cutecoin/gui/preferences.py" line="60"/>
         <source>A restart is needed to apply your new preferences.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../ui/preferences.ui" line="122"/>
+        <source>Default &amp;referential</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../ui/preferences.ui" line="159"/>
+        <source>Enable expert mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../ui/preferences.ui" line="191"/>
+        <source>Digits after commas </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../ui/preferences.ui" line="239"/>
+        <source>Maximize Window at Startup</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../ui/preferences.ui" line="266"/>
+        <source>Enable notifications</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1377,32 +1367,32 @@ Revoking your UID can only success if it is not already validated by the network
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/process_cfg_account.py" line="186"/>
+        <location filename="../../../src/cutecoin/gui/process_cfg_account.py" line="187"/>
         <source>Ok</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/process_cfg_account.py" line="207"/>
+        <location filename="../../../src/cutecoin/gui/process_cfg_account.py" line="208"/>
         <source>Public key</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/process_cfg_account.py" line="207"/>
+        <location filename="../../../src/cutecoin/gui/process_cfg_account.py" line="208"/>
         <source>These parameters pubkeys are : {0}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/process_cfg_account.py" line="256"/>
+        <location filename="../../../src/cutecoin/gui/process_cfg_account.py" line="248"/>
         <source>Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/process_cfg_account.py" line="233"/>
+        <location filename="../../../src/cutecoin/gui/process_cfg_account.py" line="225"/>
         <source>Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/process_cfg_account.py" line="233"/>
+        <location filename="../../../src/cutecoin/gui/process_cfg_account.py" line="225"/>
         <source>This action will delete your account locally.
 Please note your key parameters (salt and password) if you wish to recover it later.
 Your account won&apos;t be removed from the networks it joined.
@@ -1413,12 +1403,12 @@ Are you sure ?</source>
 <context>
     <name>ProcessConfigureCommunity</name>
     <message>
-        <location filename="../../../src/cutecoin/gui/process_cfg_community.py" line="117"/>
+        <location filename="../../../src/cutecoin/gui/process_cfg_community.py" line="126"/>
         <source>Configure community {0}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/process_cfg_community.py" line="120"/>
+        <location filename="../../../src/cutecoin/gui/process_cfg_community.py" line="129"/>
         <source>Add a community</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1428,17 +1418,17 @@ Are you sure ?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/process_cfg_community.py" line="187"/>
+        <location filename="../../../src/cutecoin/gui/process_cfg_community.py" line="192"/>
         <source>Delete</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/process_cfg_community.py" line="198"/>
+        <location filename="../../../src/cutecoin/gui/process_cfg_community.py" line="230"/>
         <source>Pubkey not found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/process_cfg_community.py" line="198"/>
+        <location filename="../../../src/cutecoin/gui/process_cfg_community.py" line="230"/>
         <source>The public key of your account wasn&apos;t found in the community. :
 
 {0}
@@ -1447,18 +1437,18 @@ Would you like to publish the key ?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/process_cfg_community.py" line="209"/>
-        <source>Pubkey publishing error</source>
+        <location filename="../../../src/cutecoin/gui/process_cfg_community.py" line="204"/>
+        <source>UID Publishing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/process_cfg_community.py" line="212"/>
-        <source>Network error</source>
+        <location filename="../../../src/cutecoin/gui/process_cfg_community.py" line="204"/>
+        <source>Success publishing  your UID</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/process_cfg_community.py" line="212"/>
-        <source>Couldn&apos;t connect to network : {0}</source>
+        <location filename="../../../src/cutecoin/gui/process_cfg_community.py" line="216"/>
+        <source>{0} : {1}</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1473,69 +1463,79 @@ Would you like to publish the key ?</source>
 <context>
     <name>TransactionsTabWidget</name>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="104"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="123"/>
         <source>&lt;b&gt;Deposits&lt;/b&gt; {:} {:}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="108"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="127"/>
         <source>&lt;b&gt;Payments&lt;/b&gt; {:} {:}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="112"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="131"/>
         <source>&lt;b&gt;Balance&lt;/b&gt; {:} {:}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="121"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="140"/>
         <source>Actions</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="134"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="153"/>
         <source>Send again</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="139"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="158"/>
         <source>Cancel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="145"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="164"/>
         <source>Informations</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="150"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="169"/>
         <source>Add as contact</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="155"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="174"/>
         <source>Send money</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="161"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="180"/>
         <source>View in Web of Trust</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="166"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="185"/>
         <source>Copy pubkey to clipboard</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="203"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="222"/>
         <source>Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="203"/>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="222"/>
         <source>Are you sure ?
 This money transfer will be removed and not sent.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="93"/>
+        <source>Received {0} {1} from {2} transfers</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="97"/>
+        <source>New transactions received</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1597,39 +1597,33 @@ This money transfer will be removed and not sent.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transfer.py" line="92"/>
+        <location filename="../../../src/cutecoin/gui/transfer.py" line="68"/>
         <source>Money transfer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transfer.py" line="64"/>
+        <location filename="../../../src/cutecoin/gui/transfer.py" line="68"/>
         <source>No amount. Please give the transfert amount</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/transfer.py" line="78"/>
-        <source>Success transfering {0} {1} to {2}</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/transfer.py" line="83"/>
-        <source>Something wrong happened : {0}</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/transfer.py" line="88"/>
-        <source>This transaction could not be sent on this block
-Please try again later</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/transfer.py" line="92"/>
-        <source>Couldn&apos;t connect to network : {0}</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/transfer.py" line="97"/>
+        <location filename="../../../src/cutecoin/gui/transfer.py" line="102"/>
         <source>Error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/transfer.py" line="90"/>
+        <source>Transfer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/transfer.py" line="90"/>
+        <source>Success sending money to {0}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/transfer.py" line="102"/>
+        <source>{0} : {1}</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1664,7 +1658,7 @@ Please try again later</source>
 <context>
     <name>WalletsTabWidget</name>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="70"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="82"/>
         <source>
                 &lt;table cellpadding=&quot;5&quot;&gt;
                 &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
@@ -1675,27 +1669,27 @@ Please try again later</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="70"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="82"/>
         <source>Membership</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="70"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="82"/>
         <source>Last renewal on {:}, expiration on {:}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="88"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="100"/>
         <source>Your web of trust</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="88"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="100"/>
         <source>Certified by {:} members; Certifier of {:} members</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="88"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="100"/>
         <source>
                 &lt;table cellpadding=&quot;5&quot;&gt;
                 &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
@@ -1706,12 +1700,12 @@ Please try again later</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="88"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="100"/>
         <source>Not a member</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="119"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="134"/>
         <source>
             &lt;table cellpadding=&quot;5&quot;&gt;
             &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
@@ -1721,42 +1715,42 @@ Please try again later</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="119"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="134"/>
         <source>Your money share </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="119"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="134"/>
         <source>{:.2f}%</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="119"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="134"/>
         <source>Your part </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="119"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="134"/>
         <source>{:} {:} in [{:} ; {:}] {:}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="173"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="181"/>
         <source>New Wallet</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="176"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="184"/>
         <source>Rename</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="180"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="188"/>
         <source>Copy pubkey to clipboard</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="185"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="193"/>
         <source>Transfer to...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1764,17 +1758,17 @@ Please try again later</source>
 <context>
     <name>WalletsTableModel</name>
     <message>
-        <location filename="../../../src/cutecoin/models/wallets.py" line="70"/>
+        <location filename="../../../src/cutecoin/models/wallets.py" line="82"/>
         <source>Name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/models/wallets.py" line="70"/>
+        <location filename="../../../src/cutecoin/models/wallets.py" line="82"/>
         <source>Amount</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/models/wallets.py" line="70"/>
+        <location filename="../../../src/cutecoin/models/wallets.py" line="82"/>
         <source>Pubkey</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1818,7 +1812,7 @@ Please try again later</source>
 <context>
     <name>self.config_dialog</name>
     <message>
-        <location filename="../../../src/cutecoin/gui/process_cfg_community.py" line="89"/>
+        <location filename="../../../src/cutecoin/gui/process_cfg_community.py" line="92"/>
         <source>Ok</source>
         <translation type="unfinished"></translation>
     </message>

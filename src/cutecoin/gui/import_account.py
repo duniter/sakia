@@ -1,8 +1,8 @@
-'''
+"""
 Created on 22 mai 2014
 
 @author: inso
-'''
+"""
 import re
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QMessageBox, QFileDialog
 
@@ -12,14 +12,14 @@ from cutecoin.gen_resources.import_account_uic import Ui_ImportAccountDialog
 
 class ImportAccountDialog(QDialog, Ui_ImportAccountDialog):
 
-    '''
+    """
     classdocs
-    '''
+    """
 
     def __init__(self, app, parent=None):
-        '''
+        """
         Constructor
-        '''
+        """
         super().__init__()
         self.setupUi(self)
         self.app = app

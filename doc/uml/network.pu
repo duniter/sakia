@@ -1,0 +1,36 @@
+@startuml
+
+Network -->o Node : Connect to node_received()
+Network -> Node : Starts network discovery
+activate Node
+Node -> QNetworkManager : HTTP GET peering/peers?leaves=true
+create QNetworkReply
+QNetworkManager -> QNetworkReply : Instantiate
+Node <- QNetworkManager : QNetworkReply
+Node -->o QNetworkReply : Connect to finished()
+Network <- Node
+deactivate Node
+... Request is processed ...
+Node <-- QNetworkReply : finished()
+destroy QNetworkReply
+alt "root" hash changed
+loop "for all leaves changed"
+activate Node
+Node -> QNetworkManager : HTTP GET peering/peers/leaf=leaf_hash
+create QNetworkReply
+QNetworkManager -> QNetworkReply : Instantiate
+Node <- QNetworkManager : QNetworkReply
+Node -->o QNetworkReply : Connect to finished()
+end
+end
+... Requests is processed ...
+Node <-- QNetworkReply : finished()
+destroy QNetworkReply
+Network <-- Node : node_received()
+ref over Network
+New node is instanciated
+if pubkey not known yet.
+It starts it's own
+network discovery
+end ref
+@enduml

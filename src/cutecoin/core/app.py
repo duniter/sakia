@@ -1,8 +1,8 @@
-'''
+"""
 Created on 1 févr. 2014
 
 @author: inso
-'''
+"""
 
 import os
 import logging
@@ -18,47 +18,74 @@ from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkReques
 
 from . import config
 from .account import Account
-from . import person
-from .watching.monitor import Monitor
+from .registry.identities import IdentitiesRegistry
 from .. import __version__
 from ..tools.exceptions import NameAlreadyExists, BadAccountFile
 
 
 class Application(QObject):
 
-    '''
+    """
     Managing core application datas :
     Accounts list and general configuration
     Saving and loading the application state
-    '''
+    """
 
-    loading_progressed = pyqtSignal(int, int)
     version_requested = pyqtSignal()
 
-    def __init__(self, argv, qapp):
-        '''
+    def __init__(self, qapp, loop, network_manager, identities_registry):
+        """
         Create a new "cutecoin" application
 
         :param argv: The argv parameters of the call
-        '''
+        """
         super().__init__()
+        self.qapp = qapp
         self.accounts = {}
         self.current_account = None
-        self.monitor = None
+        self.loop = loop
         self.available_version = (True,
                                   __version__,
                                   "")
-        config.parse_arguments(argv)
-        self._network_manager = QNetworkAccessManager()
-        self._network_manager.finished.connect(self.read_available_version)
+        self._identities_registry = identities_registry
+        self._network_manager = network_manager
         self.preferences = {'account': "",
                             'lang': 'en_GB',
-                            'ref': 0
+                            'ref': 0,
+                            'expert_mode': False,
+                            'digits_after_comma': 6,
+                            'maximized': False,
+                            'notifications': True
                             }
 
-        self.load()
+    @classmethod
+    def startup(cls, argv, qapp, loop):
+        config.parse_arguments(argv)
+        network_manager = QNetworkAccessManager()
+        identities_registry = IdentitiesRegistry()
+        app = cls(qapp, loop, network_manager, identities_registry)
+        app.load()
+        app.switch_language()
+        if app.preferences["account"] != "":
+            account = app.get_account(app.preferences["account"])
+            app.change_current_account(account)
+        # no default account...
+        else:
+            # if at least one account exists, set it as default...
+            if len(app.accounts) > 0:
+                # capture names sorted alphabetically
+                names = list(app.accounts.keys())
+                names.sort()
+                # set first name in list as default in preferences
+                app.preferences['account'] = names[0]
+                app.save_preferences(app.preferences)
+                # open it
+                logging.debug("No default account in preferences. Set %s as default account." % names[0])
 
-        translator = QTranslator(qapp)
+        return app
+
+    def switch_language(self):
+        translator = QTranslator(self.qapp)
         logging.debug("Loading translations")
         locale = self.preferences['lang']
         QLocale.setDefault(QLocale(locale))
@@ -69,42 +96,50 @@ class Application(QObject):
             logging.debug("Couldn't load translation")
 
     def get_account(self, name):
-        '''
+        """
         Load an account then return it
 
         :param str name: The account name
         :return: The loaded account if it's a success, else return None
-        '''
-        self.load_account(name)
+        """
         if name in self.accounts.keys():
+            self.load_account(name)
             return self.accounts[name]
         else:
             return None
 
     def create_account(self, name):
-        '''
+        """
         Create a new account from its name
 
         :param str name: The account name
         :return: The new account
         :raise: NameAlreadyExists if the account name is already used locally
-        '''
+        """
         for a in self.accounts:
             if a == name:
                 raise NameAlreadyExists(a)
 
-        account = Account.create(name)
+        account = Account.create(name, self._identities_registry)
 
         return account
+
+    @property
+    def identities_registry(self):
+        return self._identities_registry
+
+    @property
+    def network_manager(self):
+        return self._network_manager
 
     def add_account(self, account):
         self.accounts[account.name] = account
 
     def delete_account(self, account):
-        '''
+        """
         Delete an account.
         Current account changes to None if it is deleted.
-        '''
+        """
         self.accounts.pop(account.name)
         if self.current_account == account:
             self.current_account = None
@@ -115,35 +150,35 @@ class Application(QObject):
             self.save_preferences(self.preferences)
 
     def change_current_account(self, account):
-        '''
+        """
         Change current account displayed and refresh its cache.
 
-        :param account: The account object to display
+        :param cutecoin.core.Account account: The account object to display
         .. note:: Emits the application pyqtSignal loading_progressed
         during cache refresh
-        '''
-        def progressing(value, maximum):
-            self.loading_progressed.emit(value, maximum)
-
+        """
         if self.current_account is not None:
-            if self.monitor:
-                self.monitor.stop_watching()
-            self.save_cache(self.current_account)
-        account.loading_progressed.connect(progressing)
-        account.refresh_cache()
-        self.monitor = Monitor(account)
-        self.monitor.prepare_watching()
+            self.stop_current_account()
+
         self.current_account = account
 
+    def stop_current_account(self):
+        """
+        Save the account to the cache
+        and stop the coroutines
+        """
+        self.save_cache(self.current_account)
+        self.current_account.stop_coroutines()
+
     def load(self):
-        '''
+        """
         Load a saved application state from the data file.
         Loads only jsonified objects but not their cache.
 
         If the standard application state file can't be found,
         no error is raised.
-        '''
-        self.load_persons()
+        """
+        self.load_registries()
         self.load_preferences()
         try:
             logging.debug("Loading data...")
@@ -154,44 +189,44 @@ class Application(QObject):
         except FileNotFoundError:
             pass
 
-    def load_persons(self):
-        '''
+    def load_registries(self):
+        """
         Load the Person instances of the person module.
         Each instance is unique, and can be find by its public key.
-        '''
+        """
         try:
-            persons_path = os.path.join(config.parameters['home'],
-                                        '__persons__')
-            with open(persons_path, 'r') as persons_path:
-                data = json.load(persons_path)
-                person.load_cache(data)
+            identities_path = os.path.join(config.parameters['home'],
+                                        '__identities__')
+            with open(identities_path, 'r') as identities_data:
+                data = json.load(identities_data)
+                self._identities_registry.load_json(data)
         except FileNotFoundError:
             pass
 
     def load_account(self, account_name):
-        '''
+        """
         Load an account from its name
 
         :param str account_name: The account name
-        '''
+        """
         account_path = os.path.join(config.parameters['home'],
                                     account_name, 'properties')
         with open(account_path, 'r') as json_data:
             data = json.load(json_data)
-            account = Account.load(data)
+            account = Account.load(data, self._network_manager, self._identities_registry)
             self.load_cache(account)
             self.accounts[account_name] = account
 
     def load_cache(self, account):
-        '''
+        """
         Load an account cache
 
         :param account: The account object to load the cache
-        '''
+        """
         for community in account.communities:
-            community_path = os.path.join(config.parameters['home'],
+            bma_path = os.path.join(config.parameters['home'],
                                         account.name, '__cache__',
-                                        community.currency)
+                                        community.currency + '_bma')
 
             network_path = os.path.join(config.parameters['home'],
                                         account.name, '__cache__',
@@ -202,21 +237,23 @@ class Application(QObject):
                     data = json.load(json_data)
                 if 'version' in data and data['version'] == __version__:
                     logging.debug("Merging network : {0}".format(data))
-                    community.load_merge_network(data['network'])
+                    community.network.merge_with_json(data['network'])
                 else:
                     os.remove(network_path)
 
-            if os.path.exists(community_path):
-                with open(community_path, 'r') as json_data:
+            if os.path.exists(bma_path):
+                with open(bma_path, 'r') as json_data:
                     data = json.load(json_data)
                 if 'version' in data and data['version'] == __version__:
-                    community.load_cache(data)
+                    community.bma_access.load_from_json(data['cache'])
                 else:
-                    os.remove(community_path)
+                    os.remove(bma_path)
 
         for wallet in account.wallets:
+            for c in account.communities:
+                wallet.init_cache(c)
             wallet_path = os.path.join(config.parameters['home'],
-                                        account.name, '__cache__', wallet.pubkey)
+                                        account.name, '__cache__', wallet.pubkey + "_wal")
             if os.path.exists(wallet_path):
                 with open(wallet_path, 'r') as json_data:
                     data = json.load(json_data)
@@ -226,25 +263,26 @@ class Application(QObject):
                     os.remove(wallet_path)
 
     def load_preferences(self):
-        '''
+        """
         Load the preferences.
-        '''
+        """
 
         try:
             preferences_path = os.path.join(config.parameters['home'],
                                             'preferences')
             with open(preferences_path, 'r') as json_data:
                 data = json.load(json_data)
-                self.preferences = data
+                for key in data:
+                    self.preferences[key] = data[key]
         except FileNotFoundError:
             pass
 
     def save_preferences(self, preferences):
-        '''
+        """
         Save the preferences.
 
         :param preferences: A dict containing the keys/values of the preferences
-        '''
+        """
         assert('lang' in preferences)
         assert('account' in preferences)
         assert('ref' in preferences)
@@ -256,11 +294,11 @@ class Application(QObject):
             json.dump(preferences, outfile, indent=4)
 
     def save(self, account):
-        '''
+        """
         Save an account
 
         :param account: The account object to save
-        '''
+        """
         with open(config.parameters['data'], 'w') as outfile:
             json.dump(self.jsonify(), outfile, indent=4, sort_keys=True)
         account_path = os.path.join(config.parameters['home'],
@@ -276,14 +314,14 @@ class Application(QObject):
             account_path = os.path.join(config.parameters['home'], account.name)
             shutil.rmtree(account_path)
 
-    def save_persons(self):
-        '''
-        Save the person module cache
-        '''
-        persons_path = os.path.join(config.parameters['home'],
-                                    '__persons__')
-        with open(persons_path, 'w')as outfile:
-            data = person.jsonify_cache()
+    def save_registries(self):
+        """
+        Save the registries
+        """
+        identities_path = os.path.join(config.parameters['home'],
+                                    '__identities__')
+        with open(identities_path, 'w')as outfile:
+            data = self.identities_registry.jsonify()
             data['version'] = __version__
             json.dump(data, outfile, indent=4, sort_keys=True)
 
@@ -299,18 +337,18 @@ class Application(QObject):
             os.makedirs(os.path.join(config.parameters['home'],
                                      account.name, '__cache__'))
         wallet_path = os.path.join(config.parameters['home'],
-                                   account.name, '__cache__', wallet.pubkey)
+                                   account.name, '__cache__', wallet.pubkey + "_wal")
         with open(wallet_path, 'w') as outfile:
             data = wallet.jsonify_caches()
             data['version'] = __version__
             json.dump(data, outfile, indent=4, sort_keys=True)
 
     def save_cache(self, account):
-        '''
+        """
         Save the cache of an account
 
         :param account: The account object to save the cache
-        '''
+        """
         if not os.path.exists(os.path.join(config.parameters['home'],
                                         account.name, '__cache__')):
             os.makedirs(os.path.join(config.parameters['home'],
@@ -319,9 +357,9 @@ class Application(QObject):
             self.save_wallet(account, wallet)
 
         for community in account.communities:
-            community_path = os.path.join(config.parameters['home'],
+            bma_path = os.path.join(config.parameters['home'],
                                         account.name, '__cache__',
-                                        community.currency)
+                                        community.currency + '_bma')
 
             network_path = os.path.join(config.parameters['home'],
                                         account.name, '__cache__',
@@ -329,22 +367,22 @@ class Application(QObject):
 
             with open(network_path, 'w') as outfile:
                 data = dict()
-                data['network'] = community.jsonify_network()
+                data['network'] = community.network.jsonify()
                 data['version'] = __version__
                 json.dump(data, outfile, indent=4, sort_keys=True)
 
-            with open(community_path, 'w') as outfile:
-                data = community.jsonify_cache()
+            with open(bma_path, 'w') as outfile:
+                data['cache'] = community.bma_access.jsonify()
                 data['version'] = __version__
                 json.dump(data, outfile, indent=4, sort_keys=True)
 
     def import_account(self, file, name):
-        '''
+        """
         Import an account from a tar file and open it
 
         :param str file: The file path of the tar file
         :param str name: The account name
-        '''
+        """
         with tarfile.open(file, "r") as tar:
             path = os.path.join(config.parameters['home'],
                                 name)
@@ -366,12 +404,12 @@ class Application(QObject):
         self.change_current_account(account)
 
     def export_account(self, file, account):
-        '''
+        """
         Export an account to a tar file
 
         :param str file: The filepath of the tar file
         :param account: The account object to export
-        '''
+        """
         with tarfile.open(file, "w") as tar:
             for file in ["properties"]:
                 path = os.path.join(config.parameters['home'],
@@ -379,11 +417,11 @@ class Application(QObject):
                 tar.add(path, file)
 
     def jsonify_accounts(self):
-        '''
+        """
         Jsonify an account
 
         :return: The account as a dict to format as json
-        '''
+        """
         data = []
         logging.debug("{0}".format(self.accounts))
         for account in self.accounts:
@@ -391,22 +429,30 @@ class Application(QObject):
         return data
 
     def jsonify(self):
-        '''
+        """
         Jsonify the app datas
 
         :return: The accounts of the app to format as json
-        '''
+        """
         data = {'local_accounts': self.jsonify_accounts()}
         return data
+
+    def stop(self):
+        if self.current_account:
+            self.stop_current_account()
+
+        self.save_registries()
 
     def get_last_version(self):
         url = QUrl("https://api.github.com/repos/ucoin-io/cutecoin/releases")
         request = QNetworkRequest(url)
-        self._network_manager.get(request)
+        reply = self._network_manager.get(request)
+        reply.finished.connect(self.read_available_version)
 
     @pyqtSlot(QNetworkReply)
-    def read_available_version(self, reply):
+    def read_available_version(self):
         latest = None
+        reply = self.sender()
         releases = reply.readAll().data().decode('utf-8')
         logging.debug(releases)
         if reply.error() == QNetworkReply.NoError:

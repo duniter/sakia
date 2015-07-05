@@ -1,8 +1,8 @@
-'''
+"""
 Created on 1 févr. 2014
 
 @author: inso
-'''
+"""
 from ..gen_resources.mainwindow_uic import Ui_MainWindow
 from ..gen_resources.about_uic import Ui_AboutPopup
 
@@ -28,31 +28,10 @@ from . import toast
 import logging
 
 
-class Loader(QObject):
-    def __init__(self, app):
-        super().__init__()
-        self.app = app
-        self.account_name = ""
-
-    loaded = pyqtSignal()
-    connection_error = pyqtSignal(str)
-
-    def set_account_name(self, name):
-        self.account_name = name
-
-    @pyqtSlot()
-    def load(self):
-        if self.account_name != "":
-            account = self.app.get_account(self.account_name)
-            self.app.change_current_account(account)
-
-        self.loaded.emit()
-
-
 class MainWindow(QMainWindow, Ui_MainWindow):
-    '''
+    """
     classdocs
-    '''
+    """
 
     def __init__(self, app):
         """
@@ -62,40 +41,28 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
         # Set up the user interface from Designer.
         super().__init__()
-        self.setupUi(self)
-        QApplication.setWindowIcon(QIcon(":/icons/cutecoin_logo"))
         self.app = app
-        logging.debug(app.thread())
-        logging.debug(self.thread())
-        self.password_asker = None
         self.initialized = False
+        self.password_asker = None
+        self.import_dialog = None
 
-        self.busybar = QProgressBar(self.statusbar)
-        self.busybar.setMinimum(0)
-        self.busybar.setMaximum(0)
-        self.busybar.setValue(-1)
-        self.statusbar.addWidget(self.busybar)
-        self.busybar.hide()
+        super().setupUi(self)
+
+        QApplication.setWindowIcon(QIcon(":/icons/cutecoin_logo"))
+
         self.app.version_requested.connect(self.latest_version_requested)
-        self.app.get_last_version()
+
+        self.status_label = QLabel("", self)
+        self.status_label.setTextFormat(Qt.RichText)
+        self.statusbar.addPermanentWidget(self.status_label, 1)
+
+        self.label_time = QLabel("", self)
+        self.statusbar.addPermanentWidget(self.label_time)
 
         self.combo_referential = QComboBox(self)
         self.combo_referential.setEnabled(False)
         self.combo_referential.currentIndexChanged.connect(self.referential_changed)
-
-        self.status_label = QLabel("", self)
-        self.status_label.setTextFormat(Qt.RichText)
-
-        self.label_time = QLabel("", self)
-
-        self.statusbar.addPermanentWidget(self.status_label, 1)
-        self.statusbar.addPermanentWidget(self.label_time)
         self.statusbar.addPermanentWidget(self.combo_referential)
-        self.update_time()
-
-        self.loader = Loader(self.app)
-        self.loader.loaded.connect(self.loader_finished)
-        self.loader.connection_error.connect(self.display_error)
 
         self.homescreen = HomeScreenWidget(self.app)
         self.centralWidget().layout().addWidget(self.homescreen)
@@ -104,17 +71,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.open_ucoin_info = lambda: QDesktopServices.openUrl(QUrl("http://ucoin.io/theoretical/"))
         self.homescreen.button_info.clicked.connect(self.open_ucoin_info)
 
-        self.import_dialog = None
-        self.export_dialog = None
-
-        # TODO: There are too much refresh() calls on startup
+    def startup(self):
+        self.update_time()
+        self.app.get_last_version()
+        if self.app.preferences['maximized']:
+            self.showMaximized()
+        else:
+            self.show()
         self.refresh()
 
     def open_add_account_dialog(self):
         dialog = ProcessConfigureAccount(self.app, None)
         result = dialog.exec_()
         if result == QDialog.Accepted:
-            self.action_change_account(self.app.current_account.name)
+            self.action_change_account(self.app.current_account)
 
     @pyqtSlot(str)
     def display_error(self, error):
@@ -155,28 +125,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.window().refresh_contacts()
 
     def action_change_account(self, account_name):
-        def loading_progressed(value, maximum):
-            logging.debug("Busybar : {:} : {:}".format(value, maximum))
-            self.busybar.setValue(value)
-            self.busybar.setMaximum(maximum)
-            QApplication.processEvents()
-
-        if self.app.current_account:
-            self.app.save_cache(self.app.current_account)
-
-        self.app.current_account = None
+        self.app.change_current_account(self.app.get_account(account_name))
         self.refresh()
-        QApplication.setOverrideCursor(Qt.BusyCursor)
-        self.app.loading_progressed.connect(loading_progressed)
-        self.busybar.setMinimum(0)
-        self.busybar.setMaximum(0)
-        self.busybar.setValue(-1)
-        self.busybar.show()
-        self.status_label.setText(self.tr("Loading account {0}").format(account_name))
-        self.loader.set_account_name(account_name)
-        QTimer.singleShot(10, self.loader.load)
-        self.homescreen.button_new.hide()
-        self.homescreen.button_import.hide()
 
     @pyqtSlot()
     def loader_finished(self):
@@ -189,7 +139,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         except:
             logging.debug("Disconnect of app failed")
 
-        self.app.monitor.start_network_watchers()
         QApplication.processEvents()
 
     def open_transfer_money_dialog(self):
@@ -278,7 +227,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 .format(version=latest[1])
             version_url = latest[2]
 
-            toast.display("Cutecoin", """<p>{version_info}</br>
+            if self.app.preferences['notifications']:
+                toast.display("Cutecoin", """<p>{version_info}</br>
 <a href={version_url}>Download link</a></p>""".format(
                 version_info=version_info,
                 version_url=version_url))
@@ -296,7 +246,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 tab_currency = CurrencyTabWidget(self.app, community,
                                                  self.password_asker,
                                                  self.status_label)
-                tab_currency.refresh()
                 self.currencies_tabwidget.addTab(tab_currency,
                                                  QIcon(":/icons/currency_icon"),
                                                  community.name)
@@ -325,11 +274,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 delete_action.triggered.connect(self.delete_contact)
 
     def refresh(self):
-        '''
+        """
         Refresh main window
         When the selected account changes, all the widgets
         in the window have to be refreshed
-        '''
+        """
         logging.debug("Refresh started")
         self.refresh_accounts()
 
@@ -379,16 +328,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def export_account(self):
         # Testable way of using a QFileDialog
-        self.export_dialog = QFileDialog(self)
-        self.export_dialog.setObjectName('ExportFileDialog')
-        self.export_dialog.setWindowTitle(self.tr("Export an account"))
-        self.export_dialog.setNameFilter(self.tr("All account files (*.acc)"))
-        self.export_dialog.setLabelText(QFileDialog.Accept, self.tr('Export'))
-        self.export_dialog.accepted.connect(self.export_account_accepted)
-        self.export_dialog.show()
+        export_dialog = QFileDialog(self)
+        export_dialog.setObjectName('ExportFileDialog')
+        export_dialog.setWindowTitle(self.tr("Export an account"))
+        export_dialog.setNameFilter(self.tr("All account files (*.acc)"))
+        export_dialog.setLabelText(QFileDialog.Accept, self.tr('Export'))
+        export_dialog.accepted.connect(self.export_account_accepted)
+        export_dialog.show()
 
     def export_account_accepted(self):
-        selected_file = self.export_dialog.selectedFiles()
+        export_dialog = self.sender()
+        selected_file = export_dialog.selectedFiles()
         if selected_file:
             if selected_file[0][-4:] == ".acc":
                 path = selected_file[0]
@@ -397,30 +347,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.app.export_account(path, self.app.current_account)
 
     def closeEvent(self, event):
-        if self.app.current_account:
-            self.app.save_cache(self.app.current_account)
-        self.app.save_persons()
+        self.app.stop()
         super().closeEvent(event)
 
-    def showEvent(self, event):
-        super().showEvent(event)
-        if not self.initialized:
-            # if default account in preferences...
-            if self.app.preferences['account'] != "":
-                logging.debug("Loading default account")
-                self.action_change_account(self.app.preferences['account'])
-            # no default account...
-            else:
-                # if at least one account exists, set it as default...
-                if len(self.app.accounts) > 0:
-                    # capture names sorted alphabetically
-                    names = list(self.app.accounts.keys())
-                    names.sort()
-                    # set first name in list as default in preferences
-                    self.app.preferences['account'] = names[0]
-                    self.app.save_preferences(self.app.preferences)
-                    # open it
-                    logging.debug("No default account in preferences. Set %s as default account." % names[0])
-                    self.action_change_account(self.app.preferences['account'])
-
-            self.initialized = True

@@ -17,6 +17,43 @@
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <property name="topMargin">
+        <number>6</number>
+       </property>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="button_manual_refresh">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons/icons.qrc">
+           <normaloff>:/icons/refresh_icon</normaloff>:/icons/refresh_icon</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>16</width>
+           <height>16</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
       <widget class="QTableView" name="table_network">
        <property name="contextMenuPolicy">
         <enum>Qt::CustomContextMenu</enum>
@@ -48,7 +85,9 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../icons/icons.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>table_network</sender>
@@ -66,8 +105,25 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>button_manual_refresh</sender>
+   <signal>clicked()</signal>
+   <receiver>NetworkTabWidget</receiver>
+   <slot>manual_nodes_refresh()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>373</x>
+     <y>28</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>node_context_menu()</slot>
+  <slot>manual_nodes_refresh()</slot>
  </slots>
 </ui>

@@ -2,7 +2,7 @@ import logging
 import time
 import datetime
 from PyQt5.QtCore import QLocale, QDateTime
-from cutecoin.core.person import Person
+from ..core.registry import Identity
 from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_OUT, ARC_STATUS_STRONG, ARC_STATUS_WEAK
 
 
@@ -36,29 +36,29 @@ class Graph(object):
         """
         return self._graph
 
-    def get_shortest_path_between_members(self, from_person, to_person):
+    def get_shortest_path_between_members(self, from_identity, to_identity):
         """
-        Return path list of nodes from from_person to to_person
-        :param Person from_person:
-        :param Person to_person:
+        Return path list of nodes from from_identity to to_identity
+        :param identity from_identity:
+        :param identity to_identity:
         :return:
         """
         path = list()
 
-        logging.debug("path between %s to %s..." % (from_person.uid, to_person.uid))
-        if from_person.pubkey not in self._graph.keys():
-            self.add_person(from_person)
-            certifier_list = from_person.certifiers_of(self.community)
-            self.add_certifier_list(certifier_list, from_person, to_person)
-            certified_list = from_person.certified_by(self.community)
-            self.add_certified_list(certified_list, from_person, to_person)
+        logging.debug("path between %s to %s..." % (from_identity.uid, to_identity.uid))
+        if from_identity.pubkey not in self._graph.keys():
+            self.add_identity(from_identity)
+            certifier_list = from_identity.certifiers_of(self.community)
+            self.add_certifier_list(certifier_list, from_identity, to_identity)
+            certified_list = from_identity.certified_by(self.community)
+            self.add_certified_list(certified_list, from_identity, to_identity)
 
-        if to_person.pubkey not in self._graph.keys():
+        if to_identity.pubkey not in self._graph.keys():
             # recursively feed graph searching for account node...
-            self.explore_to_find_member(to_person, self._graph[from_person.pubkey]['connected'], list())
-        if len(self._graph[from_person.pubkey]['connected']) > 0:
-            # calculate path of nodes between person and to_person
-            path = self.find_shortest_path(self._graph[from_person.pubkey], self._graph[to_person.pubkey])
+            self.explore_to_find_member(to_identity, self._graph[from_identity.pubkey]['connected'], list())
+        if len(self._graph[from_identity.pubkey]['connected']) > 0:
+            # calculate path of nodes between identity and to_identity
+            path = self.find_shortest_path(self._graph[from_identity.pubkey], self._graph[to_identity.pubkey])
 
         if path:
             logging.debug([node['text'] for node in path])
@@ -67,10 +67,10 @@ class Graph(object):
 
         return path
 
-    def explore_to_find_member(self, person, connected=None, done=None):
+    def explore_to_find_member(self, identity, connected=None, done=None):
         """
-        Scan graph recursively to find person
-        :param Person person:   Person instance to find
+        Scan graph recursively to find identity
+        :param identity identity:   identity instance to find
         :param list connected:  Optional, default=None, Pubkey list of the connected nodes
         around the current scanned node
         :param list done:       Optional, default=None, List of node already scanned
@@ -79,7 +79,7 @@ class Graph(object):
         # functions keywords args are persistent... Need to reset it with None trick
         connected = connected or (list() and (connected is None))
         done = done or (list() and (done is None))
-        logging.debug("search %s in " % person.uid)
+        logging.debug("search %s in " % identity.uid)
         logging.debug([self._graph[pubkey]['text'] for pubkey in connected])
         # for each pubkey connected...
         for pubkey in tuple(connected):
@@ -87,20 +87,20 @@ class Graph(object):
             node = self._graph[pubkey]
             if node['id'] in tuple(done):
                 continue
-            person_selected = Person.from_metadata(node)
-            certifier_list = person_selected.certifiers_of(self.community)
-            self.add_certifier_list(certifier_list, person_selected, person)
-            if person.pubkey in tuple(self._graph.keys()):
+            identity_selected = identity.from_metadata(node)
+            certifier_list = identity_selected.certifiers_of(self.community)
+            self.add_certifier_list(certifier_list, identity_selected, identity)
+            if identity.pubkey in tuple(self._graph.keys()):
                 return False
-            certified_list = person_selected.certified_by(self.community)
-            self.add_certified_list(certified_list, person_selected, person)
-            if person.pubkey in tuple(self._graph.keys()):
+            certified_list = identity_selected.certified_by(self.community)
+            self.add_certified_list(certified_list, identity_selected, identity)
+            if identity.pubkey in tuple(self._graph.keys()):
                 return False
             if node['id'] not in tuple(done):
                 done.append(node['id'])
             if len(done) >= len(self._graph):
                 return True
-            result = self.explore_to_find_member(person, self._graph[person_selected.pubkey]['connected'], done)
+            result = self.explore_to_find_member(identity, self._graph[identity_selected.pubkey]['connected'], done)
             if not result:
                 return False
 
@@ -130,12 +130,12 @@ class Graph(object):
                         shortest = newpath
         return shortest
 
-    def add_certifier_list(self, certifier_list, person, person_account):
+    def add_certifier_list(self, certifier_list, identity, identity_account):
         """
         Add list of certifiers to graph
         :param list certifier_list: List of certifiers from api
-        :param Person person:   Person instance which is certified
-        :param Person person_account:   Account person instance
+        :param identity identity:   identity instance which is certified
+        :param identity identity_account:   Account identity instance
         :return:
         """
         #  add certifiers of uid
@@ -146,7 +146,7 @@ class Graph(object):
             # new node
             if certifier['pubkey'] not in self._graph.keys():
                 node_status = 0
-                if certifier['pubkey'] == person_account.pubkey:
+                if certifier['pubkey'] == identity_account.pubkey:
                     node_status += NODE_STATUS_HIGHLIGHTED
                 if certifier['isMember'] is False:
                     node_status += NODE_STATUS_OUT
@@ -156,7 +156,7 @@ class Graph(object):
                     'text': certifier['uid'],
                     'tooltip': certifier['pubkey'],
                     'status': node_status,
-                    'connected': [person.pubkey]
+                    'connected': [identity.pubkey]
                 }
 
             # keep only the latest certification
@@ -169,7 +169,7 @@ class Graph(object):
             else:
                 arc_status = ARC_STATUS_STRONG
             arc = {
-                'id': person.pubkey,
+                'id': identity.pubkey,
                 'status': arc_status,
                 'tooltip': QLocale.toString(
                     QLocale(),
@@ -180,17 +180,17 @@ class Graph(object):
             }
             #  add arc to certifier
             self._graph[certifier['pubkey']]['arcs'].append(arc)
-            # if certifier node not in person nodes
-            if certifier['pubkey'] not in tuple(self._graph[person.pubkey]['connected']):
-                # add certifier node to person node
-                self._graph[person.pubkey]['connected'].append(certifier['pubkey'])
+            # if certifier node not in identity nodes
+            if certifier['pubkey'] not in tuple(self._graph[identity.pubkey]['connected']):
+                # add certifier node to identity node
+                self._graph[identity.pubkey]['connected'].append(certifier['pubkey'])
 
-    def add_certified_list(self, certified_list, person, person_account):
+    def add_certified_list(self, certified_list, identity, identity_account):
         """
         Add list of certified from api to graph
         :param list certified_list: List of certified from api
-        :param Person person:   Person instance which is certifier
-        :param Person person_account:   Account person instance
+        :param identity identity:   identity instance which is certifier
+        :param identity identity_account:   Account identity instance
         :return:
         """
         # add certified by uid
@@ -200,7 +200,7 @@ class Graph(object):
                 continue
             if certified['pubkey'] not in self._graph.keys():
                 node_status = 0
-                if certified['pubkey'] == person_account.pubkey:
+                if certified['pubkey'] == identity_account.pubkey:
                     node_status += NODE_STATUS_HIGHLIGHTED
                 if certified['isMember'] is False:
                     node_status += NODE_STATUS_OUT
@@ -210,7 +210,7 @@ class Graph(object):
                     'text': certified['uid'],
                     'tooltip': certified['pubkey'],
                     'status': node_status,
-                    'connected': [person.pubkey]
+                    'connected': [identity.pubkey]
                 }
             # display validity status
             if (time.time() - certified['cert_time']['medianTime']) > self.ARC_STATUS_STRONG_time:
@@ -231,42 +231,42 @@ class Graph(object):
             # replace old arc if this one is more recent
             new_arc = True
             index = 0
-            for a in self._graph[person.pubkey]['arcs']:
+            for a in self._graph[identity.pubkey]['arcs']:
                 # if same arc already exists...
                 if a['id'] == arc['id']:
                     # if arc more recent, dont keep old one...
                     if arc['cert_time'] >= a['cert_time']:
-                        self._graph[person.pubkey]['arcs'][index] = arc
+                        self._graph[identity.pubkey]['arcs'][index] = arc
                     new_arc = False
                 index += 1
 
             #  if arc not in graph...
             if new_arc:
                 # add arc in graph
-                self._graph[person.pubkey]['arcs'].append(arc)
-            # if certified node not in person nodes
-            if certified['pubkey'] not in tuple(self._graph[person.pubkey]['connected']):
-                # add certified node to person node
-                self._graph[person.pubkey]['connected'].append(certified['pubkey'])
+                self._graph[identity.pubkey]['arcs'].append(arc)
+            # if certified node not in identity nodes
+            if certified['pubkey'] not in tuple(self._graph[identity.pubkey]['connected']):
+                # add certified node to identity node
+                self._graph[identity.pubkey]['connected'].append(certified['pubkey'])
 
-    def add_person(self, person, status=None, arcs=None, connected=None):
+    def add_identity(self, identity, status=None, arcs=None, connected=None):
         """
-        Add person as a new node in graph
-        :param Person person: Person instance
+        Add identity as a new node in graph
+        :param identity identity: identity instance
         :param int status:  Optional, default=None, Node status (see cutecoin.gui.views.wot)
-        :param list arcs:  Optional, default=None, List of arcs (certified by person)
-        :param list connected:  Optional, default=None, Public key list of the connected nodes around the person
+        :param list arcs:  Optional, default=None, List of arcs (certified by identity)
+        :param list connected:  Optional, default=None, Public key list of the connected nodes around the identity
         :return:
         """
         # functions keywords args are persistent... Need to reset it with None trick
         status = status or (0 and (status is None))
         arcs = arcs or (list() and (arcs is None))
         connected = connected or (list() and (connected is None))
-        self._graph[person.pubkey] = {
-            'id': person.pubkey,
+        self._graph[identity.pubkey] = {
+            'id': identity.pubkey,
             'arcs': arcs,
-            'text': person.uid,
-            'tooltip': person.pubkey,
+            'text': identity.uid,
+            'tooltip': identity.pubkey,
             'status': status,
             'connected': connected
         }

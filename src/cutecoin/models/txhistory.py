@@ -1,8 +1,8 @@
-'''
+"""
 Created on 5 févr. 2014
 
 @author: inso
-'''
+"""
 
 import datetime
 import logging
@@ -17,11 +17,15 @@ class TxFilterProxyModel(QSortFilterProxyModel):
     def __init__(self, ts_from, ts_to, parent=None):
         super().__init__(parent)
         self.community = None
-        self.account = None
+        self.app = None
         self.ts_from = ts_from
         self.ts_to = ts_to
         self.payments = 0
         self.deposits = 0
+
+    @property
+    def account(self):
+        return self.app.current_account
 
     def set_period(self, ts_from, ts_to):
         """
@@ -66,7 +70,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
 
     def setSourceModel(self, sourceModel):
         self.community = sourceModel.community
-        self.account = sourceModel.account
+        self.app = sourceModel.app
         super().setSourceModel(sourceModel)
 
     def lessThan(self, left, right):
@@ -115,7 +119,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                         return QLocale().toString(float(amount_ref), 'f', 0)
                     else:
                         # display float values
-                        return QLocale().toString(amount_ref, 'f', 6)
+                        return QLocale().toString(amount_ref, 'f', self.app.preferences['digits_after_comma'])
 
         if role == Qt.FontRole:
             font = QFont()
@@ -150,16 +154,16 @@ class TxFilterProxyModel(QSortFilterProxyModel):
 
 
 class HistoryTableModel(QAbstractTableModel):
-    '''
+    """
     A Qt abstract item model to display communities in a tree
-    '''
+    """
 
-    def __init__(self, account, community, parent=None):
-        '''
+    def __init__(self, app, community, parent=None):
+        """
         Constructor
-        '''
+        """
         super().__init__(parent)
-        self.account = account
+        self.app = app
         self.community = community
         self.account.referential
         self.transfers_data = []
@@ -188,14 +192,18 @@ class HistoryTableModel(QAbstractTableModel):
         )
 
     @property
+    def account(self):
+        return self.app.current_account
+
+    @property
     def transfers(self):
-        return self.account.transfers(self.community)
+        return self.account.transfers(self.community) + self.account.dividends(self.community)
 
     def data_received(self, transfer):
         amount = transfer.metadata['amount']
         comment = ""
-        if transfer.txdoc:
-            comment = transfer.txdoc.comment
+        if transfer.metadata['comment'] != "":
+            comment = transfer.metadata['comment']
         if transfer.metadata['issuer_uid'] != "":
             sender = transfer.metadata['issuer_uid']
         else:
@@ -211,13 +219,12 @@ class HistoryTableModel(QAbstractTableModel):
     def data_sent(self, transfer):
         amount = transfer.metadata['amount']
         comment = ""
-        if transfer.txdoc:
-            comment = transfer.txdoc.comment
+        if transfer.metadata['comment'] != "":
+            comment = transfer.metadata['comment']
         if transfer.metadata['receiver_uid'] != "":
             receiver = transfer.metadata['receiver_uid']
         else:
             receiver = "pub:{0}".format(transfer.metadata['receiver'][:5])
-
 
         date_ts = transfer.metadata['time']
         txid = transfer.metadata['txid']
@@ -226,18 +233,30 @@ class HistoryTableModel(QAbstractTableModel):
                 "", comment, transfer.state, txid,
                 transfer.metadata['receiver'])
 
+    def data_dividend(self, dividend):
+        amount = dividend['amount']
+        comment = ""
+        receiver = self.account.name
+        date_ts = dividend['time']
+        id = dividend['id']
+        return (date_ts, receiver, amount,
+                "", "", Transfer.VALIDATED, id,
+                self.account.pubkey)
+
     def refresh_transfers(self):
         self.beginResetModel()
         self.transfers_data = []
         for transfer in self.transfers:
             if type(transfer) is Received:
                 self.transfers_data.append(self.data_received(transfer))
-            else:
+            elif type(transfer) is Transfer:
                 self.transfers_data.append(self.data_sent(transfer))
+            elif type(transfer) is dict:
+                self.transfers_data.append(self.data_dividend(transfer))
         self.endResetModel()
 
     def rowCount(self, parent):
-        return len(self.transfers)
+        return len(self.transfers_data)
 
     def columnCount(self, parent):
         return len(self.columns_types)
@@ -263,7 +282,7 @@ class HistoryTableModel(QAbstractTableModel):
             return self.transfers_data[row][col]
 
         if role == Qt.ToolTipRole and col == 0:
-            return self.transfers[row].metadata['time']
+            return self.transfers_data[self.columns_types.index('date')]
 
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled

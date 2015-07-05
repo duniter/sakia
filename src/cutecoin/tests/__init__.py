@@ -1,1 +1,1 @@
-
+from .qapp import get_application

@@ -1,8 +1,8 @@
-'''
+"""
 Created on 1 mai 2015
 
 @author: inso
-'''
+"""
 import sys, time
 import logging
 from PyQt5.QtCore import Qt, QThread
@@ -17,7 +17,6 @@ def display(title, msg):
     logging.debug("NOTIFY DISPLAY")
     if sys.platform == "linux":
         import notify2
-        import dbus
         if not notify2.is_initted():
             logging.debug("Initialising notify2")
             notify2.init("cutecoin")

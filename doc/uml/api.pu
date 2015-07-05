@@ -1,0 +1,21 @@
+@startuml
+
+package api {
+	package api.bma {
+		class BMADataAccess {
+			{static} _cache
+			{static} _request(req : Request, network)
+			{static} _post(req : Request, network)
+			{static} _broadcast(req : Request, network)
+		}
+		BMADataAccess ..> api.bma.API
+	}
+	package api.es {
+			class ESDataAccess {
+			}
+			ESDataAccess ..> api.es.API
+	}
+
+}
+
+@enduml

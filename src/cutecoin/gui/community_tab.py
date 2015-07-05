@@ -1,8 +1,8 @@
-'''
+"""
 Created on 2 févr. 2014
 
 @author: inso
-'''
+"""
 
 import logging
 from PyQt5.QtCore import Qt, pyqtSlot
@@ -17,16 +17,16 @@ from .wot_tab import WotTabWidget
 from .transfer import TransferMoneyDialog
 from .certification import CertificationDialog
 from . import toast
-from ..tools.exceptions import PersonNotFoundError, NoPeerAvailable
-from ..core.person import Person
-from ucoinpy.api import bma
+import asyncio
+from ..tools.exceptions import LookupFailureError, NoPeerAvailable
+from ..core.net.api import bma as qtbma
 
 
 class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
 
-    '''
+    """
     classdocs
-    '''
+    """
 
     def __init__(self, app, account, community, password_asker, parent):
         """
@@ -38,12 +38,15 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         :return:
         """
         super().__init__()
-        self.setupUi(self)
         self.parent = parent
+        self.app = app
         self.community = community
         self.account = account
         self.password_asker = password_asker
-        identities_model = IdentitiesTableModel(community)
+
+        self.setupUi(self)
+
+        identities_model = IdentitiesTableModel(self.community)
         proxy = IdentitiesFilterProxyModel()
         proxy.setSourceModel(identities_model)
         self.table_identities.setModel(proxy)
@@ -51,9 +54,8 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         self.table_identities.customContextMenuRequested.connect(self.identity_context_menu)
         self.table_identities.sortByColumn(0, Qt.AscendingOrder)
         self.table_identities.resizeColumnsToContents()
-        app.monitor.persons_watcher(self.community).person_changed.connect(self.refresh_person)
 
-        self.wot_tab = WotTabWidget(app, account, community, password_asker, self)
+        self.wot_tab = WotTabWidget(self.app, self.account, self.community, self.password_asker, self)
         self.tabs_information.addTab(self.wot_tab, QIcon(':/icons/wot_icon'), self.tr("Web of Trust"))
         members_action = QAction(self.tr("Members"), self)
         members_action.triggered.connect(self.search_members)
@@ -61,8 +63,31 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         direct_connections = QAction(self.tr("Direct connections"), self)
         direct_connections.triggered.connect(self.search_direct_connections)
         self.button_search.addAction(direct_connections)
-        self.refresh()
+
+        self.account.identity(self.community).inner_data_changed.connect(self.handle_account_identity_change)
+        self.search_direct_connections()
+        self.account.membership_broadcasted.connect(self.handle_membership_broadcasted)
+        self.account.revoke_broadcasted.connect(self.handle_revoke_broadcasted)
+        self.account.selfcert_broadcasted.connect(self.handle_selfcert_broadcasted)
         self.refresh_quality_buttons()
+
+    def handle_membership_broadcasted(self):
+        if self.app.preferences['notifications']:
+            toast.display(self.tr("Membership"), self.tr("Success sending Membership demand"))
+        else:
+            QMessageBox.information(self, self.tr("Membership"), self.tr("Success sending Membership demand"))
+
+    def handle_revoke_broadcasted(self):
+        if self.app.preferences['notifications']:
+            toast.display(self.tr("Revoke"), self.tr("Success sending Revoke demand"))
+        else:
+            QMessageBox.information(self, self.tr("Revoke"), self.tr("Success sending Revoke demand"))
+
+    def handle_selfcert_broadcasted(self):
+        if self.app.preferences['notifications']:
+            toast.display(self.tr("Self Certification"), self.tr("Success sending Self Certification document"))
+        else:
+            QMessageBox.information(self.tr("Self Certification"), self.tr("Success sending Self Certification document"))
 
     def identity_context_menu(self, point):
         index = self.table_identities.indexAt(point)
@@ -73,13 +98,12 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             pubkey_index = model.sourceModel().index(source_index.row(),
                                                    pubkey_col)
             pubkey = model.sourceModel().data(pubkey_index, Qt.DisplayRole)
-            identity = Person.lookup(pubkey, self.community)
+            identity = self.app.identities_registry.lookup(pubkey, self.community)
             menu = QMenu(self)
 
             informations = QAction(self.tr("Informations"), self)
             informations.triggered.connect(self.menu_informations)
             informations.setData(identity)
-
             add_contact = QAction(self.tr("Add as contact"), self)
             add_contact.triggered.connect(self.menu_add_as_contact)
             add_contact.setData(identity)
@@ -145,10 +169,10 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             currency_tab = self.window().currencies_tabwidget.currentWidget()
             currency_tab.tab_history.table_history.model().sourceModel().refresh_transfers()
 
-    def certify_identity(self, person):
-        dialog = CertificationDialog(self.account, self.password_asker)
+    def certify_identity(self, identity):
+        dialog = CertificationDialog(self.account, self.app, self.password_asker)
         dialog.combo_community.setCurrentText(self.community.name)
-        dialog.edit_pubkey.setText(person.pubkey)
+        dialog.edit_pubkey.setText(identity.pubkey)
         dialog.radio_pubkey.setChecked(True)
         dialog.exec_()
 
@@ -166,25 +190,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         password = self.password_asker.exec_()
         if self.password_asker.result() == QDialog.Rejected:
             return
-
-        try:
-            self.account.send_membership(password, self.community, 'IN')
-            toast.display(self.tr("Membership"), self.tr("Success sending membership demand"))
-        except ValueError as e:
-            QMessageBox.critical(self, self.tr("Join demand error"),
-                              str(e))
-        except PersonNotFoundError as e:
-            QMessageBox.critical(self, self.tr("Key not sent to community"),
-                              self.tr(""""Your key wasn't sent in the community.
-You can't request a membership."""))
-        except NoPeerAvailable as e:
-            QMessageBox.critical(self, self.tr("Network error"),
-                                 self.tr("Couldn't connect to network : {0}").format(e),
-                                 QMessageBox.Ok)
-        except Exception as e:
-            QMessageBox.critical(self, "Error",
-                                 "{0}".format(e),
-                                 QMessageBox.Ok)
+        asyncio.async(self.account.send_membership(password, self.community, 'IN'))
 
     def send_membership_leaving(self):
         reply = QMessageBox.warning(self, self.tr("Warning"),
@@ -197,20 +203,7 @@ The process to join back the community later will have to be done again.""")
             if self.password_asker.result() == QDialog.Rejected:
                 return
 
-            try:
-                self.account.send_membership(password, self.community, 'OUT')
-                toast.display(self.tr("Membership"), self.tr("Success sending leaving demand"))
-            except ValueError as e:
-                QMessageBox.critical(self, self.tr("Leaving demand error"),
-                                  str(e))
-            except NoPeerAvailable as e:
-                QMessageBox.critical(self, self.tr("Network error"),
-                                     self.tr("Couldn't connect to network : {0}").format(e),
-                                     QMessageBox.Ok)
-            except Exception as e:
-                QMessageBox.critical(self, self.tr("Error"),
-                                     "{0}".format(e),
-                                     QMessageBox.Ok)
+        asyncio.async(self.account.send_membership(password, self.community, 'OUT'))
 
     def publish_uid(self):
         reply = QMessageBox.warning(self, self.tr("Warning"),
@@ -233,10 +226,10 @@ Publishing your UID can be canceled by Revoke UID.""")
                 QMessageBox.critical(self, self.tr("Network error"),
                                      self.tr("Couldn't connect to network : {0}").format(e),
                                      QMessageBox.Ok)
-            except Exception as e:
-                QMessageBox.critical(self, self.tr("Error"),
-                                     "{0}".format(e),
-                                     QMessageBox.Ok)
+            # except Exception as e:
+            #     QMessageBox.critical(self, self.tr("Error"),
+            #                          "{0}".format(e),
+            #                          QMessageBox.Ok)
 
     def revoke_uid(self):
         reply = QMessageBox.warning(self, self.tr("Warning"),
@@ -248,21 +241,28 @@ Revoking your UID can only success if it is not already validated by the network
             if self.password_asker.result() == QDialog.Rejected:
                 return
 
-            try:
-                self.account.revoke(password, self.community)
-                toast.display(self.tr("UID Revoking"),
-                              self.tr("Success revoking your UID"))
-            except ValueError as e:
-                QMessageBox.critical(self, self.tr("Revoke UID error"),
-                                  str(e))
-            except NoPeerAvailable as e:
-                QMessageBox.critical(self, self.tr("Network error"),
-                                     self.tr("Couldn't connect to network : {0}").format(e),
-                                     QMessageBox.Ok)
-            except Exception as e:
-                QMessageBox.critical(self, self.tr("Error"),
-                                     "{0}".format(e),
-                                     QMessageBox.Ok)
+            asyncio.async(self.account.revoke(password, self.community))
+
+    @asyncio.coroutine
+    def _execute_search_text(self, text):
+        response = yield from self.community.bma_access.future_request(qtbma.wot.Lookup, {'search': text})
+        identities = []
+        for identity_data in response['results']:
+            identity = yield from self.app.identities_registry.future_lookup(identity_data['pubkey'], self.community)
+            identities.append(identity)
+
+        self_identity = self.account.identity(self.community)
+        try:
+            self_identity.inner_data_changed.disconnect(self.handle_account_identity_change)
+            self.community.inner_data_changed.disconnect(self.handle_community_change)
+        except TypeError as e:
+            if "disconnect() failed" in str(e):
+                pass
+            else:
+                raise
+
+        self.edit_textsearch.clear()
+        self.refresh_identities(identities)
 
     def search_text(self):
         """
@@ -272,65 +272,82 @@ Revoking your UID can only success if it is not already validated by the network
 
         if len(text) < 2:
             return False
-        try:
-            response = self.community.request(bma.wot.Lookup, {'search': text})
-        except Exception as e:
-            logging.debug('bma.wot.Lookup request error : ' + str(e))
-            return False
+        else:
+            asyncio.async(self._execute_search_text(text))
 
-        persons = []
-        for identity in response['results']:
-            persons.append(Person.lookup(identity['pubkey'], self.community))
+    @pyqtSlot(str)
+    def handle_community_change(self, origin):
+        logging.debug("Handle account community {0}".format(origin))
+        if origin == qtbma.wot.Members:
+            self.search_members()
 
-        self.edit_textsearch.clear()
-        self.refresh(persons)
+    @pyqtSlot(str)
+    def handle_account_identity_change(self, origin):
+        logging.debug("Handle account identity change {0}".format(origin))
+        if origin in (str(qtbma.wot.CertifiedBy), str(qtbma.wot.CertifiersOf)):
+            self.search_direct_connections()
 
     def search_members(self):
         """
         Search members of community and display found members
         """
         pubkeys = self.community.members_pubkeys()
-        persons = []
+        identities = []
         for p in pubkeys:
-            persons.append(Person.lookup(p, self.community))
+            identities.append(self.app.identities_registry.lookup(p, self.community))
+
+        self_identity = self.account.identity(self.community)
+
+        try:
+            self_identity.inner_data_changed.disconnect(self.handle_account_identity_change)
+            self.community.inner_data_changed.connect(self.handle_community_change)
+        except TypeError as e:
+            if "disconnect() failed" in str(e):
+                pass
+            else:
+                raise
 
         self.edit_textsearch.clear()
-        self.refresh(persons)
+        self.refresh_identities(identities)
 
     def search_direct_connections(self):
         """
         Search members of community and display found members
         """
-        self.refresh()
+        self_identity = self.account.identity(self.community)
+        try:
+            self.community.inner_data_changed.disconnect(self.handle_community_change)
+            self_identity.inner_data_changed.connect(self.handle_account_identity_change)
+        except TypeError as e:
+            if "disconnect() failed" in str(e):
+                logging.debug("Could not disconnect community")
+            else:
+                raise
 
-    def refresh(self, persons=None):
-        '''
+        account_connections = []
+        for p in self_identity.unique_valid_certifiers_of(self.community):
+            account_connections.append(self.app.identities_registry.lookup(p['pubkey'], self.community))
+        certifiers_of = [p for p in account_connections]
+        for p in self_identity.unique_valid_certified_by(self.community):
+            account_connections.append(self.app.identities_registry.lookup(p['pubkey'], self.community))
+        certified_by = [p for p in account_connections
+                  if p.pubkey not in [i.pubkey for i in certifiers_of]]
+        identities = certifiers_of + certified_by
+        self.refresh_identities(identities)
+
+    def refresh_identities(self, identities):
+        """
         Refresh the table with specified identities.
         If no identities is passed, use the account connections.
-        '''
-        if persons is None:
-            self_identity = Person.lookup(self.account.pubkey, self.community)
-            account_connections = []
-            certifiers_of = []
-            certified_by = []
-            for p in self_identity.unique_valid_certifiers_of(self.community):
-                account_connections.append(Person.lookup(p['pubkey'], self.community))
-            certifiers_of = [p for p in account_connections]
-            logging.debug(persons)
-            for p in self_identity.unique_valid_certified_by(self.community):
-                account_connections.append(Person.lookup(p['pubkey'], self.community))
-            certified_by = [p for p in account_connections
-                      if p.pubkey not in [i.pubkey for i in certifiers_of]]
-            persons = certifiers_of + certified_by
-
-        self.table_identities.model().sourceModel().refresh_identities(persons)
+        """
+        self.table_identities.model().sourceModel().refresh_identities(identities)
         self.table_identities.resizeColumnsToContents()
 
     def refresh_quality_buttons(self):
         try:
-            if self.account.published_uid(self.community):
+            if self.account.identity(self.community).published_uid(self.community):
                 logging.debug("UID Published")
-                if self.account.member_of(self.community):
+                if self.account.identity(self.community).is_member(self.community):
                     self.button_membership.setText(self.tr("Renew membership"))
                     self.button_membership.show()
                     self.button_publish_uid.hide()
@@ -349,19 +366,7 @@ Revoking your UID can only success if it is not already validated by the network
                 self.button_leaving.hide()
                 self.button_publish_uid.show()
                 self.button_revoke_uid.hide()
-        except PersonNotFoundError:
+        except LookupFailureError:
             self.button_membership.hide()
             self.button_leaving.hide()
             self.button_publish_uid.show()
-
-    @pyqtSlot(str)
-    def refresh_person(self, pubkey):
-        logging.debug("Refresh person {0}".format(pubkey))
-        if self is None:
-            logging.error("community_tab self is None in refresh_person. Watcher connected to a destroyed tab")
-        else:
-            if pubkey == self.account.pubkey:
-                self.refresh_quality_buttons()
-
-            index = self.table_identities.model().sourceModel().person_index(pubkey)
-            self.table_identities.model().sourceModel().dataChanged.emit(index[0], index[1])

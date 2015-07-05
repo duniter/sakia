@@ -6,8 +6,6 @@ from PyQt5.QtWidgets import QWidget, QComboBox
 from PyQt5.QtCore import pyqtSlot
 from ..gen_resources.wot_tab_uic import Ui_WotTabWidget
 from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_SELECTED, NODE_STATUS_OUT, ARC_STATUS_STRONG, ARC_STATUS_WEAK
-from ucoinpy.api import bma
-from cutecoin.core.person import Person
 
 
 class WotTabWidget(QWidget, Ui_WotTabWidget):
@@ -32,64 +30,79 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         self.comboBoxSearch.setInsertPolicy(QComboBox.NoInsert)
 
         # add scene events
-        self.graphicsView.scene().node_clicked.connect(self.draw_graph)
+        self.graphicsView.scene().node_clicked.connect(self.handle_node_click)
         self.graphicsView.scene().node_signed.connect(self.sign_node)
         self.graphicsView.scene().node_transaction.connect(self.send_money_to_node)
         self.graphicsView.scene().node_contact.connect(self.add_node_as_contact)
         self.graphicsView.scene().node_member.connect(self.identity_informations)
 
-        app.monitor.persons_watcher(community).person_changed.connect(self.handle_person_change)
         self.account = account
         self.community = community
         self.password_asker = password_asker
+        self.app = app
 
         # nodes list for menu from search
         self.nodes = list()
 
         # create node metadata from account
-        self._current_metadata = {'text': self.account.name, 'id': self.account.pubkey}
-        self.refresh()
+        self._current_identity = None
+        self.draw_graph(self.account.identity(self.community))
 
-    def draw_graph(self, metadata):
+    @pyqtSlot(dict)
+    def handle_node_click(self, metadata):
+        self.draw_graph(self.app.identities_registry.from_metadata(metadata))
+
+    def draw_graph(self, identity):
         """
         Draw community graph centered on the identity
 
-        :param dict metadata: Graph node metadata of the identity
+        :param cutecoin.core.registry.Identity identity: Graph node identity
         """
-        logging.debug("Draw graph - " + metadata['text'])
-        self._current_metadata = metadata
+        logging.debug("Draw graph - " + identity.uid)
 
-        # create Person from node metadata
-        person = Person.from_metadata(metadata)
-        person_account = Person.from_metadata({'text': self.account.name,
-                                               'id': self.account.pubkey})
-        certifier_list = person.certifiers_of(self.community)
-        certified_list = person.certified_by(self.community)
+        identity_account = self.account.identity(self.community)
+
+        #Disconnect old identity
+        try:
+            if self._current_identity and self._current_identity != identity:
+                self._current_identity.inner_data_changed.disconnect(self.handle_identity_change)
+        except TypeError as e:
+            if "disconnect()" in str(e):
+                logging.debug("Disconnect of old identity failed.")
+
+        #Connect new identity
+        if self._current_identity != identity:
+            self._current_identity = identity
+            identity.inner_data_changed.connect(self.handle_identity_change)
+
+        # create Identity from node metadata
+        certifier_list = identity.certifiers_of(self.community)
+        certified_list = identity.certified_by(self.community)
 
         # create empty graph instance
         graph = Graph(self.community)
 
         # add wallet node
         node_status = 0
-        if person.pubkey == person_account.pubkey:
+        if identity == identity_account:
             node_status += NODE_STATUS_HIGHLIGHTED
-        if person.is_member(self.community) is False:
+        if identity.is_member(self.community) is False:
             node_status += NODE_STATUS_OUT
         node_status += NODE_STATUS_SELECTED
-        graph.add_person(person, node_status)
+        graph.add_identity(identity, node_status)
 
         # populate graph with certifiers-of
-        graph.add_certifier_list(certifier_list, person, person_account)
+        graph.add_certifier_list(certifier_list, identity, identity_account)
         # populate graph with certified-by
-        graph.add_certified_list(certified_list, person, person_account)
+        graph.add_certified_list(certified_list, identity, identity_account)
 
         # draw graph in qt scene
         self.graphicsView.scene().update_wot(graph.get())
 
         # if selected member is not the account member...
-        if person.pubkey != person_account.pubkey:
+        if identity.pubkey != identity_account.pubkey:
             # add path from selected member to account member
-            path = graph.get_shortest_path_between_members(person, person_account)
+            path = graph.get_shortest_path_between_members(identity, identity_account)
             if path:
                 self.graphicsView.scene().update_path(path)
 
@@ -97,21 +110,19 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         """
         Reset graph scene to wallet identity
         """
-        metadata = {'text': self.account.name, 'id': self.account.pubkey}
         self.draw_graph(
-            metadata
+            self.account.identity(self.community)
         )
 
     def refresh(self):
         """
         Refresh graph scene to current metadata
         """
-        self.draw_graph(self._current_metadata)
+        self.draw_graph(self._current_identity)
 
-    @pyqtSlot(str)
-    def handle_person_change(self, pubkey):
-        if pubkey == self._current_metadata['id']:
-            self.refresh()
+    @pyqtSlot()
+    def handle_identity_change(self):
+        self.refresh()
 
     def search(self):
         """
@@ -122,7 +133,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         if len(text) < 2:
             return False
         try:
-            response = self.community.request(bma.wot.Lookup, {'search': text})
+            response = self.community.simple_request(bma.wot.Lookup, {'search': text})
         except Exception as e:
             logging.debug('bma.wot.Lookup request error : ' + str(e))
             return False
@@ -149,20 +160,20 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         node = self.nodes[index]
         metadata = {'id': node['pubkey'], 'text': node['uid']}
         self.draw_graph(
-            metadata
+            self.app.identities_registry.from_metadata(metadata)
         )
 
     def identity_informations(self, metadata):
-        person = Person.from_metadata(metadata)
-        self.parent.identity_informations(person)
+        identity = self.app.identities_registry.from_metadata(metadata)
+        self.parent.identity_informations(identity)
 
     def sign_node(self, metadata):
-        person = Person.from_metadata(metadata)
-        self.parent.certify_identity(person)
+        identity = self.app.identities_registry.from_metadata(metadata)
+        self.parent.certify_identity(identity)
 
     def send_money_to_node(self, metadata):
-        person = Person.from_metadata(metadata)
-        self.parent.send_money_to_identity(person)
+        identity = self.app.identities_registry.from_metadata(metadata)
+        self.parent.send_money_to_identity(identity)
 
     def add_node_as_contact(self, metadata):
         # check if contact already exists...

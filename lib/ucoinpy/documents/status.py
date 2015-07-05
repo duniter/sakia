@@ -1,15 +1,15 @@
-'''
+"""
 Created on 2 déc. 2014
 
 @author: inso
-'''
+"""
 
 import re
 from . import Document
 
 
 class Status(Document):
-    '''
+    """
     Version: VERSION
     Type: Status
     Currency: CURRENCY_NAME
@@ -17,7 +17,7 @@ class Status(Document):
     Block: BLOCK
     From: SENDER
     To: RECIPIENT
-    '''
+    """
 
     re_type = re.compile("Type: (Status)")
     re_status = re.compile("Status: (NEW|NEW_BACK|UP|UP_BACK|DOWN)")
@@ -27,9 +27,9 @@ class Status(Document):
 
     def __init__(self, version, currency, status, blockid, sender,
                  recipient, signature):
-        '''
+        """
         Constructor
-        '''
+        """
         super().__init__(version, currency, [signature])
 
         self.status = status
@@ -70,12 +70,12 @@ class Status(Document):
                    sender, recipient, signature)
 
     def raw(self):
-        return '''Version: {0}
+        return """Version: {0}
 Type: Status
 Currency: {1}
 Status: {2}
 Block: {3}
 From: {4}
 To: {5}
-'''.format(self.version, self.currency, self.status,
+""".format(self.version, self.currency, self.status,
            self.blockid, self.sender, self.recipient)

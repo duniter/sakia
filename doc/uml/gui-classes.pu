@@ -1,0 +1,58 @@
+@startuml
+
+
+package gui {
+		class MainWindow {
+		}
+		MainWindow "1" --* "*" CurrencyTab
+
+		class CurrencyTab {
+		}
+		CurrencyTab "1" --* "1" CommunityTab
+		CurrencyTab "1" --* "1" WalletTab
+		CurrencyTab "1" --* "1" InformationsTab
+		CurrencyTab "1" --* "1" TransactionsTab
+
+		class CommunityTab {
+		}
+
+		CommunityTab "1" --* "1" IdentitiesTab
+		CommunityTab "1" --* "1" WotTab
+
+		class WalletTab {
+		}
+
+		class InformationsTab {
+		}
+
+		class TransactionsTab {
+		}
+
+		class NetworkTab {
+		}
+
+		CurrencyTab "1" --* "1" NetworkTab
+
+		class IdentitiesTab {
+		}
+
+		class WotTab {
+		}
+		package dialogs {
+		class CertificationDialog
+		class TransferDialog
+		class ContactDialog
+		class ConfigureAccountDialog
+		class ConfigureCommunityDialog
+		}
+
+	MainWindow --> CertificationDialog
+	MainWindow --> TransferDialog
+	MainWindow --> ContactDialog
+	MainWindow --> ConfigureAccountDialog
+	ConfigureAccountDialog --> ConfigureCommunityDialog
+
+		class Wot
+		WotTab --> Wot
+}
+@enduml

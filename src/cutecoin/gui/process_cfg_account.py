@@ -1,8 +1,8 @@
-'''
+"""
 Created on 6 mars 2014
 
 @author: inso
-'''
+"""
 import logging
 import requests
 from ucoinpy.documents.peer import Peer
@@ -24,9 +24,9 @@ class Step():
 
 
 class StepPageInit(Step):
-    '''
+    """
     First step when adding a community
-    '''
+    """
 
     def __init__(self, config_dialog):
         super().__init__(config_dialog)
@@ -59,9 +59,9 @@ class StepPageInit(Step):
 
 
 class StepPageKey(Step):
-    '''
+    """
     First step when adding a community
-    '''
+    """
 
     def __init__(self, config_dialog):
         super().__init__(config_dialog)
@@ -107,9 +107,9 @@ class StepPageKey(Step):
 
 
 class StepPageCommunities(Step):
-    '''
+    """
     First step when adding a community
-    '''
+    """
 
     def __init__(self, config_dialog):
         super().__init__(config_dialog)
@@ -140,14 +140,14 @@ class StepPageCommunities(Step):
 
 
 class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
-    '''
+    """
     classdocs
-    '''
+    """
 
     def __init__(self, app, account):
-        '''
+        """
         Constructor
-        '''
+        """
         # Set up the user interface from Designer.
         super().__init__()
         self.setupUi(self)
@@ -174,7 +174,8 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
     def open_process_add_community(self):
         logging.debug("Opening configure community dialog")
         logging.debug(self.password_asker)
-        dialog = ProcessConfigureCommunity(self.account, None,
+        dialog = ProcessConfigureCommunity(self.app,
+                                           self.account, None,
                                            self.password_asker)
         dialog.accepted.connect(self.action_add_community)
         dialog.exec_()
@@ -215,16 +216,7 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
 
     def open_process_edit_community(self, index):
         community = self.account.communities[index.row()]
-        try:
-            dialog = ProcessConfigureCommunity(self.account, community, self.password_asker)
-        except NoPeerAvailable as e:
-            QMessageBox.critical(self, self.tr("Error"),
-                                 str(e), QMessageBox.Ok)
-            return
-        except requests.exceptions.RequestException as e:
-            QMessageBox.critical(self, self.tr("Error"),
-                                 str(e), QMessageBox.Ok)
-            return
+        dialog = ProcessConfigureCommunity(self.app, self.account, community, self.password_asker)
 
         dialog.accepted.connect(self.action_edit_community)
         dialog.exec_()

@@ -1,8 +1,8 @@
-'''
+"""
 Ucoin public and private keys
 
 @author: inso
-'''
+"""
 
 import base58
 import base64

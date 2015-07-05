@@ -5,9 +5,10 @@ Created on 1 févr. 2014
 """
 import signal
 import sys
-import os
 import logging
+import asyncio
 
+from quamash import QEventLoop
 from PyQt5.QtWidgets import QApplication
 from cutecoin.gui.mainwindow import MainWindow
 from cutecoin.core.app import Application
@@ -17,8 +18,13 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     cutecoin = QApplication(sys.argv)
-    app = Application(sys.argv, cutecoin)
-    window = MainWindow(app)
-    window.showMaximized()
-    sys.exit(cutecoin.exec_())
-    pass
+    loop = QEventLoop(cutecoin)
+    asyncio.set_event_loop(loop)
+    print("Debug enabled : {0}".format(loop.get_debug()))
+
+    with loop:
+        app = Application.startup(sys.argv, cutecoin, loop)
+        window = MainWindow(app)
+        window.startup()
+        loop.run_forever()
+    sys.exit()
