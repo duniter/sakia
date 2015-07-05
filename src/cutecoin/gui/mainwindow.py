@@ -333,6 +333,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         export_dialog.setWindowTitle(self.tr("Export an account"))
         export_dialog.setNameFilter(self.tr("All account files (*.acc)"))
         export_dialog.setLabelText(QFileDialog.Accept, self.tr('Export'))
+        export_dialog.setOption(QFileDialog.DontUseNativeDialog, True)
         export_dialog.accepted.connect(self.export_account_accepted)
         export_dialog.show()
 
