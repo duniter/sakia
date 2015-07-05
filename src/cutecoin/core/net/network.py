@@ -187,6 +187,11 @@ class Network(QObject):
         return self._root_nodes.index(node)
 
     @asyncio.coroutine
+    def refresh_once(self):
+        for node in self.nodes:
+            node.refresh()
+
+    @asyncio.coroutine
     def discover_network(self):
         """
         Start crawling which never stops.

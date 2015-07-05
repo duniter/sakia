@@ -5,6 +5,8 @@ Created on 20 févr. 2015
 """
 
 import logging
+import asyncio
+
 from PyQt5.QtGui import QCursor, QDesktopServices
 from PyQt5.QtWidgets import QWidget, QMenu, QAction
 from PyQt5.QtCore import Qt, QModelIndex, pyqtSlot, QUrl
@@ -93,5 +95,7 @@ class NetworkTabWidget(QWidget, Ui_NetworkTabWidget):
         url = QUrl(peering.reverse_url("/peering"))
         QDesktopServices.openUrl(url)
 
+    def manual_nodes_refresh(self):
+        asyncio.async(self.community.network.refresh_once())
 
 
