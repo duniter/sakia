@@ -51,7 +51,10 @@ class Application(QObject):
         self._network_manager = network_manager
         self.preferences = {'account': "",
                             'lang': 'en_GB',
-                            'ref': 0
+                            'ref': 0,
+                            'expert_mode': False,
+                            'digits_after_comma': 8,
+                            'maximized': False
                             }
 
     @classmethod
@@ -268,7 +271,8 @@ class Application(QObject):
                                             'preferences')
             with open(preferences_path, 'r') as json_data:
                 data = json.load(json_data)
-                self.preferences = data
+                for key in data:
+                    self.preferences[key] = data[key]
         except FileNotFoundError:
             pass
 

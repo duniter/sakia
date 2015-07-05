@@ -96,7 +96,7 @@
      <item>
       <widget class="QStackedWidget" name="stackedWidget">
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="page">
         <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -132,6 +132,13 @@
           </layout>
          </item>
          <item>
+          <widget class="Line" name="line_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
           <layout class="QHBoxLayout" name="horizontalLayout_4">
            <item>
             <spacer name="horizontalSpacer">
@@ -147,9 +154,9 @@
             </spacer>
            </item>
            <item>
-            <widget class="QCheckBox" name="checkBox">
+            <widget class="QCheckBox" name="checkbox_expertmode">
              <property name="text">
-              <string>Expert mode</string>
+              <string>Enable expert mode</string>
              </property>
             </widget>
            </item>
@@ -171,11 +178,46 @@
         </layout>
         <zorder></zorder>
         <zorder></zorder>
-        <zorder></zorder>
         <zorder>verticalSpacer</zorder>
+        <zorder>line_2</zorder>
        </widget>
        <widget class="QWidget" name="page_2">
         <layout class="QVBoxLayout" name="verticalLayout_2">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_6">
+           <item>
+            <widget class="QLabel" name="label_4">
+             <property name="text">
+              <string>Digits after commas </string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="spinbox_digits_comma"/>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_7">
+           <item>
+            <widget class="QLabel" name="label_5">
+             <property name="text">
+              <string>Language</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="combo_language"/>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="Line" name="line_3">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_5">
            <item>
@@ -192,39 +234,11 @@
             </spacer>
            </item>
            <item>
-            <widget class="QCheckBox" name="checkBox_2">
+            <widget class="QCheckBox" name="checkbox_maximize">
              <property name="text">
               <string>Maximize Window at Startup</string>
              </property>
             </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_6">
-           <item>
-            <widget class="QLabel" name="label_4">
-             <property name="text">
-              <string>Numbers after commas </string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QSpinBox" name="spinBox"/>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_7">
-           <item>
-            <widget class="QLabel" name="label_5">
-             <property name="text">
-              <string>Language</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QComboBox" name="combo_language"/>
            </item>
           </layout>
          </item>
@@ -244,8 +258,8 @@
         </layout>
         <zorder></zorder>
         <zorder></zorder>
-        <zorder></zorder>
         <zorder>verticalSpacer_2</zorder>
+        <zorder>line_3</zorder>
        </widget>
        <widget class="QWidget" name="page_3"/>
       </widget>

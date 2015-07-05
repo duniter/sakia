@@ -74,6 +74,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def startup(self):
         self.update_time()
         self.app.get_last_version()
+        if self.app.preferences['maximized']:
+            self.showMaximized()
+        else:
+            self.show()
         self.refresh()
 
     def open_add_account_dialog(self):

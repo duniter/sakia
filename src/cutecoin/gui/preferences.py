@@ -38,6 +38,11 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
         for lang in ('en_GB', 'fr_FR'):
             self.combo_language.addItem(lang)
         self.combo_language.setCurrentText(self.app.preferences['lang'])
+        self.checkbox_expertmode.setChecked(self.app.preferences['expert_mode'])
+        self.checkbox_maximize.setChecked(self.app.preferences['maximized'])
+        self.spinbox_digits_comma.setValue(self.app.preferences['digits_after_comma'])
+        self.spinbox_digits_comma.setMaximum(12)
+        self.spinbox_digits_comma.setMinimum(1)
         self.button_app.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(0))
         self.button_display.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(1))
         self.button_network.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(2))
@@ -45,7 +50,10 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
     def accept(self):
         pref = {'account': self.combo_account.currentText(),
                 'lang': self.combo_language.currentText(),
-                'ref': self.combo_referential.currentIndex()}
+                'ref': self.combo_referential.currentIndex(),
+                'expert_mode': self.checkbox_expertmode.isChecked(),
+                'maximized': self.checkbox_maximize.isChecked(),
+                'digits_after_comma': self.spinbox_digits_comma.value()}
         self.app.save_preferences(pref)
         toast.display(self.tr("Preferences"),
                       self.tr("A restart is needed to apply your new preferences."))

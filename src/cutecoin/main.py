@@ -26,6 +26,5 @@ if __name__ == '__main__':
         app = Application.startup(sys.argv, cutecoin, loop)
         window = MainWindow(app)
         window.startup()
-        window.showMaximized()
         loop.run_forever()
     sys.exit()
