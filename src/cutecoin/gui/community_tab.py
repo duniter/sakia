@@ -66,16 +66,28 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
 
         self.account.identity(self.community).inner_data_changed.connect(self.handle_account_identity_change)
         self.search_direct_connections()
-        self.account.membership_broadcasted.connect(lambda:
-                                                    toast.display(self.tr("Membership"),
-                                                                self.tr("Success sending Membership demand")))
-        self.account.revoke_broadcasted.connect(lambda:
-                                                    toast.display(self.tr("Revoke"),
-                                                                self.tr("Success sending Revoke demand")))
-        self.account.selfcert_broadcasted.connect(lambda:
-                                                    toast.display(self.tr("Self Certification"),
-                                                                self.tr("Success sending Self Certification document")))
+        self.account.membership_broadcasted.connect(self.handle_membership_broadcasted)
+        self.account.revoke_broadcasted.connect(self.handle_revoke_broadcasted)
+        self.account.selfcert_broadcasted.connect(self.handle_selfcert_broadcasted)
         self.refresh_quality_buttons()
+
+    def handle_membership_broadcasted(self):
+        if self.app.preferences['notifications']:
+            toast.display(self.tr("Membership"), self.tr("Success sending Membership demand"))
+        else:
+            QMessageBox.information(self, self.tr("Membership"), self.tr("Success sending Membership demand"))
+
+    def handle_revoke_broadcasted(self):
+        if self.app.preferences['notifications']:
+            toast.display(self.tr("Revoke"), self.tr("Success sending Revoke demand"))
+        else:
+            QMessageBox.information(self, self.tr("Revoke"), self.tr("Success sending Revoke demand"))
+
+    def handle_selfcert_broadcasted(self):
+        if self.app.preferences['notifications']:
+            toast.display(self.tr("Self Certification"), self.tr("Success sending Self Certification document"))
+        else:
+            QMessageBox.information(self.tr("Self Certification"), self.tr("Success sending Self Certification document"))
 
     def identity_context_menu(self, point):
         index = self.table_identities.indexAt(point)

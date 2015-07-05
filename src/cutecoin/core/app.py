@@ -54,7 +54,8 @@ class Application(QObject):
                             'ref': 0,
                             'expert_mode': False,
                             'digits_after_comma': 6,
-                            'maximized': False
+                            'maximized': False,
+                            'notifications': True
                             }
 
     @classmethod

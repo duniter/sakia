@@ -62,7 +62,10 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
 
     @pyqtSlot(int, str)
     def handle_error(self, error_code, text):
-        toast.display(self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
+        if self.app.preferences['notifications']:
+            toast.display(self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
+        else:
+            QMessageBox.Critical(self, self.tr("Error", self.tr("{0} : {1}".format(error_code, text))))
         self.account.certification_broadcasted.disconnect()
         self.account.broadcast_error.disconnect(self.handle_error)
         QApplication.restoreOverrideCursor()

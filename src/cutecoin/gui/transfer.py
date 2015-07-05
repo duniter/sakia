@@ -18,9 +18,13 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
     classdocs
     """
 
-    def __init__(self, sender, password_asker):
+    def __init__(self, app, sender, password_asker):
         """
         Constructor
+        :param cutecoin.core.Application app: The application
+        :param cutecoin.core.Account sender: The sender
+        :param cutecoin.gui.password_asker.Password_Asker password_asker: The password asker
+        :return:
         """
         super().__init__()
         self.setupUi(self)
@@ -79,7 +83,11 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
 
     @pyqtSlot(str)
     def money_sent(self, receiver_uid):
-        toast.display(self.tr("Transfer"),
+        if self.app.preferences['notifications']:
+            toast.display(self.tr("Transfer"),
+                      self.tr("Success sending money to {0}").format(receiver_uid))
+        else:
+            QMessageBox.information(self, self.tr("Transfer"),
                       self.tr("Success sending money to {0}").format(receiver_uid))
         self.wallet.transfer_broadcasted.disconnect()
         self.wallet.broadcast_error.disconnect(self.handle_error)
@@ -88,7 +96,10 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
 
     @pyqtSlot(int, str)
     def handle_error(self, error_code, text):
-        toast.display(self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
+        if self.app.preferences['notifications']:
+            toast.display(self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
+        else:
+            QMessageBox.critical(self, self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
         self.wallet.transfer_broadcasted.disconnect()
         self.wallet.broadcast_error.disconnect(self.handle_error)
         QApplication.restoreOverrideCursor()

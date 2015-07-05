@@ -227,7 +227,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 .format(version=latest[1])
             version_url = latest[2]
 
-            toast.display("Cutecoin", """<p>{version_info}</br>
+            if self.app.preferences['notifications']:
+                toast.display("Cutecoin", """<p>{version_info}</br>
 <a href={version_url}>Download link</a></p>""".format(
                 version_info=version_info,
                 version_url=version_url))

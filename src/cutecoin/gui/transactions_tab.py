@@ -93,7 +93,8 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
             text = self.tr("Received {0} {1} from {2} transfers").format(amount,
                                                                self.community.currency,
                                                                len(received_list))
-            toast.display(self.tr("New transactions received"), text)
+            if self.app.preferences['notifications']:
+                toast.display(self.tr("New transactions received"), text)
 
             self.table_history.model().sourceModel().refresh_transfers()
             self.table_history.resizeColumnsToContents()

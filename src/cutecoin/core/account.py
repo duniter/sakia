@@ -427,13 +427,15 @@ class Account(QObject):
         strdata = bytes(reply.readAll()).decode('utf-8')
         logging.debug("Received reply : {0} : {1}".format(reply.error(), strdata))
         if reply.error() == QNetworkReply.NoError:
-            self.selfcert_broadcasted.emit()
             for r in replies:
                 try:
                     r.disconnect()
                 except TypeError as e:
                     if "disconnect()" in str(e):
                         logging.debug("Could not disconnect a reply")
+                    else:
+                        raise
+            self.selfcert_broadcasted.emit()
         else:
             for r in replies:
                 if not r.isFinished() or r.error() == QNetworkReply.NoError:
@@ -480,13 +482,15 @@ class Account(QObject):
         strdata = bytes(reply.readAll()).decode('utf-8')
         logging.debug("Received reply : {0} : {1}".format(reply.error(), strdata))
         if reply.error() == QNetworkReply.NoError:
-            self.membership_broadcasted.emit()
             for r in replies:
                 try:
                     r.disconnect()
                 except TypeError as e:
                     if "disconnect()" in str(e):
                         logging.debug("Could not disconnect a reply")
+                    else:
+                        raise
+            self.membership_broadcasted.emit()
         else:
             for r in replies:
                 if not r.isFinished() or r.error() == QNetworkReply.NoError:
@@ -535,13 +539,15 @@ class Account(QObject):
         strdata = bytes(reply.readAll()).decode('utf-8')
         logging.debug("Received reply : {0} : {1}".format(reply.error(), strdata))
         if reply.error() == QNetworkReply.NoError:
-            self.certification_broadcasted.emit()
             for r in replies:
                 try:
                     r.disconnect()
                 except TypeError as e:
                     if "disconnect()" in str(e):
                         logging.debug("Could not disconnect a reply")
+                    else:
+                        raise
+            self.certification_broadcasted.emit()
         else:
             for r in replies:
                 if not r.isFinished() or r.error() == QNetworkReply.NoError:
@@ -589,13 +595,15 @@ class Account(QObject):
         strdata = bytes(reply.readAll()).decode('utf-8')
         logging.debug("Received reply : {0} : {1}".format(reply.error(), strdata))
         if reply.error() == QNetworkReply.NoError:
-            self.revoke_broadcasted.emit()
             for r in replies:
                 try:
                     r.disconnect()
                 except TypeError as e:
                     if "disconnect()" in str(e):
                         logging.debug("Could not disconnect a reply")
+                    else:
+                        raise
+            self.revoke_broadcasted.emit()
         else:
             for r in replies:
                 if not r.isFinished() or r.error() == QNetworkReply.NoError:

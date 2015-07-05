@@ -101,10 +101,10 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         """
         Constructor
 
-        :type app: cutecoin.core.App
-        :type account: cutecoin.core.Account
-        :type community: cutecoin.core.Community
-        :type password_asker: cutecoin.gui.password_asker.Password_Asker
+        :param cutecoin.core.Application app: The application
+        :param cutecoin.core.Account account: The configured account
+        :param cutecoin.core.Community community: The configured community
+        :param cutecoin.gui.password_asker.Password_Asker password_asker: The password asker
         """
         super().__init__()
         self.setupUi(self)
@@ -197,7 +197,11 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
             menu.exec_(QCursor.pos())
 
     def selfcert_sent(self, pubkey, currency):
-        toast.display(self.tr("UID Publishing"),
+        if self.app.preferences['notifications']:
+            toast.display(self.tr("UID Publishing"),
+                      self.tr("Success publishing  your UID").format(pubkey, currency))
+        else:
+            QMessageBox.information(self, self.tr("UID Publishing"),
                       self.tr("Success publishing  your UID").format(pubkey, currency))
         self.account.certification_broadcasted.disconnect()
         self.account.broadcast_error.disconnect(self.handle_error)
@@ -206,7 +210,10 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
 
     @pyqtSlot(int, str)
     def handle_error(self, error_code, text):
-        toast.display(self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
+        if self.app.preferences['notifications']:
+            toast.display(self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
+        else:
+            QMessageBox.critical(self, self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
         self.account.certification_broadcasted.disconnect()
         self.account.broadcast_error.disconnect(self.handle_error)
         QApplication.restoreOverrideCursor()

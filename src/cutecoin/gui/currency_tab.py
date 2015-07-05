@@ -118,12 +118,16 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                 days = int(expiration_time / 3600 / 24)
                 if days > 0:
                     self.status_info.append('membership_expire_soon')
-                    toast.display(self.tr("Membership expiration"),
+
+                    if self.app.preferences['notifications']:
+                        toast.display(self.tr("Membership expiration"),
                                   self.tr("<b>Warning : Membership expiration in {0} days</b>").format(days))
+
             certifiers_of = person.unique_valid_certifiers_of(self.community)
             if len(certifiers_of) < self.community.parameters['sigQty']:
                 self.status_info.append('warning_certifications')
-                toast.display(self.tr("Certifications number"),
+                if self.app.preferences['notifications']:
+                    toast.display(self.tr("Certifications number"),
                               self.tr("<b>Warning : You are certified by only {0} persons, need {1}</b>")
                               .format(len(certifiers_of),
                                      self.community.parameters['sigQty']))
