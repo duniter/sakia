@@ -10,7 +10,7 @@
     <message>
         <location filename="../../ui/about.ui" line="22"/>
         <source>label</source>
-        <translation type="unfinished"></translation>
+        <translation>label</translation>
     </message>
 </context>
 <context>
@@ -18,37 +18,37 @@
     <message>
         <location filename="../../../src/cutecoin/core/account.py" line="112"/>
         <source>Units</source>
-        <translation type="unfinished"></translation>
+        <translation>Unidades</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/core/account.py" line="112"/>
         <source>UD {0}</source>
-        <translation type="unfinished"></translation>
+        <translation>DU {0}</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/core/account.py" line="112"/>
         <source>UD</source>
-        <translation type="unfinished"></translation>
+        <translation>DU</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/core/account.py" line="112"/>
         <source>Q0 {0}</source>
-        <translation type="unfinished"></translation>
+        <translation>Q0 {0}</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/core/account.py" line="112"/>
         <source>Quant Z-sum</source>
-        <translation type="unfinished"></translation>
+        <translation>Quant. Z-Σ</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/core/account.py" line="112"/>
         <source>R0 {0}</source>
-        <translation type="unfinished"></translation>
+        <translation>R0 {0}</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/core/account.py" line="112"/>
         <source>Relat Z-sum</source>
-        <translation type="unfinished"></translation>
+        <translation>Relat. Z-Σ</translation>
     </message>
 </context>
 <context>
@@ -56,77 +56,77 @@
     <message>
         <location filename="../../ui/account_cfg.ui" line="14"/>
         <source>Add an account</source>
-        <translation type="unfinished"></translation>
+        <translation>Añadir un cuenta</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="30"/>
         <source>Account parameters</source>
-        <translation type="unfinished"></translation>
+        <translation>Ajustes del cuenta</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="51"/>
         <source>Account name (uid)</source>
-        <translation type="unfinished"></translation>
+        <translation>Nombre del cuenta (uid)</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="68"/>
         <source>Wallets</source>
-        <translation type="unfinished"></translation>
+        <translation>Carteras</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="111"/>
         <source>Delete account</source>
-        <translation type="unfinished"></translation>
+        <translation>Borrar cuenta</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="140"/>
         <source>Key parameters</source>
-        <translation type="unfinished"></translation>
+        <translation>Adjustes de la clave</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="170"/>
         <source>CryptoID</source>
-        <translation type="unfinished"></translation>
+        <translation>Identidad de cripto</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="180"/>
         <source>Your password</source>
-        <translation type="unfinished"></translation>
+        <translation>Tu contraseña</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="193"/>
         <source>Please repeat your password</source>
-        <translation type="unfinished"></translation>
+        <translation>Repita tu contraseña</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="212"/>
         <source>Show public key</source>
-        <translation type="unfinished"></translation>
+        <translation>Mostrar clave pública</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="242"/>
         <source>Communities membership</source>
-        <translation type="unfinished"></translation>
+        <translation>Comunidades de miembros</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="257"/>
         <source>Add a community</source>
-        <translation type="unfinished"></translation>
+        <translation>Añadir una comunidad</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="264"/>
         <source>Remove selected community</source>
-        <translation type="unfinished"></translation>
+        <translation>Eliminar seleccione comunidad</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="288"/>
         <source>Previous</source>
-        <translation type="unfinished"></translation>
+        <translation>Anterior</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="308"/>
         <source>Next</source>
-        <translation type="unfinished"></translation>
+        <translation>Siguiente</translation>
     </message>
 </context>
 <context>
@@ -134,52 +134,62 @@
     <message>
         <location filename="../../../src/cutecoin/gui/certification.py" line="56"/>
         <source>Certification</source>
-        <translation type="unfinished"></translation>
+        <translation>Certificatión</translation>
     </message>
     <message>
         <location filename="../../ui/certification.ui" line="20"/>
         <source>Community</source>
-        <translation type="unfinished"></translation>
+        <translation>Comunidad</translation>
     </message>
     <message>
         <location filename="../../ui/certification.ui" line="32"/>
         <source>Certify user</source>
-        <translation type="unfinished"></translation>
+        <translation>Certificar usuario</translation>
     </message>
     <message>
         <location filename="../../ui/certification.ui" line="40"/>
         <source>Contact</source>
-        <translation type="unfinished"></translation>
+        <translation>Contacto</translation>
     </message>
     <message>
         <location filename="../../ui/certification.ui" line="61"/>
         <source>User public key</source>
-        <translation type="unfinished"></translation>
+        <translation>Clave pública del usuario</translation>
     </message>
     <message>
         <location filename="../../ui/certification.ui" line="80"/>
         <source>Key</source>
-        <translation type="unfinished"></translation>
+        <translation>Clave</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/certification.py" line="56"/>
         <source>Success certifying {0} from {1}</source>
-        <translation type="unfinished"></translation>
+        <translation>Éxisto certificar {0} de {1}</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/certification.py" line="53"/>
+        <source>Something wrong happened : {0}</source>
+        <translation type="obsolete">Algo malo sucedió : {0}</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/certification.py" line="58"/>
+        <source>Couldn&apos;t connect to network : {0}</source>
+        <translation type="obsolete">No se pudo conectar a la red : {0}</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/certification.py" line="68"/>
         <source>Error</source>
-        <translation type="unfinished"></translation>
+        <translation>Error</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/certification.py" line="77"/>
         <source>Ok</source>
-        <translation type="unfinished"></translation>
+        <translation>Ok</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/certification.py" line="80"/>
         <source>Not a member</source>
-        <translation type="unfinished"></translation>
+        <translation>No es un miembro</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/certification.py" line="68"/>
@@ -192,42 +202,42 @@
     <message>
         <location filename="../../ui/community_cfg.ui" line="17"/>
         <source>Add a community</source>
-        <translation type="unfinished"></translation>
+        <translation>Añadir una comunidad</translation>
     </message>
     <message>
         <location filename="../../ui/community_cfg.ui" line="46"/>
         <source>Please enter the address of a node :</source>
-        <translation type="unfinished"></translation>
+        <translation>Por favor escribe la direccíon de un nodo :</translation>
     </message>
     <message>
         <location filename="../../ui/community_cfg.ui" line="61"/>
         <source>:</source>
-        <translation type="unfinished"></translation>
+        <translation>:</translation>
     </message>
     <message>
         <location filename="../../ui/community_cfg.ui" line="124"/>
         <source>Communities nodes</source>
-        <translation type="unfinished"></translation>
+        <translation>Comunidades nodos</translation>
     </message>
     <message>
         <location filename="../../ui/community_cfg.ui" line="142"/>
         <source>Server</source>
-        <translation type="unfinished"></translation>
+        <translation>Servidor</translation>
     </message>
     <message>
         <location filename="../../ui/community_cfg.ui" line="162"/>
         <source>Add</source>
-        <translation type="unfinished"></translation>
+        <translation>Añadir</translation>
     </message>
     <message>
         <location filename="../../ui/community_cfg.ui" line="183"/>
         <source>Previous</source>
-        <translation type="unfinished"></translation>
+        <translation>Anterior</translation>
     </message>
     <message>
         <location filename="../../ui/community_cfg.ui" line="206"/>
         <source>Next</source>
-        <translation type="unfinished"></translation>
+        <translation>Siguiente</translation>
     </message>
     <message>
         <location filename="../../ui/community_cfg.ui" line="98"/>
@@ -240,22 +250,22 @@
     <message>
         <location filename="../../ui/community_tab.ui" line="17"/>
         <source>communityTabWidget</source>
-        <translation type="unfinished"></translation>
+        <translation>CommunityTabWidget</translation>
     </message>
     <message>
         <location filename="../../ui/community_tab.ui" line="40"/>
         <source>Identities</source>
-        <translation type="unfinished"></translation>
+        <translation>Identidades</translation>
     </message>
     <message>
         <location filename="../../ui/community_tab.ui" line="53"/>
         <source>Research a pubkey, an uid...</source>
-        <translation type="unfinished"></translation>
+        <translation>Investicar a clave pública, identificatión del usuario…</translation>
     </message>
     <message>
         <location filename="../../ui/community_tab.ui" line="60"/>
         <source>Search</source>
-        <translation type="unfinished"></translation>
+        <translation>Buscar</translation>
     </message>
     <message>
         <location filename="../../ui/community_tab.ui" line="118"/>
@@ -445,12 +455,12 @@ Revoking your UID can only success if it is not already validated by the network
     <message>
         <location filename="../../ui/create_wallet.ui" line="83"/>
         <source>Previous</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Anterior</translation>
     </message>
     <message>
         <location filename="../../ui/create_wallet.ui" line="103"/>
         <source>Next</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Siguiente</translation>
     </message>
 </context>
 <context>
@@ -473,7 +483,7 @@ Revoking your UID can only success if it is not already validated by the network
     <message>
         <location filename="../../../src/cutecoin/gui/currency_tab.py" line="72"/>
         <source>Wallets</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Carteras</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/currency_tab.py" line="76"/>
@@ -483,7 +493,7 @@ Revoking your UID can only success if it is not already validated by the network
     <message>
         <location filename="../../../src/cutecoin/gui/currency_tab.py" line="84"/>
         <source>Community</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Comunidad</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/currency_tab.py" line="80"/>
@@ -1369,7 +1379,7 @@ Revoking your UID can only success if it is not already validated by the network
     <message>
         <location filename="../../../src/cutecoin/gui/process_cfg_account.py" line="187"/>
         <source>Ok</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Ok</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/process_cfg_account.py" line="208"/>
@@ -1410,7 +1420,7 @@ Are you sure ?</source>
     <message>
         <location filename="../../../src/cutecoin/gui/process_cfg_community.py" line="129"/>
         <source>Add a community</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Añadir una comunidad</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/process_cfg_community.py" line="216"/>
@@ -1549,7 +1559,7 @@ This money transfer will be removed and not sent.</source>
     <message>
         <location filename="../../ui/transfer.ui" line="20"/>
         <source>Community</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Comunidad</translation>
     </message>
     <message>
         <location filename="../../ui/transfer.ui" line="32"/>
@@ -1559,7 +1569,7 @@ This money transfer will be removed and not sent.</source>
     <message>
         <location filename="../../ui/transfer.ui" line="40"/>
         <source>Contact</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Contacto</translation>
     </message>
     <message>
         <location filename="../../ui/transfer.ui" line="61"/>
@@ -1569,7 +1579,7 @@ This money transfer will be removed and not sent.</source>
     <message>
         <location filename="../../ui/transfer.ui" line="80"/>
         <source>Key</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Clave</translation>
     </message>
     <message>
         <location filename="../../ui/transfer.ui" line="106"/>
@@ -1702,7 +1712,7 @@ This money transfer will be removed and not sent.</source>
     <message>
         <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="100"/>
         <source>Not a member</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">No es un miembro</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="134"/>
@@ -1814,7 +1824,7 @@ This money transfer will be removed and not sent.</source>
     <message>
         <location filename="../../../src/cutecoin/gui/process_cfg_community.py" line="92"/>
         <source>Ok</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Ok</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/process_cfg_account.py" line="71"/>
