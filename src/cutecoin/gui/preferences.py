@@ -9,8 +9,10 @@ from PyQt5.QtCore import QCoreApplication
 from ..core.account import Account
 from . import toast
 from PyQt5.QtWidgets import QDialog
+from PyQt5.QtGui import QIcon
 
 from ..gen_resources.preferences_uic import Ui_PreferencesDialog
+import icons_rc
 
 
 class PreferencesDialog(QDialog, Ui_PreferencesDialog):
@@ -36,6 +38,9 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
         for lang in ('en_GB', 'fr_FR'):
             self.combo_language.addItem(lang)
         self.combo_language.setCurrentText(self.app.preferences['lang'])
+        self.button_app.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(0))
+        self.button_display.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(1))
+        self.button_network.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(2))
 
     def accept(self):
         pref = {'account': self.combo_account.currentText(),
