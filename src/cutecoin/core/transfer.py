@@ -114,20 +114,23 @@ class Transfer(QObject):
         self.state = Transfer.AWAITING
         self.hash = hashlib.sha1(txdoc.signed_raw().encode("ascii")).hexdigest().upper()
         blockid = yield from community.blockid()
-        self._metadata['block'] = blockid['number']
-        self._metadata['time'] = community.get_block()['medianTime']
+        block = yield from community.bma_access.future_request(qtbma.blockchain.Block,
+                                  req_args={'number': blockid['number']})
+        if block != qtbma.Blockchain.Block.null_value:
+            self._metadata['block'] = blockid['number']
+            self._metadata['time'] = block['medianTime']
 
     def __handle_transfers_reply(self, replies, reply):
         strdata = bytes(reply.readAll()).decode('utf-8')
         logging.debug("Received reply : {0} : {1}".format(reply.error(), strdata))
         if reply.error() == QNetworkReply.NoError:
-            self.transfer_broadcasted.emit(self.metadata['receiver_uid'])
             for r in replies:
                 try:
                     r.disconnect()
                 except TypeError as e:
                     if "disconnect()" in str(e):
                         logging.debug("Could not disconnect a reply")
+            self.transfer_broadcasted.emit(self.metadata['receiver_uid'])
         else:
             for r in replies:
                 if not r.isFinished() or r.error() == QNetworkReply.NoError:

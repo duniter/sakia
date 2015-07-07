@@ -162,11 +162,11 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         logging.debug("Refresh status")
         text = self.tr(" Block {0}").format(self.community.network.latest_block)
 
-        blockchain_time = self.community.get_block(self.community.network.latest_block)['medianTime']
-        if blockchain_time != qtbma.blockchain.Block.null_value:
+        block = self.community.get_block(self.community.network.latest_block)
+        if block != qtbma.blockchain.Block.null_value:
             text += " ( {0} )".format(QLocale.toString(
                         QLocale(),
-                        QDateTime.fromTime_t(blockchain_time),
+                        QDateTime.fromTime_t(block['medianTime']),
                         QLocale.dateTimeFormat(QLocale(), QLocale.NarrowFormat)
                     ))
 

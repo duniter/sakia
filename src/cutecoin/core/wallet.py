@@ -274,7 +274,7 @@ class Wallet(QObject):
 
         result = self.tx_inputs(int(amount), community)
         inputs = result[0]
-        self.caches[community.currency].available_sources = result[1:]
+        self.caches[community.currency].available_sources = result[1][1:]
         logging.debug("Inputs : {0}".format(inputs))
 
         outputs =  self.tx_outputs(recipient, amount, inputs)

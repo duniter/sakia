@@ -28,6 +28,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         """
         super().__init__()
         self.setupUi(self)
+        self.app = app
         self.account = sender
         self.password_asker = password_asker
         self.recipient_trusts = []

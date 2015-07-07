@@ -143,7 +143,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         QApplication.processEvents()
 
     def open_transfer_money_dialog(self):
-        dialog = TransferMoneyDialog(self.app.current_account,
+        dialog = TransferMoneyDialog(self.app, self.app.current_account,
                                      self.password_asker)
         dialog.accepted.connect(self.refresh_wallets)
         if dialog.exec_() == QDialog.Accepted:
