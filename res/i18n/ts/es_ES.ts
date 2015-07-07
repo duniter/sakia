@@ -195,7 +195,7 @@
     <message>
         <location filename="../../../src/cutecoin/gui/certification.py" line="68"></location>
         <source>{0} : {1}</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">{0} : {1}</translation>
     </message>
 </context>
 <context>
