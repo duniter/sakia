@@ -119,7 +119,7 @@ class Community(QObject):
         u = ord('\u24B6') + ord(letter) - ord('A')
         return chr(u)
 
-    #@property
+    @property
     def dividend(self):
         """
         Get the last generated community universal dividend.
@@ -147,7 +147,7 @@ class Community(QObject):
         if block:
             return math.ceil(
                 max(
-                    self.dividend(),
+                    self.dividend,
                     float(0) if block['membersCount'] == 0 else
                     self.parameters['c'] * block['monetaryMass'] / block['membersCount']
                 )

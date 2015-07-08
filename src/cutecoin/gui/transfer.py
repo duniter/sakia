@@ -35,7 +35,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         self.wallet = None
         self.community = self.account.communities[0]
         self.wallet = self.account.wallets[0]
-        self.dividend = self.community.dividend()
+        self.dividend = self.community.dividend
 
         regexp = QRegExp('^([ a-zA-Z0-9-_:/;*?\[\]\(\)\\\?!^+=@&~#{}|<>%.]{0,255})$')
         validator = QRegExpValidator(regexp)
@@ -121,7 +121,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
 
     def change_current_community(self, index):
         self.community = self.account.communities[index]
-        self.dividend = self.community.dividend()
+        self.dividend = self.community.dividend
         amount = self.wallet.value(self.community)
         ref_amount = self.account.units_to_ref(amount, self.community)
         ref_name = self.account.ref_name(self.community.currency)

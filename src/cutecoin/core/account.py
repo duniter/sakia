@@ -24,6 +24,7 @@ from ..tools.exceptions import ContactAlreadyExists
 from ..core.net.api import bma as qtbma
 from ..core.net.api.bma import PROTOCOL_VERSION
 
+
 def quantitative(units, community):
     """
     Return quantitative value of units
@@ -43,21 +44,7 @@ def relative(units, community):
     :param cutecoin.core.community.Community community: Community instance
     :return: float
     """
-    # calculate ud(t+1)
-    ud_block = community.get_ud_block()
-    if ud_block:
-        ud = math.ceil(
-            max(community.dividend(),
-                float(0) if ud_block['membersCount'] == 0 else
-                community.parameters['c'] * community.monetary_mass / ud_block['membersCount']))
-
-        if ud == 0:
-            return float(0)
-        else:
-            relative_value = units / float(ud)
-            return relative_value
-    else:
-        return float(0)
+    return units / float(community.dividend)
 
 
 def quantitative_zerosum(units, community):
@@ -68,8 +55,11 @@ def quantitative_zerosum(units, community):
     :param cutecoin.core.community.Community community: Community instance
     :return: int
     """
-    # fixme: the value "community.nb_members" is not up to date, luckyly the good value is in "community.get_ud_block()['membersCount']"
-    average = community.monetary_mass / community.get_ud_block()['membersCount']
+    ud_block = community.get_ud_block()
+    if ud_block and ud_block['membersCount'] > 0:
+        average = community.monetary_mass / ud_block['membersCount']
+    else:
+        average = 0
     return units - average
 
 
@@ -81,15 +71,13 @@ def relative_zerosum(units, community):
     :param cutecoin.core.community.Community community: Community instance
     :return: float
     """
-    # fixme: the value "community.nb_members" is not up to date, luckyly the good value is in "community.get_ud_block()['membersCount']"
-    median = community.monetary_mass / community.nb_members
-    # calculate ud(t+1)
-    ud = math.ceil(
-        max(community.dividend,
-            community.parameters['c'] * community.monetary_mass / community.get_ud_block()['membersCount'])
-    )
-    relative_value = units / float(ud)
-    relative_median = median / ud
+    ud_block = community.get_ud_block()
+    if ud_block and ud_block['membersCount'] > 0:
+        median = community.monetary_mass / ud_block['membersCount']
+        relative_value = units / float(community.dividend)
+        relative_median = median / community.dividend
+    else:
+        relative_median = 0
     return relative_value - relative_median
 
 

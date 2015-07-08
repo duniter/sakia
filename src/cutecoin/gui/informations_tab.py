@@ -150,8 +150,8 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                     localized_mass_minus_1_per_member,
                     self.tr('Monetary Mass per member M(t-1)/N(t) in'),
                     self.get_referential_diff_name(),
-                    float(0) if block_ud_minus_1['membersCount'] == 0 else
-                    block_ud['dividend'] / (block_ud_minus_1['monetaryMass'] / block_ud_minus_1['membersCount']),
+                    float(0) if block_ud['membersCount'] == 0 else
+                    block_ud['dividend'] / (block_ud_minus_1['monetaryMass'] / block_ud['membersCount']),
 
                     params['dt'] / 86400,
                     self.tr('Actual growth c = UD(t)/[M(t-1)/N(t)]'),
