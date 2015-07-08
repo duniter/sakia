@@ -2,8 +2,8 @@
 
 __all__ = ['api']
 
-from PyQt5.QtNetwork import QNetworkRequest
-from PyQt5.QtCore import QUrl, QUrlQuery
+from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
+from PyQt5.QtCore import QUrl, QUrlQuery, QTimer
 import logging
 
 logger = logging.getLogger("ucoin")
@@ -97,7 +97,20 @@ class API(object):
         url.setQuery(query)
         request = QNetworkRequest(url)
         logging.debug(url.toString())
+
         reply = self.conn_handler.network_manager.get(request)
+
+        def onTimeout(reply):
+            logging.debug("Timeout error on reply")
+            reply.setError(QNetworkReply.TimeoutError, "Timeout error")
+            reply.abort()
+
+        timer = QTimer()
+        timer.setInterval(100)
+        timer.timeout.connect(lambda: onTimeout(reply))
+        timer.start()
+        #reply.downloadProgress.connect(lambda: timer.start(10000))
+        reply.finished.connect(timer.stop)
 
         return reply
 
@@ -124,6 +137,12 @@ class API(object):
         reply = self.conn_handler.network_manager.post(request,
                              post_data.toString(QUrl.FullyEncoded).encode('utf-8'))
         logging.debug(url.toString(QUrl.FullyEncoded))
+        timer = QTimer()
+        timer.setInterval(15000)
+        timer.timeout.connect(reply.abort)
+        reply.downloadProgress.connect(lambda: timer.start(15000))
+        reply.finished.connect(timer.stop)
+
         return reply
 
 from . import network, blockchain, tx, wot, ud, node

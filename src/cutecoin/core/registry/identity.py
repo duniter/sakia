@@ -102,9 +102,11 @@ class Identity(QObject):
         if search != qtbma.blockchain.Membership.null_value:
             if len(search['memberships']) > 0:
                 membership_data = search['memberships'][0]
-                return community.get_block(membership_data['blockNumber'])['medianTime']
-            else:
-                return None
+                block = community.bma_access.get(self, qtbma.blockchain.Block,
+                                req_args={'number': membership_data['blockNumber']})
+                if block != qtbma.blockchain.Block.null_value:
+                    return block['medianTime']
+            return None
         else:
             raise MembershipNotFoundError(self.pubkey, community.name)
 
@@ -127,7 +129,6 @@ class Identity(QObject):
         except MembershipNotFoundError:
             expiration_date = None
         return expiration_date
-
 
 
 #TODO: Manage 'OUT' memberships ? Maybe ?

@@ -1,5 +1,4 @@
-from PyQt5.QtCore import QObject, pyqtSlot, pyqtSignal
-
+from PyQt5.QtNetwork import QNetworkReply
 from cutecoin.core.net.api import bma as qtbma
 from .identity import Identity
 
@@ -63,7 +62,7 @@ class IdentitiesRegistry:
             identity = Identity.empty(pubkey)
             self._instances[pubkey] = identity
             reply = community.bma_access.simple_request(qtbma.wot.Lookup, req_args={'search': pubkey})
-            reply.finished.connect(lambda: self.handle_lookup(reply, identity))
+            reply.finished.connect(lambda: self.handle_lookup(reply, identity, community))
         return identity
 
     @asyncio.coroutine
@@ -100,28 +99,37 @@ class IdentitiesRegistry:
         yield from future_identity
         return identity
 
-    def handle_lookup(self, reply, identity):
+    def handle_lookup(self, reply, identity, community, tries=0):
         """
         :param cutecoin.core.registry.identity.Identity identity: The looked up identity
         :return:
         """
-        strdata = bytes(reply.readAll()).decode('utf-8')
-        data = json.loads(strdata)
 
-        timestamp = 0
-        for result in data['results']:
-            if result["pubkey"] == identity.pubkey:
-                uids = result['uids']
-                identity_uid = ""
-                for uid_data in uids:
-                    if uid_data["meta"]["timestamp"] > timestamp:
-                        timestamp = uid_data["meta"]["timestamp"]
-                        identity_uid = uid_data["uid"]
-                identity.uid = identity_uid
-                identity.status = Identity.FOUND
-                logging.debug("Lookup : found {0}".format(identity))
-                identity.inner_data_changed.emit(str(qtbma.wot.Lookup))
-                return
+        if reply.error() == QNetworkReply.NoError:
+            strdata = bytes(reply.readAll()).decode('utf-8')
+            data = json.loads(strdata)
+
+            timestamp = 0
+            for result in data['results']:
+                if result["pubkey"] == identity.pubkey:
+                    uids = result['uids']
+                    identity_uid = ""
+                    for uid_data in uids:
+                        if uid_data["meta"]["timestamp"] > timestamp:
+                            timestamp = uid_data["meta"]["timestamp"]
+                            identity_uid = uid_data["uid"]
+                    identity.uid = identity_uid
+                    identity.status = Identity.FOUND
+                    logging.debug("Lookup : found {0}".format(identity))
+                    identity.inner_data_changed.emit(str(qtbma.wot.Lookup))
+        else:
+            logging.debug("Error in reply : {0}".format(reply.error()))
+            if tries < 3:
+                tries += 1
+                reply = community.bma_access.simple_request(qtbma.wot.Lookup,
+                                                            req_args={'search': identity.pubkey})
+                reply.finished.connect(lambda: self.handle_lookup(reply, identity,
+                                                                  community, tries=tries))
 
     def from_metadata(self, metadata):
         """

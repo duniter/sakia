@@ -44,7 +44,10 @@ def relative(units, community):
     :param cutecoin.core.community.Community community: Community instance
     :return: float
     """
-    return units / float(community.dividend)
+    if community.dividend > 0:
+        return units / float(community.dividend)
+    else:
+        return 0
 
 
 def quantitative_zerosum(units, community):
