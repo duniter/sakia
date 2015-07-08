@@ -257,8 +257,6 @@ class Account(QObject):
 
             def wallet_finished(received):
                 logging.debug("Finished loading wallet")
-                nonlocal received_list
-                received_list = received_list + received
                 nonlocal loaded_wallets
                 loaded_wallets += 1
                 if loaded_wallets == len(self.wallets):
