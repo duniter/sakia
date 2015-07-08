@@ -165,7 +165,10 @@ class Community(QObject):
         """
         blocks = self.bma_access.get(self, qtbma.blockchain.UD)['result']['blocks']
         if len(blocks) > 0:
-            block_number = blocks[len(blocks)-(1+x)]
+            index = len(blocks)-(1+x)
+            if index < 0:
+                index = 0
+            block_number = blocks[index]
             block = self.bma_access.get(self, qtbma.blockchain.Block,
                                  req_args={'number': block_number})
             return block
