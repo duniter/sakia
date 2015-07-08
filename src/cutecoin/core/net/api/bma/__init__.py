@@ -3,12 +3,21 @@
 __all__ = ['api']
 
 from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
-from PyQt5.QtCore import QUrl, QUrlQuery, QTimer
+from PyQt5.QtCore import QUrl, QUrlQuery, QTimer, QObject, pyqtSlot
 import logging
+import asyncio
 
 logger = logging.getLogger("ucoin")
 
 PROTOCOL_VERSION = "1"
+
+@asyncio.coroutine
+def timeout(reply, seconds):
+    logging.debug("Sleep timeout...")
+    yield from asyncio.sleep(seconds)
+    if reply.isRunning():
+        logging.debug("Reply aborted because of timeout")
+        reply.abort()
 
 class ConnectionHandler(object):
     """Helper class used by other API classes to ease passing server connection information."""
@@ -99,18 +108,7 @@ class API(object):
         logging.debug(url.toString())
 
         reply = self.conn_handler.network_manager.get(request)
-
-        def onTimeout(reply):
-            logging.debug("Timeout error on reply")
-            reply.setError(QNetworkReply.TimeoutError, "Timeout error")
-            reply.abort()
-
-        timer = QTimer()
-        timer.setInterval(100)
-        timer.timeout.connect(lambda: onTimeout(reply))
-        timer.start()
-        #reply.downloadProgress.connect(lambda: timer.start(10000))
-        reply.finished.connect(timer.stop)
+        asyncio.async(timeout(reply, 15))
 
         return reply
 
@@ -137,12 +135,7 @@ class API(object):
         reply = self.conn_handler.network_manager.post(request,
                              post_data.toString(QUrl.FullyEncoded).encode('utf-8'))
         logging.debug(url.toString(QUrl.FullyEncoded))
-        timer = QTimer()
-        timer.setInterval(15000)
-        timer.timeout.connect(reply.abort)
-        reply.downloadProgress.connect(lambda: timer.start(15000))
-        reply.finished.connect(timer.stop)
-
+        asyncio.async(timeout(reply, 15))
         return reply
 
 from . import network, blockchain, tx, wot, ud, node
