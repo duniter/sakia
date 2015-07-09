@@ -176,10 +176,6 @@
           </spacer>
          </item>
         </layout>
-        <zorder></zorder>
-        <zorder></zorder>
-        <zorder>verticalSpacer</zorder>
-        <zorder>line_2</zorder>
        </widget>
        <widget class="QWidget" name="page_2">
         <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -283,10 +279,6 @@
           </spacer>
          </item>
         </layout>
-        <zorder></zorder>
-        <zorder></zorder>
-        <zorder>verticalSpacer_2</zorder>
-        <zorder>line_3</zorder>
        </widget>
        <widget class="QWidget" name="page_3"/>
       </widget>
