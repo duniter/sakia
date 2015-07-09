@@ -2194,12 +2194,17 @@ Veuillez rééssayer plus tard</translation>
     <message>
         <location filename="../../ui/wot_tab.ui" line="33"/>
         <source>Me</source>
-        <translation>Moi</translation>
+        <translation type="obsolete">Moi</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/wot_tab.py" line="28"/>
         <source>Research a pubkey, an uid...</source>
         <translation>Rechercher une clé publique, un uid...</translation>
+    </message>
+    <message>
+        <location filename="../../ui/wot_tab.ui" line="33"/>
+        <source>Center the view on me</source>
+        <translation>Centrer la vue sur moi</translation>
     </message>
 </context>
 <context>
