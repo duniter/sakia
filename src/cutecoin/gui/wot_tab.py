@@ -2,8 +2,9 @@
 
 import logging
 from cutecoin.core.graph import Graph
-from PyQt5.QtWidgets import QWidget, QComboBox
+from PyQt5.QtWidgets import QWidget, QComboBox, QLineEdit
 from PyQt5.QtCore import pyqtSlot
+from cutecoin.core.net.api import bma
 from ..gen_resources.wot_tab_uic import Ui_WotTabWidget
 from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_SELECTED, NODE_STATUS_OUT, ARC_STATUS_STRONG, ARC_STATUS_WEAK
 
@@ -23,6 +24,8 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         # construct from qtDesigner
         self.setupUi(self)
 
+        # Default text when combo lineEdit is empty
+        self.comboBoxSearch.lineEdit().setPlaceholderText(self.tr('Research a pubkey, an uid...'))
         # add combobox events
         self.comboBoxSearch.lineEdit().returnPressed.connect(self.search)
         # To fix a recall of the same item with different case,

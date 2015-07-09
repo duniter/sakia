@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="2.0" language="fr_FR" sourcelanguage="en">
+<!DOCTYPE TS>
+<TS version="2.0" language="fr_FR" sourcelanguage="en">
 <context>
     <name>@default</name>
     <message>
@@ -1107,7 +1108,7 @@ Revoking your UID can only success if it is not already validated by the network
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="140"/>
-        <source>UD(t+1) = MAX { UD(t) ; c &#xc3;&#x97; M(t) / N(t) }</source>
+        <source>UD(t+1) = MAX { UD(t) ; c Ã M(t) / N(t) }</source>
         <translation type="obsolete">DU(t+1) = MAX { DU(t) ; c Ã M(t) / N(t) }</translation>
     </message>
     <message>
@@ -2194,6 +2195,11 @@ Veuillez rééssayer plus tard</translation>
         <location filename="../../ui/wot_tab.ui" line="33"/>
         <source>Me</source>
         <translation>Moi</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/wot_tab.py" line="28"/>
+        <source>Research a pubkey, an uid...</source>
+        <translation>Rechercher une clé publique, un uid...</translation>
     </message>
 </context>
 <context>
