@@ -3,17 +3,20 @@ Created on 15 févr. 2015
 
 @author: inso
 """
+import asyncio
+import logging
 
-from PyQt5.QtWidgets import QWidget, QMenu, QAction, QApplication, QDialog
+from PyQt5.QtWidgets import QWidget, QMenu, QAction, QApplication, QDialog, QMessageBox
 from PyQt5.QtCore import QDateTime, QModelIndex, Qt, QLocale
 from PyQt5.QtGui import QCursor
 
 from ..core.registry import Identity
 from ..core.wallet import Wallet
+from cutecoin.gui import toast
 from ..gui.password_asker import PasswordAskerDialog
 from ..models.wallets import WalletsTableModel, WalletsFilterProxyModel
 from .transfer import TransferMoneyDialog
-from ..tools.exceptions import MembershipNotFoundError
+from ..tools.exceptions import MembershipNotFoundError, NoPeerAvailable, LookupFailureError
 from ..gen_resources.wallets_tab_uic import Ui_WalletsTab
 
 
@@ -45,6 +48,7 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
     def refresh(self):
         self.refresh_informations_frame()
         self.refresh_wallets()
+        self.refresh_quality_buttons()
 
     def refresh_wallets(self):
         # TODO: Using reset model instead of destroy/create
@@ -247,3 +251,88 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
         if dialog.exec_() == QDialog.Accepted:
             currency_tab = self.window().currencies_tabwidget.currentWidget()
             currency_tab.tab_history.table_history.model().sourceModel().refresh_transfers()
+
+    def send_membership_demand(self):
+        password = self.password_asker.exec_()
+        if self.password_asker.result() == QDialog.Rejected:
+            return
+        asyncio.async(self.account.send_membership(password, self.community, 'IN'))
+
+    def send_membership_leaving(self):
+        reply = QMessageBox.warning(self, self.tr("Warning"),
+                             self.tr("""Are you sure ?
+Sending a leaving demand  cannot be canceled.
+The process to join back the community later will have to be done again.""")
+.format(self.account.pubkey), QMessageBox.Ok | QMessageBox.Cancel)
+        if reply == QMessageBox.Ok:
+            password = self.password_asker.exec_()
+            if self.password_asker.result() == QDialog.Rejected:
+                return
+
+            asyncio.async(self.account.send_membership(password, self.community, 'OUT'))
+
+    def publish_uid(self):
+        reply = QMessageBox.warning(self, self.tr("Warning"),
+                             self.tr("""Are you sure ?
+Publishing your UID can be canceled by Revoke UID.""")
+.format(self.account.pubkey), QMessageBox.Ok | QMessageBox.Cancel)
+        if reply == QMessageBox.Ok:
+            password = self.password_asker.exec_()
+            if self.password_asker.result() == QDialog.Rejected:
+                return
+
+            try:
+                self.account.send_selfcert(password, self.community)
+                toast.display(self.tr("UID Publishing"),
+                              self.tr("Success publishing your UID"))
+            except ValueError as e:
+                QMessageBox.critical(self, self.tr("Publish UID error"),
+                                  str(e))
+            except NoPeerAvailable as e:
+                QMessageBox.critical(self, self.tr("Network error"),
+                                     self.tr("Couldn't connect to network : {0}").format(e),
+                                     QMessageBox.Ok)
+            # except Exception as e:
+            #     QMessageBox.critical(self, self.tr("Error"),
+            #                          "{0}".format(e),
+            #                          QMessageBox.Ok)
+
+    def revoke_uid(self):
+        reply = QMessageBox.warning(self, self.tr("Warning"),
+                                 self.tr("""Are you sure ?
+Revoking your UID can only success if it is not already validated by the network.""")
+.format(self.account.pubkey), QMessageBox.Ok | QMessageBox.Cancel)
+        if reply == QMessageBox.Ok:
+            password = self.password_asker.exec_()
+            if self.password_asker.result() == QDialog.Rejected:
+                return
+
+            asyncio.async(self.account.revoke(password, self.community))
+
+    def refresh_quality_buttons(self):
+        try:
+            if self.account.identity(self.community).published_uid(self.community):
+                logging.debug("UID Published")
+                if self.account.identity(self.community).is_member(self.community):
+                    self.button_membership.setText(self.tr("Renew membership"))
+                    self.button_membership.show()
+                    self.button_publish_uid.hide()
+                    self.button_leaving.show()
+                    self.button_revoke_uid.hide()
+                else:
+                    logging.debug("Not a member")
+                    self.button_membership.setText(self.tr("Send membership demand"))
+                    self.button_membership.show()
+                    self.button_revoke_uid.show()
+                    self.button_leaving.hide()
+                    self.button_publish_uid.hide()
+            else:
+                logging.debug("UID not published")
+                self.button_membership.hide()
+                self.button_leaving.hide()
+                self.button_publish_uid.show()
+                self.button_revoke_uid.hide()
+        except LookupFailureError:
+            self.button_membership.hide()
+            self.button_leaving.hide()
+            self.button_publish_uid.show()
