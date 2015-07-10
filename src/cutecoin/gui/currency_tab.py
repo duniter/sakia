@@ -78,10 +78,6 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                  QIcon(':/icons/tx_icon'),
                                 self.tr("Transactions"))
 
-        self.tabs_account.addTab(self.tab_informations,
-                                 QIcon(':/icons/informations_icon'),
-                                self.tr("Informations"))
-
         self.tabs_account.addTab(self.tab_community,
                                  QIcon(':/icons/community_icon'),
                                 self.tr("Community"))
@@ -89,6 +85,10 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         self.tabs_account.addTab(self.tab_network,
                                  QIcon(":/icons/network_icon"),
                                  self.tr("Network"))
+
+        self.tabs_account.addTab(self.tab_informations,
+                                 QIcon(':/icons/informations_icon'),
+                                 self.tr("Informations"))
 
         self.community.network.new_block_mined.connect(self.refresh_block)
         self.community.network.nodes_changed.connect(self.refresh_status)
