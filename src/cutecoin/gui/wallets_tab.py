@@ -4,10 +4,10 @@ Created on 15 févr. 2015
 @author: inso
 """
 
-import logging
 from PyQt5.QtWidgets import QWidget, QMenu, QAction, QApplication, QDialog
 from PyQt5.QtCore import QDateTime, QModelIndex, Qt, QLocale
 from PyQt5.QtGui import QCursor
+
 from ..core.registry import Identity
 from ..core.wallet import Wallet
 from ..gui.password_asker import PasswordAskerDialog
@@ -47,7 +47,7 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
         self.refresh_wallets()
 
     def refresh_wallets(self):
-        #TODO: Using reset model instead of destroy/create
+        # TODO: Using reset model instead of destroy/create
         wallets_model = WalletsTableModel(self.app, self.community)
         proxy_model = WalletsFilterProxyModel()
         proxy_model.setSourceModel(wallets_model)
@@ -92,7 +92,7 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
                     self.tr("Last renewal on {:}, expiration on {:}").format(date_renewal, date_expiration),
                     self.tr("Your web of trust"),
                     self.tr("Certified by {:} members; Certifier of {:} members").format(len(certifiers),
-                                                                                             len(certified))
+                                                                                         len(certified))
                 )
             )
         else:
@@ -109,7 +109,7 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
                     self.tr("Not a member"),
                     self.tr("Your web of trust"),
                     self.tr("Certified by {:} members; Certifier of {:} members").format(len(certifiers),
-                                                                                             len(certified))
+                                                                                         len(certified))
                 )
             )
 
@@ -126,30 +126,21 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
             localized_amount = QLocale().toString(float(self.get_referential_value(amount)), 'f',
                                                   self.app.preferences['digits_after_comma'])
             localized_minimum = QLocale().toString(float(self.get_referential_value(0)), 'f',
-                                                  self.app.preferences['digits_after_comma'])
+                                                   self.app.preferences['digits_after_comma'])
             localized_maximum = QLocale().toString(float(self.get_referential_value(maximum)), 'f',
-                                                  self.app.preferences['digits_after_comma'])
+                                                   self.app.preferences['digits_after_comma'])
 
         # set infos in label
         self.label_balance.setText(
-            self.tr("""
-            <table cellpadding="5">
-            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-            </table>
-            """).format(
-                self.tr("Your money share "),
-                self.tr("{:.2f}%").format(amount / maximum * 100) if maximum != 0 else "0%",
-                self.tr("Your part "),
-                self.tr("{:} {:} in [{:} ; {:}] {:}")
-                .format(
-                    localized_amount,
-                    self.get_referential_name(),
-                    localized_minimum,
-                    localized_maximum,
-                    self.get_referential_name()
-                )
+            self.tr("<center><b>{:} {:} in [{:} ; {:}] {:}</b></center>")
+            .format(
+                localized_amount,
+                self.get_referential_name(),
+                localized_minimum,
+                localized_maximum,
+                self.get_referential_name()
             )
+
         )
 
     def get_referential_value(self, value):
@@ -218,11 +209,11 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
         # create new wallet by increasing wallet pool size
         self.account.set_walletpool_size(len(self.account.wallets) + 1, password)
         # capture new wallet
-        wallet = self.account.wallets[len(self.account.wallets)-1]
+        wallet = self.account.wallets[len(self.account.wallets) - 1]
         # feed cache data of the wallet
         wallet.refresh_cache(self.community, list())
         # save wallet cache on disk
-        self.app.save_wallet(self.account, self.account.wallets[len(self.account.wallets)-1])
+        self.app.save_wallet(self.account, self.account.wallets[len(self.account.wallets) - 1])
         # save account cache on disk (update number of wallets)
         self.app.save(self.account)
         # refresh wallet list in gui
