@@ -1210,7 +1210,7 @@ Revoking your UID can only success if it is not already validated by the network
         <translation>Sauvegarder</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="339"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="338"/>
         <source>Export</source>
         <translation>Exporter</translation>
     </message>
@@ -1271,32 +1271,32 @@ Revoking your UID can only success if it is not already validated by the network
         </translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="273"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="272"/>
         <source>Edit</source>
         <translation>Editer</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="276"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="275"/>
         <source>Delete</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="292"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="291"/>
         <source>CuteCoin {0}</source>
         <translation>CuteCoin {0}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="317"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="316"/>
         <source>CuteCoin {0} - Account : {1}</source>
         <translation>CuteCoin {0} - Compte : {1}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="337"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="336"/>
         <source>Export an account</source>
         <translation>Exporter un compte</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="338"/>
+        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="337"/>
         <source>All account files (*.acc)</source>
         <translation>Tout fichier de compte (*.acc)</translation>
     </message>
@@ -1622,7 +1622,7 @@ Revoking your UID can only success if it is not already validated by the network
         <translation type="obsolete">Référentiel par défaut</translation>
     </message>
     <message>
-        <location filename="../../ui/preferences.ui" line="205"/>
+        <location filename="../../ui/preferences.ui" line="201"/>
         <source>Language</source>
         <translation>Langue</translation>
     </message>
@@ -1647,17 +1647,17 @@ Revoking your UID can only success if it is not already validated by the network
         <translation>Activer le mode expert</translation>
     </message>
     <message>
-        <location filename="../../ui/preferences.ui" line="191"/>
+        <location filename="../../ui/preferences.ui" line="187"/>
         <source>Digits after commas </source>
         <translation>Chiffres après la virgule</translation>
     </message>
     <message>
-        <location filename="../../ui/preferences.ui" line="239"/>
+        <location filename="../../ui/preferences.ui" line="235"/>
         <source>Maximize Window at Startup</source>
         <translation>Fenêtre plein écran au démarrage</translation>
     </message>
     <message>
-        <location filename="../../ui/preferences.ui" line="266"/>
+        <location filename="../../ui/preferences.ui" line="262"/>
         <source>Enable notifications</source>
         <translation>Activer les notifications</translation>
     </message>
@@ -1780,6 +1780,14 @@ Souhaitez-vous publier votre clé publique ?</translation>
         <location filename="../../../src/cutecoin/gui/process_cfg_community.py" line="216"/>
         <source>{0} : {1}</source>
         <translation></translation>
+    </message>
+</context>
+<context>
+    <name>Scene</name>
+    <message>
+        <location filename="../../../src/cutecoin/gui/views/wot.py" line="157"/>
+        <source>Certification expires at {0}</source>
+        <translation>Certification expire le {0}</translation>
     </message>
 </context>
 <context>
@@ -2164,22 +2172,22 @@ Veuillez rééssayer plus tard</translation>
 <context>
     <name>WoT.Node</name>
     <message>
-        <location filename="../../../src/cutecoin/gui/views/wot.py" line="288"/>
+        <location filename="../../../src/cutecoin/gui/views/wot.py" line="290"/>
         <source>Informations</source>
         <translation>Informations</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/views/wot.py" line="293"/>
+        <location filename="../../../src/cutecoin/gui/views/wot.py" line="295"/>
         <source>Add as contact</source>
         <translation>Ajouter comme contact</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/views/wot.py" line="298"/>
+        <location filename="../../../src/cutecoin/gui/views/wot.py" line="300"/>
         <source>Send money</source>
         <translation>Envoyer de l&apos;argent</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/views/wot.py" line="303"/>
+        <location filename="../../../src/cutecoin/gui/views/wot.py" line="305"/>
         <source>Certify identity</source>
         <translation>Certifier cette identité</translation>
     </message>
