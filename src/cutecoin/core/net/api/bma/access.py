@@ -101,9 +101,6 @@ class BmaAccess(QObject):
         :param cache_key: The key
         :return:
         """
-        if request == blockchain.UD:
-            pass
-
         cache_key = BmaAccess._gen_cache_key(request, req_args, get_args)
         if cache_key in self._data.keys():
             cached_data = self._data[cache_key]
@@ -174,8 +171,6 @@ class BmaAccess(QObject):
 
     @pyqtSlot(int, dict, dict, int)
     def handle_reply(self, request, req_args, get_args, tries):
-        if request == blockchain.UD:
-            pass
         reply = self.sender()
         logging.debug("Handling QtNetworkReply for {0}".format(str(request)))
         cache_key = BmaAccess._gen_cache_key(request, req_args, get_args)
@@ -211,7 +206,6 @@ class BmaAccess(QObject):
         :return: The future data
         :rtype: dict
         """
-
         def handle_future_reply(reply):
             if reply.error() == QNetworkReply.NoError:
                 strdata = bytes(reply.readAll()).decode('utf-8')

@@ -239,8 +239,8 @@ class HistoryTableModel(QAbstractTableModel):
         receiver = self.account.name
         date_ts = dividend['time']
         id = dividend['id']
-        return (date_ts, receiver, amount,
-                "", "", Transfer.VALIDATED, id,
+        return (date_ts, receiver, "",
+                amount, "", Transfer.VALIDATED, id,
                 self.account.pubkey)
 
     def refresh_transfers(self):

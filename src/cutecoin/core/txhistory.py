@@ -158,7 +158,7 @@ class TxHistory():
 
         dividends = dividends_data['history']['history']
         for d in dividends:
-            if d['block_number'] not in range(parsed_block, parsed_block+99):
+            if d['block_number'] < parsed_block:
                 dividends.remove(d)
 
         new_transfers = []
