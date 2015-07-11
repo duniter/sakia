@@ -193,6 +193,7 @@ class Identity(QObject):
         :return: The list of the certifiers of this community in BMA json format
         """
         certifiers = community.bma_access.get(self, qtbma.wot.CertifiersOf, {'search': self.pubkey})
+
         if certifiers == qtbma.wot.CertifiersOf.null_value:
             logging.debug('bma.wot.CertifiersOf request error')
             data = community.bma_access.get(self, qtbma.wot.Lookup, {'search': self.pubkey})
@@ -218,8 +219,8 @@ class Identity(QObject):
                                 certifier['cert_time']['medianTime'] = community.get_block(
                                     certifier_data['meta']['block_number'])['medianTime']
                                 certifiers.append(certifier)
-
             return certifiers
+
         return certifiers['certifications']
 
     def unique_valid_certifiers_of(self, community):
