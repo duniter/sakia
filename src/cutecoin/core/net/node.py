@@ -320,6 +320,7 @@ class Node(QObject):
 
         else:
             logging.debug("Error in block reply")
+            self.changed.emit()
 
     def refresh_informations(self):
         conn_handler = self.endpoint.conn_handler(self.network_manager)
@@ -353,6 +354,7 @@ class Node(QObject):
                 self.changed.emit()
         else:
             logging.debug("Error in peering reply")
+            self.changed.emit()
 
     def refresh_summary(self):
         conn_handler = self.endpoint.conn_handler(self.network_manager)
@@ -370,6 +372,8 @@ class Node(QObject):
             summary_data = json.loads(strdata)
             self.software = summary_data["ucoin"]["software"]
             self.version = summary_data["ucoin"]["version"]
+        else:
+            self.changed.emit()
 
     def refresh_uid(self):
         conn_handler = self.endpoint.conn_handler(self.network_manager)
@@ -403,6 +407,7 @@ class Node(QObject):
                 self.changed.emit()
         else:
             logging.debug("error in uid reply")
+            self.changed.emit()
 
     def refresh_peers(self):
         conn_handler = self.endpoint.conn_handler(self.network_manager)
@@ -430,6 +435,7 @@ class Node(QObject):
                                      'leaves': peers_data['leaves']}
         else:
             logging.debug("Error in peers reply")
+            self.changed.emit()
 
     @pyqtSlot()
     def handle_leaf_reply(self):
@@ -445,6 +451,7 @@ class Node(QObject):
             self.neighbour_found.emit(peer_doc, pubkey)
         else:
             logging.debug("Error in leaf reply")
+            self.changed.emit()
 
     def __str__(self):
         return ','.join([str(self.pubkey), str(self.endpoint.server), str(self.endpoint.port), str(self.block),
