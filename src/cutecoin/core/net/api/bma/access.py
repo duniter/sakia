@@ -107,15 +107,10 @@ class BmaAccess(QObject):
         cache_key = BmaAccess._gen_cache_key(request, req_args, get_args)
         if cache_key in self._data.keys():
             cached_data = self._data[cache_key]
-            need_reload = False
-            if 'metadata' in cached_data:
-                if 'block' not in cached_data['metadata']:
-                    need_reload = False
-                elif str(request) not in BmaAccess.__saved_requests \
-                        and cached_data['metadata']['block'] < self._network.latest_block:
-                    need_reload = True
-            else:
-                need_reload = True
+            need_reload = True
+            if str(request) in BmaAccess.__saved_requests \
+                or cached_data['metadata']['block'] >= self._network.latest_block:
+                need_reload = False
             ret_data = cached_data['value']
         else:
             need_reload = True
@@ -134,13 +129,8 @@ class BmaAccess(QObject):
         """
         cache_key = BmaAccess._gen_cache_key(request, req_args, get_args)
         if cache_key not in self._data:
-            self._data[cache_key] = {}
-
-            if 'metadata' not in self._data[cache_key]:
-                self._data[cache_key]['metadata'] = {}
-
-            if 'value' not in self._data[cache_key]:
-                self._data[cache_key]['value'] = {}
+            self._data[cache_key] = {'metadata': {},
+                                     'value': {}}
 
         if not self._compare_json(self._data[cache_key]['value'], data):
             self._data[cache_key]['metadata']['block'] = self._network.latest_block
