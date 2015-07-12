@@ -2060,6 +2060,11 @@ Veuillez rééssayer plus tard</translation>
         <source>Send leaving demand</source>
         <translation>Quitter la communauté</translation>
     </message>
+    <message>
+        <location filename="../../ui/wallets_tab.ui" line="142"/>
+        <source>label_balance_range</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>WalletsTabWidget</name>
@@ -2106,17 +2111,17 @@ Veuillez rééssayer plus tard</translation>
         <translation type="obsolete">{:} {:} compris dans [{:.2f} - {:}] {:}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="179"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="184"/>
         <source>Rename</source>
         <translation>Renommer</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="183"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="188"/>
         <source>Copy pubkey to clipboard</source>
         <translation>Copier la clé publique</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="188"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="193"/>
         <source>Transfer to...</source>
         <translation>Transférer à...</translation>
     </message>
@@ -2136,7 +2141,7 @@ Veuillez rééssayer plus tard</translation>
         <translation type="obsolete">Votre part</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="176"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="181"/>
         <source>New Wallet</source>
         <translation>Nouveau portefeuille</translation>
     </message>
@@ -2158,15 +2163,15 @@ Veuillez rééssayer plus tard</translation>
     <message>
         <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="138"/>
         <source>&lt;center&gt;&lt;b&gt;{:} {:} in [{:} ; {:}] {:}&lt;/b&gt;&lt;/center&gt;</source>
-        <translation>&lt;center&gt;&lt;b&gt;{:} {:} compris entre [{:} ; {:}] {:}&lt;/b&gt;&lt;/center&gt;</translation>
+        <translation type="obsolete">&lt;center&gt;&lt;b&gt;{:} {:} compris entre [{:} ; {:}] {:}&lt;/b&gt;&lt;/center&gt;</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="301"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="306"/>
         <source>Warning</source>
         <translation>Attention</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="262"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="267"/>
         <source>Are you sure ?
 Sending a leaving demand  cannot be canceled.
 The process to join back the community later will have to be done again.</source>
@@ -2175,51 +2180,61 @@ Envoyer une demande pour quitter la communauté ne peut être annulée.
 Le processus pour rejoindre la communauté devrait être refait à zéro.</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="275"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="280"/>
         <source>Are you sure ?
 Publishing your UID can be canceled by Revoke UID.</source>
         <translation>Etes-vous sûr(e) ? Publier votre UID peut être annulé par le bouton Révoquer votre UID.</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="286"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="291"/>
         <source>UID Publishing</source>
         <translation>Publication de l&apos;UID</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="286"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="291"/>
         <source>Success publishing your UID</source>
         <translation>Publication de votre UID réussie</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="289"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="294"/>
         <source>Publish UID error</source>
         <translation>Publier votre UID</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="292"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="297"/>
         <source>Network error</source>
         <translation>Erreur réseau</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="292"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="297"/>
         <source>Couldn&apos;t connect to network : {0}</source>
         <translation>Impossible de se connecter au réseau : {0}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="301"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="306"/>
         <source>Are you sure ?
 Revoking your UID can only success if it is not already validated by the network.</source>
         <translation>Etes-vous sûr(e) ? Révoquer votre UID ne peut réussir que s&apos;il n&apos;a pas été déjà validé par le réseau.</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="317"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="322"/>
         <source>Renew membership</source>
         <translation>Renouveller le statut de membre</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="324"/>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="329"/>
         <source>Send membership demand</source>
         <translation>Envoyer une demande de membre</translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="138"/>
+        <source>{:} {:}</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="145"/>
+        <source>in [{:} ; {:}] {:}</source>
+        <translation>compris entre [{:} ; {:}] {:}</translation>
     </message>
 </context>
 <context>

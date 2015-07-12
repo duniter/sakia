@@ -136,16 +136,21 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
 
         # set infos in label
         self.label_balance.setText(
-            self.tr("<center><b>{:} {:} in [{:} ; {:}] {:}</b></center>")
+            self.tr("{:} {:}")
             .format(
                 localized_amount,
-                self.get_referential_name(),
+                self.get_referential_name()
+            )
+        )
+        self.label_balance_range.setText(
+            self.tr("in [{:} ; {:}] {:}")
+            .format(
                 localized_minimum,
                 localized_maximum,
                 self.get_referential_name()
             )
-
         )
+
 
     def get_referential_value(self, value):
         return self.account.units_to_ref(value, self.community)
