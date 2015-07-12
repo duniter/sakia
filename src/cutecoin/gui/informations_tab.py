@@ -96,7 +96,7 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                     )
             else:
                 # display float values
-                localized_ud = QLocale().toString(ud, 'f', self.app.preferences['digits_after_comma'])
+                localized_ud = QLocale().toString(float(ud), 'f', self.app.preferences['digits_after_comma'])
                 # display float values
                 localized_ud_plus_1 = QLocale().toString(
                     float(
@@ -112,11 +112,11 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 )
                 if block_ud_minus_1:
                     localized_mass_minus_1_per_member = QLocale().toString(
-                        self.get_referential_diff_value(float(0) if block_ud['membersCount'] == 0 else
-                            block_ud_minus_1['monetaryMass'] / block_ud['membersCount']), 'f', self.app.preferences['digits_after_comma']
+                        float(self.get_referential_diff_value(float(0) if block_ud['membersCount'] == 0 else
+                            block_ud_minus_1['monetaryMass'] / block_ud['membersCount'])), 'f', self.app.preferences['digits_after_comma']
                     )
                     localized_mass_minus_1 = QLocale().toString(
-                        self.get_referential_diff_value(block_ud_minus_1['monetaryMass']), 'f', self.app.preferences['digits_after_comma']
+                        float(self.get_referential_diff_value(block_ud_minus_1['monetaryMass'])), 'f', self.app.preferences['digits_after_comma']
                     )
                 else:
                     localized_mass_minus_1_per_member = QLocale().toString(
