@@ -119,7 +119,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                         return QLocale().toString(float(amount_ref), 'f', 0)
                     else:
                         # display float values
-                        return QLocale().toString(amount_ref, 'f', self.app.preferences['digits_after_comma'])
+                        return QLocale().toString(float(amount_ref), 'f', self.app.preferences['digits_after_comma'])
 
         if role == Qt.FontRole:
             font = QFont()
