@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.0" language="fr_FR" sourcelanguage="en">
+<!DOCTYPE TS><TS version="2.0" language="fr_FR" sourcelanguage="en">
 <context>
     <name>@default</name>
     <message>
@@ -1108,7 +1107,7 @@ Revoking your UID can only success if it is not already validated by the network
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="140"/>
-        <source>UD(t+1) = MAX { UD(t) ; c Ã M(t) / N(t) }</source>
+        <source>UD(t+1) = MAX { UD(t) ; c &#xc3;&#x97; M(t) / N(t) }</source>
         <translation type="obsolete">DU(t+1) = MAX { DU(t) ; c Ã M(t) / N(t) }</translation>
     </message>
     <message>
@@ -2240,17 +2239,17 @@ Revoking your UID can only success if it is not already validated by the network
 <context>
     <name>WalletsTableModel</name>
     <message>
-        <location filename="../../../src/cutecoin/models/wallets.py" line="82"/>
+        <location filename="../../../src/cutecoin/models/wallets.py" line="81"/>
         <source>Name</source>
         <translation>Nom</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/models/wallets.py" line="82"/>
+        <location filename="../../../src/cutecoin/models/wallets.py" line="81"/>
         <source>Amount</source>
         <translation>Montant</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/models/wallets.py" line="82"/>
+        <location filename="../../../src/cutecoin/models/wallets.py" line="81"/>
         <source>Pubkey</source>
         <translation>Clé publique</translation>
     </message>
