@@ -68,8 +68,8 @@ class Identity(QObject):
         """
         pubkey = json_data['pubkey']
         uid = json_data['uid']
-        local_state = json_data['local_state']
-        blockchain_state = json_data['blockchain_state']
+        local_state = LocalState[json_data['local_state']]
+        blockchain_state = BlockchainState[json_data['blockchain_state']]
 
         return cls(uid, pubkey, local_state, blockchain_state)
 
@@ -325,8 +325,8 @@ class Identity(QObject):
         """
         data = {'uid': self.uid,
                 'pubkey': self.pubkey,
-                'local_state': self.local_state,
-                'blockchain_state': self.blockchain_state}
+                'local_state': self.local_state.name,
+                'blockchain_state': self.blockchain_state.name}
         return data
 
     def __str__(self):
