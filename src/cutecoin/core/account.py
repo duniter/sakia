@@ -442,7 +442,7 @@ class Account(QObject):
         logging.debug("Send membership")
 
         blockid = yield from community.blockid()
-        self_identity = yield from self._identities_registry.future_lookup(self.pubkey, community)
+        self_identity = yield from self._identities_registry.future_find(self.pubkey, community)
         selfcert = yield from self_identity.selfcert(community)
 
         membership = Membership(PROTOCOL_VERSION, community.currency,
@@ -495,7 +495,7 @@ class Account(QObject):
         """
         logging.debug("Certdata")
         blockid = yield from community.blockid()
-        identity = yield from self._identities_registry.future_lookup(pubkey, community)
+        identity = yield from self._identities_registry.future_find(pubkey, community)
         selfcert = yield from identity.selfcert(community)
         certification = Certification(PROTOCOL_VERSION, community.currency,
                                       self.pubkey, pubkey,
@@ -549,7 +549,7 @@ class Account(QObject):
         :param str password: The account SigningKey password
         :param cutecoin.core.community.Community community: The community target of the revocation
         """
-        revoked = yield from self._identities_registry.future_lookup(self.pubkey, community)
+        revoked = yield from self._identities_registry.future_find(self.pubkey, community)
 
         revocation = Revocation(PROTOCOL_VERSION, community.currency, None)
         selfcert = revoked.selfcert(community)

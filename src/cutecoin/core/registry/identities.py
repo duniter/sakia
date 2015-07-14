@@ -87,7 +87,7 @@ class IdentitiesRegistry:
                 reply = community.bma_access.simple_request(qtbma.wot.CertifiersOf, req_args={'search': pubkey})
                 reply.finished.connect(lambda: handle_certifiersof_reply(reply, tries=tries+1))
             else:
-                future_identity.set_result(False)
+                future_identity.set_result(True)
 
         def handle_lookup_reply(reply, tries=0):
             status_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
@@ -114,7 +114,7 @@ class IdentitiesRegistry:
                 reply = community.bma_access.simple_request(qtbma.wot.Lookup, req_args={'search': pubkey})
                 reply.finished.connect(lambda: handle_lookup_reply(reply, tries=tries+1))
             else:
-                future_identity.set_result(False)
+                future_identity.set_result(True)
 
         future_identity = asyncio.Future()
         if pubkey in self._instances:

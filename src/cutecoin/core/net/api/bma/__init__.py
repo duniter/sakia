@@ -13,10 +13,10 @@ PROTOCOL_VERSION = "1"
 
 @asyncio.coroutine
 def timeout(reply, seconds):
-    logging.debug("Sleep timeout...")
+    #logging.debug("Sleep timeout...")
     yield from asyncio.sleep(seconds)
     if reply.isRunning():
-        logging.debug("Reply aborted because of timeout")
+        #logging.debug("Reply aborted because of timeout")
         reply.abort()
 
 

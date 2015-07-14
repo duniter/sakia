@@ -189,7 +189,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         response = yield from self.community.bma_access.future_request(qtbma.wot.Lookup, {'search': text})
         identities = []
         for identity_data in response['results']:
-            identity = yield from self.app.identities_registry.future_lookup(identity_data['pubkey'], self.community)
+            identity = yield from self.app.identities_registry.future_find(identity_data['pubkey'], self.community)
             identities.append(identity)
 
         self_identity = self.account.identity(self.community)

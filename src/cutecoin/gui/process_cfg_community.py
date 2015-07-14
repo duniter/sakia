@@ -225,7 +225,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
 
     @asyncio.coroutine
     def final(self):
-        identity = yield from self.app.identities_registry.future_lookup(self.account.pubkey, self.community)
+        identity = yield from self.app.identities_registry.future_find(self.account.pubkey, self.community)
         if identity.status == Identity.NOT_FOUND:
             reply = QMessageBox.question(self, self.tr("Pubkey not found"),
                                  self.tr("""The public key of your account wasn't found in the community. :\n

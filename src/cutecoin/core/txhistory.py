@@ -85,13 +85,13 @@ class TxHistory():
             receivers = [txdata['issuers'][0]]
 
         try:
-            issuer = yield from self.wallet._identities_registry.future_lookup(txdata['issuers'][0], community)
+            issuer = yield from self.wallet._identities_registry.future_find(txdata['issuers'][0], community)
             issuer_uid = issuer.uid
         except LookupFailureError:
             issuer_uid = ""
 
         try:
-            receiver = yield from self.wallet._identities_registry.future_lookup(receivers[0], community)
+            receiver = yield from self.wallet._identities_registry.future_find(receivers[0], community)
             receiver_uid = receiver.uid
         except LookupFailureError:
             receiver_uid = ""

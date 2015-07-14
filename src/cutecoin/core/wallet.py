@@ -247,13 +247,13 @@ class Wallet(QObject):
         logging.debug("Sender pubkey:{0}".format(key.pubkey))
 
         try:
-            issuer = yield from self._identities_registry.future_lookup(key.pubkey, community)
+            issuer = yield from self._identities_registry.future_find(key.pubkey, community)
             issuer_uid = issuer.uid
         except LookupFailureError as e:
             issuer_uid = ""
 
         try:
-            receiver = yield from self._identities_registry.future_lookup(recipient, community)
+            receiver = yield from self._identities_registry.future_find(recipient, community)
             receiver_uid = receiver.uid
         except LookupFailureError as e:
             receiver_uid = ""
