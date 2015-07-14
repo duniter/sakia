@@ -96,7 +96,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             pubkey_index = model.sourceModel().index(source_index.row(),
                                                    pubkey_col)
             pubkey = model.sourceModel().data(pubkey_index, Qt.DisplayRole)
-            identity = self.app.identities_registry.lookup(pubkey, self.community)
+            identity = self.app.identities_registry.find(pubkey, self.community)
             menu = QMenu(self)
 
             informations = QAction(self.tr("Informations"), self)
@@ -235,7 +235,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         pubkeys = self.community.members_pubkeys()
         identities = []
         for p in pubkeys:
-            identities.append(self.app.identities_registry.lookup(p, self.community))
+            identities.append(self.app.identities_registry.find(p, self.community))
 
         self_identity = self.account.identity(self.community)
 
@@ -266,11 +266,11 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
                 raise
 
         account_connections = []
-        for p in self_identity.unique_valid_certifiers_of(self.community):
-            account_connections.append(self.app.identities_registry.lookup(p['pubkey'], self.community))
+        for p in self_identity.unique_valid_certifiers_of(self.app.identities_registry, self.community):
+            account_connections.append(p['identity'])
         certifiers_of = [p for p in account_connections]
-        for p in self_identity.unique_valid_certified_by(self.community):
-            account_connections.append(self.app.identities_registry.lookup(p['pubkey'], self.community))
+        for p in self_identity.unique_valid_certified_by(self.app.identities_registry, self.community):
+            account_connections.append(p['identity'])
         certified_by = [p for p in account_connections
                   if p.pubkey not in [i.pubkey for i in certifiers_of]]
         identities = certifiers_of + certified_by

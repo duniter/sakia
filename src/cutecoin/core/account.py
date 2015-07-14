@@ -10,8 +10,6 @@ from ucoinpy.key import SigningKey
 
 import logging
 import time
-import math
-import json
 import asyncio
 
 from PyQt5.QtCore import QObject, pyqtSignal, QCoreApplication, QT_TRANSLATE_NOOP
@@ -19,7 +17,7 @@ from PyQt5.QtNetwork import QNetworkReply
 
 from .wallet import Wallet
 from .community import Community
-from .registry import Identity, IdentitiesRegistry
+from .registry import LocalState
 from ..tools.exceptions import ContactAlreadyExists
 from ..core.net.api import bma as qtbma
 from ..core.net.api.bma import PROTOCOL_VERSION
@@ -283,8 +281,8 @@ class Account(QObject):
         :return: The account identity in the community
         :rtype: cutecoin.core.registry.Identity
         """
-        identity = self._identities_registry.lookup(self.pubkey, community)
-        if identity.status == Identity.NOT_FOUND:
+        identity = self._identities_registry.find(self.pubkey, community)
+        if identity.local_state == LocalState.NOT_FOUND:
             identity.uid = self.name
         return identity
 

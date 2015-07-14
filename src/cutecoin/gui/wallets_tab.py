@@ -71,8 +71,8 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
             last_renewal = None
             expiration = None
 
-        certified = identity.unique_valid_certified_by(self.community)
-        certifiers = identity.unique_valid_certifiers_of(self.community)
+        certified = identity.unique_valid_certified_by(self.app.identities_registry, self.community)
+        certifiers = identity.unique_valid_certifiers_of(self.app.identities_registry, self.community)
         if last_renewal and expiration:
             date_renewal = QLocale.toString(
                 QLocale(),

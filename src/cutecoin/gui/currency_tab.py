@@ -109,7 +109,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         logging.debug("Refresh block")
         self.status_info.clear()
         try:
-            person = self.app.identities_registry.lookup(self.app.current_account.pubkey, self.community)
+            person = self.app.identities_registry.find(self.app.current_account.pubkey, self.community)
             expiration_time = person.membership_expiration_time(self.community)
             sig_validity = self.community.parameters['sigValidity']
             warning_expiration_time = int(sig_validity / 3)
@@ -125,7 +125,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                         toast.display(self.tr("Membership expiration"),
                                   self.tr("<b>Warning : Membership expiration in {0} days</b>").format(days))
 
-            certifiers_of = person.unique_valid_certifiers_of(self.community)
+            certifiers_of = person.unique_valid_certifiers_of(self.app.identities_registry, self.community)
             if len(certifiers_of) < self.community.parameters['sigQty']:
                 self.status_info.append('warning_certifications')
                 if self.app.preferences['notifications']:

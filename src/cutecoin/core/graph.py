@@ -88,11 +88,11 @@ class Graph(object):
             if node['id'] in tuple(done):
                 continue
             identity_selected = identity.from_metadata(node)
-            certifier_list = identity_selected.certifiers_of(self.community)
+            certifier_list = identity_selected.certifiers_of(self.app.identities_registry, self.community)
             self.add_certifier_list(certifier_list, identity_selected, identity)
             if identity.pubkey in tuple(self._graph.keys()):
                 return False
-            certified_list = identity_selected.certified_by(self.community)
+            certified_list = identity_selected.certified_by(self.app.identities_registry, self.community)
             self.add_certified_list(certified_list, identity_selected, identity)
             if identity.pubkey in tuple(self._graph.keys()):
                 return False
@@ -141,30 +141,30 @@ class Graph(object):
         #  add certifiers of uid
         for certifier in tuple(certifier_list):
             # add only valid certification...
-            if (time.time() - certifier['cert_time']['medianTime']) > self.signature_validity:
+            if (time.time() - certifier['cert_time']) > self.signature_validity:
                 continue
             # new node
-            if certifier['pubkey'] not in self._graph.keys():
+            if certifier['identity'].pubkey not in self._graph.keys():
                 node_status = 0
-                if certifier['pubkey'] == identity_account.pubkey:
+                if certifier['identity'].pubkey == identity_account.pubkey:
                     node_status += NODE_STATUS_HIGHLIGHTED
-                if certifier['isMember'] is False:
+                if certifier['identity'].is_member(self.community) is False:
                     node_status += NODE_STATUS_OUT
-                self._graph[certifier['pubkey']] = {
-                    'id': certifier['pubkey'],
+                self._graph[certifier['identity'].pubkey] = {
+                    'id': certifier['identity'].pubkey,
                     'arcs': list(),
-                    'text': certifier['uid'],
-                    'tooltip': certifier['pubkey'],
+                    'text': certifier['identity'].uid,
+                    'tooltip': certifier['identity'].pubkey,
                     'status': node_status,
                     'connected': [identity.pubkey]
                 }
 
             # keep only the latest certification
-            if self._graph[certifier['pubkey']]['arcs']:
-                if certifier['cert_time']['medianTime'] < self._graph[certifier['pubkey']]['arcs'][0]['cert_time']:
+            if self._graph[certifier['identity'].pubkey]['arcs']:
+                if certifier['cert_time'] < self._graph[certifier['identity'].pubkey]['arcs'][0]['cert_time']:
                     continue
             # display validity status
-            if (time.time() - certifier['cert_time']['medianTime']) > self.ARC_STATUS_STRONG_time:
+            if (time.time() - certifier['cert_time']) > self.ARC_STATUS_STRONG_time:
                 arc_status = ARC_STATUS_WEAK
             else:
                 arc_status = ARC_STATUS_STRONG
@@ -173,17 +173,17 @@ class Graph(object):
                 'status': arc_status,
                 'tooltip': QLocale.toString(
                     QLocale(),
-                    QDateTime.fromTime_t(certifier['cert_time']['medianTime'] + self.signature_validity).date(),
+                    QDateTime.fromTime_t(certifier['cert_time'] + self.signature_validity).date(),
                     QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
                 ),
-                'cert_time': certifier['cert_time']['medianTime']
+                'cert_time': certifier['cert_time']
             }
             #  add arc to certifier
-            self._graph[certifier['pubkey']]['arcs'].append(arc)
+            self._graph[certifier['identity'].pubkey]['arcs'].append(arc)
             # if certifier node not in identity nodes
-            if certifier['pubkey'] not in tuple(self._graph[identity.pubkey]['connected']):
+            if certifier['identity'].pubkey not in tuple(self._graph[identity.pubkey]['connected']):
                 # add certifier node to identity node
-                self._graph[identity.pubkey]['connected'].append(certifier['pubkey'])
+                self._graph[identity.pubkey]['connected'].append(certifier['identity'].pubkey)
 
     def add_certified_list(self, certified_list, identity, identity_account):
         """
@@ -196,36 +196,36 @@ class Graph(object):
         # add certified by uid
         for certified in tuple(certified_list):
             # add only valid certification...
-            if (time.time() - certified['cert_time']['medianTime']) > self.signature_validity:
+            if (time.time() - certified['cert_time']) > self.signature_validity:
                 continue
-            if certified['pubkey'] not in self._graph.keys():
+            if certified['identity'].pubkey not in self._graph.keys():
                 node_status = 0
-                if certified['pubkey'] == identity_account.pubkey:
+                if certified['identity'].pubkey == identity_account.pubkey:
                     node_status += NODE_STATUS_HIGHLIGHTED
-                if certified['isMember'] is False:
+                if certified['identity'].is_member(self.community) is False:
                     node_status += NODE_STATUS_OUT
-                self._graph[certified['pubkey']] = {
-                    'id': certified['pubkey'],
+                self._graph[certified['identity'].pubkey] = {
+                    'id': certified['identity'].pubkey,
                     'arcs': list(),
-                    'text': certified['uid'],
-                    'tooltip': certified['pubkey'],
+                    'text': certified['identity'].uid,
+                    'tooltip': certified['identity'].pubkey,
                     'status': node_status,
                     'connected': [identity.pubkey]
                 }
             # display validity status
-            if (time.time() - certified['cert_time']['medianTime']) > self.ARC_STATUS_STRONG_time:
+            if (time.time() - certified['cert_time']) > self.ARC_STATUS_STRONG_time:
                 arc_status = ARC_STATUS_WEAK
             else:
                 arc_status = ARC_STATUS_STRONG
             arc = {
-                'id': certified['pubkey'],
+                'id': certified['identity'].pubkey,
                 'status': arc_status,
                 'tooltip': QLocale.toString(
                     QLocale(),
-                    QDateTime.fromTime_t(certified['cert_time']['medianTime'] + self.signature_validity).date(),
+                    QDateTime.fromTime_t(certified['cert_time'] + self.signature_validity).date(),
                     QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
                 ),
-                'cert_time': certified['cert_time']['medianTime']
+                'cert_time': certified['cert_time']
             }
 
             # replace old arc if this one is more recent
@@ -245,9 +245,9 @@ class Graph(object):
                 # add arc in graph
                 self._graph[identity.pubkey]['arcs'].append(arc)
             # if certified node not in identity nodes
-            if certified['pubkey'] not in tuple(self._graph[identity.pubkey]['connected']):
+            if certified['identity'].pubkey not in tuple(self._graph[identity.pubkey]['connected']):
                 # add certified node to identity node
-                self._graph[identity.pubkey]['connected'].append(certified['pubkey'])
+                self._graph[identity.pubkey]['connected'].append(certified['identity'].pubkey)
 
     def add_identity(self, identity, status=None, arcs=None, connected=None):
         """

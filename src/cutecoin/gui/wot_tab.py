@@ -79,8 +79,8 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             identity.inner_data_changed.connect(self.handle_identity_change)
 
         # create Identity from node metadata
-        certifier_list = identity.certifiers_of(self.community)
-        certified_list = identity.certified_by(self.community)
+        certifier_list = identity.certifiers_of(self.app.identities_registry, self.community)
+        certified_list = identity.certified_by(self.app.identities_registry, self.community)
 
         # create empty graph instance
         graph = Graph(self.community)
