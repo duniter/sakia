@@ -176,7 +176,7 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
                 send_money.setData(identity)
                 menu.addAction(send_money)
 
-                if isinstance(identity, identity):
+                if isinstance(identity, Identity):
                     view_wot = QAction(self.tr("View in Web of Trust"), self)
                     view_wot.triggered.connect(self.currency_tab.tab_community.view_wot)
                     view_wot.setData(identity)
