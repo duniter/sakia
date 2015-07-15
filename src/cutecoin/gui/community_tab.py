@@ -159,7 +159,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             pubkey = person
         else:
             pubkey = person.pubkey
-        dialog = TransferMoneyDialog(self.account, self.password_asker)
+        dialog = TransferMoneyDialog(self.app, self.account, self.password_asker)
         dialog.edit_pubkey.setText(pubkey)
         dialog.combo_community.setCurrentText(self.community.name)
         dialog.radio_pubkey.setChecked(True)
