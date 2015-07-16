@@ -248,7 +248,7 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
 
     def transfer_to_wallet(self):
         wallets = self.sender().data()
-        dialog = TransferMoneyDialog(self.account, self.password_asker)
+        dialog = TransferMoneyDialog(self.app, self.account, self.password_asker)
         dialog.edit_pubkey.setText(wallets[1].pubkey)
         dialog.combo_community.setCurrentText(self.community.name)
         dialog.combo_wallets.setCurrentText(wallets[0].name)
