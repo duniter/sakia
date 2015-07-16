@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="2.0" language="fr_FR" sourcelanguage="en">
+<!DOCTYPE TS>
+<TS version="2.0" language="fr_FR" sourcelanguage="en">
 <context>
     <name>@default</name>
     <message>
@@ -54,37 +55,37 @@
         <translation type="obsolete">du {0}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/core/account.py" line="103"/>
+        <location filename="../../../src/cutecoin/core/account.py" line="101"/>
         <source>Units</source>
         <translation>Unités</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/core/account.py" line="103"/>
+        <location filename="../../../src/cutecoin/core/account.py" line="101"/>
         <source>UD</source>
         <translation>DU</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/core/account.py" line="103"/>
+        <location filename="../../../src/cutecoin/core/account.py" line="101"/>
         <source>Quant Z-sum</source>
         <translation>Quant. som. 0</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/core/account.py" line="103"/>
+        <location filename="../../../src/cutecoin/core/account.py" line="101"/>
         <source>Relat Z-sum</source>
         <translation>Rel. som. 0</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/core/account.py" line="103"/>
+        <location filename="../../../src/cutecoin/core/account.py" line="101"/>
         <source>UD {0}</source>
         <translation>DU {0}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/core/account.py" line="103"/>
+        <location filename="../../../src/cutecoin/core/account.py" line="101"/>
         <source>Q0 {0}</source>
         <translation>Q0 {0}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/core/account.py" line="103"/>
+        <location filename="../../../src/cutecoin/core/account.py" line="101"/>
         <source>R0 {0}</source>
         <translation>R0 {0}</translation>
     </message>
@@ -1107,7 +1108,7 @@ Revoking your UID can only success if it is not already validated by the network
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="140"/>
-        <source>UD(t+1) = MAX { UD(t) ; c &#xc3;&#x97; M(t) / N(t) }</source>
+        <source>UD(t+1) = MAX { UD(t) ; c Ã M(t) / N(t) }</source>
         <translation type="obsolete">DU(t+1) = MAX { DU(t) ; c Ã M(t) / N(t) }</translation>
     </message>
     <message>
@@ -1912,7 +1913,7 @@ Le transfert de monnaie sera annulé et non envoyé.</translation>
     <message>
         <location filename="../../ui/transfer.ui" line="61"/>
         <source>Recipient public key</source>
-        <translation>Clé publique du receveur</translation>
+        <translation type="obsolete">Clé publique du receveur</translation>
     </message>
     <message>
         <location filename="../../ui/transfer.ui" line="80"/>
@@ -1935,12 +1936,12 @@ Le transfert de monnaie sera annulé et non envoyé.</translation>
         <translation type="obsolete">Montant :</translation>
     </message>
     <message>
-        <location filename="../../ui/transfer.ui" line="144"/>
+        <location filename="../../ui/transfer.ui" line="148"/>
         <source> UD</source>
         <translation>DU</translation>
     </message>
     <message>
-        <location filename="../../ui/transfer.ui" line="162"/>
+        <location filename="../../ui/transfer.ui" line="166"/>
         <source>Transaction message</source>
         <translation>Message</translation>
     </message>
@@ -2010,6 +2011,11 @@ Veuillez rééssayer plus tard</translation>
         <location filename="../../ui/transfer.ui" line="134"/>
         <source>Amount</source>
         <translation>Montant</translation>
+    </message>
+    <message>
+        <location filename="../../ui/transfer.ui" line="61"/>
+        <source>&amp;Recipient public key</source>
+        <translation>Clé publique du receveur</translation>
     </message>
 </context>
 <context>
