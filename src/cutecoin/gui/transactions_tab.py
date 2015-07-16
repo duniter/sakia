@@ -96,8 +96,8 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
             if self.app.preferences['notifications']:
                 toast.display(self.tr("New transactions received"), text)
 
-            self.table_history.model().sourceModel().refresh_transfers()
-            self.table_history.resizeColumnsToContents()
+        self.table_history.model().sourceModel().refresh_transfers()
+        self.table_history.resizeColumnsToContents()
 
     def refresh_balance(self):
         # if referential is "units"
