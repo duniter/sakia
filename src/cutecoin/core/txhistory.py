@@ -178,7 +178,7 @@ class TxHistory():
 
             udid = 0
             for d in dividends:
-                if d['block_number'] in range(parsed_block, parsed_block+99):
+                if d['block_number'] in range(parsed_block, parsed_block+100):
                     d['id'] = udid
                     new_dividends.append(d)
                     udid += 1
