@@ -2,18 +2,20 @@ import logging
 import time
 import datetime
 from PyQt5.QtCore import QLocale, QDateTime
-from ..core.registry import Identity
+from ..core.registry import Identity, BlockchainState
 from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_OUT, ARC_STATUS_STRONG, ARC_STATUS_WEAK
 
 
 class Graph(object):
-    def __init__(self, community, graph=None):
+    def __init__(self, app, community, graph=None):
         """
         Init Graph instance
-        :param cutecoin.core.community.Community community:
+        :param cutecoin.core.app.Application app: Application instance
+        :param cutecoin.core.community.Community community: Community instance
+        :param dict graph: Dict of the graph
         :return:
         """
-
+        self.app = app
         self.community = community
         self.signature_validity = self.community.parameters['sigValidity']
         #  arc considered strong during 75% of signature validity time
@@ -87,7 +89,7 @@ class Graph(object):
             node = self._graph[pubkey]
             if node['id'] in tuple(done):
                 continue
-            identity_selected = identity.from_metadata(node)
+            identity_selected = identity.from_handled_data(node['text'], node['id'], BlockchainState.VALIDATED)
             certifier_list = identity_selected.certifiers_of(self.app.identities_registry, self.community)
             self.add_certifier_list(certifier_list, identity_selected, identity)
             if identity.pubkey in tuple(self._graph.keys()):

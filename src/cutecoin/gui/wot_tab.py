@@ -5,17 +5,19 @@ from cutecoin.core.graph import Graph
 from PyQt5.QtWidgets import QWidget, QComboBox, QLineEdit
 from PyQt5.QtCore import pyqtSlot
 from cutecoin.core.net.api import bma
+from cutecoin.core.registry import BlockchainState
 from ..gen_resources.wot_tab_uic import Ui_WotTabWidget
-from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_SELECTED, NODE_STATUS_OUT, ARC_STATUS_STRONG, ARC_STATUS_WEAK
+from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_SELECTED, NODE_STATUS_OUT, ARC_STATUS_STRONG, \
+    ARC_STATUS_WEAK
 
 
 class WotTabWidget(QWidget, Ui_WotTabWidget):
     def __init__(self, app, account, community, password_asker, parent=None):
         """
-
-        :param cutecoin.core.account.Account account:
-        :param cutecoin.core.community.Community community:
-        :param parent:
+        :param cutecoin.core.app.Application app:   Application instance
+        :param cutecoin.core.account.Account account: Account instance
+        :param cutecoin.core.community.Community community: Community instance
+        :param QWidget parent: Parent
         :return:
         """
         super().__init__(parent)
@@ -26,7 +28,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
 
         # Default text when combo lineEdit is empty
         self.comboBoxSearch.lineEdit().setPlaceholderText(self.tr('Research a pubkey, an uid...'))
-        # add combobox events
+        #  add combobox events
         self.comboBoxSearch.lineEdit().returnPressed.connect(self.search)
         # To fix a recall of the same item with different case,
         # the edited text is not added in the item list
@@ -53,7 +55,13 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
 
     @pyqtSlot(dict)
     def handle_node_click(self, metadata):
-        self.draw_graph(self.app.identities_registry.from_metadata(metadata))
+        self.draw_graph(
+            self.app.identities_registry.from_handled_data(
+                metadata['text'],
+                metadata['id'],
+                BlockchainState.VALIDATED
+            )
+        )
 
     def draw_graph(self, identity):
         """
@@ -65,7 +73,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
 
         identity_account = self.account.identity(self.community)
 
-        #Disconnect old identity
+        # Disconnect old identity
         try:
             if self._current_identity and self._current_identity != identity:
                 self._current_identity.inner_data_changed.disconnect(self.handle_identity_change)
@@ -83,7 +91,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         certified_list = identity.certified_by(self.app.identities_registry, self.community)
 
         # create empty graph instance
-        graph = Graph(self.community)
+        graph = Graph(self.app, self.community)
 
         # add wallet node
         node_status = 0
@@ -163,28 +171,44 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         node = self.nodes[index]
         metadata = {'id': node['pubkey'], 'text': node['uid']}
         self.draw_graph(
-            self.app.identities_registry.from_metadata(metadata)
+            self.app.identities_registry.from_handled_data(
+                metadata['text'],
+                metadata['id'],
+                BlockchainState.VALIDATED
+            )
         )
 
     def identity_informations(self, metadata):
-        identity = self.app.identities_registry.from_metadata(metadata)
+        identity = self.app.identities_registry.from_handled_data(
+            metadata['text'],
+            metadata['id'],
+            BlockchainState.VALIDATED
+        )
         self.parent.identity_informations(identity)
 
     def sign_node(self, metadata):
-        identity = self.app.identities_registry.from_metadata(metadata)
+        identity = self.app.identities_registry.from_handled_data(
+            metadata['text'],
+            metadata['id'],
+            BlockchainState.VALIDATED
+        )
         self.parent.certify_identity(identity)
 
     def send_money_to_node(self, metadata):
-        identity = self.app.identities_registry.from_metadata(metadata)
+        identity = self.app.identities_registry.from_handled_data(
+            metadata['text'],
+            metadata['id'],
+            BlockchainState.VALIDATED
+        )
         self.parent.send_money_to_identity(identity)
 
     def add_node_as_contact(self, metadata):
         # check if contact already exists...
         if metadata['id'] == self.account.pubkey \
-            or metadata['id'] in [contact['pubkey'] for contact in self.account.contacts]:
+                or metadata['id'] in [contact['pubkey'] for contact in self.account.contacts]:
             return False
         self.parent.add_identity_as_contact({'name': metadata['text'],
-                                           'pubkey': metadata['id']})
+                                             'pubkey': metadata['id']})
 
     def get_block_mediantime(self, number):
         try:
