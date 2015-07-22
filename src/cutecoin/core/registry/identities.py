@@ -68,6 +68,7 @@ class IdentitiesRegistry:
     @asyncio.coroutine
     def future_find(self, pubkey, community):
         def handle_certifiersof_reply(reply, tries=0):
+            err = reply.error()
             if reply.error() == QNetworkReply.NoError:
                 status_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
                 if status_code == 200:

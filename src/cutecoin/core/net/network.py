@@ -220,6 +220,7 @@ class Network(QObject):
             node.check_sync(self.latest_block)
         else:
             if node.last_change + 3600 < time.time():
+                node.disconnect()
                 self.nodes.remove(node)
                 self.nodes_changed.emit()
 
