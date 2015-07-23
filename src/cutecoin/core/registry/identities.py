@@ -69,7 +69,8 @@ class IdentitiesRegistry:
     def future_find(self, pubkey, community):
         def handle_certifiersof_reply(reply, tries=0):
             err = reply.error()
-            if reply.error() == QNetworkReply.NoError:
+            # https://github.com/ucoin-io/ucoin/issues/146
+            if reply.error() == QNetworkReply.NoError or reply.error() == QNetworkReply.ProtocolInvalidOperationError:
                 status_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
                 if status_code == 200:
                     strdata = bytes(reply.readAll()).decode('utf-8')
@@ -106,7 +107,8 @@ class IdentitiesRegistry:
                                 timestamp = uid_data["meta"]["timestamp"]
                                 identity_uid = uid_data["uid"]
                         identity.uid = identity_uid
-                        identity.status = Identity.FOUND
+                        identity.blockchain_state = BlockchainState.BUFFERED
+                        identity.local_state = LocalState.PARTIAL
                         logging.debug("Lookup : found {0}".format(identity))
                         future_identity.set_result(True)
                         return
