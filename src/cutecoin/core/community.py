@@ -119,7 +119,7 @@ class Community(QObject):
         u = ord('\u24B6') + ord(letter) - ord('A')
         return chr(u)
 
-    #@property
+    @property
     def dividend(self):
         """
         Get the last generated community universal dividend.
@@ -147,7 +147,7 @@ class Community(QObject):
         if block:
             return math.ceil(
                 max(
-                    self.dividend(),
+                    self.dividend,
                     float(0) if block['membersCount'] == 0 else
                     self.parameters['c'] * block['monetaryMass'] / block['membersCount']
                 )
@@ -165,7 +165,10 @@ class Community(QObject):
         """
         blocks = self.bma_access.get(self, qtbma.blockchain.UD)['result']['blocks']
         if len(blocks) > 0:
-            block_number = blocks[len(blocks)-(1+x)]
+            index = len(blocks)-(1+x)
+            if index < 0:
+                index = 0
+            block_number = blocks[index]
             block = self.bma_access.get(self, qtbma.blockchain.Block,
                                  req_args={'number': block_number})
             return block

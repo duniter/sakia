@@ -8,7 +8,7 @@ from ..gen_resources.about_uic import Ui_AboutPopup
 
 from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog, QProgressBar, \
     QMessageBox, QLabel, QComboBox, QDialog, QApplication
-from PyQt5.QtCore import QSignalMapper, QObject, \
+from PyQt5.QtCore import QSignalMapper, QObject, QLocale, \
     pyqtSlot, pyqtSignal, QDate, QDateTime, QTimer, QUrl, Qt, QCoreApplication
 from PyQt5.QtGui import QIcon, QDesktopServices
 
@@ -101,14 +101,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @pyqtSlot()
     def update_time(self):
-        date = QDate.currentDate()
-        self.label_time.setText("{0}".format(date.toString("dd/MM/yyyy")))
-        next_day = date.addDays(1)
-        current_time = QDateTime().currentDateTime().toMSecsSinceEpoch()
-        next_time = QDateTime(next_day).toMSecsSinceEpoch()
+        dateTime = QDateTime.currentDateTime()
+        self.label_time.setText("{0}".format(QLocale.toString(
+                        QLocale(),
+                        QDateTime.currentDateTime(),
+                        QLocale.dateTimeFormat(QLocale(), QLocale.NarrowFormat)
+                    )))
         timer = QTimer()
         timer.timeout.connect(self.update_time)
-        timer.start(next_time - current_time)
+        timer.start(1000)
 
     @pyqtSlot()
     def delete_contact(self):
@@ -142,7 +143,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         QApplication.processEvents()
 
     def open_transfer_money_dialog(self):
-        dialog = TransferMoneyDialog(self.app.current_account,
+        dialog = TransferMoneyDialog(self.app, self.app.current_account,
                                      self.password_asker)
         dialog.accepted.connect(self.refresh_wallets)
         if dialog.exec_() == QDialog.Accepted:
@@ -228,8 +229,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             version_url = latest[2]
 
             if self.app.preferences['notifications']:
-                toast.display("Cutecoin", """<p>{version_info}</br>
-<a href={version_url}>Download link</a></p>""".format(
+                toast.display("Cutecoin", """{version_info}""".format(
                 version_info=version_info,
                 version_url=version_url))
 
@@ -333,6 +333,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         export_dialog.setWindowTitle(self.tr("Export an account"))
         export_dialog.setNameFilter(self.tr("All account files (*.acc)"))
         export_dialog.setLabelText(QFileDialog.Accept, self.tr('Export'))
+        export_dialog.setOption(QFileDialog.DontUseNativeDialog, True)
         export_dialog.accepted.connect(self.export_account_accepted)
         export_dialog.show()
 

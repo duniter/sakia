@@ -10,8 +10,6 @@ from ucoinpy.key import SigningKey
 
 import logging
 import time
-import math
-import json
 import asyncio
 
 from PyQt5.QtCore import QObject, pyqtSignal, QCoreApplication, QT_TRANSLATE_NOOP
@@ -19,10 +17,11 @@ from PyQt5.QtNetwork import QNetworkReply
 
 from .wallet import Wallet
 from .community import Community
-from .registry import Identity, IdentitiesRegistry
+from .registry import LocalState
 from ..tools.exceptions import ContactAlreadyExists
 from ..core.net.api import bma as qtbma
 from ..core.net.api.bma import PROTOCOL_VERSION
+
 
 def quantitative(units, community):
     """
@@ -43,21 +42,10 @@ def relative(units, community):
     :param cutecoin.core.community.Community community: Community instance
     :return: float
     """
-    # calculate ud(t+1)
-    ud_block = community.get_ud_block()
-    if ud_block:
-        ud = math.ceil(
-            max(community.dividend(),
-                float(0) if ud_block['membersCount'] == 0 else
-                community.parameters['c'] * community.monetary_mass / ud_block['membersCount']))
-
-        if ud == 0:
-            return float(0)
-        else:
-            relative_value = units / float(ud)
-            return relative_value
+    if community.dividend > 0:
+        return units / float(community.dividend)
     else:
-        return float(0)
+        return 0
 
 
 def quantitative_zerosum(units, community):
@@ -68,8 +56,11 @@ def quantitative_zerosum(units, community):
     :param cutecoin.core.community.Community community: Community instance
     :return: int
     """
-    # fixme: the value "community.nb_members" is not up to date, luckyly the good value is in "community.get_ud_block()['membersCount']"
-    average = community.monetary_mass / community.get_ud_block()['membersCount']
+    ud_block = community.get_ud_block()
+    if ud_block and ud_block['membersCount'] > 0:
+        average = community.monetary_mass / ud_block['membersCount']
+    else:
+        average = 0
     return units - average
 
 
@@ -81,15 +72,13 @@ def relative_zerosum(units, community):
     :param cutecoin.core.community.Community community: Community instance
     :return: float
     """
-    # fixme: the value "community.nb_members" is not up to date, luckyly the good value is in "community.get_ud_block()['membersCount']"
-    median = community.monetary_mass / community.nb_members
-    # calculate ud(t+1)
-    ud = math.ceil(
-        max(community.dividend,
-            community.parameters['c'] * community.monetary_mass / community.get_ud_block()['membersCount'])
-    )
-    relative_value = units / float(ud)
-    relative_median = median / ud
+    ud_block = community.get_ud_block()
+    if ud_block and ud_block['membersCount'] > 0:
+        median = community.monetary_mass / ud_block['membersCount']
+        relative_value = units / float(community.dividend)
+        relative_median = median / community.dividend
+    else:
+        relative_median = 0
     return relative_value - relative_median
 
 
@@ -266,8 +255,6 @@ class Account(QObject):
 
             def wallet_finished(received):
                 logging.debug("Finished loading wallet")
-                nonlocal received_list
-                received_list = received_list + received
                 nonlocal loaded_wallets
                 loaded_wallets += 1
                 if loaded_wallets == len(self.wallets):
@@ -294,8 +281,8 @@ class Account(QObject):
         :return: The account identity in the community
         :rtype: cutecoin.core.registry.Identity
         """
-        identity = self._identities_registry.lookup(self.pubkey, community)
-        if identity.status == Identity.NOT_FOUND:
+        identity = self._identities_registry.find(self.pubkey, community)
+        if identity.local_state == LocalState.NOT_FOUND:
             identity.uid = self.name
         return identity
 
@@ -455,7 +442,7 @@ class Account(QObject):
         logging.debug("Send membership")
 
         blockid = yield from community.blockid()
-        self_identity = yield from self._identities_registry.future_lookup(self.pubkey, community)
+        self_identity = yield from self._identities_registry.future_find(self.pubkey, community)
         selfcert = yield from self_identity.selfcert(community)
 
         membership = Membership(PROTOCOL_VERSION, community.currency,
@@ -508,7 +495,7 @@ class Account(QObject):
         """
         logging.debug("Certdata")
         blockid = yield from community.blockid()
-        identity = yield from self._identities_registry.future_lookup(pubkey, community)
+        identity = yield from self._identities_registry.future_find(pubkey, community)
         selfcert = yield from identity.selfcert(community)
         certification = Certification(PROTOCOL_VERSION, community.currency,
                                       self.pubkey, pubkey,
@@ -562,7 +549,7 @@ class Account(QObject):
         :param str password: The account SigningKey password
         :param cutecoin.core.community.Community community: The community target of the revocation
         """
-        revoked = yield from self._identities_registry.future_lookup(self.pubkey, community)
+        revoked = yield from self._identities_registry.future_find(self.pubkey, community)
 
         revocation = Revocation(PROTOCOL_VERSION, community.currency, None)
         selfcert = revoked.selfcert(community)

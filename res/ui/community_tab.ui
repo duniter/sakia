@@ -91,64 +91,6 @@
            </attribute>
           </widget>
          </item>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_2">
-           <property name="leftMargin">
-            <number>0</number>
-           </property>
-           <property name="topMargin">
-            <number>5</number>
-           </property>
-           <item>
-            <spacer name="horizontalSpacer">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_quality">
-             <property name="text">
-              <string>Quality : </string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="button_publish_uid">
-             <property name="text">
-              <string>Publish UID</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="button_revoke_uid">
-             <property name="text">
-              <string>Revoke UID</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="button_membership">
-             <property name="text">
-              <string>Renew membership</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="button_leaving">
-             <property name="text">
-              <string>Send leaving demand</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
         </layout>
        </item>
       </layout>
@@ -161,38 +103,6 @@
   <include location="../icons/icons.qrc"/>
  </resources>
  <connections>
-  <connection>
-   <sender>button_membership</sender>
-   <signal>clicked()</signal>
-   <receiver>CommunityTabWidget</receiver>
-   <slot>send_membership_demand()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>198</x>
-     <y>335</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>149</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>button_leaving</sender>
-   <signal>clicked()</signal>
-   <receiver>CommunityTabWidget</receiver>
-   <slot>send_membership_leaving()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>338</x>
-     <y>335</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>149</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>edit_textsearch</sender>
    <signal>returnPressed()</signal>
@@ -222,38 +132,6 @@
     <hint type="destinationlabel">
      <x>215</x>
      <y>184</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>button_publish_uid</sender>
-   <signal>clicked()</signal>
-   <receiver>CommunityTabWidget</receiver>
-   <slot>publish_uid()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>123</x>
-     <y>334</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>228</x>
-     <y>184</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>button_revoke_uid</sender>
-   <signal>clicked()</signal>
-   <receiver>CommunityTabWidget</receiver>
-   <slot>revoke_uid()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>750</x>
-     <y>368</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>622</x>
-     <y>201</y>
     </hint>
    </hints>
   </connection>

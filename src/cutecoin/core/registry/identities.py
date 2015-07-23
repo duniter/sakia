@@ -1,7 +1,6 @@
-from PyQt5.QtCore import QObject, pyqtSlot, pyqtSignal
-
+from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
 from cutecoin.core.net.api import bma as qtbma
-from .identity import Identity
+from .identity import Identity, LocalState, BlockchainState
 
 import json
 import asyncio
@@ -43,7 +42,7 @@ class IdentitiesRegistry:
             identities_json.append(identity.jsonify())
         return {'registry': identities_json}
 
-    def lookup(self, pubkey, community):
+    def find(self, pubkey, community):
         """
         Get a person from the pubkey found in a community
 
@@ -62,13 +61,111 @@ class IdentitiesRegistry:
         else:
             identity = Identity.empty(pubkey)
             self._instances[pubkey] = identity
-            reply = community.bma_access.simple_request(qtbma.wot.Lookup, req_args={'search': pubkey})
-            reply.finished.connect(lambda: self.handle_lookup(reply, identity))
+            reply = community.bma_access.simple_request(qtbma.wot.CertifiersOf, req_args={'search': pubkey})
+            reply.finished.connect(lambda: self.handle_certifiersof(reply, identity, community))
         return identity
 
     @asyncio.coroutine
-    def future_lookup(self, pubkey, community):
-        def handle_reply(reply):
+    def future_find(self, pubkey, community):
+        def handle_certifiersof_reply(reply, tries=0):
+            err = reply.error()
+            if reply.error() == QNetworkReply.NoError:
+                status_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
+                if status_code == 200:
+                    strdata = bytes(reply.readAll()).decode('utf-8')
+                    data = json.loads(strdata)
+
+                    identity.uid = data['uid']
+                    identity.local_state = LocalState.PARTIAL
+                    identity.blockchain_state = BlockchainState.VALIDATED
+                    logging.debug("Lookup : found {0}".format(identity))
+                    future_identity.set_result(True)
+                else:
+                    reply = community.bma_access.simple_request(qtbma.wot.Lookup,
+                                                                req_args={'search': pubkey})
+                    reply.finished.connect(lambda: handle_lookup_reply(reply))
+            elif tries < 3:
+                reply = community.bma_access.simple_request(qtbma.wot.CertifiersOf, req_args={'search': pubkey})
+                reply.finished.connect(lambda: handle_certifiersof_reply(reply, tries=tries+1))
+            else:
+                future_identity.set_result(True)
+
+        def handle_lookup_reply(reply, tries=0):
+            status_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
+            if reply.error() == QNetworkReply.NoError and status_code == 200:
+                strdata = bytes(reply.readAll()).decode('utf-8')
+                data = json.loads(strdata)
+
+                timestamp = 0
+                for result in data['results']:
+                    if result["pubkey"] == identity.pubkey:
+                        uids = result['uids']
+                        identity_uid = ""
+                        for uid_data in uids:
+                            if uid_data["meta"]["timestamp"] > timestamp:
+                                timestamp = uid_data["meta"]["timestamp"]
+                                identity_uid = uid_data["uid"]
+                        identity.uid = identity_uid
+                        identity.status = Identity.FOUND
+                        logging.debug("Lookup : found {0}".format(identity))
+                        future_identity.set_result(True)
+                        return
+                future_identity.set_result(True)
+            elif tries < 3:
+                reply = community.bma_access.simple_request(qtbma.wot.Lookup, req_args={'search': pubkey})
+                reply.finished.connect(lambda: handle_lookup_reply(reply, tries=tries+1))
+            else:
+                future_identity.set_result(True)
+
+        future_identity = asyncio.Future()
+        if pubkey in self._instances:
+            identity = self._instances[pubkey]
+            future_identity.set_result(True)
+        else:
+            identity = Identity.empty(pubkey)
+            self._instances[pubkey] = identity
+            reply = community.bma_access.simple_request(qtbma.wot.CertifiersOf, req_args={'search': pubkey})
+            reply.finished.connect(lambda: handle_certifiersof_reply(reply))
+        yield from future_identity
+        return identity
+
+    def handle_certifiersof(self, reply, identity, community, tries=0):
+        """
+        :param PyQt5.QtNetwork.QNetworkReply reply
+        :param cutecoin.core.registry.identity.Identity identity: The looked up identity
+        :return:
+        """
+        if reply.error() == QNetworkReply.NoError:
+            status_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
+            if status_code == 200:
+                strdata = bytes(reply.readAll()).decode('utf-8')
+                data = json.loads(strdata)
+                identity.uid = data['uid']
+                identity.local_state = LocalState.PARTIAL
+                identity.blockchain_state = BlockchainState.VALIDATED
+                logging.debug("Lookup : found {0}".format(identity))
+                identity.inner_data_changed.emit(str(qtbma.wot.CertifiersOf))
+            else:
+                reply = community.bma_access.simple_request(qtbma.wot.Lookup,
+                                                            req_args={'search': identity.pubkey})
+                reply.finished.connect(lambda: self.handle_lookup(reply, identity,
+                                                                  community, tries=0))
+        else:
+            logging.debug("Error in reply : {0}".format(reply.error()))
+            if tries < 3:
+                tries += 1
+                reply = community.bma_access.simple_request(qtbma.wot.CertifiersOf,
+                                                            req_args={'search': identity.pubkey})
+                reply.finished.connect(lambda: self.handle_certifiersof(reply, identity,
+                                                                  community, tries=tries))
+
+    def handle_lookup(self, reply, identity, community, tries=0):
+        """
+        :param cutecoin.core.registry.identity.Identity identity: The looked up identity
+        :return:
+        """
+
+        if reply.error() == QNetworkReply.NoError:
             strdata = bytes(reply.readAll()).decode('utf-8')
             data = json.loads(strdata)
 
@@ -84,46 +181,17 @@ class IdentitiesRegistry:
                     identity.uid = identity_uid
                     identity.status = Identity.FOUND
                     logging.debug("Lookup : found {0}".format(identity))
-                    future_identity.set_result(True)
-                    return
-            future_identity.set_result(True)
-
-        future_identity = asyncio.Future()
-        if pubkey in self._instances:
-            identity = self._instances[pubkey]
-            future_identity.set_result(True)
+                    identity.inner_data_changed.emit(str(qtbma.wot.Lookup))
         else:
-            identity = Identity.empty(pubkey)
-            self._instances[pubkey] = identity
-            reply = community.bma_access.simple_request(qtbma.wot.Lookup, req_args={'search': pubkey})
-            reply.finished.connect(lambda: handle_reply(reply))
-        yield from future_identity
-        return identity
+            logging.debug("Error in reply : {0}".format(reply.error()))
+            if tries < 3:
+                tries += 1
+                reply = community.bma_access.simple_request(qtbma.wot.Lookup,
+                                                            req_args={'search': identity.pubkey})
+                reply.finished.connect(lambda: self.handle_lookup(reply, identity,
+                                                                  community, tries=tries))
 
-    def handle_lookup(self, reply, identity):
-        """
-        :param cutecoin.core.registry.identity.Identity identity: The looked up identity
-        :return:
-        """
-        strdata = bytes(reply.readAll()).decode('utf-8')
-        data = json.loads(strdata)
-
-        timestamp = 0
-        for result in data['results']:
-            if result["pubkey"] == identity.pubkey:
-                uids = result['uids']
-                identity_uid = ""
-                for uid_data in uids:
-                    if uid_data["meta"]["timestamp"] > timestamp:
-                        timestamp = uid_data["meta"]["timestamp"]
-                        identity_uid = uid_data["uid"]
-                identity.uid = identity_uid
-                identity.status = Identity.FOUND
-                logging.debug("Lookup : found {0}".format(identity))
-                identity.inner_data_changed.emit(str(qtbma.wot.Lookup))
-                return
-
-    def from_metadata(self, metadata):
+    def from_handled_data(self, uid, pubkey, blockchain_state):
         """
         Get a person from a metadata dict.
         A metadata dict has a 'text' key corresponding to the person uid,
@@ -132,10 +200,23 @@ class IdentitiesRegistry:
         :param dict metadata: The person metadata
         :return: A new person if pubkey wasn't knwon, else the existing instance.
         """
-        pubkey = metadata['id']
         if pubkey in self._instances:
+            if self._instances[pubkey].blockchain_state == BlockchainState.NOT_FOUND:
+                self._instances[pubkey].blockchain_state = blockchain_state
+            elif self._instances[pubkey].blockchain_state != BlockchainState.VALIDATED \
+                    and blockchain_state == BlockchainState.VALIDATED:
+                self._instances[pubkey].blockchain_state = blockchain_state
+                self._instances[pubkey].inner_data_changed.emit("")
+
+            if self._instances[pubkey].uid != uid:
+                self._instances[pubkey].uid = uid
+                self._instances[pubkey].inner_data_changed.emit("")
+
+            if self._instances[pubkey].local_state == LocalState.NOT_FOUND:
+                self._instances[pubkey].local_state = LocalState.COMPLETED
+
             return self._instances[pubkey]
         else:
-            identity = Identity.from_metadata(metadata)
+            identity = Identity.from_handled_data(uid, pubkey, blockchain_state)
             self._instances[pubkey] = identity
             return identity

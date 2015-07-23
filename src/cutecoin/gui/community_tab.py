@@ -18,7 +18,6 @@ from .transfer import TransferMoneyDialog
 from .certification import CertificationDialog
 from . import toast
 import asyncio
-from ..tools.exceptions import LookupFailureError, NoPeerAvailable
 from ..core.net.api import bma as qtbma
 
 
@@ -69,7 +68,6 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         self.account.membership_broadcasted.connect(self.handle_membership_broadcasted)
         self.account.revoke_broadcasted.connect(self.handle_revoke_broadcasted)
         self.account.selfcert_broadcasted.connect(self.handle_selfcert_broadcasted)
-        self.refresh_quality_buttons()
 
     def handle_membership_broadcasted(self):
         if self.app.preferences['notifications']:
@@ -98,7 +96,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             pubkey_index = model.sourceModel().index(source_index.row(),
                                                    pubkey_col)
             pubkey = model.sourceModel().data(pubkey_index, Qt.DisplayRole)
-            identity = self.app.identities_registry.lookup(pubkey, self.community)
+            identity = self.app.identities_registry.find(pubkey, self.community)
             menu = QMenu(self)
 
             informations = QAction(self.tr("Informations"), self)
@@ -147,7 +145,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         self.certify_identity(person)
 
     def identity_informations(self, person):
-        dialog = MemberDialog(self.account, self.community, person)
+        dialog = MemberDialog(none, self.account, self.community, person)
         dialog.exec_()
 
     def add_identity_as_contact(self, person):
@@ -161,7 +159,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
             pubkey = person
         else:
             pubkey = person.pubkey
-        dialog = TransferMoneyDialog(self.account, self.password_asker)
+        dialog = TransferMoneyDialog(self.app, self.account, self.password_asker)
         dialog.edit_pubkey.setText(pubkey)
         dialog.combo_community.setCurrentText(self.community.name)
         dialog.radio_pubkey.setChecked(True)
@@ -186,69 +184,12 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         index_wot_tab = self.tabs_information.indexOf(self.wot_tab)
         self.tabs_information.setCurrentIndex(index_wot_tab)
 
-    def send_membership_demand(self):
-        password = self.password_asker.exec_()
-        if self.password_asker.result() == QDialog.Rejected:
-            return
-        asyncio.async(self.account.send_membership(password, self.community, 'IN'))
-
-    def send_membership_leaving(self):
-        reply = QMessageBox.warning(self, self.tr("Warning"),
-                             self.tr("""Are you sure ?
-Sending a leaving demand  cannot be canceled.
-The process to join back the community later will have to be done again.""")
-.format(self.account.pubkey), QMessageBox.Ok | QMessageBox.Cancel)
-        if reply == QMessageBox.Ok:
-            password = self.password_asker.exec_()
-            if self.password_asker.result() == QDialog.Rejected:
-                return
-
-        asyncio.async(self.account.send_membership(password, self.community, 'OUT'))
-
-    def publish_uid(self):
-        reply = QMessageBox.warning(self, self.tr("Warning"),
-                             self.tr("""Are you sure ?
-Publishing your UID can be canceled by Revoke UID.""")
-.format(self.account.pubkey), QMessageBox.Ok | QMessageBox.Cancel)
-        if reply == QMessageBox.Ok:
-            password = self.password_asker.exec_()
-            if self.password_asker.result() == QDialog.Rejected:
-                return
-
-            try:
-                self.account.send_selfcert(password, self.community)
-                toast.display(self.tr("UID Publishing"),
-                              self.tr("Success publishing your UID"))
-            except ValueError as e:
-                QMessageBox.critical(self, self.tr("Publish UID error"),
-                                  str(e))
-            except NoPeerAvailable as e:
-                QMessageBox.critical(self, self.tr("Network error"),
-                                     self.tr("Couldn't connect to network : {0}").format(e),
-                                     QMessageBox.Ok)
-            # except Exception as e:
-            #     QMessageBox.critical(self, self.tr("Error"),
-            #                          "{0}".format(e),
-            #                          QMessageBox.Ok)
-
-    def revoke_uid(self):
-        reply = QMessageBox.warning(self, self.tr("Warning"),
-                                 self.tr("""Are you sure ?
-Revoking your UID can only success if it is not already validated by the network.""")
-.format(self.account.pubkey), QMessageBox.Ok | QMessageBox.Cancel)
-        if reply == QMessageBox.Ok:
-            password = self.password_asker.exec_()
-            if self.password_asker.result() == QDialog.Rejected:
-                return
-
-            asyncio.async(self.account.revoke(password, self.community))
-
     @asyncio.coroutine
     def _execute_search_text(self, text):
         response = yield from self.community.bma_access.future_request(qtbma.wot.Lookup, {'search': text})
         identities = []
         for identity_data in response['results']:
-            identity = yield from self.app.identities_registry.future_lookup(identity_data['pubkey'], self.community)
+            identity = yield from self.app.identities_registry.future_find(identity_data['pubkey'], self.community)
             identities.append(identity)
 
         self_identity = self.account.identity(self.community)
@@ -294,7 +235,7 @@ Revoking your UID can only success if it is not already validated by the network
         pubkeys = self.community.members_pubkeys()
         identities = []
         for p in pubkeys:
-            identities.append(self.app.identities_registry.lookup(p, self.community))
+            identities.append(self.app.identities_registry.find(p, self.community))
 
         self_identity = self.account.identity(self.community)
 
@@ -325,11 +266,11 @@ Revoking your UID can only success if it is not already validated by the network
                 raise
 
         account_connections = []
-        for p in self_identity.unique_valid_certifiers_of(self.community):
-            account_connections.append(self.app.identities_registry.lookup(p['pubkey'], self.community))
+        for p in self_identity.unique_valid_certifiers_of(self.app.identities_registry, self.community):
+            account_connections.append(p['identity'])
         certifiers_of = [p for p in account_connections]
-        for p in self_identity.unique_valid_certified_by(self.community):
-            account_connections.append(self.app.identities_registry.lookup(p['pubkey'], self.community))
+        for p in self_identity.unique_valid_certified_by(self.app.identities_registry, self.community):
+            account_connections.append(p['identity'])
         certified_by = [p for p in account_connections
                   if p.pubkey not in [i.pubkey for i in certifiers_of]]
         identities = certifiers_of + certified_by
@@ -343,30 +284,3 @@ Revoking your UID can only success if it is not already validated by the network
         self.table_identities.model().sourceModel().refresh_identities(identities)
         self.table_identities.resizeColumnsToContents()
 
-    def refresh_quality_buttons(self):
-        try:
-            if self.account.identity(self.community).published_uid(self.community):
-                logging.debug("UID Published")
-                if self.account.identity(self.community).is_member(self.community):
-                    self.button_membership.setText(self.tr("Renew membership"))
-                    self.button_membership.show()
-                    self.button_publish_uid.hide()
-                    self.button_leaving.show()
-                    self.button_revoke_uid.hide()
-                else:
-                    logging.debug("Not a member")
-                    self.button_membership.setText(self.tr("Send membership demand"))
-                    self.button_membership.show()
-                    self.button_revoke_uid.show()
-                    self.button_leaving.hide()
-                    self.button_publish_uid.hide()
-            else:
-                logging.debug("UID not published")
-                self.button_membership.hide()
-                self.button_leaving.hide()
-                self.button_publish_uid.show()
-                self.button_revoke_uid.hide()
-        except LookupFailureError:
-            self.button_membership.hide()
-            self.button_leaving.hide()
-            self.button_publish_uid.show()

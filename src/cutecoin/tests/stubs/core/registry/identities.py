@@ -20,7 +20,7 @@ class IdentitiesRegistry:
         return identity
 
     @asyncio.coroutine
-    def future_lookup(self, pubkey, community):
+    def future_find(self, pubkey, community):
         identity = Identity.empty(pubkey)
         yield from asyncio.sleep(1)
         return identity

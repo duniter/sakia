@@ -49,8 +49,8 @@ class WalletsFilterProxyModel(QSortFilterProxyModel):
                     return QLocale().toString(float(amount_ref), 'f', 0)
                 else:
                     # display float values
-                    return QLocale().toString(amount_ref, 'f',
-                                                  self.app.preferences['digits_after_comma'])
+                    return QLocale().toString(float(amount_ref), 'f',
+                                              self.app.preferences['digits_after_comma'])
 
         if role == Qt.TextAlignmentRole:
             if source_index.column() == self.sourceModel().columns_types.index('amount'):
@@ -60,7 +60,6 @@ class WalletsFilterProxyModel(QSortFilterProxyModel):
 
 
 class WalletsTableModel(QAbstractTableModel):
-
     """
     A Qt list model to display wallets and edit their names
     """
@@ -151,7 +150,7 @@ class WalletsTableModel(QAbstractTableModel):
 
     def flags(self, index):
         default_flags = Qt.ItemIsSelectable | Qt.ItemIsEnabled
-        # Only name column is editable
+        #  Only name column is editable
         if index.column() == 0:
             return default_flags | Qt.ItemIsEditable
         return default_flags

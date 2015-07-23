@@ -85,13 +85,13 @@ class TxHistory():
             receivers = [txdata['issuers'][0]]
 
         try:
-            issuer = yield from self.wallet._identities_registry.future_lookup(txdata['issuers'][0], community)
+            issuer = yield from self.wallet._identities_registry.future_find(txdata['issuers'][0], community)
             issuer_uid = issuer.uid
         except LookupFailureError:
             issuer_uid = ""
 
         try:
-            receiver = yield from self.wallet._identities_registry.future_lookup(receivers[0], community)
+            receiver = yield from self.wallet._identities_registry.future_find(receivers[0], community)
             receiver_uid = receiver.uid
         except LookupFailureError:
             receiver_uid = ""
@@ -158,7 +158,7 @@ class TxHistory():
 
         dividends = dividends_data['history']['history']
         for d in dividends:
-            if d['block_number'] not in range(parsed_block, parsed_block+99):
+            if d['block_number'] < parsed_block:
                 dividends.remove(d)
 
         new_transfers = []
@@ -178,7 +178,7 @@ class TxHistory():
 
             udid = 0
             for d in dividends:
-                if d['block_number'] in range(parsed_block, parsed_block+99):
+                if d['block_number'] in range(parsed_block, parsed_block+100):
                     d['id'] = udid
                     new_dividends.append(d)
                     udid += 1

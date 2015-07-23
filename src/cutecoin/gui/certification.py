@@ -46,8 +46,8 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
             return
 
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        self.account.certification_broadcasted.connect(lambda: self.certification_sent(self.community,
-                                                                                                pubkey))
+        self.account.certification_broadcasted.connect(lambda: self.certification_sent(pubkey,
+                                                                                       self.community.currency))
         self.account.broadcast_error.connect(self.handle_error)
 
         asyncio.async(self.account.certify(password, self.community, pubkey))

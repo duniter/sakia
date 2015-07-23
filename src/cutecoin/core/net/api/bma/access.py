@@ -8,6 +8,7 @@ import json
 import asyncio
 import random
 
+
 class BmaAccess(QObject):
     """
     This class is used to access BMA API.
@@ -71,10 +72,10 @@ class BmaAccess(QObject):
     @staticmethod
     def _gen_cache_key(request, req_args, get_args):
         return (str(request),
-                     str(tuple(frozenset(sorted(req_args.keys())))),
-                     str(tuple(frozenset(sorted(req_args.values())))),
-                     str(tuple(frozenset(sorted(get_args.keys())))),
-                     str(tuple(frozenset(sorted(get_args.values())))))
+                str(tuple(frozenset(sorted(req_args.keys())))),
+                str(tuple(frozenset(sorted(req_args.values())))),
+                str(tuple(frozenset(sorted(get_args.keys())))),
+                str(tuple(frozenset(sorted(get_args.values())))))
 
     def _compare_json(self, first, second):
         """
@@ -84,40 +85,14 @@ class BmaAccess(QObject):
         :return: True if the json dicts are the same
         :rtype: bool
         """
-        if first is not None:
-            if not isinstance(first, type(second)):
-                return False
-        if isinstance(first, dict):
-            for key in first:
-                if isinstance(second, dict):
-                    if key in second:
-                        sec = second[key]
-                    else:
-                        #  there are key in the first, that is not presented in the second
-                        return False
-                    # recursive call
-                    return self._compare_json(first[key], sec)
-                else:
-                    # second is not dict
-                    return False
-        # if object is list, loop over it and check.
-        elif isinstance(first, list):
-            for (index, item) in enumerate(first):
-                # try to get the same index from second
-                sec = None
-                if second is not None:
-                    try:
-                        sec = second[index]
-                    except (IndexError, KeyError):
-                        # goes to difference
-                        return False
-                # recursive call
-                return self._compare_json(first[index], sec)
-        # not list, not dict. check for equality
-        elif first != second:
-                return False
-        else:
-            return True
+        def ordered(obj):
+            if isinstance(obj, dict):
+                return sorted((k, ordered(v)) for k, v in obj.items())
+            if isinstance(obj, list):
+                return sorted(ordered(x) for x in obj)
+            else:
+                return obj
+        return ordered(first) == ordered(second)
 
     def _get_from_cache(self, request, req_args, get_args):
         """
@@ -128,14 +103,12 @@ class BmaAccess(QObject):
         """
         cache_key = BmaAccess._gen_cache_key(request, req_args, get_args)
         if cache_key in self._data.keys():
-            need_reload = False
-            if 'metadata' in self._data[cache_key]:
-                if str(request) not in BmaAccess.__saved_requests \
-                   and self._data[cache_key]['metadata']['block'] < self._network.latest_block:
-                    need_reload = True
-            else:
-                need_reload = True
-            ret_data = self._data[cache_key]['value']
+            cached_data = self._data[cache_key]
+            need_reload = True
+            if str(request) in BmaAccess.__saved_requests \
+                or cached_data['metadata']['block'] >= self._network.latest_block:
+                need_reload = False
+            ret_data = cached_data['value']
         else:
             need_reload = True
             ret_data = request.null_value
@@ -153,17 +126,12 @@ class BmaAccess(QObject):
         """
         cache_key = BmaAccess._gen_cache_key(request, req_args, get_args)
         if cache_key not in self._data:
-            self._data[cache_key] = {}
+            self._data[cache_key] = {'metadata': {},
+                                     'value': {}}
 
-            if 'metadata' not in self._data[cache_key]:
-                self._data[cache_key]['metadata'] = {}
-
-            if 'value' not in self._data[cache_key]:
-                self._data[cache_key]['value'] = {}
-
-        self._data[cache_key]['metadata']['block'] = self._network.latest_block
-        self._data[cache_key]['metadata']['cutecoin_version'] = __version__
         if not self._compare_json(self._data[cache_key]['value'], data):
+            self._data[cache_key]['metadata']['block'] = self._network.latest_block
+            self._data[cache_key]['metadata']['cutecoin_version'] = __version__
             self._data[cache_key]['value'] = data
             return True
         return False
@@ -180,14 +148,15 @@ class BmaAccess(QObject):
         :return: The cached data
         :rtype: dict
         """
+
         data = self._get_from_cache(request, req_args, get_args)
         need_reload = data[0]
         ret_data = data[1]
         cache_key = BmaAccess._gen_cache_key(request, req_args, get_args)
 
         if need_reload:
-            #Move to network nstead of community
-            #after removing qthreads
+            # Move to network nstead of community
+            # after removing qthreads
             if cache_key in self._pending_requests:
                 if caller not in self._pending_requests[cache_key]:
                     logging.debug("New caller".format(caller))

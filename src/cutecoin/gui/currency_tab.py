@@ -7,10 +7,11 @@ Created on 2 févr. 2014
 import time
 import logging
 from PyQt5.QtWidgets import QWidget, QMessageBox
-from PyQt5.QtCore import QModelIndex, pyqtSlot, QDateTime
+from PyQt5.QtCore import QModelIndex, pyqtSlot, QDateTime, QLocale
 from PyQt5.QtGui import QIcon
 from ..gen_resources.currency_tab_uic import Ui_CurrencyTabWidget
 
+from ..core.net.api import bma as qtbma
 from .community_tab import CommunityTabWidget
 from .wallets_tab import WalletsTabWidget
 from .transactions_tab import TransactionsTabWidget
@@ -77,10 +78,6 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                  QIcon(':/icons/tx_icon'),
                                 self.tr("Transactions"))
 
-        self.tabs_account.addTab(self.tab_informations,
-                                 QIcon(':/icons/informations_icon'),
-                                self.tr("Informations"))
-
         self.tabs_account.addTab(self.tab_community,
                                  QIcon(':/icons/community_icon'),
                                 self.tr("Community"))
@@ -89,8 +86,13 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                  QIcon(":/icons/network_icon"),
                                  self.tr("Network"))
 
+        self.tabs_account.addTab(self.tab_informations,
+                                 QIcon(':/icons/informations_icon'),
+                                 self.tr("Informations"))
+
         self.community.network.new_block_mined.connect(self.refresh_block)
         self.community.network.nodes_changed.connect(self.refresh_status)
+        self.community.inner_data_changed.connect(self.refresh_status)
 
     @pyqtSlot(str)
     def display_error(self, error):
@@ -107,7 +109,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         logging.debug("Refresh block")
         self.status_info.clear()
         try:
-            person = self.app.identities_registry.lookup(self.app.current_account.pubkey, self.community)
+            person = self.app.identities_registry.find(self.app.current_account.pubkey, self.community)
             expiration_time = person.membership_expiration_time(self.community)
             sig_validity = self.community.parameters['sigValidity']
             warning_expiration_time = int(sig_validity / 3)
@@ -123,7 +125,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                         toast.display(self.tr("Membership expiration"),
                                   self.tr("<b>Warning : Membership expiration in {0} days</b>").format(days))
 
-            certifiers_of = person.unique_valid_certifiers_of(self.community)
+            certifiers_of = person.unique_valid_certifiers_of(self.app.identities_registry, self.community)
             if len(certifiers_of) < self.community.parameters['sigQty']:
                 self.status_info.append('warning_certifications')
                 if self.app.preferences['notifications']:
@@ -159,6 +161,15 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         """
         logging.debug("Refresh status")
         text = self.tr(" Block {0}").format(self.community.network.latest_block)
+
+        block = self.community.get_block(self.community.network.latest_block)
+        if block != qtbma.blockchain.Block.null_value:
+            text += " ( {0} )".format(QLocale.toString(
+                        QLocale(),
+                        QDateTime.fromTime_t(block['medianTime']),
+                        QLocale.dateTimeFormat(QLocale(), QLocale.NarrowFormat)
+                    ))
+
         if self.community.network.quality > 0.66:
             icon = '<img src=":/icons/connected" width="12" height="12"/>'
         elif self.community.network.quality > 0.33:
@@ -169,6 +180,7 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         label_text = "{0}{1}".format(icon, text)
         if status_infotext != "":
             label_text += " - {0}".format(status_infotext)
+
         self.status_label.setText(label_text)
 
     def showEvent(self, event):

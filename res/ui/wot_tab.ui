@@ -29,8 +29,15 @@
        <height>27</height>
       </size>
      </property>
+     <property name="toolTip">
+      <string>Center the view on me</string>
+     </property>
      <property name="text">
-      <string>Me</string>
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="../icons/icons.qrc">
+       <normaloff>:/icons/home_icon</normaloff>:/icons/home_icon</iconset>
      </property>
     </widget>
    </item>
@@ -50,7 +57,9 @@
    <header>cutecoin.gui.views.wot</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../icons/icons.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>pushButtonReset</sender>

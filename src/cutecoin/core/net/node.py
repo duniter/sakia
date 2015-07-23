@@ -89,7 +89,8 @@ class Node(QObject):
                 if peer.currency != currency:
                     raise InvalidNodeCurrency(peer.currency, currency)
 
-            node = cls(network_manager, peer.currency, peer.endpoints,
+            node = cls(network_manager, peer.currency,
+                       [Endpoint.from_inline(e.inline()) for e in peer.endpoints],
                        "", peer.pubkey, 0, Node.ONLINE, time.time(),
                        {'root': "", 'leaves': []}, "", "")
             logging.debug("Node from address : {:}".format(str(node)))
@@ -110,7 +111,9 @@ class Node(QObject):
             if peer.currency != currency:
                 raise InvalidNodeCurrency(peer.currency, currency)
 
-        node = cls(network_manager, peer.currency, peer.endpoints, "", pubkey, 0,
+        node = cls(network_manager, peer.currency,
+                    [Endpoint.from_inline(e.inline()) for e in peer.endpoints],
+                   "", pubkey, 0,
                    Node.ONLINE, time.time(),
                    {'root': "", 'leaves': []},
                    "", "")
@@ -268,13 +271,13 @@ class Node(QObject):
             self.state = Node.ONLINE
 
     def check_noerror(self, error_code, status_code):
-        if error_code != QNetworkReply.NoError:
-            if self.state == Node.OFFLINE:
-                self.state = Node.ONLINE
-            return False
-        if status_code == 503:
-            return False
-        return True
+        if error_code == QNetworkReply.NoError:
+            if status_code in (200, 404):
+                if self.state == Node.OFFLINE:
+                    self.state = Node.ONLINE
+                return True
+        self.state = Node.OFFLINE
+        return False
 
     @pyqtSlot()
     def refresh(self):
@@ -294,7 +297,6 @@ class Node(QObject):
 
         logging.debug("Requesting {0}".format(conn_handler))
         reply = qtbma.blockchain.Current(conn_handler).get()
-
         reply.finished.connect(self.handle_block_reply)
 
     @pyqtSlot()
@@ -318,6 +320,7 @@ class Node(QObject):
 
         else:
             logging.debug("Error in block reply")
+            self.changed.emit()
 
     def refresh_informations(self):
         conn_handler = self.endpoint.conn_handler(self.network_manager)
@@ -351,6 +354,7 @@ class Node(QObject):
                 self.changed.emit()
         else:
             logging.debug("Error in peering reply")
+            self.changed.emit()
 
     def refresh_summary(self):
         conn_handler = self.endpoint.conn_handler(self.network_manager)
@@ -368,6 +372,8 @@ class Node(QObject):
             summary_data = json.loads(strdata)
             self.software = summary_data["ucoin"]["software"]
             self.version = summary_data["ucoin"]["version"]
+        else:
+            self.changed.emit()
 
     def refresh_uid(self):
         conn_handler = self.endpoint.conn_handler(self.network_manager)
@@ -401,6 +407,7 @@ class Node(QObject):
                 self.changed.emit()
         else:
             logging.debug("error in uid reply")
+            self.changed.emit()
 
     def refresh_peers(self):
         conn_handler = self.endpoint.conn_handler(self.network_manager)
@@ -428,6 +435,7 @@ class Node(QObject):
                                      'leaves': peers_data['leaves']}
         else:
             logging.debug("Error in peers reply")
+            self.changed.emit()
 
     @pyqtSlot()
     def handle_leaf_reply(self):
@@ -437,12 +445,13 @@ class Node(QObject):
         if self.check_noerror(reply.error(), status_code):
             strdata = bytes(reply.readAll()).decode('utf-8')
             leaf_data = json.loads(strdata)
-            doc = Peer.from_signed_raw("{0}{1}\n".format(leaf_data['leaf']['value']['raw'],
+            peer_doc = Peer.from_signed_raw("{0}{1}\n".format(leaf_data['leaf']['value']['raw'],
                                                         leaf_data['leaf']['value']['signature']))
             pubkey = leaf_data['leaf']['value']['pubkey']
-            self.neighbour_found.emit(doc, pubkey)
+            self.neighbour_found.emit(peer_doc, pubkey)
         else:
             logging.debug("Error in leaf reply")
+            self.changed.emit()
 
     def __str__(self):
         return ','.join([str(self.pubkey), str(self.endpoint.server), str(self.endpoint.port), str(self.block),

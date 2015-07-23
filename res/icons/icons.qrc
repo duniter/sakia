@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="icons">
+    <file alias="home_icon">iconmonstr-home-icon.svg</file>
     <file alias="cutecoin_logo">logo.svg</file>
     <file alias="add_account_icon">noun_7440_cc.svg</file>
     <file alias="ucoin_info_icon">noun_76373_cc.svg</file>

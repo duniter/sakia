@@ -5,7 +5,6 @@ Created on 1 févr. 2014
 """
 import signal
 import sys
-import logging
 import asyncio
 
 from quamash import QEventLoop
@@ -20,7 +19,6 @@ if __name__ == '__main__':
     cutecoin = QApplication(sys.argv)
     loop = QEventLoop(cutecoin)
     asyncio.set_event_loop(loop)
-    print("Debug enabled : {0}".format(loop.get_debug()))
 
     with loop:
         app = Application.startup(sys.argv, cutecoin, loop)

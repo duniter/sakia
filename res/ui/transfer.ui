@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>399</width>
-    <height>409</height>
+    <width>496</width>
+    <height>440</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -58,7 +58,7 @@
         <item>
          <widget class="QRadioButton" name="radio_pubkey">
           <property name="text">
-           <string>Recipient public key</string>
+           <string>&amp;Recipient public key</string>
           </property>
           <property name="checked">
            <bool>false</bool>
@@ -103,7 +103,7 @@
         <item>
          <widget class="QLabel" name="label_2">
           <property name="text">
-           <string>Wallet :</string>
+           <string>Wallet</string>
           </property>
          </widget>
         </item>
@@ -122,7 +122,7 @@
       <item>
        <widget class="QLabel" name="label_total">
         <property name="text">
-         <string>Availalble currency : </string>
+         <string>Available money : </string>
         </property>
        </widget>
       </item>
@@ -131,12 +131,16 @@
         <item>
          <widget class="QLabel" name="label_3">
           <property name="text">
-           <string>Amount :</string>
+           <string>Amount</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="spinbox_amount"/>
+         <widget class="QDoubleSpinBox" name="spinbox_amount">
+          <property name="decimals">
+           <number>0</number>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QDoubleSpinBox" name="spinbox_relative">
@@ -147,7 +151,7 @@
            <number>6</number>
           </property>
           <property name="maximum">
-           <double>9999999.000000000000000</double>
+           <double>99999999999999991611392.000000000000000</double>
           </property>
          </widget>
         </item>
@@ -279,22 +283,6 @@
     <hint type="destinationlabel">
      <x>199</x>
      <y>165</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>spinbox_amount</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>TransferMoneyDialog</receiver>
-   <slot>amount_changed()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>199</x>
-     <y>269</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>200</y>
     </hint>
    </hints>
   </connection>

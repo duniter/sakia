@@ -7,6 +7,7 @@ Created on 11 févr. 2014
 import logging
 import time
 import asyncio
+from enum import Enum
 
 from ucoinpy.documents.certification import SelfCertification
 from cutecoin.tools.exceptions import Error, NoPeerAvailable,\
@@ -16,36 +17,46 @@ from cutecoin.core.net.api.bma import PROTOCOL_VERSION
 from PyQt5.QtCore import QObject, pyqtSignal
 
 
+class LocalState(Enum):
+    NOT_FOUND = 0
+    PARTIAL = 1
+    COMPLETED = 2
+
+
+class BlockchainState(Enum):
+    NOT_FOUND = 0
+    BUFFERED = 1
+    VALIDATED = 2
+
+
 class Identity(QObject):
     """
     A person with a uid and a pubkey
     """
-    FOUND = 1
-    NOT_FOUND = 0
-
     inner_data_changed = pyqtSignal(str)
 
-    def __init__(self, uid, pubkey, status):
+    def __init__(self, uid, pubkey, local_state, blockchain_state):
         """
         Initializing a person object.
 
         :param str uid: The person uid, also known as its uid on the network
         :param str pubkey: The person pubkey
-        :param int status: The local status of the identity
+        :param LocalState local_state: The local status of the identity
+        :param BlockchainState blockchain_state: The blockchain status of the identity
         """
         super().__init__()
-        assert(status in (Identity.FOUND, Identity.NOT_FOUND))
         self.uid = uid
         self.pubkey = pubkey
-        self.status = status
+        self.local_state = local_state
+        self.blockchain_state = blockchain_state
 
     @classmethod
     def empty(cls, pubkey):
-        return cls("", pubkey, Identity.NOT_FOUND)
+        return cls("", pubkey, LocalState.NOT_FOUND, BlockchainState.NOT_FOUND)
 
     @classmethod
-    def from_metadata(cls, metadata):
-        return cls(metadata["text"], metadata["id"], Identity.NOT_FOUND)
+    def from_handled_data(cls, uid, pubkey, blockchain_state):
+        return cls(uid, pubkey, LocalState.COMPLETED, blockchain_state)
 
     @classmethod
     def from_json(cls, json_data):
@@ -57,9 +68,10 @@ class Identity(QObject):
         """
         pubkey = json_data['pubkey']
         uid = json_data['uid']
-        status = json_data['status']
+        local_state = LocalState[json_data['local_state']]
+        blockchain_state = BlockchainState[json_data['blockchain_state']]
 
-        return cls(uid, pubkey, status)
+        return cls(uid, pubkey, local_state, blockchain_state)
 
     @asyncio.coroutine
     def selfcert(self, community):
@@ -102,9 +114,11 @@ class Identity(QObject):
         if search != qtbma.blockchain.Membership.null_value:
             if len(search['memberships']) > 0:
                 membership_data = search['memberships'][0]
-                return community.get_block(membership_data['blockNumber'])['medianTime']
-            else:
-                return None
+                block = community.bma_access.get(self, qtbma.blockchain.Block,
+                                req_args={'number': membership_data['blockNumber']})
+                if block != qtbma.blockchain.Block.null_value:
+                    return block['medianTime']
+            return None
         else:
             raise MembershipNotFoundError(self.pubkey, community.name)
 
@@ -127,7 +141,6 @@ class Identity(QObject):
         except MembershipNotFoundError:
             expiration_date = None
         return expiration_date
-
 
 
 #TODO: Manage 'OUT' memberships ? Maybe ?
@@ -184,103 +197,114 @@ class Identity(QObject):
             return certifiers['isMember']
         return False
 
-    def certifiers_of(self, community):
+    def certifiers_of(self, identities_registry, community):
         """
         Get the list of this person certifiers
 
+        :param cutecoin.core.registry.identities.IdentitiesRegistry identities_registry: The identities registry
         :param cutecoin.core.community.Community community: The community target to request the join date
-        :return: The list of the certifiers of this community in BMA json format
+        :return: The list of the certifiers of this community
         """
-        certifiers = community.bma_access.get(self, qtbma.wot.CertifiersOf, {'search': self.pubkey})
-        if certifiers == qtbma.wot.CertifiersOf.null_value:
+        data = community.bma_access.get(self, qtbma.wot.CertifiersOf, {'search': self.pubkey})
+
+        certifiers = list()
+
+        if data == qtbma.wot.CertifiersOf.null_value:
             logging.debug('bma.wot.CertifiersOf request error')
             data = community.bma_access.get(self, qtbma.wot.Lookup, {'search': self.pubkey})
             if data == qtbma.wot.Lookup.null_value:
                 logging.debug('bma.wot.Lookup request error')
-                return list()
+            else:
+                for result in data['results']:
+                    if result["pubkey"] == self.pubkey:
+                        for uid_data in result['uids']:
+                            for certifier_data in uid_data['others']:
+                                for uid in certifier_data['uids']:
+                                    # add a certifier
+                                    certifier = {}
+                                    certifier['identity'] = identities_registry.from_handled_data(uid, certifier_data['pubkey'],
+                                                                          BlockchainState.BUFFERED)
+                                    block = community.bma_access.get(self, qtbma.blockchain.Block,
+                                                                         {'number': certifier_data['meta']['block_number']})
+                                    certifier['cert_time'] = block['medianTime']
+                                    certifiers.append(certifier)
+        else:
+            for certifier_data in data['certifications']:
+                certifier = {}
+                certifier['identity'] = identities_registry.from_handled_data(certifier_data['uid'],
+                                                                              certifier_data['pubkey'],
+                                                                              BlockchainState.VALIDATED)
+                certifier['cert_time'] = certifier_data['cert_time']['medianTime']
+                certifiers.append(certifier)
+        return certifiers
 
-            # convert api data to certifiers list
-            certifiers = list()
-            # add certifiers of uid
-
-            for result in data['results']:
-                if result["pubkey"] == self.pubkey:
-                    for uid_data in result['uids']:
-                        for certifier_data in uid_data['others']:
-                            for uid in certifier_data['uids']:
-                            # add a certifier
-                                certifier = {}
-                                certifier['uid'] = uid
-                                certifier['pubkey'] = certifier_data['pubkey']
-                                certifier['isMember'] = certifier_data['isMember']
-                                certifier['cert_time'] = dict()
-                                certifier['cert_time']['medianTime'] = community.get_block(
-                                    certifier_data['meta']['block_number'])['medianTime']
-                                certifiers.append(certifier)
-
-            return certifiers
-        return certifiers['certifications']
-
-    def unique_valid_certifiers_of(self, community):
-        certifier_list = self.certifiers_of(community)
+    def unique_valid_certifiers_of(self, identities_registry, community):
+        certifier_list = self.certifiers_of(identities_registry, community)
         unique_valid = []
         #  add certifiers of uid
         for certifier in tuple(certifier_list):
             # add only valid certification...
-            if community.certification_expired(certifier['cert_time']['medianTime']):
+            if community.certification_expired(certifier['cert_time']):
                 continue
 
             # keep only the latest certification
-            already_found = [c['pubkey'] for c in unique_valid]
-            if certifier['pubkey'] in already_found:
-                index = already_found.index(certifier['pubkey'])
-                if certifier['cert_time']['medianTime'] > unique_valid[index]['cert_time']['medianTime']:
+            already_found = [c['identity'].pubkey for c in unique_valid]
+            if certifier['identity'].pubkey in already_found:
+                index = already_found.index(certifier['identity'].pubkey)
+                if certifier['cert_time'] > unique_valid[index]['cert_time']:
                     unique_valid[index] = certifier
             else:
                 unique_valid.append(certifier)
         return unique_valid
 
-    def certified_by(self, community):
+    def certified_by(self, identities_registry, community):
         """
         Get the list of persons certified by this person
 
         :param cutecoin.core.community.Community community: The community target to request the join date
         :return: The list of the certified persons of this community in BMA json format
         """
-        certified_list = community.bma_access.get(self, qtbma.wot.CertifiedBy, {'search': self.pubkey})
-        if certified_list == qtbma.wot.CertifiedBy.null_value:
+        data = community.bma_access.get(self, qtbma.wot.CertifiedBy, {'search': self.pubkey})
+        certified_list = list()
+        if data == qtbma.wot.CertifiedBy.null_value:
             logging.debug('bma.wot.CertifiersOf request error')
             data = community.bma_access.get(self, qtbma.wot.Lookup, {'search': self.pubkey})
             if data == qtbma.wot.Lookup.null_value:
                 logging.debug('bma.wot.Lookup request error')
-                return list()
             else:
-                certified_list = list()
                 for result in data['results']:
                     if result["pubkey"] == self.pubkey:
-                        for certified in result['signed']:
-                            certified['cert_time'] = dict()
-                            certified['cert_time']['medianTime'] = certified['meta']['timestamp']
+                        for certified_data in result['signed']:
+                            certified = {}
+                            certified['identity'] = identities_registry.from_handled_data(certified_data['uid'],
+                                                                              certified_data['pubkey'],
+                                                                              BlockchainState.BUFFERED)
+                            certified['cert_time'] = certified_data['meta']['timestamp']
                             certified_list.append(certified)
+        else:
+            for certified_data in data['certifications']:
+                certified = {}
+                certified['identity'] = identities_registry.from_handled_data(certified_data['uid'],
+                                                                              certified_data['pubkey'],
+                                                                              BlockchainState.VALIDATED)
+                certified['cert_time'] = certified_data['cert_time']['medianTime']
+                certified_list.append(certified)
+        return certified_list
 
-            return certified_list
-
-        return certified_list['certifications']
-
-    def unique_valid_certified_by(self, community):
-        certified_list = self.certified_by(community)
+    def unique_valid_certified_by(self, identities_registry, community):
+        certified_list = self.certified_by(identities_registry, community)
         unique_valid = []
         #  add certifiers of uid
         for certified in tuple(certified_list):
             # add only valid certification...
-            if community.certification_expired(certified['cert_time']['medianTime']):
+            if community.certification_expired(certified['cert_time']):
                 continue
 
             # keep only the latest certification
-            already_found = [c['pubkey'] for c in unique_valid]
-            if certified['pubkey'] in already_found:
-                index = already_found.index(certified['pubkey'])
-                if certified['cert_time']['medianTime'] > unique_valid[index]['cert_time']['medianTime']:
+            already_found = [c['identity'].pubkey for c in unique_valid]
+            if certified['identity'].pubkey in already_found:
+                index = already_found.index(certified['identity'].pubkey)
+                if certified['cert_time'] > unique_valid[index]['cert_time']:
                     unique_valid[index] = certified
             else:
                 unique_valid.append(certified)
@@ -301,11 +325,12 @@ class Identity(QObject):
         """
         data = {'uid': self.uid,
                 'pubkey': self.pubkey,
-                'status': self.status}
+                'local_state': self.local_state.name,
+                'blockchain_state': self.blockchain_state.name}
         return data
 
     def __str__(self):
-        status_str = ("NOT_FOUND", "FOUND")
-        return "{0} - {1} - {2}".format(self.uid,
+        return "{0} - {1} - {2} - {3}".format(self.uid,
                                         self.pubkey,
-                                        status_str[self.status])
+                                        self.local_state,
+                                        self.blockchain_state)

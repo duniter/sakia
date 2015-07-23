@@ -139,6 +139,7 @@ class Scene(QGraphicsScene):
         for _node in nodes:
             node = self.add_node(_node['node'], (x, y))
             self.add_arc(root_node, node, _node['arc'])
+            node.setToolTip(self.tr("Certification expires at {0}").format(_node['arc']['tooltip']))
             y += 50
 
         # add certifiers of selected node
@@ -153,6 +154,7 @@ class Scene(QGraphicsScene):
             for arc in certifier_node['arcs']:
                 if arc['id'] == selected_id:
                     self.add_arc(node, root_node, arc)
+                    node.setToolTip(self.tr("Certification expires at {0}").format(arc['tooltip']))
             y += 50
 
         self.update()
@@ -357,7 +359,6 @@ class Arc(QGraphicsLineItem):
         self.metadata = metadata
         self.source = source_node
         self.destination = destination_node
-        self.setToolTip(self.metadata['tooltip'])
         self.source.add_arc(self)
 
         self.status = self.metadata['status']
@@ -470,34 +471,3 @@ class Arc(QGraphicsLineItem):
         painter.setBrush(color)
         painter.drawPolygon(QPolygonF([head_point, destination_arrow_p1, destination_arrow_p2]))
 
-    def hoverEnterEvent(self, event: QGraphicsSceneHoverEvent):
-        """
-        Mouse enter on arc zone
-
-        :param event: scene hover event
-        """
-        self.setCursor(Qt.ArrowCursor)
-
-    def shape(self):
-        """
-        Return real shape of the item to detect collision or hover accurately
-
-        :return: QPainterPath
-        """
-        # detection mouse hover on arc path
-        path = QPainterPath()
-        path.addPolygon(QPolygonF([self.line().p1(), self.line().p2()]))
-        #  add handles at the start and end of arc
-        path.addRect(QRectF(
-            self.line().p1().x() - 5,
-            self.line().p1().y() - 5,
-            self.line().p1().x() + 5,
-            self.line().p1().y() + 5
-        ))
-        path.addRect(QRectF(
-            self.line().p2().x() - 5,
-            self.line().p2().y() - 5,
-            self.line().p2().x() + 5,
-            self.line().p2().y() + 5
-        ))
-        return path

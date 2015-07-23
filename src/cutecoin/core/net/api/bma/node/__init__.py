@@ -20,6 +20,7 @@ from .. import API, logging
 
 logger = logging.getLogger("ucoin/node")
 
+
 class Node(API):
     def __init__(self, connection_handler, module='node'):
         super(Node, self).__init__(connection_handler, module)

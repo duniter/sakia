@@ -28,13 +28,14 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         """
         super().__init__()
         self.setupUi(self)
+        self.app = app
         self.account = sender
         self.password_asker = password_asker
         self.recipient_trusts = []
         self.wallet = None
         self.community = self.account.communities[0]
         self.wallet = self.account.wallets[0]
-        self.dividend = self.community.dividend()
+        self.dividend = self.community.dividend
 
         regexp = QRegExp('^([ a-zA-Z0-9-_:/;*?\[\]\(\)\\\?!^+=@&~#{}|<>%.]{0,255})$')
         validator = QRegExpValidator(regexp)
@@ -120,7 +121,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
 
     def change_current_community(self, index):
         self.community = self.account.communities[index]
-        self.dividend = self.community.dividend()
+        self.dividend = self.community.dividend
         amount = self.wallet.value(self.community)
         ref_amount = self.account.units_to_ref(amount, self.community)
         ref_name = self.account.ref_name(self.community.currency)
@@ -130,7 +131,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
             ref_amount = QLocale().toString(float(ref_amount), 'f', 0)
         else:
             # display float values
-            ref_amount = QLocale().toString(ref_amount, 'f', 6)
+            ref_amount = QLocale().toString(float(ref_amount), 'f', 6)
         self.label_total.setText("{0} {1}".format(ref_amount, ref_name))
         self.spinbox_amount.setSuffix(" " + self.community.currency)
         self.spinbox_amount.setValue(0)
@@ -150,7 +151,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
             ref_amount = QLocale().toString(float(ref_amount), 'f', 0)
         else:
             # display float values
-            ref_amount = QLocale().toString(ref_amount, 'f', 6)
+            ref_amount = QLocale().toString(float(ref_amount), 'f', 6)
         self.label_total.setText("{0} {1}".format(ref_amount, ref_name))
         self.spinbox_amount.setValue(0)
         amount = self.wallet.value(self.community)

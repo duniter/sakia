@@ -35,10 +35,14 @@ class Application(QObject):
 
     def __init__(self, qapp, loop, network_manager, identities_registry):
         """
-        Create a new "cutecoin" application
-
-        :param argv: The argv parameters of the call
+        Init a new "cutecoin" application
+        :param QCoreApplication qapp: Qt Application
+        :param quamash.QEventLoop loop: quamash.QEventLoop instance
+        :param QNetworkAccessManager network_manager: QNetworkAccessManager instance
+        :param IdentitiesRegistry identities_registry: IdentitiesRegistry instance
+        :return:
         """
+
         super().__init__()
         self.qapp = qapp
         self.accounts = {}

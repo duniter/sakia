@@ -59,6 +59,57 @@ QGroupBox::title {
         </property>
        </widget>
       </item>
+      <item row="1" column="0">
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>5</number>
+        </property>
+        <item>
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="button_publish_uid">
+          <property name="text">
+           <string>Publish UID</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="button_revoke_uid">
+          <property name="text">
+           <string>Revoke UID</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="button_membership">
+          <property name="text">
+           <string>Renew membership</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="button_leaving">
+          <property name="text">
+           <string>Send leaving demand</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
      </layout>
     </widget>
    </item>
@@ -70,11 +121,28 @@ QGroupBox::title {
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
        <widget class="QLabel" name="label_balance">
+        <property name="font">
+         <font>
+          <pointsize>22</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
         <property name="text">
          <string>label_balance</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_balance_range">
+        <property name="text">
+         <string>label_balance_range</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
         </property>
        </widget>
       </item>
@@ -134,9 +202,77 @@ QGroupBox::title {
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>button_publish_uid</sender>
+   <signal>clicked()</signal>
+   <receiver>WalletsTab</receiver>
+   <slot>publish_uid()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>430</x>
+     <y>69</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>461</x>
+     <y>459</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button_revoke_uid</sender>
+   <signal>clicked()</signal>
+   <receiver>WalletsTab</receiver>
+   <slot>revoke_uid()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>533</x>
+     <y>69</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>461</x>
+     <y>459</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button_membership</sender>
+   <signal>clicked()</signal>
+   <receiver>WalletsTab</receiver>
+   <slot>send_membership_demand()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>662</x>
+     <y>69</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>461</x>
+     <y>459</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button_leaving</sender>
+   <signal>clicked()</signal>
+   <receiver>WalletsTab</receiver>
+   <slot>send_membership_leaving()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>823</x>
+     <y>69</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>461</x>
+     <y>459</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>wallet_context_menu(QPoint)</slot>
   <slot>wallet_changed()</slot>
+  <slot>send_membership_demand()</slot>
+  <slot>send_membership_leaving()</slot>
+  <slot>revoke_uid()</slot>
+  <slot>publish_uid()</slot>
  </slots>
 </ui>

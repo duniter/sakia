@@ -96,8 +96,8 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
             if self.app.preferences['notifications']:
                 toast.display(self.tr("New transactions received"), text)
 
-            self.table_history.model().sourceModel().refresh_transfers()
-            self.table_history.resizeColumnsToContents()
+        self.table_history.model().sourceModel().refresh_transfers()
+        self.table_history.resizeColumnsToContents()
 
     def refresh_balance(self):
         # if referential is "units"
@@ -176,7 +176,7 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
                 send_money.setData(identity)
                 menu.addAction(send_money)
 
-                if isinstance(identity, identity):
+                if isinstance(identity, Identity):
                     view_wot = QAction(self.tr("View in Web of Trust"), self)
                     view_wot.triggered.connect(self.currency_tab.tab_community.view_wot)
                     view_wot.setData(identity)
