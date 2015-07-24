@@ -1,39 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS><TS version="2.0" language="fr_FR" sourcelanguage="en">
 <context>
-    <name>@default</name>
-    <message>
-        <location filename="../../../src/cutecoin/core/account.py" line="61"/>
-        <source>ud {0}</source>
-        <translation type="obsolete">du {0}</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/views/wot.py" line="285"/>
-        <source>Informations</source>
-        <translation type="obsolete">Informations</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/views/wot.py" line="289"/>
-        <source>Add as contact</source>
-        <translation type="obsolete">Ajouter comme contact</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/views/wot.py" line="293"/>
-        <source>Send money</source>
-        <translation type="obsolete">Envoyer de l&apos;argent</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="310"/>
-        <source>Renew membership</source>
-        <translation type="obsolete">Renouveller le statut de membre</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/views/wot.py" line="297"/>
-        <source>Certify identity</source>
-        <translation type="obsolete">Certifier cette identité</translation>
-    </message>
-</context>
-<context>
     <name>AboutPopup</name>
     <message>
         <location filename="../../ui/about.ui" line="14"/>
@@ -48,11 +15,6 @@
 </context>
 <context>
     <name>Account</name>
-    <message>
-        <location filename="../../../src/cutecoin/core/account.py" line="61"/>
-        <source>ud {0}</source>
-        <translation type="obsolete">du {0}</translation>
-    </message>
     <message>
         <location filename="../../../src/cutecoin/core/account.py" line="101"/>
         <source>Units</source>
@@ -205,16 +167,6 @@
         <translation>Succès de certification de {0}, dans la communauté {1}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/certification.py" line="53"/>
-        <source>Something wrong happened : {0}</source>
-        <translation type="obsolete">Une erreur s’est produite : {0}</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/certification.py" line="58"/>
-        <source>Couldn&apos;t connect to network : {0}</source>
-        <translation type="obsolete">Impossible de se connecter au réseau : {0}</translation>
-    </message>
-    <message>
         <location filename="../../../src/cutecoin/gui/certification.py" line="68"/>
         <source>Error</source>
         <translation>Erreur</translation>
@@ -301,79 +253,14 @@
         <translation>Rechercher une clé publique, un identifiant utilisateur…</translation>
     </message>
     <message>
-        <location filename="../../ui/community_tab.ui" line="118"/>
-        <source>Quality : </source>
-        <translation type="obsolete">Qualification : </translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="351"/>
-        <source>Renew membership</source>
-        <translation type="obsolete">Renouveller son statut de membre</translation>
-    </message>
-    <message>
-        <location filename="../../ui/community_tab.ui" line="146"/>
-        <source>Send leaving demand</source>
-        <translation type="obsolete">Demander de quitter la communauté</translation>
-    </message>
-    <message>
         <location filename="../../../src/cutecoin/gui/community_tab.py" line="76"/>
         <source>Membership</source>
         <translation>Statut de membre</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="172"/>
-        <source>Success sending membership demand</source>
-        <translation type="obsolete">Succès lors de l&apos;envoi d&apos;une demande de membre</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="174"/>
-        <source>Join demand error</source>
-        <translation type="obsolete">Erreur lors de l&apos;envoi d&apos;une demande de membre</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="177"/>
-        <source>Key not sent to community</source>
-        <translation type="obsolete">La clé n&apos;a pas pu être envoyée à la communauté</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="226"/>
-        <source>Network error</source>
-        <translation type="obsolete">Erreur réseau</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="226"/>
-        <source>Couldn&apos;t connect to network : {0}</source>
-        <translation type="obsolete">Impossible de se connecter au réseau : {0}</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="235"/>
-        <source>Warning</source>
-        <translation type="obsolete">Attention</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="202"/>
-        <source>Success sending leaving demand</source>
-        <translation type="obsolete">Succès lors de l&apos;envoi de la demande pour quitter la communauté</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="204"/>
-        <source>Leaving demand error</source>
-        <translation type="obsolete">Erreur lors de l&apos;envoi de la demande pour quitter la communauté</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="263"/>
-        <source>Error</source>
-        <translation type="obsolete">Erreur</translation>
-    </message>
-    <message>
         <location filename="../../ui/community_tab.ui" line="60"/>
         <source>Search</source>
         <translation>Rechercher</translation>
-    </message>
-    <message>
-        <location filename="../../ui/community_tab.ui" line="125"/>
-        <source>Publish UID</source>
-        <translation type="obsolete">Publier votre identifiant utilisateur</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/community_tab.py" line="59"/>
@@ -384,39 +271,6 @@
         <location filename="../../../src/cutecoin/gui/community_tab.py" line="62"/>
         <source>Direct connections</source>
         <translation>Connections directes</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="218"/>
-        <source>Are you sure ?
-Publishing your UID cannot be canceled.</source>
-        <translation type="obsolete">Êtes vous certain ?
-Publier votre UID ne peut être annulé.</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="220"/>
-        <source>UID Publishing</source>
-        <translation type="obsolete">Publication de l&apos;identifiant utilisateur</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="220"/>
-        <source>Success publishing your UID</source>
-        <translation type="obsolete">Succès lors de la publication de votre identifiant utilisateur</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="177"/>
-        <source>&quot;Your key wasn&apos;t sent in the community.
-You can&apos;t request a membership.</source>
-        <translation type="obsolete">Votre clé publique n&apos;a pas été envoyée à la communauté.
-Vous ne pouvez pas envoyer de requête de membre.</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="196"/>
-        <source>Are you sure ?
-Sending a leaving demand  cannot be canceled.
-The process to join back the community later will have to be done again.</source>
-        <translation type="obsolete">Êtes vous certain ?
-Envoyer une demande pour quitter la communauté ne peut être annulée.
-Le processus pour rejoindre la communauté devra être refait de zéro.</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/community_tab.py" line="58"/>
@@ -447,50 +301,6 @@ Le processus pour rejoindre la communauté devra être refait de zéro.</transla
         <location filename="../../../src/cutecoin/gui/community_tab.py" line="117"/>
         <source>View in Web of Trust</source>
         <translation>Voir dans la toile de confiance</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="358"/>
-        <source>Send membership demand</source>
-        <translation type="obsolete">Envoyer une demande de membre</translation>
-    </message>
-    <message>
-        <location filename="../../ui/community_tab.ui" line="132"/>
-        <source>Revoke UID</source>
-        <translation type="obsolete">Révoquer votre identifiant utilisateur</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="209"/>
-        <source>Are you sure ?
-Publishing your UID can be canceled by Revoke UID.</source>
-        <translation type="obsolete">Êtes-vous sûr(e) ?
-Publier votre identifiant utilisateur peut être annulé par le bouton “Révoquer votre identifiant utilisateur”.</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="223"/>
-        <source>Publish UID error</source>
-        <translation type="obsolete">Erreur de publication votre identifiant utilisateur</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="235"/>
-        <source>Are you sure ?
-Revoking your UID can only success if it is not already validated by the network.</source>
-        <translation type="obsolete">Êtes-vous sûr(e) ?
-Révoquer votre identifiant utilisateur peut fonctionner que s&apos;il n&apos;a pas déjà été validé par le réseau.</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="253"/>
-        <source>UID Revoking</source>
-        <translation type="obsolete">Révocation de votre identifiant utilisateur</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="253"/>
-        <source>Success revoking your UID</source>
-        <translation type="obsolete">Révocation de votre identifiant utilisateur réussie</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="256"/>
-        <source>Revoke UID error</source>
-        <translation type="obsolete">Erreur lors de la révocation de votre identifiant utilisateur</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/community_tab.py" line="76"/>
@@ -602,21 +412,6 @@ Révoquer votre identifiant utilisateur peut fonctionner que s&apos;il n&apos;a 
         <translation> Bloc {0}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="75"/>
-        <source>Membership expiration&lt;b&gt;Warning : Membership expiration in {0} days&lt;/b&gt;</source>
-        <translation type="obsolete">Expiration du statut de membre</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="206"/>
-        <source>Received {0} {1} from {2} transfers</source>
-        <translation type="obsolete">Réception de {0} {1} provenants de {2} transfers</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="210"/>
-        <source>New transactions received</source>
-        <translation type="obsolete">Nouveaux transferts reçus</translation>
-    </message>
-    <message>
         <location filename="../../../src/cutecoin/gui/currency_tab.py" line="125"/>
         <source>Membership expiration</source>
         <translation>Expiration du statut de membre</translation>
@@ -696,11 +491,6 @@ Révoquer votre identifiant utilisateur peut fonctionner que s&apos;il n&apos;a 
         <location filename="../../../src/cutecoin/models/txhistory.py" line="183"/>
         <source>Comment</source>
         <translation>Commentaire</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/models/txhistory.py" line="166"/>
-        <source>State</source>
-        <translation type="obsolete">Statut</translation>
     </message>
 </context>
 <context>
@@ -878,47 +668,14 @@ Révoquer votre identifiant utilisateur peut fonctionner que s&apos;il n&apos;a 
         <translation></translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="74"/>
-        <source>
-                &lt;table cellpadding=&quot;5&quot;&gt;
-                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/div&gt;&lt;/td&gt;&lt;td&gt;{:} {:}&lt;/td&gt;&lt;/tr&gt;
-                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:} {:}&lt;/td&gt;&lt;/tr&gt;
-                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
-                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:} {:}&lt;/td&gt;&lt;/tr&gt;
-                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:2.2%} / {:} days&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
-                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
-                &lt;/table&gt;
-                </source>
-        <translation type="obsolete">
-                &lt;table cellpadding=&quot;5&quot;&gt;
-                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/div&gt;&lt;/td&gt;&lt;td&gt;{:} {:}&lt;/td&gt;&lt;/tr&gt;
-                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:} {:}&lt;/td&gt;&lt;/tr&gt;
-                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
-                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:} {:}&lt;/td&gt;&lt;/tr&gt;
-                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:2.2%} / {:} jours&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
-                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
-                &lt;/table&gt;
-                </translation>
-    </message>
-    <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="130"/>
         <source>Universal Dividend UD(t) in</source>
         <translation>Dividende universel DU(t) en</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="74"/>
-        <source>Monetary Mass M(t) in</source>
-        <translation type="obsolete">Masse monétaire M(t) en</translation>
-    </message>
-    <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="130"/>
         <source>Members N(t)</source>
         <translation>Membres N(t)</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="74"/>
-        <source>Monetary Mass per member M(t)/N(t) in</source>
-        <translation type="obsolete">Masse monétaire par membre M(t)/N(t) en</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="130"/>
@@ -955,11 +712,6 @@ Révoquer votre identifiant utilisateur peut fonctionner que s&apos;il n&apos;a 
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="177"/>
         <source>Fundamental growth (c) / Delta time (dt)</source>
         <translation>Croissance fondamentale (c) / variation de temps (dt)</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="135"/>
-        <source>UD(t+1) = MAX { UD(t) ; c * M(t) / N(t) }</source>
-        <translation type="obsolete">DU(t+1) = MAX { DU(t) ; c * M(t) / N(t) }</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="177"/>
@@ -1093,36 +845,6 @@ Révoquer votre identifiant utilisateur peut fonctionner que s&apos;il n&apos;a 
         <translation type="unfinished">Masse Monétaire par membre M(t-1)/N(t) en</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="127"/>
-        <source>UD(t+1) = MAX { UD(t) ; c * M(t-1) / N(t) }</source>
-        <translation type="obsolete">DU(t+1) = MAX { DU(t) ; c * M(t-1) / N(t) }</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="139"/>
-        <source>UD(t+1) = MAX { UD(t) ; c * M(t) / N(t+1) }</source>
-        <translation type="obsolete">DU(t+1) = MAX { DU(t) ; c * M(t) / N(t+1) }</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="74"/>
-        <source>Actual growth c = UD(t)/[M(t-1)/N(t-1)]</source>
-        <translation type="obsolete">Croissance actuelle c = DU(t)/[M(t -1)/N(t-1)]</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="140"/>
-        <source>UD(t+1) = MAX { UD(t) ; c &#xc3;&#x97; M(t) / N(t) }</source>
-        <translation type="obsolete">DU(t+1) = MAX { DU(t) ; c Ã M(t) / N(t) }</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="140"/>
-        <source>UD(t+1) = MAX { UD(t) ; c u00D7 M(t) / N(t) }</source>
-        <translation type="obsolete">DU(t+1) = MAX { DU(t) ; c u00D7 M(t) / N(t) }</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="140"/>
-        <source>UD(t+1) = MAX { UD(t) ; c &amp;#215; M(t) / N(t) }</source>
-        <translation type="obsolete">DU(t+1) = MAX { DU(t) ; c &amp;#215; M(t) / N(t) }</translation>
-    </message>
-    <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="177"/>
         <source>{:} = MAX {{ {:} {:} ; {:2.0%} &amp;#215; {:} {:} / {:} }}</source>
         <translation>{:} = MAX {{ {:} {:} ; {:2.0%} &amp;#215; {:} {:} / {:} }}</translation>
@@ -1172,16 +894,6 @@ Révoquer votre identifiant utilisateur peut fonctionner que s&apos;il n&apos;a 
         <translation>Compte</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="61"/>
-        <source>Contacts</source>
-        <translation type="obsolete">Contacts</translation>
-    </message>
-    <message>
-        <location filename="../../ui/mainwindow.ui" line="75"/>
-        <source>Actions</source>
-        <translation type="obsolete">Actions</translation>
-    </message>
-    <message>
         <location filename="../../ui/mainwindow.ui" line="87"/>
         <source>Manage accounts</source>
         <translation>Gérer ces comptes</translation>
@@ -1217,25 +929,9 @@ Révoquer votre identifiant utilisateur peut fonctionner que s&apos;il n&apos;a 
         <translation>Exporter</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="176"/>
-        <source>Loading account {0}</source>
-        <translation type="obsolete">Chargement du compte {0}</translation>
-    </message>
-    <message>
         <location filename="../../../src/cutecoin/gui/mainwindow.py" line="191"/>
         <source>Latest release : {version}</source>
         <translation>Dernière version : {version}</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="246"/>
-        <source>
-            &lt;p&gt;&lt;b&gt;{version_info}&lt;/b&gt;&lt;/p&gt;
-            &lt;p&gt;&lt;a href={version_url}&gt;Download link&lt;/a&gt;&lt;/p&gt;
-            </source>
-        <translation type="obsolete">
-            &lt;p&gt;&lt;b&gt;{version_info}&lt;/b&gt;&lt;/p&gt;
-            &lt;p&gt;&lt;a href={version_url}&gt;Lien de téléchargement&lt;/a&gt;&lt;/p&gt;
-            </translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/mainwindow.py" line="205"/>
@@ -1318,11 +1014,6 @@ Révoquer votre identifiant utilisateur peut fonctionner que s&apos;il n&apos;a 
         <translation>&amp;Ajouter un contact</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="132"/>
-        <source>&amp;Add</source>
-        <translation type="obsolete">&amp;Ajouter</translation>
-    </message>
-    <message>
         <location filename="../../ui/mainwindow.ui" line="137"/>
         <source>&amp;Quit</source>
         <translation>&amp;Quitter</translation>
@@ -1386,17 +1077,6 @@ Révoquer votre identifiant utilisateur peut fonctionner que s&apos;il n&apos;a 
         <location filename="../../ui/mainwindow.ui" line="187"/>
         <source>&amp;Add account</source>
         <translation>&amp;Ajouter un compte</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/mainwindow.py" line="246"/>
-        <source>
-            &lt;p&gt;&lt;b&gt;{version_info}&lt;/b&gt;&lt;/p&gt;
-            &lt;p&gt;&lt;a href=&quot;{version_url}&quot;&gt;Download link&lt;/a&gt;&lt;/p&gt;
-            </source>
-        <translation type="obsolete">
-            &lt;p&gt;&lt;b&gt;{version_info}&lt;/b&gt;&lt;/p&gt;
-            &lt;p&gt;&lt;a href=&quot;{version_url}&quot;&gt;Lien de téléchargement&lt;/a&gt;&lt;/p&gt;
-            </translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/mainwindow.py" line="198"/>
@@ -1551,29 +1231,6 @@ Révoquer votre identifiant utilisateur peut fonctionner que s&apos;il n&apos;a 
     </message>
 </context>
 <context>
-    <name>Node</name>
-    <message>
-        <location filename="../../../src/cutecoin/gui/views/wot.py" line="285"/>
-        <source>Informations</source>
-        <translation type="obsolete">Informations</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/views/wot.py" line="289"/>
-        <source>Add as contact</source>
-        <translation type="obsolete">Ajouter comme contact</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/views/wot.py" line="293"/>
-        <source>Send money</source>
-        <translation type="obsolete">Envoyer de l&apos;argent</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/views/wot.py" line="297"/>
-        <source>Certify identity</source>
-        <translation type="obsolete">Certifier cette identité</translation>
-    </message>
-</context>
-<context>
     <name>PasswordAskerDialog</name>
     <message>
         <location filename="../../ui/password_asker.ui" line="14"/>
@@ -1617,11 +1274,6 @@ Révoquer votre identifiant utilisateur peut fonctionner que s&apos;il n&apos;a 
         <location filename="../../ui/preferences.ui" line="108"/>
         <source>Default account</source>
         <translation>Compte par défaut</translation>
-    </message>
-    <message>
-        <location filename="../../ui/preferences.ui" line="36"/>
-        <source>Default referential</source>
-        <translation type="obsolete">Référentiel par défaut</translation>
     </message>
     <message>
         <location filename="../../ui/preferences.ui" line="201"/>
@@ -1754,21 +1406,6 @@ Would you like to publish the key ?</source>
 Souhaitez-vous publier votre clé publique ?</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/process_cfg_community.py" line="209"/>
-        <source>Pubkey publishing error</source>
-        <translation type="obsolete">Erreur de publication</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/process_cfg_community.py" line="212"/>
-        <source>Network error</source>
-        <translation type="obsolete">Erreur réseau</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/process_cfg_community.py" line="212"/>
-        <source>Couldn&apos;t connect to network : {0}</source>
-        <translation type="obsolete">Impossible de se connecter au réseau : {0}</translation>
-    </message>
-    <message>
         <location filename="../../../src/cutecoin/gui/process_cfg_community.py" line="204"/>
         <source>UID Publishing</source>
         <translation type="unfinished">Publication de l&apos;identifiant utilisateur</translation>
@@ -1826,16 +1463,6 @@ Souhaitez-vous publier votre clé publique ?</translation>
         <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="169"/>
         <source>Add as contact</source>
         <translation>Ajouter comme contact</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="153"/>
-        <source>Send money to</source>
-        <translation type="obsolete">Envoyer de la monnaie à</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="159"/>
-        <source>View in WoT</source>
-        <translation type="obsolete">Voir dans la WoT</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="185"/>
@@ -1913,29 +1540,9 @@ Le transfert de monnaie sera annulé et ne sera pas envoyé.</translation>
         <translation>Contact</translation>
     </message>
     <message>
-        <location filename="../../ui/transfer.ui" line="61"/>
-        <source>Recipient public key</source>
-        <translation type="obsolete">Clé publique du receveur</translation>
-    </message>
-    <message>
         <location filename="../../ui/transfer.ui" line="80"/>
         <source>Key</source>
         <translation>Clé</translation>
-    </message>
-    <message>
-        <location filename="../../ui/transfer.ui" line="106"/>
-        <source>Wallet :</source>
-        <translation type="obsolete">Porte-monnaie :</translation>
-    </message>
-    <message>
-        <location filename="../../ui/transfer.ui" line="125"/>
-        <source>Availalble currency : </source>
-        <translation type="obsolete">Monnaie disponible : </translation>
-    </message>
-    <message>
-        <location filename="../../ui/transfer.ui" line="134"/>
-        <source>Amount :</source>
-        <translation type="obsolete">Montant :</translation>
     </message>
     <message>
         <location filename="../../ui/transfer.ui" line="148"/>
@@ -1956,28 +1563,6 @@ Le transfert de monnaie sera annulé et ne sera pas envoyé.</translation>
         <location filename="../../../src/cutecoin/gui/transfer.py" line="69"/>
         <source>No amount. Please give the transfert amount</source>
         <translation>Pas de montant. Veuillez entrer un montant</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/transfer.py" line="78"/>
-        <source>Success transfering {0} {1} to {2}</source>
-        <translation type="obsolete">Succès lors de l&apos;envoi de {0} {1} pour {2}</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/transfer.py" line="83"/>
-        <source>Something wrong happened : {0}</source>
-        <translation type="obsolete">Une erreur a été rencontrée : {0}</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/transfer.py" line="88"/>
-        <source>This transaction could not be sent on this block
-Please try again later</source>
-        <translation type="obsolete">Ce transfert ne peut être envoyer sur ce bloc.
-Veuillez rééssayer plus tard</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/transfer.py" line="92"/>
-        <source>Couldn&apos;t connect to network : {0}</source>
-        <translation type="obsolete">Impossible de se connecter au réseau : {0}</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/transfer.py" line="103"/>
@@ -2113,11 +1698,6 @@ Veuillez rééssayer plus tard</translation>
         <translation>Non-membre</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="118"/>
-        <source>{:} {:} in [{:.2f} - {:}] {:}</source>
-        <translation type="obsolete">{:} {:} compris dans [{:.2f} - {:}] {:}</translation>
-    </message>
-    <message>
         <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="184"/>
         <source>Rename</source>
         <translation>Renommer</translation>
@@ -2138,16 +1718,6 @@ Veuillez rééssayer plus tard</translation>
         <translation>Votre toile de confiance</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="134"/>
-        <source>Your money share </source>
-        <translation type="obsolete">Votre part de monnaie </translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="134"/>
-        <source>Your part </source>
-        <translation type="obsolete">Votre part </translation>
-    </message>
-    <message>
         <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="181"/>
         <source>New Wallet</source>
         <translation>Nouveau porte-monnaie</translation>
@@ -2156,16 +1726,6 @@ Veuillez rééssayer plus tard</translation>
         <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="104"/>
         <source>Certified by {:} members; Certifier of {:} members</source>
         <translation>Certifié par {:} membres ; a certifié {:} membres</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="118"/>
-        <source>{:} {:} in [{:.2f} ; {:}] {:}</source>
-        <translation type="obsolete">{:} {:} compris entre [{:.2f} ; {:}] {:}</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="134"/>
-        <source>{:} {:} in [{:} ; {:}] {:}</source>
-        <translation type="obsolete">{:} {:} compris entre [{:} ; {:}] {:}</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="138"/>
@@ -2288,11 +1848,6 @@ Révoquer votre identifiant utilisateur peut fonctionner que s&apos;il n&apos;a 
         <location filename="../../ui/wot_tab.ui" line="14"/>
         <source>Form</source>
         <translation>Formulaire</translation>
-    </message>
-    <message>
-        <location filename="../../ui/wot_tab.ui" line="33"/>
-        <source>Me</source>
-        <translation type="obsolete">Moi</translation>
     </message>
     <message>
         <location filename="../../ui/wot_tab.ui" line="33"/>

@@ -167,16 +167,6 @@
         <translation>{0} von {1} erfolgreich zertifiziert</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/certification.py" line="53"/>
-        <source>Something wrong happened : {0}</source>
-        <translation type="obsolete">Da ist etwas schief gegangen: {0}</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/certification.py" line="58"/>
-        <source>Couldn&apos;t connect to network : {0}</source>
-        <translation type="obsolete">Konnte keine Verbindung zum Netzwerk herstellen: {0}</translation>
-    </message>
-    <message>
         <location filename="../../../src/cutecoin/gui/certification.py" line="68"/>
         <source>Error</source>
         <translation>Fehler</translation>
@@ -268,31 +258,6 @@
         <translation>Suchen</translation>
     </message>
     <message>
-        <location filename="../../ui/community_tab.ui" line="118"/>
-        <source>Quality : </source>
-        <translation type="obsolete">Qualität: </translation>
-    </message>
-    <message>
-        <location filename="../../ui/community_tab.ui" line="125"/>
-        <source>Publish UID</source>
-        <translation type="obsolete">UID veröffentlichen</translation>
-    </message>
-    <message>
-        <location filename="../../ui/community_tab.ui" line="132"/>
-        <source>Revoke UID</source>
-        <translation type="obsolete">UID widerrufen</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="351"/>
-        <source>Renew membership</source>
-        <translation type="obsolete">Mitgliedschaft erneuern</translation>
-    </message>
-    <message>
-        <location filename="../../ui/community_tab.ui" line="146"/>
-        <source>Send leaving demand</source>
-        <translation type="obsolete">Austritts-Gesuch senden</translation>
-    </message>
-    <message>
         <location filename="../../../src/cutecoin/gui/community_tab.py" line="58"/>
         <source>Web of Trust</source>
         <translation>Web of Trust</translation>
@@ -336,116 +301,6 @@
         <location filename="../../../src/cutecoin/gui/community_tab.py" line="76"/>
         <source>Membership</source>
         <translation>Mitgliedschaft</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="172"/>
-        <source>Success sending membership demand</source>
-        <translation type="obsolete">Mitgliedschaft erfolgreich beantragt</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="174"/>
-        <source>Join demand error</source>
-        <translation type="obsolete">Fehler bei der Beantragung</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="177"/>
-        <source>Key not sent to community</source>
-        <translation type="obsolete">Schlüssel wurde nicht an die Community gesandt</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="177"/>
-        <source>&quot;Your key wasn&apos;t sent in the community.
-You can&apos;t request a membership.</source>
-        <translation type="obsolete">&quot;Ihr Schlüssel wurde nicht an die Community gesandt.
-Sie können keine Mitgliedschaft beantragen.</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="226"/>
-        <source>Network error</source>
-        <translation type="obsolete">Netzwerk-Fehler</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="226"/>
-        <source>Couldn&apos;t connect to network : {0}</source>
-        <translation type="obsolete">Konnte keine Verbindung zum Netzwerk herstellen: {0}</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="235"/>
-        <source>Warning</source>
-        <translation type="obsolete">Warnung</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="196"/>
-        <source>Are you sure ?
-Sending a leaving demand  cannot be canceled.
-The process to join back the community later will have to be done again.</source>
-        <translation type="obsolete">Sind Sie sich sicher?
-Ein Austrittsgesuch kann nicht zurückgenommen werden.
-Um der Community später wieder beizutreten, müssen Sie den Aufnahmeprozess vollständig neu durchlaufen.</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="202"/>
-        <source>Success sending leaving demand</source>
-        <translation type="obsolete">Bitte um Entlassung erfolgreich versandt</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="204"/>
-        <source>Leaving demand error</source>
-        <translation type="obsolete">Fehler bei der Bitte um Entlassung</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="263"/>
-        <source>Error</source>
-        <translation type="obsolete">Fehler</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="209"/>
-        <source>Are you sure ?
-Publishing your UID can be canceled by Revoke UID.</source>
-        <translation type="obsolete">Sind Sie sich sicher?
-Die Veröffentlichung der UID kann durch Widerruf der UID rückgängig gemacht werden.</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="220"/>
-        <source>UID Publishing</source>
-        <translation type="obsolete">UID-Veröffentlichung</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="220"/>
-        <source>Success publishing your UID</source>
-        <translation type="obsolete">UID erfolgreich veröffentlicht</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="223"/>
-        <source>Publish UID error</source>
-        <translation type="obsolete">Fehler bei der Veröffentlichung der UID</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="235"/>
-        <source>Are you sure ?
-Revoking your UID can only success if it is not already validated by the network.</source>
-        <translation type="obsolete">Sind Sie sich sicher?
-Sie können die UID nur widerrufen, wenn sie noch nicht vom Netzwerk validiert wurde.</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="253"/>
-        <source>UID Revoking</source>
-        <translation type="obsolete">Widerruf der UID</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="253"/>
-        <source>Success revoking your UID</source>
-        <translation type="obsolete">UID erfolgreich widerrufen</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="256"/>
-        <source>Revoke UID error</source>
-        <translation type="obsolete">Fehler beim Widerruf der UID</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/community_tab.py" line="358"/>
-        <source>Send membership demand</source>
-        <translation type="obsolete">Mitgliedschaft beantragen</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/community_tab.py" line="76"/>
@@ -585,16 +440,6 @@ Sie können die UID nur widerrufen, wenn sie noch nicht vom Netzwerk validiert w
         <location filename="../../../src/cutecoin/gui/currency_tab.py" line="163"/>
         <source> Block {0}</source>
         <translation> Block {0}</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="206"/>
-        <source>Received {0} {1} from {2} transfers</source>
-        <translation type="obsolete">{0} {1} von {2} Transfers eingegangen</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/currency_tab.py" line="210"/>
-        <source>New transactions received</source>
-        <translation type="obsolete">Neue Transaktionen eingegangen</translation>
     </message>
 </context>
 <context>
@@ -823,52 +668,14 @@ Sie können die UID nur widerrufen, wenn sie noch nicht vom Netzwerk validiert w
         <translation type="unfinished">label_wot</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="74"/>
-        <source>
-                &lt;table cellpadding=&quot;5&quot;&gt;
-                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/div&gt;&lt;/td&gt;&lt;td&gt;{:} {:}&lt;/td&gt;&lt;/tr&gt;
-                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:} {:}&lt;/td&gt;&lt;/tr&gt;
-                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
-                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:} {:}&lt;/td&gt;&lt;/tr&gt;
-                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:2.2%} / {:} days&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
-                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
-                &lt;/table&gt;
-                </source>
-        <translation type="obsolete">
-                &lt;table cellpadding=&quot;5&quot;&gt;
-                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/div&gt;&lt;/td&gt;&lt;td&gt;{:} {:}&lt;/td&gt;&lt;/tr&gt;
-                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:} {:}&lt;/td&gt;&lt;/tr&gt;
-                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
-                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:} {:}&lt;/td&gt;&lt;/tr&gt;
-                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:2.2%} / {:} Tage&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
-                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
-                &lt;/table&gt;
-                </translation>
-    </message>
-    <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="130"/>
         <source>Universal Dividend UD(t) in</source>
         <translation>Universelle Dividende (UD)(t) in</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="74"/>
-        <source>Monetary Mass M(t) in</source>
-        <translation type="obsolete">Geldmenge M(t) in</translation>
-    </message>
-    <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="130"/>
         <source>Members N(t)</source>
         <translation>Mitglieder N(t)</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="74"/>
-        <source>Monetary Mass per member M(t)/N(t) in</source>
-        <translation type="obsolete">Geldmenge pro Mitglied M(t)/N(t) in</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="74"/>
-        <source>Actual growth c = UD(t)/[M(t-1)/N(t-1)]</source>
-        <translation type="obsolete">Effektives Wachstum c = UD(t)/[M(t-1)/N(t-1)]</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="130"/>
@@ -906,11 +713,6 @@ Sie können die UID nur widerrufen, wenn sie noch nicht vom Netzwerk validiert w
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="177"/>
         <source>Fundamental growth (c) / Delta time (dt)</source>
         <translation>Effektives Wachstum (c) / Delta Zeit (dt)</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/informations_tab.py" line="140"/>
-        <source>UD(t+1) = MAX { UD(t) ; c &amp;#215; M(t) / N(t) }</source>
-        <translation type="obsolete">UD(t+1) = MAX { UD(t) ; c &amp;#215; M(t) / N(t) }</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/informations_tab.py" line="177"/>
