@@ -167,16 +167,6 @@
         <translation>Éxisto certificar {0} de {1}</translation>
     </message>
     <message>
-        <location filename="../../../src/cutecoin/gui/certification.py" line="53"/>
-        <source>Something wrong happened : {0}</source>
-        <translation type="obsolete">Algo malo sucedió : {0}</translation>
-    </message>
-    <message>
-        <location filename="../../../src/cutecoin/gui/certification.py" line="58"/>
-        <source>Couldn&apos;t connect to network : {0}</source>
-        <translation type="obsolete">No se pudo conectar a la red : {0}</translation>
-    </message>
-    <message>
         <location filename="../../../src/cutecoin/gui/certification.py" line="68"/>
         <source>Error</source>
         <translation>Error</translation>
@@ -1739,7 +1729,7 @@ Publishing your UID can be canceled by Revoke UID.</source>
     <message>
         <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="297"/>
         <source>Couldn&apos;t connect to network : {0}</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">No se pudo conectar a la red : {0}</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="306"/>

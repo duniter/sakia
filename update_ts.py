@@ -44,6 +44,10 @@ def generate_pro():
 
 pro_file = generate_pro()
 try:
-    subprocess.call(["pylupdate5", pro_file])
+    if "-noobsolete" in sys.argv:
+        print("Removing obsolete strings...")
+        subprocess.call(["pylupdate5", "-noobsolete", pro_file])
+    else:
+        subprocess.call(["pylupdate5", pro_file])
 finally:
     os.remove(pro_file)
