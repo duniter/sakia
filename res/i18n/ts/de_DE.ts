@@ -106,7 +106,7 @@
     <message>
         <location filename="../../ui/account_cfg.ui" line="242"/>
         <source>Communities membership</source>
-        <translation>Mitgliedschaft in Communities</translation>
+        <translation type="obsolete">Mitgliedschaft in Communities</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="257"/>
@@ -127,6 +127,11 @@
         <location filename="../../ui/account_cfg.ui" line="308"/>
         <source>Next</source>
         <translation>Weiter</translation>
+    </message>
+    <message>
+        <location filename="../../ui/account_cfg.ui" line="242"/>
+        <source>Communities</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

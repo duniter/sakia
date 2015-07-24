@@ -104,11 +104,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../ui/account_cfg.ui" line="242"/>
-        <source>Communities membership</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../../ui/account_cfg.ui" line="257"/>
         <source>Add a community</source>
         <translation type="unfinished"></translation>
@@ -126,6 +121,11 @@
     <message>
         <location filename="../../ui/account_cfg.ui" line="308"/>
         <source>Next</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../ui/account_cfg.ui" line="242"/>
+        <source>Communities</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

@@ -239,7 +239,7 @@
        <item>
         <widget class="QGroupBox" name="groupBox_2">
          <property name="title">
-          <string>Communities membership</string>
+          <string>Communities</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <item>
