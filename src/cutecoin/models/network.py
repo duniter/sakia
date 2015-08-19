@@ -41,6 +41,7 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
             'address': self.tr('Address'),
             'port': self.tr('Port'),
             'current_block': self.tr('Block'),
+            'current_hash': self.tr('Hash'),
             'uid': self.tr('UID'),
             'is_member': self.tr('Member'),
             'pubkey': self.tr('Pubkey'),
@@ -64,6 +65,10 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
         if index.column() == source_model.columns_types.index('pubkey') \
             and role == Qt.DisplayRole:
             return source_data[:5]
+
+        if index.column() == source_model.columns_types.index('current_hash') \
+            and role == Qt.DisplayRole:
+            return source_data[:10]
 
         if role == Qt.TextAlignmentRole:
             if source_index.column() == source_model.columns_types.index('address') or source_index.column() == self.sourceModel().columns_types.index('current_block'):
@@ -97,6 +102,7 @@ class NetworkTableModel(QAbstractTableModel):
             'address',
             'port',
             'current_block',
+            'current_hash',
             'uid',
             'is_member',
             'pubkey',
@@ -156,7 +162,7 @@ class NetworkTableModel(QAbstractTableModel):
 
         is_root = self.community.network.is_root_node(node)
 
-        return (address, port, node.block_number, node.uid,
+        return (address, port, node.block_number, node.block_hash, node.uid,
                 is_member, node.pubkey, node.software, node.version, is_root)
 
     def data(self, index, role):
