@@ -36,7 +36,7 @@ class Network(QObject):
         self.currency = currency
         self._must_crawl = False
         self.network_manager = network_manager
-        self._block_found = self.latest_block
+        self._block_found = self.latest_block_hash
         self._timer = QTimer()
 
     @classmethod
@@ -66,8 +66,8 @@ class Network(QObject):
                 logging.debug("Loading : {:}".format(data['pubkey']))
             else:
                 other_node = [n for n in self.nodes if n.pubkey == node.pubkey][0]
-                if other_node.block < node.block:
-                    other_node.block = node.block
+                if other_node.block_hash != node.block_hash:
+                    other_node.set_block(node.block_number, node.block_hash)
                     other_node.last_change = node.last_change
                     other_node.state = node.state
 
@@ -145,11 +145,22 @@ class Network(QObject):
         return self._root_nodes
 
     @property
-    def latest_block(self):
+    def latest_block_number(self):
         """
-        Get latest block known
+        Get the latest block considered valid
+        It is the most frequent last block of every known nodes
         """
-        return max([n.block for n in self.nodes])
+        blocks = [n.block_number for n in self.nodes]
+        return max(set(blocks), key=blocks.count)
+
+    @property
+    def latest_block_hash(self):
+        """
+        Get the latest block considered valid
+        It is the most frequent last block of every known nodes
+        """
+        blocks = [n.block_hash for n in self.nodes]
+        return max(set(blocks), key=blocks.count)
 
     def add_node(self, node):
         """
@@ -217,15 +228,15 @@ class Network(QObject):
     def handle_change(self):
         node = self.sender()
         if node.state in (Node.ONLINE, Node.DESYNCED):
-            node.check_sync(self.latest_block)
+            node.check_sync(self.latest_block_hash)
         else:
             if node.last_change + 3600 < time.time():
                 node.disconnect()
                 self.nodes.remove(node)
                 self.nodes_changed.emit()
 
-        logging.debug("{0} -> {1}".format(self.latest_block, self.latest_block))
-        if self._block_found < self.latest_block:
-            logging.debug("New block found : {0}".format(self.latest_block))
-            self._block_found = self.latest_block
-            self.new_block_mined.emit(self.latest_block)
+        logging.debug("{0} -> {1}".format(self.latest_block_number, self.latest_block_number))
+        if self._block_found != self.latest_block_hash:
+            logging.debug("Latest block changed : {0}".format(self.latest_block_number))
+            self._block_found = self.latest_block_hash
+            self.new_block_mined.emit(self.latest_block_number)

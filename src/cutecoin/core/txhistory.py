@@ -149,7 +149,7 @@ class TxHistory():
         :param list received_list: List of transactions received
         """
         parsed_block = self.latest_block
-        current_block = community.network.latest_block
+        current_block = community.network.latest_block_number
         logging.debug("Refresh from : {0} to {1}".format(self.latest_block, current_block))
         dividends_data = qtbma.ud.History.null_value
         while dividends_data == qtbma.ud.History.null_value:

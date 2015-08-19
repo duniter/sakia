@@ -183,7 +183,7 @@ class Community(QObject):
         :return: The monetary mass value
         """
         # Get cached block by block number
-        block_number = self.network.latest_block
+        block_number = self.network.latest_block_number
         block = self.bma_access.get(self, qtbma.blockchain.Block,
                              req_args={'number': block_number})
         return block['monetaryMass']
@@ -197,7 +197,7 @@ class Community(QObject):
         """
         try:
             # Get cached block by block number
-            block_number = self.network.latest_block
+            block_number = self.network.latest_block_number
             block = self.bma_access.get(qtbma.blockchain.Block,
                                  req_args={'number': block_number})
             return block['membersCount']
