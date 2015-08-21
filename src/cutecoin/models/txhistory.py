@@ -6,6 +6,7 @@ Created on 5 févr. 2014
 
 import datetime
 import logging
+from ..core import money
 from ..core.transfer import Transfer
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, \
     QDateTime, QLocale, QModelIndex
@@ -111,15 +112,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
             if source_index.column() == model.columns_types.index('payment') or \
                     source_index.column() == model.columns_types.index('deposit'):
                 if source_data is not "":
-                    amount_ref = self.account.units_to_diff_ref(source_data,
-                                                                self.community)
-                    # if referential type is quantitative...
-                    if self.account.ref_type() == 'q':
-                        # display int values
-                        return QLocale().toString(float(amount_ref), 'f', 0)
-                    else:
-                        # display float values
-                        return QLocale().toString(float(amount_ref), 'f', self.app.preferences['digits_after_comma'])
+                    return self.account.current_ref(source_data, self.community, self.app).diff_localized()
 
         if role == Qt.FontRole:
             font = QFont()
@@ -172,7 +165,7 @@ class HistoryTableModel(QAbstractTableModel):
         super().__init__(parent)
         self.app = app
         self.community = community
-        self.account.referential
+        self.account._current_ref
         self.transfers_data = []
         self.refresh_transfers()
 
@@ -278,7 +271,7 @@ class HistoryTableModel(QAbstractTableModel):
             if self.columns_types[section] == 'payment' or self.columns_types[section] == 'deposit':
                 return '{:}\n({:})'.format(
                     self.column_headers[section],
-                    self.account.diff_ref_name(self.community.short_currency)
+                    self.account.current_ref.diff_units(self.community.short_currency)
                 )
 
             return self.column_headers[section]

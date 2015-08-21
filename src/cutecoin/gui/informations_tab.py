@@ -57,74 +57,30 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
             return False
 
         if block_ud:
-            ud = self.get_referential_diff_value(block_ud['dividend'])
-            # if referential type is quantitative...
-            if self.account.ref_type() == 'q':
-                # display int values
-                # use the float type of 64bits, to avoid display a 32bit signed integer...
-                localized_ud = QLocale().toString(float(ud), 'f', 0)
-                # display int values
-                localized_ud_plus_1 = QLocale().toString(
-                    float(
-                        self.get_referential_diff_value(
-                            self.community.computed_dividend
-                        )
-                    ),
-                    'f',
-                    0
-                )
-                localized_mass = QLocale().toString(
-                    float(self.get_referential_diff_value(block_ud['monetaryMass'])), 'f', 0
-                )
-                if block_ud_minus_1:
-                    localized_mass_minus_1_per_member = QLocale().toString(
-                        float(
-                            self.get_referential_diff_value(float(0) if block_ud['membersCount'] == 0 else
-                                block_ud_minus_1['monetaryMass'] / block_ud['membersCount']
-                            )
-                        ), 'f', 0
-                    )
-                    localized_mass_minus_1 = QLocale().toString(
-                        float(self.get_referential_diff_value(block_ud_minus_1['monetaryMass'])), 'f', 0
-                    )
-                else:
-                    localized_mass_minus_1_per_member = QLocale().toString(
-                        float(0), 'f', 0
-                    )
-                    localized_mass_minus_1 = QLocale().toString(
-                        float(0), 'f', 0
-                    )
+            # display float values
+            localized_ud = self.account.current_ref(block_ud['dividend'], self.community, self.app).diff_localized()
+
+            # display float values
+            localized_ud_plus_1 = self.account.current_ref(self.community.computed_dividend,
+                                                    self.community, self.app).diff_localized()
+
+            localized_mass = self.account.current_ref(block_ud['monetaryMass'],
+                                                    self.community, self.app)
+            if block_ud_minus_1:
+                mass_minus_1 = (float(0) if block_ud['membersCount'] == 0 else
+                        block_ud_minus_1['monetaryMass'] / block_ud['membersCount'])
+                localized_mass_minus_1_per_member = self.account.current_ref(mass_minus_1,
+                                                                  self.community, self.app).diff_localized()
+                localized_mass_minus_1 = self.account.current_ref(block_ud_minus_1['monetaryMass'],
+                                                                  self.community, self.app).diff_localized()
+
             else:
-                # display float values
-                localized_ud = QLocale().toString(float(ud), 'f', self.app.preferences['digits_after_comma'])
-                # display float values
-                localized_ud_plus_1 = QLocale().toString(
-                    float(
-                        self.get_referential_diff_value(
-                            self.community.computed_dividend
-                        )
-                    ),
-                    'f',
-                    self.app.preferences['digits_after_comma']
+                localized_mass_minus_1_per_member = QLocale().toString(
+                    float(0), 'f', self.app.preferences['digits_after_comma']
                 )
-                localized_mass = QLocale().toString(
-                    float(self.get_referential_diff_value(block_ud['monetaryMass'])), 'f', self.app.preferences['digits_after_comma']
+                localized_mass_minus_1 = QLocale().toString(
+                    float(0), 'f', self.app.preferences['digits_after_comma']
                 )
-                if block_ud_minus_1:
-                    localized_mass_minus_1_per_member = QLocale().toString(
-                        float(self.get_referential_diff_value(float(0) if block_ud['membersCount'] == 0 else
-                            block_ud_minus_1['monetaryMass'] / block_ud['membersCount'])), 'f', self.app.preferences['digits_after_comma']
-                    )
-                    localized_mass_minus_1 = QLocale().toString(
-                        float(self.get_referential_diff_value(block_ud_minus_1['monetaryMass'])), 'f', self.app.preferences['digits_after_comma']
-                    )
-                else:
-                    localized_mass_minus_1_per_member = QLocale().toString(
-                        float(0), 'f', self.app.preferences['digits_after_comma']
-                    )
-                    localized_mass_minus_1 = QLocale().toString(
-                        float(0), 'f', self.app.preferences['digits_after_comma']
-                    )
 
             # set infos in label
             self.label_general.setText(
@@ -141,15 +97,15 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 """).format(
                     localized_ud,
                     self.tr('Universal Dividend UD(t) in'),
-                    self.get_referential_diff_name(),
+                    self.account.current_ref.diff_units(self.community.currency),
                     localized_mass_minus_1,
                     self.tr('Monetary Mass M(t-1) in'),
-                    self.get_referential_diff_name(),
+                    self.account.current_ref.diff_units(self.community.currency),
                     block_ud['membersCount'],
                     self.tr('Members N(t)'),
                     localized_mass_minus_1_per_member,
                     self.tr('Monetary Mass per member M(t-1)/N(t) in'),
-                    self.get_referential_diff_name(),
+                    self.account.current_ref.diff_units(self.community.currency),
                     float(0) if block_ud['membersCount'] == 0 or block_ud_minus_1['monetaryMass'] == 0 else
                     block_ud['dividend'] / (block_ud_minus_1['monetaryMass'] / block_ud['membersCount']),
 
@@ -189,10 +145,10 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                     self.tr('{:} = MAX {{ {:} {:} ; {:2.0%} &#215; {:} {:} / {:} }}').format(
                         localized_ud_plus_1,
                         localized_ud,
-                        self.get_referential_diff_name(),
+                        self.account.current_ref.diff_units(self.community.currency),
                         params['c'],
                         localized_mass,
-                        self.get_referential_diff_name(),
+                        self.account.current_ref.diff_units(self.community.currency),
                         block_ud['membersCount']
                     ),
                     self.tr('Universal Dividend (computed)')
@@ -262,15 +218,3 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 self.tr('Maximum distance between each WoT member and a newcomer'),
             )
         )
-
-    def get_referential_value(self, value):
-        return self.account.units_to_ref(value, self.community)
-
-    def get_referential_diff_value(self, value):
-        return self.account.units_to_diff_ref(value, self.community)
-
-    def get_referential_name(self):
-        return self.account.ref_name(self.community.short_currency)
-
-    def get_referential_diff_name(self):
-        return self.account.diff_ref_name(self.community.short_currency)
