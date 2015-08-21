@@ -77,7 +77,7 @@ class TxHistory():
                      if o.pubkey != txdata['issuers'][0]]
 
         block_number = txdata['block_number']
-        if block_number + self.app.preferences['data_validation'] >= current_block:
+        if block_number + self.app.preferences['data_validation'] >= current_block["number"]:
             state = Transfer.VALIDATED
         else:
             state = Transfer.VALIDATING
@@ -118,7 +118,7 @@ class TxHistory():
 
         # We check if the transaction correspond to one we sent
         # but not from this cutecoin Instance
-        if txdata['hash'] not in [t.metadata['hash'] for t in awaiting]:
+        if txdata['hash'] not in [t.hash for t in awaiting]:
             # If the wallet pubkey is in the issuers we sent this transaction
             if in_issuers:
                 outputs = [o for o in tx_outputs
@@ -141,14 +141,14 @@ class TxHistory():
                     amount += o.amount
                 metadata['amount'] = amount
 
-                if txdata['hash'] not in [t['hash'] for t in awaiting]:
+                if txdata['hash'] not in [t.hash for t in awaiting]:
                     transfer = Transfer.create_from_blockchain(txdata['hash'],
                                                                state,
                                                          metadata.copy())
                     received_list.append(transfer)
                     return transfer
         else:
-            transfer = [t for t in awaiting if t.metadata['hash'] == txdata['hash']][0]
+            transfer = [t for t in awaiting if t.hash == txdata['hash']][0]
             transfer.check_registered(txdata['hash'], current_block, mediantime,
                                       self.app.preferences['data_validation'])
         return None
@@ -208,7 +208,8 @@ class TxHistory():
                                                                              parsed_block,
                                                                              current_block['number']))
                 else:
-                    transfer = yield from self._parse_transaction(community, txdata, received_list, udid + txid)
+                    transfer = yield from self._parse_transaction(community, txdata, received_list,
+                                                                  udid + txid, current_block)
                     if transfer:
                         new_transfers.append(transfer)
 

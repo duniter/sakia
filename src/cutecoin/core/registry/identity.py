@@ -18,12 +18,27 @@ from PyQt5.QtCore import QObject, pyqtSignal
 
 
 class LocalState(Enum):
+    """
+    The local state describes how the identity exists locally :
+    COMPLETED means all its related datas (certifiers, certified...)
+    were succefully downloaded
+    PARTIAL means not all data are present locally
+    NOT_FOUND means it could not be found anywhere
+    """
     NOT_FOUND = 0
     PARTIAL = 1
     COMPLETED = 2
 
 
 class BlockchainState(Enum):
+    """
+    The blockchain state describes how the identity
+    was found :
+    VALIDATED means it was found in the blockchain
+    BUFFERED means it was found via a lookup but not in the
+    blockchain
+    NOT_FOUND means it could not be found anywhere
+    """
     NOT_FOUND = 0
     BUFFERED = 1
     VALIDATED = 2

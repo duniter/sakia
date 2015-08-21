@@ -117,7 +117,7 @@ class Transfer(QObject):
         blockid = yield from community.blockid()
         block = yield from community.bma_access.future_request(qtbma.blockchain.Block,
                                   req_args={'number': blockid['number']})
-        if block != qtbma.Blockchain.Block.null_value:
+        if block != qtbma.blockchain.Block.null_value:
             self._metadata['block'] = blockid['number']
             self._metadata['time'] = block['medianTime']
 
