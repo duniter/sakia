@@ -268,14 +268,14 @@ class Application(QObject):
 
         for wallet in account.wallets:
             for c in account.communities:
-                wallet.init_cache(c)
+                wallet.init_cache(self, c)
             wallet_path = os.path.join(config.parameters['home'],
                                         account.name, '__cache__', wallet.pubkey + "_wal")
             if os.path.exists(wallet_path):
                 with open(wallet_path, 'r') as json_data:
                     data = json.load(json_data)
                 if 'version' in data and data['version'] == __version__:
-                    wallet.load_caches(data)
+                    wallet.load_caches(self, data)
                 else:
                     os.remove(wallet_path)
 

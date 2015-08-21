@@ -145,7 +145,7 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         self.certify_identity(person)
 
     def identity_informations(self, person):
-        dialog = MemberDialog(none, self.account, self.community, person)
+        dialog = MemberDialog(None, self.account, self.community, person)
         dialog.exec_()
 
     def add_identity_as_contact(self, person):

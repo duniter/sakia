@@ -80,7 +80,7 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
             self.progressbar.setMaximum(maximum)
         self.app.current_account.loading_progressed.connect(progressing)
         self.app.current_account.loading_finished.connect(self.stop_progress)
-        self.app.current_account.refresh_transactions(self.community)
+        self.app.current_account.refresh_transactions(self.app, self.community)
         self.progressbar.show()
 
     @pyqtSlot(list)
@@ -202,7 +202,7 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
 
     def send_again(self):
         transfer = self.sender().data()
-        dialog = TransferMoneyDialog(self.app.current_account,
+        dialog = TransferMoneyDialog(self.app, self.app.current_account,
                                      self.password_asker)
         dialog.accepted.connect(self.currency_tab.refresh_wallets)
         sender = transfer.metadata['issuer']

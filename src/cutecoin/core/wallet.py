@@ -10,7 +10,7 @@ from ucoinpy.key import SigningKey
 from .net.api import bma as qtbma
 from .net.api.bma import PROTOCOL_VERSION
 from ..tools.exceptions import NotEnoughMoneyError, NoPeerAvailable, LookupFailureError
-from .transfer import Transfer, Received
+from .transfer import Transfer
 from .txhistory import TxHistory
 from .registry import IdentitiesRegistry, Identity
 
@@ -75,7 +75,7 @@ class Wallet(QObject):
         name = json_data['name']
         return cls(walletid, pubkey, name, identities_registry)
 
-    def load_caches(self, json_data):
+    def load_caches(self, app, json_data):
         """
         Load this wallet caches.
         Each cache correspond to one different community.
@@ -84,7 +84,7 @@ class Wallet(QObject):
         """
         for currency in json_data:
             if currency != 'version':
-                self.caches[currency] = TxHistory(self)
+                self.caches[currency] = TxHistory(app, self)
                 self.caches[currency].load_from_json(json_data[currency])
 
     def jsonify_caches(self):
@@ -98,14 +98,14 @@ class Wallet(QObject):
             data[currency] = self.caches[currency].jsonify()
         return data
 
-    def init_cache(self, community):
+    def init_cache(self, app, community):
         """
         Init the cache of this wallet for the specified community.
 
         :param community: The community to refresh its cache
         """
         if community.currency not in self.caches:
-            self.caches[community.currency] = TxHistory(self)
+            self.caches[community.currency] = TxHistory(app, self)
 
     def refresh_transactions(self, community, received_list):
         """
@@ -258,7 +258,7 @@ class Wallet(QObject):
         except LookupFailureError as e:
             receiver_uid = ""
 
-        metadata = {'block': block_number,
+        metadata = {'block': None,
                     'time': time,
                     'amount': amount,
                     'issuer': key.pubkey,

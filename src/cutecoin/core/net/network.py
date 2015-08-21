@@ -9,6 +9,7 @@ import logging
 import time
 import asyncio
 from ucoinpy.documents.peer import Peer
+from ucoinpy.documents.block import Block
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
 
@@ -84,6 +85,7 @@ class Network(QObject):
             node = Node.from_json(network_manager, currency, data)
             nodes.append(node)
         network = cls(network_manager, currency, nodes)
+        # We block the signals until loading the nodes cache
         return network
 
     def jsonify(self):
@@ -159,8 +161,11 @@ class Network(QObject):
         Get the latest block considered valid
         It is the most frequent last block of every known nodes
         """
-        blocks = [n.block_hash for n in self.nodes]
-        return max(set(blocks), key=blocks.count)
+        blocks = [n.block_hash for n in self.nodes if n.block_hash != Block.Empty_Hash]
+        if len(blocks) > 0:
+            return max(set(blocks), key=blocks.count)
+        else:
+            return Block.Empty_Hash
 
     def add_node(self, node):
         """
@@ -235,8 +240,8 @@ class Network(QObject):
                 self.nodes.remove(node)
                 self.nodes_changed.emit()
 
-        logging.debug("{0} -> {1}".format(self.latest_block_number, self.latest_block_number))
-        if self._block_found != self.latest_block_hash:
+        logging.debug("{0} -> {1}".format(self._block_found[:10], self.latest_block_hash[:10]))
+        if self._block_found != self.latest_block_hash and node.state == Node.ONLINE:
             logging.debug("Latest block changed : {0}".format(self.latest_block_number))
             self._block_found = self.latest_block_hash
             self.new_block_mined.emit(self.latest_block_number)

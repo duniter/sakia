@@ -230,7 +230,7 @@ class Account(QObject):
         self.communities.append(community)
         return community
 
-    def refresh_transactions(self, community):
+    def refresh_transactions(self, app, community):
         """
         Refresh the local account cache
         This needs n_wallets * n_communities cache refreshing to end
@@ -268,7 +268,7 @@ class Account(QObject):
             for w in self.wallets:
                 w.refresh_progressed.connect(progressing)
                 w.refresh_finished.connect(wallet_finished)
-                w.init_cache(community)
+                w.init_cache(app, community)
                 w.refresh_transactions(community, received_list)
 
     def set_display_referential(self, index):

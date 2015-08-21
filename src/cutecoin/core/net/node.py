@@ -115,7 +115,7 @@ class Node(QObject):
 
         node = cls(network_manager, peer.currency,
                     [Endpoint.from_inline(e.inline()) for e in peer.endpoints],
-                   "", pubkey, 0,
+                   "", pubkey, 0, Block.Empty_Hash,
                    Node.ONLINE, time.time(),
                    {'root': "", 'leaves': []},
                    "", "")
