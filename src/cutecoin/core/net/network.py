@@ -67,6 +67,9 @@ class Network(QObject):
                 logging.debug("Loading : {:}".format(data['pubkey']))
             else:
                 other_node = [n for n in self.nodes if n.pubkey == node.pubkey][0]
+                other_node._uid = node.uid
+                other_node._version = node.version
+                other_node._software = node.software
                 if other_node.block_hash != node.block_hash:
                     other_node.set_block(node.block_number, node.block_hash)
                     other_node.last_change = node.last_change
@@ -233,7 +236,8 @@ class Network(QObject):
     def handle_change(self):
         node = self.sender()
         if node.state in (Node.ONLINE, Node.DESYNCED):
-            node.check_sync(self.latest_block_hash)
+            for nd in [n for n in self._nodes if n.state in (Node.ONLINE, Node.DESYNCED)]:
+                nd.check_sync(self.latest_block_hash)
         else:
             if node.last_change + 3600 < time.time():
                 node.disconnect()

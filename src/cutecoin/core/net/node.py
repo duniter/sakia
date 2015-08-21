@@ -193,7 +193,10 @@ class Node(QObject):
                 'state': self._state,
                 'last_change': self._last_change,
                 'block_number': self.block_number,
-                'block_hash': self.block_hash}
+                'block_hash': self.block_hash,
+                'software': self._software,
+                'version': self._version,
+                }
         endpoints = []
         for e in self._endpoints:
             endpoints.append(e.inline())
