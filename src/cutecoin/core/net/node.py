@@ -19,6 +19,7 @@ import json
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
 
+
 class Node(QObject):
     """
     A node is a peer seend from the client point of view.
