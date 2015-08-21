@@ -112,6 +112,13 @@ class Network(QObject):
         ratio_synced = synced / total
         return ratio_synced
 
+    def start_coroutines(self):
+        """
+        Start network nodes crawling
+        :return:
+        """
+        asyncio.async(self.discover_network())
+
     def stop_coroutines(self):
         """
         Stop network nodes crawling.

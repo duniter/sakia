@@ -597,6 +597,10 @@ class Account(QObject):
                     return
             self.broadcast_error.emit(r.error(), strdata)
 
+    def start_coroutines(self):
+        for c in self.communities:
+            c.start_coroutines()
+
     def stop_coroutines(self):
         for c in self.communities:
             c.stop_coroutines()

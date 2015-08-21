@@ -292,6 +292,9 @@ class Community(QObject):
         memberships = self.bma_access.get(self, qtbma.wot.Members)
         return [m['pubkey'] for m in memberships["results"]]
 
+    def start_coroutines(self):
+        self.network.start_coroutines()
+
     def stop_coroutines(self):
         self.network.stop_coroutines()
 

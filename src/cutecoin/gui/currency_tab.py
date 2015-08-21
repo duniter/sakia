@@ -184,7 +184,6 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         self.status_label.setText(label_text)
 
     def showEvent(self, event):
-        asyncio.async(self.community.network.discover_network())
         self.refresh_status()
 
     def referential_changed(self):

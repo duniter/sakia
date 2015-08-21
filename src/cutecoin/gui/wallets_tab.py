@@ -82,23 +82,43 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
                 QLocale(),
                 QDateTime.fromTime_t(expiration).date(), QLocale.dateFormat(QLocale(), QLocale.LongFormat)
             )
-            # set infos in label
-            self.label_general.setText(
-                self.tr("""
-                <table cellpadding="5">
-                <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-                <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-                <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-                </table>
-                """).format(
-                    self.account.name, self.account.pubkey,
-                    self.tr("Membership"),
-                    self.tr("Last renewal on {:}, expiration on {:}").format(date_renewal, date_expiration),
-                    self.tr("Your web of trust"),
-                    self.tr("Certified by {:} members; Certifier of {:} members").format(len(certifiers),
-                                                                                         len(certified))
+
+            if self.account.pubkey in self.community.members_pubkeys():
+                # set infos in label
+                self.label_general.setText(
+                    self.tr("""
+                    <table cellpadding="5">
+                    <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                    <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                    <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                    </table>
+                    """).format(
+                        self.account.name, self.account.pubkey,
+                        self.tr("Membership"),
+                        self.tr("Last renewal on {:}, expiration on {:}").format(date_renewal, date_expiration),
+                        self.tr("Your web of trust"),
+                        self.tr("Certified by {:} members; Certifier of {:} members").format(len(certifiers),
+                                                                                             len(certified))
+                    )
                 )
-            )
+            else:
+                # set infos in label
+                self.label_general.setText(
+                    self.tr("""
+                    <table cellpadding="5">
+                    <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                    <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                    <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                    </table>
+                    """).format(
+                        self.account.name, self.account.pubkey,
+                        self.tr("Not a member"),
+                        self.tr("Last renewal on {:}, expiration on {:}").format(date_renewal, date_expiration),
+                        self.tr("Your web of trust"),
+                        self.tr("Certified by {:} members; Certifier of {:} members").format(len(certifiers),
+                                                                                             len(certified))
+                    )
+                )
         else:
             # set infos in label
             self.label_general.setText(
