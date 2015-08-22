@@ -150,7 +150,7 @@
     <message>
         <location filename="../../ui/certification.ui" line="32"></location>
         <source>Certify user</source>
-        <translation>Utilisateur certifié</translation>
+        <translation>Certifier un utilisateur</translation>
     </message>
     <message>
         <location filename="../../ui/certification.ui" line="40"></location>
