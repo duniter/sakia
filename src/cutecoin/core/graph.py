@@ -90,11 +90,11 @@ class Graph(object):
             if node['id'] in tuple(done):
                 continue
             identity_selected = identity.from_handled_data(node['text'], node['id'], BlockchainState.VALIDATED)
-            certifier_list = identity_selected.certifiers_of(self.app.identities_registry, self.community)
+            certifier_list = identity_selected.unique_valid_certifiers_of(self.app.identities_registry, self.community)
             self.add_certifier_list(certifier_list, identity_selected, identity)
             if identity.pubkey in tuple(self._graph.keys()):
                 return False
-            certified_list = identity_selected.certified_by(self.app.identities_registry, self.community)
+            certified_list = identity_selected.unique_valid_certified_by(self.app.identities_registry, self.community)
             self.add_certified_list(certified_list, identity_selected, identity)
             if identity.pubkey in tuple(self._graph.keys()):
                 return False

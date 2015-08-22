@@ -173,7 +173,7 @@ class TxHistory():
                   if tx.state in (Transfer.AWAITING, Transfer.VALIDATING)] +\
                  [ud['block_number'] for ud in self._dividends
                   if ud['state'] in (Transfer.AWAITING, Transfer.VALIDATING)] +\
-                 [self.latest_block]
+                 [max(0, self.latest_block - community.network.fork_window(community.members_pubkeys()))]
         parsed_block = min(set(blocks))
         logging.debug("Refresh from : {0} to {1}".format(self.latest_block, current_block['number']))
         dividends_data = qtbma.ud.History.null_value

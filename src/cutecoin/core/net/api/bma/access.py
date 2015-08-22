@@ -1,5 +1,6 @@
 from PyQt5.QtCore import QObject, pyqtSlot
 from PyQt5.QtNetwork import QNetworkReply
+from . import wot
 from . import blockchain, ConnectionHandler
 from .....tools.exceptions import NoPeerAvailable
 from ..... import __version__
