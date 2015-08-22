@@ -254,6 +254,7 @@ class Network(QObject):
         if node.state in (Node.ONLINE, Node.DESYNCED):
             for nd in [n for n in self._nodes if n.state in (Node.ONLINE, Node.DESYNCED)]:
                 nd.check_sync(self.latest_block_hash)
+            self.nodes_changed.emit()
         else:
             if node.last_change + 3600 < time.time():
                 node.disconnect()
