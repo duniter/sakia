@@ -3,7 +3,7 @@ from PyQt5.QtCore import QObject, QCoreApplication, QT_TRANSLATE_NOOP, QLocale
 
 class Relative():
     _NAME_STR_ = QT_TRANSLATE_NOOP('Relative', 'UD')
-    _REF_STR_ = QT_TRANSLATE_NOOP('Relative',  "{0} UD {1}")
+    _REF_STR_ = QT_TRANSLATE_NOOP('Relative',  "{0} {1}UD {2}")
     _UNITS_STR_ = QT_TRANSLATE_NOOP('Relative',  "UD {0}")
 
     def __init__(self, amount, community, app):
@@ -39,30 +39,55 @@ class Relative():
     def differential(self):
         return self.value()
 
-    def localized(self, units=False, international_system=False):
-        value = self.value()
-        if international_system:
-            pass
+    def _to_si(self, value):
+        prefixes = ['', 'd', 'c', 'm', 'µ', 'n', 'p', 'f', 'a', 'z', 'y']
+        scientific_value = value
+        prefix_index = 0
+        prefix = ""
+
+        while int(scientific_value) == 0:
+            if prefix_index > 3:
+                scientific_value *= 1000
+            else:
+                scientific_value *= 10
+            prefix_index += 1
+
+        if prefix_index < len(prefixes):
+            prefix = prefixes[prefix_index]
+            localized_value = QLocale().toString(float(scientific_value), 'f', self.app.preferences['digits_after_comma'])
         else:
             localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
 
-        if units:
+        return localized_value, prefix
+
+    def localized(self, units=False, international_system=False):
+        value = self.value()
+        prefix = ""
+        if international_system:
+            localized_value, prefix = self._to_si(value)
+        else:
+            localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
+
+        if units or international_system:
             return QCoreApplication.translate("Relative", Relative._REF_STR_) \
                 .format(localized_value,
+                        prefix,
                         self.community.short_currency if units else "")
         else:
             return localized_value
 
     def diff_localized(self, units=False, international_system=False):
         value = self.differential()
-        if international_system:
-            pass
+        prefix = ""
+        if international_system and value != 0:
+            localized_value, prefix = self._to_si(value)
         else:
             localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
 
-        if units:
+        if units or international_system:
             return QCoreApplication.translate("Relative", Relative._REF_STR_)\
-            .format(localized_value,
+                .format(localized_value,
+                    prefix,
                     self.community.short_currency if units else "")
         else:
             return localized_value

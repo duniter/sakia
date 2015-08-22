@@ -36,32 +36,54 @@ class Quantitative():
     def differential(self):
         return self.value()
 
-    def localized(self, units=False, international_system=False):
-        value = self.value()
-        if international_system:
-            pass
+    def _to_si(self, value):
+        prefixes = ['', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y', 'z', 'y']
+        scientific_value = value
+        prefix_index = 0
+        prefix = ""
+
+        while scientific_value > 1000:
+            prefix_index += 1
+            scientific_value /= 1000
+
+        if prefix_index < len(prefixes):
+            prefix = prefixes[prefix_index]
+            localized_value = QLocale().toString(float(scientific_value), 'f', 3)
         else:
             localized_value = QLocale().toString(float(value), 'f', 0)
 
-        if units:
+        return localized_value, prefix
+
+    def localized(self, units=False, international_system=False):
+        value = self.value()
+        prefix = ""
+        if international_system:
+            localized_value, prefix = self._to_si(value)
+        else:
+            localized_value = QLocale().toString(float(value), 'f', 0)
+
+        if units or international_system:
             return QCoreApplication.translate("Quantitative",
                                               Quantitative._REF_STR_) \
                 .format(localized_value,
+                        prefix,
                         self.community.short_currency if units else "")
         else:
             return localized_value
 
     def diff_localized(self, units=False, international_system=False):
         value = self.differential()
+        prefix = ""
         if international_system:
-            pass
+            localized_value, prefix = self._to_si(value)
         else:
             localized_value = QLocale().toString(float(value), 'f', 0)
 
-        if units:
+        if units or international_system:
             return QCoreApplication.translate("Quantitative",
                                               Quantitative._REF_STR_) \
                 .format(localized_value,
+                        prefix,
                         self.community.short_currency if units else "")
         else:
             return localized_value
