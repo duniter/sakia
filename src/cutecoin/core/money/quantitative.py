@@ -1,7 +1,7 @@
 from PyQt5.QtCore import QCoreApplication, QT_TRANSLATE_NOOP, QObject, QLocale
 
 
-class Quantitative(QObject):
+class Quantitative():
     _NAME_STR_ = QT_TRANSLATE_NOOP('Quantitative', 'Units')
     _REF_STR_ = QT_TRANSLATE_NOOP('Quantitative', "{0} {1}")
     _UNITS_STR_ = QT_TRANSLATE_NOOP('Quantitative', "{0}")
@@ -13,7 +13,7 @@ class Quantitative(QObject):
 
     @classmethod
     def translated_name(cls):
-        return QCoreApplication.translate('Quantitative', 'UD')
+        return QCoreApplication.translate('Quantitative', Quantitative._NAME_STR_)
 
     @classmethod
     def units(cls, currency):
@@ -23,7 +23,7 @@ class Quantitative(QObject):
     def diff_units(cls, currency):
         return Quantitative.units(currency)
 
-    def compute(self):
+    def value(self):
         """
         Return quantitative value of amount
 
@@ -34,11 +34,26 @@ class Quantitative(QObject):
         return int(self.amount)
 
     def differential(self):
-        return self.compute()
+        return self.value()
 
     def localized(self, pretty_print=False):
-        return QCoreApplication.translate("Quantitative", Quantitative._REF_STR_).format(self.amount, self.currency)
+        value = self.value()
+        if pretty_print:
+            pass
+        else:
+            strvalue = QLocale().toString(float(value), 'f', 0)
+            return QCoreApplication.translate("Quantitative",
+                                              Quantitative._REF_STR_) \
+                .format(strvalue,
+                        self.community.short_currency)
 
     def diff_localized(self, pretty_print=False):
-        strvalue = QLocale().toString(float(self.amount), 'f', 0)
-        return QCoreApplication.translate("Quantitative", Quantitative._REF_STR_).format(strvalue, self.currency)
+        value = self.differential()
+        if pretty_print:
+            pass
+        else:
+            strvalue = QLocale().toString(float(value), 'f', 0)
+            return QCoreApplication.translate("Quantitative",
+                                              Quantitative._REF_STR_) \
+                .format(strvalue,
+                        self.community.short_currency)

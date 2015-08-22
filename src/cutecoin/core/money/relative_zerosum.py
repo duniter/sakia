@@ -1,5 +1,5 @@
-from PyQt5.QtCore import QCoreApplication, QT_TRANSLATE_NOOP
-from . import relative
+from PyQt5.QtCore import QCoreApplication, QT_TRANSLATE_NOOP, QLocale
+from .relative import Relative
 
 
 class RelativeZSum:
@@ -42,11 +42,22 @@ class RelativeZSum:
         return relative_value - relative_median
 
     def differential(self):
-        return relative.compute(self.amount, self.community)
+        return Relative(self.amount, self.community, self.app).value()
 
     def localized(self, pretty_print=False):
-        value = self.compute(self.amount, self.community)
-        return QCoreApplication.translate("RelativeZSum", RelativeZSum._REF_STR_).format(value, self.community)
+        value = self.value()
+        if pretty_print:
+            pass
+        else:
+            strvalue = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
+            return QCoreApplication.translate("RelativeZSum", RelativeZSum._REF_STR_).format(strvalue,
+                                                                                         self.community.short_currency)
 
     def diff_localized(self, pretty_print=False):
-        return relative.amount_to_str(self.amount, self.community, pretty_print)
+        value = self.differential()
+        if pretty_print:
+            pass
+        else:
+            strvalue = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
+            return QCoreApplication.translate("RelativeZSum", RelativeZSum._REF_STR_).format(strvalue,
+                                                                                         self.community.short_currency)

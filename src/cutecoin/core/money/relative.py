@@ -1,7 +1,7 @@
 from PyQt5.QtCore import QObject, QCoreApplication, QT_TRANSLATE_NOOP, QLocale
 
 
-class Relative(QObject):
+class Relative():
     _NAME_STR_ = QT_TRANSLATE_NOOP('Relative', 'UD')
     _REF_STR_ = QT_TRANSLATE_NOOP('Relative',  "{0} UD {1}")
     _UNITS_STR_ = QT_TRANSLATE_NOOP('Relative',  "UD {0}")
@@ -23,7 +23,7 @@ class Relative(QObject):
     def diff_units(self, currency):
         return self.units(currency)
 
-    def compute(self):
+    def value(self):
         """
         Return relaive value of amount
     type
@@ -37,16 +37,16 @@ class Relative(QObject):
             return 0
 
     def differential(self):
-        return self.compute()
+        return self.value()
 
     def localized(self, pretty_print=False):
-        value = self.compute()
+        value = self.value()
         if pretty_print:
             pass
         else:
             strvalue = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
             return QCoreApplication.translate("Relative", Relative._REF_STR_).format(strvalue,
-                                                                                        self.community.currency)
+                                                                                        self.community.short_currency)
 
     def diff_localized(self, pretty_print=False):
         value = self.differential()
@@ -55,4 +55,4 @@ class Relative(QObject):
         else:
             strvalue = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
             return QCoreApplication.translate("Relative", Relative._REF_STR_).format(strvalue,
-                                                                                        self.community.currency)
+                                                                                        self.community.short_currency)

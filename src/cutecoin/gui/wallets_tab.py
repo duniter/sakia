@@ -147,18 +147,16 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
 
         # set infos in label
         self.label_balance.setText(
-            self.tr("{:} {:}")
+            self.tr("{:}")
             .format(
-                localized_amount,
-                self.account.current_ref.units(self.community.currency)
+                localized_amount
             )
         )
         self.label_balance_range.setText(
-            self.tr("in [{:} ; {:}] {:}")
+            self.tr("in [{:} ; {:}]")
             .format(
                 localized_minimum,
-                localized_maximum,
-                self.account.current_ref.units(self.community.currency)
+                localized_maximum
             )
         )
 

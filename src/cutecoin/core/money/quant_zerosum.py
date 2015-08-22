@@ -1,4 +1,4 @@
-from PyQt5.QtCore import QCoreApplication, QT_TRANSLATE_NOOP
+from PyQt5.QtCore import QCoreApplication, QT_TRANSLATE_NOOP, QLocale
 from . import Quantitative
 
 
@@ -24,7 +24,7 @@ class QuantitativeZSum:
     def diff_units(cls, currency):
         return QuantitativeZSum.units(currency)
 
-    def compute(self):
+    def value(self):
         """
         Return quantitative value of amount minus the average value
 
@@ -43,8 +43,15 @@ class QuantitativeZSum:
         return Quantitative(self.amount, self.community, self.app).compute()
 
     def localized(self, pretty_print=False):
-        value = self.compute()
-        return QCoreApplication.translate("Quantitative", Quantitative._REF_STR_).format(value, self.community.currency)
+        value = self.value()
+        if pretty_print:
+            pass
+        else:
+            strvalue = QLocale().toString(float(value), 'f', 0)
+            return QCoreApplication.translate("QuantitativeZSum",
+                                              QuantitativeZSum._REF_STR_) \
+                .format(strvalue,
+                        self.community.short_currency)
 
     def diff_localized(self, pretty_print=False):
-        return Quantitative(self.amount, self.community, self.app).amount_to_str(pretty_print)
+        return Quantitative(self.amount, self.community, self.app).localized(pretty_print)
