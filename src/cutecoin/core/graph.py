@@ -50,9 +50,9 @@ class Graph(object):
         logging.debug("path between %s to %s..." % (from_identity.uid, to_identity.uid))
         if from_identity.pubkey not in self._graph.keys():
             self.add_identity(from_identity)
-            certifier_list = from_identity.certifiers_of(self.community)
+            certifier_list = from_identity.certifiers_of(self.app.identities_registry, self.community)
             self.add_certifier_list(certifier_list, from_identity, to_identity)
-            certified_list = from_identity.certified_by(self.community)
+            certified_list = from_identity.certified_by(self.app.identities_registry, self.community)
             self.add_certified_list(certified_list, from_identity, to_identity)
 
         if to_identity.pubkey not in self._graph.keys():
