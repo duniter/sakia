@@ -42,16 +42,7 @@ class WalletsFilterProxyModel(QSortFilterProxyModel):
                 source_data = pubkey
                 return source_data
             if source_index.column() == self.sourceModel().columns_types.index('amount'):
-                amount_ref = self.account.units_to_ref(source_data, self.community)
-                # if referential type is quantitative...
-                if self.account.ref_type() == 'q':
-                    # display int values
-                    return QLocale().toString(float(amount_ref), 'f', 0)
-                else:
-                    # display float values
-                    return QLocale().toString(float(amount_ref), 'f',
-                                              self.app.preferences['digits_after_comma'])
-
+                return self.account.current_ref(source_data, self.community, self.app).localized()
         if role == Qt.TextAlignmentRole:
             if source_index.column() == self.sourceModel().columns_types.index('amount'):
                 return Qt.AlignRight | Qt.AlignVCenter
@@ -121,7 +112,7 @@ class WalletsTableModel(QAbstractTableModel):
             if self.columns_types[section] == 'amount':
                 return '{:}\n({:})'.format(
                     self.columns_headers[section],
-                    self.account.ref_name(self.community.short_currency)
+                    self.account.current_ref.units(self.community.short_currency)
                 )
             return self.columns_headers[section]
 

@@ -82,23 +82,43 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
                 QLocale(),
                 QDateTime.fromTime_t(expiration).date(), QLocale.dateFormat(QLocale(), QLocale.LongFormat)
             )
-            # set infos in label
-            self.label_general.setText(
-                self.tr("""
-                <table cellpadding="5">
-                <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-                <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-                <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-                </table>
-                """).format(
-                    self.account.name, self.account.pubkey,
-                    self.tr("Membership"),
-                    self.tr("Last renewal on {:}, expiration on {:}").format(date_renewal, date_expiration),
-                    self.tr("Your web of trust"),
-                    self.tr("Certified by {:} members; Certifier of {:} members").format(len(certifiers),
-                                                                                         len(certified))
+
+            if self.account.pubkey in self.community.members_pubkeys():
+                # set infos in label
+                self.label_general.setText(
+                    self.tr("""
+                    <table cellpadding="5">
+                    <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                    <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                    <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                    </table>
+                    """).format(
+                        self.account.name, self.account.pubkey,
+                        self.tr("Membership"),
+                        self.tr("Last renewal on {:}, expiration on {:}").format(date_renewal, date_expiration),
+                        self.tr("Your web of trust"),
+                        self.tr("Certified by {:} members; Certifier of {:} members").format(len(certifiers),
+                                                                                             len(certified))
+                    )
                 )
-            )
+            else:
+                # set infos in label
+                self.label_general.setText(
+                    self.tr("""
+                    <table cellpadding="5">
+                    <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                    <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                    <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                    </table>
+                    """).format(
+                        self.account.name, self.account.pubkey,
+                        self.tr("Not a member"),
+                        self.tr("Last renewal on {:}, expiration on {:}").format(date_renewal, date_expiration),
+                        self.tr("Your web of trust"),
+                        self.tr("Certified by {:} members; Certifier of {:} members").format(len(certifiers),
+                                                                                             len(certified))
+                    )
+                )
         else:
             # set infos in label
             self.label_general.setText(
@@ -120,46 +140,25 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
         amount = self.account.amount(self.community)
         maximum = self.community.monetary_mass
         # if referential type is quantitative...
-        if self.account.ref_type() == 'q':
             # display int values
-            localized_amount = QLocale().toString(float(self.get_referential_value(amount)), 'f', 0)
-            localized_minimum = QLocale().toString(float(self.get_referential_value(0)), 'f', 0)
-            localized_maximum = QLocale().toString(float(self.get_referential_value(maximum)), 'f', 0)
-        else:
-            # display float values
-            localized_amount = QLocale().toString(float(self.get_referential_value(amount)), 'f',
-                                                  self.app.preferences['digits_after_comma'])
-            localized_minimum = QLocale().toString(float(self.get_referential_value(0)), 'f',
-                                                   self.app.preferences['digits_after_comma'])
-            localized_maximum = QLocale().toString(float(self.get_referential_value(maximum)), 'f',
-                                                   self.app.preferences['digits_after_comma'])
+        localized_amount = self.account.current_ref(amount, self.community, self.app).localized()
+        localized_minimum = self.account.current_ref(maximum, self.community, self.app).localized()
+        localized_maximum = self.account.current_ref(0, self.community, self.app).localized()
 
         # set infos in label
         self.label_balance.setText(
-            self.tr("{:} {:}")
+            self.tr("{:}")
             .format(
-                localized_amount,
-                self.get_referential_name()
+                localized_amount
             )
         )
         self.label_balance_range.setText(
-            self.tr("in [{:} ; {:}] {:}")
+            self.tr("in [{:} ; {:}]")
             .format(
                 localized_minimum,
-                localized_maximum,
-                self.get_referential_name()
+                localized_maximum
             )
         )
-
-
-    def get_referential_value(self, value):
-        return self.account.units_to_ref(value, self.community)
-
-    def get_referential_diff_value(self, value):
-        return self.account.units_to_diff_ref(value, self.community)
-
-    def get_referential_name(self):
-        return self.account.ref_name(self.community.short_currency)
 
     def wallet_context_menu(self, point):
         index = self.table_wallets.indexAt(point)

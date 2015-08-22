@@ -29,7 +29,7 @@ if sys.platform == "win32":
     for path in QtCore.QCoreApplication.libraryPaths():
         if os.path.isfile(os.path.join(os.path.dirname(path), "libEGL.dll")):
             libEGL_path = os.path.join(os.path.dirname(path), "libEGL.dll")
-        
+
     if 'CONDA_ENV_PATH' in os.environ:
 	# Check if we are in Conda env
         path = QtCore.QCoreApplication.libraryPaths()[0]
@@ -54,8 +54,7 @@ else:
     print(QtCore.QCoreApplication.libraryPaths())
     # Check if we are in Conda env
     if 'CONDA_ENV_PATH' in os.environ:
-        libsodium_path = os.path.join(os.environ['CONDA_ENV_PATH'], 'envs',
-                                      os.environ['CONDA_DEFAULT_ENV'], "lib",
+        libsodium_path = os.path.join(os.environ['CONDA_ENV_PATH'], "lib",
                                       "libsodium.so.13")
         includefiles.append((libsodium_path, "libsodium.so.13"))
 

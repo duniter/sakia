@@ -6,7 +6,8 @@ Created on 5 févr. 2014
 
 import datetime
 import logging
-from ..core.transfer import Transfer, Received
+from ..core import money
+from ..core.transfer import Transfer
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, \
     QDateTime, QLocale, QModelIndex
 
@@ -66,7 +67,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
         return in_period(date)
 
     def columnCount(self, parent):
-        return self.sourceModel().columnCount(None) - 3
+        return self.sourceModel().columnCount(None) - 4
 
     def setSourceModel(self, sourceModel):
         self.community = sourceModel.community
@@ -111,15 +112,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
             if source_index.column() == model.columns_types.index('payment') or \
                     source_index.column() == model.columns_types.index('deposit'):
                 if source_data is not "":
-                    amount_ref = self.account.units_to_diff_ref(source_data,
-                                                                self.community)
-                    # if referential type is quantitative...
-                    if self.account.ref_type() == 'q':
-                        # display int values
-                        return QLocale().toString(float(amount_ref), 'f', 0)
-                    else:
-                        # display float values
-                        return QLocale().toString(float(amount_ref), 'f', self.app.preferences['digits_after_comma'])
+                    return self.account.current_ref(source_data, self.community, self.app).diff_localized()
 
         if role == Qt.FontRole:
             font = QFont()
@@ -147,6 +140,13 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                 return Qt.AlignCenter
 
         if role == Qt.ToolTipRole:
+            if state_data == Transfer.VALIDATING:
+                block_col = model.columns_types.index('block_number')
+                block_index = model.index(source_index.row(), block_col)
+                block_data = model.data(block_index, Qt.DisplayRole)
+                return "{0} / {1} validations".format(self.community.network.latest_block_number - block_data,
+                                                      self.app.preferences['data_validation'])
+
             if source_index.column() == self.sourceModel().columns_types.index('date'):
                 return QDateTime.fromTime_t(source_data).toString(Qt.SystemLocaleLongDate)
 
@@ -165,7 +165,7 @@ class HistoryTableModel(QAbstractTableModel):
         super().__init__(parent)
         self.app = app
         self.community = community
-        self.account.referential
+        self.account._current_ref
         self.transfers_data = []
         self.refresh_transfers()
 
@@ -177,7 +177,8 @@ class HistoryTableModel(QAbstractTableModel):
             'comment',
             'state',
             'txid',
-            'pubkey'
+            'pubkey',
+            'block_number'
         )
 
         self.column_headers = (
@@ -187,8 +188,9 @@ class HistoryTableModel(QAbstractTableModel):
             self.tr('Deposit'),
             self.tr('Comment'),
             'State',
-            'TXID'
-            'Pubkey'
+            'TXID',
+            'Pubkey',
+            'Block Number'
         )
 
     @property
@@ -211,10 +213,11 @@ class HistoryTableModel(QAbstractTableModel):
 
         date_ts = transfer.metadata['time']
         txid = transfer.metadata['txid']
+        block_number = transfer.metadata['block']
 
         return (date_ts, sender, "", amount,
                 comment, transfer.state, txid,
-                transfer.metadata['issuer'])
+                transfer.metadata['issuer'], block_number)
 
     def data_sent(self, transfer):
         amount = transfer.metadata['amount']
@@ -228,10 +231,11 @@ class HistoryTableModel(QAbstractTableModel):
 
         date_ts = transfer.metadata['time']
         txid = transfer.metadata['txid']
+        block_number = transfer.metadata['block']
 
         return (date_ts, receiver, amount,
                 "", comment, transfer.state, txid,
-                transfer.metadata['receiver'])
+                transfer.metadata['receiver'], block_number)
 
     def data_dividend(self, dividend):
         amount = dividend['amount']
@@ -247,10 +251,11 @@ class HistoryTableModel(QAbstractTableModel):
         self.beginResetModel()
         self.transfers_data = []
         for transfer in self.transfers:
-            if type(transfer) is Received:
-                self.transfers_data.append(self.data_received(transfer))
-            elif type(transfer) is Transfer:
-                self.transfers_data.append(self.data_sent(transfer))
+            if type(transfer) is Transfer:
+                if transfer.metadata['issuer'] == self.account.pubkey:
+                    self.transfers_data.append(self.data_sent(transfer))
+                else:
+                    self.transfers_data.append(self.data_received(transfer))
             elif type(transfer) is dict:
                 self.transfers_data.append(self.data_dividend(transfer))
         self.endResetModel()
@@ -266,7 +271,7 @@ class HistoryTableModel(QAbstractTableModel):
             if self.columns_types[section] == 'payment' or self.columns_types[section] == 'deposit':
                 return '{:}\n({:})'.format(
                     self.column_headers[section],
-                    self.account.diff_ref_name(self.community.short_currency)
+                    self.account.current_ref.diff_units(self.community.short_currency)
                 )
 
             return self.column_headers[section]

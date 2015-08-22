@@ -14,8 +14,8 @@ class Transfer(QObject):
     """
     A transfer is the lifecycle of a transaction.
     TO_SEND means the transaction wasn't sent yet
-    AWAITING means the transaction is waiting for a blockchain validation
-    VALIDATED means the transaction was registered in the blockchain
+    AWAITING means the transaction is waiting to reach K blockchain validation
+    VALIDATED means the transaction was validated locally and is considered present in the blockchain
     REFUSED means the transaction took too long to be registered in the blockchain,
     therefore it is considered as refused
     DROPPED means the transaction was canceled locally. It can still be validated
@@ -23,6 +23,7 @@ class Transfer(QObject):
     """
     TO_SEND = 0
     AWAITING = 1
+    VALIDATING = 4
     VALIDATED = 2
     REFUSED = 3
     DROPPED = 5
@@ -68,11 +69,11 @@ class Transfer(QObject):
         return cls(None, Transfer.TO_SEND, metadata)
 
     @classmethod
-    def create_validated(cls, hash, metadata):
+    def create_from_blockchain(cls, hash, state, metadata):
         """
-        Create a new transfer in a "VALIDATED" state.
+        Create a new transfer sent from another cutecoin instance
         """
-        return cls(hash, Transfer.VALIDATED, metadata)
+        return cls(hash, state, metadata)
 
     @classmethod
     def load(cls, data):
@@ -116,7 +117,7 @@ class Transfer(QObject):
         blockid = yield from community.blockid()
         block = yield from community.bma_access.future_request(qtbma.blockchain.Block,
                                   req_args={'number': blockid['number']})
-        if block != qtbma.Blockchain.Block.null_value:
+        if block != qtbma.blockchain.Block.null_value:
             self._metadata['block'] = blockid['number']
             self._metadata['time'] = block['medianTime']
 
@@ -137,7 +138,7 @@ class Transfer(QObject):
                     return
             self.broadcast_error.emit(r.error(), strdata)
 
-    def check_registered(self, tx, block, time):
+    def check_registered(self, tx, block, time, data_validation):
         """
         Check if the transfer was registered in a block.
         Update the transfer state to VALIDATED if it was registered.
@@ -147,19 +148,23 @@ class Transfer(QObject):
         :param int time: The time of the block
         """
         if tx.signed_raw() == self.txdoc.signed_raw():
-            self.state = Transfer.VALIDATED
-            self._metadata['block'] = block
-            self._metadata['time'] = time
+            if self.state == Transfer.AWAITING:
+                self.state = Transfer.VALIDATING
+                self._metadata['block'] = block
+                self._metadata['time'] = time
+            elif self.state == Transfer.VALIDATING and \
+                    self._metadata['block'] - block > data_validation:
+                self.state = Transfer.VALIDATED
 
-    def check_refused(self, block):
+    def check_refused(self, time, block_time, mediantime_blocks):
         """
         Check if the transfer was refused
-        If more than 15 blocks were mined since the transaction
+        If more than block_time*15 seconds passed since
         transfer, it is considered as refused.
 
         :param int block: The current block number
         """
-        if block > self._metadata['block'] + 15:
+        if time > self._metadata['time'] + block_time*mediantime_blocks*10:
             self.state = Transfer.REFUSED
 
     def drop(self):
@@ -169,22 +174,3 @@ class Transfer(QObject):
         """
         self.state = Transfer.DROPPED
 
-
-class Received(Transfer):
-    def __init__(self, hash, metadata):
-        """
-        A transfer were the receiver is the local user.
-
-        :param txdoc: The transaction document of the received transfer
-        :param metadata: The metadata of the transfer
-        """
-        super().__init__(hash, Transfer.VALIDATED, metadata)
-
-    @classmethod
-    def load(cls, data):
-        """
-        Create a transfer from a dict in json format.
-
-        :param data: The transfer as a dict in json format
-        """
-        return cls(data['hash'], data['metadata'])

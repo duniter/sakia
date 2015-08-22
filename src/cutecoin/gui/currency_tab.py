@@ -160,9 +160,9 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         Refresh status bar
         """
         logging.debug("Refresh status")
-        text = self.tr(" Block {0}").format(self.community.network.latest_block)
+        text = self.tr(" Block {0}").format(self.community.network.latest_block_number)
 
-        block = self.community.get_block(self.community.network.latest_block)
+        block = self.community.get_block(self.community.network.latest_block_number)
         if block != qtbma.blockchain.Block.null_value:
             text += " ( {0} )".format(QLocale.toString(
                         QLocale(),
@@ -184,7 +184,6 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         self.status_label.setText(label_text)
 
     def showEvent(self, event):
-        asyncio.async(self.community.network.discover_network())
         self.refresh_status()
 
     def referential_changed(self):

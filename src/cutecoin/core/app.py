@@ -14,7 +14,7 @@ import i18n_rc
 
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, \
 QUrl, QTranslator, QCoreApplication, QLocale
-from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
+from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest, QNetworkProxy
 
 from . import config
 from .account import Account
@@ -59,7 +59,12 @@ class Application(QObject):
                             'expert_mode': False,
                             'digits_after_comma': 6,
                             'maximized': False,
-                            'notifications': True
+                            'notifications': True,
+                            'enable_proxy': False,
+                            'proxy_type': "HTTP",
+                            'proxy_address': "",
+                            'proxy_port': 8080,
+                            'data_validation': 2
                             }
 
     @classmethod
@@ -70,6 +75,14 @@ class Application(QObject):
         app = cls(qapp, loop, network_manager, identities_registry)
         app.load()
         app.switch_language()
+        if app.preferences['enable_proxy'] is True:
+            proxytypes = {"HTTP": QNetworkProxy.HttpProxy,
+                          "SOCKS5": QNetworkProxy.Socks5Proxy}
+            qtproxy = QNetworkProxy(proxytypes[app.preferences.get('proxy_type', "HTTP")],
+                                    app.preferences['proxy_address'],
+                                    app.preferences['proxy_port'])
+            network_manager.setProxy(qtproxy)
+
         if app.preferences["account"] != "":
             account = app.get_account(app.preferences["account"])
             app.change_current_account(account)
@@ -165,6 +178,7 @@ class Application(QObject):
             self.stop_current_account()
 
         self.current_account = account
+        self.current_account.start_coroutines()
 
     def stop_current_account(self):
         """
@@ -255,14 +269,14 @@ class Application(QObject):
 
         for wallet in account.wallets:
             for c in account.communities:
-                wallet.init_cache(c)
+                wallet.init_cache(self, c)
             wallet_path = os.path.join(config.parameters['home'],
                                         account.name, '__cache__', wallet.pubkey + "_wal")
             if os.path.exists(wallet_path):
                 with open(wallet_path, 'r') as json_data:
                     data = json.load(json_data)
                 if 'version' in data and data['version'] == __version__:
-                    wallet.load_caches(data)
+                    wallet.load_caches(self, data)
                 else:
                     os.remove(wallet_path)
 

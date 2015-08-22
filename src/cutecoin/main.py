@@ -6,11 +6,41 @@ Created on 1 févr. 2014
 import signal
 import sys
 import asyncio
+import logging
+import os
 
 from quamash import QEventLoop
 from PyQt5.QtWidgets import QApplication
 from cutecoin.gui.mainwindow import MainWindow
 from cutecoin.core.app import Application
+
+
+def async_exception_handler(loop, context):
+    """
+    An exception handler which exists the program if the exception
+    was not catch
+    :param loop: the asyncio loop
+    :param context: the exception context
+    """
+    logging.debug('Exception handler executing')
+    message = context.get('message')
+    if not message:
+        message = 'Unhandled exception in event loop'
+
+    try:
+        exception = context['exception']
+    except KeyError:
+        exc_info = False
+    else:
+        exc_info = (type(exception), exception, exception.__traceback__)
+
+    log_lines = [message]
+    for key in [k for k in sorted(context) if k not in {'message', 'exception'}]:
+        log_lines.append('{}: {!r}'.format(key, context[key]))
+
+    logging.error('\n'.join(log_lines), exc_info=exc_info)
+    os._exit(1)
+
 
 if __name__ == '__main__':
     # activate ctrl-c interrupt
@@ -18,6 +48,7 @@ if __name__ == '__main__':
 
     cutecoin = QApplication(sys.argv)
     loop = QEventLoop(cutecoin)
+    loop.set_exception_handler(async_exception_handler)
     asyncio.set_event_loop(loop)
 
     with loop:
