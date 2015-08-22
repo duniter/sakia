@@ -44,20 +44,30 @@ class RelativeZSum:
     def differential(self):
         return Relative(self.amount, self.community, self.app).value()
 
-    def localized(self, pretty_print=False):
+    def localized(self, units=False, international_system=False):
         value = self.value()
-        if pretty_print:
+        if international_system:
             pass
         else:
-            strvalue = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
-            return QCoreApplication.translate("RelativeZSum", RelativeZSum._REF_STR_).format(strvalue,
-                                                                                         self.community.short_currency)
+            localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
 
-    def diff_localized(self, pretty_print=False):
+        if units:
+            return QCoreApplication.translate("RelativeZSum", RelativeZSum._REF_STR_)\
+                .format(localized_value,
+                        self.community.short_currency if units else "")
+        else:
+            return localized_value
+
+    def diff_localized(self, units=False, international_system=False):
         value = self.differential()
-        if pretty_print:
+
+        if international_system:
             pass
         else:
-            strvalue = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
-            return QCoreApplication.translate("RelativeZSum", RelativeZSum._REF_STR_).format(strvalue,
-                                                                                         self.community.short_currency)
+            localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
+
+        if units:
+            return QCoreApplication.translate("RelativeZSum", RelativeZSum._REF_STR_)\
+                .format(localized_value, self.community.short_currency if units else "")
+        else:
+            return localized_value

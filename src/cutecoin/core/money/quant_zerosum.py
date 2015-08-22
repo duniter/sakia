@@ -42,16 +42,20 @@ class QuantitativeZSum:
     def differential(self):
         return Quantitative(self.amount, self.community, self.app).compute()
 
-    def localized(self, pretty_print=False):
+    def localized(self, units=False, international_system=False):
         value = self.value()
-        if pretty_print:
+        if international_system:
             pass
         else:
-            strvalue = QLocale().toString(float(value), 'f', 0)
+            localized_value = QLocale().toString(float(value), 'f', 0)
+
+        if units:
             return QCoreApplication.translate("QuantitativeZSum",
                                               QuantitativeZSum._REF_STR_) \
-                .format(strvalue,
-                        self.community.short_currency)
+                .format(localized_value,
+                        self.community.short_currency if units else "")
+        else:
+            return localized_value
 
-    def diff_localized(self, pretty_print=False):
-        return Quantitative(self.amount, self.community, self.app).localized(pretty_print)
+    def diff_localized(self, units=False, international_system=False):
+        return Quantitative(self.amount, self.community, self.app).localized(units, international_system)

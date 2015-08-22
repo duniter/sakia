@@ -141,9 +141,9 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
         maximum = self.community.monetary_mass
         # if referential type is quantitative...
             # display int values
-        localized_amount = self.account.current_ref(amount, self.community, self.app).localized()
-        localized_minimum = self.account.current_ref(maximum, self.community, self.app).localized()
-        localized_maximum = self.account.current_ref(0, self.community, self.app).localized()
+        localized_amount = self.account.current_ref(amount, self.community, self.app).localized(units=True)
+        localized_minimum = self.account.current_ref(0, self.community, self.app).localized(units=True)
+        localized_maximum = self.account.current_ref(maximum, self.community, self.app).localized(units=True)
 
         # set infos in label
         self.label_balance.setText(

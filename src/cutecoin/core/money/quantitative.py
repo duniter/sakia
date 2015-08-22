@@ -36,24 +36,32 @@ class Quantitative():
     def differential(self):
         return self.value()
 
-    def localized(self, pretty_print=False):
+    def localized(self, units=False, international_system=False):
         value = self.value()
-        if pretty_print:
+        if international_system:
             pass
         else:
-            strvalue = QLocale().toString(float(value), 'f', 0)
-            return QCoreApplication.translate("Quantitative",
-                                              Quantitative._REF_STR_) \
-                .format(strvalue,
-                        self.community.short_currency)
+            localized_value = QLocale().toString(float(value), 'f', 0)
 
-    def diff_localized(self, pretty_print=False):
-        value = self.differential()
-        if pretty_print:
-            pass
-        else:
-            strvalue = QLocale().toString(float(value), 'f', 0)
+        if units:
             return QCoreApplication.translate("Quantitative",
                                               Quantitative._REF_STR_) \
-                .format(strvalue,
-                        self.community.short_currency)
+                .format(localized_value,
+                        self.community.short_currency if units else "")
+        else:
+            return localized_value
+
+    def diff_localized(self, units=False, international_system=False):
+        value = self.differential()
+        if international_system:
+            pass
+        else:
+            localized_value = QLocale().toString(float(value), 'f', 0)
+
+        if units:
+            return QCoreApplication.translate("Quantitative",
+                                              Quantitative._REF_STR_) \
+                .format(localized_value,
+                        self.community.short_currency if units else "")
+        else:
+            return localized_value
