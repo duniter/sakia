@@ -186,7 +186,7 @@ class Graph(object):
                 current_validations = self.community.network.latest_block_number - certifier['block_number']
             else:
                 current_validations = 0
-            max_validation = self.community.network.fork_window(self.community.members_pubkeys())
+            max_validation = self.community.network.fork_window(self.community.members_pubkeys()) + 1
 
             if current_validations < max_validation:
                 if self.app.preferences['expert_mode']:
