@@ -10,6 +10,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 from PyQt5.QtNetwork import QNetworkReply
 import hashlib
 
+
 class Transfer(QObject):
     """
     A transfer is the lifecycle of a transaction.
@@ -138,22 +139,22 @@ class Transfer(QObject):
                     return
             self.broadcast_error.emit(r.error(), strdata)
 
-    def check_registered(self, tx, block, time, data_validation):
+    def check_registered(self, txhash, block_number, time, data_validation):
         """
         Check if the transfer was registered in a block.
         Update the transfer state to VALIDATED if it was registered.
 
-        :param tx: A transaction ucoinpy object found in the block
-        :param int block: The block number checked
+        :param txhash: A transaction ucoinpy object found in the block
+        :param int block_number: The block number checked
         :param int time: The time of the block
         """
-        if tx.signed_raw() == self.txdoc.signed_raw():
+        if txhash == self.hash:
             if self.state == Transfer.AWAITING:
                 self.state = Transfer.VALIDATING
-                self._metadata['block'] = block
+                self._metadata['block'] = block_number
                 self._metadata['time'] = time
             elif self.state == Transfer.VALIDATING and \
-                    self._metadata['block'] - block > data_validation:
+                    self._metadata['block'] - block_number > data_validation:
                 self.state = Transfer.VALIDATED
 
     def check_refused(self, time, block_time, mediantime_blocks):

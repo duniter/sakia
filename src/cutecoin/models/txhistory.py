@@ -117,7 +117,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
 
         if role == Qt.FontRole:
             font = QFont()
-            if state_data == Transfer.AWAITING:
+            if state_data == Transfer.AWAITING or state_data == Transfer.VALIDATING:
                 font.setItalic(True)
             elif state_data == Transfer.REFUSED:
                 font.setItalic(True)
@@ -141,15 +141,27 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                 return Qt.AlignCenter
 
         if role == Qt.ToolTipRole:
-            if state_data == Transfer.VALIDATING:
+            if source_index.column() == self.sourceModel().columns_types.index('date'):
+                return QDateTime.fromTime_t(source_data).toString(Qt.SystemLocaleLongDate)
+
+            if state_data == Transfer.VALIDATING or state_data == Transfer.AWAITING:
                 block_col = model.columns_types.index('block_number')
                 block_index = model.index(source_index.row(), block_col)
                 block_data = model.data(block_index, Qt.DisplayRole)
-                return "{0} / {1} validations".format(self.community.network.latest_block_number - block_data,
-                                                      self.app.preferences['data_validation'])
 
-            if source_index.column() == self.sourceModel().columns_types.index('date'):
-                return QDateTime.fromTime_t(source_data).toString(Qt.SystemLocaleLongDate)
+                if state_data == Transfer.VALIDATING:
+                    current_validations = self.community.network.latest_block_number - block_data
+                else:
+                    current_validations = 0
+                max_validations = self.community.network.fork_window(self.community.members_pubkeys())
+
+                if self.app.preferences['expert_mode']:
+                    return self.tr("{0} / {1} validations").format(current_validations, max_validations)
+                else:
+                    validation = current_validations / max_validations * 100
+                    return self.tr("Validating... {0} %").format(QLocale().toString(float(validation), 'f', 0))
+
+            return None
 
         return source_data
 
@@ -244,9 +256,12 @@ class HistoryTableModel(QAbstractTableModel):
         receiver = self.account.name
         date_ts = dividend['time']
         id = dividend['id']
+        block_number = dividend['block_number']
+        state = dividend['state']
+
         return (date_ts, receiver, "",
-                amount, "", Transfer.VALIDATED, id,
-                self.account.pubkey)
+                amount, "", state, id,
+                self.account.pubkey, block_number)
 
     def refresh_transfers(self):
         self.beginResetModel()
@@ -287,8 +302,8 @@ class HistoryTableModel(QAbstractTableModel):
         if role == Qt.DisplayRole:
             return self.transfers_data[row][col]
 
-        if role == Qt.ToolTipRole and col == 0:
-            return self.transfers_data[self.columns_types.index('date')]
+        if role == Qt.ToolTipRole:
+            return self.transfers_data[row][col]
 
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled

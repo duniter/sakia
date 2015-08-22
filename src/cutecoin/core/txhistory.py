@@ -70,6 +70,14 @@ class TxHistory():
     def stop_coroutines(self):
         self._stop_coroutines = True
 
+    @staticmethod
+    def _validation_state(community, block_number, current_block):
+        if block_number + community.network.fork_window(community.members_pubkeys()) < current_block["number"]:
+            state = Transfer.VALIDATED
+        else:
+            state = Transfer.VALIDATING
+        return state
+
     @asyncio.coroutine
     def _parse_transaction(self, community, txdata, received_list, txid, current_block):
         tx_outputs = [OutputSource.from_inline(o) for o in txdata['outputs']]
@@ -77,13 +85,9 @@ class TxHistory():
                      if o.pubkey != txdata['issuers'][0]]
 
         block_number = txdata['block_number']
-        if block_number + self.app.preferences['data_validation'] >= current_block["number"]:
-            state = Transfer.VALIDATED
-        else:
-            state = Transfer.VALIDATING
 
         mediantime = txdata['time']
-        logging.debug(txdata)
+        state = TxHistory._validation_state(community, block_number, current_block)
 
         if len(receivers) == 0:
             receivers = [txdata['issuers'][0]]
@@ -149,8 +153,8 @@ class TxHistory():
                     return transfer
         else:
             transfer = [t for t in awaiting if t.hash == txdata['hash']][0]
-            transfer.check_registered(txdata['hash'], current_block, mediantime,
-                                      self.app.preferences['data_validation'])
+            transfer.check_registered(txdata['hash'], current_block['number'], mediantime,
+                                      community.network.fork_window(community.members_pubkeys()))
         return None
 
     @asyncio.coroutine
@@ -192,11 +196,18 @@ class TxHistory():
                 return
 
             udid = 0
-            for d in dividends:
-                if d['block_number'] in range(parsed_block, parsed_block+100):
+            for d in [ud for ud in dividends if ud['block_number'] in range(parsed_block, parsed_block+100)]:
+                state = TxHistory._validation_state(community, d['block_number'], current_block)
+
+                if d['block_number'] not in [ud['block_number'] for ud in self._dividends]:
                     d['id'] = udid
+                    d['state'] = state
                     new_dividends.append(d)
                     udid += 1
+                else:
+                    known_dividend = [ud for ud in self._dividends
+                                      if ud['block_number'] == d['block_number']][0]
+                    known_dividend['state'] = state
 
             # We parse only blocks with transactions
             transactions = tx_history['history']['received'] + tx_history['history']['sent']
