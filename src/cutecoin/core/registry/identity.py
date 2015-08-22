@@ -237,7 +237,8 @@ class Identity(QObject):
                                 for uid in certifier_data['uids']:
                                     # add a certifier
                                     certifier = {}
-                                    certifier['identity'] = identities_registry.from_handled_data(uid, certifier_data['pubkey'],
+                                    certifier['identity'] = identities_registry.from_handled_data(uid,
+                                                                                                  certifier_data['pubkey'],
                                                                           BlockchainState.BUFFERED)
                                     block = community.bma_access.get(self, qtbma.blockchain.Block,
                                                                          {'number': certifier_data['meta']['block_number']})

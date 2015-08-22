@@ -52,6 +52,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         # create node metadata from account
         self._current_identity = None
         self.draw_graph(self.account.identity(self.community))
+        self.community.network.new_block_mined.connect(self.refresh)
 
     @pyqtSlot(dict)
     def handle_node_click(self, metadata):
@@ -131,8 +132,8 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         """
         self.draw_graph(self._current_identity)
 
-    @pyqtSlot()
-    def handle_identity_change(self):
+    @pyqtSlot(str)
+    def handle_identity_change(self, request):
         self.refresh()
 
     def search(self):
