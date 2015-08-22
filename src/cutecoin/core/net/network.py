@@ -183,8 +183,12 @@ class Network(QObject):
         Get the medium of the fork window of the nodes members of a community
         :return: the medium fork window of knew network
         """
-        return statistics.median([n.fork_window for n in self.nodes if n.software != ""
-                                  and n.pubkey in members_pubkeys])
+        fork_windows = [n.fork_window for n in self.nodes if n.software != ""
+                                  and n.pubkey in members_pubkeys]
+        if len(fork_windows) > 0:
+            return statistics.median(fork_windows)
+        else:
+            return 0
 
     def add_node(self, node):
         """

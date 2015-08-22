@@ -153,12 +153,13 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                     current_validations = self.community.network.latest_block_number - block_data
                 else:
                     current_validations = 0
-                max_validations = self.community.network.fork_window(self.community.members_pubkeys())
+                max_validations = self.community.network.fork_window(self.community.members_pubkeys()) + 1
 
                 if self.app.preferences['expert_mode']:
                     return self.tr("{0} / {1} validations").format(current_validations, max_validations)
                 else:
                     validation = current_validations / max_validations * 100
+                    validation = 100 if validation > 100 else validation
                     return self.tr("Validating... {0} %").format(QLocale().toString(float(validation), 'f', 0))
 
             return None

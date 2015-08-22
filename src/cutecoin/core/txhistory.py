@@ -72,7 +72,7 @@ class TxHistory():
 
     @staticmethod
     def _validation_state(community, block_number, current_block):
-        if block_number + community.network.fork_window(community.members_pubkeys()) < current_block["number"]:
+        if block_number + community.network.fork_window(community.members_pubkeys()) + 1 < current_block["number"]:
             state = Transfer.VALIDATED
         else:
             state = Transfer.VALIDATING
@@ -154,7 +154,7 @@ class TxHistory():
         else:
             transfer = [t for t in awaiting if t.hash == txdata['hash']][0]
             transfer.check_registered(txdata['hash'], current_block['number'], mediantime,
-                                      community.network.fork_window(community.members_pubkeys()))
+                                      community.network.fork_window(community.members_pubkeys()) + 1)
         return None
 
     @asyncio.coroutine
@@ -168,7 +168,13 @@ class TxHistory():
         current_block = yield from community.bma_access.future_request(qtbma.blockchain.Block,
                                 req_args={'number': community.network.latest_block_number})
 
-        parsed_block = min(self.latest_block, current_block['number'] - community.network.fork_window(community.members_pubkeys()))
+        # We look for the first block to parse, depending on awaiting and validating transfers and ud...
+        blocks = [tx.metadata['block_number'] for tx in self._transfers
+                  if tx.state in (Transfer.AWAITING, Transfer.VALIDATING)] +\
+                 [ud['block_number'] for ud in self._dividends
+                  if ud['state'] in (Transfer.AWAITING, Transfer.VALIDATING)] +\
+                 [self.latest_block]
+        parsed_block = min(set(blocks))
         logging.debug("Refresh from : {0} to {1}".format(self.latest_block, current_block['number']))
         dividends_data = qtbma.ud.History.null_value
         while dividends_data == qtbma.ud.History.null_value:

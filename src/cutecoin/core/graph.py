@@ -252,18 +252,18 @@ class Graph(object):
                 current_validations = self.community.network.latest_block_number - certified['block_number']
             else:
                 current_validations = 0
-            max_validation = self.community.network.fork_window(self.community.members_pubkeys())
+            max_validations = self.community.network.fork_window(self.community.members_pubkeys()) + 1
 
-            if current_validations < max_validation:
+            if current_validations < max_validations:
                 if self.app.preferences['expert_mode']:
                     arc['validation_text'] = "{0}/{1}".format(current_validations,
-                                                              max_validation)
+                                                              max_validations)
                 else:
-                    validation = current_validations / max_validation * 100
+                    validation = current_validations / max_validations * 100
+                    validation = 100 if validation > 100 else validation
                     arc['validation_text'] = "{0} %".format(QLocale().toString(float(validation), 'f', 0))
             else:
                 arc['validation_text'] = None
-
 
             # replace old arc if this one is more recent
             new_arc = True
