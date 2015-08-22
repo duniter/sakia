@@ -6,7 +6,7 @@ Created on 11 mai 2015
 
 from PyQt5.QtCore import QCoreApplication
 
-from ..core.account import Account
+from ..core import money
 from . import toast
 from PyQt5.QtWidgets import QDialog
 from PyQt5.QtGui import QIcon
@@ -32,8 +32,8 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
         for account_name in self.app.accounts.keys():
             self.combo_account.addItem(account_name)
         self.combo_account.setCurrentText(self.app.preferences['account'])
-        for ref in Account.referentials:
-            self.combo_referential.addItem(QCoreApplication.translate('Account', ref[4]))
+        for ref in money.Referentials:
+            self.combo_referential.addItem(QCoreApplication.translate('Account', ref.translated_name()))
         self.combo_referential.setCurrentIndex(self.app.preferences['ref'])
         for lang in ('en_GB', 'fr_FR'):
             self.combo_language.addItem(lang)
@@ -41,15 +41,13 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
         self.checkbox_expertmode.setChecked(self.app.preferences.get('expert_mode', False))
         self.checkbox_maximize.setChecked(self.app.preferences.get('maximized', False))
         self.checkbox_notifications.setChecked(self.app.preferences.get('notifications', True))
+        self.checkbox_international_system.setChecked(self.app.preferences.get('international_system_of_units', True))
         self.spinbox_digits_comma.setValue(self.app.preferences.get('digits_after_comma', 2))
         self.spinbox_digits_comma.setMaximum(12)
         self.spinbox_digits_comma.setMinimum(1)
         self.button_app.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(0))
         self.button_display.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(1))
         self.button_network.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(2))
-        self.spinbox_data_validation.setValue(self.app.preferences.get('data_validation', 2))
-        self.spinbox_data_validation.setMinimum(0)
-        self.spinbox_data_validation.setMaximum(100)
 
         self.checkbox_proxy.setChecked(self.app.preferences.get('enable_proxy', False))
         self.spinbox_proxy_port.setEnabled(self.checkbox_proxy.isChecked())
@@ -78,7 +76,7 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
                 'proxy_type': self.combox_proxytype.currentText(),
                 'proxy_address': self.edit_proxy_address.text(),
                 'proxy_port': self.spinbox_proxy_port.value(),
-                'data_validation': self.spinbox_data_validation.value()}
+                'international_system_of_units': self.checkbox_international_system.isChecked()}
         self.app.save_preferences(pref)
         toast.display(self.tr("Preferences"),
                       self.tr("A restart is needed to apply your new preferences."))

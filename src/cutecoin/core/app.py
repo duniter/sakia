@@ -64,7 +64,7 @@ class Application(QObject):
                             'proxy_type': "HTTP",
                             'proxy_address': "",
                             'proxy_port': 8080,
-                            'data_validation': 2
+                            'international_system_of_units': True
                             }
 
     @classmethod

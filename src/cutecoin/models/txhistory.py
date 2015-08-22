@@ -112,7 +112,8 @@ class TxFilterProxyModel(QSortFilterProxyModel):
             if source_index.column() == model.columns_types.index('payment') or \
                     source_index.column() == model.columns_types.index('deposit'):
                 if source_data is not "":
-                    return self.account.current_ref(source_data, self.community, self.app).diff_localized(international_system=True)
+                    return self.account.current_ref(source_data, self.community, self.app)\
+                        .diff_localized(international_system=self.app.preferences['international_system_of_units'])
 
         if role == Qt.FontRole:
             font = QFont()
