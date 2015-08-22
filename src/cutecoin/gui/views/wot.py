@@ -471,3 +471,9 @@ class Arc(QGraphicsLineItem):
         painter.setBrush(color)
         painter.drawPolygon(QPolygonF([head_point, destination_arrow_p1, destination_arrow_p2]))
 
+        if 'current_validation' in self.metadata:
+            if self.metadata['current_validation'] < self.metadata['max_validation']:
+                validation = self.metadata['current_validation'] / self.metadata['max_validation'] * 100
+                painter.drawText(head_point, "{0} %".format(validation))
+        else:
+            painter.drawText(head_point, "0%")

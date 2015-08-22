@@ -170,6 +170,7 @@ class Graph(object):
                 arc_status = ARC_STATUS_WEAK
             else:
                 arc_status = ARC_STATUS_STRONG
+
             arc = {
                 'id': identity.pubkey,
                 'status': arc_status,
@@ -180,6 +181,11 @@ class Graph(object):
                 ),
                 'cert_time': certifier['cert_time']
             }
+
+            if certifier['identity'].blockchain_state == BlockchainState.VALIDATED:
+                arc['current_validation'] = self.community.network.latest_block_number - certifier['block_number']
+                arc['max_validation'] = self.community.network.fork_window(self.community.members_pubkeys())
+
             #  add arc to certifier
             self._graph[certifier['identity'].pubkey]['arcs'].append(arc)
             # if certifier node not in identity nodes
@@ -229,6 +235,10 @@ class Graph(object):
                 ),
                 'cert_time': certified['cert_time']
             }
+
+            if certified['identity'].blockchain_state == BlockchainState.VALIDATED:
+                arc['current_validation'] = self.community.network.latest_block_number - certified['block_number']
+                arc['max_validation'] = self.community.network.fork_window(self.community.members_pubkeys())
 
             # replace old arc if this one is more recent
             new_arc = True

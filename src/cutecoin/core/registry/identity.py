@@ -242,6 +242,8 @@ class Identity(QObject):
                                     block = community.bma_access.get(self, qtbma.blockchain.Block,
                                                                          {'number': certifier_data['meta']['block_number']})
                                     certifier['cert_time'] = block['medianTime']
+                                    certifier['block_number'] = None
+
                                     certifiers.append(certifier)
         else:
             for certifier_data in data['certifications']:
@@ -250,6 +252,7 @@ class Identity(QObject):
                                                                               certifier_data['pubkey'],
                                                                               BlockchainState.VALIDATED)
                 certifier['cert_time'] = certifier_data['cert_time']['medianTime']
+                certifier['block_number'] = certifier_data['cert_time']['block']
                 certifiers.append(certifier)
         return certifiers
 
@@ -295,6 +298,7 @@ class Identity(QObject):
                                                                               certified_data['pubkey'],
                                                                               BlockchainState.BUFFERED)
                             certified['cert_time'] = certified_data['meta']['timestamp']
+                            certified['block_number'] = None
                             certified_list.append(certified)
         else:
             for certified_data in data['certifications']:
@@ -303,6 +307,7 @@ class Identity(QObject):
                                                                               certified_data['pubkey'],
                                                                               BlockchainState.VALIDATED)
                 certified['cert_time'] = certified_data['cert_time']['medianTime']
+                certified['block_number'] = certified_data['cert_time']['block']
                 certified_list.append(certified)
         return certified_list
 

@@ -6,6 +6,7 @@ Created on 24 févr. 2015
 from cutecoin.core.net.node import Node
 
 import logging
+import statistics
 import time
 import asyncio
 from ucoinpy.documents.peer import Peer
@@ -176,6 +177,14 @@ class Network(QObject):
             return max(set(blocks), key=blocks.count)
         else:
             return Block.Empty_Hash
+
+    def fork_window(self, members_pubkeys):
+        """
+        Get the medium of the fork window of the nodes members of a community
+        :return: the medium fork window of knew network
+        """
+        return statistics.median([n.fork_window for n in self.nodes if n.software != ""
+                                  and n.pubkey in members_pubkeys])
 
     def add_node(self, node):
         """

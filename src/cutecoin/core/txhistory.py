@@ -164,7 +164,7 @@ class TxHistory():
         current_block = yield from community.bma_access.future_request(qtbma.blockchain.Block,
                                 req_args={'number': community.network.latest_block_number})
 
-        parsed_block = min(self.latest_block, current_block['number'] - self.app.preferences['data_validation'])
+        parsed_block = min(self.latest_block, current_block['number'] - community.network.fork_window(community.members_pubkeys()))
         logging.debug("Refresh from : {0} to {1}".format(self.latest_block, current_block['number']))
         dividends_data = qtbma.ud.History.null_value
         while dividends_data == qtbma.ud.History.null_value:

@@ -181,6 +181,9 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         if status_infotext != "":
             label_text += " - {0}".format(status_infotext)
 
+        if self.app.preferences['expert_mode']:
+            label_text += " - Median fork window : {0}".format(self.community.network.fork_window(self.community.members_pubkeys()))
+
         self.status_label.setText(label_text)
 
     def showEvent(self, event):

@@ -39,7 +39,7 @@ class Node(QObject):
     neighbour_found = pyqtSignal(Peer, str)
 
     def __init__(self, network_manager, currency, endpoints, uid, pubkey, block_number, block_hash,
-                 state, last_change, last_merkle, software, version):
+                 state, last_change, last_merkle, software, version, fork_window):
         """
         Constructor
         """
@@ -57,6 +57,7 @@ class Node(QObject):
         self._last_merkle = last_merkle
         self._software = software
         self._version = version
+        self._fork_window = fork_window
 
     @classmethod
     @asyncio.coroutine
@@ -95,7 +96,7 @@ class Node(QObject):
             node = cls(network_manager, peer.currency,
                        [Endpoint.from_inline(e.inline()) for e in peer.endpoints],
                        "", peer.pubkey, 0, Block.Empty_Hash, Node.ONLINE, time.time(),
-                       {'root': "", 'leaves': []}, "", "")
+                       {'root': "", 'leaves': []}, "", "", 0)
             logging.debug("Node from address : {:}".format(str(node)))
             return node
         else:
@@ -119,7 +120,7 @@ class Node(QObject):
                    "", pubkey, 0, Block.Empty_Hash,
                    Node.ONLINE, time.time(),
                    {'root': "", 'leaves': []},
-                   "", "")
+                   "", "", 0)
         logging.debug("Node from peer : {:}".format(str(node)))
         return node
 
@@ -130,6 +131,7 @@ class Node(QObject):
         pubkey = ""
         software = ""
         version = ""
+        fork_window = 0
         block_number = 0
         block_hash = Block.Empty_Hash
         last_change = time.time()
@@ -164,14 +166,15 @@ class Node(QObject):
 
         if 'version' in data:
             version = data['version']
-        else:
-            logging.debug("Error : no state in node")
+
+        if 'fork_window' in data:
+            fork_window = data['fork_window']
 
         node = cls(network_manager, currency, endpoints,
                    uid, pubkey, block_number, block_hash,
                    state, last_change,
                    {'root': "", 'leaves': []},
-                   software, version)
+                   software, version, fork_window)
         logging.debug("Node from json : {:}".format(str(node)))
         return node
 
@@ -197,6 +200,7 @@ class Node(QObject):
                 'block_hash': self.block_hash,
                 'software': self._software,
                 'version': self._version,
+                'fork_window': self._fork_window
                 }
         endpoints = []
         for e in self._endpoints:
@@ -277,6 +281,16 @@ class Node(QObject):
         if self._state != new_state:
             self.last_change = time.time()
         self._state = new_state
+
+    @property
+    def fork_window(self):
+        return self._fork_window
+
+    @fork_window.setter
+    def fork_window(self, new_fork_window):
+        if self._fork_window != new_fork_window:
+            self._fork_window = new_fork_window
+            self.changed.emit()
 
     def check_sync(self, block_hash):
         logging.debug("Check sync")
@@ -388,6 +402,10 @@ class Node(QObject):
             summary_data = json.loads(strdata)
             self.software = summary_data["ucoin"]["software"]
             self.version = summary_data["ucoin"]["version"]
+            if "forkWindowSize" in summary_data["ucoin"]:
+                self.fork_window = summary_data["ucoin"]["forkWindowSize"]
+            else:
+                self.fork_window = 0
         else:
             self.changed.emit()
 
