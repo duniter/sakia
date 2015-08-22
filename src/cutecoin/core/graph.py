@@ -188,7 +188,9 @@ class Graph(object):
                 current_validations = 0
             max_validation = self.community.network.fork_window(self.community.members_pubkeys()) + 1
 
-            if current_validations < max_validation:
+            # Current validation can be negative if self.community.network.latest_block_number
+            # is not refreshed yet
+            if max_validation > current_validations > 0:
                 if self.app.preferences['expert_mode']:
                     arc['validation_text'] = "{0}/{1}".format(current_validations,
                                                               max_validation)
@@ -254,7 +256,7 @@ class Graph(object):
                 current_validations = 0
             max_validations = self.community.network.fork_window(self.community.members_pubkeys()) + 1
 
-            if current_validations < max_validations:
+            if max_validations > current_validations > 0:
                 if self.app.preferences['expert_mode']:
                     arc['validation_text'] = "{0}/{1}".format(current_validations,
                                                               max_validations)
