@@ -7,7 +7,7 @@ import asyncio
 import logging
 
 from PyQt5.QtWidgets import QWidget, QMenu, QAction, QApplication, QDialog, QMessageBox
-from PyQt5.QtCore import QDateTime, QModelIndex, Qt, QLocale
+from PyQt5.QtCore import QDateTime, QModelIndex, Qt, QLocale, QEvent
 from PyQt5.QtGui import QCursor
 
 from ..core.registry import Identity
@@ -340,3 +340,14 @@ Revoking your UID can only success if it is not already validated by the network
             self.button_membership.hide()
             self.button_leaving.hide()
             self.button_publish_uid.show()
+
+    def changeEvent(self, event):
+        """
+        Intercepte LanguageChange event to translate UI
+        :param QEvent QEvent: Event
+        :return:
+        """
+        if event.type() == QEvent.LanguageChange:
+            self.retranslateUi(self)
+            self.refresh()
+        return super(WalletsTabWidget, self).changeEvent(event)

@@ -6,7 +6,7 @@ Created on 31 janv. 2015
 
 import logging
 import math
-from PyQt5.QtCore import QLocale, QDateTime
+from PyQt5.QtCore import QLocale, QDateTime, QEvent
 from PyQt5.QtWidgets import QWidget
 from ..gen_resources.informations_tab_uic import Ui_InformationsTabWidget
 
@@ -218,3 +218,14 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 self.tr('Maximum distance between each WoT member and a newcomer'),
             )
         )
+
+    def changeEvent(self, event):
+        """
+        Intercepte LanguageChange event to translate UI
+        :param QEvent QEvent: Event
+        :return:
+        """
+        if event.type() == QEvent.LanguageChange:
+            self.retranslateUi(self)
+            self.refresh()
+        return super(InformationsTabWidget, self).changeEvent(event)

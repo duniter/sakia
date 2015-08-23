@@ -3,7 +3,7 @@
 import logging
 from cutecoin.core.graph import Graph
 from PyQt5.QtWidgets import QWidget, QComboBox, QLineEdit
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, QEvent
 from cutecoin.core.net.api import bma
 from cutecoin.core.registry import BlockchainState
 from ..gen_resources.wot_tab_uic import Ui_WotTabWidget
@@ -218,3 +218,14 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             logging.debug('community.get_block request error : ' + str(e))
             return False
         return block.mediantime
+
+    def changeEvent(self, event):
+        """
+        Intercepte LanguageChange event to translate UI
+        :param QEvent QEvent: Event
+        :return:
+        """
+        if event.type() == QEvent.LanguageChange:
+            self.retranslateUi(self)
+            self.refresh()
+        return super(WotTabWidget, self).changeEvent(event)

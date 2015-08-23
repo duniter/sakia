@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QAbstractItemView, QHeaderView, QDialog, \
     QMenu, QAction, QApplication, QMessageBox
-from PyQt5.QtCore import Qt, QDateTime, QTime, QModelIndex, QLocale, QCoreApplication, pyqtSlot
+from PyQt5.QtCore import Qt, QDateTime, QTime, QModelIndex, QCoreApplication, pyqtSlot, QEvent
 from PyQt5.QtGui import QCursor
 from ..gen_resources.transactions_tab_uic import Ui_transactionsTabWidget
 from ..models.txhistory import HistoryTableModel, TxFilterProxyModel
@@ -237,3 +237,14 @@ QMessageBox.Ok | QMessageBox.Cancel)
             self.table_history.model().set_period(ts_from, ts_to)
 
             self.refresh_balance()
+
+    def changeEvent(self, event):
+        """
+        Intercepte LanguageChange event to translate UI
+        :param QEvent QEvent: Event
+        :return:
+        """
+        if event.type() == QEvent.LanguageChange:
+            self.retranslateUi(self)
+            self.refresh()
+        return super(TransactionsTabWidget, self).changeEvent(event)

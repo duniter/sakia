@@ -7,7 +7,7 @@ Created on 2 févr. 2014
 import time
 import logging
 from PyQt5.QtWidgets import QWidget, QMessageBox
-from PyQt5.QtCore import QModelIndex, pyqtSlot, QDateTime, QLocale
+from PyQt5.QtCore import QModelIndex, pyqtSlot, QDateTime, QLocale, QEvent
 from PyQt5.QtGui import QIcon
 from ..gen_resources.currency_tab_uic import Ui_CurrencyTabWidget
 
@@ -202,3 +202,15 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
 
         if self.tab_informations:
             self.tab_informations.refresh()
+
+    def changeEvent(self, event):
+        """
+        Intercepte LanguageChange event to translate UI
+        :param QEvent QEvent: Event
+        :return:
+        """
+        if event.type() == QEvent.LanguageChange:
+            self.retranslateUi(self)
+            self.refresh_status()
+        return super(CurrencyTabWidget, self).changeEvent(event)
+

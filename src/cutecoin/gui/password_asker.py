@@ -7,6 +7,7 @@ Created on 24 dec. 2014
 import logging
 import re
 
+from PyQt5.QtCore import QEvent
 from PyQt5.QtWidgets import QDialog, QMessageBox
 
 from ..gen_resources.password_asker_uic import Ui_PasswordAskerDialog
@@ -66,6 +67,16 @@ class PasswordAskerDialog(QDialog, Ui_PasswordAskerDialog):
         self.setResult(QDialog.Accepted)
         self.password = ""
         super().reject()
+
+    def changeEvent(self, event):
+        """
+        Intercepte LanguageChange event to translate UI
+        :param QEvent QEvent: Event
+        :return:
+        """
+        if event.type() == QEvent.LanguageChange:
+            self.retranslateUi(self)
+        return super(PasswordAskerDialog, self).changeEvent(event)
 
 
 def detect_non_printable(data):

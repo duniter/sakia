@@ -5,6 +5,7 @@ Created on 31 janv. 2015
 """
 
 from PyQt5.QtWidgets import QWidget
+from PyQt5.QtCore import QEvent
 from ..gen_resources.homescreen_uic import Ui_HomeScreenWidget
 from ..__init__ import __version__
 from . import toast
@@ -42,4 +43,16 @@ class HomeScreenWidget(QWidget, Ui_HomeScreenWidget):
             """).format(version=latest[1],
                        version_info=version_info,
                        version_url=version_url))
+
+    def changeEvent(self, event):
+        """
+        Intercepte LanguageChange event to translate UI
+        :param QEvent QEvent: Event
+        :return:
+        """
+        if event.type() == QEvent.LanguageChange:
+            self.retranslateUi(self)
+            self.refresh_text()
+        return super(HomeScreenWidget, self).changeEvent(event)
+
 

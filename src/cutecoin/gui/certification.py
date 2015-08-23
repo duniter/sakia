@@ -12,7 +12,6 @@ import asyncio
 
 
 class CertificationDialog(QDialog, Ui_CertificationDialog):
-
     """
     classdocs
     """

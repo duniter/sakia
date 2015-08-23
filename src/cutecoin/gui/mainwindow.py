@@ -8,7 +8,7 @@ from ..gen_resources.about_uic import Ui_AboutPopup
 
 from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog, QProgressBar, \
     QMessageBox, QLabel, QComboBox, QDialog, QApplication
-from PyQt5.QtCore import QSignalMapper, QObject, QLocale, \
+from PyQt5.QtCore import QSignalMapper, QObject, QLocale, QEvent, \
     pyqtSlot, pyqtSignal, QDate, QDateTime, QTimer, QUrl, Qt, QCoreApplication
 from PyQt5.QtGui import QIcon, QDesktopServices
 
@@ -350,4 +350,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def closeEvent(self, event):
         self.app.stop()
         super().closeEvent(event)
+
+    def changeEvent(self, event):
+        """
+        Intercepte LanguageChange event to translate UI
+        :param QEvent QEvent: Event
+        :return:
+        """
+        if event.type() == QEvent.LanguageChange:
+            self.retranslateUi(self)
+            self.refresh()
+        return super(MainWindow, self).changeEvent(event)
 

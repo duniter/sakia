@@ -9,7 +9,7 @@ import asyncio
 
 from PyQt5.QtGui import QCursor, QDesktopServices
 from PyQt5.QtWidgets import QWidget, QMenu, QAction
-from PyQt5.QtCore import Qt, QModelIndex, pyqtSlot, QUrl
+from PyQt5.QtCore import Qt, QModelIndex, pyqtSlot, QUrl, QEvent
 from ..models.network import NetworkTableModel, NetworkFilterProxyModel
 from ..core.net.api import bma as qtbma
 from ..gen_resources.network_tab_uic import Ui_NetworkTabWidget
@@ -98,4 +98,13 @@ class NetworkTabWidget(QWidget, Ui_NetworkTabWidget):
     def manual_nodes_refresh(self):
         self.community.network.refresh_once()
 
-
+    def changeEvent(self, event):
+        """
+        Intercepte LanguageChange event to translate UI
+        :param QEvent QEvent: Event
+        :return:
+        """
+        if event.type() == QEvent.LanguageChange:
+            self.retranslateUi(self)
+            self.refresh_nodes()
+        return super(NetworkTabWidget, self).changeEvent(event)

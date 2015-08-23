@@ -5,7 +5,7 @@ Created on 2 févr. 2014
 """
 
 import logging
-from PyQt5.QtCore import Qt, pyqtSlot
+from PyQt5.QtCore import Qt, pyqtSlot, QEvent
 from PyQt5.QtGui import QIcon, QCursor
 from PyQt5.QtWidgets import QWidget, QMessageBox, QAction, QMenu, QDialog, \
                             QAbstractItemView
@@ -283,4 +283,14 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         """
         self.table_identities.model().sourceModel().refresh_identities(identities)
         self.table_identities.resizeColumnsToContents()
+
+    def changeEvent(self, event):
+        """
+        Intercepte LanguageChange event to translate UI
+        :param QEvent QEvent: Event
+        :return:
+        """
+        if event.type() == QEvent.LanguageChange:
+            self.retranslateUi(self)
+        return super(CommunityTabWidget, self).changeEvent(event)
 
