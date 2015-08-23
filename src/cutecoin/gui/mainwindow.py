@@ -21,7 +21,7 @@ from .certification import CertificationDialog
 from .password_asker import PasswordAskerDialog
 from .preferences import PreferencesDialog
 from .homescreen import HomeScreenWidget
-from ..core.account import Account
+from ..core import money
 from ..__init__ import __version__
 from . import toast
 
@@ -301,8 +301,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             self.combo_referential.blockSignals(True)
             self.combo_referential.clear()
-            for ref in self.app.current_account.referentials:
-                self.combo_referential.addItem(QCoreApplication.translate('Account', ref[4]))
+            for ref in money.Referentials:
+                self.combo_referential.addItem(ref.translated_name())
 
             self.combo_referential.setEnabled(True)
             self.combo_referential.blockSignals(False)

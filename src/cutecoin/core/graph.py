@@ -50,9 +50,9 @@ class Graph(object):
         logging.debug("path between %s to %s..." % (from_identity.uid, to_identity.uid))
         if from_identity.pubkey not in self._graph.keys():
             self.add_identity(from_identity)
-            certifier_list = from_identity.certifiers_of(self.community)
+            certifier_list = from_identity.certifiers_of(self.app.identities_registry, self.community)
             self.add_certifier_list(certifier_list, from_identity, to_identity)
-            certified_list = from_identity.certified_by(self.community)
+            certified_list = from_identity.certified_by(self.app.identities_registry, self.community)
             self.add_certified_list(certified_list, from_identity, to_identity)
 
         if to_identity.pubkey not in self._graph.keys():
@@ -90,11 +90,11 @@ class Graph(object):
             if node['id'] in tuple(done):
                 continue
             identity_selected = identity.from_handled_data(node['text'], node['id'], BlockchainState.VALIDATED)
-            certifier_list = identity_selected.certifiers_of(self.app.identities_registry, self.community)
+            certifier_list = identity_selected.unique_valid_certifiers_of(self.app.identities_registry, self.community)
             self.add_certifier_list(certifier_list, identity_selected, identity)
             if identity.pubkey in tuple(self._graph.keys()):
                 return False
-            certified_list = identity_selected.certified_by(self.app.identities_registry, self.community)
+            certified_list = identity_selected.unique_valid_certified_by(self.app.identities_registry, self.community)
             self.add_certified_list(certified_list, identity_selected, identity)
             if identity.pubkey in tuple(self._graph.keys()):
                 return False
@@ -170,6 +170,7 @@ class Graph(object):
                 arc_status = ARC_STATUS_WEAK
             else:
                 arc_status = ARC_STATUS_STRONG
+
             arc = {
                 'id': identity.pubkey,
                 'status': arc_status,
@@ -180,6 +181,25 @@ class Graph(object):
                 ),
                 'cert_time': certifier['cert_time']
             }
+
+            if certifier['block_number']:
+                current_validations = self.community.network.latest_block_number - certifier['block_number']
+            else:
+                current_validations = 0
+            max_validation = self.community.network.fork_window(self.community.members_pubkeys()) + 1
+
+            # Current validation can be negative if self.community.network.latest_block_number
+            # is not refreshed yet
+            if max_validation > current_validations > 0:
+                if self.app.preferences['expert_mode']:
+                    arc['validation_text'] = "{0}/{1}".format(current_validations,
+                                                              max_validation)
+                else:
+                    validation = current_validations / max_validation * 100
+                    arc['validation_text'] = "{0} %".format(QLocale().toString(float(validation), 'f', 0))
+            else:
+                arc['validation_text'] = None
+
             #  add arc to certifier
             self._graph[certifier['identity'].pubkey]['arcs'].append(arc)
             # if certifier node not in identity nodes
@@ -229,6 +249,23 @@ class Graph(object):
                 ),
                 'cert_time': certified['cert_time']
             }
+
+            if certified['block_number']:
+                current_validations = self.community.network.latest_block_number - certified['block_number']
+            else:
+                current_validations = 0
+            max_validations = self.community.network.fork_window(self.community.members_pubkeys()) + 1
+
+            if max_validations > current_validations > 0:
+                if self.app.preferences['expert_mode']:
+                    arc['validation_text'] = "{0}/{1}".format(current_validations,
+                                                              max_validations)
+                else:
+                    validation = current_validations / max_validations * 100
+                    validation = 100 if validation > 100 else validation
+                    arc['validation_text'] = "{0} %".format(QLocale().toString(float(validation), 'f', 0))
+            else:
+                arc['validation_text'] = None
 
             # replace old arc if this one is more recent
             new_arc = True

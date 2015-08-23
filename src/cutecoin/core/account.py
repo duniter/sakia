@@ -12,9 +12,10 @@ import logging
 import time
 import asyncio
 
-from PyQt5.QtCore import QObject, pyqtSignal, QCoreApplication, QT_TRANSLATE_NOOP
+from PyQt5.QtCore import QObject, pyqtSignal, QCoreApplication
 from PyQt5.QtNetwork import QNetworkReply
 
+from . import money
 from .wallet import Wallet
 from .community import Community
 from .registry import LocalState
@@ -23,91 +24,12 @@ from ..core.net.api import bma as qtbma
 from ..core.net.api.bma import PROTOCOL_VERSION
 
 
-def quantitative(units, community):
-    """
-    Return quantitative value of units
-
-    :param int units:   Value
-    :param cutecoin.core.community.Community community: Community instance
-    :return: int
-    """
-    return int(units)
-
-
-def relative(units, community):
-    """
-    Return relaive value of units
-
-    :param int units:   Value
-    :param cutecoin.core.community.Community community: Community instance
-    :return: float
-    """
-    if community.dividend > 0:
-        return units / float(community.dividend)
-    else:
-        return 0
-
-
-def quantitative_zerosum(units, community):
-    """
-    Return quantitative value of units minus the average value
-
-    :param int units:   Value
-    :param cutecoin.core.community.Community community: Community instance
-    :return: int
-    """
-    ud_block = community.get_ud_block()
-    if ud_block and ud_block['membersCount'] > 0:
-        average = community.monetary_mass / ud_block['membersCount']
-    else:
-        average = 0
-    return units - average
-
-
-def relative_zerosum(units, community):
-    """
-    Return relative value of units minus the average value
-
-    :param int units:   Value
-    :param cutecoin.core.community.Community community: Community instance
-    :return: float
-    """
-    ud_block = community.get_ud_block()
-    if ud_block and ud_block['membersCount'] > 0:
-        median = community.monetary_mass / ud_block['membersCount']
-        relative_value = units / float(community.dividend)
-        relative_median = median / community.dividend
-    else:
-        relative_median = 0
-    return relative_value - relative_median
-
-
 class Account(QObject):
     """
     An account is specific to a key.
     Each account has only one key, and a key can
     be locally referenced by only one account.
     """
-    # referentials are defined here
-    # it is a list of tupple, each tupple contains :
-    # (
-    #   function used to calculate value,
-    #   format string to display value,
-    #   function used to calculate on differential value,
-    #   format string to display differential value,
-    #   translated name of referential,
-    #   type relative "r" or quantitative "q" to help choose precision on display
-    # )
-    referentials = (
-        (quantitative, '{0}', quantitative, '{0}', QT_TRANSLATE_NOOP('Account', 'Units'), 'q'),
-        (relative, QT_TRANSLATE_NOOP('Account', 'UD {0}'), relative, QT_TRANSLATE_NOOP('Account', 'UD {0}'),
-         QT_TRANSLATE_NOOP('Account', 'UD'), 'r'),
-        (quantitative_zerosum, QT_TRANSLATE_NOOP('Account', 'Q0 {0}'), quantitative, '{0}',
-         QT_TRANSLATE_NOOP('Account', 'Quant Z-sum'), 'q'),
-        (relative_zerosum, QT_TRANSLATE_NOOP('Account', 'R0 {0}'), relative, QT_TRANSLATE_NOOP('Account', 'UD {0}'),
-         QT_TRANSLATE_NOOP('Account', 'Relat Z-sum'), 'r')
-    )
-
     loading_progressed = pyqtSignal(int, int)
     loading_finished = pyqtSignal(list)
     inner_data_changed = pyqtSignal(str)
@@ -143,7 +65,7 @@ class Account(QObject):
         self.contacts = contacts
         self._refreshing = False
         self._identities_registry = identities_registry
-        self.referential = 0
+        self._current_ref = 0
 
     @classmethod
     def create(cls, name, identities_registry):
@@ -230,7 +152,7 @@ class Account(QObject):
         self.communities.append(community)
         return community
 
-    def refresh_transactions(self, community):
+    def refresh_transactions(self, app, community):
         """
         Refresh the local account cache
         This needs n_wallets * n_communities cache refreshing to end
@@ -268,11 +190,11 @@ class Account(QObject):
             for w in self.wallets:
                 w.refresh_progressed.connect(progressing)
                 w.refresh_finished.connect(wallet_finished)
-                w.init_cache(community)
+                w.init_cache(app, community)
                 w.refresh_transactions(community, received_list)
 
     def set_display_referential(self, index):
-        self.referential = index
+        self._current_ref = index
 
     def identity(self, community):
         """
@@ -287,28 +209,8 @@ class Account(QObject):
         return identity
 
     @property
-    def units_to_ref(self):
-        return Account.referentials[self.referential][0]
-
-    @property
-    def units_to_diff_ref(self):
-        return Account.referentials[self.referential][2]
-
-    def ref_name(self, currency):
-        text = QCoreApplication.translate('Account',
-                                          Account.referentials[self.referential][1])
-        return text.format(currency)
-
-    def diff_ref_name(self, currency):
-        text = QCoreApplication.translate('Account', Account.referentials[self.referential][3])
-        return text.format(currency)
-
-    def ref_type(self):
-        """
-        Return type of referential ('q' or 'r', for quantitative or relative)
-        :return: str
-        """
-        return Account.referentials[self.referential][5]
+    def current_ref(self):
+        return money.Referentials[self._current_ref]
 
     def set_walletpool_size(self, size, password):
         """
@@ -596,6 +498,10 @@ class Account(QObject):
                 if not r.isFinished() or r.error() == QNetworkReply.NoError:
                     return
             self.broadcast_error.emit(r.error(), strdata)
+
+    def start_coroutines(self):
+        for c in self.communities:
+            c.start_coroutines()
 
     def stop_coroutines(self):
         for c in self.communities:

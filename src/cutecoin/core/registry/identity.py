@@ -18,12 +18,27 @@ from PyQt5.QtCore import QObject, pyqtSignal
 
 
 class LocalState(Enum):
+    """
+    The local state describes how the identity exists locally :
+    COMPLETED means all its related datas (certifiers, certified...)
+    were succefully downloaded
+    PARTIAL means not all data are present locally
+    NOT_FOUND means it could not be found anywhere
+    """
     NOT_FOUND = 0
     PARTIAL = 1
     COMPLETED = 2
 
 
 class BlockchainState(Enum):
+    """
+    The blockchain state describes how the identity
+    was found :
+    VALIDATED means it was found in the blockchain
+    BUFFERED means it was found via a lookup but not in the
+    blockchain
+    NOT_FOUND means it could not be found anywhere
+    """
     NOT_FOUND = 0
     BUFFERED = 1
     VALIDATED = 2
@@ -222,11 +237,14 @@ class Identity(QObject):
                                 for uid in certifier_data['uids']:
                                     # add a certifier
                                     certifier = {}
-                                    certifier['identity'] = identities_registry.from_handled_data(uid, certifier_data['pubkey'],
+                                    certifier['identity'] = identities_registry.from_handled_data(uid,
+                                                                                                  certifier_data['pubkey'],
                                                                           BlockchainState.BUFFERED)
                                     block = community.bma_access.get(self, qtbma.blockchain.Block,
                                                                          {'number': certifier_data['meta']['block_number']})
                                     certifier['cert_time'] = block['medianTime']
+                                    certifier['block_number'] = None
+
                                     certifiers.append(certifier)
         else:
             for certifier_data in data['certifications']:
@@ -235,6 +253,7 @@ class Identity(QObject):
                                                                               certifier_data['pubkey'],
                                                                               BlockchainState.VALIDATED)
                 certifier['cert_time'] = certifier_data['cert_time']['medianTime']
+                certifier['block_number'] = certifier_data['cert_time']['block']
                 certifiers.append(certifier)
         return certifiers
 
@@ -280,6 +299,7 @@ class Identity(QObject):
                                                                               certified_data['pubkey'],
                                                                               BlockchainState.BUFFERED)
                             certified['cert_time'] = certified_data['meta']['timestamp']
+                            certified['block_number'] = None
                             certified_list.append(certified)
         else:
             for certified_data in data['certifications']:
@@ -288,6 +308,7 @@ class Identity(QObject):
                                                                               certified_data['pubkey'],
                                                                               BlockchainState.VALIDATED)
                 certified['cert_time'] = certified_data['cert_time']['medianTime']
+                certified['block_number'] = certified_data['cert_time']['block']
                 certified_list.append(certified)
         return certified_list
 

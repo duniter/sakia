@@ -6,9 +6,11 @@ Created on 24 févr. 2015
 from cutecoin.core.net.node import Node
 
 import logging
+import statistics
 import time
 import asyncio
 from ucoinpy.documents.peer import Peer
+from ucoinpy.documents.block import Block
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
 
@@ -36,7 +38,7 @@ class Network(QObject):
         self.currency = currency
         self._must_crawl = False
         self.network_manager = network_manager
-        self._block_found = self.latest_block
+        self._block_found = self.latest_block_hash
         self._timer = QTimer()
 
     @classmethod
@@ -66,8 +68,11 @@ class Network(QObject):
                 logging.debug("Loading : {:}".format(data['pubkey']))
             else:
                 other_node = [n for n in self.nodes if n.pubkey == node.pubkey][0]
-                if other_node.block < node.block:
-                    other_node.block = node.block
+                other_node._uid = node.uid
+                other_node._version = node.version
+                other_node._software = node.software
+                if other_node.block_hash != node.block_hash:
+                    other_node.set_block(node.block_number, node.block_hash)
                     other_node.last_change = node.last_change
                     other_node.state = node.state
 
@@ -84,6 +89,7 @@ class Network(QObject):
             node = Node.from_json(network_manager, currency, data)
             nodes.append(node)
         network = cls(network_manager, currency, nodes)
+        # We block the signals until loading the nodes cache
         return network
 
     def jsonify(self):
@@ -106,6 +112,13 @@ class Network(QObject):
         total = len(self.nodes)
         ratio_synced = synced / total
         return ratio_synced
+
+    def start_coroutines(self):
+        """
+        Start network nodes crawling
+        :return:
+        """
+        asyncio.async(self.discover_network())
 
     def stop_coroutines(self):
         """
@@ -145,11 +158,37 @@ class Network(QObject):
         return self._root_nodes
 
     @property
-    def latest_block(self):
+    def latest_block_number(self):
         """
-        Get latest block known
+        Get the latest block considered valid
+        It is the most frequent last block of every known nodes
         """
-        return max([n.block for n in self.nodes])
+        blocks = [n.block_number for n in self.nodes]
+        return max(set(blocks), key=blocks.count)
+
+    @property
+    def latest_block_hash(self):
+        """
+        Get the latest block considered valid
+        It is the most frequent last block of every known nodes
+        """
+        blocks = [n.block_hash for n in self.nodes if n.block_hash != Block.Empty_Hash]
+        if len(blocks) > 0:
+            return max(set(blocks), key=blocks.count)
+        else:
+            return Block.Empty_Hash
+
+    def fork_window(self, members_pubkeys):
+        """
+        Get the medium of the fork window of the nodes members of a community
+        :return: the medium fork window of knew network
+        """
+        fork_windows = [n.fork_window for n in self.nodes if n.software != ""
+                                  and n.pubkey in members_pubkeys]
+        if len(fork_windows) > 0:
+            return statistics.median(fork_windows)
+        else:
+            return 0
 
     def add_node(self, node):
         """
@@ -217,15 +256,17 @@ class Network(QObject):
     def handle_change(self):
         node = self.sender()
         if node.state in (Node.ONLINE, Node.DESYNCED):
-            node.check_sync(self.latest_block)
+            for nd in [n for n in self._nodes if n.state in (Node.ONLINE, Node.DESYNCED)]:
+                nd.check_sync(self.latest_block_hash)
+            self.nodes_changed.emit()
         else:
             if node.last_change + 3600 < time.time():
                 node.disconnect()
                 self.nodes.remove(node)
                 self.nodes_changed.emit()
 
-        logging.debug("{0} -> {1}".format(self.latest_block, self.latest_block))
-        if self._block_found < self.latest_block:
-            logging.debug("New block found : {0}".format(self.latest_block))
-            self._block_found = self.latest_block
-            self.new_block_mined.emit(self.latest_block)
+        logging.debug("{0} -> {1}".format(self._block_found[:10], self.latest_block_hash[:10]))
+        if self._block_found != self.latest_block_hash and node.state == Node.ONLINE:
+            logging.debug("Latest block changed : {0}".format(self.latest_block_number))
+            self._block_found = self.latest_block_hash
+            self.new_block_mined.emit(self.latest_block_number)

@@ -5,7 +5,7 @@ from PyQt5.QtGui import QPainter, QBrush, QPen, QPolygonF, QColor, QRadialGradie
     QPainterPath, QMouseEvent, QWheelEvent, QTransform, QCursor
 from PyQt5.QtCore import Qt, QRectF, QLineF, QPoint, QPointF, QSizeF, \
                         qFuzzyCompare, pyqtSignal, QT_TRANSLATE_NOOP, \
-                        QCoreApplication
+                        QCoreApplication, QLocale
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsEllipseItem, \
     QGraphicsSimpleTextItem, QGraphicsLineItem, QMenu, QAction, QGraphicsSceneHoverEvent, \
     QGraphicsSceneContextMenuEvent
@@ -471,3 +471,5 @@ class Arc(QGraphicsLineItem):
         painter.setBrush(color)
         painter.drawPolygon(QPolygonF([head_point, destination_arrow_p1, destination_arrow_p2]))
 
+        if self.metadata["validation_text"]:
+            painter.drawText(head_point, self.metadata["validation_text"])

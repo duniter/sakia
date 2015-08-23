@@ -77,6 +77,8 @@ BOTTOM_SIGNATURE
     re_certifications = re.compile("Certifications:\n")
     re_transactions = re.compile("Transactions:\n")
 
+    Empty_Hash = "DA39A3EE5E6B4B0D3255BFEF95601890AFD80709"
+
     def __init__(self, version, currency, noonce, number, powmin, time,
                  mediantime, ud, issuer, prev_hash, prev_issuer,
                  parameters, members_count, identities, joiners,

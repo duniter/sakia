@@ -1,5 +1,6 @@
 from PyQt5.QtCore import QObject, pyqtSlot
 from PyQt5.QtNetwork import QNetworkReply
+from . import wot
 from . import blockchain, ConnectionHandler
 from .....tools.exceptions import NoPeerAvailable
 from ..... import __version__
@@ -106,7 +107,7 @@ class BmaAccess(QObject):
             cached_data = self._data[cache_key]
             need_reload = True
             if str(request) in BmaAccess.__saved_requests \
-                or cached_data['metadata']['block'] >= self._network.latest_block:
+                or cached_data['metadata']['block_hash'] == self._network.latest_block_hash:
                 need_reload = False
             ret_data = cached_data['value']
         else:
@@ -130,7 +131,8 @@ class BmaAccess(QObject):
                                      'value': {}}
 
         if not self._compare_json(self._data[cache_key]['value'], data):
-            self._data[cache_key]['metadata']['block'] = self._network.latest_block
+            self._data[cache_key]['metadata']['block_number'] = self._network.latest_block_number
+            self._data[cache_key]['metadata']['block_hash'] = self._network.latest_block_hash
             self._data[cache_key]['metadata']['cutecoin_version'] = __version__
             self._data[cache_key]['value'] = data
             return True
