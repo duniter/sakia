@@ -261,7 +261,7 @@
     <message>
         <location filename="../../../src/cutecoin/gui/community_tab.py" line="76"></location>
         <source>Membership</source>
-        <translation>Statut de membre</translation>
+        <translation>Adhésion</translation>
     </message>
     <message>
         <location filename="../../ui/community_tab.ui" line="60"></location>
@@ -1690,7 +1690,7 @@ Le transfert de monnaie sera annulé et ne sera pas envoyé.</translation>
     <message>
         <location filename="../../ui/transfer.ui" line="148"></location>
         <source> UD</source>
-        <translation>DU</translation>
+        <translation> DU</translation>
     </message>
     <message>
         <location filename="../../ui/transfer.ui" line="166"></location>
@@ -1819,7 +1819,7 @@ Le transfert de monnaie sera annulé et ne sera pas envoyé.</translation>
     <message>
         <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="88"></location>
         <source>Membership</source>
-        <translation>Statut de membre</translation>
+        <translation>Adhésion</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/wallets_tab.py" line="106"></location>
