@@ -230,7 +230,7 @@ class BmaAccess(QObject):
                 reply = req.get(**get_args)
                 reply.finished.connect(lambda: handle_future_reply(reply))
             else:
-                raise NoPeerAvailable(self.currency, len(nodes))
+                raise NoPeerAvailable("", len(nodes))
         else:
             future_data.set_result(data[1])
         return future_data
@@ -251,7 +251,7 @@ class BmaAccess(QObject):
             reply = req.get(**get_args)
             return reply
         else:
-            raise NoPeerAvailable(self.currency, len(nodes))
+            raise NoPeerAvailable("", len(nodes))
 
     def broadcast(self, request, req_args={}, post_args={}):
         """

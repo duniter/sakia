@@ -8,6 +8,8 @@ import sys
 import asyncio
 import logging
 import os
+# To force cx_freeze import
+import PyQt5.QtSvg
 
 from quamash import QEventLoop
 from PyQt5.QtWidgets import QApplication

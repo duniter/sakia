@@ -19,7 +19,7 @@ from .network_tab import NetworkTabWidget
 from .informations_tab import InformationsTabWidget
 from . import toast
 import asyncio
-from ..tools.exceptions import MembershipNotFoundError
+from ..tools.exceptions import MembershipNotFoundError, NoPeerAvailable
 from ..core.registry import IdentitiesRegistry
 
 
@@ -213,4 +213,3 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
             self.retranslateUi(self)
             self.refresh_status()
         return super(CurrencyTabWidget, self).changeEvent(event)
-

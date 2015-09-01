@@ -12,7 +12,9 @@ import asyncio
 from ucoinpy.documents.peer import Peer
 from ucoinpy.documents.block import Block
 
+from .api import bma as qtbma
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
+from collections import Counter
 
 
 class Network(QObject):
@@ -71,8 +73,8 @@ class Network(QObject):
                 other_node._uid = node.uid
                 other_node._version = node.version
                 other_node._software = node.software
-                if other_node.block_hash != node.block_hash:
-                    other_node.set_block(node.block_number, node.block_hash)
+                if other_node.block['hash'] != node.block['hash']:
+                    other_node.set_block(node.block)
                     other_node.last_change = node.last_change
                     other_node.state = node.state
 
@@ -163,8 +165,11 @@ class Network(QObject):
         Get the latest block considered valid
         It is the most frequent last block of every known nodes
         """
-        blocks = [n.block_number for n in self.nodes]
-        return max(set(blocks), key=blocks.count)
+        blocks = [n.block['number'] for n in self.synced_nodes]
+        if len(blocks) > 0:
+            return max(set(blocks), key=blocks.count)
+        else:
+            return 0
 
     @property
     def latest_block_hash(self):
@@ -172,18 +177,78 @@ class Network(QObject):
         Get the latest block considered valid
         It is the most frequent last block of every known nodes
         """
-        blocks = [n.block_hash for n in self.nodes if n.block_hash != Block.Empty_Hash]
+        blocks = [n.block['hash'] for n in self.synced_nodes if n.block != qtbma.blockchain.Block.null_value]
         if len(blocks) > 0:
             return max(set(blocks), key=blocks.count)
         else:
             return Block.Empty_Hash
+
+    def check_nodes_sync(self):
+        """
+        Check nodes sync with the following rules :
+        1 : The block of the majority
+        2 : The more last different issuers
+        3 : The more difficulty
+        4 : The biggest number or timestamp
+        """
+        # rule number 1 : block of the majority
+        blocks = [n.block['hash'] for n in self.nodes if n.block != qtbma.blockchain.Block.null_value]
+        blocks_occurences = Counter(blocks)
+        blocks_by_occurences = {}
+        for key, value in blocks_occurences.items():
+            the_block = [n.block for n in self.nodes if n.block['hash'] == key][0]
+            if value not in blocks_by_occurences:
+                blocks_by_occurences[value] = [the_block]
+            else:
+                blocks_by_occurences[value].append(the_block)
+
+        if len(blocks_by_occurences) == 0:
+            for n in [n for n in self._nodes if n.state in (Node.ONLINE, Node.DESYNCED)]:
+                n.state = Node.ONLINE
+            return
+
+        most_present = max(blocks_by_occurences.keys())
+
+        if len(blocks_by_occurences[most_present]) > 1:
+            # rule number 2 : more last different issuers
+            # not possible atm
+            blocks_by_issuers = blocks_by_occurences.copy()
+            most_issuers = max(blocks_by_issuers.keys())
+            if len(blocks_by_issuers[most_issuers]) > 1:
+                # rule number 3 : biggest PowMin
+                blocks_by_powmin = {}
+                for block in blocks_by_issuers[most_issuers]:
+                    if block['powMin'] in blocks_by_powmin:
+                        blocks_by_powmin[block['powMin']].append(block)
+                    else:
+                        blocks_by_powmin[block['powMin']] = [block]
+                bigger_powmin = max(blocks_by_powmin.keys())
+                if len(blocks_by_powmin[bigger_powmin]) > 1:
+                    # rule number 3 : latest timestamp
+                    blocks_by_ts = {}
+                    for block in blocks_by_powmin[bigger_powmin]:
+                        blocks_by_ts[block['time']] = block
+                    latest_ts = max(blocks_by_ts.keys())
+                    synced_block_hash = blocks_by_ts[latest_ts]['hash']
+                else:
+                    synced_block_hash = blocks_by_powmin[bigger_powmin][0]['hash']
+            else:
+                synced_block_hash = blocks_by_issuers[most_issuers][0]['hash']
+        else:
+            synced_block_hash = blocks_by_occurences[most_present][0]['hash']
+
+        for n in [n for n in self._nodes if n.state in (Node.ONLINE, Node.DESYNCED)]:
+            if n.block['hash'] == synced_block_hash:
+                n.state = Node.ONLINE
+            else:
+                n.state = Node.DESYNCED
 
     def fork_window(self, members_pubkeys):
         """
         Get the medium of the fork window of the nodes members of a community
         :return: the medium fork window of knew network
         """
-        fork_windows = [n.fork_window for n in self.nodes if n.software != ""
+        fork_windows = [n.fork_window for n in self.online_nodes if n.software != ""
                                   and n.pubkey in members_pubkeys]
         if len(fork_windows) > 0:
             return statistics.median(fork_windows)
@@ -192,7 +257,7 @@ class Network(QObject):
 
     def add_node(self, node):
         """
-        Add a node to the network.
+        Add a nod to the network.
         """
         self._nodes.append(node)
         node.changed.connect(self.handle_change)
@@ -256,8 +321,7 @@ class Network(QObject):
     def handle_change(self):
         node = self.sender()
         if node.state in (Node.ONLINE, Node.DESYNCED):
-            for nd in [n for n in self._nodes if n.state in (Node.ONLINE, Node.DESYNCED)]:
-                nd.check_sync(self.latest_block_hash)
+            self.check_nodes_sync()
             self.nodes_changed.emit()
         else:
             if node.last_change + 3600 < time.time():

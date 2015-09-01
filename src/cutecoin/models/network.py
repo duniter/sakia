@@ -162,7 +162,7 @@ class NetworkTableModel(QAbstractTableModel):
 
         is_root = self.community.network.is_root_node(node)
 
-        return (address, port, node.block_number, node.block_hash, node.uid,
+        return (address, port, node.block['number'], node.block['hash'], node.uid,
                 is_member, node.pubkey, node.software, node.version, is_root)
 
     def data(self, index, role):
