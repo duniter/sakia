@@ -14,7 +14,7 @@ from PyQt5.QtGui import QIcon, QDesktopServices
 
 from .process_cfg_account import ProcessConfigureAccount
 from .transfer import TransferMoneyDialog
-from .currency_tab import CurrencyTabWidget
+from .community_view import CommunityWidget
 from .contact import ConfigureContactDialog
 from .import_account import ImportAccountDialog
 from .certification import CertificationDialog
@@ -22,6 +22,7 @@ from .password_asker import PasswordAskerDialog
 from .preferences import PreferencesDialog
 from .homescreen import HomeScreenWidget
 from ..core import money
+from ..core.community import Community
 from ..__init__ import __version__
 from . import toast
 
@@ -65,7 +66,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.statusbar.addPermanentWidget(self.combo_referential)
 
         self.homescreen = HomeScreenWidget(self.app)
+        self.homescreen.frame_communities.community_tile_clicked.connect(self.change_community)
         self.centralWidget().layout().addWidget(self.homescreen)
+
+        self.community_view = CommunityWidget(self.app, self.status_label)
+        self.centralWidget().layout().addWidget(self.community_view)
 
     def startup(self):
         self.update_time()
@@ -74,6 +79,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.showMaximized()
         else:
             self.show()
+        if self.app.current_account:
+            self.community_view.change_account(self.app.current_account)
         self.refresh()
 
     def open_add_account_dialog(self):
@@ -92,8 +99,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def referential_changed(self, index):
         if self.app.current_account:
             self.app.current_account.set_display_referential(index)
-            if self.currencies_tabwidget.currentWidget():
-                self.currencies_tabwidget.currentWidget().referential_changed()
+            if self.community_view:
+                self.community_view.referential_changed()
 
     @pyqtSlot()
     def update_time(self):
@@ -123,27 +130,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def action_change_account(self, account_name):
         self.app.change_current_account(self.app.get_account(account_name))
+        self.community_view.change_account(self.app.current_account)
         self.refresh()
-
-    @pyqtSlot()
-    def loader_finished(self):
-        logging.debug("Finished loading")
-        self.refresh()
-        self.busybar.hide()
-        QApplication.setOverrideCursor(Qt.ArrowCursor)
-        try:
-            self.app.disconnect()
-        except:
-            logging.debug("Disconnect of app failed")
-
-        QApplication.processEvents()
 
     def open_transfer_money_dialog(self):
         dialog = TransferMoneyDialog(self.app, self.app.current_account,
                                      self.password_asker)
         dialog.accepted.connect(self.refresh_wallets)
         if dialog.exec_() == QDialog.Accepted:
-            currency_tab = self.currencies_tabwidget.currentWidget()
+            currency_tab = self.community_view
             currency_tab.tab_history.table_history.model().sourceModel().refresh_transfers()
 
     def open_certification_dialog(self):
@@ -230,21 +225,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 version_url=version_url))
 
     def refresh_wallets(self):
-        currency_tab = self.currencies_tabwidget.currentWidget()
+        currency_tab = self.community_view
         if currency_tab:
             currency_tab.refresh_wallets()
 
-    def refresh_communities(self):
-        logging.debug("CLEAR")
-        self.currencies_tabwidget.clear()
-        if self.app.current_account:
-            for community in self.app.current_account.communities:
-                tab_currency = CurrencyTabWidget(self.app, community,
-                                                 self.password_asker,
-                                                 self.status_label)
-                self.currencies_tabwidget.addTab(tab_currency,
-                                                 QIcon(":/icons/currency_icon"),
-                                                 community.name)
+    @pyqtSlot(Community)
+    def change_community(self, community):
+        logging.debug("Change on tile")
+        self.homescreen.hide()
+        self.community_view.show()
+        self.community_view.change_community(community)
 
     def refresh_accounts(self):
         self.menu_change_account.clear()
@@ -278,7 +268,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         logging.debug("Refresh started")
         self.refresh_accounts()
         self.homescreen.show()
-        self.currencies_tabwidget.hide()
+        self.community_view.hide()
         self.homescreen.refresh()
 
         if self.app.current_account is None:
@@ -306,7 +296,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.setWindowTitle(self.tr("CuteCoin {0} - Account : {1}").format(__version__,
                                                                                self.app.current_account.name))
 
-        self.refresh_communities()
         self.refresh_wallets()
         self.refresh_contacts()
 

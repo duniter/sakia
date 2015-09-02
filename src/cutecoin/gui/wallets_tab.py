@@ -25,30 +25,31 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
     classdocs
     """
 
-    def __init__(self, app, account, community, password_asker):
+    def __init__(self, app):
         """
         Init
         :param cutecoin.core.app.Application app: Application instance
-        :param cutecoin.core.account.Account account: Account instance
-        :param cutecoin.core.community.Community community: Community instance
-        :param cutecoin.gui.password_asker.PasswordAskerDialog password_asker: PasswordAskerDialog instance
         """
         super().__init__()
         self.setupUi(self)
         self.app = app
-        self.account = account
-        self.community = community
-        self.password_asker = password_asker
-        self.setup_connections()
+        self.account = None
+        self.community = None
+        self.password_asker = None
 
-    def setup_connections(self):
+    def change_account(self, account):
+        self.account = account
         self.account.inner_data_changed.connect(self.refresh_informations_frame)
+
+    def change_community(self, community):
+        self.community = community
         self.community.inner_data_changed.connect(self.refresh_informations_frame)
 
     def refresh(self):
-        self.refresh_informations_frame()
-        self.refresh_wallets()
-        self.refresh_quality_buttons()
+        if self.community:
+            self.refresh_informations_frame()
+            self.refresh_wallets()
+            self.refresh_quality_buttons()
 
     def refresh_wallets(self):
         # TODO: Using reset model instead of destroy/create
@@ -58,107 +59,6 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
         wallets_model.dataChanged.connect(self.wallet_changed)
         self.table_wallets.setModel(proxy_model)
         self.table_wallets.resizeColumnsToContents()
-
-    def refresh_informations_frame(self):
-        parameters = self.community.parameters
-        try:
-            identity = self.account.identity(self.community)
-            membership = identity.membership(self.community)
-            renew_block = membership['blockNumber']
-            last_renewal = self.community.get_block(renew_block)['medianTime']
-            expiration = last_renewal + parameters['sigValidity']
-        except MembershipNotFoundError:
-            last_renewal = None
-            expiration = None
-
-        certified = identity.unique_valid_certified_by(self.app.identities_registry, self.community)
-        certifiers = identity.unique_valid_certifiers_of(self.app.identities_registry, self.community)
-        if last_renewal and expiration:
-            date_renewal = QLocale.toString(
-                QLocale(),
-                QDateTime.fromTime_t(last_renewal).date(), QLocale.dateFormat(QLocale(), QLocale.LongFormat)
-            )
-            date_expiration = QLocale.toString(
-                QLocale(),
-                QDateTime.fromTime_t(expiration).date(), QLocale.dateFormat(QLocale(), QLocale.LongFormat)
-            )
-
-            if self.account.pubkey in self.community.members_pubkeys():
-                # set infos in label
-                self.label_general.setText(
-                    self.tr("""
-                    <table cellpadding="5">
-                    <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-                    <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-                    <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-                    </table>
-                    """).format(
-                        self.account.name, self.account.pubkey,
-                        self.tr("Membership"),
-                        self.tr("Last renewal on {:}, expiration on {:}").format(date_renewal, date_expiration),
-                        self.tr("Your web of trust"),
-                        self.tr("Certified by {:} members; Certifier of {:} members").format(len(certifiers),
-                                                                                             len(certified))
-                    )
-                )
-            else:
-                # set infos in label
-                self.label_general.setText(
-                    self.tr("""
-                    <table cellpadding="5">
-                    <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-                    <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-                    <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-                    </table>
-                    """).format(
-                        self.account.name, self.account.pubkey,
-                        self.tr("Not a member"),
-                        self.tr("Last renewal on {:}, expiration on {:}").format(date_renewal, date_expiration),
-                        self.tr("Your web of trust"),
-                        self.tr("Certified by {:} members; Certifier of {:} members").format(len(certifiers),
-                                                                                             len(certified))
-                    )
-                )
-        else:
-            # set infos in label
-            self.label_general.setText(
-                self.tr("""
-                <table cellpadding="5">
-                <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-                <tr><td align="right"><b>{:}</b></td></tr>
-                <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-                </table>
-                """).format(
-                    self.account.name, self.account.pubkey,
-                    self.tr("Not a member"),
-                    self.tr("Your web of trust"),
-                    self.tr("Certified by {:} members; Certifier of {:} members").format(len(certifiers),
-                                                                                         len(certified))
-                )
-            )
-
-        amount = self.account.amount(self.community)
-        maximum = self.community.monetary_mass
-        # if referential type is quantitative...
-            # display int values
-        localized_amount = self.account.current_ref(amount, self.community, self.app).localized(units=True)
-        localized_minimum = self.account.current_ref(0, self.community, self.app).localized(units=True)
-        localized_maximum = self.account.current_ref(maximum, self.community, self.app).localized(units=True)
-
-        # set infos in label
-        self.label_balance.setText(
-            self.tr("{:}")
-            .format(
-                localized_amount
-            )
-        )
-        self.label_balance_range.setText(
-            self.tr("in [{:} ; {:}]")
-            .format(
-                localized_minimum,
-                localized_maximum
-            )
-        )
 
     def wallet_context_menu(self, point):
         index = self.table_wallets.indexAt(point)

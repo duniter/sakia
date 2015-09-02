@@ -5,12 +5,16 @@ Created on 31 janv. 2015
 """
 
 from PyQt5.QtWidgets import QWidget, QFrame, QGridLayout, QLayout
-from PyQt5.QtCore import QEvent, Qt
+from PyQt5.QtCore import QEvent, Qt, pyqtSlot, pyqtSignal
 from ..gen_resources.homescreen_uic import Ui_HomescreenWidget
 from .community_tile import CommunityTile
+from ..core.community import Community
+import logging
 
 
 class FrameCommunities(QFrame):
+    community_tile_clicked = pyqtSignal(Community)
+
     def __init__(self, parent):
         super().__init__(parent)
         self.grid_layout = QGridLayout()
@@ -27,7 +31,15 @@ class FrameCommunities(QFrame):
             self.grid_layout.itemAt(i).widget().setParent(None)
 
         for c in app.current_account.communities:
-            self.layout().addWidget(CommunityTile(self, app, c))
+            community_tile = CommunityTile(self, app, c)
+            community_tile.clicked.connect(self.click_on_tile)
+            self.layout().addWidget(community_tile)
+
+    @pyqtSlot()
+    def click_on_tile(self):
+        tile = self.sender()
+        logging.debug("Click on tile")
+        self.community_tile_clicked.emit(tile.community)
 
 
 class HomeScreenWidget(QWidget, Ui_HomescreenWidget):

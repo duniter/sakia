@@ -9,10 +9,10 @@ import logging
 from PyQt5.QtWidgets import QWidget, QMessageBox
 from PyQt5.QtCore import QModelIndex, pyqtSlot, QDateTime, QLocale, QEvent
 from PyQt5.QtGui import QIcon
-from ..gen_resources.currency_tab_uic import Ui_CurrencyTabWidget
 
 from ..core.net.api import bma as qtbma
-from .community_tab import CommunityTabWidget
+from .wot_tab import WotTabWidget
+from .identities_tab import IdentitiesTabWidget
 from .wallets_tab import WalletsTabWidget
 from .transactions_tab import TransactionsTabWidget
 from .network_tab import NetworkTabWidget
@@ -21,22 +21,22 @@ from . import toast
 import asyncio
 from ..tools.exceptions import MembershipNotFoundError, NoPeerAvailable
 from ..core.registry import IdentitiesRegistry
+from ..gen_resources.community_view_uic import Ui_CommunityWidget
 
-
-class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
+class CommunityWidget(QWidget, Ui_CommunityWidget):
 
     """
     classdocs
     """
 
-    def __init__(self, app, community, password_asker, status_label):
+    def __init__(self, app, status_label):
         """
         Constructor
         """
         super().__init__()
         self.app = app
-        self.community = community
-        self.password_asker = password_asker
+        self.community = None
+        self.password_asker = None
         self.status_label = status_label
 
         self.status_info = []
@@ -48,47 +48,43 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
 
         super().setupUi(self)
 
-        self.tab_community = CommunityTabWidget(self.app,
-                                                self.app.current_account,
-                                                    self.community,
-                                                    self.password_asker,
-                                                    self)
+        self.tab_wot = WotTabWidget(self.app)
 
-        self.tab_wallets = WalletsTabWidget(self.app,
-                                            self.app.current_account,
-                                            self.community,
-                                            self.password_asker)
+        self.tab_identities = IdentitiesTabWidget(self.app)
 
-        self.tab_history = TransactionsTabWidget(self.app,
-                                                 self.community,
-                                                 self.password_asker,
-                                                 self)
+        self.tab_wallets = WalletsTabWidget(self.app)
 
-        self.tab_informations = InformationsTabWidget(self.app,
-                                                self.community)
+        self.tab_history = TransactionsTabWidget(self.app)
 
-        self.tab_network = NetworkTabWidget(self.app,
-                                            self.community)
+        self.tab_network = NetworkTabWidget(self.app)
 
-        self.tabs_account.addTab(self.tab_wallets,
-                                 QIcon(':/icons/wallet_icon'),
-                                self.tr("Wallets"))
-
-        self.tabs_account.addTab(self.tab_history,
+        self.tabs.addTab(self.tab_history,
                                  QIcon(':/icons/tx_icon'),
                                 self.tr("Transactions"))
 
-        self.tabs_account.addTab(self.tab_community,
-                                 QIcon(':/icons/community_icon'),
-                                self.tr("Community"))
+        self.tabs.addTab(self.tab_identities,
+                         QIcon(':/icons/wot_icon'),
+                         self.tr("Web of Trust"))
 
-        self.tabs_account.addTab(self.tab_network,
+        self.tabs.addTab(self.tab_wot,
+                         QIcon(':/icons/members_icon'),
+                         self.tr("Search Identities"))
+
+        self.tabs.addTab(self.tab_network,
                                  QIcon(":/icons/network_icon"),
                                  self.tr("Network"))
 
-        self.tabs_account.addTab(self.tab_informations,
-                                 QIcon(':/icons/informations_icon'),
-                                 self.tr("Informations"))
+    def change_account(self, account):
+        self.account = account
+        self.tab_wot.change_account(account)
+        self.tab_identities.change_account(account)
+
+    def change_community(self, community):
+        self.community = community
+        self.tab_network.change_community(community)
+        self.tab_wot.change_community(community)
+        self.tab_history.change_community(community)
+        self.tab_identities.change_community(community)
 
         self.community.network.new_block_mined.connect(self.refresh_block)
         self.community.network.nodes_changed.connect(self.refresh_status)
@@ -160,31 +156,32 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         Refresh status bar
         """
         logging.debug("Refresh status")
-        text = self.tr(" Block {0}").format(self.community.network.latest_block_number)
+        if self.community:
+            text = self.tr(" Block {0}").format(self.community.network.latest_block_number)
 
-        block = self.community.get_block(self.community.network.latest_block_number)
-        if block != qtbma.blockchain.Block.null_value:
-            text += " ( {0} )".format(QLocale.toString(
-                        QLocale(),
-                        QDateTime.fromTime_t(block['medianTime']),
-                        QLocale.dateTimeFormat(QLocale(), QLocale.NarrowFormat)
-                    ))
+            block = self.community.get_block(self.community.network.latest_block_number)
+            if block != qtbma.blockchain.Block.null_value:
+                text += " ( {0} )".format(QLocale.toString(
+                            QLocale(),
+                            QDateTime.fromTime_t(block['medianTime']),
+                            QLocale.dateTimeFormat(QLocale(), QLocale.NarrowFormat)
+                        ))
 
-        if self.community.network.quality > 0.66:
-            icon = '<img src=":/icons/connected" width="12" height="12"/>'
-        elif self.community.network.quality > 0.33:
-            icon = '<img src=":/icons/weak_connect" width="12" height="12"/>'
-        else:
-            icon = '<img src=":/icons/disconnected" width="12" height="12"/>'
-        status_infotext = " - ".join([self.status_infotext[info] for info in self.status_info])
-        label_text = "{0}{1}".format(icon, text)
-        if status_infotext != "":
-            label_text += " - {0}".format(status_infotext)
+            if self.community.network.quality > 0.66:
+                icon = '<img src=":/icons/connected" width="12" height="12"/>'
+            elif self.community.network.quality > 0.33:
+                icon = '<img src=":/icons/weak_connect" width="12" height="12"/>'
+            else:
+                icon = '<img src=":/icons/disconnected" width="12" height="12"/>'
+            status_infotext = " - ".join([self.status_infotext[info] for info in self.status_info])
+            label_text = "{0}{1}".format(icon, text)
+            if status_infotext != "":
+                label_text += " - {0}".format(status_infotext)
 
-        if self.app.preferences['expert_mode']:
-            label_text += self.tr(" - Median fork window : {0}").format(self.community.network.fork_window(self.community.members_pubkeys()))
+            if self.app.preferences['expert_mode']:
+                label_text += self.tr(" - Median fork window : {0}").format(self.community.network.fork_window(self.community.members_pubkeys()))
 
-        self.status_label.setText(label_text)
+            self.status_label.setText(label_text)
 
     def showEvent(self, event):
         self.refresh_status()
@@ -197,12 +194,6 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
                                                      [])
             self.tab_history.refresh_balance()
 
-        if self.tab_wallets:
-            self.tab_wallets.refresh()
-
-        if self.tab_informations:
-            self.tab_informations.refresh()
-
     def changeEvent(self, event):
         """
         Intercepte LanguageChange event to translate UI
@@ -212,4 +203,4 @@ class CurrencyTabWidget(QWidget, Ui_CurrencyTabWidget):
         if event.type() == QEvent.LanguageChange:
             self.retranslateUi(self)
             self.refresh_status()
-        return super(CurrencyTabWidget, self).changeEvent(event)
+        return super(CommunityWidget, self).changeEvent(event)

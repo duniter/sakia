@@ -18,26 +18,26 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
     classdocs
     """
 
-    def __init__(self, app, community, password_asker, currency_tab):
+    def __init__(self, app):
         """
         Init
 
         :param cutecoin.core.app.Application app: Application instance
-        :param cutecoin.core.community.Community community: Community instance
-        :param cutecoin.gui.password_asker.PasswordAskerDialog password_asker: Password dialog instance
-        :param cutecoin.gui.currency_tab.CurrencyTabWidget currency_tab: Currency tab widget
         :return:
         """
 
         super().__init__()
         self.setupUi(self)
         self.app = app
-        self.community = community
-        self.password_asker = password_asker
-        self.currency_tab = currency_tab
+        self.community = None
+        self.password_asker = None
         self.progressbar.hide()
-        self.community.inner_data_changed.connect(self.refresh_minimum_maximum)
         self.refresh()
+
+    def change_community(self, community):
+        self.community = community
+        self.refresh()
+        self.community.inner_data_changed.connect(self.refresh_minimum_maximum)
 
     def refresh_minimum_maximum(self):
         block = self.community.get_block(1)
@@ -56,23 +56,24 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
 
     def refresh(self):
         #TODO: Use resetmodel instead of destroy/create
-        self.refresh_minimum_maximum()
-        ts_from = self.date_from.dateTime().toTime_t()
-        ts_to = self.date_to.dateTime().toTime_t()
+        if self.community:
+            self.refresh_minimum_maximum()
+            ts_from = self.date_from.dateTime().toTime_t()
+            ts_to = self.date_to.dateTime().toTime_t()
 
-        model = HistoryTableModel(self.app, self.community)
-        proxy = TxFilterProxyModel(ts_from, ts_to)
-        proxy.setSourceModel(model)
-        proxy.setDynamicSortFilter(True)
-        proxy.setSortRole(Qt.DisplayRole)
+            model = HistoryTableModel(self.app, self.community)
+            proxy = TxFilterProxyModel(ts_from, ts_to)
+            proxy.setSourceModel(model)
+            proxy.setDynamicSortFilter(True)
+            proxy.setSortRole(Qt.DisplayRole)
 
-        self.table_history.setModel(proxy)
-        self.table_history.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.table_history.setSortingEnabled(True)
-        self.table_history.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
-        self.table_history.resizeColumnsToContents()
+            self.table_history.setModel(proxy)
+            self.table_history.setSelectionBehavior(QAbstractItemView.SelectRows)
+            self.table_history.setSortingEnabled(True)
+            self.table_history.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
+            self.table_history.resizeColumnsToContents()
 
-        self.refresh_balance()
+            self.refresh_balance()
 
     def start_progress(self):
         def progressing(value, maximum):
@@ -100,34 +101,59 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         self.table_history.resizeColumnsToContents()
 
     def refresh_balance(self):
-        # if referential is "units"
-        if self.app.current_account._current_ref == 0:
-            self.label_balance.show()
-            self.label_deposit.show()
-            self.label_payment.show()
+        if self.app.preferences['expert_mode']:
+            # if referential is "units"
+            if self.app.current_account._current_ref == 0:
+                self.label_balance.show()
+                self.label_deposit.show()
+                self.label_payment.show()
+            else:
+                self.label_balance.hide()
+                self.label_deposit.hide()
+                self.label_payment.hide()
+
+            proxy = self.table_history.model()
+            balance = proxy.deposits - proxy.payments
+            localized_deposits = self.app.current_account.current_ref(proxy.deposits, self.community, self.app).diff_localized()
+            localized_payments = self.app.current_account.current_ref(proxy.payments, self.community, self.app).diff_localized()
+            localized_balance = self.app.current_account.current_ref(balance, self.community, self.app).diff_localized()
+
+            self.label_deposit.setText(QCoreApplication.translate("TransactionsTabWidget", "<b>Deposits</b> {:} {:}").format(
+                localized_deposits,
+                self.app.current_account.current_ref.units(self.community.short_currency)
+            ))
+            self.label_payment.setText(QCoreApplication.translate("TransactionsTabWidget", "<b>Payments</b> {:} {:}").format(
+                localized_payments,
+                self.app.current_account.current_ref.units(self.community.short_currency)
+            ))
+            self.label_balance.setText(QCoreApplication.translate("TransactionsTabWidget", "<b>Balance</b> {:} {:}").format(
+                localized_balance,
+                self.app.current_account.current_ref.units(self.community.short_currency)
+            ))
+
         else:
-            self.label_balance.hide()
-            self.label_deposit.hide()
-            self.label_payment.hide()
+            amount = self.account.amount(self.community)
+            maximum = self.community.monetary_mass
+            # if referential type is quantitative...
+                # display int values
+            localized_amount = self.account.current_ref(amount, self.community, self.app).localized(units=True)
+            localized_minimum = self.account.current_ref(0, self.community, self.app).localized(units=True)
+            localized_maximum = self.account.current_ref(maximum, self.community, self.app).localized(units=True)
 
-        proxy = self.table_history.model()
-        balance = proxy.deposits - proxy.payments
-        localized_deposits = self.app.current_account.current_ref(proxy.deposits, self.community, self.app).diff_localized()
-        localized_payments = self.app.current_account.current_ref(proxy.payments, self.community, self.app).diff_localized()
-        localized_balance = self.app.current_account.current_ref(balance, self.community, self.app).diff_localized()
-
-        self.label_deposit.setText(QCoreApplication.translate("TransactionsTabWidget", "<b>Deposits</b> {:} {:}").format(
-            localized_deposits,
-            self.app.current_account.current_ref.units(self.community.short_currency)
-        ))
-        self.label_payment.setText(QCoreApplication.translate("TransactionsTabWidget", "<b>Payments</b> {:} {:}").format(
-            localized_payments,
-            self.app.current_account.current_ref.units(self.community.short_currency)
-        ))
-        self.label_balance.setText(QCoreApplication.translate("TransactionsTabWidget", "<b>Balance</b> {:} {:}").format(
-            localized_balance,
-            self.app.current_account.current_ref.units(self.community.short_currency)
-        ))
+            # set infos in label
+            self.label_balance.setText(
+                self.tr("{:}")
+                .format(
+                    localized_amount
+                )
+            )
+            self.label_balance_range.setText(
+                self.tr("in [{:} ; {:}]")
+                .format(
+                    localized_minimum,
+                    localized_maximum
+                )
+            )
 
     def history_context_menu(self, point):
         index = self.table_history.indexAt(point)
