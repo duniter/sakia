@@ -4,7 +4,7 @@ Created on 31 janv. 2015
 @author: vit
 """
 
-from PyQt5.QtWidgets import QWidget, QFrame, QGridLayout, QLayout
+from PyQt5.QtWidgets import QWidget, QFrame, QGridLayout, QAction
 from PyQt5.QtCore import QEvent, Qt, pyqtSlot, pyqtSignal
 from ..gen_resources.homescreen_uic import Ui_HomescreenWidget
 from .community_tile import CommunityTile
@@ -58,7 +58,14 @@ class HomeScreenWidget(QWidget, Ui_HomescreenWidget):
         self.layout().addWidget(self.frame_communities)
 
     def refresh(self):
-        self.frame_communities.refresh(self.app)
+        if self.app.current_account:
+            self.frame_connected.show()
+            self.label_connected.setText(self.tr("Connected as {0}".format(self.app.current_account.name)))
+            self.frame_disconnected.hide()
+            self.frame_communities.refresh(self.app)
+        else:
+            self.frame_disconnected.show()
+            self.frame_connected.hide()
 
     def changeEvent(self, event):
         """

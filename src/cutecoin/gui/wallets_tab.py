@@ -39,11 +39,9 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
 
     def change_account(self, account):
         self.account = account
-        self.account.inner_data_changed.connect(self.refresh_informations_frame)
 
     def change_community(self, community):
         self.community = community
-        self.community.inner_data_changed.connect(self.refresh_informations_frame)
 
     def refresh(self):
         if self.community:

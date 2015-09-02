@@ -61,9 +61,12 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
 
     def change_account(self, account):
         self.account = account
-        self.account.membership_broadcasted.connect(self.handle_membership_broadcasted)
-        self.account.revoke_broadcasted.connect(self.handle_revoke_broadcasted)
-        self.account.selfcert_broadcasted.connect(self.handle_selfcert_broadcasted)
+        if self.account is not None:
+            self.account.membership_broadcasted.connect(self.handle_membership_broadcasted)
+            self.account.revoke_broadcasted.connect(self.handle_revoke_broadcasted)
+            self.account.selfcert_broadcasted.connect(self.handle_selfcert_broadcasted)
+        else:
+            self.community = None
 
     def change_community(self, community):
         self.community = community

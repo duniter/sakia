@@ -67,6 +67,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.homescreen = HomeScreenWidget(self.app)
         self.homescreen.frame_communities.community_tile_clicked.connect(self.change_community)
+        self.homescreen.toolbutton_new_account.addAction(self.action_add_account)
+        self.homescreen.toolbutton_new_account.addAction(self.action_import)
+        self.homescreen.button_disconnect.clicked.connect(lambda :self.action_change_account(""))
         self.centralWidget().layout().addWidget(self.homescreen)
 
         self.community_view = CommunityWidget(self.app, self.status_label)
@@ -238,14 +241,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def refresh_accounts(self):
         self.menu_change_account.clear()
-        signal_mapper = QSignalMapper(self)
-
         for account_name in sorted(self.app.accounts.keys()):
             action = QAction(account_name, self)
+            action.triggered.connect(lambda checked, account_name=account_name: self.action_change_account(account_name))
             self.menu_change_account.addAction(action)
-            signal_mapper.setMapping(action, account_name)
-            action.triggered.connect(signal_mapper.map)
-            signal_mapper.mapped[str].connect(self.action_change_account)
+            self.homescreen.toolbutton_connect.addAction(action)
 
     def refresh_contacts(self):
         self.menu_contacts_list.clear()
