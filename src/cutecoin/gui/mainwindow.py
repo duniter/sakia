@@ -66,10 +66,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.homescreen = HomeScreenWidget(self.app)
         self.centralWidget().layout().addWidget(self.homescreen)
-        self.homescreen.button_new.clicked.connect(self.open_add_account_dialog)
-        self.homescreen.button_import.clicked.connect(self.import_account)
-        self.open_ucoin_info = lambda: QDesktopServices.openUrl(QUrl("http://ucoin.io/theoretical/"))
-        self.homescreen.button_info.clicked.connect(self.open_ucoin_info)
 
     def startup(self):
         self.update_time()
@@ -281,10 +277,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
         logging.debug("Refresh started")
         self.refresh_accounts()
+        self.homescreen.show()
+        self.currencies_tabwidget.hide()
+        self.homescreen.refresh()
 
         if self.app.current_account is None:
-            self.currencies_tabwidget.hide()
-            self.homescreen.show()
             self.setWindowTitle(self.tr("CuteCoin {0}").format(__version__))
             self.menu_account.setEnabled(False)
             self.action_configure_parameters.setEnabled(False)
@@ -293,10 +290,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.status_label.setText(self.tr(""))
             self.password_asker = None
         else:
-            logging.debug("Show currencies loading")
-            self.currencies_tabwidget.show()
-            logging.debug("Hide homescreen")
-            self.homescreen.hide()
             self.password_asker = PasswordAskerDialog(self.app.current_account)
 
             self.combo_referential.blockSignals(True)

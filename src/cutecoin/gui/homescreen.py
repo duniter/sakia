@@ -4,14 +4,33 @@ Created on 31 janv. 2015
 @author: vit
 """
 
-from PyQt5.QtWidgets import QWidget
-from PyQt5.QtCore import QEvent
-from ..gen_resources.homescreen_uic import Ui_HomeScreenWidget
-from ..__init__ import __version__
-from . import toast
+from PyQt5.QtWidgets import QWidget, QFrame, QGridLayout, QLayout
+from PyQt5.QtCore import QEvent, Qt
+from ..gen_resources.homescreen_uic import Ui_HomescreenWidget
+from .community_tile import CommunityTile
 
 
-class HomeScreenWidget(QWidget, Ui_HomeScreenWidget):
+class FrameCommunities(QFrame):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.grid_layout = QGridLayout()
+        self.setLayout(self.grid_layout)
+        self.grid_layout.setAlignment(Qt.AlignLeft | Qt.AlignTop)
+        self.setFrameShape(QFrame.StyledPanel)
+        self.setFrameShadow(QFrame.Raised)
+
+    def sizeHint(self):
+        return self.parentWidget().size()
+
+    def refresh(self, app):
+        for i in reversed(range(self.grid_layout.count())):
+            self.grid_layout.itemAt(i).widget().setParent(None)
+
+        for c in app.current_account.communities:
+            self.layout().addWidget(CommunityTile(self, app, c))
+
+
+class HomeScreenWidget(QWidget, Ui_HomescreenWidget):
     """
     classdocs
     """
@@ -23,26 +42,11 @@ class HomeScreenWidget(QWidget, Ui_HomeScreenWidget):
         super().__init__()
         self.setupUi(self)
         self.app = app
-        self.refresh_text()
-        self.app.version_requested.connect(self.refresh_text)
+        self.frame_communities = FrameCommunities(self)
+        self.layout().addWidget(self.frame_communities)
 
-    def refresh_text(self):
-        latest = self.app.available_version
-        version_info = ""
-        version_url = ""
-        if not latest[0]:
-            version_info = self.tr("Please get the latest release {version}") \
-                            .format(version=latest[1])
-            version_url = latest[2]
-
-        self.label_welcome.setText(
-            self.tr("""
-            <h1>Welcome to Cutecoin {version}</h1>
-            <h2>{version_info}</h2>
-            <h3><a href={version_url}>Download link</a></h3>
-            """).format(version=latest[1],
-                       version_info=version_info,
-                       version_url=version_url))
+    def refresh(self):
+        self.frame_communities.refresh(self.app)
 
     def changeEvent(self, event):
         """
