@@ -72,6 +72,7 @@ class Node(QObject):
         def handle_reply(reply):
             if reply.error() == QNetworkReply.NoError:
                 strdata = bytes(reply.readAll()).decode('utf-8')
+                logging.debug(strdata)
                 nonlocal peer_data
                 peer_data = json.loads(strdata)
                 future_reply.set_result(True)

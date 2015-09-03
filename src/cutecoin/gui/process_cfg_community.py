@@ -45,10 +45,10 @@ class StepPageInit(Step):
         self.node = yield from Node.from_address(self.config_dialog.app.network_manager, None, server, port)
         if self.node:
             self.config_dialog.button_next.setEnabled(True)
-            self.config_dialog.button_check_node.setText("Ok !")
+            self.config_dialog.button_checknode.setText("Ok !")
         else:
             self.config_dialog.button_next.setEnabled(False)
-            self.config_dialog.button_check_node.setText("Could not connect.")
+            self.config_dialog.button_checknode.setText("Could not connect.")
 
     @pyqtSlot()
     def check_node(self):
