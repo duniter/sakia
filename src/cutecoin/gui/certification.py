@@ -16,7 +16,7 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
     classdocs
     """
 
-    def __init__(self, certifier, app, password_asker):
+    def __init__(self, app, certifier, password_asker):
         """
         Constructor
         """

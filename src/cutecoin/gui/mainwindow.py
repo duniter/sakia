@@ -149,7 +149,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.community_view.tab_history.table_history.model().sourceModel().refresh_transfers()
 
     def open_certification_dialog(self):
-        dialog = CertificationDialog(self.app.current_account,
+        dialog = CertificationDialog(self.app,
+                                     self.app.current_account,
                                      self.password_asker)
         dialog.exec_()
 
@@ -231,11 +232,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 version_info=version_info,
                 version_url=version_url))
 
-    def refresh_wallets(self):
-        currency_tab = self.community_view
-        if currency_tab:
-            currency_tab.refresh_wallets()
-
     @pyqtSlot(Community)
     def change_community(self, community):
         if self.community_view.community:
@@ -312,7 +308,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.setWindowTitle(self.tr("CuteCoin {0} - Account : {1}").format(__version__,
                                                                                self.app.current_account.name))
 
-        self.refresh_wallets()
         self.refresh_contacts()
 
     def import_account(self):

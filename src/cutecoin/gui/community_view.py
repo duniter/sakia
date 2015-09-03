@@ -13,14 +13,11 @@ from PyQt5.QtGui import QIcon
 from ..core.net.api import bma as qtbma
 from .wot_tab import WotTabWidget
 from .identities_tab import IdentitiesTabWidget
-from .wallets_tab import WalletsTabWidget
 from .transactions_tab import TransactionsTabWidget
 from .network_tab import NetworkTabWidget
-from .informations_tab import InformationsTabWidget
 from . import toast
 import asyncio
-from ..tools.exceptions import MembershipNotFoundError, NoPeerAvailable
-from ..core.registry import IdentitiesRegistry
+from ..tools.exceptions import MembershipNotFoundError, LookupFailureError
 from ..gen_resources.community_view_uic import Ui_CommunityWidget
 
 
@@ -52,8 +49,6 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.tab_wot = WotTabWidget(self.app)
 
         self.tab_identities = IdentitiesTabWidget(self.app)
-
-        self.tab_wallets = WalletsTabWidget(self.app)
 
         self.tab_history = TransactionsTabWidget(self.app)
 
@@ -96,6 +91,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
             community.inner_data_changed.connect(self.refresh_status)
             self.label_currency.setText(community.currency)
         self.community = community
+        self.refresh_quality_buttons()
 
     @pyqtSlot(str)
     def display_error(self, error):
@@ -143,17 +139,13 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.tab_history.start_progress()
         self.refresh_data()
 
-    def refresh_wallets(self):
-        if self.tab_wallets:
-            self.tab_wallets.refresh()
+    def refresh_quality_buttons(self):
+        pass
 
     def refresh_data(self):
         """
         Refresh data when the blockchain watcher finished handling datas
         """
-        if self.tab_wallets:
-            self.tab_wallets.refresh()
-
         self.tab_history.refresh_balance()
         self.refresh_status()
 
@@ -190,6 +182,28 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
 
             self.status_label.setText(label_text)
 
+    def refresh_quality_buttons(self):
+        if self.account and self.community:
+            try:
+                if self.account.identity(self.community).published_uid(self.community):
+                    logging.debug("UID Published")
+                    if self.account.identity(self.community).is_member(self.community):
+                        self.button_membership.setText(self.tr("Renew membership"))
+                        self.button_membership.show()
+                        self.button_certification.show()
+                    else:
+                        logging.debug("Not a member")
+                        self.button_membership.setText(self.tr("Send membership demand"))
+                        self.button_membership.show()
+                        self.button_certification.hide()
+                else:
+                    logging.debug("UID not published")
+                    self.button_membership.hide()
+                    self.button_certification.hide()
+            except LookupFailureError:
+                self.button_membership.hide()
+                self.button_certification.hide()
+
     def showEvent(self, event):
         self.refresh_status()
 
@@ -219,6 +233,44 @@ The process to join back the community later will have to be done again.""")
                 return
 
             asyncio.async(self.account.send_membership(password, self.community, 'OUT'))
+
+    def publish_uid(self):
+        reply = QMessageBox.warning(self, self.tr("Warning"),
+                             self.tr("""Are you sure ?
+Publishing your UID can be canceled by Revoke UID.""")
+.format(self.account.pubkey), QMessageBox.Ok | QMessageBox.Cancel)
+        if reply == QMessageBox.Ok:
+            password = self.password_asker.exec_()
+            if self.password_asker.result() == QDialog.Rejected:
+                return
+
+            try:
+                self.account.send_selfcert(password, self.community)
+                toast.display(self.tr("UID Publishing"),
+                              self.tr("Success publishing your UID"))
+            except ValueError as e:
+                QMessageBox.critical(self, self.tr("Publish UID error"),
+                                  str(e))
+            except NoPeerAvailable as e:
+                QMessageBox.critical(self, self.tr("Network error"),
+                                     self.tr("Couldn't connect to network : {0}").format(e),
+                                     QMessageBox.Ok)
+            except Exception as e:
+                 QMessageBox.critical(self, self.tr("Error"),
+                                      "{0}".format(e),
+                                      QMessageBox.Ok)
+
+    def revoke_uid(self):
+        reply = QMessageBox.warning(self, self.tr("Warning"),
+                                 self.tr("""Are you sure ?
+Revoking your UID can only success if it is not already validated by the network.""")
+.format(self.account.pubkey), QMessageBox.Ok | QMessageBox.Cancel)
+        if reply == QMessageBox.Ok:
+            password = self.password_asker.exec_()
+            if self.password_asker.result() == QDialog.Rejected:
+                return
+
+            asyncio.async(self.account.revoke(password, self.community))
 
     def handle_membership_broadcasted(self):
         if self.app.preferences['notifications']:
