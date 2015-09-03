@@ -63,11 +63,11 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                                  QIcon(':/icons/tx_icon'),
                                 self.tr("Transactions"))
 
-        self.tabs.addTab(self.tab_identities,
+        self.tabs.addTab(self.tab_wot,
                          QIcon(':/icons/wot_icon'),
                          self.tr("Web of Trust"))
 
-        self.tabs.addTab(self.tab_wot,
+        self.tabs.addTab(self.tab_identities,
                          QIcon(':/icons/members_icon'),
                          self.tr("Search Identities"))
 
@@ -81,15 +81,21 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.tab_identities.change_account(account)
 
     def change_community(self, community):
-        self.community = community
         self.tab_network.change_community(community)
         self.tab_wot.change_community(community)
         self.tab_history.change_community(community)
         self.tab_identities.change_community(community)
 
-        self.community.network.new_block_mined.connect(self.refresh_block)
-        self.community.network.nodes_changed.connect(self.refresh_status)
-        self.community.inner_data_changed.connect(self.refresh_status)
+        if self.community:
+            self.community.network.new_block_mined.disconnect(self.refresh_block)
+            self.community.network.nodes_changed.disconnect(self.refresh_status)
+            self.community.inner_data_changed.disconnect(self.refresh_status)
+        if community:
+            community.network.new_block_mined.connect(self.refresh_block)
+            community.network.nodes_changed.connect(self.refresh_status)
+            community.inner_data_changed.connect(self.refresh_status)
+            self.label_currency.setText(community.currency)
+        self.community = community
 
     @pyqtSlot(str)
     def display_error(self, error):
@@ -188,7 +194,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.refresh_status()
 
     def referential_changed(self):
-        if self.tab_history.table_history.model():
+        if self.community and self.tab_history.table_history.model():
             self.tab_history.table_history.model().dataChanged.emit(
                                                      QModelIndex(),
                                                      QModelIndex(),

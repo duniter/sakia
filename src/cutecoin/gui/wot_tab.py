@@ -52,9 +52,12 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         self.account = account
 
     def change_community(self, community):
+        if self.community:
+            self.community.network.new_block_mined.disconnect(self.refresh)
+        if community:
+            community.network.new_block_mined.connect(self.refresh)
         self.community = community
         self.reset()
-        self.community.network.new_block_mined.connect(self.refresh)
 
     def refresh_informations_frame(self):
         parameters = self.community.parameters

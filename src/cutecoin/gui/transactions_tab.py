@@ -35,9 +35,12 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         self.refresh()
 
     def change_community(self, community):
+        if self.community:
+            self.community.inner_data_changed.disconnect(self.refresh_minimum_maximum)
+        if community:
+            community.inner_data_changed.connect(self.refresh_minimum_maximum)
         self.community = community
         self.refresh()
-        self.community.inner_data_changed.connect(self.refresh_minimum_maximum)
 
     def refresh_minimum_maximum(self):
         block = self.community.get_block(1)

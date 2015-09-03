@@ -71,8 +71,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.homescreen.toolbutton_new_account.addAction(self.action_import)
         self.homescreen.button_disconnect.clicked.connect(lambda :self.action_change_account(""))
         self.centralWidget().layout().addWidget(self.homescreen)
+        self.homescreen.toolbutton_connect.setMenu(self.menu_change_account)
 
         self.community_view = CommunityWidget(self.app, self.status_label)
+        self.community_view.button_home.clicked.connect(lambda: self.change_community(None))
         self.community_view.button_certification.clicked.connect(self.open_certification_dialog)
         self.community_view.button_send_money.clicked.connect(self.open_transfer_money_dialog)
         self.centralWidget().layout().addWidget(self.community_view)
@@ -236,9 +238,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @pyqtSlot(Community)
     def change_community(self, community):
-        logging.debug("Change on tile")
-        self.homescreen.hide()
-        self.community_view.show()
+        if self.community_view.community:
+            self.community_view.community.stop_coroutines()
+
+        if community:
+            self.homescreen.hide()
+            self.community_view.show()
+        else:
+            self.homescreen.show()
+            self.community_view.hide()
+
         self.community_view.change_community(community)
 
     def refresh_accounts(self):
@@ -247,7 +256,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             action = QAction(account_name, self)
             action.triggered.connect(lambda checked, account_name=account_name: self.action_change_account(account_name))
             self.menu_change_account.addAction(action)
-            self.homescreen.toolbutton_connect.addAction(action)
 
     def refresh_contacts(self):
         self.menu_contacts_list.clear()
@@ -275,9 +283,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if self.app.current_account is None:
             self.setWindowTitle(self.tr("CuteCoin {0}").format(__version__))
-            self.menu_account.setEnabled(False)
+            self.action_add_a_contact.setEnabled(False)
+            self.actionCertification.setEnabled(False)
+            self.actionTransfer_money.setEnabled(False)
             self.action_configure_parameters.setEnabled(False)
             self.action_set_as_default.setEnabled(False)
+            self.menu_contacts_list.setEnabled(False)
             self.combo_referential.setEnabled(False)
             self.status_label.setText(self.tr(""))
             self.password_asker = None
@@ -293,7 +304,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.combo_referential.blockSignals(False)
             logging.debug(self.app.preferences)
             self.combo_referential.setCurrentIndex(self.app.preferences['ref'])
-            self.menu_account.setEnabled(True)
+            self.action_add_a_contact.setEnabled(True)
+            self.actionCertification.setEnabled(True)
+            self.actionTransfer_money.setEnabled(True)
+            self.menu_contacts_list.setEnabled(True)
             self.action_configure_parameters.setEnabled(True)
             self.setWindowTitle(self.tr("CuteCoin {0} - Account : {1}").format(__version__,
                                                                                self.app.current_account.name))

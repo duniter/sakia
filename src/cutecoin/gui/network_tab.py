@@ -41,9 +41,13 @@ class NetworkTabWidget(QWidget, Ui_NetworkTabWidget):
         self.table_network.resizeColumnsToContents()
 
     def change_community(self, community):
+        if community:
+            community.network.nodes_changed.connect(self.refresh_nodes)
+        if self.community:
+            self.community.network.nodes_changed.disconnect(self.refresh_nodes)
+
         self.community = community
         self.table_network.model().change_community(community)
-        community.network.nodes_changed.connect(self.refresh_nodes)
 
     @pyqtSlot()
     def refresh_nodes(self):
