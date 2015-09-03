@@ -1,6 +1,7 @@
 
 _application_ = []
 
+
 def get_application():
     """Get the singleton QApplication"""
     from PyQt5.QtWidgets import QApplication

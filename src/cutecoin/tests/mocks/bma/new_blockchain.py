@@ -83,7 +83,7 @@ bma_peering = b"""{
 def get_mock():
     # Assume a running server
     # Initialise the mock client and clear all responses
-    mock = HTTPMock('localhost', 50000)
+    mock = HTTPMock('127.0.0.1', 50000)
 
     mock.when('GET /network/peering')\
         .reply(body=bma_peering,

@@ -52,6 +52,7 @@ class StepPageInit(Step):
 
     @pyqtSlot()
     def check_node(self):
+        logging.debug("Check node")
         asyncio.async(self.coroutine_check_node())
 
     def is_valid(self):
