@@ -154,25 +154,6 @@ class WalletsTabWidget(QWidget, Ui_WalletsTab):
             currency_tab = self.window().currencies_tabwidget.currentWidget()
             currency_tab.tab_history.table_history.model().sourceModel().refresh_transfers()
 
-    def send_membership_demand(self):
-        password = self.password_asker.exec_()
-        if self.password_asker.result() == QDialog.Rejected:
-            return
-        asyncio.async(self.account.send_membership(password, self.community, 'IN'))
-
-    def send_membership_leaving(self):
-        reply = QMessageBox.warning(self, self.tr("Warning"),
-                             self.tr("""Are you sure ?
-Sending a leaving demand  cannot be canceled.
-The process to join back the community later will have to be done again.""")
-.format(self.account.pubkey), QMessageBox.Ok | QMessageBox.Cancel)
-        if reply == QMessageBox.Ok:
-            password = self.password_asker.exec_()
-            if self.password_asker.result() == QDialog.Rejected:
-                return
-
-            asyncio.async(self.account.send_membership(password, self.community, 'OUT'))
-
     def publish_uid(self):
         reply = QMessageBox.warning(self, self.tr("Warning"),
                              self.tr("""Are you sure ?

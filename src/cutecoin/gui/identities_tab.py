@@ -61,35 +61,13 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
 
     def change_account(self, account):
         self.account = account
-        if self.account is not None:
-            self.account.membership_broadcasted.connect(self.handle_membership_broadcasted)
-            self.account.revoke_broadcasted.connect(self.handle_revoke_broadcasted)
-            self.account.selfcert_broadcasted.connect(self.handle_selfcert_broadcasted)
-        else:
+        if self.account is None:
             self.community = None
 
     def change_community(self, community):
         self.community = community
         self.table_identities.model().change_community(community)
         self.account.identity(self.community).inner_data_changed.connect(self.handle_account_identity_change)
-
-    def handle_membership_broadcasted(self):
-        if self.app.preferences['notifications']:
-            toast.display(self.tr("Membership"), self.tr("Success sending Membership demand"))
-        else:
-            QMessageBox.information(self, self.tr("Membership"), self.tr("Success sending Membership demand"))
-
-    def handle_revoke_broadcasted(self):
-        if self.app.preferences['notifications']:
-            toast.display(self.tr("Revoke"), self.tr("Success sending Revoke demand"))
-        else:
-            QMessageBox.information(self, self.tr("Revoke"), self.tr("Success sending Revoke demand"))
-
-    def handle_selfcert_broadcasted(self):
-        if self.app.preferences['notifications']:
-            toast.display(self.tr("Self Certification"), self.tr("Success sending Self Certification document"))
-        else:
-            QMessageBox.information(self.tr("Self Certification"), self.tr("Success sending Self Certification document"))
 
     def identity_context_menu(self, point):
         index = self.table_identities.indexAt(point)

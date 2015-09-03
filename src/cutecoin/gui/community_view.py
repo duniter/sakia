@@ -6,7 +6,7 @@ Created on 2 févr. 2014
 
 import time
 import logging
-from PyQt5.QtWidgets import QWidget, QMessageBox
+from PyQt5.QtWidgets import QWidget, QMessageBox, QDialog
 from PyQt5.QtCore import QModelIndex, pyqtSlot, QDateTime, QLocale, QEvent
 from PyQt5.QtGui import QIcon
 
@@ -22,6 +22,7 @@ import asyncio
 from ..tools.exceptions import MembershipNotFoundError, NoPeerAvailable
 from ..core.registry import IdentitiesRegistry
 from ..gen_resources.community_view_uic import Ui_CommunityWidget
+
 
 class CommunityWidget(QWidget, Ui_CommunityWidget):
 
@@ -193,6 +194,43 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                                                      QModelIndex(),
                                                      [])
             self.tab_history.refresh_balance()
+
+    def send_membership_demand(self):
+        password = self.password_asker.exec_()
+        if self.password_asker.result() == QDialog.Rejected:
+            return
+        asyncio.async(self.account.send_membership(password, self.community, 'IN'))
+
+    def send_membership_leaving(self):
+        reply = QMessageBox.warning(self, self.tr("Warning"),
+                             self.tr("""Are you sure ?
+Sending a leaving demand  cannot be canceled.
+The process to join back the community later will have to be done again.""")
+.format(self.account.pubkey), QMessageBox.Ok | QMessageBox.Cancel)
+        if reply == QMessageBox.Ok:
+            password = self.password_asker.exec_()
+            if self.password_asker.result() == QDialog.Rejected:
+                return
+
+            asyncio.async(self.account.send_membership(password, self.community, 'OUT'))
+
+    def handle_membership_broadcasted(self):
+        if self.app.preferences['notifications']:
+            toast.display(self.tr("Membership"), self.tr("Success sending Membership demand"))
+        else:
+            QMessageBox.information(self, self.tr("Membership"), self.tr("Success sending Membership demand"))
+
+    def handle_revoke_broadcasted(self):
+        if self.app.preferences['notifications']:
+            toast.display(self.tr("Revoke"), self.tr("Success sending Revoke demand"))
+        else:
+            QMessageBox.information(self, self.tr("Revoke"), self.tr("Success sending Revoke demand"))
+
+    def handle_selfcert_broadcasted(self):
+        if self.app.preferences['notifications']:
+            toast.display(self.tr("Self Certification"), self.tr("Success sending Self Certification document"))
+        else:
+            QMessageBox.information(self.tr("Self Certification"), self.tr("Success sending Self Certification document"))
 
     def changeEvent(self, event):
         """

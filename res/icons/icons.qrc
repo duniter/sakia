@@ -1,5 +1,8 @@
 <RCC>
   <qresource prefix="icons">
+    <file alias="payment_icon">noun_178785_cc.svg</file>
+    <file alias="renew_membership">noun_155533_cc.svg</file>
+    <file alias="certification_icon">noun_41979_cc.svg</file>
     <file alias="logout">noun_19900_cc.svg</file>
     <file alias="add_community">noun_139613_cc.svg</file>
     <file alias="connect_icon">noun_152997_cc.svg</file>

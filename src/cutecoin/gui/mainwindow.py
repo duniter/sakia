@@ -73,6 +73,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.centralWidget().layout().addWidget(self.homescreen)
 
         self.community_view = CommunityWidget(self.app, self.status_label)
+        self.community_view.button_certification.clicked.connect(self.open_certification_dialog)
+        self.community_view.button_send_money.clicked.connect(self.open_transfer_money_dialog)
         self.centralWidget().layout().addWidget(self.community_view)
 
     def startup(self):
@@ -137,12 +139,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.refresh()
 
     def open_transfer_money_dialog(self):
-        dialog = TransferMoneyDialog(self.app, self.app.current_account,
+        dialog = TransferMoneyDialog(self.app,
+                                     self.app.current_account,
                                      self.password_asker)
         dialog.accepted.connect(self.refresh_wallets)
         if dialog.exec_() == QDialog.Accepted:
-            currency_tab = self.community_view
-            currency_tab.tab_history.table_history.model().sourceModel().refresh_transfers()
+            self.community_view.tab_history.table_history.model().sourceModel().refresh_transfers()
 
     def open_certification_dialog(self):
         dialog = CertificationDialog(self.app.current_account,
