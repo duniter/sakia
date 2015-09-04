@@ -51,7 +51,7 @@ class ProcessAddCommunity(unittest.TestCase):
             self.assertEqual(self.process_community.lineedit_server.text(), "127.0.0.1")
             self.assertEqual(self.process_community.spinbox_port.value(), 50000)
             QTest.mouseClick(self.process_community.button_checknode, Qt.LeftButton)
-            yield from asyncio.sleep(3000)
+            yield from asyncio.sleep(3)
             self.assertEqual(self.process_community.button_checknode.text(), "Ok !")
             self.assertEqual(mock.get_request(0).method, 'GET')
             self.assertEqual(mock.get_request(0).url, '/network/peering')

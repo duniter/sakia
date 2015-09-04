@@ -123,16 +123,10 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         self.community = self.account.communities[index]
         self.dividend = self.community.dividend
         amount = self.wallet.value(self.community)
-        ref_amount = self.account.units_to_ref(amount, self.community)
-        ref_name = self.account.ref_name(self.community.currency)
-        # if referential type is quantitative...
-        if self.account.ref_type() == 'q':
-            # display int values
-            ref_amount = QLocale().toString(float(ref_amount), 'f', 0)
-        else:
-            # display float values
-            ref_amount = QLocale().toString(float(ref_amount), 'f', 6)
-        self.label_total.setText("{0} {1}".format(ref_amount, ref_name))
+
+        ref_text = self.account.current_ref(amount, self.community, self.app)\
+            .diff_localized(units=True, international_system=self.app.preferences['international_system_of_units'])
+        self.label_total.setText("{0}".format(ref_text))
         self.spinbox_amount.setSuffix(" " + self.community.currency)
         self.spinbox_amount.setValue(0)
         amount = self.wallet.value(self.community)
@@ -143,16 +137,9 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
     def change_displayed_wallet(self, index):
         self.wallet = self.account.wallets[index]
         amount = self.wallet.value(self.community)
-        ref_amount = self.account.units_to_ref(amount, self.community)
-        ref_name = self.account.ref_name(self.community.currency)
-        # if referential type is quantitative...
-        if self.account.ref_type() == 'q':
-            # display int values
-            ref_amount = QLocale().toString(float(ref_amount), 'f', 0)
-        else:
-            # display float values
-            ref_amount = QLocale().toString(float(ref_amount), 'f', 6)
-        self.label_total.setText("{0} {1}".format(ref_amount, ref_name))
+        ref_text = self.account.current_ref(amount, self.community, self.app)\
+            .diff_localized(units=True, international_system=self.app.preferences['international_system_of_units'])
+        self.label_total.setText("{0}".format(ref_text))
         self.spinbox_amount.setValue(0)
         amount = self.wallet.value(self.community)
         relative = amount / self.dividend

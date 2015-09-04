@@ -251,7 +251,7 @@ class Network(QObject):
         fork_windows = [n.fork_window for n in self.online_nodes if n.software != ""
                                   and n.pubkey in members_pubkeys]
         if len(fork_windows) > 0:
-            return statistics.median(fork_windows)
+            return int(statistics.median(fork_windows))
         else:
             return 0
 

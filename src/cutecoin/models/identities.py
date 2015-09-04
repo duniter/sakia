@@ -21,6 +21,10 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
         self.community = sourceModel.community
         super().setSourceModel(sourceModel)
 
+    def change_community(self, community):
+        self.community = community
+        self.sourceModel().change_community(community)
+
     def lessThan(self, left, right):
         """
         Sort table by given column number.
@@ -73,12 +77,12 @@ class IdentitiesTableModel(QAbstractTableModel):
     A Qt abstract item model to display communities in a tree
     """
 
-    def __init__(self, community, parent=None):
+    def __init__(self, parent=None):
         """
         Constructor
         """
         super().__init__(parent)
-        self.community = community
+        self.community = None
         self.columns_titles = {'uid': self.tr('UID'),
                                'pubkey': self.tr('Pubkey'),
                                'renewed': self.tr('Renewed'),
@@ -88,6 +92,9 @@ class IdentitiesTableModel(QAbstractTableModel):
         self.identities_data = []
         self._identities = []
         self._refresh_slots = []
+
+    def change_community(self, community):
+        self.community = community
 
     @property
     def pubkeys(self):

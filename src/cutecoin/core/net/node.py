@@ -72,7 +72,6 @@ class Node(QObject):
         def handle_reply(reply):
             if reply.error() == QNetworkReply.NoError:
                 strdata = bytes(reply.readAll()).decode('utf-8')
-                logging.debug(strdata)
                 nonlocal peer_data
                 peer_data = json.loads(strdata)
                 future_reply.set_result(True)
@@ -95,7 +94,7 @@ class Node(QObject):
 
             node = cls(network_manager, peer.currency,
                        [Endpoint.from_inline(e.inline()) for e in peer.endpoints],
-                       "", peer.pubkey, 0, qtbma.blockchain.Block.null_value, time.time(),
+                       "", peer.pubkey, qtbma.blockchain.Block.null_value, Node.ONLINE, time.time(),
                        {'root': "", 'leaves': []}, "", "", 0)
             logging.debug("Node from address : {:}".format(str(node)))
             return node
@@ -470,5 +469,5 @@ class Node(QObject):
             self.changed.emit()
 
     def __str__(self):
-        return ','.join([str(self.pubkey), str(self.endpoint.server), str(self.endpoint.port), str(self.block['number']),
+        return ','.join([str(self.pubkey), str(self.endpoint.server), str(self.endpoint.ipv4), str(self.endpoint.port), str(self.block['number']),
                          str(self.currency), str(self.state), str(self.neighbours)])

@@ -20,27 +20,34 @@ class NetworkTabWidget(QWidget, Ui_NetworkTabWidget):
     classdocs
     """
 
-    def __init__(self, app, community):
+    def __init__(self, app):
         """
         Constructore of a network tab.
 
         :param cutecoin.core.Application app: The application
-        :param cutecoin.core.Community community: The community
         :return: A new network tab.
         :rtype: NetworkTabWidget
         """
         super().__init__()
         self.app = app
-        self.community = community
+        self.community = None
 
         self.setupUi(self)
-        model = NetworkTableModel(community)
+        model = NetworkTableModel(self.community)
         proxy = NetworkFilterProxyModel(self)
         proxy.setSourceModel(model)
         self.table_network.setModel(proxy)
         self.table_network.sortByColumn(0, Qt.DescendingOrder)
         self.table_network.resizeColumnsToContents()
-        community.network.nodes_changed.connect(self.refresh_nodes)
+
+    def change_community(self, community):
+        if self.community:
+            self.community.network.nodes_changed.disconnect(self.refresh_nodes)
+        if community:
+            community.network.nodes_changed.connect(self.refresh_nodes)
+
+        self.community = community
+        self.table_network.model().change_community(community)
 
     @pyqtSlot()
     def refresh_nodes(self):

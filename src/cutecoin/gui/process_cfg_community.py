@@ -9,12 +9,12 @@ import asyncio
 
 from PyQt5.QtWidgets import QDialog, QMenu, QMessageBox, QApplication
 from PyQt5.QtGui import QCursor
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, pyqtSignal
 
 from ..gen_resources.community_cfg_uic import Ui_CommunityConfigurationDialog
 from ..models.peering import PeeringTreeModel
 from ..core import Community
-from ..core.registry import Identity
+from ..core.registry.identity import BlockchainState
 from ..core.net import Node
 from . import toast
 
@@ -96,6 +96,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
     """
     Dialog to configure or add a community
     """
+    community_added = pyqtSignal()
 
     def __init__(self, app, account, community, password_asker):
         """
@@ -115,6 +116,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         self.step = None
         self.nodes = []
 
+        self.community_added.connect(self.add_community_and_close)
         step_init = StepPageInit(self)
         step_add_peers = StepPageAddpeers(self)
 
@@ -218,6 +220,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         self.account.broadcast_error.disconnect(self.handle_error)
         QApplication.restoreOverrideCursor()
 
+    @pyqtSlot()
     def add_community_and_close(self):
         if self.community not in self.account.communities:
             self.account.add_community(self.community)
@@ -226,7 +229,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
     @asyncio.coroutine
     def final(self):
         identity = yield from self.app.identities_registry.future_find(self.account.pubkey, self.community)
-        if identity.status == Identity.NOT_FOUND:
+        if identity.blockchain_state == BlockchainState.NOT_FOUND:
             reply = QMessageBox.question(self, self.tr("Pubkey not found"),
                                  self.tr("""The public key of your account wasn't found in the community. :\n
 {0}\n
@@ -239,6 +242,6 @@ Would you like to publish the key ?""").format(self.account.pubkey))
                 self.account.broadcast_error.connect(self.handle_error)
                 asyncio.async(self.account.send_selfcert(password, self.community))
             else:
-                self.add_community_and_close()
+                self.community_added.emit()
         else:
-            self.add_community_and_close()
+                self.community_added.emit()

@@ -8,20 +8,22 @@ from ..gen_resources.about_uic import Ui_AboutPopup
 
 from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog, QProgressBar, \
     QMessageBox, QLabel, QComboBox, QDialog, QApplication
-from PyQt5.QtCore import QSignalMapper, QObject, QLocale, QEvent, \
+from PyQt5.QtCore import QSignalMapper, pyqtSlot, QLocale, QEvent, \
     pyqtSlot, pyqtSignal, QDate, QDateTime, QTimer, QUrl, Qt, QCoreApplication
 from PyQt5.QtGui import QIcon, QDesktopServices
 
 from .process_cfg_account import ProcessConfigureAccount
 from .transfer import TransferMoneyDialog
-from .currency_tab import CurrencyTabWidget
+from .community_view import CommunityWidget
 from .contact import ConfigureContactDialog
 from .import_account import ImportAccountDialog
 from .certification import CertificationDialog
 from .password_asker import PasswordAskerDialog
 from .preferences import PreferencesDialog
+from .process_cfg_community import ProcessConfigureCommunity
 from .homescreen import HomeScreenWidget
 from ..core import money
+from ..core.community import Community
 from ..__init__ import __version__
 from . import toast
 
@@ -65,11 +67,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.statusbar.addPermanentWidget(self.combo_referential)
 
         self.homescreen = HomeScreenWidget(self.app)
+        self.homescreen.frame_communities.community_tile_clicked.connect(self.change_community)
+        self.homescreen.toolbutton_new_account.addAction(self.action_add_account)
+        self.homescreen.toolbutton_new_account.addAction(self.action_import)
+        self.homescreen.button_add_community.clicked.connect(self.action_open_add_community)
+        self.homescreen.button_disconnect.clicked.connect(lambda :self.action_change_account(""))
         self.centralWidget().layout().addWidget(self.homescreen)
-        self.homescreen.button_new.clicked.connect(self.open_add_account_dialog)
-        self.homescreen.button_import.clicked.connect(self.import_account)
-        self.open_ucoin_info = lambda: QDesktopServices.openUrl(QUrl("http://ucoin.io/theoretical/"))
-        self.homescreen.button_info.clicked.connect(self.open_ucoin_info)
+        self.homescreen.toolbutton_connect.setMenu(self.menu_change_account)
+
+        self.community_view = CommunityWidget(self.app, self.status_label)
+        self.community_view.button_home.clicked.connect(lambda: self.change_community(None))
+        self.community_view.button_certification.clicked.connect(self.open_certification_dialog)
+        self.community_view.button_send_money.clicked.connect(self.open_transfer_money_dialog)
+        self.centralWidget().layout().addWidget(self.community_view)
 
     def startup(self):
         self.update_time()
@@ -78,6 +88,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.showMaximized()
         else:
             self.show()
+        if self.app.current_account:
+            self.community_view.change_account(self.app.current_account)
         self.refresh()
 
     def open_add_account_dialog(self):
@@ -96,8 +108,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def referential_changed(self, index):
         if self.app.current_account:
             self.app.current_account.set_display_referential(index)
-            if self.currencies_tabwidget.currentWidget():
-                self.currencies_tabwidget.currentWidget().referential_changed()
+            if self.community_view:
+                self.community_view.referential_changed()
 
     @pyqtSlot()
     def update_time(self):
@@ -127,31 +139,30 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def action_change_account(self, account_name):
         self.app.change_current_account(self.app.get_account(account_name))
+        self.community_view.change_account(self.app.current_account)
         self.refresh()
 
     @pyqtSlot()
-    def loader_finished(self):
-        logging.debug("Finished loading")
-        self.refresh()
-        self.busybar.hide()
-        QApplication.setOverrideCursor(Qt.ArrowCursor)
-        try:
-            self.app.disconnect()
-        except:
-            logging.debug("Disconnect of app failed")
-
-        QApplication.processEvents()
+    def action_open_add_community(self):
+        dialog = ProcessConfigureCommunity(self.app,
+                                           self.app.current_account, None,
+                                           self.password_asker)
+        if dialog.exec_() == QDialog.Accepted:
+            self.app.save(self.app.current_account)
+            dialog.community.start_coroutines()
+            self.homescreen.refresh()
 
     def open_transfer_money_dialog(self):
-        dialog = TransferMoneyDialog(self.app, self.app.current_account,
+        dialog = TransferMoneyDialog(self.app,
+                                     self.app.current_account,
                                      self.password_asker)
         dialog.accepted.connect(self.refresh_wallets)
         if dialog.exec_() == QDialog.Accepted:
-            currency_tab = self.currencies_tabwidget.currentWidget()
-            currency_tab.tab_history.table_history.model().sourceModel().refresh_transfers()
+            self.community_view.tab_history.table_history.model().sourceModel().refresh_transfers()
 
     def open_certification_dialog(self):
-        dialog = CertificationDialog(self.app.current_account,
+        dialog = CertificationDialog(self.app,
+                                     self.app.current_account,
                                      self.password_asker)
         dialog.exec_()
 
@@ -233,33 +244,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 version_info=version_info,
                 version_url=version_url))
 
-    def refresh_wallets(self):
-        currency_tab = self.currencies_tabwidget.currentWidget()
-        if currency_tab:
-            currency_tab.refresh_wallets()
+    @pyqtSlot(Community)
+    def change_community(self, community):
+        if self.community_view.community:
+            self.community_view.community.stop_coroutines()
 
-    def refresh_communities(self):
-        logging.debug("CLEAR")
-        self.currencies_tabwidget.clear()
-        if self.app.current_account:
-            for community in self.app.current_account.communities:
-                tab_currency = CurrencyTabWidget(self.app, community,
-                                                 self.password_asker,
-                                                 self.status_label)
-                self.currencies_tabwidget.addTab(tab_currency,
-                                                 QIcon(":/icons/currency_icon"),
-                                                 community.name)
+        if community:
+            self.homescreen.hide()
+            self.community_view.show()
+        else:
+            self.homescreen.show()
+            self.community_view.hide()
+
+        self.community_view.change_community(community)
 
     def refresh_accounts(self):
         self.menu_change_account.clear()
-        signal_mapper = QSignalMapper(self)
-
         for account_name in sorted(self.app.accounts.keys()):
             action = QAction(account_name, self)
+            action.triggered.connect(lambda checked, account_name=account_name: self.action_change_account(account_name))
             self.menu_change_account.addAction(action)
-            signal_mapper.setMapping(action, account_name)
-            action.triggered.connect(signal_mapper.map)
-            signal_mapper.mapped[str].connect(self.action_change_account)
 
     def refresh_contacts(self):
         self.menu_contacts_list.clear()
@@ -281,22 +285,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
         logging.debug("Refresh started")
         self.refresh_accounts()
+        self.homescreen.show()
+        self.community_view.hide()
+        self.homescreen.refresh()
 
         if self.app.current_account is None:
-            self.currencies_tabwidget.hide()
-            self.homescreen.show()
             self.setWindowTitle(self.tr("CuteCoin {0}").format(__version__))
-            self.menu_account.setEnabled(False)
+            self.action_add_a_contact.setEnabled(False)
+            self.actionCertification.setEnabled(False)
+            self.actionTransfer_money.setEnabled(False)
             self.action_configure_parameters.setEnabled(False)
             self.action_set_as_default.setEnabled(False)
+            self.menu_contacts_list.setEnabled(False)
             self.combo_referential.setEnabled(False)
             self.status_label.setText(self.tr(""))
             self.password_asker = None
         else:
-            logging.debug("Show currencies loading")
-            self.currencies_tabwidget.show()
-            logging.debug("Hide homescreen")
-            self.homescreen.hide()
             self.password_asker = PasswordAskerDialog(self.app.current_account)
 
             self.combo_referential.blockSignals(True)
@@ -308,13 +312,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.combo_referential.blockSignals(False)
             logging.debug(self.app.preferences)
             self.combo_referential.setCurrentIndex(self.app.preferences['ref'])
-            self.menu_account.setEnabled(True)
+            self.action_add_a_contact.setEnabled(True)
+            self.actionCertification.setEnabled(True)
+            self.actionTransfer_money.setEnabled(True)
+            self.menu_contacts_list.setEnabled(True)
             self.action_configure_parameters.setEnabled(True)
             self.setWindowTitle(self.tr("CuteCoin {0} - Account : {1}").format(__version__,
                                                                                self.app.current_account.name))
 
-        self.refresh_communities()
-        self.refresh_wallets()
         self.refresh_contacts()
 
     def import_account(self):
