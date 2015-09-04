@@ -66,9 +66,14 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
 
     def change_community(self, community):
         if self.community:
-            self.account.identity(self.community).inner_data_changed.disconnect(self.handle_account_identity_change)
+            try:
+                self.account.identity(self.community).inner_data_changed.disconnect(self.handle_account_identity_change)
+            except TypeError as e:
+                if "disconnect" in str(e):
+                    logging.debug("Disconnect failed between inner_data_changed ans handle_account_identity_changed")
+                    pass
         if community:
-            self.account.identity(self.community).inner_data_changed.connect(self.handle_account_identity_change)
+            self.account.identity(community).inner_data_changed.connect(self.handle_account_identity_change)
 
         self.community = community
         self.table_identities.model().change_community(community)
