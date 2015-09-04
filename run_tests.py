@@ -3,10 +3,11 @@ import os
 import unittest
 import subprocess
 import time
+import shlex
 
 cmd = 'python -m pretenders.server.server --host 127.0.0.1 --port 50000'
 
-p = subprocess.Popen(cmd)
+p = subprocess.Popen(shlex.split(cmd))
 time.sleep(2)
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'lib')))
