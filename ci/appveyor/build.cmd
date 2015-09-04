@@ -17,6 +17,7 @@ pip install requests
 pip install base58
 pip install quamash
 pip install asyncio
+pip install git+https://github.com/Insoleet/pretenders.git@develop
 
 python gen_resources.py
 if %errorlevel% neq 0 exit /b 1s
