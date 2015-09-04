@@ -4,7 +4,7 @@ import unittest
 import subprocess
 import time
 
-cmd = 'python -m pretenders.server.server --host 0.0.0.0 --port 50000'
+cmd = 'python -m pretenders.server.server --host 127.0.0.1 --port 50000'
 
 p = subprocess.Popen(cmd)
 time.sleep(2)
