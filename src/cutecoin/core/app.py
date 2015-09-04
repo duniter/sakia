@@ -178,7 +178,8 @@ class Application(QObject):
             self.stop_current_account()
 
         self.current_account = account
-        self.current_account.start_coroutines()
+        if self.current_account is not None:
+            self.current_account.start_coroutines()
 
     def stop_current_account(self):
         """

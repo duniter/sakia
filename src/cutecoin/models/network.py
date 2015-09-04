@@ -21,6 +21,10 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
     def columnCount(self, parent):
         return self.sourceModel().columnCount(None) - 1
 
+    def change_community(self, community):
+        self.community = community
+        self.sourceModel().change_community(community)
+
     def setSourceModel(self, sourceModel):
         self.community = sourceModel.community
         super().setSourceModel(sourceModel)
@@ -123,9 +127,17 @@ class NetworkTableModel(QAbstractTableModel):
             Node.CORRUPTED: self.tr('Corrupted')
         }
 
+    def change_community(self, community):
+        self.beginResetModel()
+        self.community = community
+        self.endResetModel()
+
     @property
     def nodes(self):
-        return self.community.network.nodes
+        if self.community:
+            return self.community.network.nodes
+        else:
+            return []
 
     def rowCount(self, parent):
         return len(self.nodes)

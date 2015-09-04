@@ -57,6 +57,7 @@ install:
   - pip install base58
   - pip install quamash
   - pip install asyncio
+  - pip install git+https://github.com/Insoleet/pretenders.git@develop
   - python gen_resources.py
   - python gen_translations.py
   - python setup.py build

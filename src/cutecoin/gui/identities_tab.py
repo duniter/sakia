@@ -10,7 +10,7 @@ from PyQt5.QtGui import QIcon, QCursor
 from PyQt5.QtWidgets import QWidget, QMessageBox, QAction, QMenu, QDialog, \
                             QAbstractItemView
 from cutecoin.models.identities import IdentitiesFilterProxyModel, IdentitiesTableModel
-from ..gen_resources.community_tab_uic import Ui_CommunityTabWidget
+from ..gen_resources.identities_tab_uic import Ui_IdentitiesTab
 from cutecoin.gui.contact import ConfigureContactDialog
 from cutecoin.gui.member import MemberDialog
 from .wot_tab import WotTabWidget
@@ -21,27 +21,25 @@ import asyncio
 from ..core.net.api import bma as qtbma
 
 
-class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
+class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
 
     """
     classdocs
     """
 
-    def __init__(self, app, account, community, password_asker, parent):
+    def __init__(self, app):
         """
         Init
         :param cutecoin.core.account.Account account: Account instance
         :param cutecoin.core.community.Community community: Community instance
         :param cutecoin.gui.password_asker.PasswordAskerDialog password_asker: Password asker dialog
-        :param cutecoin.gui.currency_tab.CurrencyTabWidget parent: TabWidget instance
         :return:
         """
         super().__init__()
-        self.parent = parent
         self.app = app
-        self.community = community
-        self.account = account
-        self.password_asker = password_asker
+        self.community = None
+        self.account = None
+        self.password_asker = None
 
         self.setupUi(self)
 
@@ -54,8 +52,6 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         self.table_identities.sortByColumn(0, Qt.AscendingOrder)
         self.table_identities.resizeColumnsToContents()
 
-        self.wot_tab = WotTabWidget(self.app, self.account, self.community, self.password_asker, self)
-        self.tabs_information.addTab(self.wot_tab, QIcon(':/icons/wot_icon'), self.tr("Web of Trust"))
         members_action = QAction(self.tr("Members"), self)
         members_action.triggered.connect(self.search_members)
         self.button_search.addAction(members_action)
@@ -63,29 +59,24 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         direct_connections.triggered.connect(self.search_direct_connections)
         self.button_search.addAction(direct_connections)
 
-        self.account.identity(self.community).inner_data_changed.connect(self.handle_account_identity_change)
-        self.search_direct_connections()
-        self.account.membership_broadcasted.connect(self.handle_membership_broadcasted)
-        self.account.revoke_broadcasted.connect(self.handle_revoke_broadcasted)
-        self.account.selfcert_broadcasted.connect(self.handle_selfcert_broadcasted)
+    def change_account(self, account):
+        self.account = account
+        if self.account is None:
+            self.community = None
 
-    def handle_membership_broadcasted(self):
-        if self.app.preferences['notifications']:
-            toast.display(self.tr("Membership"), self.tr("Success sending Membership demand"))
-        else:
-            QMessageBox.information(self, self.tr("Membership"), self.tr("Success sending Membership demand"))
+    def change_community(self, community):
+        if self.community:
+            try:
+                self.account.identity(self.community).inner_data_changed.disconnect(self.handle_account_identity_change)
+            except TypeError as e:
+                if "disconnect" in str(e):
+                    logging.debug("Disconnect failed between inner_data_changed ans handle_account_identity_changed")
+                    pass
+        if community:
+            self.account.identity(community).inner_data_changed.connect(self.handle_account_identity_change)
 
-    def handle_revoke_broadcasted(self):
-        if self.app.preferences['notifications']:
-            toast.display(self.tr("Revoke"), self.tr("Success sending Revoke demand"))
-        else:
-            QMessageBox.information(self, self.tr("Revoke"), self.tr("Success sending Revoke demand"))
-
-    def handle_selfcert_broadcasted(self):
-        if self.app.preferences['notifications']:
-            toast.display(self.tr("Self Certification"), self.tr("Success sending Self Certification document"))
-        else:
-            QMessageBox.information(self.tr("Self Certification"), self.tr("Success sending Self Certification document"))
+        self.community = community
+        self.table_identities.model().change_community(community)
 
     def identity_context_menu(self, point):
         index = self.table_identities.indexAt(point)
@@ -179,8 +170,6 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         # redraw WoT with this identity selected
         self.wot_tab.draw_graph({'text': person.uid, 'id': person.pubkey})
         # change page to WoT
-        index_community_tab = self.parent.tabs_account.indexOf(self)
-        self.parent.tabs_account.setCurrentIndex(index_community_tab)
         index_wot_tab = self.tabs_information.indexOf(self.wot_tab)
         self.tabs_information.setCurrentIndex(index_wot_tab)
 
@@ -292,5 +281,5 @@ class CommunityTabWidget(QWidget, Ui_CommunityTabWidget):
         """
         if event.type() == QEvent.LanguageChange:
             self.retranslateUi(self)
-        return super(CommunityTabWidget, self).changeEvent(event)
+        return super(IdentitiesTabWidget, self).changeEvent(event)
 
