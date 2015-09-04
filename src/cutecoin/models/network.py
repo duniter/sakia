@@ -128,7 +128,9 @@ class NetworkTableModel(QAbstractTableModel):
         }
 
     def change_community(self, community):
+        self.beginResetModel()
         self.community = community
+        self.endResetModel()
 
     @property
     def nodes(self):

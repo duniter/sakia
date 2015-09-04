@@ -65,9 +65,13 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
             self.community = None
 
     def change_community(self, community):
+        if self.community:
+            self.account.identity(self.community).inner_data_changed.disconnect(self.handle_account_identity_change)
+        if community:
+            self.account.identity(self.community).inner_data_changed.connect(self.handle_account_identity_change)
+
         self.community = community
         self.table_identities.model().change_community(community)
-        self.account.identity(self.community).inner_data_changed.connect(self.handle_account_identity_change)
 
     def identity_context_menu(self, point):
         index = self.table_identities.indexAt(point)

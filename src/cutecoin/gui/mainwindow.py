@@ -148,6 +148,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                            self.app.current_account, None,
                                            self.password_asker)
         if dialog.exec_() == QDialog.Accepted:
+            self.app.save(self.app.current_account)
+            dialog.community.start_coroutines()
             self.homescreen.refresh()
 
     def open_transfer_money_dialog(self):
