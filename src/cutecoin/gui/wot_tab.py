@@ -214,7 +214,10 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         """
         Refresh graph scene to current metadata
         """
-        self.draw_graph(self._current_identity)
+        if self._current_identity != None:
+            self.draw_graph(self._current_identity)
+        else:
+            self.reset()
 
     @pyqtSlot(str)
     def handle_identity_change(self, request):

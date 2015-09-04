@@ -76,7 +76,6 @@ class HomeScreenWidget(QWidget, Ui_HomescreenWidget):
         """
         if event.type() == QEvent.LanguageChange:
             self.retranslateUi(self)
-            self.refresh_text()
         return super(HomeScreenWidget, self).changeEvent(event)
 
 
