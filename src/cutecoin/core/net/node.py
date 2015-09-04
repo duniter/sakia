@@ -94,7 +94,7 @@ class Node(QObject):
 
             node = cls(network_manager, peer.currency,
                        [Endpoint.from_inline(e.inline()) for e in peer.endpoints],
-                       "", peer.pubkey, 0, Block.Empty_Hash, Node.ONLINE, time.time(),
+                       "", peer.pubkey, qtbma.blockchain.Block.null_value, Node.ONLINE, time.time(),
                        {'root': "", 'leaves': []}, "", "", 0)
             logging.debug("Node from address : {:}".format(str(node)))
             return node

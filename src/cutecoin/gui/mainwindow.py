@@ -8,7 +8,7 @@ from ..gen_resources.about_uic import Ui_AboutPopup
 
 from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog, QProgressBar, \
     QMessageBox, QLabel, QComboBox, QDialog, QApplication
-from PyQt5.QtCore import QSignalMapper, QObject, QLocale, QEvent, \
+from PyQt5.QtCore import QSignalMapper, pyqtSlot, QLocale, QEvent, \
     pyqtSlot, pyqtSignal, QDate, QDateTime, QTimer, QUrl, Qt, QCoreApplication
 from PyQt5.QtGui import QIcon, QDesktopServices
 
@@ -20,6 +20,7 @@ from .import_account import ImportAccountDialog
 from .certification import CertificationDialog
 from .password_asker import PasswordAskerDialog
 from .preferences import PreferencesDialog
+from .process_cfg_community import ProcessConfigureCommunity
 from .homescreen import HomeScreenWidget
 from ..core import money
 from ..core.community import Community
@@ -69,6 +70,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.homescreen.frame_communities.community_tile_clicked.connect(self.change_community)
         self.homescreen.toolbutton_new_account.addAction(self.action_add_account)
         self.homescreen.toolbutton_new_account.addAction(self.action_import)
+        self.homescreen.button_add_community.clicked.connect(self.action_open_add_community)
         self.homescreen.button_disconnect.clicked.connect(lambda :self.action_change_account(""))
         self.centralWidget().layout().addWidget(self.homescreen)
         self.homescreen.toolbutton_connect.setMenu(self.menu_change_account)
@@ -139,6 +141,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.app.change_current_account(self.app.get_account(account_name))
         self.community_view.change_account(self.app.current_account)
         self.refresh()
+
+    @pyqtSlot()
+    def action_open_add_community(self):
+        dialog = ProcessConfigureCommunity(self.app,
+                                           self.app.current_account, None,
+                                           self.password_asker)
+        if dialog.exec_() == QDialog.Accepted:
+            self.homescreen.refresh()
 
     def open_transfer_money_dialog(self):
         dialog = TransferMoneyDialog(self.app,

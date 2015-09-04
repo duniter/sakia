@@ -135,13 +135,13 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
             ))
 
         else:
-            amount = self.account.amount(self.community)
+            amount = self.app.current_account.amount(self.community)
             maximum = self.community.monetary_mass
             # if referential type is quantitative...
                 # display int values
-            localized_amount = self.account.current_ref(amount, self.community, self.app).localized(units=True)
-            localized_minimum = self.account.current_ref(0, self.community, self.app).localized(units=True)
-            localized_maximum = self.account.current_ref(maximum, self.community, self.app).localized(units=True)
+            localized_amount = self.app.current_account.current_ref(amount, self.community, self.app).localized(units=True)
+            localized_minimum = self.app.current_account.current_ref(0, self.community, self.app).localized(units=True)
+            localized_maximum = self.app.current_account.current_ref(maximum, self.community, self.app).localized(units=True)
 
             # set infos in label
             self.label_balance.setText(

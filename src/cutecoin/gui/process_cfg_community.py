@@ -14,7 +14,7 @@ from PyQt5.QtCore import pyqtSlot
 from ..gen_resources.community_cfg_uic import Ui_CommunityConfigurationDialog
 from ..models.peering import PeeringTreeModel
 from ..core import Community
-from ..core.registry import Identity
+from ..core.registry.identity import BlockchainState
 from ..core.net import Node
 from . import toast
 
@@ -45,10 +45,10 @@ class StepPageInit(Step):
         self.node = yield from Node.from_address(self.config_dialog.app.network_manager, None, server, port)
         if self.node:
             self.config_dialog.button_next.setEnabled(True)
-            self.config_dialog.button_check_node.setText("Ok !")
+            self.config_dialog.button_checknode.setText("Ok !")
         else:
             self.config_dialog.button_next.setEnabled(False)
-            self.config_dialog.button_check_node.setText("Could not connect.")
+            self.config_dialog.button_checknode.setText("Could not connect.")
 
     @pyqtSlot()
     def check_node(self):
@@ -226,7 +226,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
     @asyncio.coroutine
     def final(self):
         identity = yield from self.app.identities_registry.future_find(self.account.pubkey, self.community)
-        if identity.status == Identity.NOT_FOUND:
+        if identity.blockchain_state == BlockchainState.NOT_FOUND:
             reply = QMessageBox.question(self, self.tr("Pubkey not found"),
                                  self.tr("""The public key of your account wasn't found in the community. :\n
 {0}\n
