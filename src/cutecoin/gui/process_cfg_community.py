@@ -98,6 +98,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
     Dialog to configure or add a community
     """
     community_added = pyqtSignal()
+    pubkey_not_found = pyqtSignal()
 
     def __init__(self, app, account, community, password_asker):
         """
@@ -118,6 +119,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         self.nodes = []
 
         self.community_added.connect(self.add_community_and_close)
+        self.pubkey_not_found.connect(self.question_publish_pubkey)
         step_init = StepPageInit(self)
         step_add_peers = StepPageAddpeers(self)
 
@@ -237,22 +239,26 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
             self.account.add_community(self.community)
         self.accept()
 
+    @pyqtSlot()
+    def question_publish_pubkey(self):
+        reply = QMessageBox.question(self, self.tr("Pubkey not found"),
+                                 self.tr("""The public key of your account wasn't found in the community. :\n
+{0}\n
+Would you like to publish the key ?""").format(self.account.pubkey))
+        if reply == QMessageBox.Yes:
+            password = self.password_asker.exec_()
+            if self.password_asker.result() == QDialog.Rejected:
+                return
+            self.account.selfcert_broadcasted.connect(self.handle_broadcast)
+            self.account.broadcast_error.connect(self.handle_error)
+            asyncio.async(self.account.send_selfcert(password, self.community))
+        else:
+            self.community_added.emit()
+
     @asyncio.coroutine
     def final(self):
         identity = yield from self.app.identities_registry.future_find(self.account.pubkey, self.community)
         if identity.blockchain_state == BlockchainState.NOT_FOUND:
-            reply = QMessageBox.question(self, self.tr("Pubkey not found"),
-                                 self.tr("""The public key of your account wasn't found in the community. :\n
-{0}\n
-Would you like to publish the key ?""").format(self.account.pubkey))
-            if reply == QMessageBox.Yes:
-                password = self.password_asker.exec_()
-                if self.password_asker.result() == QDialog.Rejected:
-                    return
-                self.account.selfcert_broadcasted.connect(self.handle_broadcast)
-                self.account.broadcast_error.connect(self.handle_error)
-                asyncio.async(self.account.send_selfcert(password, self.community))
-            else:
-                self.community_added.emit()
+            self.pubkey_not_found.emit()
         else:
-                self.community_added.emit()
+            self.community_added.emit()
