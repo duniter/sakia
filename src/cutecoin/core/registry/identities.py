@@ -70,7 +70,9 @@ class IdentitiesRegistry:
         def handle_certifiersof_reply(reply, tries=0):
             err = reply.error()
             # https://github.com/ucoin-io/ucoin/issues/146
-            if reply.error() == QNetworkReply.NoError or reply.error() == QNetworkReply.ProtocolInvalidOperationError:
+            if reply.error() == QNetworkReply.NoError \
+                    or reply.error() == QNetworkReply.ContentNotFoundError \
+                    or reply.error() == QNetworkReply.ProtocolInvalidOperationError:
                 status_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
                 if status_code == 200:
                     strdata = bytes(reply.readAll()).decode('utf-8')

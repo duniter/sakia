@@ -5,7 +5,7 @@ import asyncio
 import quamash
 import logging
 import time
-from PyQt5.QtWidgets import QMenu, QApplication
+from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtCore import QLocale, Qt
 from PyQt5.QtTest import QTest
 from cutecoin.tests.mocks.bma import new_blockchain
@@ -71,9 +71,10 @@ class ProcessAddCommunity(unittest.TestCase):
             self.assertEqual(mock.get_request(1).url, '/wot/certifiers-of/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ')
             self.assertEqual(mock.get_request(2).method, 'GET')
             self.assertEqual(mock.get_request(2).url, '/wot/lookup/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ')
-            for widget in QApplication.topLevelWidgets():
-                if isinstance(widget, PyQt5.QtWidgets.QMessageBox):
-                    QTest.keyClick(widget, Qt.KeyEnter)
+            for widget in quamash.QApplication.topLevelWidgets():
+                if isinstance(widget, QMessageBox):
+                    QTest.mouseClick(widget.button(QMessageBox.Yes), Qt.LeftButton)
+            yield from asyncio.sleep(3)
 
         self.lp.run_until_complete(asyncio.wait_for(exec_test(), timeout=10))
 

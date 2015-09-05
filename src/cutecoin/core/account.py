@@ -298,7 +298,7 @@ class Account(QObject):
         key = SigningKey(self.salt, password)
         selfcert.sign([key])
         logging.debug("Key publish : {0}".format(selfcert.signed_raw()))
-        replies = community.broadcast(qtbma.wot.Add, {}, {'pubkey': self.pubkey,
+        replies = community.bma_access.broadcast(qtbma.wot.Add, {}, {'pubkey': self.pubkey,
                                               'self_': selfcert.signed_raw(),
                                               'other': []})
         for r in replies:

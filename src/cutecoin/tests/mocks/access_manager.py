@@ -19,7 +19,9 @@ class MockNetworkAccessManager(QNetworkAccessManager):
         return super().get(request)
 
     def post(self, request, post_data):
-        path = request.url().path()
+        url = request.url()
+        path = url.path()
         path = self.mock_path + path
-        request.setPath(path)
+        url.setPath(path)
+        request.setUrl(url)
         return super().post(request, post_data)

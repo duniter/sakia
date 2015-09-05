@@ -212,12 +212,22 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         self.add_community_and_close()
 
     @pyqtSlot(int, str)
+    def handle_broadcast(self, error_code, text):
+        if self.app.preferences['notifications']:
+            toast.display(self.tr("UID broadcast"), self.tr("Identity broadcasted to the network"))
+        else:
+            QMessageBox.information(self, self.tr("UID broadcast"), self.tr("Identity broadcasted to the network"))
+        self.account.certification_broadcasted.disconnect()
+        self.account.broadcast_error.disconnect(self.handle_error)
+        QApplication.restoreOverrideCursor()
+
+    @pyqtSlot(int, str)
     def handle_error(self, error_code, text):
         if self.app.preferences['notifications']:
             toast.display(self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
         else:
             QMessageBox.critical(self, self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
-        self.account.certification_broadcasted.disconnect()
+        self.account.selfcert_broadcasted.disconnect()
         self.account.broadcast_error.disconnect(self.handle_error)
         QApplication.restoreOverrideCursor()
 
