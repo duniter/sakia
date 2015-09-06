@@ -16,12 +16,16 @@ window = None   # global
 def display(title, msg):
     logging.debug("NOTIFY DISPLAY")
     if sys.platform == "linux":
-        import notify2
-        if not notify2.is_initted():
-            logging.debug("Initialising notify2")
-            notify2.init("cutecoin")
-        n = notify2.Notification(title,
-                         msg)
+        try:
+            import notify2
+            if not notify2.is_initted():
+                logging.debug("Initialising notify2")
+                notify2.init("cutecoin")
+            n = notify2.Notification(title,
+                             msg)
+        except ImportError:
+            _Toast(title, msg)
+
 
 # fixme: https://bugs.python.org/issue11587
         # # Not working... Empty icon at the moment.
