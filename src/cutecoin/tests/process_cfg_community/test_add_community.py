@@ -62,7 +62,7 @@ class ProcessAddCommunity(unittest.TestCase):
             process_community.spinbox_port.setValue(50000)
             self.assertEqual(process_community.stacked_pages.currentWidget(),
                              process_community.page_node,
-                             msg="Current widget : {0}".format(process_community.stacked_pages.currentWidget().name()))
+                             msg="Current widget : {0}".format(process_community.stacked_pages.currentWidget().objectName()))
             self.assertEqual(process_community.lineedit_server.text(), "127.0.0.1")
             self.assertEqual(process_community.spinbox_port.value(), 50000)
             QTest.mouseClick(process_community.button_register, Qt.LeftButton)
@@ -84,7 +84,7 @@ class ProcessAddCommunity(unittest.TestCase):
 
             self.assertEqual(process_community.stacked_pages.currentWidget(),
                              process_community.page_add_nodes,
-                             msg="Current widget : {0}".format(process_community.stacked_pages.currentWidget().name()))
+                             msg="Current widget : {0}".format(process_community.stacked_pages.currentWidget().objectName()))
             QTest.mouseClick(process_community.button_next, Qt.LeftButton)
 
         asyncio.async(exec_test())
