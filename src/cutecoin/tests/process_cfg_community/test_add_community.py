@@ -1,10 +1,8 @@
 import sys
 import unittest
-import os
 import asyncio
 import quamash
 import logging
-import time
 from PyQt5.QtWidgets import QDialog
 from PyQt5.QtCore import QLocale, Qt
 from PyQt5.QtTest import QTest
@@ -16,6 +14,7 @@ from cutecoin.gui.password_asker import PasswordAskerDialog
 from cutecoin.core.app import Application
 from cutecoin.core.account import Account
 from cutecoin.tests import get_application
+
 
 class ProcessAddCommunity(unittest.TestCase):
     def setUp(self):
@@ -62,7 +61,8 @@ class ProcessAddCommunity(unittest.TestCase):
             QTest.mouseDClick(process_community.spinbox_port, Qt.LeftButton)
             process_community.spinbox_port.setValue(50000)
             self.assertEqual(process_community.stacked_pages.currentWidget(),
-                             process_community.page_node)
+                             process_community.page_node,
+                             msg="Current widget : {0}".format(process_community.stacked_pages.currentWidget().name()))
             self.assertEqual(process_community.lineedit_server.text(), "127.0.0.1")
             self.assertEqual(process_community.spinbox_port.value(), 50000)
             QTest.mouseClick(process_community.button_register, Qt.LeftButton)
@@ -80,9 +80,11 @@ class ProcessAddCommunity(unittest.TestCase):
             self.assertEqual(mock.get_request(6).method, 'POST')
             self.assertEqual(mock.get_request(6).url[:8], '/wot/add')
             self.assertEqual(process_community.label_error.text(), "Broadcasting identity...")
+            yield from asyncio.sleep(1)
 
             self.assertEqual(process_community.stacked_pages.currentWidget(),
-                             process_community.page_add_nodes)
+                             process_community.page_add_nodes,
+                             msg="Current widget : {0}".format(process_community.stacked_pages.currentWidget().name()))
             QTest.mouseClick(process_community.button_next, Qt.LeftButton)
 
         asyncio.async(exec_test())

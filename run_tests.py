@@ -1,5 +1,6 @@
 import sys
 import os
+import signal
 import unittest
 import subprocess
 import time
@@ -16,5 +17,14 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 print("Run")
 runner = unittest.TextTestRunner().run(unittest.defaultTestLoader.discover(start_dir='cutecoin.tests', pattern='test_*'))
 print("Terminate")
-p.terminate()
+os.kill(p.pid, signal.SIGINT)
+time.sleep(2)
+
+try:
+    os.kill(p.pid, signal.SIGKILL)
+    p.kill()
+    print("Hard killed")
+except OSError:
+    print("Terminated gracefully")
+
 sys.exit(not runner.wasSuccessful())
