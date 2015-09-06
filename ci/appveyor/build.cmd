@@ -13,7 +13,6 @@ lrelease -version
 
 pip install pylibscrypt
 pip install libnacl
-pip install requests
 pip install base58
 pip install quamash
 pip install asyncio
