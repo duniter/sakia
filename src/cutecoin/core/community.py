@@ -12,9 +12,7 @@ import asyncio
 import math
 
 from PyQt5.QtCore import QObject, pyqtSignal
-from requests.exceptions import RequestException
 
-from ucoinpy.documents.block import Block
 from ..tools.exceptions import NoPeerAvailable
 from .net.network import Network
 from .net.api import bma as qtbma
