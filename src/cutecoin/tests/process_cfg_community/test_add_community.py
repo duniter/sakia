@@ -42,35 +42,46 @@ class ProcessAddCommunity(unittest.TestCase):
             asyncio.set_event_loop(None)
 
     def test_add_community_empty_blockchain(self):
-        self.process_community = ProcessConfigureCommunity(self.application, self.account, None, self.password_asker)
+        process_community = ProcessConfigureCommunity(self.application,
+                                                    self.account,
+                                                    None, self.password_asker)
+        @asyncio.coroutine
+        def open_dialog():
+            result = yield from process_community.async_exec()
 
         @asyncio.coroutine
         def exec_test():
             mock = new_blockchain.get_mock()
             logging.debug(mock.pretend_url)
+            asyncio.async(open_dialog())
+            yield from asyncio.sleep(1)
             self.network_manager.set_mock_path(mock.pretend_url)
-            QTest.mouseClick(self.process_community.lineedit_server, Qt.LeftButton)
-            QTest.keyClicks(self.process_community.lineedit_server, "127.0.0.1")
-            QTest.mouseDClick(self.process_community.spinbox_port, Qt.LeftButton)
-            self.process_community.spinbox_port.setValue(50000)
-            self.assertEqual(self.process_community.stacked_pages.currentWidget(), self.process_community.page_init)
-            self.assertEqual(self.process_community.lineedit_server.text(), "127.0.0.1")
-            self.assertEqual(self.process_community.spinbox_port.value(), 50000)
-            QTest.mouseClick(self.process_community.button_checknode, Qt.LeftButton)
-            yield from asyncio.sleep(3)
-            self.assertEqual(self.process_community.button_checknode.text(), "Ok !")
+            QTest.mouseClick(process_community.lineedit_server, Qt.LeftButton)
+            QTest.keyClicks(process_community.lineedit_server, "127.0.0.1")
+            QTest.mouseDClick(process_community.spinbox_port, Qt.LeftButton)
+            process_community.spinbox_port.setValue(50000)
+            self.assertEqual(process_community.stacked_pages.currentWidget(),
+                             process_community.page_node)
+            self.assertEqual(process_community.lineedit_server.text(), "127.0.0.1")
+            self.assertEqual(process_community.spinbox_port.value(), 50000)
+            QTest.mouseClick(process_community.button_register, Qt.LeftButton)
+            yield from asyncio.sleep(1)
             self.assertEqual(mock.get_request(0).method, 'GET')
             self.assertEqual(mock.get_request(0).url, '/network/peering')
-            QTest.mouseClick(self.process_community.button_next, Qt.LeftButton)
-            self.assertEqual(self.process_community.stacked_pages.currentWidget(), self.process_community.page_add_nodes)
-            #QTest.mouseClick(self.process_community.button_next, Qt.LeftButton)
-            #yield from asyncio.sleep(3)
+            self.assertEqual(mock.get_request(1).method, 'GET')
+            self.assertEqual(mock.get_request(1).url,
+                             '/wot/certifiers-of/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ')
+            for i in range(2, 5):
+                self.assertEqual(mock.get_request(i).method, 'GET')
+                self.assertEqual(mock.get_request(i).url,
+                                 '/wot/lookup/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ')
 
-            # There is a bug here, it should not request certifiers-of 3 times in a row
-            #self.assertEqual(mock.get_request(1).method, 'GET')
-            #self.assertEqual(mock.get_request(1).url, '/wot/certifiers-of/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ')
-            #self.assertEqual(mock.get_request(2).method, 'GET')
-            #self.assertEqual(mock.get_request(2).url, '/wot/lookup/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ')
+            self.assertEqual(mock.get_request(6).method, 'POST')
+            self.assertEqual(mock.get_request(6).url[:8], '/wot/add')
+            self.assertEqual(process_community.label_error.text(), "Broadcasting identity...")
+
+            self.assertEqual(process_community.stacked_pages.currentWidget(),
+                             process_community.page_add_nodes)
 
         self.lp.run_until_complete(asyncio.wait_for(exec_test(), timeout=10))
 

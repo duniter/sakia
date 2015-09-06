@@ -6,7 +6,7 @@ Created on 24 dec. 2014
 
 import logging
 import re
-
+import asyncio
 from PyQt5.QtCore import QEvent
 from PyQt5.QtWidgets import QDialog, QMessageBox
 
@@ -28,6 +28,21 @@ class PasswordAskerDialog(QDialog, Ui_PasswordAskerDialog):
         self.account = account
         self.password = ""
         self.remember = False
+
+    def future_exec(self):
+        future = asyncio.Future()
+        if not self.remember:
+            def future_show():
+                pwd = self.password
+                if not self.remember:
+                    self.password = ""
+                future.set_result(pwd)
+            self.open()
+            self.finished.connect(future_show)
+        else:
+            self.setResult(QDialog.Accepted)
+            future.set_result(self.password)
+        return future
 
     def exec_(self):
         if not self.remember:

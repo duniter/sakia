@@ -61,7 +61,7 @@ def get_mock():
                 times=1,
                 headers={'Content-Type': 'application/json'})
 
-    mock.when('POST wot/add')\
+    mock.when('POST /wot/add.*')\
         .reply(body=bma_wot_add,
                status=200,
                times=FOREVER,

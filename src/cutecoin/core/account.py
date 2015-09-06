@@ -300,7 +300,7 @@ class Account(QObject):
         logging.debug("Key publish : {0}".format(selfcert.signed_raw()))
         replies = community.bma_access.broadcast(qtbma.wot.Add, {}, {'pubkey': self.pubkey,
                                               'self_': selfcert.signed_raw(),
-                                              'other': []})
+                                              'other': ""})
         for r in replies:
             r.finished.connect(lambda reply=r: self.__handle_selfcert_replies(replies, reply))
 
