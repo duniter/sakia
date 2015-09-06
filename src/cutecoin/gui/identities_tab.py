@@ -58,6 +58,7 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         direct_connections = QAction(self.tr("Direct connections"), self)
         direct_connections.triggered.connect(self.search_direct_connections)
         self.button_search.addAction(direct_connections)
+        self.button_search.clicked.connect(self.search_text)
 
     def change_account(self, account):
         self.account = account
