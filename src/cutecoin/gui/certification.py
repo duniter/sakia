@@ -5,10 +5,11 @@ Created on 24 dec. 2014
 """
 from PyQt5.QtWidgets import QDialog, QMessageBox, QDialogButtonBox, QApplication
 from PyQt5.QtCore import Qt, pyqtSlot
-import quamash
 from ..gen_resources.certification_uic import Ui_CertificationDialog
 from . import toast
+from ..core.net.api import bma as qtbma
 import asyncio
+import logging
 
 
 class CertificationDialog(QDialog, Ui_CertificationDialog):
@@ -63,17 +64,33 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
     def handle_error(self, error_code, text):
         if self.app.preferences['notifications']:
             toast.display(self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
-        else:
-            QMessageBox.Critical(self, self.tr("Error", self.tr("{0} : {1}".format(error_code, text))))
+        #else:
+        #    QMessageBox.Critical(self, self.tr("Error", self.tr("{0} : {1}".format(error_code, text))))
         self.account.certification_broadcasted.disconnect()
         self.account.broadcast_error.disconnect(self.handle_error)
         QApplication.restoreOverrideCursor()
 
+    def handle_community_data_change(self, request):
+        if request == qtbma.blockchain.Block:
+            self.refresh()
+
     def change_current_community(self, index):
+        try:
+            self.community.inner_data_changed.disconnect(self.handle_community_data_change)
+        except TypeError as e:
+            if 'connect' in str(e):
+                logging.debug("Error when disconnecting community")
+            else:
+                raise
         self.community = self.account.communities[index]
-        if self.account.pubkey in self.community.members_pubkeys():
+        self.community.inner_data_changed.connect(self.handle_community_data_change)
+        self.refresh()
+
+    def refresh(self):
+        if self.account.pubkey in self.community.members_pubkeys() \
+                or self.community.get_block(0) == qtbma.blockchain.Block.null_value:
             self.button_box.button(QDialogButtonBox.Ok).setEnabled(True)
-            self.button_box.button(QDialogButtonBox.Ok).setText(self.tr("Ok"))
+            self.button_box.button(QDialogButtonBox.Ok).setText(self.tr("&Ok"))
         else:
             self.button_box.button(QDialogButtonBox.Ok).setEnabled(False)
             self.button_box.button(QDialogButtonBox.Ok).setText(self.tr("Not a member"))
@@ -81,3 +98,9 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
     def recipient_mode_changed(self, pubkey_toggled):
         self.edit_pubkey.setEnabled(pubkey_toggled)
         self.combo_contact.setEnabled(not pubkey_toggled)
+
+    def async_exec(self):
+        future = asyncio.Future()
+        self.finished.connect(lambda r: future.set_result(r))
+        self.open()
+        return future

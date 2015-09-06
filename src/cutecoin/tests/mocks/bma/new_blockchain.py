@@ -3,7 +3,7 @@ from pretenders.common.constants import FOREVER
 
 bma_peering = b"""{
   "version": 1,
-  "currency": "meta_brouzouf",
+  "currency": "test_currency",
   "endpoints": [
     "BASIC_MERKLED_API localhost 127.0.0.1 50000"
   ],
@@ -37,7 +37,7 @@ def get_mock():
                 times=FOREVER,
                 headers={'Content-Type': 'application/json'})
 
-    mock.when('GET /blockchain/Block/0')\
+    mock.when('GET /blockchain/block/0')\
         .reply(body=b"Block not found",
                status=404,
                times=FOREVER,

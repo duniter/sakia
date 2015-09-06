@@ -157,8 +157,6 @@ class BmaAccess(QObject):
         cache_key = BmaAccess._gen_cache_key(request, req_args, get_args)
 
         if need_reload:
-            # Move to network nstead of community
-            # after removing qthreads
             if cache_key in self._pending_requests:
                 if caller not in self._pending_requests[cache_key]:
                     logging.debug("New caller".format(caller))

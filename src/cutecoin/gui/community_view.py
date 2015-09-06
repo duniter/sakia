@@ -195,7 +195,8 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                         logging.debug("Not a member")
                         self.button_membership.setText(self.tr("Send membership demand"))
                         self.button_membership.show()
-                        self.button_certification.hide()
+                        if self.community.get_block(0) != qtbma.blockchain.Block.null_value:
+                            self.button_certification.hide()
                 else:
                     logging.debug("UID not published")
                     self.button_membership.hide()
