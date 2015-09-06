@@ -6,6 +6,7 @@ from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 from PyQt5.QtCore import QUrl, QUrlQuery, QTimer, QObject, pyqtSlot
 import logging
 import asyncio
+import json
 
 logger = logging.getLogger("ucoin")
 
