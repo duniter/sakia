@@ -22,7 +22,9 @@ finally:
     os.kill(p.pid, signal.SIGINT)
     time.sleep(2)
     try:
-        os.kill(p.pid, signal.SIGKILL)
+
+        if sys.platform == "linux":
+            os.kill(p.pid, signal.SIGKILL)
         p.kill()
         print("Hard killed")
     except OSError:
