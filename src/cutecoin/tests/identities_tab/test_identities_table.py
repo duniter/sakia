@@ -81,7 +81,7 @@ class TestIdentitiesTable(unittest.TestCase):
 
             QTest.keyClicks(identities_tab.edit_textsearch, "doe")
             QTest.mouseClick(identities_tab.button_search, Qt.LeftButton)
-            yield from asyncio.sleep(1)
+            yield from asyncio.sleep(3)
             self.assertEqual(mock.get_request(4).method, 'GET')
             self.assertEqual(mock.get_request(4).url,
                              '/wot/lookup/doe')
