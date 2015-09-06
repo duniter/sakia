@@ -23,6 +23,7 @@ def display(title, msg):
                 notify2.init("cutecoin")
             n = notify2.Notification(title,
                              msg)
+            n.show()
         except ImportError:
             _Toast(title, msg)
 
@@ -46,7 +47,6 @@ def display(title, msg):
         #         )
         #     n.set_hint('icon_data', icon_struct)
         #     n.set_timeout(5000)
-        n.show()
     else:
         _Toast(title, msg)
 
