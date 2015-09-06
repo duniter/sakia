@@ -45,3 +45,4 @@ res/i18n/qm
 res/i18n/lang-*
 out
 .directory
+temp

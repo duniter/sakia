@@ -10,7 +10,8 @@ cmd = 'python -m pretenders.server.server --host 127.0.0.1 --port 50000'
 
 p = subprocess.Popen(shlex.split(cmd))
 time.sleep(2)
-
+# Force saves to be done in temp directory
+os.environ["XDG_CONFIG_HOME"] = os.path.join(os.path.dirname(__file__), 'temp')
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'lib')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 try:
