@@ -270,7 +270,6 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
                     action.setEnabled(False)
             menu.exec_(QCursor.pos())
 
-    @asyncio.coroutine
     def async_exec(self):
         future = asyncio.Future()
         self.finished.connect(lambda r: future.set_result(r))

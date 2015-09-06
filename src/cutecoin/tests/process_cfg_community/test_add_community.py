@@ -5,7 +5,7 @@ import asyncio
 import quamash
 import logging
 import time
-from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QDialog
 from PyQt5.QtCore import QLocale, Qt
 from PyQt5.QtTest import QTest
 from cutecoin.tests.mocks.bma import new_blockchain
@@ -45,15 +45,16 @@ class ProcessAddCommunity(unittest.TestCase):
         process_community = ProcessConfigureCommunity(self.application,
                                                     self.account,
                                                     None, self.password_asker)
+
         @asyncio.coroutine
-        def open_dialog():
+        def open_dialog(process_community):
             result = yield from process_community.async_exec()
+            self.assertEqual(result, QDialog.Accepted)
 
         @asyncio.coroutine
         def exec_test():
             mock = new_blockchain.get_mock()
             logging.debug(mock.pretend_url)
-            asyncio.async(open_dialog())
             yield from asyncio.sleep(1)
             self.network_manager.set_mock_path(mock.pretend_url)
             QTest.mouseClick(process_community.lineedit_server, Qt.LeftButton)
@@ -82,8 +83,10 @@ class ProcessAddCommunity(unittest.TestCase):
 
             self.assertEqual(process_community.stacked_pages.currentWidget(),
                              process_community.page_add_nodes)
+            QTest.mouseClick(process_community.button_next, Qt.LeftButton)
 
-        self.lp.run_until_complete(asyncio.wait_for(exec_test(), timeout=10))
+        asyncio.async(exec_test())
+        self.lp.run_until_complete(open_dialog(process_community))
 
 if __name__ == '__main__':
     logging.basicConfig( stream=sys.stderr )
