@@ -26,6 +26,7 @@ class ProcessAddCommunity(unittest.TestCase):
         self.identities_registry = IdentitiesRegistry()
 
         self.application = Application(self.qapplication, self.lp, self.network_manager, self.identities_registry)
+        self.application.preferences['notifications'] = False
         # Salt/password : "testcutecoin/testcutecoin"
         # Pubkey : 7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ
         self.account = Account("testcutecoin", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
