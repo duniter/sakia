@@ -62,6 +62,8 @@ class TestCertificationDialog(unittest.TestCase):
             asyncio.set_event_loop(None)
 
     def test_certification_init_community(self):
+        mock = init_new_community.get_mock()
+        logging.debug(mock.pretend_url)
         certification_dialog = CertificationDialog(self.application,
                                                    self.account,
                                                    self.password_asker)
@@ -77,8 +79,6 @@ class TestCertificationDialog(unittest.TestCase):
 
         @asyncio.coroutine
         def exec_test():
-            mock = init_new_community.get_mock()
-            logging.debug(mock.pretend_url)
             yield from asyncio.sleep(1)
             self.network_manager.set_mock_path(mock.pretend_url)
             self.assertEqual(certification_dialog.button_box.button(QDialogButtonBox.Ok).text(), "&Ok")

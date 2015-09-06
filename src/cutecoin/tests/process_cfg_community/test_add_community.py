@@ -42,6 +42,8 @@ class ProcessAddCommunity(unittest.TestCase):
             asyncio.set_event_loop(None)
 
     def test_add_community_empty_blockchain(self):
+        mock = new_blockchain.get_mock()
+        logging.debug(mock.pretend_url)
         process_community = ProcessConfigureCommunity(self.application,
                                                     self.account,
                                                     None, self.password_asker)
@@ -57,8 +59,6 @@ class ProcessAddCommunity(unittest.TestCase):
 
         @asyncio.coroutine
         def exec_test():
-            mock = new_blockchain.get_mock()
-            logging.debug(mock.pretend_url)
             yield from asyncio.sleep(1)
             self.network_manager.set_mock_path(mock.pretend_url)
             QTest.mouseClick(process_community.lineedit_server, Qt.LeftButton)
