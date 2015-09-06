@@ -51,6 +51,10 @@ class ProcessAddCommunity(unittest.TestCase):
             result = yield from process_community.async_exec()
             self.assertEqual(result, QDialog.Accepted)
 
+        def close_dialog():
+            if process_community.isVisible():
+                process_community.close()
+
         @asyncio.coroutine
         def exec_test():
             mock = new_blockchain.get_mock()
@@ -88,6 +92,7 @@ class ProcessAddCommunity(unittest.TestCase):
                              msg="Current widget : {0}".format(process_community.stacked_pages.currentWidget().objectName()))
             QTest.mouseClick(process_community.button_next, Qt.LeftButton)
 
+        self.lp.call_later(15, close_dialog)
         asyncio.async(exec_test())
         self.lp.run_until_complete(open_dialog(process_community))
 

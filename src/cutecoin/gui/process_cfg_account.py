@@ -4,8 +4,7 @@ Created on 6 mars 2014
 @author: inso
 """
 import logging
-import requests
-from ucoinpy.documents.peer import Peer
+import asyncio
 from ucoinpy.key import SigningKey
 from ..gen_resources.account_cfg_uic import Ui_AccountConfigurationDialog
 from ..gui.process_cfg_community import ProcessConfigureCommunity
@@ -122,12 +121,9 @@ class StepPageCommunities(Step):
         if self.config_dialog.password_asker.result() == QDialog.Rejected:
             return
 
-        nb_wallets = self.config_dialog.spinbox_wallets.value()
-        self.config_dialog.account.set_walletpool_size(nb_wallets, password)
-
         self.config_dialog.app.add_account(self.config_dialog.account)
         if len(self.config_dialog.app.accounts) == 1:
-            self.config_dialog.app.default_account = self.config_dialog.account.name
+            self.config_dialog.app.preferences['account'] = self.config_dialog.account.name
         self.config_dialog.app.save(self.config_dialog.account)
         self.config_dialog.app.current_account = self.config_dialog.account
 
@@ -196,17 +192,14 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         self.list_communities.setModel(CommunitiesListModel(self.account))
 
     def action_edit_account_key(self):
-        if self.step.is_valid():
-            self.button_next.setEnabled(True)
-        else:
-            self.button_next.setEnabled(False)
+        self.button_generate.setEnabled(self.step.is_valid())
+        self.button_next.setEnabled(self.step.is_valid())
 
     def action_show_pubkey(self):
         salt = self.edit_salt.text()
         password = self.edit_password.text()
         pubkey = SigningKey(salt, password).pubkey
-        QMessageBox.information(self, self.tr("Public key"),
-                                self.tr("These parameters pubkeys are : {0}").format(pubkey))
+        self.label_info.setText(pubkey)
 
     def action_edit_account_parameters(self):
         if self.step.is_valid():
@@ -254,6 +247,12 @@ Are you sure ?"""))
             previous_index = self.stacked_pages.currentIndex() - 1
             self.stacked_pages.setCurrentIndex(previous_index)
             self.step.display_page()
+
+    def async_exec(self):
+        future = asyncio.Future()
+        self.finished.connect(lambda r: future.set_result(r))
+        self.open()
+        return future
 
     def accept(self):
         super().accept()
