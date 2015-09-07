@@ -117,7 +117,7 @@ bma_blockchain_current = b"""{
 }"""
 
 def get_mock():
-    mock = HTTPMock('127.0.0.1', 50000, timeout=FOREVER)
+    mock = HTTPMock('127.0.0.1', 50000)
 
     mock.when('GET /network/peering')\
         .reply(body=bma_peering,
