@@ -23,7 +23,7 @@ class ProcessAddCommunity(unittest.TestCase):
         QLocale.setDefault(QLocale("en_GB"))
         self.lp = quamash.QEventLoop(self.qapplication)
         asyncio.set_event_loop(self.lp)
-        self.identities_registry = IdentitiesRegistry()
+        self.identities_registry = IdentitiesRegistry({})
 
         self.application = Application(self.qapplication, self.lp, self.network_manager, self.identities_registry)
         self.application.preferences['notifications'] = False

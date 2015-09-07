@@ -70,12 +70,63 @@ bma_certified_by_john = b"""{
   ]
 }"""
 
+bma_parameters = b"""{
+    "currency": "test_currency",
+    "c": 0.1,
+    "dt": 86400,
+    "ud0": 100,
+    "sigDelay": 604800,
+    "sigValidity": 2629800,
+    "sigQty": 3,
+    "sigWoT": 3,
+    "msValidity": 2629800,
+    "stepMax": 3,
+    "medianTimeBlocks": 11,
+    "avgGenTime": 600,
+    "dtDiffEval": 20,
+    "blocksRot": 144,
+    "percentRot": 0.67
+}"""
+
+bma_blockchain_current = b"""{
+    "version": 1,
+    "nonce": 6909,
+    "number": 3,
+    "powMin": 4,
+    "time": 1441618206,
+    "medianTime": 1441614759,
+    "membersCount": 20,
+    "monetaryMass": 11711349901120,
+    "currency": "test_currency",
+    "issuer": "EPs9qX7HmCDy6ptUoMLpTzbh9toHu4au488pBTU9DN6y",
+    "signature": "kz/34w1cG+8tYacuPXf3FPmsFwrvtWkwp1POLJuX1P0zYaB9Tuu7iyYJzMQS0Xa3vwuWRqfz+fgyoCGnBjBLBQ==",
+    "hash": "0000CB4E9CCDE6F579135331C97F13903E8B6E21",
+    "parameters": "",
+    "previousHash": "00003BDA844D77EEE7CF32A6C3C87F2ACBFCFCBB",
+    "previousIssuer": "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk",
+    "dividend": null,
+    "membersChanges": [ ],
+    "identities": [ ],
+    "joiners": [ ],
+    "actives": [ ],
+    "leavers": [ ],
+    "excluded": [ ],
+    "certifications": [ ],
+    "transactions": [ ],
+    "raw": "Version: 1\nType: Block\nCurrency: meta_brouzouf\nNonce: 6909\nNumber: 30898\nPoWMin: 4\nTime: 1441618206\nMedianTime: 1441614759\nIssuer: EPs9qX7HmCDy6ptUoMLpTzbh9toHu4au488pBTU9DN6y\nPreviousHash: 00003BDA844D77EEE7CF32A6C3C87F2ACBFCFCBB\nPreviousIssuer: HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk\nMembersCount: 20\nIdentities:\nJoiners:\nActives:\nLeavers:\nExcluded:\nCertifications:\nTransactions:\n"
+}"""
 
 def get_mock():
-    mock = HTTPMock('127.0.0.1', 50000)
+    mock = HTTPMock('127.0.0.1', 50000, timeout=FOREVER)
 
     mock.when('GET /network/peering')\
         .reply(body=bma_peering,
+                times=FOREVER,
+                headers={'Content-Type': 'application/json'})
+
+    mock.when('GET /blockchain/parameters')\
+            .reply(body=bma_parameters,
+                status=200,
                 times=FOREVER,
                 headers={'Content-Type': 'application/json'})
 
@@ -115,5 +166,16 @@ def get_mock():
                 times=FOREVER,
                 headers={'Content-Type': 'application/json'})
 
+    mock.when('GET /wot/certifiers-of/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn')\
+            .reply(body=b"No member matching this pubkey or uid",
+                status=404,
+                times=FOREVER,
+                headers={'Content-Type': 'application/json'})
+
+    mock.when('GET /blockchain/memberships/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn')\
+            .reply(body=b"No member matching this pubkey or uid",
+                status=404,
+                times=FOREVER,
+                headers={'Content-Type': 'application/json'})
 
     return mock
