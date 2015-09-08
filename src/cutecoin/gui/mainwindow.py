@@ -158,7 +158,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog = TransferMoneyDialog(self.app,
                                      self.app.current_account,
                                      self.password_asker)
-        dialog.accepted.connect(self.refresh_wallets)
         if dialog.exec_() == QDialog.Accepted:
             self.community_view.tab_history.table_history.model().sourceModel().refresh_transfers()
 

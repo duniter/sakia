@@ -149,3 +149,9 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
     def recipient_mode_changed(self, pubkey_toggled):
         self.edit_pubkey.setEnabled(pubkey_toggled)
         self.combo_contact.setEnabled(not pubkey_toggled)
+
+    def async_exec(self):
+        future = asyncio.Future()
+        self.finished.connect(lambda r: future.set_result(r))
+        self.open()
+        return future

@@ -2,17 +2,16 @@ import sys
 import unittest
 import asyncio
 import quamash
-import logging
 import time
+import logging
 from ucoinpy.documents.peer import BMAEndpoint as PyBMAEndpoint
-from PyQt5.QtWidgets import QDialog
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox
 from PyQt5.QtCore import QLocale, Qt
 from PyQt5.QtTest import QTest
-from cutecoin.core.net.api import bma as qtbma
 from cutecoin.tests.mocks.bma import nice_blockchain
 from cutecoin.tests.mocks.access_manager import MockNetworkAccessManager
 from cutecoin.core.registry.identities import IdentitiesRegistry
-from cutecoin.gui.identities_tab import IdentitiesTabWidget
+from cutecoin.gui.transfer import TransferMoneyDialog
 from cutecoin.gui.password_asker import PasswordAskerDialog
 from cutecoin.core.app import Application
 from cutecoin.core import Account, Community, Wallet
@@ -20,16 +19,17 @@ from cutecoin.core.net import Network, Node
 from cutecoin.core.net.endpoint import BMAEndpoint
 from cutecoin.core.net.api.bma.access import BmaAccess
 from cutecoin.tests import get_application
+from cutecoin.core.net.api import bma as qtbma
 
 
-class TestIdentitiesTable(unittest.TestCase):
+class TestTransferDialog(unittest.TestCase):
     def setUp(self):
         self.qapplication = get_application()
         self.network_manager = MockNetworkAccessManager()
         QLocale.setDefault(QLocale("en_GB"))
         self.lp = quamash.QEventLoop(self.qapplication)
         asyncio.set_event_loop(self.lp)
-        self.identities_registry = IdentitiesRegistry()
+        self.identities_registry = IdentitiesRegistry({})
 
         self.application = Application(self.qapplication, self.lp, self.network_manager, self.identities_registry)
         self.application.preferences['notifications'] = False
@@ -61,52 +61,38 @@ class TestIdentitiesTable(unittest.TestCase):
         finally:
             asyncio.set_event_loop(None)
 
-    def test_search_identity_found(self):
+    def test_transfer_nice_community(self):
         mock = nice_blockchain.get_mock()
         time.sleep(2)
         logging.debug(mock.pretend_url)
         self.network_manager.set_mock_path(mock.pretend_url)
-        identities_tab = IdentitiesTabWidget(self.application)
-        identities_tab.change_account(self.account, self.password_asker)
-        identities_tab.change_community(self.community)
-        future = asyncio.Future()
-
-        def open_widget():
-            identities_tab.show()
-            return future
+        transfer_dialog = TransferMoneyDialog(self.application,
+                                                   self.account,
+                                                   self.password_asker)
 
         @asyncio.coroutine
-        def async_open_widget():
-            yield from open_widget()
+        def open_dialog(certification_dialog):
+            result = yield from certification_dialog.async_exec()
+            self.assertEqual(result, QDialog.Rejected)
 
         def close_dialog():
-            if identities_tab.isVisible():
-                identities_tab.close()
-                future.set_result(True)
+            if transfer_dialog.isVisible():
+                transfer_dialog.close()
 
         @asyncio.coroutine
         def exec_test():
             yield from asyncio.sleep(1)
-            self.assertEqual(mock.get_request(0).method, 'GET')
-            self.assertEqual(mock.get_request(0).url,
-                             '/wot/certifiers-of/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ')
+            self.assertEqual(transfer_dialog.button_box.button(QDialogButtonBox.Ok).text(), "&Ok")
+            QTest.mouseClick(transfer_dialog.radio_pubkey, Qt.LeftButton)
+            QTest.keyClicks(transfer_dialog.edit_pubkey, "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn")
+            QTest.mouseClick(transfer_dialog.button_box.button(QDialogButtonBox.Cancel), Qt.LeftButton)
 
-            # requests 1 to 3 are for getting certifiers-of and certified-by
-            # on john, + a lookup
-
-            QTest.keyClicks(identities_tab.edit_textsearch, "doe")
-            QTest.mouseClick(identities_tab.button_search, Qt.LeftButton)
-            yield from asyncio.sleep(2)
-            self.assertEqual(mock.get_request(4).method, 'GET')
-            self.assertEqual(mock.get_request(4).url,
-                             '/wot/lookup/doe')
-            self.assertEqual(identities_tab.table_identities.model().rowCount(), 1)
-            self.lp.call_soon(close_dialog)
-
+        self.lp.call_later(15, close_dialog)
         asyncio.async(exec_test())
-        self.lp.run_until_complete(async_open_widget())
+        self.lp.run_until_complete(open_dialog(transfer_dialog))
+
 
 if __name__ == '__main__':
-    logging.basicConfig( stream=sys.stderr )
-    logging.getLogger().setLevel( logging.DEBUG )
+    logging.basicConfig(stream=sys.stderr)
+    logging.getLogger().setLevel(logging.DEBUG)
     unittest.main()
