@@ -63,6 +63,7 @@ class TestIdentitiesTable(unittest.TestCase):
 
     def test_search_identity_found(self):
         mock = nice_blockchain.get_mock()
+        time.sleep(2)
         logging.debug(mock.pretend_url)
         self.network_manager.set_mock_path(mock.pretend_url)
         identities_tab = IdentitiesTabWidget(self.application)

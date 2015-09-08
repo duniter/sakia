@@ -3,6 +3,7 @@ import unittest
 import asyncio
 import quamash
 import logging
+import time
 from PyQt5.QtWidgets import QDialog
 from PyQt5.QtCore import QLocale, Qt
 from PyQt5.QtTest import QTest
@@ -43,6 +44,7 @@ class ProcessAddCommunity(unittest.TestCase):
 
     def test_add_community_empty_blockchain(self):
         mock = new_blockchain.get_mock()
+        time.sleep(2)
         logging.debug(mock.pretend_url)
         self.network_manager.set_mock_path(mock.pretend_url)
         process_community = ProcessConfigureCommunity(self.application,

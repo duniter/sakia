@@ -63,6 +63,7 @@ class TestCertificationDialog(unittest.TestCase):
 
     def test_certification_init_community(self):
         mock = init_new_community.get_mock()
+        time.sleep(2)
         logging.debug(mock.pretend_url)
         self.network_manager.set_mock_path(mock.pretend_url)
         certification_dialog = CertificationDialog(self.application,
