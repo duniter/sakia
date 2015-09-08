@@ -15,6 +15,7 @@ from .wot_tab import WotTabWidget
 from .identities_tab import IdentitiesTabWidget
 from .transactions_tab import TransactionsTabWidget
 from .network_tab import NetworkTabWidget
+from .password_asker import PasswordAskerDialog
 from . import toast
 import asyncio
 from ..tools.exceptions import MembershipNotFoundError, LookupFailureError
@@ -70,10 +71,11 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                                  QIcon(":/icons/network_icon"),
                                  self.tr("Network"))
 
-    def change_account(self, account):
+    def change_account(self, account, password_asker):
         self.account = account
-        self.tab_wot.change_account(account)
-        self.tab_identities.change_account(account)
+        self.password_asker = password_asker
+        self.tab_wot.change_account(account, self.password_asker)
+        self.tab_identities.change_account(account, self.password_asker)
 
     def change_community(self, community):
         self.tab_network.change_community(community)

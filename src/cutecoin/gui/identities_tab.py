@@ -60,8 +60,9 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         self.button_search.addAction(direct_connections)
         self.button_search.clicked.connect(self.search_text)
 
-    def change_account(self, account):
+    def change_account(self, account, password_asker):
         self.account = account
+        self.password_asker = password_asker
         if self.account is None:
             self.community = None
 
@@ -160,7 +161,7 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
             currency_tab.tab_history.table_history.model().sourceModel().refresh_transfers()
 
     def certify_identity(self, identity):
-        dialog = CertificationDialog(self.account, self.app, self.password_asker)
+        dialog = CertificationDialog(self.app, self.account, self.password_asker)
         dialog.combo_community.setCurrentText(self.community.name)
         dialog.edit_pubkey.setText(identity.pubkey)
         dialog.radio_pubkey.setChecked(True)

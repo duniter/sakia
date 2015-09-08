@@ -89,7 +89,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             self.show()
         if self.app.current_account:
-            self.community_view.change_account(self.app.current_account)
+            self.password_asker = PasswordAskerDialog(self.app.current_account)
+            self.community_view.change_account(self.app.current_account, self.password_asker)
         self.refresh()
 
     def open_add_account_dialog(self):
@@ -139,7 +140,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def action_change_account(self, account_name):
         self.app.change_current_account(self.app.get_account(account_name))
-        self.community_view.change_account(self.app.current_account)
+        self.password_asker = PasswordAskerDialog(self.app.current_account)
+        self.community_view.change_account(self.app.current_account, self.password_asker)
         self.refresh()
 
     @pyqtSlot()

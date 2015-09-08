@@ -48,8 +48,9 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         # create node metadata from account
         self._current_identity = None
 
-    def change_account(self, account):
+    def change_account(self, account, password_asker):
         self.account = account
+        self.password_asker = password_asker
 
     def change_community(self, community):
         if self.community:
