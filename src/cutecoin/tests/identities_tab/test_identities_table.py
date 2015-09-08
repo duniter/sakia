@@ -29,7 +29,7 @@ class TestIdentitiesTable(unittest.TestCase):
         QLocale.setDefault(QLocale("en_GB"))
         self.lp = quamash.QEventLoop(self.qapplication)
         asyncio.set_event_loop(self.lp)
-        self.identities_registry = IdentitiesRegistry({})
+        self.identities_registry = IdentitiesRegistry()
 
         self.application = Application(self.qapplication, self.lp, self.network_manager, self.identities_registry)
         self.application.preferences['notifications'] = False
@@ -65,21 +65,10 @@ class TestIdentitiesTable(unittest.TestCase):
         mock = nice_blockchain.get_mock()
         logging.debug(mock.pretend_url)
         self.network_manager.set_mock_path(mock.pretend_url)
-        future = asyncio.Future()
         identities_tab = IdentitiesTabWidget(self.application)
-
-        def start_widget():
-            identities_tab.change_account(self.account)
-            identities_tab.change_community(self.community)
-            identities_tab.show()
-            return future
-
-        @asyncio.coroutine
-        def close_widget():
-            yield from asyncio.sleep(15)
-            if identities_tab.isVisible():
-                identities_tab.close()
-            future.set_result(False)
+        identities_tab.change_account(self.account)
+        identities_tab.change_community(self.community)
+        future = asyncio.Future()
 
         @asyncio.coroutine
         def exec_test():
@@ -93,24 +82,16 @@ class TestIdentitiesTable(unittest.TestCase):
 
             QTest.keyClicks(identities_tab.edit_textsearch, "doe")
             QTest.mouseClick(identities_tab.button_search, Qt.LeftButton)
-            yield from asyncio.sleep(1)
-            """self.assertEqual(mock.get_request(4).method, 'GET')
+            yield from asyncio.sleep(2)
+            self.assertEqual(mock.get_request(4).method, 'GET')
             self.assertEqual(mock.get_request(4).url,
                              '/wot/lookup/doe')
-            self.assertEqual(mock.get_request(5).method, 'GET')
-            self.assertEqual(mock.get_request(5).url,
-                             '/wot/certifiers-of/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn')
-            self.assertEqual(mock.get_request(6).method, 'GET')
-            self.assertEqual(mock.get_request(6).url,
-                             '/wot/lookup/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn')"""
             self.assertEqual(identities_tab.table_identities.model().rowCount(), 1)
-            identities_tab.close()
             future.set_result(True)
 
         asyncio.async(exec_test())
-        asyncio.async(close_widget())
-        self.lp.run_until_complete(start_widget())
-        self.assertTrue(future.result())
+        self.lp.run_until_complete(future)
+        mock.delete_mock()
 
 if __name__ == '__main__':
     logging.basicConfig( stream=sys.stderr )
