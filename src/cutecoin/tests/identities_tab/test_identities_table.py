@@ -67,9 +67,22 @@ class TestIdentitiesTable(unittest.TestCase):
         logging.debug(mock.pretend_url)
         self.network_manager.set_mock_path(mock.pretend_url)
         identities_tab = IdentitiesTabWidget(self.application)
-        identities_tab.change_account(self.account)
+        identities_tab.change_account(self.account, self.password_asker)
         identities_tab.change_community(self.community)
         future = asyncio.Future()
+
+        def open_widget():
+            identities_tab.show()
+            return future
+
+        def async_open_widget():
+            yield from open_widget()
+
+        def close_dialog():
+            if identities_tab.isVisible():
+                identities_tab.close()
+                future.set_result(True)
+
 
         @asyncio.coroutine
         def exec_test():
@@ -88,11 +101,10 @@ class TestIdentitiesTable(unittest.TestCase):
             self.assertEqual(mock.get_request(4).url,
                              '/wot/lookup/doe')
             self.assertEqual(identities_tab.table_identities.model().rowCount(), 1)
-            future.set_result(True)
+            self.lp.call_soon(close_dialog)
 
         asyncio.async(exec_test())
-        self.lp.run_until_complete(future)
-        mock.delete_mock()
+        self.lp.run_until_complete(async_open_widget())
 
 if __name__ == '__main__':
     logging.basicConfig( stream=sys.stderr )
