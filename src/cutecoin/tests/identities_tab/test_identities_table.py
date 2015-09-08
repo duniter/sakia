@@ -75,6 +75,7 @@ class TestIdentitiesTable(unittest.TestCase):
             identities_tab.show()
             return future
 
+        @asyncio.coroutine
         def async_open_widget():
             yield from open_widget()
 
