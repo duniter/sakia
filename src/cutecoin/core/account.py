@@ -196,6 +196,18 @@ class Account(QObject):
     def set_display_referential(self, index):
         self._current_ref = index
 
+    def set_scrypt_infos(self, salt, password):
+        """
+        Change the size of the wallet pool
+        :param int size: The new size of the wallet pool
+        :param str password: The password of the account, same for all wallets
+        """
+        self.salt = salt
+        self.pubkey = SigningKey(self.salt, password).pubkey
+        wallet = Wallet.create(0, self.salt, password,
+                               "Wallet", self._identities_registry)
+        self.wallets.append(wallet)
+
     def identity(self, community):
         """
         Get the account identity in the specified community
@@ -211,23 +223,6 @@ class Account(QObject):
     @property
     def current_ref(self):
         return money.Referentials[self._current_ref]
-
-    def set_walletpool_size(self, size, password):
-        """
-        Change the size of the wallet pool
-
-        :param int size: The new size of the wallet pool
-        :param str password: The password of the account, same for all wallets
-        """
-        logging.debug("Defining wallet pool size")
-        if len(self.wallets) < size:
-            for i in range(len(self.wallets), size):
-                wallet = Wallet.create(i, self.salt, password,
-                                       "Wallet {0}".format(i), self._identities_registry)
-                self.wallets.append(wallet)
-        else:
-            self.wallets = self.wallets[:size]
-        self.wallets_changed.emit()
 
     def transfers(self, community):
         """

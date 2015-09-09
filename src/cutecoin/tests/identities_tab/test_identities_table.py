@@ -105,6 +105,7 @@ class TestIdentitiesTable(unittest.TestCase):
 
         asyncio.async(exec_test())
         self.lp.run_until_complete(async_open_widget())
+        mock.delete_mock()
 
 if __name__ == '__main__':
     logging.basicConfig( stream=sys.stderr )

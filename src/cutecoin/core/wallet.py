@@ -60,7 +60,7 @@ class Wallet(QObject):
         if walletid == 0:
             key = SigningKey(salt, password)
         else:
-            key = SigningKey("{0}{1}".format(salt, walletid), password)
+            key = SigningKey(b"{0}{1}".format(salt, walletid), password)
         return cls(walletid, key.pubkey, name, identities_registry)
 
     @classmethod

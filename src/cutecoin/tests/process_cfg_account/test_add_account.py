@@ -94,6 +94,7 @@ class ProcessAddCommunity(unittest.TestCase):
             self.assertEqual(len(self.application.accounts), 1)
             self.assertEqual(self.application.current_account.name, "test")
             self.assertEqual(self.application.preferences['account'], "test")
+            self.assertEqual(len(self.application.current_account.wallets), 1)
 
         self.lp.call_later(10, close_dialog)
         asyncio.async(exec_test())

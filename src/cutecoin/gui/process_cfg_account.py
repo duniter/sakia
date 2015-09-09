@@ -94,8 +94,7 @@ class StepPageKey(Step):
     def process_next(self):
         salt = self.config_dialog.edit_salt.text()
         password = self.config_dialog.edit_password.text()
-        self.config_dialog.account.salt = salt
-        self.config_dialog.account.pubkey = SigningKey(salt, password).pubkey
+        self.config_dialog.account.set_scrypt_infos(salt, password)
         self.config_dialog.password_asker = PasswordAskerDialog(self.config_dialog.account)
         model = CommunitiesListModel(self.config_dialog.account)
         self.config_dialog.list_communities.setModel(model)
