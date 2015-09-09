@@ -82,7 +82,7 @@ class TestIdentitiesTable(unittest.TestCase):
         def close_dialog():
             if identities_tab.isVisible():
                 identities_tab.close()
-                future.set_result(True)
+            future.set_result(True)
 
         @asyncio.coroutine
         def exec_test():
@@ -104,6 +104,7 @@ class TestIdentitiesTable(unittest.TestCase):
             self.lp.call_soon(close_dialog)
 
         asyncio.async(exec_test())
+        self.lp.call_later(15, close_dialog)
         self.lp.run_until_complete(async_open_widget())
         mock.delete_mock()
 

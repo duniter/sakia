@@ -90,6 +90,7 @@ class TestTransferDialog(unittest.TestCase):
         self.lp.call_later(15, close_dialog)
         asyncio.async(exec_test())
         self.lp.run_until_complete(open_dialog(transfer_dialog))
+        mock.delete_mock()
 
 
 if __name__ == '__main__':
