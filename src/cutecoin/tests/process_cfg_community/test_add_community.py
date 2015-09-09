@@ -97,6 +97,7 @@ class ProcessAddCommunity(unittest.TestCase):
         self.lp.call_later(15, close_dialog)
         asyncio.async(exec_test())
         self.lp.run_until_complete(open_dialog(process_community))
+        mock.delete_mock()
 
     def test_connect_community_empty_blockchain(self):
         mock = new_blockchain.get_mock()
@@ -148,6 +149,7 @@ class ProcessAddCommunity(unittest.TestCase):
         self.lp.call_later(15, close_dialog)
         asyncio.async(exec_test())
         self.lp.run_until_complete(open_dialog(process_community))
+        mock.delete_mock()
 
     def test_connect_community_nice_blockchain(self):
         mock = nice_blockchain.get_mock()
@@ -194,6 +196,7 @@ class ProcessAddCommunity(unittest.TestCase):
         self.lp.call_later(15, close_dialog)
         asyncio.async(exec_test())
         self.lp.run_until_complete(open_dialog(process_community))
+        mock.delete_mock()
 
 if __name__ == '__main__':
     logging.basicConfig( stream=sys.stderr )
