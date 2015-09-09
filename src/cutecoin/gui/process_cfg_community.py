@@ -61,11 +61,15 @@ class StepPageInit(Step):
         logging.debug("Is valid ? ")
         self.node = yield from Node.from_address(self.config_dialog.app.network_manager, None, server, port)
         if self.node:
-            identity = yield from self.app.identities_registry.future_find(self.account.pubkey, self.community)
+            community = Community.create(self.app.network_manager, self.node)
+            identity = yield from self.app.identities_registry.future_find(self.account.pubkey, community)
             if identity.blockchain_state == BlockchainState.NOT_FOUND:
                 self.config_dialog.label_error.setText(self.tr("Could not find your identity on the network."))
+            else:
+                self.config_dialog.community = community
+                self.config_dialog.next()
         else:
-            self.next()
+            self.config_dialog.label_error.setText(self.tr("Could not connect."))
 
     @pyqtSlot()
     def check_connect(self):
