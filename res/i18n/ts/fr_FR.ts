@@ -72,7 +72,7 @@
     <message>
         <location filename="../../ui/account_cfg.ui" line="68"></location>
         <source>Wallets</source>
-        <translation>Nombre de porte-monnaie</translation>
+        <translation type="unfinished">Nombre de porte-monnaie</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="111"></location>
@@ -1637,7 +1637,7 @@ Le transfert de monnaie sera annulé et ne sera pas envoyé.</translation>
     <message>
         <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="127"></location>
         <source>&lt;b&gt;Balance&lt;/b&gt; {:} {:}</source>
-        <translation>&lt;b&gt;Balance&lt;/b&gt; {:} {:}</translation>
+        <translation>&lt;b&gt;Solde&lt;/b&gt; {:} {:}</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/transactions_tab.py" line="170"></location>
