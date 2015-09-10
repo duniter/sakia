@@ -82,7 +82,6 @@ class TestTransferDialog(unittest.TestCase):
         @asyncio.coroutine
         def exec_test():
             yield from asyncio.sleep(1)
-            self.assertEqual(transfer_dialog.button_box.button(QDialogButtonBox.Ok).text(), "&Ok")
             QTest.mouseClick(transfer_dialog.radio_pubkey, Qt.LeftButton)
             QTest.keyClicks(transfer_dialog.edit_pubkey, "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn")
             QTest.mouseClick(transfer_dialog.button_box.button(QDialogButtonBox.Cancel), Qt.LeftButton)
