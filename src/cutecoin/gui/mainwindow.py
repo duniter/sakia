@@ -97,7 +97,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog = ProcessConfigureAccount(self.app, None)
         result = dialog.exec_()
         if result == QDialog.Accepted:
-            self.action_change_account(self.app.current_account)
+            self.action_change_account(self.app.current_account.name)
 
     @pyqtSlot(str)
     def display_error(self, error):
