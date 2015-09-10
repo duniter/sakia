@@ -207,15 +207,16 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         """
         Reset graph scene to wallet identity
         """
-        self.draw_graph(
-            self.account.identity(self.community)
-        )
+        if self.account:
+            self.draw_graph(
+                self.account.identity(self.community)
+            )
 
     def refresh(self):
         """
         Refresh graph scene to current metadata
         """
-        if self._current_identity != None:
+        if self._current_identity:
             self.draw_graph(self._current_identity)
         else:
             self.reset()
