@@ -142,7 +142,7 @@ class Community(QObject):
         :return: The computed UD or 1 if no UD was generated.
         """
         block = self.get_ud_block()
-        if block:
+        if block and block != qtbma.blockchain.Block.null_value:
             return math.ceil(
                 max(
                     self.dividend,

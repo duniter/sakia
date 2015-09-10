@@ -25,8 +25,7 @@ class Relative():
 
     def value(self):
         """
-        Return relaive value of amount
-    type
+        Return relative value of amount
         :param int amount:   Value
         :param cutecoin.core.community.Community community: Community instance
         :return: float
