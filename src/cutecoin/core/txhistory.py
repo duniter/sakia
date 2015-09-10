@@ -177,8 +177,11 @@ class TxHistory():
         parsed_block = min(set(blocks))
         logging.debug("Refresh from : {0} to {1}".format(self.latest_block, current_block['number']))
         dividends_data = qtbma.ud.History.null_value
-        while dividends_data == qtbma.ud.History.null_value:
-            dividends_data = yield from community.bma_access.future_request(qtbma.ud.History,
+        for i in range(0, 6):
+            if dividends_data == qtbma.ud.History.null_value:
+                if i == 5:
+                    return
+                dividends_data = yield from community.bma_access.future_request(qtbma.ud.History,
                                                 req_args={'pubkey': self.wallet.pubkey})
 
         dividends = dividends_data['history']['history']
@@ -193,8 +196,12 @@ class TxHistory():
                     if t.state == Transfer.AWAITING]
         while parsed_block < current_block['number']:
             tx_history = qtbma.tx.history.Blocks.null_value
-            while tx_history == qtbma.tx.history.Blocks.null_value:
-                tx_history = yield from community.bma_access.future_request(qtbma.tx.history.Blocks,
+            for i in range(0, 6):
+                if tx_history == qtbma.tx.history.Blocks.null_value:
+                    if i == 5:
+                        return
+
+                    tx_history = yield from community.bma_access.future_request(qtbma.tx.history.Blocks,
                                                           req_args={'pubkey': self.wallet.pubkey,
                                                                  'from_':str(parsed_block),
                                                                  'to_': str(parsed_block + 99)})
