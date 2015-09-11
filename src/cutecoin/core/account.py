@@ -262,6 +262,7 @@ class Account(QObject):
             value += val
         return value
 
+    @asyncio.coroutine
     def amount(self, community):
         """
         Get amount of money owned in a community by all the wallets
@@ -272,7 +273,7 @@ class Account(QObject):
         """
         value = 0
         for w in self.wallets:
-            val = w.value(community)
+            val = yield from w.value(community)
             value += val
         return value
 

@@ -1,6 +1,6 @@
 from PyQt5.QtCore import QCoreApplication, QT_TRANSLATE_NOOP, QLocale
 from . import Quantitative
-
+import asyncio
 
 class QuantitativeZSum:
     _NAME_STR_ = QT_TRANSLATE_NOOP('QuantitativeZSum', 'Quant Z-sum')
@@ -24,6 +24,7 @@ class QuantitativeZSum:
     def diff_units(cls, currency):
         return QuantitativeZSum.units(currency)
 
+    @asyncio.coroutine
     def value(self):
         """
         Return quantitative value of amount minus the average value
@@ -32,18 +33,22 @@ class QuantitativeZSum:
         :param cutecoin.core.community.Community community: Community instance
         :return: int
         """
-        ud_block = self.community.get_ud_block()
+        ud_block = yield from self.community.get_ud_block()
         if ud_block and ud_block['membersCount'] > 0:
-            average = self.community.monetary_mass / ud_block['membersCount']
+            monetary_mass = yield from self.community.monetary_mass()
+            average = monetary_mass / ud_block['membersCount']
         else:
             average = 0
         return self.amount - average
 
+    @asyncio.coroutine
     def differential(self):
-        return Quantitative(self.amount, self.community, self.app).compute()
+        value = yield from Quantitative(self.amount, self.community, self.app).value()
+        return value
 
+    @asyncio.coroutine
     def localized(self, units=False, international_system=False):
-        value = self.value()
+        value = yield from self.value()
         if international_system:
             pass
         else:
@@ -57,5 +62,7 @@ class QuantitativeZSum:
         else:
             return localized_value
 
+    @asyncio.coroutine
     def diff_localized(self, units=False, international_system=False):
-        return Quantitative(self.amount, self.community, self.app).localized(units, international_system)
+        localized = yield from  Quantitative(self.amount, self.community, self.app).localized(units, international_system)
+        return localized

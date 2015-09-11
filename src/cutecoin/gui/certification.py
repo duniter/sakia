@@ -8,6 +8,7 @@ from PyQt5.QtCore import Qt, pyqtSlot
 from ..gen_resources.certification_uic import Ui_CertificationDialog
 from . import toast
 from ..core.net.api import bma as qtbma
+from ..tools.decorators import asyncify
 import asyncio
 import logging
 
@@ -70,25 +71,16 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
         self.account.broadcast_error.disconnect(self.handle_error)
         QApplication.restoreOverrideCursor()
 
-    def handle_community_data_change(self, request):
-        if request == qtbma.blockchain.Block:
-            self.refresh()
-
     def change_current_community(self, index):
-        try:
-            self.community.inner_data_changed.disconnect(self.handle_community_data_change)
-        except TypeError as e:
-            if 'connect' in str(e):
-                logging.debug("Error when disconnecting community")
-            else:
-                raise
         self.community = self.account.communities[index]
-        self.community.inner_data_changed.connect(self.handle_community_data_change)
         self.refresh()
 
+    @asyncify
+    @asyncio.coroutine
     def refresh(self):
-        if self.account.pubkey in self.community.members_pubkeys() \
-                or self.community.get_block(0) == qtbma.blockchain.Block.null_value:
+        is_member = yield from self.account.identity(self.community).is_member(self.community)
+        block_0 = yield from self.community.get_block(0)
+        if is_member or block_0 == qtbma.blockchain.Block.null_value:
             self.button_box.button(QDialogButtonBox.Ok).setEnabled(True)
             self.button_box.button(QDialogButtonBox.Ok).setText(self.tr("&Ok"))
         else:

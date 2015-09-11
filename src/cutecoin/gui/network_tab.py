@@ -52,7 +52,7 @@ class NetworkTabWidget(QWidget, Ui_NetworkTabWidget):
     @pyqtSlot()
     def refresh_nodes(self):
         logging.debug("Refresh nodes")
-        self.table_network.model().sourceModel().modelReset.emit()
+        self.table_network.model().sourceModel().refresh_nodes()
 
     def node_context_menu(self, point):
         index = self.table_network.indexAt(point)

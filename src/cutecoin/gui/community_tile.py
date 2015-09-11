@@ -5,6 +5,8 @@
 from PyQt5.QtWidgets import QFrame, QLabel, QVBoxLayout, QLayout, QPushButton
 from PyQt5.QtGui import QPalette
 from PyQt5.QtCore import QEvent, QSize, pyqtSignal
+from ..tools.decorators import asyncify
+import asyncio
 
 
 class CommunityTile(QFrame):
@@ -26,9 +28,12 @@ class CommunityTile(QFrame):
     def sizeHint(self):
         return QSize(250, 250)
 
+    @asyncify
+    @asyncio.coroutine
     def refresh(self):
-        current_block = self.community.get_block(self.community.network.latest_block_number)
-        status = self.tr("Member") if self.app.current_account.pubkey in self.community.members_pubkeys() \
+        current_block = yield from self.community.get_block(self.community.network.latest_block_number)
+        members_pubkeys = yield from self.community.members_pubkeys()
+        status = self.tr("Member") if self.app.current_account.pubkey in members_pubkeys \
             else self.tr("Non-Member")
         description = """<html>
         <body>
@@ -41,7 +46,7 @@ class CommunityTile(QFrame):
         <p><span style=" font-weight:600;">{balance_label}</span> : {balance}</p>
         </body>
         </html>""".format(currency=self.community.currency,
-                          nb_members=len(self.community.members_pubkeys()),
+                          nb_members=len(members_pubkeys),
                           members_label=self.tr("members"),
                           monetary_mass_label=self.tr("Monetary mass"),
                           monetary_mass=current_block['monetaryMass'],

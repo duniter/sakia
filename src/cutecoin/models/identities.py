@@ -45,7 +45,7 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
         expiration_index = self.sourceModel().index(source_index.row(), expiration_col)
         expiration_data = self.sourceModel().data(expiration_index, Qt.DisplayRole)
         current_time = QDateTime().currentDateTime().toMSecsSinceEpoch()
-        sig_validity = self.community.parameters['sigValidity']
+        sig_validity = self.sourceModel().sig_validity()
         warning_expiration_time = int(sig_validity / 3)
         #logging.debug("{0} > {1}".format(current_time, expiration_data))
         if expiration_data is not None:
@@ -92,10 +92,13 @@ class IdentitiesTableModel(QAbstractTableModel):
                                'validation': self.tr('Validation')}
         self.columns_ids = ('uid', 'pubkey', 'renewed', 'expiration')
         self.identities_data = []
-        self._identities = []
+        self._sig_validity = 0
 
     def change_community(self, community):
         self.community = community
+
+    def sig_validity(self):
+        return self._sig_validity
 
     @property
     def pubkeys(self):
@@ -125,12 +128,12 @@ class IdentitiesTableModel(QAbstractTableModel):
         """
         logging.debug("Refresh {0} identities".format(len(identities)))
         self.identities_data = []
-        self._identities = []
         self.beginResetModel()
         for identity in identities:
-            self._identities.append(identity)
             data = yield from self.identity_data(identity)
             self.identities_data.append(data)
+        parameters = yield from self.community.parameters()
+        self._sig_validity = parameters['sigValidity']
         self.endResetModel()
 
     def rowCount(self, parent):

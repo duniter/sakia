@@ -71,8 +71,10 @@ class TxHistory():
         self._stop_coroutines = True
 
     @staticmethod
+    @asyncio.coroutine
     def _validation_state(community, block_number, current_block):
-        if block_number + community.network.fork_window(community.members_pubkeys()) + 1 < current_block["number"]:
+        members_pubkeys = yield from community.members_pubkeys()
+        if block_number + community.network.fork_window(members_pubkeys) + 1 < current_block["number"]:
             state = Transfer.VALIDATED
         else:
             state = Transfer.VALIDATING
@@ -87,7 +89,7 @@ class TxHistory():
         block_number = txdata['block_number']
 
         mediantime = txdata['time']
-        state = TxHistory._validation_state(community, block_number, current_block)
+        state = yield from TxHistory._validation_state(community, block_number, current_block)
 
         if len(receivers) == 0:
             receivers = [txdata['issuers'][0]]
@@ -167,13 +169,13 @@ class TxHistory():
         """
         current_block = yield from community.bma_access.future_request(qtbma.blockchain.Block,
                                 req_args={'number': community.network.latest_block_number})
-
+        members_pubkeys = yield from community.members_pubkeys()
         # We look for the first block to parse, depending on awaiting and validating transfers and ud...
         blocks = [tx.metadata['block'] for tx in self._transfers
                   if tx.state in (Transfer.AWAITING, Transfer.VALIDATING)] +\
                  [ud['block_number'] for ud in self._dividends
                   if ud['state'] in (Transfer.AWAITING, Transfer.VALIDATING)] +\
-                 [max(0, self.latest_block - community.network.fork_window(community.members_pubkeys()))]
+                 [max(0, self.latest_block - community.network.fork_window(members_pubkeys))]
         parsed_block = min(set(blocks))
         logging.debug("Refresh from : {0} to {1}".format(self.latest_block, current_block['number']))
         dividends_data = qtbma.ud.History.null_value
@@ -210,7 +212,7 @@ class TxHistory():
 
             udid = 0
             for d in [ud for ud in dividends if ud['block_number'] in range(parsed_block, parsed_block+100)]:
-                state = TxHistory._validation_state(community, d['block_number'], current_block)
+                state = yield from TxHistory._validation_state(community, d['block_number'], current_block)
 
                 if d['block_number'] not in [ud['block_number'] for ud in self._dividends]:
                     d['id'] = udid

@@ -188,9 +188,9 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             graph.add_identity(identity, node_status)
 
             # populate graph with certifiers-of
-            graph.add_certifier_list(certifier_list, identity, identity_account)
+            yield from graph.add_certifier_list(certifier_list, identity, identity_account)
             # populate graph with certified-by
-            graph.add_certified_list(certified_list, identity, identity_account)
+            yield from graph.add_certified_list(certified_list, identity, identity_account)
 
             # draw graph in qt scene
             self.graphicsView.scene().update_wot(graph.get())
@@ -198,7 +198,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             # if selected member is not the account member...
             if identity.pubkey != identity_account.pubkey:
                 # add path from selected member to account member
-                path = graph.get_shortest_path_between_members(identity, identity_account)
+                path = yield from graph.get_shortest_path_between_members(identity, identity_account)
                 if path:
                     self.graphicsView.scene().update_path(path)
 

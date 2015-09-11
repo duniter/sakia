@@ -132,6 +132,7 @@ class Wallet(QObject):
             key = SigningKey("{0}{1}".format(salt, self.walletid), password)
         return (key.pubkey == self.pubkey)
 
+    @asyncio.coroutine
     def relative_value(self, community):
         """
         Get wallet value relative to last generated UD
@@ -139,25 +140,12 @@ class Wallet(QObject):
         :param community: The community to get value
         :return: The wallet relative value
         """
-        value = self.value(community)
+        value = yield from self.value(community)
         ud = community.dividend
         relative_value = value / float(ud)
         return relative_value
 
     @asyncio.coroutine
-    def future_value(self, community):
-        """
-        Get wallet absolute value
-
-        :param community: The community to get value
-        :return: The wallet absolute value
-        """
-        value = 0
-        sources = yield from self.future_sources(community)
-        for s in sources:
-            value += s.amount
-        return value
-
     def value(self, community):
         """
         Get wallet absolute value
@@ -166,7 +154,7 @@ class Wallet(QObject):
         :return: The wallet absolute value
         """
         value = 0
-        sources = self.sources(community)
+        sources = yield from self.sources(community)
         for s in sources:
             value += s.amount
         return value
@@ -305,6 +293,7 @@ class Wallet(QObject):
             tx.append(InputSource.from_bma(s))
         return tx
 
+    @asyncio.coroutine
     def sources(self, community):
         """
         Get available sources in a given community
@@ -312,7 +301,7 @@ class Wallet(QObject):
         :param cutecoin.core.community.Community community: The community where we want available sources
         :return: List of InputSource ucoinpy objects
         """
-        data = community.bma_access.get(self, qtbma.tx.Sources,
+        data = yield from community.bma_access.future_request(qtbma.tx.Sources,
                                  req_args={'pubkey': self.pubkey})
         tx = []
         for s in data['sources']:

@@ -138,64 +138,6 @@ class BmaAccess(QObject):
             return True
         return False
 
-    def get(self, caller, request, req_args={}, get_args={}, tries=0):
-        """
-        Get Json data from the specified URL and emit "inner_data_changed"
-        on the caller if the data changed.
-
-        :param PyQt5.QtCore.QObject caller: The objet calling
-        :param class request: A bma request class calling for data
-        :param dict req_args: Arguments to pass to the request constructor
-        :param dict get_args: Arguments to pass to the request __get__ method
-        :return: The cached data
-        :rtype: dict
-        """
-
-        data = self._get_from_cache(request, req_args, get_args)
-        need_reload = data[0]
-        ret_data = data[1]
-        cache_key = BmaAccess._gen_cache_key(request, req_args, get_args)
-
-        if need_reload:
-            if cache_key in self._pending_requests:
-                if caller not in self._pending_requests[cache_key]:
-                    logging.debug("New caller".format(caller))
-                    self._pending_requests[cache_key].append(caller)
-                    logging.debug("Callers".format(self._pending_requests[cache_key]))
-            else:
-                reply = self.simple_request(request, req_args, get_args)
-                logging.debug("New pending request {0}, caller {1}".format(cache_key, caller))
-                self._pending_requests[cache_key] = [caller]
-                reply.finished.connect(lambda: self.handle_reply(request, req_args, get_args, tries))
-        return ret_data
-
-    @pyqtSlot(int, dict, dict, int)
-    def handle_reply(self, request, req_args, get_args, tries):
-        reply = self.sender()
-        logging.debug("Handling QtNetworkReply for {0}".format(str(request)))
-        cache_key = BmaAccess._gen_cache_key(request, req_args, get_args)
-
-        if reply.error() == QNetworkReply.NoError:
-            strdata = bytes(reply.readAll()).decode('utf-8')
-            json_data = json.loads(strdata)
-            # If data changed, we emit a change signal to all callers
-            if self._update_cache(request, req_args, get_args, json_data):
-                logging.debug(self._pending_requests.keys())
-                for caller in self._pending_requests[cache_key]:
-                    logging.debug("Emit change for {0} : {1} ".format(caller, request))
-                    caller.inner_data_changed.emit(str(request))
-            self._pending_requests.pop(cache_key)
-        else:
-            logging.debug("Error in reply : {0}".format(reply.error()))
-            if tries < 3:
-                tries += 1
-                try:
-                    pending_request = self._pending_requests.pop(cache_key)
-                    for caller in pending_request:
-                        self.get(caller, request, req_args, get_args, tries=tries)
-                except KeyError:
-                    logging.debug("{0} is not present anymore in pending requests".format(cache_key))
-
     def future_request(self, request, req_args={}, get_args={}):
         """
         Start a request to the network and returns a future.

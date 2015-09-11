@@ -1,5 +1,5 @@
 from PyQt5.QtCore import QObject, QCoreApplication, QT_TRANSLATE_NOOP, QLocale
-
+import asyncio
 
 class Relative():
     _NAME_STR_ = QT_TRANSLATE_NOOP('Relative', 'UD')
@@ -23,6 +23,7 @@ class Relative():
     def diff_units(self, currency):
         return self.units(currency)
 
+    @asyncio.coroutine
     def value(self):
         """
         Return relative value of amount
@@ -30,13 +31,16 @@ class Relative():
         :param cutecoin.core.community.Community community: Community instance
         :return: float
         """
-        if self.community.dividend > 0:
-            return self.amount / float(self.community.dividend)
+        dividend = yield from self.community.dividend()
+        if dividend > 0:
+            return self.amount / float(dividend)
         else:
             return 0
 
+    @asyncio.coroutine
     def differential(self):
-        return self.value()
+        value = yield from self.value()
+        return value
 
     def _to_si(self, value):
         prefixes = ['', 'd', 'c', 'm', 'µ', 'n', 'p', 'f', 'a', 'z', 'y']
@@ -59,8 +63,9 @@ class Relative():
 
         return localized_value, prefix
 
+    @asyncio.coroutine
     def localized(self, units=False, international_system=False):
-        value = self.value()
+        value = yield from self.value()
         prefix = ""
         if international_system:
             localized_value, prefix = self._to_si(value)
@@ -75,8 +80,9 @@ class Relative():
         else:
             return localized_value
 
+    @asyncio.coroutine
     def diff_localized(self, units=False, international_system=False):
-        value = self.differential()
+        value = yield from self.differential()
         prefix = ""
         if international_system and value != 0:
             localized_value, prefix = self._to_si(value)

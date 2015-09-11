@@ -6,8 +6,9 @@ Created on 5 févr. 2014
 
 import datetime
 import logging
-from ..core import money
+import asyncio
 from ..core.transfer import Transfer
+from ..tools.decorators import asyncify
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, \
     QDateTime, QLocale, QModelIndex
 
@@ -51,14 +52,14 @@ class TxFilterProxyModel(QSortFilterProxyModel):
         if in_period(date):
             # calculate sum total payments
             payment = source_model.data(
-                source_model.index(sourceRow, source_model.columns_types.index('payment')),
+                source_model.index(sourceRow, source_model.columns_types.index('amount')),
                 Qt.DisplayRole
             )
             if payment:
                 self.payments += int(payment)
             # calculate sum total deposits
             deposit = source_model.data(
-                source_model.index(sourceRow, source_model.columns_types.index('deposit')),
+                source_model.index(sourceRow, source_model.columns_types.index('amount')),
                 Qt.DisplayRole
             )
             if deposit:
@@ -67,7 +68,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
         return in_period(date)
 
     def columnCount(self, parent):
-        return self.sourceModel().columnCount(None) - 4
+        return self.sourceModel().columnCount(None) - 5
 
     def setSourceModel(self, sourceModel):
         self.community = sourceModel.community
@@ -111,9 +112,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                 )
             if source_index.column() == model.columns_types.index('payment') or \
                     source_index.column() == model.columns_types.index('deposit'):
-                if source_data is not "":
-                    return self.account.current_ref(source_data, self.community, self.app)\
-                        .diff_localized(international_system=self.app.preferences['international_system_of_units'])
+                return source_data
 
         if role == Qt.FontRole:
             font = QFont()
@@ -153,7 +152,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                     current_validations = self.community.network.latest_block_number - block_data
                 else:
                     current_validations = 0
-                max_validations = self.community.network.fork_window(self.community.members_pubkeys()) + 1
+                max_validations = self.sourceModel().max_validations()
 
                 if self.app.preferences['expert_mode']:
                     return self.tr("{0} / {1} validations").format(current_validations, max_validations)
@@ -182,6 +181,7 @@ class HistoryTableModel(QAbstractTableModel):
         self.account._current_ref
         self.transfers_data = []
         self.refresh_transfers()
+        self._max_validation = 0
 
         self.columns_types = (
             'date',
@@ -192,7 +192,8 @@ class HistoryTableModel(QAbstractTableModel):
             'state',
             'txid',
             'pubkey',
-            'block_number'
+            'block_number',
+            'amount'
         )
 
         self.column_headers = (
@@ -215,8 +216,11 @@ class HistoryTableModel(QAbstractTableModel):
     def transfers(self):
         return self.account.transfers(self.community) + self.account.dividends(self.community)
 
+    @asyncio.coroutine
     def data_received(self, transfer):
         amount = transfer.metadata['amount']
+        deposit = yield from self.account.current_ref(transfer.metadata['amount'], self.community, self.app)\
+            .diff_localized(international_system=self.app.preferences['international_system_of_units'])
         comment = ""
         if transfer.metadata['comment'] != "":
             comment = transfer.metadata['comment']
@@ -229,12 +233,15 @@ class HistoryTableModel(QAbstractTableModel):
         txid = transfer.metadata['txid']
         block_number = transfer.metadata['block']
 
-        return (date_ts, sender, "", amount,
+        return (date_ts, sender, "", deposit,
                 comment, transfer.state, txid,
-                transfer.metadata['issuer'], block_number)
+                transfer.metadata['issuer'], block_number, amount)
 
+    @asyncio.coroutine
     def data_sent(self, transfer):
         amount = transfer.metadata['amount']
+        paiment = yield from self.account.current_ref(transfer.metadata['amount'], self.community, self.app)\
+            .diff_localized(international_system=self.app.preferences['international_system_of_units'])
         comment = ""
         if transfer.metadata['comment'] != "":
             comment = transfer.metadata['comment']
@@ -247,12 +254,15 @@ class HistoryTableModel(QAbstractTableModel):
         txid = transfer.metadata['txid']
         block_number = transfer.metadata['block']
 
-        return (date_ts, receiver, amount,
+        return (date_ts, receiver, paiment,
                 "", comment, transfer.state, txid,
-                transfer.metadata['receiver'], block_number)
+                transfer.metadata['receiver'], block_number, amount)
 
+    @asyncio.coroutine
     def data_dividend(self, dividend):
         amount = dividend['amount']
+        deposit = yield from self.account.current_ref(dividend['amount'], self.community, self.app)\
+            .diff_localized(international_system=self.app.preferences['international_system_of_units'])
         comment = ""
         receiver = self.account.name
         date_ts = dividend['time']
@@ -261,21 +271,31 @@ class HistoryTableModel(QAbstractTableModel):
         state = dividend['state']
 
         return (date_ts, receiver, "",
-                amount, "", state, id,
-                self.account.pubkey, block_number)
+                deposit, "", state, id,
+                self.account.pubkey, block_number, amount)
 
+    @asyncify
+    @asyncio.coroutine
     def refresh_transfers(self):
         self.beginResetModel()
         self.transfers_data = []
         for transfer in self.transfers:
+            data = None
             if type(transfer) is Transfer:
                 if transfer.metadata['issuer'] == self.account.pubkey:
-                    self.transfers_data.append(self.data_sent(transfer))
+                    data = yield from self.data_sent(transfer)
                 else:
-                    self.transfers_data.append(self.data_received(transfer))
+                    data = yield from self.data_received(transfer)
             elif type(transfer) is dict:
-                self.transfers_data.append(self.data_dividend(transfer))
+                data = yield from self.data_dividend(transfer)
+            if data:
+                self.transfers_data.append(data)
+            members_pubkeys = yield from self.community.members_pubkeys()
+            self._max_validation = self.community.network.fork_window(members_pubkeys) + 1
         self.endResetModel()
+
+    def max_validation(self):
+        return self._max_validation
 
     def rowCount(self, parent):
         return len(self.transfers_data)

@@ -154,7 +154,8 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.tab_history.refresh_balance()
         self.refresh_status()
 
-    @pyqtSlot()
+    @asyncify
+    @asyncio.coroutine
     def refresh_status(self):
         """
         Refresh status bar
@@ -163,7 +164,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         if self.community:
             text = self.tr(" Block {0}").format(self.community.network.latest_block_number)
 
-            block = self.community.get_block(self.community.network.latest_block_number)
+            block = yield from self.community.get_block(self.community.network.latest_block_number)
             if block != qtbma.blockchain.Block.null_value:
                 text += " ( {0} )".format(QLocale.toString(
                             QLocale(),

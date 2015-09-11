@@ -1,6 +1,6 @@
 from PyQt5.QtCore import QCoreApplication, QT_TRANSLATE_NOOP, QLocale
 from .relative import Relative
-
+import asyncio
 
 class RelativeZSum:
     _NAME_STR_ = QT_TRANSLATE_NOOP('RelativeZSum', 'Relat Z-sum')
@@ -24,6 +24,7 @@ class RelativeZSum:
     def diff_units(cls, currency):
         return RelativeZSum.units(currency)
 
+    @asyncio.coroutine
     def value(self):
         """
         Return relative value of amount minus the average value
@@ -32,20 +33,24 @@ class RelativeZSum:
         :param cutecoin.core.community.Community community: Community instance
         :return: float
         """
-        ud_block = self.community.get_ud_block()
+        ud_block = yield from self.community.get_ud_block()
         if ud_block and ud_block['membersCount'] > 0:
-            median = self.community.monetary_mass / ud_block['membersCount']
-            relative_value = self.amount / float(self.community.dividend)
-            relative_median = median / self.community.dividend
+            monetary_mass = yield from self.community.monetary_mass()
+            dividend = yield from self.community.dividend()
+            median = monetary_mass / ud_block['membersCount']
+            relative_value = self.amount / float(dividend)
+            relative_median = median / dividend
         else:
             relative_median = 0
         return relative_value - relative_median
 
+    @asyncio.coroutine
     def differential(self):
         return Relative(self.amount, self.community, self.app).value()
 
+    @asyncio.coroutine
     def localized(self, units=False, international_system=False):
-        value = self.value()
+        value = yield from self.value()
         if international_system:
             pass
         else:

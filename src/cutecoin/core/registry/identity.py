@@ -233,7 +233,7 @@ class Identity(QObject):
 
         if data == qtbma.wot.CertifiersOf.null_value:
             logging.debug('bma.wot.CertifiersOf request error')
-            data = community.bma_access.get(self, qtbma.wot.Lookup, {'search': self.pubkey})
+            data = yield from community.bma_access.future_request(qtbma.wot.Lookup, {'search': self.pubkey})
             if data == qtbma.wot.Lookup.null_value:
                 logging.debug('bma.wot.Lookup request error')
             else:
@@ -247,7 +247,7 @@ class Identity(QObject):
                                     certifier['identity'] = identities_registry.from_handled_data(uid,
                                                                                                   certifier_data['pubkey'],
                                                                           BlockchainState.BUFFERED)
-                                    block = community.bma_access.get(self, qtbma.blockchain.Block,
+                                    block = yield from community.bma_access.future_request(qtbma.blockchain.Block,
                                                                          {'number': certifier_data['meta']['block_number']})
                                     certifier['cert_time'] = block['medianTime']
                                     certifier['block_number'] = None
@@ -271,7 +271,8 @@ class Identity(QObject):
         #  add certifiers of uid
         for certifier in tuple(certifier_list):
             # add only valid certification...
-            if community.certification_expired(certifier['cert_time']):
+            cert_expired = yield from community.certification_expired(certifier['cert_time'])
+            if cert_expired:
                 continue
 
             # keep only the latest certification
@@ -296,7 +297,7 @@ class Identity(QObject):
         certified_list = list()
         if data == qtbma.wot.CertifiedBy.null_value:
             logging.debug('bma.wot.CertifiersOf request error')
-            data = community.bma_access.get(self, qtbma.wot.Lookup, {'search': self.pubkey})
+            data = yield from community.bma_access.future_request(qtbma.wot.Lookup, {'search': self.pubkey})
             if data == qtbma.wot.Lookup.null_value:
                 logging.debug('bma.wot.Lookup request error')
             else:
@@ -328,7 +329,8 @@ class Identity(QObject):
         #  add certifiers of uid
         for certified in tuple(certified_list):
             # add only valid certification...
-            if community.certification_expired(certified['cert_time']):
+            cert_expired = yield from community.certification_expired(certified['cert_time'])
+            if cert_expired:
                 continue
 
             # keep only the latest certification

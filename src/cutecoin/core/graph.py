@@ -1,8 +1,9 @@
 import logging
 import time
-import datetime
+import asyncio
 from PyQt5.QtCore import QLocale, QDateTime
 from ..core.registry import Identity, BlockchainState
+from ..tools.decorators import asyncify
 from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_OUT, ARC_STATUS_STRONG, ARC_STATUS_WEAK
 
 
@@ -17,11 +18,15 @@ class Graph(object):
         """
         self.app = app
         self.community = community
-        self.signature_validity = self.community.parameters['sigValidity']
-        #  arc considered strong during 75% of signature validity time
-        self.ARC_STATUS_STRONG_time = int(self.signature_validity * 0.75)
         # graph empty if None parameter
         self._graph = graph or (dict() and (graph is None))
+
+    @asyncio.coroutine
+    def refresh_signature_validity(self):
+        parameters = yield from self.community.parameters()
+        self.signature_validity = parameters['sigValidity']
+        #  arc considered strong during 75% of signature validity time
+        self.ARC_STATUS_STRONG_time = int(self.signature_validity * 0.75)
 
     def set(self, graph):
         """
@@ -38,6 +43,7 @@ class Graph(object):
         """
         return self._graph
 
+    @asyncio.coroutine
     def get_shortest_path_between_members(self, from_identity, to_identity):
         """
         Return path list of nodes from from_identity to to_identity
@@ -50,17 +56,19 @@ class Graph(object):
         logging.debug("path between %s to %s..." % (from_identity.uid, to_identity.uid))
         if from_identity.pubkey not in self._graph.keys():
             self.add_identity(from_identity)
-            certifier_list = from_identity.certifiers_of(self.app.identities_registry, self.community)
+            certifier_list = yield from from_identity.certifiers_of(self.app.identities_registry,
+                                                                    self.community)
             self.add_certifier_list(certifier_list, from_identity, to_identity)
-            certified_list = from_identity.certified_by(self.app.identities_registry, self.community)
+            certified_list = yield from from_identity.certified_by(self.app.identities_registry,
+                                                                   self.community)
             self.add_certified_list(certified_list, from_identity, to_identity)
 
         if to_identity.pubkey not in self._graph.keys():
             # recursively feed graph searching for account node...
-            self.explore_to_find_member(to_identity, self._graph[from_identity.pubkey]['connected'], list())
+            yield from self.explore_to_find_member(to_identity, self._graph[from_identity.pubkey]['connected'], list())
         if len(self._graph[from_identity.pubkey]['connected']) > 0:
             # calculate path of nodes between identity and to_identity
-            path = self.find_shortest_path(self._graph[from_identity.pubkey], self._graph[to_identity.pubkey])
+            path = yield from self.find_shortest_path(self._graph[from_identity.pubkey], self._graph[to_identity.pubkey])
 
         if path:
             logging.debug([node['text'] for node in path])
@@ -69,6 +77,7 @@ class Graph(object):
 
         return path
 
+    @asyncio.coroutine
     def explore_to_find_member(self, identity, connected=None, done=None):
         """
         Scan graph recursively to find identity
@@ -90,11 +99,13 @@ class Graph(object):
             if node['id'] in tuple(done):
                 continue
             identity_selected = identity.from_handled_data(node['text'], node['id'], BlockchainState.VALIDATED)
-            certifier_list = identity_selected.unique_valid_certifiers_of(self.app.identities_registry, self.community)
+            certifier_list = yield from identity_selected.unique_valid_certifiers_of(self.app.identities_registry,
+                                                                                     self.community)
             self.add_certifier_list(certifier_list, identity_selected, identity)
             if identity.pubkey in tuple(self._graph.keys()):
                 return False
-            certified_list = identity_selected.unique_valid_certified_by(self.app.identities_registry, self.community)
+            certified_list = yield from identity_selected.unique_valid_certified_by(self.app.identities_registry,
+                                                                                    self.community)
             self.add_certified_list(certified_list, identity_selected, identity)
             if identity.pubkey in tuple(self._graph.keys()):
                 return False
@@ -108,6 +119,7 @@ class Graph(object):
 
         return True
 
+    @asyncio.coroutine
     def find_shortest_path(self, start, end, path=None):
         """
         Find recursively the shortest path between two nodes
@@ -126,12 +138,13 @@ class Graph(object):
         for pubkey in tuple(self._graph[start['id']]['connected']):
             node = self._graph[pubkey]
             if node not in path:
-                newpath = self.find_shortest_path(node, end, path)
+                newpath = yield from self.find_shortest_path(node, end, path)
                 if newpath:
                     if not shortest or len(newpath) < len(shortest):
                         shortest = newpath
         return shortest
 
+    @asyncio.coroutine
     def add_certifier_list(self, certifier_list, identity, identity_account):
         """
         Add list of certifiers to graph
@@ -140,6 +153,7 @@ class Graph(object):
         :param identity identity_account:   Account identity instance
         :return:
         """
+        yield from self.refresh_signature_validity()
         #  add certifiers of uid
         for certifier in tuple(certifier_list):
             # add only valid certification...
@@ -207,6 +221,7 @@ class Graph(object):
                 # add certifier node to identity node
                 self._graph[identity.pubkey]['connected'].append(certifier['identity'].pubkey)
 
+    @asyncio.coroutine
     def add_certified_list(self, certified_list, identity, identity_account):
         """
         Add list of certified from api to graph
@@ -215,6 +230,7 @@ class Graph(object):
         :param identity identity_account:   Account identity instance
         :return:
         """
+        yield from self.refresh_signature_validity()
         # add certified by uid
         for certified in tuple(certified_list):
             # add only valid certification...
@@ -254,7 +270,8 @@ class Graph(object):
                 current_validations = self.community.network.latest_block_number - certified['block_number']
             else:
                 current_validations = 0
-            max_validations = self.community.network.fork_window(self.community.members_pubkeys()) + 1
+            members_pubkeys = yield from self.community.members_pubkeys()
+            max_validations = self.community.network.fork_window(members_pubkeys) + 1
 
             if max_validations > current_validations > 0:
                 if self.app.preferences['expert_mode']:

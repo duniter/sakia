@@ -7,10 +7,12 @@ from ..models.txhistory import HistoryTableModel, TxFilterProxyModel
 from ..core.transfer import Transfer
 from ..core.wallet import Wallet
 from ..core.registry import Identity
+from ..tools.decorators import asyncify
 from .transfer import TransferMoneyDialog
 from . import toast
 
 import logging
+import asyncio
 
 
 class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
@@ -43,8 +45,10 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         self.refresh()
         self.stop_progress([])
 
+    @asyncify
+    @asyncio.coroutine
     def refresh_minimum_maximum(self):
-        block = self.community.get_block(1)
+        block = yield from self.community.get_block(1)
         minimum_datetime = QDateTime()
         minimum_datetime.setTime_t(block['medianTime'])
         minimum_datetime.setTime(QTime(0, 0))
@@ -104,6 +108,8 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         self.table_history.model().sourceModel().refresh_transfers()
         self.table_history.resizeColumnsToContents()
 
+    @asyncify
+    @asyncio.coroutine
     def refresh_balance(self):
         if self.app.preferences['expert_mode']:
             # if referential is "units"
@@ -118,9 +124,12 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
 
             proxy = self.table_history.model()
             balance = proxy.deposits - proxy.payments
-            localized_deposits = self.app.current_account.current_ref(proxy.deposits, self.community, self.app).diff_localized()
-            localized_payments = self.app.current_account.current_ref(proxy.payments, self.community, self.app).diff_localized()
-            localized_balance = self.app.current_account.current_ref(balance, self.community, self.app).diff_localized()
+            localized_deposits = yield from self.app.current_account.current_ref(proxy.deposits, self.community,
+                                                                                 self.app).diff_localized()
+            localized_payments = yield from self.app.current_account.current_ref(proxy.payments, self.community,
+                                                                                 self.app).diff_localized()
+            localized_balance = yield from self.app.current_account.current_ref(balance, self.community,
+                                                                                self.app).diff_localized()
 
             self.label_deposit.setText(QCoreApplication.translate("TransactionsTabWidget", "<b>Deposits</b> {:} {:}").format(
                 localized_deposits,
@@ -136,8 +145,9 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
             ))
 
         else:
-            amount = self.app.current_account.amount(self.community)
-            localized_amount = self.app.current_account.current_ref(amount, self.community, self.app).localized(units=True)
+            amount = yield from self.app.current_account.amount(self.community)
+            localized_amount = yield from self.app.current_account.current_ref(amount, self.community,
+                                                                               self.app).localized(units=True)
 
             # set infos in label
             self.label_balance.setText(
