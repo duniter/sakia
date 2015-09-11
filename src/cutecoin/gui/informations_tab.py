@@ -65,7 +65,7 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                                                     self.community, self.app).diff_localized()
 
             localized_mass = self.account.current_ref(block_ud['monetaryMass'],
-                                                    self.community, self.app)
+                                                    self.community, self.app).diff_localized()
             if block_ud_minus_1:
                 mass_minus_1 = (float(0) if block_ud['membersCount'] == 0 else
                         block_ud_minus_1['monetaryMass'] / block_ud['membersCount'])
