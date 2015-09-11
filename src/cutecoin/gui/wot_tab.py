@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import asyncio
 from cutecoin.core.graph import Graph
 from ..tools.exceptions import MembershipNotFoundError
+from ..tools.decorators import asyncify
 from PyQt5.QtWidgets import QWidget, QComboBox, QLineEdit
 from PyQt5.QtCore import pyqtSlot, QEvent, QLocale, QDateTime
 from cutecoin.core.net.api import bma
@@ -60,6 +62,8 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         self.community = community
         self.reset()
 
+    @asyncify
+    @asyncio.coroutine
     def refresh_informations_frame(self):
         parameters = self.community.parameters
         try:
@@ -72,8 +76,8 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             last_renewal = None
             expiration = None
 
-        certified = identity.unique_valid_certified_by(self.app.identities_registry, self.community)
-        certifiers = identity.unique_valid_certifiers_of(self.app.identities_registry, self.community)
+        certified = yield from identity.unique_valid_certified_by(self.app.identities_registry, self.community)
+        certifiers = yield from identity.unique_valid_certifiers_of(self.app.identities_registry, self.community)
         if last_renewal and expiration:
             date_renewal = QLocale.toString(
                 QLocale(),
@@ -148,6 +152,8 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             )
         )
 
+    @asyncify
+    @asyncio.coroutine
     def draw_graph(self, identity):
         """
         Draw community graph centered on the identity
@@ -159,22 +165,15 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         if self.community:
             identity_account = self.account.identity(self.community)
 
-            # Disconnect old identity
-            try:
-                if self._current_identity and self._current_identity != identity:
-                    self._current_identity.inner_data_changed.disconnect(self.handle_identity_change)
-            except TypeError as e:
-                if "disconnect()" in str(e):
-                    logging.debug("Disconnect of old identity failed.")
-
             #Connect new identity
             if self._current_identity != identity:
                 self._current_identity = identity
-                identity.inner_data_changed.connect(self.handle_identity_change)
 
             # create Identity from node metadata
-            certifier_list = identity.unique_valid_certifiers_of(self.app.identities_registry, self.community)
-            certified_list = identity.unique_valid_certified_by(self.app.identities_registry, self.community)
+            certifier_list = yield from identity.unique_valid_certifiers_of(self.app.identities_registry,
+                                                                            self.community)
+            certified_list = yield from identity.unique_valid_certified_by(self.app.identities_registry,
+                                                                           self.community)
 
             # create empty graph instance
             graph = Graph(self.app, self.community)
@@ -220,10 +219,6 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             self.draw_graph(self._current_identity)
         else:
             self.reset()
-
-    @pyqtSlot(str)
-    def handle_identity_change(self, request):
-        self.refresh()
 
     def search(self):
         """

@@ -10,10 +10,10 @@ import asyncio
 from enum import Enum
 
 from ucoinpy.documents.certification import SelfCertification
-from cutecoin.tools.exceptions import Error, NoPeerAvailable,\
+from ...tools.exceptions import Error, NoPeerAvailable,\
                                         MembershipNotFoundError
-from cutecoin.core.net.api import bma as qtbma
-from cutecoin.core.net.api.bma import PROTOCOL_VERSION
+from ..net.api import bma as qtbma
+from ..net.api.bma import PROTOCOL_VERSION
 from PyQt5.QtCore import QObject, pyqtSignal
 
 
@@ -117,6 +117,7 @@ class Identity(QObject):
                                          signature)
         return None
 
+    @asyncio.coroutine
     def get_join_date(self, community):
         """
         Get the person join date.
@@ -125,11 +126,11 @@ class Identity(QObject):
         :param cutecoin.core.community.Community community: The community target to request the join date
         :return: A datetime object
         """
-        search = community.bma_access.get(self, qtbma.blockchain.Membership, {'search': self.pubkey})
+        search = yield from community.bma_access.future_request(qtbma.blockchain.Membership, {'search': self.pubkey})
         if search != qtbma.blockchain.Membership.null_value:
             if len(search['memberships']) > 0:
                 membership_data = search['memberships'][0]
-                block = community.bma_access.get(self, qtbma.blockchain.Block,
+                block = yield from community.bma_access.future_request(qtbma.blockchain.Block,
                                 req_args={'number': membership_data['blockNumber']})
                 if block != qtbma.blockchain.Block.null_value:
                     return block['medianTime']
@@ -137,14 +138,16 @@ class Identity(QObject):
         else:
             raise MembershipNotFoundError(self.pubkey, community.name)
 
+    @asyncio.coroutine
     def get_expiration_date(self, community):
         try:
-            join_block_number = self.membership(community)['blockNumber']
+            membership = yield from self.membership(community)
+            join_block_number = membership['blockNumber']
             try:
-                join_block = community.bma_access.get(self, qtbma.blockchain.Block,
+                join_block = yield from community.bma_access.future_request(qtbma.blockchain.Block,
                                 req_args={'number': join_block_number})
 
-                parameters = community.bma_access.get(self, qtbma.blockchain.Parameters)
+                parameters = yield from community.bma_access.future_request(qtbma.blockchain.Parameters)
                 if join_block != qtbma.blockchain.Block.null_value \
                         and parameters != qtbma.blockchain.Parameters.null_value:
                     join_date = join_block['medianTime']
@@ -159,6 +162,7 @@ class Identity(QObject):
 
 
 #TODO: Manage 'OUT' memberships ? Maybe ?
+    @asyncio.coroutine
     def membership(self, community):
         """
         Get the person last membership document.
@@ -166,7 +170,7 @@ class Identity(QObject):
         :param cutecoin.core.community.Community community: The community target to request the join date
         :return: The membership data in BMA json format
         """
-        search = community.bma_access.get(self, qtbma.blockchain.Membership,
+        search = yield from community.bma_access.future_request(qtbma.blockchain.Membership,
                                            {'search': self.pubkey})
         if search != qtbma.blockchain.Membership.null_value:
             block_number = -1
@@ -182,8 +186,9 @@ class Identity(QObject):
         else:
             raise MembershipNotFoundError(self.pubkey, community.name)
 
+    @asyncio.coroutine
     def published_uid(self, community):
-        data = community.bma_access.get(self, qtbma.wot.Lookup,
+        data = yield from community.bma_access.future_request(qtbma.wot.Lookup,
                                  req_args={'search': self.pubkey})
         if data != qtbma.wot.Lookup.null_value:
             timestamp = 0
@@ -200,6 +205,7 @@ class Identity(QObject):
                             return True
         return False
 
+    @asyncio.coroutine
     def is_member(self, community):
         """
         Check if the person is a member of a community
@@ -207,11 +213,12 @@ class Identity(QObject):
         :param cutecoin.core.community.Community community: The community target to request the join date
         :return: True if the person is a member of a community
         """
-        certifiers = community.bma_access.get(self, qtbma.wot.CertifiersOf, {'search': self.pubkey})
+        certifiers = yield from community.bma_access.future_request(qtbma.wot.CertifiersOf, {'search': self.pubkey})
         if certifiers != qtbma.wot.CertifiersOf.null_value:
             return certifiers['isMember']
         return False
 
+    @asyncio.coroutine
     def certifiers_of(self, identities_registry, community):
         """
         Get the list of this person certifiers
@@ -220,7 +227,7 @@ class Identity(QObject):
         :param cutecoin.core.community.Community community: The community target to request the join date
         :return: The list of the certifiers of this community
         """
-        data = community.bma_access.get(self, qtbma.wot.CertifiersOf, {'search': self.pubkey})
+        data = yield from community.bma_access.future_request(qtbma.wot.CertifiersOf, {'search': self.pubkey})
 
         certifiers = list()
 
@@ -257,8 +264,9 @@ class Identity(QObject):
                 certifiers.append(certifier)
         return certifiers
 
+    @asyncio.coroutine
     def unique_valid_certifiers_of(self, identities_registry, community):
-        certifier_list = self.certifiers_of(identities_registry, community)
+        certifier_list = yield from self.certifiers_of(identities_registry, community)
         unique_valid = []
         #  add certifiers of uid
         for certifier in tuple(certifier_list):
@@ -276,6 +284,7 @@ class Identity(QObject):
                 unique_valid.append(certifier)
         return unique_valid
 
+    @asyncio.coroutine
     def certified_by(self, identities_registry, community):
         """
         Get the list of persons certified by this person
@@ -283,7 +292,7 @@ class Identity(QObject):
         :param cutecoin.core.community.Community community: The community target to request the join date
         :return: The list of the certified persons of this community in BMA json format
         """
-        data = community.bma_access.get(self, qtbma.wot.CertifiedBy, {'search': self.pubkey})
+        data = yield from community.bma_access.future_request(qtbma.wot.CertifiedBy, {'search': self.pubkey})
         certified_list = list()
         if data == qtbma.wot.CertifiedBy.null_value:
             logging.debug('bma.wot.CertifiersOf request error')
@@ -312,8 +321,9 @@ class Identity(QObject):
                 certified_list.append(certified)
         return certified_list
 
+    @asyncio.coroutine
     def unique_valid_certified_by(self, identities_registry, community):
-        certified_list = self.certified_by(identities_registry, community)
+        certified_list = yield from self.certified_by(identities_registry, community)
         unique_valid = []
         #  add certifiers of uid
         for certified in tuple(certified_list):
@@ -331,8 +341,10 @@ class Identity(QObject):
                 unique_valid.append(certified)
         return unique_valid
 
+    @asyncio.coroutine
     def membership_expiration_time(self, community):
-        join_block = self.membership(community)['blockNumber']
+        membership = yield from self.membership(community)
+        join_block = membership['blockNumber']
         join_date = community.get_block(join_block)['medianTime']
         parameters = community.parameters
         expiration_date = join_date + parameters['sigValidity']

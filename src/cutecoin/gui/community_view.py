@@ -19,6 +19,7 @@ from .password_asker import PasswordAskerDialog
 from . import toast
 import asyncio
 from ..tools.exceptions import MembershipNotFoundError, LookupFailureError
+from ..tools.decorators import asyncify
 from ..gen_resources.community_view_uic import Ui_CommunityWidget
 
 
@@ -101,7 +102,8 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                     error,
                     QMessageBox.Ok)
 
-    @pyqtSlot(int)
+    @asyncify
+    @asyncio.coroutine
     def refresh_block(self, block_number):
         """
         When a new block is found, start handling data.
@@ -110,8 +112,8 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         logging.debug("Refresh block")
         self.status_info.clear()
         try:
-            person = self.app.identities_registry.find(self.app.current_account.pubkey, self.community)
-            expiration_time = person.membership_expiration_time(self.community)
+            person = yield from self.app.identities_registry.future_find(self.app.current_account.pubkey, self.community)
+            expiration_time = yield from person.membership_expiration_time(self.community)
             sig_validity = self.community.parameters['sigValidity']
             warning_expiration_time = int(sig_validity / 3)
             will_expire_soon = (expiration_time < warning_expiration_time)
@@ -126,7 +128,8 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                         toast.display(self.tr("Membership expiration"),
                                   self.tr("<b>Warning : Membership expiration in {0} days</b>").format(days))
 
-            certifiers_of = person.unique_valid_certifiers_of(self.app.identities_registry, self.community)
+            certifiers_of = yield from person.unique_valid_certifiers_of(self.app.identities_registry,
+                                                                         self.community)
             if len(certifiers_of) < self.community.parameters['sigQty']:
                 self.status_info.append('warning_certifications')
                 if self.app.preferences['notifications']:
@@ -184,12 +187,16 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
 
             self.status_label.setText(label_text)
 
+    @asyncify
+    @asyncio.coroutine
     def refresh_quality_buttons(self):
         if self.account and self.community:
             try:
-                if self.account.identity(self.community).published_uid(self.community):
+                published_uid = yield from self.account.identity(self.community).published_uid(self.community)
+                if published_uid:
                     logging.debug("UID Published")
-                    if self.account.identity(self.community).is_member(self.community):
+                    is_member = yield from self.account.identity(self.community).is_member(self.community)
+                    if is_member:
                         self.button_membership.setText(self.tr("Renew membership"))
                         self.button_membership.show()
                         self.button_certification.show()

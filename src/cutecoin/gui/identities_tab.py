@@ -9,16 +9,15 @@ from PyQt5.QtCore import Qt, pyqtSlot, QEvent
 from PyQt5.QtGui import QIcon, QCursor
 from PyQt5.QtWidgets import QWidget, QMessageBox, QAction, QMenu, QDialog, \
                             QAbstractItemView
-from cutecoin.models.identities import IdentitiesFilterProxyModel, IdentitiesTableModel
+from ..models.identities import IdentitiesFilterProxyModel, IdentitiesTableModel
 from ..gen_resources.identities_tab_uic import Ui_IdentitiesTab
-from cutecoin.gui.contact import ConfigureContactDialog
-from cutecoin.gui.member import MemberDialog
-from .wot_tab import WotTabWidget
+from .contact import ConfigureContactDialog
+from .member import MemberDialog
 from .transfer import TransferMoneyDialog
 from .certification import CertificationDialog
-from . import toast
 import asyncio
 from ..core.net.api import bma as qtbma
+from ..tools.decorators import asyncify
 
 
 class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
@@ -53,10 +52,10 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         self.table_identities.resizeColumnsToContents()
 
         members_action = QAction(self.tr("Members"), self)
-        members_action.triggered.connect(self.search_members)
+        members_action.triggered.connect(self._async_search_members)
         self.button_search.addAction(members_action)
         direct_connections = QAction(self.tr("Direct connections"), self)
-        direct_connections.triggered.connect(self.search_direct_connections)
+        direct_connections.triggered.connect(self._async_search_direct_connections)
         self.button_search.addAction(direct_connections)
         self.button_search.clicked.connect(self.search_text)
 
@@ -67,18 +66,9 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
             self.community = None
 
     def change_community(self, community):
-        if self.community:
-            try:
-                self.account.identity(self.community).inner_data_changed.disconnect(self.handle_account_identity_change)
-            except TypeError as e:
-                if "disconnect" in str(e):
-                    logging.debug("Disconnect failed between inner_data_changed ans handle_account_identity_changed")
-                    pass
-        if community:
-            self.account.identity(community).inner_data_changed.connect(self.handle_account_identity_change)
-
         self.community = community
         self.table_identities.model().change_community(community)
+        self._async_search_direct_connections()
 
     def identity_context_menu(self, point):
         index = self.table_identities.indexAt(point)
@@ -175,27 +165,6 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         index_wot_tab = self.tabs_information.indexOf(self.wot_tab)
         self.tabs_information.setCurrentIndex(index_wot_tab)
 
-    @asyncio.coroutine
-    def _execute_search_text(self, text):
-        response = yield from self.community.bma_access.future_request(qtbma.wot.Lookup, {'search': text})
-        identities = []
-        for identity_data in response['results']:
-            identity = yield from self.app.identities_registry.future_find(identity_data['pubkey'], self.community)
-            identities.append(identity)
-
-        self_identity = self.account.identity(self.community)
-        try:
-            self_identity.inner_data_changed.disconnect(self.handle_account_identity_change)
-            self.community.inner_data_changed.disconnect(self.handle_community_change)
-        except TypeError as e:
-            if "disconnect() failed" in str(e):
-                pass
-            else:
-                raise
-
-        self.edit_textsearch.clear()
-        self.refresh_identities(identities)
-
     def search_text(self):
         """
         Search text and display found identities
@@ -205,67 +174,54 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         if len(text) < 2:
             return False
         else:
-            asyncio.async(self._execute_search_text(text))
+            asyncio.async(self._async_execute_search_text(text))
 
-    @pyqtSlot(str)
-    def handle_community_change(self, origin):
-        logging.debug("Handle account community {0}".format(origin))
-        if origin == qtbma.wot.Members:
-            self.search_members()
-
-    @pyqtSlot(str)
-    def handle_account_identity_change(self, origin):
-        logging.debug("Handle account identity change {0}".format(origin))
-        if origin in (str(qtbma.wot.CertifiedBy), str(qtbma.wot.CertifiersOf)):
-            self.search_direct_connections()
-
-    def search_members(self):
-        """
-        Search members of community and display found members
-        """
-        pubkeys = self.community.members_pubkeys()
+    @asyncio.coroutine
+    def _async_execute_search_text(self, text):
+        response = yield from self.community.bma_access.future_request(qtbma.wot.Lookup, {'search': text})
         identities = []
-        for p in pubkeys:
-            identities.append(self.app.identities_registry.find(p, self.community))
-
-        self_identity = self.account.identity(self.community)
-
-        try:
-            self_identity.inner_data_changed.disconnect(self.handle_account_identity_change)
-            self.community.inner_data_changed.connect(self.handle_community_change)
-        except TypeError as e:
-            if "disconnect() failed" in str(e):
-                pass
-            else:
-                raise
+        for identity_data in response['results']:
+            identity = yield from self.app.identities_registry.future_find(identity_data['pubkey'], self.community)
+            identities.append(identity)
 
         self.edit_textsearch.clear()
         self.refresh_identities(identities)
 
-    def search_direct_connections(self):
+    @asyncify
+    @asyncio.coroutine
+    def _async_search_members(self):
         """
         Search members of community and display found members
         """
-        self_identity = self.account.identity(self.community)
-        try:
-            self.community.inner_data_changed.disconnect(self.handle_community_change)
-            self_identity.inner_data_changed.connect(self.handle_account_identity_change)
-        except TypeError as e:
-            if "disconnect() failed" in str(e):
-                logging.debug("Could not disconnect community")
-            else:
-                raise
+        if self.community:
+            pubkeys = self.community.members_pubkeys()
+            identities = []
+            for p in pubkeys:
+                identities.append(self.app.identities_registry.find(p, self.community))
 
-        account_connections = []
-        for p in self_identity.unique_valid_certifiers_of(self.app.identities_registry, self.community):
-            account_connections.append(p['identity'])
-        certifiers_of = [p for p in account_connections]
-        for p in self_identity.unique_valid_certified_by(self.app.identities_registry, self.community):
-            account_connections.append(p['identity'])
-        certified_by = [p for p in account_connections
-                  if p.pubkey not in [i.pubkey for i in certifiers_of]]
-        identities = certifiers_of + certified_by
-        self.refresh_identities(identities)
+            self.edit_textsearch.clear()
+            self.refresh_identities(identities)
+
+    @asyncify
+    @asyncio.coroutine
+    def _async_search_direct_connections(self):
+        """
+        Search members of community and display found members
+        """
+        if self.account and self.community:
+            self_identity = self.account.identity(self.community)
+            account_connections = []
+            certs_of = yield from self_identity.unique_valid_certifiers_of(self.app.identities_registry, self.community)
+            for p in certs_of:
+                account_connections.append(p['identity'])
+            certifiers_of = [p for p in account_connections]
+            certs_by = yield from self_identity.unique_valid_certified_by(self.app.identities_registry, self.community)
+            for p in certs_by:
+                account_connections.append(p['identity'])
+            certified_by = [p for p in account_connections
+                      if p.pubkey not in [i.pubkey for i in certifiers_of]]
+            identities = certifiers_of + certified_by
+            self.refresh_identities(identities)
 
     def refresh_identities(self, identities):
         """
