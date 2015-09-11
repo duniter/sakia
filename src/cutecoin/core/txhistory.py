@@ -169,7 +169,7 @@ class TxHistory():
                                 req_args={'number': community.network.latest_block_number})
 
         # We look for the first block to parse, depending on awaiting and validating transfers and ud...
-        blocks = [tx.metadata['block_number'] for tx in self._transfers
+        blocks = [tx.metadata['block'] for tx in self._transfers
                   if tx.state in (Transfer.AWAITING, Transfer.VALIDATING)] +\
                  [ud['block_number'] for ud in self._dividends
                   if ud['state'] in (Transfer.AWAITING, Transfer.VALIDATING)] +\
