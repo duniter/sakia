@@ -49,8 +49,6 @@ class StepPageInit(Step):
             self.config_dialog.edit_account_name.setText(self.config_dialog.account.name)
             model = CommunitiesListModel(self.config_dialog.account)
             self.config_dialog.list_communities.setModel(model)
-            nb_wallets = len(self.config_dialog.account.wallets)
-            self.config_dialog.spinbox_wallets.setValue(nb_wallets)
             self.config_dialog.password_asker = PasswordAskerDialog(self.config_dialog.account)
 
         self.config_dialog.button_previous.setEnabled(False)

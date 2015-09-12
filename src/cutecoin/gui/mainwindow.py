@@ -24,9 +24,11 @@ from .process_cfg_community import ProcessConfigureCommunity
 from .homescreen import HomeScreenWidget
 from ..core import money
 from ..core.community import Community
+from ..tools.decorators import asyncify
 from ..__init__ import __version__
 from . import toast
 
+import asyncio
 import logging
 
 
@@ -93,11 +95,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.community_view.change_account(self.app.current_account, self.password_asker)
         self.refresh()
 
-    def open_add_account_dialog(self):
+    @asyncify
+    @asyncio.coroutine
+    def open_add_account_dialog(self, checked=False):
         dialog = ProcessConfigureAccount(self.app, None)
-        result = dialog.exec_()
+        result = yield from dialog.async_exec()
         if result == QDialog.Accepted:
             self.action_change_account(self.app.current_account.name)
+
+    @asyncify
+    @asyncio.coroutine
+    def open_configure_account_dialog(self, checked=False):
+        dialog = ProcessConfigureAccount(self.app, self.app.current_account)
+        result = yield from dialog.async_exec()
+        if result == QDialog.Accepted:
+            if self.app.current_account:
+                self.action_change_account(self.app.current_account.name)
+            else:
+                self.refresh()
 
     @pyqtSlot(str)
     def display_error(self, error):
@@ -172,15 +187,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         result = dialog.exec_()
         if result == QDialog.Accepted:
             self.window().refresh_contacts()
-
-    def open_configure_account_dialog(self):
-        dialog = ProcessConfigureAccount(self.app, self.app.current_account)
-        result = dialog.exec_()
-        if result == QDialog.Accepted:
-            if self.app.current_account:
-                self.action_change_account(self.app.current_account.name)
-            else:
-                self.refresh()
 
     def open_preferences_dialog(self):
         dialog = PreferencesDialog(self.app)

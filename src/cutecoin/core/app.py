@@ -157,6 +157,7 @@ class Application(QObject):
         Delete an account.
         Current account changes to None if it is deleted.
         """
+        account.stop_coroutines()
         self.accounts.pop(account.name)
         if self.current_account == account:
             self.current_account = None
