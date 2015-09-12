@@ -11,7 +11,7 @@ from .transfer import TransferMoneyDialog
 from .certification import CertificationDialog
 from ..core.wallet import Wallet
 from ..core.registry import Identity
-from ..tools.decorators import asyncify
+from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from .transfer import TransferMoneyDialog
 from . import toast
 
@@ -39,18 +39,42 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         self.account = None
         self.community = None
         self.password_asker = None
+
+        ts_from = self.date_from.dateTime().toTime_t()
+        ts_to = self.date_to.dateTime().toTime_t()
+        model = HistoryTableModel(self.app, self.account, self.community)
+        proxy = TxFilterProxyModel(ts_from, ts_to)
+        proxy.setSourceModel(model)
+        proxy.setDynamicSortFilter(True)
+        proxy.setSortRole(Qt.DisplayRole)
+
+        self.table_history.setModel(proxy)
+        self.table_history.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.table_history.setSortingEnabled(True)
+        self.table_history.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
+        self.table_history.resizeColumnsToContents()
         self.progressbar.hide()
         self.refresh()
 
+    def cancel_once_tasks(self):
+        cancel_once_task(self, self.refresh_minimum_maximum)
+        cancel_once_task(self, self.refresh_balance)
+        cancel_once_task(self, self.history_context_menu)
+
     def change_account(self, account, password_asker):
+        self.cancel_once_tasks()
         self.account = account
         self.password_asker = password_asker
+        self.table_history.model().sourceModel().change_account(account)
 
     def change_community(self, community):
+        self.cancel_once_tasks()
         self.community = community
+        self.table_history.model().sourceModel().change_community(self.community)
         self.refresh()
         self.stop_progress([])
 
+    @once_at_a_time
     @asyncify
     @asyncio.coroutine
     def refresh_minimum_maximum(self):
@@ -72,20 +96,6 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         #TODO: Use resetmodel instead of destroy/create
         if self.community:
             self.refresh_minimum_maximum()
-            ts_from = self.date_from.dateTime().toTime_t()
-            ts_to = self.date_to.dateTime().toTime_t()
-
-            model = HistoryTableModel(self.app, self.community)
-            proxy = TxFilterProxyModel(ts_from, ts_to)
-            proxy.setSourceModel(model)
-            proxy.setDynamicSortFilter(True)
-            proxy.setSortRole(Qt.DisplayRole)
-
-            self.table_history.setModel(proxy)
-            self.table_history.setSelectionBehavior(QAbstractItemView.SelectRows)
-            self.table_history.setSortingEnabled(True)
-            self.table_history.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
-            self.table_history.resizeColumnsToContents()
 
             self.refresh_balance()
 
@@ -114,6 +124,7 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         self.table_history.model().sourceModel().refresh_transfers()
         self.table_history.resizeColumnsToContents()
 
+    @once_at_a_time
     @asyncify
     @asyncio.coroutine
     def refresh_balance(self):
@@ -130,6 +141,7 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
             )
         )
 
+    @once_at_a_time
     @asyncify
     @asyncio.coroutine
     def history_context_menu(self, point):

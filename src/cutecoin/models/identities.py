@@ -6,7 +6,7 @@ Created on 5 févr. 2014
 
 from ..core.net.api import bma as qtbma
 from ..tools.exceptions import NoPeerAvailable, MembershipNotFoundError
-from ..tools.decorators import asyncify
+from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from PyQt5.QtCore import QAbstractTableModel, QSortFilterProxyModel, Qt, \
                         QDateTime, QModelIndex, QLocale
 from PyQt5.QtGui import QColor
@@ -95,6 +95,7 @@ class IdentitiesTableModel(QAbstractTableModel):
         self._sig_validity = 0
 
     def change_community(self, community):
+        cancel_once_task(self, self.refresh_identities)
         self.community = community
 
     def sig_validity(self):
@@ -118,6 +119,7 @@ class IdentitiesTableModel(QAbstractTableModel):
 
         return (identity.uid, identity.pubkey, join_date, expiration_date)
 
+    @once_at_a_time
     @asyncify
     @asyncio.coroutine
     def refresh_identities(self, identities):

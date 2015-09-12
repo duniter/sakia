@@ -15,11 +15,10 @@ from .wot_tab import WotTabWidget
 from .identities_tab import IdentitiesTabWidget
 from .transactions_tab import TransactionsTabWidget
 from .network_tab import NetworkTabWidget
-from .password_asker import PasswordAskerDialog
 from . import toast
 import asyncio
 from ..tools.exceptions import MembershipNotFoundError, LookupFailureError, NoPeerAvailable
-from ..tools.decorators import asyncify
+from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from ..gen_resources.community_view_uic import Ui_CommunityWidget
 
 
@@ -79,7 +78,13 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
 
         self.button_membership.clicked.connect(self.send_membership_demand)
 
+    def cancel_once_tasks(self):
+        cancel_once_task(self, self.refresh_block)
+        cancel_once_task(self, self.refresh_status)
+        cancel_once_task(self, self.refresh_quality_buttons)
+
     def change_account(self, account, password_asker):
+        self.cancel_once_tasks()
         if self.account:
             self.account.broadcast_error.disconnect(self.handle_broadcast_error)
             self.account.membership_broadcasted.disconnect(self.handle_membership_broadcasted)
@@ -98,6 +103,8 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.tab_history.change_account(account, self.password_asker)
 
     def change_community(self, community):
+        self.cancel_once_tasks()
+
         self.tab_network.change_community(community)
         self.tab_wot.change_community(community)
         self.tab_history.change_community(community)
@@ -119,6 +126,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                     error,
                     QMessageBox.Ok)
 
+    @once_at_a_time
     @asyncify
     @asyncio.coroutine
     def refresh_block(self, block_number):
@@ -169,6 +177,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.tab_history.refresh_balance()
         self.refresh_status()
 
+    @once_at_a_time
     @asyncify
     @asyncio.coroutine
     def refresh_status(self):
@@ -203,6 +212,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
 
             self.status_label.setText(label_text)
 
+    @once_at_a_time
     @asyncify
     @asyncio.coroutine
     def refresh_quality_buttons(self):

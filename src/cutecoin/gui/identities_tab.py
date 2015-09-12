@@ -18,7 +18,7 @@ from .certification import CertificationDialog
 import asyncio
 from ..core.net.api import bma as qtbma
 from ..core.registry import Identity
-from ..tools.decorators import asyncify
+from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 
 
 class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
@@ -61,17 +61,26 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         self.button_search.addAction(direct_connections)
         self.button_search.clicked.connect(self._async_execute_search_text)
 
+    def cancel_once_tasks(self):
+        cancel_once_task(self, self.identity_context_menu)
+        cancel_once_task(self, self._async_execute_search_text)
+        cancel_once_task(self, self._async_search_members)
+        cancel_once_task(self, self._async_search_direct_connections)
+
     def change_account(self, account, password_asker):
+        self.cancel_once_tasks()
         self.account = account
         self.password_asker = password_asker
         if self.account is None:
             self.community = None
 
     def change_community(self, community):
+        self.cancel_once_tasks()
         self.community = community
         self.table_identities.model().change_community(community)
         self._async_search_direct_connections()
 
+    @once_at_a_time
     @asyncify
     @asyncio.coroutine
     def identity_context_menu(self, point):
@@ -160,6 +169,7 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         identity = self.sender().data()
         self.view_in_wot.emit(identity)
 
+    @once_at_a_time
     @asyncify
     @asyncio.coroutine
     def _async_execute_search_text(self, checked):
@@ -175,6 +185,7 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         self.edit_textsearch.clear()
         self.refresh_identities(identities)
 
+    @once_at_a_time
     @asyncify
     @asyncio.coroutine
     def _async_search_members(self, checked=False):
@@ -191,6 +202,7 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
             self.edit_textsearch.clear()
             self.refresh_identities(identities)
 
+    @once_at_a_time
     @asyncify
     @asyncio.coroutine
     def _async_search_direct_connections(self, checked=False):

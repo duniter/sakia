@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QWidget, QComboBox, QDialog
 from PyQt5.QtCore import pyqtSlot, QEvent, QLocale, QDateTime
 
 from ..tools.exceptions import MembershipNotFoundError
-from ..tools.decorators import asyncify
+from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from ..core.net.api import bma
 from ..core.graph import Graph
 from ..core.registry import BlockchainState
@@ -56,14 +56,16 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         # create node metadata from account
         self._current_identity = None
 
+    def cancel_once_tasks(self):
+        cancel_once_task(self, self.draw_graph)
+        cancel_once_task(self, self.refresh_informations_frame)
+        cancel_once_task(self, self.reset)
+
     def change_account(self, account, password_asker):
         self.account = account
         self.password_asker = password_asker
 
     def change_community(self, community):
-        if self.draw_task and not self.draw_task.done:
-            self.draw_task.cancel()
-
         if self.community:
             self.community.network.new_block_mined.disconnect(self.refresh)
         if community:
@@ -71,6 +73,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         self.community = community
         self.reset()
 
+    @once_at_a_time
     @asyncify
     @asyncio.coroutine
     def refresh_informations_frame(self):
@@ -161,17 +164,10 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             )
         )
 
-    def draw_graph(self, identity):
-        if self.draw_task and not self.draw_task.done():
-            self.draw_task.cancel()
-
-        try:
-            self.draw_task = asyncio.async(self.cor_draw_graph(identity))
-        except asyncio.CancelledError:
-            logging.debug("Cancelled drawing task")
-
+    @once_at_a_time
+    @asyncify
     @asyncio.coroutine
-    def cor_draw_graph(self, identity):
+    def draw_graph(self, identity):
         """
         Draw community graph centered on the identity
 
@@ -219,6 +215,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
                 if path:
                     self.graphicsView.scene().update_path(path)
 
+    @once_at_a_time
     @asyncify
     @asyncio.coroutine
     def reset(self, checked=False):

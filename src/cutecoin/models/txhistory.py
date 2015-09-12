@@ -8,7 +8,7 @@ import datetime
 import logging
 import asyncio
 from ..core.transfer import Transfer
-from ..tools.decorators import asyncify
+from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, \
     QDateTime, QLocale, QModelIndex
 
@@ -171,14 +171,14 @@ class HistoryTableModel(QAbstractTableModel):
     A Qt abstract item model to display communities in a tree
     """
 
-    def __init__(self, app, community, parent=None):
+    def __init__(self, app, account, community, parent=None):
         """
         Constructor
         """
         super().__init__(parent)
         self.app = app
+        self.account = account
         self.community = community
-        self.account._current_ref
         self.transfers_data = []
         self.refresh_transfers()
         self._max_validations = 0
@@ -208,12 +208,19 @@ class HistoryTableModel(QAbstractTableModel):
             'Block Number'
         )
 
-    @property
-    def account(self):
-        return self.app.current_account
+    def change_account(self, account):
+        cancel_once_task(self, self.refresh_transfers)
+        self.account = account
+
+    def change_community(self, community):
+        cancel_once_task(self, self.refresh_transfers)
+        self.community = community
 
     def transfers(self):
-        return self.account.transfers(self.community) + self.account.dividends(self.community)
+        if self.account:
+            return self.account.transfers(self.community) + self.account.dividends(self.community)
+        else:
+            return []
 
     @asyncio.coroutine
     def data_received(self, transfer):
@@ -273,24 +280,26 @@ class HistoryTableModel(QAbstractTableModel):
                 deposit, "", state, id,
                 self.account.pubkey, block_number, amount)
 
+    @once_at_a_time
     @asyncify
     @asyncio.coroutine
     def refresh_transfers(self):
         self.beginResetModel()
         self.transfers_data = []
-        for transfer in self.transfers():
-            data = None
-            if type(transfer) is Transfer:
-                if transfer.metadata['issuer'] == self.account.pubkey:
-                    data = yield from self.data_sent(transfer)
-                else:
-                    data = yield from self.data_received(transfer)
-            elif type(transfer) is dict:
-                data = yield from self.data_dividend(transfer)
-            if data:
-                self.transfers_data.append(data)
-            members_pubkeys = yield from self.community.members_pubkeys()
-            self._max_validations = self.community.network.fork_window(members_pubkeys) + 1
+        if self.community:
+            for transfer in self.transfers():
+                data = None
+                if type(transfer) is Transfer:
+                    if transfer.metadata['issuer'] == self.account.pubkey:
+                        data = yield from self.data_sent(transfer)
+                    else:
+                        data = yield from self.data_received(transfer)
+                elif type(transfer) is dict:
+                    data = yield from self.data_dividend(transfer)
+                if data:
+                    self.transfers_data.append(data)
+                members_pubkeys = yield from self.community.members_pubkeys()
+                self._max_validations = self.community.network.fork_window(members_pubkeys) + 1
         self.endResetModel()
 
     def max_validations(self):
@@ -303,14 +312,15 @@ class HistoryTableModel(QAbstractTableModel):
         return len(self.columns_types)
 
     def headerData(self, section, orientation, role):
-        if role == Qt.DisplayRole:
-            if self.columns_types[section] == 'payment' or self.columns_types[section] == 'deposit':
-                return '{:}\n({:})'.format(
-                    self.column_headers[section],
-                    self.account.current_ref.diff_units(self.community.short_currency)
-                )
+        if self.account and self.community:
+            if role == Qt.DisplayRole:
+                if self.columns_types[section] == 'payment' or self.columns_types[section] == 'deposit':
+                    return '{:}\n({:})'.format(
+                        self.column_headers[section],
+                        self.account.current_ref.diff_units(self.community.short_currency)
+                    )
 
-            return self.column_headers[section]
+                return self.column_headers[section]
 
     def data(self, index, role):
         row = index.row()

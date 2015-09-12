@@ -60,7 +60,7 @@ class IdentitiesRegistry:
                     identity.blockchain_state = BlockchainState.VALIDATED
                     logging.debug("Lookup : found {0}".format(identity))
                     if not future_identity.cancelled():
-                        future_identity.set_result(True)
+                        future_identity.set_result(identity)
                 else:
                     reply = community.bma_access.simple_request(qtbma.wot.Lookup,
                                                                 req_args={'search': pubkey})
@@ -69,7 +69,7 @@ class IdentitiesRegistry:
                 reply = community.bma_access.simple_request(qtbma.wot.CertifiersOf, req_args={'search': pubkey})
                 reply.finished.connect(lambda: handle_certifiersof_reply(reply, tries=tries+1))
             elif not future_identity.cancelled():
-                future_identity.set_result(True)
+                future_identity.set_result(identity)
 
         def handle_lookup_reply(reply, tries=0):
             status_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
