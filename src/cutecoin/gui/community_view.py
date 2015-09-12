@@ -324,6 +324,14 @@ Revoking your UID can only success if it is not already validated by the network
         else:
             QMessageBox.error(error, strdata)
 
+    def showEvent(self, QShowEvent):
+        """
+
+        :param QShowEvent:
+        :return:
+        """
+        self.refresh_status()
+
     def changeEvent(self, event):
         """
         Intercepte LanguageChange event to translate UI

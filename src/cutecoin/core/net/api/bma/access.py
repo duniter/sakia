@@ -148,9 +148,6 @@ class BmaAccess(QObject):
         :return: The future data
         :rtype: dict
         """
-        if request == blockchain.UD:
-            pass
-
         def handle_future_reply(reply):
             if reply.error() == QNetworkReply.NoError:
                 strdata = bytes(reply.readAll()).decode('utf-8')

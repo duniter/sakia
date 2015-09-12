@@ -33,6 +33,11 @@ class CommunityTile(QFrame):
     def refresh(self):
         current_block = yield from self.community.get_block(self.community.network.latest_block_number)
         members_pubkeys = yield from self.community.members_pubkeys()
+        amount = yield from self.app.current_account.amount(self.community)
+        localized_amount = yield from self.app.current_account.current_ref(amount,
+                                                    self.community, self.app).localized(units=True)
+        localized_monetary_mass = yield from self.app.current_account.current_ref(current_block['monetaryMass'],
+                                                    self.community, self.app).localized(units=True)
         status = self.tr("Member") if self.app.current_account.pubkey in members_pubkeys \
             else self.tr("Non-Member")
         description = """<html>
@@ -49,11 +54,11 @@ class CommunityTile(QFrame):
                           nb_members=len(members_pubkeys),
                           members_label=self.tr("members"),
                           monetary_mass_label=self.tr("Monetary mass"),
-                          monetary_mass=current_block['monetaryMass'],
+                          monetary_mass=localized_monetary_mass,
                           status_label=self.tr("Status"),
                           status=status,
                           balance_label=self.tr("Balance"),
-                          balance=self.app.current_account.amount(self.community))
+                          balance=localized_amount)
         self.text_label.setText(description)
 
     def mousePressEvent(self, event):

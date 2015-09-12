@@ -48,7 +48,7 @@ class HomeScreenWidget(QWidget, Ui_HomescreenWidget):
     classdocs
     """
 
-    def __init__(self, app):
+    def __init__(self, app, status_label):
         """
         Constructor
         """
@@ -57,6 +57,7 @@ class HomeScreenWidget(QWidget, Ui_HomescreenWidget):
         self.app = app
         self.frame_communities = FrameCommunities(self)
         self.layout().addWidget(self.frame_communities)
+        self.status_label = status_label
 
     def refresh(self):
         self.frame_communities.refresh(self.app)
@@ -67,6 +68,14 @@ class HomeScreenWidget(QWidget, Ui_HomescreenWidget):
         else:
             self.frame_disconnected.show()
             self.frame_connected.hide()
+
+    def showEvent(self, QShowEvent):
+        """
+
+        :param QShowEvent:
+        :return:
+        """
+        self.status_label.setText("")
 
     def changeEvent(self, event):
         """

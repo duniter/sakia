@@ -111,51 +111,17 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
     @asyncify
     @asyncio.coroutine
     def refresh_balance(self):
-        if self.app.preferences['expert_mode']:
-            # if referential is "units"
-            if self.app.current_account._current_ref == 0:
-                self.label_balance.show()
-                self.label_deposit.show()
-                self.label_payment.show()
-            else:
-                self.label_balance.hide()
-                self.label_deposit.hide()
-                self.label_payment.hide()
+        amount = yield from self.app.current_account.amount(self.community)
+        localized_amount = yield from self.app.current_account.current_ref(amount, self.community,
+                                                                           self.app).localized(units=True)
 
-            proxy = self.table_history.model()
-            balance = proxy.deposits - proxy.payments
-            localized_deposits = yield from self.app.current_account.current_ref(proxy.deposits, self.community,
-                                                                                 self.app).diff_localized()
-            localized_payments = yield from self.app.current_account.current_ref(proxy.payments, self.community,
-                                                                                 self.app).diff_localized()
-            localized_balance = yield from self.app.current_account.current_ref(balance, self.community,
-                                                                                self.app).diff_localized()
-
-            self.label_deposit.setText(QCoreApplication.translate("TransactionsTabWidget", "<b>Deposits</b> {:} {:}").format(
-                localized_deposits,
-                self.app.current_account.current_ref.units(self.community.short_currency)
-            ))
-            self.label_payment.setText(QCoreApplication.translate("TransactionsTabWidget", "<b>Payments</b> {:} {:}").format(
-                localized_payments,
-                self.app.current_account.current_ref.units(self.community.short_currency)
-            ))
-            self.label_balance.setText(QCoreApplication.translate("TransactionsTabWidget", "<b>Balance</b> {:} {:}").format(
-                localized_balance,
-                self.app.current_account.current_ref.units(self.community.short_currency)
-            ))
-
-        else:
-            amount = yield from self.app.current_account.amount(self.community)
-            localized_amount = yield from self.app.current_account.current_ref(amount, self.community,
-                                                                               self.app).localized(units=True)
-
-            # set infos in label
-            self.label_balance.setText(
-                self.tr("{:}")
-                .format(
-                    localized_amount
-                )
+        # set infos in label
+        self.label_balance.setText(
+            self.tr("{:}")
+            .format(
+                localized_amount
             )
+        )
 
     def history_context_menu(self, point):
         index = self.table_history.indexAt(point)

@@ -66,7 +66,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.combo_referential.currentIndexChanged.connect(self.referential_changed)
         self.statusbar.addPermanentWidget(self.combo_referential)
 
-        self.homescreen = HomeScreenWidget(self.app)
+        self.homescreen = HomeScreenWidget(self.app, self.status_label)
         self.homescreen.frame_communities.community_tile_clicked.connect(self.change_community)
         self.homescreen.toolbutton_new_account.addAction(self.action_add_account)
         self.homescreen.toolbutton_new_account.addAction(self.action_import)
@@ -254,8 +254,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.homescreen.hide()
             self.community_view.show()
         else:
-            self.homescreen.show()
             self.community_view.hide()
+            self.homescreen.show()
 
         self.community_view.change_community(community)
 
