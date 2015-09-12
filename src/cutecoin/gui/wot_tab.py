@@ -244,6 +244,8 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         else:
             self.reset()
 
+    @asyncify
+    @asyncio.coroutine
     def search(self):
         """
         Search nodes when return is pressed in combobox lineEdit
@@ -252,11 +254,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
 
         if len(text) < 2:
             return False
-        try:
-            response = self.community.simple_request(bma.wot.Lookup, {'search': text})
-        except Exception as e:
-            logging.debug('bma.wot.Lookup request error : ' + str(e))
-            return False
+        response = yield from self.community.bma_access.future_request(bma.wot.Lookup, {'search': text})
 
         nodes = {}
         for identity in response['results']:
