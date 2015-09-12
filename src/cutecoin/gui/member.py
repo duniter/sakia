@@ -1,8 +1,10 @@
 import datetime
+import asyncio
 
 from PyQt5.QtWidgets import QDialog
 
 from ..core.graph import Graph
+from ..tools.decorators import asyncify
 from ..gen_resources.member_uic import Ui_DialogMember
 from ..tools.exceptions import MembershipNotFoundError
 
@@ -29,9 +31,14 @@ class MemberDialog(QDialog, Ui_DialogMember):
         self.account = account
         self.identity = identity
         self.label_uid.setText(identity.uid)
+        self.refresh()
+
+    @asyncify
+    @asyncio.coroutine
+    def refresh(self):
 
         try:
-            join_date = self.identity.get_join_date(self.community)
+            join_date = yield from self.identity.get_join_date(self.community)
         except MembershipNotFoundError:
             join_date = None
 
@@ -44,9 +51,11 @@ class MemberDialog(QDialog, Ui_DialogMember):
         graph = Graph(self.app, self.community)
         path = None
         # if selected member is not the account member...
-        if identity.pubkey != self.account.pubkey:
+        if self.identity.pubkey != self.account.pubkey:
             # add path from selected member to account member
-            path = graph.get_shortest_path_between_members(identity, self.account.identity(self.community))
+            account_identity = yield from self.account.identity(self.community)
+            path = yield from graph.get_shortest_path_between_members(self.identity,
+                                                                      account_identity)
 
         text = self.tr("""
             <table cellpadding="5">
@@ -62,8 +71,8 @@ class MemberDialog(QDialog, Ui_DialogMember):
         if path:
             distance = len(path) - 1
             text += self.tr(
-                """<tr><td align="right"><b>{:}</b></div></td><td>{:}</td></tr>""".format(self.tr('Distance'),
-                                                                                          distance))
+                """<tr><td align="right"><b>{:}</b></div></td><td>{:}</td></tr>"""
+                    .format(self.tr('Distance'), distance))
             if distance > 1:
                 index = 0
                 for node in path:
@@ -83,4 +92,3 @@ class MemberDialog(QDialog, Ui_DialogMember):
 
         # set text in label
         self.label_properties.setText(text)
-

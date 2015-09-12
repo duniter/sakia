@@ -38,7 +38,7 @@ class Node(QObject):
     changed = pyqtSignal()
     neighbour_found = pyqtSignal(Peer, str)
 
-    def __init__(self, network_manager, currency, endpoints, uid, pubkey, block_number, block_hash,
+    def __init__(self, network_manager, currency, endpoints, uid, pubkey, block,
                  state, last_change, last_merkle, software, version, fork_window):
         """
         Constructor
@@ -48,8 +48,7 @@ class Node(QObject):
         self._endpoints = endpoints
         self._uid = uid
         self._pubkey = pubkey
-        self._block_number = block_number
-        self._block_hash = block_hash
+        self._block = block
         self._state = state
         self._neighbours = []
         self._currency = currency
@@ -95,7 +94,7 @@ class Node(QObject):
 
             node = cls(network_manager, peer.currency,
                        [Endpoint.from_inline(e.inline()) for e in peer.endpoints],
-                       "", peer.pubkey, 0, Block.Empty_Hash, Node.ONLINE, time.time(),
+                       "", peer.pubkey, qtbma.blockchain.Block.null_value, Node.ONLINE, time.time(),
                        {'root': "", 'leaves': []}, "", "", 0)
             logging.debug("Node from address : {:}".format(str(node)))
             return node
@@ -117,7 +116,7 @@ class Node(QObject):
 
         node = cls(network_manager, peer.currency,
                     [Endpoint.from_inline(e.inline()) for e in peer.endpoints],
-                   "", pubkey, 0, Block.Empty_Hash,
+                   "", pubkey, qtbma.blockchain.Block.null_value,
                    Node.ONLINE, time.time(),
                    {'root': "", 'leaves': []},
                    "", "", 0)
@@ -132,8 +131,7 @@ class Node(QObject):
         software = ""
         version = ""
         fork_window = 0
-        block_number = 0
-        block_hash = Block.Empty_Hash
+        block = qtbma.blockchain.Block.null_value
         last_change = time.time()
         state = Node.ONLINE
         logging.debug(data)
@@ -152,11 +150,8 @@ class Node(QObject):
         if 'last_change' in data:
             last_change = data['last_change']
 
-        if 'block_number' in data:
-            block_number = data['block_number']
-
-        if 'block_hash' in data:
-            block_hash = data['block_hash']
+        if 'block' in data:
+            block = data['block']
 
         if 'state' in data:
             state = data['state']
@@ -171,7 +166,7 @@ class Node(QObject):
             fork_window = data['fork_window']
 
         node = cls(network_manager, currency, endpoints,
-                   uid, pubkey, block_number, block_hash,
+                   uid, pubkey, block,
                    state, last_change,
                    {'root': "", 'leaves': []},
                    software, version, fork_window)
@@ -196,8 +191,7 @@ class Node(QObject):
                 'currency': self._currency,
                 'state': self._state,
                 'last_change': self._last_change,
-                'block_number': self.block_number,
-                'block_hash': self.block_hash,
+                'block': self.block,
                 'software': self._software,
                 'version': self._version,
                 'fork_window': self._fork_window
@@ -217,16 +211,11 @@ class Node(QObject):
         return next((e for e in self._endpoints if type(e) is BMAEndpoint))
 
     @property
-    def block_number(self):
-        return self._block_number
+    def block(self):
+        return self._block
 
-    @property
-    def block_hash(self):
-        return self._block_hash
-
-    def set_block(self, block_number, block_hash):
-        self._block_number = block_number
-        self._block_hash = block_hash
+    def set_block(self, block):
+        self._block = block
 
     @property
     def state(self):
@@ -292,13 +281,6 @@ class Node(QObject):
             self._fork_window = new_fork_window
             self.changed.emit()
 
-    def check_sync(self, block_hash):
-        logging.debug("Check sync")
-        if self.block_hash != block_hash:
-            self.state = Node.DESYNCED
-        else:
-            self.state = Node.ONLINE
-
     def check_noerror(self, error_code, status_code):
         if error_code == QNetworkReply.NoError:
             if status_code in (200, 404):
@@ -337,15 +319,14 @@ class Node(QObject):
             if status_code == 200:
                 strdata = bytes(reply.readAll()).decode('utf-8')
                 block_data = json.loads(strdata)
-                block_number = block_data['number']
                 block_hash = block_data['hash']
             elif status_code == 404:
-                self.set_block(0, Block.Empty_Hash)
+                self.set_block(qtbma.blockchain.Block.null_value)
 
-            if block_hash != self.block_hash:
-                self.set_block(block_number, block_hash)
-                logging.debug("Changed block {0} -> {1}".format(self.block_number,
-                                                                     block_number))
+            if block_hash != self.block['hash']:
+                self.set_block(block_data)
+                logging.debug("Changed block {0} -> {1}".format(self.block['number'],
+                                                                block_data['number']))
                 self.changed.emit()
 
         else:
@@ -488,5 +469,5 @@ class Node(QObject):
             self.changed.emit()
 
     def __str__(self):
-        return ','.join([str(self.pubkey), str(self.endpoint.server), str(self.endpoint.port), str(self.block_number),
+        return ','.join([str(self.pubkey), str(self.endpoint.server), str(self.endpoint.ipv4), str(self.endpoint.port), str(self.block['number']),
                          str(self.currency), str(self.state), str(self.neighbours)])

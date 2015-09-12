@@ -1,9 +1,9 @@
 from PyQt5.QtCore import QCoreApplication, QT_TRANSLATE_NOOP, QObject, QLocale
-
+import asyncio
 
 class Quantitative():
     _NAME_STR_ = QT_TRANSLATE_NOOP('Quantitative', 'Units')
-    _REF_STR_ = QT_TRANSLATE_NOOP('Quantitative', "{0} {1}")
+    _REF_STR_ = QT_TRANSLATE_NOOP('Quantitative', "{0} {1}{2}")
     _UNITS_STR_ = QT_TRANSLATE_NOOP('Quantitative', "{0}")
 
     def __init__(self, amount, community, app):
@@ -23,6 +23,7 @@ class Quantitative():
     def diff_units(cls, currency):
         return Quantitative.units(currency)
 
+    @asyncio.coroutine
     def value(self):
         """
         Return quantitative value of amount
@@ -33,8 +34,10 @@ class Quantitative():
         """
         return int(self.amount)
 
+    @asyncio.coroutine
     def differential(self):
-        return self.value()
+        value = yield from self.value()
+        return value
 
     def _to_si(self, value):
         prefixes = ['', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y', 'z', 'y']
@@ -54,8 +57,9 @@ class Quantitative():
 
         return localized_value, prefix
 
+    @asyncio.coroutine
     def localized(self, units=False, international_system=False):
-        value = self.value()
+        value = yield from self.value()
         prefix = ""
         if international_system:
             localized_value, prefix = self._to_si(value)
@@ -71,8 +75,9 @@ class Quantitative():
         else:
             return localized_value
 
+    @asyncio.coroutine
     def diff_localized(self, units=False, international_system=False):
-        value = self.differential()
+        value = yield from self.differential()
         prefix = ""
         if international_system:
             localized_value, prefix = self._to_si(value)

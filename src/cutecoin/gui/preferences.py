@@ -78,6 +78,8 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
                 'proxy_port': self.spinbox_proxy_port.value(),
                 'international_system_of_units': self.checkbox_international_system.isChecked()}
         self.app.save_preferences(pref)
+      # change UI translation
+        self.app.switch_language()
         toast.display(self.tr("Preferences"),
                       self.tr("A restart is needed to apply your new preferences."))
         super().accept()

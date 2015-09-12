@@ -1,8 +1,9 @@
 import logging
 import time
-import datetime
+import asyncio
 from PyQt5.QtCore import QLocale, QDateTime
 from ..core.registry import Identity, BlockchainState
+from ..tools.decorators import asyncify
 from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_OUT, ARC_STATUS_STRONG, ARC_STATUS_WEAK
 
 
@@ -17,11 +18,17 @@ class Graph(object):
         """
         self.app = app
         self.community = community
-        self.signature_validity = self.community.parameters['sigValidity']
-        #  arc considered strong during 75% of signature validity time
-        self.ARC_STATUS_STRONG_time = int(self.signature_validity * 0.75)
+        self.signature_validity = 0
+        self.ARC_STATUS_STRONG_time = 0
         # graph empty if None parameter
         self._graph = graph or (dict() and (graph is None))
+
+    @asyncio.coroutine
+    def refresh_signature_validity(self):
+        parameters = yield from self.community.parameters()
+        self.signature_validity = parameters['sigValidity']
+        #  arc considered strong during 75% of signature validity time
+        self.ARC_STATUS_STRONG_time = int(self.signature_validity * 0.75)
 
     def set(self, graph):
         """
@@ -38,6 +45,7 @@ class Graph(object):
         """
         return self._graph
 
+    @asyncio.coroutine
     def get_shortest_path_between_members(self, from_identity, to_identity):
         """
         Return path list of nodes from from_identity to to_identity
@@ -50,17 +58,21 @@ class Graph(object):
         logging.debug("path between %s to %s..." % (from_identity.uid, to_identity.uid))
         if from_identity.pubkey not in self._graph.keys():
             self.add_identity(from_identity)
-            certifier_list = from_identity.certifiers_of(self.app.identities_registry, self.community)
-            self.add_certifier_list(certifier_list, from_identity, to_identity)
-            certified_list = from_identity.certified_by(self.app.identities_registry, self.community)
-            self.add_certified_list(certified_list, from_identity, to_identity)
+            certifier_list = yield from from_identity.certifiers_of(self.app.identities_registry,
+                                                                    self.community)
+            yield from self.add_certifier_list(certifier_list, from_identity, to_identity)
+            certified_list = yield from from_identity.certified_by(self.app.identities_registry,
+                                                                   self.community)
+            yield from self.add_certified_list(certified_list, from_identity, to_identity)
 
         if to_identity.pubkey not in self._graph.keys():
             # recursively feed graph searching for account node...
-            self.explore_to_find_member(to_identity, self._graph[from_identity.pubkey]['connected'], list())
+            yield from self.explore_to_find_member(to_identity,
+                                                   self._graph[from_identity.pubkey]['connected'], list())
         if len(self._graph[from_identity.pubkey]['connected']) > 0:
             # calculate path of nodes between identity and to_identity
-            path = self.find_shortest_path(self._graph[from_identity.pubkey], self._graph[to_identity.pubkey])
+            path = yield from self.find_shortest_path(self._graph[from_identity.pubkey],
+                                                      self._graph[to_identity.pubkey])
 
         if path:
             logging.debug([node['text'] for node in path])
@@ -69,6 +81,7 @@ class Graph(object):
 
         return path
 
+    @asyncio.coroutine
     def explore_to_find_member(self, identity, connected=None, done=None):
         """
         Scan graph recursively to find identity
@@ -90,24 +103,29 @@ class Graph(object):
             if node['id'] in tuple(done):
                 continue
             identity_selected = identity.from_handled_data(node['text'], node['id'], BlockchainState.VALIDATED)
-            certifier_list = identity_selected.unique_valid_certifiers_of(self.app.identities_registry, self.community)
-            self.add_certifier_list(certifier_list, identity_selected, identity)
+            certifier_list = yield from identity_selected.unique_valid_certifiers_of(self.app.identities_registry,
+                                                                                     self.community)
+            yield from self.add_certifier_list(certifier_list, identity_selected, identity)
             if identity.pubkey in tuple(self._graph.keys()):
                 return False
-            certified_list = identity_selected.unique_valid_certified_by(self.app.identities_registry, self.community)
-            self.add_certified_list(certified_list, identity_selected, identity)
+            certified_list = yield from identity_selected.unique_valid_certified_by(self.app.identities_registry,
+                                                                                    self.community)
+            yield from self.add_certified_list(certified_list, identity_selected, identity)
             if identity.pubkey in tuple(self._graph.keys()):
                 return False
             if node['id'] not in tuple(done):
                 done.append(node['id'])
             if len(done) >= len(self._graph):
                 return True
-            result = self.explore_to_find_member(identity, self._graph[identity_selected.pubkey]['connected'], done)
+            result = yield from self.explore_to_find_member(identity,
+                                                            self._graph[identity_selected.pubkey]['connected'],
+                                                            done)
             if not result:
                 return False
 
         return True
 
+    @asyncio.coroutine
     def find_shortest_path(self, start, end, path=None):
         """
         Find recursively the shortest path between two nodes
@@ -126,12 +144,13 @@ class Graph(object):
         for pubkey in tuple(self._graph[start['id']]['connected']):
             node = self._graph[pubkey]
             if node not in path:
-                newpath = self.find_shortest_path(node, end, path)
+                newpath = yield from self.find_shortest_path(node, end, path)
                 if newpath:
                     if not shortest or len(newpath) < len(shortest):
                         shortest = newpath
         return shortest
 
+    @asyncio.coroutine
     def add_certifier_list(self, certifier_list, identity, identity_account):
         """
         Add list of certifiers to graph
@@ -140,73 +159,78 @@ class Graph(object):
         :param identity identity_account:   Account identity instance
         :return:
         """
-        #  add certifiers of uid
-        for certifier in tuple(certifier_list):
-            # add only valid certification...
-            if (time.time() - certifier['cert_time']) > self.signature_validity:
-                continue
-            # new node
-            if certifier['identity'].pubkey not in self._graph.keys():
-                node_status = 0
-                if certifier['identity'].pubkey == identity_account.pubkey:
-                    node_status += NODE_STATUS_HIGHLIGHTED
-                if certifier['identity'].is_member(self.community) is False:
-                    node_status += NODE_STATUS_OUT
-                self._graph[certifier['identity'].pubkey] = {
-                    'id': certifier['identity'].pubkey,
-                    'arcs': list(),
-                    'text': certifier['identity'].uid,
-                    'tooltip': certifier['identity'].pubkey,
-                    'status': node_status,
-                    'connected': [identity.pubkey]
+        if self.community:
+            yield from self.refresh_signature_validity()
+            #  add certifiers of uid
+            for certifier in tuple(certifier_list):
+                # add only valid certification...
+                if (time.time() - certifier['cert_time']) > self.signature_validity:
+                    continue
+                # new node
+                if certifier['identity'].pubkey not in self._graph.keys():
+                    node_status = 0
+                    is_member = yield from certifier['identity'].is_member(self.community)
+                    if certifier['identity'].pubkey == identity_account.pubkey:
+                        node_status += NODE_STATUS_HIGHLIGHTED
+                    if is_member is False:
+                        node_status += NODE_STATUS_OUT
+                    self._graph[certifier['identity'].pubkey] = {
+                        'id': certifier['identity'].pubkey,
+                        'arcs': list(),
+                        'text': certifier['identity'].uid,
+                        'tooltip': certifier['identity'].pubkey,
+                        'status': node_status,
+                        'connected': [identity.pubkey]
+                    }
+
+                # keep only the latest certification
+                if self._graph[certifier['identity'].pubkey]['arcs']:
+                    if certifier['cert_time'] < self._graph[certifier['identity'].pubkey]['arcs'][0]['cert_time']:
+                        continue
+                # display validity status
+                if (time.time() - certifier['cert_time']) > self.ARC_STATUS_STRONG_time:
+                    arc_status = ARC_STATUS_WEAK
+                else:
+                    arc_status = ARC_STATUS_STRONG
+
+                arc = {
+                    'id': identity.pubkey,
+                    'status': arc_status,
+                    'tooltip': QLocale.toString(
+                        QLocale(),
+                        QDateTime.fromTime_t(certifier['cert_time'] + self.signature_validity).date(),
+                        QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
+                    ),
+                    'cert_time': certifier['cert_time']
                 }
 
-            # keep only the latest certification
-            if self._graph[certifier['identity'].pubkey]['arcs']:
-                if certifier['cert_time'] < self._graph[certifier['identity'].pubkey]['arcs'][0]['cert_time']:
-                    continue
-            # display validity status
-            if (time.time() - certifier['cert_time']) > self.ARC_STATUS_STRONG_time:
-                arc_status = ARC_STATUS_WEAK
-            else:
-                arc_status = ARC_STATUS_STRONG
-
-            arc = {
-                'id': identity.pubkey,
-                'status': arc_status,
-                'tooltip': QLocale.toString(
-                    QLocale(),
-                    QDateTime.fromTime_t(certifier['cert_time'] + self.signature_validity).date(),
-                    QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
-                ),
-                'cert_time': certifier['cert_time']
-            }
-
-            if certifier['block_number']:
-                current_validations = self.community.network.latest_block_number - certifier['block_number']
-            else:
-                current_validations = 0
-            max_validation = self.community.network.fork_window(self.community.members_pubkeys()) + 1
-
-            # Current validation can be negative if self.community.network.latest_block_number
-            # is not refreshed yet
-            if max_validation > current_validations > 0:
-                if self.app.preferences['expert_mode']:
-                    arc['validation_text'] = "{0}/{1}".format(current_validations,
-                                                              max_validation)
+                if certifier['block_number']:
+                    current_validations = self.community.network.latest_block_number - certifier['block_number']
                 else:
-                    validation = current_validations / max_validation * 100
-                    arc['validation_text'] = "{0} %".format(QLocale().toString(float(validation), 'f', 0))
-            else:
-                arc['validation_text'] = None
+                    current_validations = 0
+                members_pubkeys = yield from self.community.members_pubkeys()
+                max_validation = self.community.network.fork_window(members_pubkeys) + 1
 
-            #  add arc to certifier
-            self._graph[certifier['identity'].pubkey]['arcs'].append(arc)
-            # if certifier node not in identity nodes
-            if certifier['identity'].pubkey not in tuple(self._graph[identity.pubkey]['connected']):
-                # add certifier node to identity node
-                self._graph[identity.pubkey]['connected'].append(certifier['identity'].pubkey)
+                # Current validation can be negative if self.community.network.latest_block_number
+                # is not refreshed yet
+                if max_validation > current_validations > 0:
+                    if self.app.preferences['expert_mode']:
+                        arc['validation_text'] = "{0}/{1}".format(current_validations,
+                                                                  max_validation)
+                    else:
+                        validation = current_validations / max_validation * 100
+                        arc['validation_text'] = "{0} %".format(QLocale().toString(float(validation), 'f', 0))
+                else:
+                    arc['validation_text'] = None
 
+                #  add arc to certifier
+                self._graph[certifier['identity'].pubkey]['arcs'].append(arc)
+                # if certifier node not in identity nodes
+                if certifier['identity'].pubkey not in tuple(self._graph[identity.pubkey]['connected']):
+                    # add certifier node to identity node
+                    self._graph[identity.pubkey]['connected'].append(certifier['identity'].pubkey)
+
+    @asyncio.coroutine
     def add_certified_list(self, certified_list, identity, identity_account):
         """
         Add list of certified from api to graph
@@ -215,6 +239,7 @@ class Graph(object):
         :param identity identity_account:   Account identity instance
         :return:
         """
+        yield from self.refresh_signature_validity()
         # add certified by uid
         for certified in tuple(certified_list):
             # add only valid certification...
@@ -222,9 +247,10 @@ class Graph(object):
                 continue
             if certified['identity'].pubkey not in self._graph.keys():
                 node_status = 0
+                is_member = yield from certified['identity'].is_member(self.community)
                 if certified['identity'].pubkey == identity_account.pubkey:
                     node_status += NODE_STATUS_HIGHLIGHTED
-                if certified['identity'].is_member(self.community) is False:
+                if is_member is False:
                     node_status += NODE_STATUS_OUT
                 self._graph[certified['identity'].pubkey] = {
                     'id': certified['identity'].pubkey,
@@ -254,7 +280,8 @@ class Graph(object):
                 current_validations = self.community.network.latest_block_number - certified['block_number']
             else:
                 current_validations = 0
-            max_validations = self.community.network.fork_window(self.community.members_pubkeys()) + 1
+            members_pubkeys = yield from self.community.members_pubkeys()
+            max_validations = self.community.network.fork_window(members_pubkeys) + 1
 
             if max_validations > current_validations > 0:
                 if self.app.preferences['expert_mode']:

@@ -1,46 +1,84 @@
 from PyQt5.QtWidgets import QWidget, QAbstractItemView, QHeaderView, QDialog, \
     QMenu, QAction, QApplication, QMessageBox
-from PyQt5.QtCore import Qt, QDateTime, QTime, QModelIndex, QLocale, QCoreApplication, pyqtSlot
+from PyQt5.QtCore import Qt, QDateTime, QTime, QModelIndex, pyqtSignal, pyqtSlot, QEvent
 from PyQt5.QtGui import QCursor
 from ..gen_resources.transactions_tab_uic import Ui_transactionsTabWidget
 from ..models.txhistory import HistoryTableModel, TxFilterProxyModel
 from ..core.transfer import Transfer
+from .contact import ConfigureContactDialog
+from .member import MemberDialog
+from .transfer import TransferMoneyDialog
+from .certification import CertificationDialog
 from ..core.wallet import Wallet
 from ..core.registry import Identity
+from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from .transfer import TransferMoneyDialog
 from . import toast
 
 import logging
+import asyncio
 
 
 class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
     """
     classdocs
     """
+    view_in_wot = pyqtSignal(Identity)
 
-    def __init__(self, app, community, password_asker, currency_tab):
+    def __init__(self, app):
         """
         Init
 
         :param cutecoin.core.app.Application app: Application instance
-        :param cutecoin.core.community.Community community: Community instance
-        :param cutecoin.gui.password_asker.PasswordAskerDialog password_asker: Password dialog instance
-        :param cutecoin.gui.currency_tab.CurrencyTabWidget currency_tab: Currency tab widget
         :return:
         """
 
         super().__init__()
         self.setupUi(self)
         self.app = app
-        self.community = community
-        self.password_asker = password_asker
-        self.currency_tab = currency_tab
+        self.account = None
+        self.community = None
+        self.password_asker = None
+
+        ts_from = self.date_from.dateTime().toTime_t()
+        ts_to = self.date_to.dateTime().toTime_t()
+        model = HistoryTableModel(self.app, self.account, self.community)
+        proxy = TxFilterProxyModel(ts_from, ts_to)
+        proxy.setSourceModel(model)
+        proxy.setDynamicSortFilter(True)
+        proxy.setSortRole(Qt.DisplayRole)
+
+        self.table_history.setModel(proxy)
+        self.table_history.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.table_history.setSortingEnabled(True)
+        self.table_history.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
+        self.table_history.resizeColumnsToContents()
         self.progressbar.hide()
-        self.community.inner_data_changed.connect(self.refresh_minimum_maximum)
         self.refresh()
 
+    def cancel_once_tasks(self):
+        cancel_once_task(self, self.refresh_minimum_maximum)
+        cancel_once_task(self, self.refresh_balance)
+        cancel_once_task(self, self.history_context_menu)
+
+    def change_account(self, account, password_asker):
+        self.cancel_once_tasks()
+        self.account = account
+        self.password_asker = password_asker
+        self.table_history.model().sourceModel().change_account(account)
+
+    def change_community(self, community):
+        self.cancel_once_tasks()
+        self.community = community
+        self.table_history.model().sourceModel().change_community(self.community)
+        self.refresh()
+        self.stop_progress([])
+
+    @once_at_a_time
+    @asyncify
+    @asyncio.coroutine
     def refresh_minimum_maximum(self):
-        block = self.community.get_block(1)
+        block = yield from self.community.get_block(1)
         minimum_datetime = QDateTime()
         minimum_datetime.setTime_t(block['medianTime'])
         minimum_datetime.setTime(QTime(0, 0))
@@ -56,23 +94,10 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
 
     def refresh(self):
         #TODO: Use resetmodel instead of destroy/create
-        self.refresh_minimum_maximum()
-        ts_from = self.date_from.dateTime().toTime_t()
-        ts_to = self.date_to.dateTime().toTime_t()
+        if self.community:
+            self.refresh_minimum_maximum()
 
-        model = HistoryTableModel(self.app, self.community)
-        proxy = TxFilterProxyModel(ts_from, ts_to)
-        proxy.setSourceModel(model)
-        proxy.setDynamicSortFilter(True)
-        proxy.setSortRole(Qt.DisplayRole)
-
-        self.table_history.setModel(proxy)
-        self.table_history.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.table_history.setSortingEnabled(True)
-        self.table_history.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
-        self.table_history.resizeColumnsToContents()
-
-        self.refresh_balance()
+            self.refresh_balance()
 
     def start_progress(self):
         def progressing(value, maximum):
@@ -99,36 +124,26 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         self.table_history.model().sourceModel().refresh_transfers()
         self.table_history.resizeColumnsToContents()
 
+    @once_at_a_time
+    @asyncify
+    @asyncio.coroutine
     def refresh_balance(self):
-        # if referential is "units"
-        if self.app.current_account._current_ref == 0:
-            self.label_balance.show()
-            self.label_deposit.show()
-            self.label_payment.show()
-        else:
-            self.label_balance.hide()
-            self.label_deposit.hide()
-            self.label_payment.hide()
+        amount = yield from self.app.current_account.amount(self.community)
+        localized_amount = yield from self.app.current_account.current_ref(amount, self.community,
+                                                                           self.app).localized(units=True,
+                                        international_system=self.app.preferences['international_system_of_units'])
 
-        proxy = self.table_history.model()
-        balance = proxy.deposits - proxy.payments
-        localized_deposits = self.app.current_account.current_ref(proxy.deposits, self.community, self.app).diff_localized()
-        localized_payments = self.app.current_account.current_ref(proxy.payments, self.community, self.app).diff_localized()
-        localized_balance = self.app.current_account.current_ref(balance, self.community, self.app).diff_localized()
+        # set infos in label
+        self.label_balance.setText(
+            self.tr("{:}")
+            .format(
+                localized_amount
+            )
+        )
 
-        self.label_deposit.setText(QCoreApplication.translate("TransactionsTabWidget", "<b>Deposits</b> {:} {:}").format(
-            localized_deposits,
-            self.app.current_account.current_ref.units(self.community.short_currency)
-        ))
-        self.label_payment.setText(QCoreApplication.translate("TransactionsTabWidget", "<b>Payments</b> {:} {:}").format(
-            localized_payments,
-            self.app.current_account.current_ref.units(self.community.short_currency)
-        ))
-        self.label_balance.setText(QCoreApplication.translate("TransactionsTabWidget", "<b>Balance</b> {:} {:}").format(
-            localized_balance,
-            self.app.current_account.current_ref.units(self.community.short_currency)
-        ))
-
+    @once_at_a_time
+    @asyncify
+    @asyncio.coroutine
     def history_context_menu(self, point):
         index = self.table_history.indexAt(point)
         model = self.table_history.model()
@@ -141,9 +156,11 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
             state_data = model.sourceModel().data(state_index, Qt.DisplayRole)
 
             pubkey_col = model.sourceModel().columns_types.index('pubkey')
-            identity_index = model.sourceModel().index(source_index.row(),
+            pubkey_index = model.sourceModel().index(source_index.row(),
                                                     pubkey_col)
-            identity = model.sourceModel().data(identity_index, Qt.DisplayRole)
+            pubkey = model.sourceModel().data(pubkey_index, Qt.DisplayRole)
+            identity = yield from self.app.identities_registry.future_find(pubkey, self.community)
+
             transfer = model.sourceModel().transfers[source_index.row()]
             if state_data == Transfer.REFUSED or state_data == Transfer.TO_SEND:
                 send_back = QAction(self.tr("Send again"), self)
@@ -158,23 +175,23 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
             else:
                 if isinstance(identity, Identity):
                     informations = QAction(self.tr("Informations"), self)
-                    informations.triggered.connect(self.currency_tab.tab_community.menu_informations)
+                    informations.triggered.connect(self.menu_informations)
                     informations.setData(identity)
                     menu.addAction(informations)
 
                     add_as_contact = QAction(self.tr("Add as contact"), self)
-                    add_as_contact.triggered.connect(self.currency_tab.tab_community.menu_add_as_contact)
+                    add_as_contact.triggered.connect(self.menu_add_as_contact)
                     add_as_contact.setData(identity)
                     menu.addAction(add_as_contact)
 
                 send_money = QAction(self.tr("Send money"), self)
-                send_money.triggered.connect(self.currency_tab.tab_community.menu_send_money)
+                send_money.triggered.connect(self.menu_send_money)
                 send_money.setData(identity)
                 menu.addAction(send_money)
 
                 if isinstance(identity, Identity):
                     view_wot = QAction(self.tr("View in Web of Trust"), self)
-                    view_wot.triggered.connect(self.currency_tab.tab_community.view_wot)
+                    view_wot.triggered.connect(self.view_wot)
                     view_wot.setData(identity)
                     menu.addAction(view_wot)
 
@@ -184,7 +201,7 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
             menu.addAction(copy_pubkey)
 
             # Show the context menu.
-            menu.exec_(QCursor.pos())
+            menu.popup(QCursor.pos())
 
     def copy_pubkey_to_clipboard(self):
         data = self.sender().data()
@@ -196,11 +213,52 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         elif data.__class__ is str:
             clipboard.setText(data)
 
+    def menu_informations(self):
+        person = self.sender().data()
+        self.identity_informations(person)
+
+    def menu_add_as_contact(self):
+        person = self.sender().data()
+        self.add_identity_as_contact({'name': person.uid,
+                                    'pubkey': person.pubkey})
+
+    def menu_send_money(self):
+        identity = self.sender().data()
+        self.send_money_to_identity(identity)
+
+    def identity_informations(self, person):
+        dialog = MemberDialog(self.app, self.account, self.community, person)
+        dialog.exec_()
+
+    def add_identity_as_contact(self, person):
+        dialog = ConfigureContactDialog(self.account, self.window(), person)
+        result = dialog.exec_()
+        if result == QDialog.Accepted:
+            self.window().refresh_contacts()
+
+    def send_money_to_identity(self, identity):
+        if isinstance(identity, str):
+            pubkey = identity
+        else:
+            pubkey = identity.pubkey
+        result = TransferMoneyDialog.send_money_to_identity(self.app, self.account, self.password_asker,
+                                                            self.community, identity)
+        if result == QDialog.Accepted:
+            currency_tab = self.window().currencies_tabwidget.currentWidget()
+            currency_tab.tab_history.table_history.model().sourceModel().refresh_transfers()
+
+    def certify_identity(self, identity):
+        CertificationDialog.certify_identity(self.app, self.account, self.password_asker,
+                                             self.community, identity)
+
+    def view_wot(self):
+        identity = self.sender().data()
+        self.view_in_wot.emit(identity)
+
     def send_again(self):
         transfer = self.sender().data()
         dialog = TransferMoneyDialog(self.app, self.app.current_account,
                                      self.password_asker)
-        dialog.accepted.connect(self.currency_tab.refresh_wallets)
         sender = transfer.metadata['issuer']
         wallet_index = [w.pubkey for w in self.app.current_account.wallets].index(sender)
         dialog.combo_wallets.setCurrentIndex(wallet_index)
@@ -237,3 +295,14 @@ QMessageBox.Ok | QMessageBox.Cancel)
             self.table_history.model().set_period(ts_from, ts_to)
 
             self.refresh_balance()
+
+    def changeEvent(self, event):
+        """
+        Intercepte LanguageChange event to translate UI
+        :param QEvent QEvent: Event
+        :return:
+        """
+        if event.type() == QEvent.LanguageChange:
+            self.retranslateUi(self)
+            self.refresh()
+        return super(TransactionsTabWidget, self).changeEvent(event)

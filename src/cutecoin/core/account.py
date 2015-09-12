@@ -20,6 +20,7 @@ from .wallet import Wallet
 from .community import Community
 from .registry import LocalState
 from ..tools.exceptions import ContactAlreadyExists
+from ..tools.decorators import asyncify
 from ..core.net.api import bma as qtbma
 from ..core.net.api.bma import PROTOCOL_VERSION
 
@@ -32,7 +33,6 @@ class Account(QObject):
     """
     loading_progressed = pyqtSignal(int, int)
     loading_finished = pyqtSignal(list)
-    inner_data_changed = pyqtSignal(str)
     wallets_changed = pyqtSignal()
     membership_broadcasted = pyqtSignal()
     certification_broadcasted = pyqtSignal()
@@ -168,7 +168,7 @@ class Account(QObject):
             maximums = {}
 
             def progressing(value, maximum, hash):
-                logging.debug("Loading = {0} : {1} : {2}".format(value, maximum, loaded_wallets))
+                #logging.debug("Loading = {0} : {1} : {2}".format(value, maximum, loaded_wallets))
                 values[hash] = value
                 maximums[hash] = maximum
                 account_value = sum(values.values())
@@ -196,6 +196,19 @@ class Account(QObject):
     def set_display_referential(self, index):
         self._current_ref = index
 
+    def set_scrypt_infos(self, salt, password):
+        """
+        Change the size of the wallet pool
+        :param int size: The new size of the wallet pool
+        :param str password: The password of the account, same for all wallets
+        """
+        self.salt = salt
+        self.pubkey = SigningKey(self.salt, password).pubkey
+        wallet = Wallet.create(0, self.salt, password,
+                               "Wallet", self._identities_registry)
+        self.wallets.append(wallet)
+
+    @asyncio.coroutine
     def identity(self, community):
         """
         Get the account identity in the specified community
@@ -203,7 +216,7 @@ class Account(QObject):
         :return: The account identity in the community
         :rtype: cutecoin.core.registry.Identity
         """
-        identity = self._identities_registry.find(self.pubkey, community)
+        identity = yield from self._identities_registry.future_find(self.pubkey, community)
         if identity.local_state == LocalState.NOT_FOUND:
             identity.uid = self.name
         return identity
@@ -211,23 +224,6 @@ class Account(QObject):
     @property
     def current_ref(self):
         return money.Referentials[self._current_ref]
-
-    def set_walletpool_size(self, size, password):
-        """
-        Change the size of the wallet pool
-
-        :param int size: The new size of the wallet pool
-        :param str password: The password of the account, same for all wallets
-        """
-        logging.debug("Defining wallet pool size")
-        if len(self.wallets) < size:
-            for i in range(len(self.wallets), size):
-                wallet = Wallet.create(i, self.salt, password,
-                                       "Wallet {0}".format(i), self._identities_registry)
-                self.wallets.append(wallet)
-        else:
-            self.wallets = self.wallets[:size]
-        self.wallets_changed.emit()
 
     def transfers(self, community):
         """
@@ -267,6 +263,7 @@ class Account(QObject):
             value += val
         return value
 
+    @asyncio.coroutine
     def amount(self, community):
         """
         Get amount of money owned in a community by all the wallets
@@ -277,7 +274,7 @@ class Account(QObject):
         """
         value = 0
         for w in self.wallets:
-            val = w.value(community)
+            val = yield from w.value(community)
             value += val
         return value
 
@@ -298,9 +295,9 @@ class Account(QObject):
         key = SigningKey(self.salt, password)
         selfcert.sign([key])
         logging.debug("Key publish : {0}".format(selfcert.signed_raw()))
-        replies = community.broadcast(qtbma.wot.Add, {}, {'pubkey': self.pubkey,
+        replies = community.bma_access.broadcast(qtbma.wot.Add, {}, {'pubkey': self.pubkey,
                                               'self_': selfcert.signed_raw(),
-                                              'other': []})
+                                              'other': ""})
         for r in replies:
             r.finished.connect(lambda reply=r: self.__handle_selfcert_replies(replies, reply))
 

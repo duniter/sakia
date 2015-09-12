@@ -6,10 +6,12 @@ Created on 5 févr. 2014
 
 from ..core.net.api import bma as qtbma
 from ..tools.exceptions import NoPeerAvailable, MembershipNotFoundError
+from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from PyQt5.QtCore import QAbstractTableModel, QSortFilterProxyModel, Qt, \
                         QDateTime, QModelIndex, QLocale
 from PyQt5.QtGui import QColor
 import logging
+import asyncio
 
 
 class IdentitiesFilterProxyModel(QSortFilterProxyModel):
@@ -20,6 +22,10 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
     def setSourceModel(self, sourceModel):
         self.community = sourceModel.community
         super().setSourceModel(sourceModel)
+
+    def change_community(self, community):
+        self.community = community
+        self.sourceModel().change_community(community)
 
     def lessThan(self, left, right):
         """
@@ -39,7 +45,7 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
         expiration_index = self.sourceModel().index(source_index.row(), expiration_col)
         expiration_data = self.sourceModel().data(expiration_index, Qt.DisplayRole)
         current_time = QDateTime().currentDateTime().toMSecsSinceEpoch()
-        sig_validity = self.community.parameters['sigValidity']
+        sig_validity = self.sourceModel().sig_validity()
         warning_expiration_time = int(sig_validity / 3)
         #logging.debug("{0} > {1}".format(current_time, expiration_data))
         if expiration_data is not None:
@@ -73,12 +79,12 @@ class IdentitiesTableModel(QAbstractTableModel):
     A Qt abstract item model to display communities in a tree
     """
 
-    def __init__(self, community, parent=None):
+    def __init__(self, parent=None):
         """
         Constructor
         """
         super().__init__(parent)
-        self.community = community
+        self.community = None
         self.columns_titles = {'uid': self.tr('UID'),
                                'pubkey': self.tr('Pubkey'),
                                'renewed': self.tr('Renewed'),
@@ -86,8 +92,14 @@ class IdentitiesTableModel(QAbstractTableModel):
                                'validation': self.tr('Validation')}
         self.columns_ids = ('uid', 'pubkey', 'renewed', 'expiration')
         self.identities_data = []
-        self._identities = []
-        self._refresh_slots = []
+        self._sig_validity = 0
+
+    def change_community(self, community):
+        cancel_once_task(self, self.refresh_identities)
+        self.community = community
+
+    def sig_validity(self):
+        return self._sig_validity
 
     @property
     def pubkeys(self):
@@ -96,16 +108,20 @@ class IdentitiesTableModel(QAbstractTableModel):
         """
         return [i[1] for i in self.identities_data]
 
+    @asyncio.coroutine
     def identity_data(self, identity):
         try:
-            join_date = identity.get_join_date(self.community)
-            expiration_date = identity.get_expiration_date(self.community)
+            join_date = yield from identity.get_join_date(self.community)
+            expiration_date = yield from identity.get_expiration_date(self.community)
         except MembershipNotFoundError:
             join_date = None
             expiration_date = None
 
         return (identity.uid, identity.pubkey, join_date, expiration_date)
 
+    @once_at_a_time
+    @asyncify
+    @asyncio.coroutine
     def refresh_identities(self, identities):
         """
         Change the identities to display
@@ -113,48 +129,14 @@ class IdentitiesTableModel(QAbstractTableModel):
         :param cutecoin.core.registry.IdentitiesRegistry identities: The new identities to display
         """
         logging.debug("Refresh {0} identities".format(len(identities)))
-
-        # We disconnect identities from their local slots
-        for (index, identity) in enumerate(self._identities):
-            identity.inner_data_changed.disconnect(self._refresh_slots[index])
-
-        self.identities_data = []
-        self._identities = []
-        self._refresh_slots = []
         self.beginResetModel()
+        self.identities_data = []
         for identity in identities:
-            logging.debug(identity)
-
-            # Connection
-            refresh_slot = lambda req, identity=identity: self.refresh_identity(req, identity)
-            identity.inner_data_changed.connect(refresh_slot)
-
-            self._identities.append(identity)
-            self._refresh_slots.append(refresh_slot)
-            self.identities_data.append(self.identity_data(identity))
+            data = yield from self.identity_data(identity)
+            self.identities_data.append(data)
+        parameters = yield from self.community.parameters()
+        self._sig_validity = parameters['sigValidity']
         self.endResetModel()
-
-    def refresh_identity(self, request, identity):
-        """
-        Refresh an identity when its inner_data changed
-        :param cutecoin.core.registry.Identity identity: The refreshed identity
-        """
-        logging.debug("Refresh {0} because of {1}".format(identity, request))
-        try:
-            index = self._identities.index(identity)
-            self.identities_data[index] = self.identity_data(identity)
-            if request == str(qtbma.wot.Lookup):
-                model_index_0 = self.createIndex(index, self.columns_ids.index('uid'))
-                model_index_max = self.createIndex(index, self.columns_ids.index('pubkey'))
-                self.dataChanged.emit(model_index_0, model_index_max)
-            elif request in (str(qtbma.blockchain.Membership),
-                             str(qtbma.blockchain.Block),
-                             str(qtbma.blockchain.Parameters)):
-                model_index_0 = self.createIndex(index, self.columns_ids.index('renewed'))
-                model_index_max = self.createIndex(index, self.columns_ids.index('expiration'))
-                self.dataChanged.emit(model_index_0, model_index_max)
-        except ValueError:
-            logging.debug("Identity {0} is not in list : {1}".format(identity, self.identities_data))
 
     def rowCount(self, parent):
         return len(self.identities_data)

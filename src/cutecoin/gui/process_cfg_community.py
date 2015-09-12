@@ -9,18 +9,19 @@ import asyncio
 
 from PyQt5.QtWidgets import QDialog, QMenu, QMessageBox, QApplication
 from PyQt5.QtGui import QCursor
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 
 from ..gen_resources.community_cfg_uic import Ui_CommunityConfigurationDialog
 from ..models.peering import PeeringTreeModel
 from ..core import Community
-from ..core.registry import Identity
+from ..core.registry.identity import BlockchainState
 from ..core.net import Node
 from . import toast
 
 
-class Step():
+class Step(QObject):
     def __init__(self, config_dialog, previous_step=None, next_step=None):
+        super().__init__()
         self.previous_step = previous_step
         self.next_step = next_step
         self.config_dialog = config_dialog
@@ -34,25 +35,99 @@ class StepPageInit(Step):
         super().__init__(config_dialog)
         self.node = None
         logging.debug("Init")
-        self.config_dialog.button_next.setEnabled(False)
-        self.config_dialog.button_checknode.clicked.connect(self.check_node)
+        self.config_dialog.button_connect.clicked.connect(self.check_connect)
+        self.config_dialog.button_register.clicked.connect(self.check_register)
+
+    @property
+    def app(self):
+        return self.config_dialog.app
+
+    @property
+    def account(self):
+        return self.config_dialog.account
+
+    @property
+    def community(self):
+        return self.config_dialog.community
+
+    @property
+    def password_asker(self):
+        return self.config_dialog.password_asker
 
     @asyncio.coroutine
-    def coroutine_check_node(self):
+    def coroutine_check_connect(self):
         server = self.config_dialog.lineedit_server.text()
         port = self.config_dialog.spinbox_port.value()
         logging.debug("Is valid ? ")
         self.node = yield from Node.from_address(self.config_dialog.app.network_manager, None, server, port)
         if self.node:
-            self.config_dialog.button_next.setEnabled(True)
-            self.config_dialog.button_check_node.setText("Ok !")
+            community = Community.create(self.app.network_manager, self.node)
+            identity = yield from self.app.identities_registry.future_find(self.account.pubkey, community)
+            if identity.blockchain_state == BlockchainState.NOT_FOUND:
+                self.config_dialog.label_error.setText(self.tr("Could not find your identity on the network."))
+            else:
+                self.config_dialog.community = community
+                self.config_dialog.next()
         else:
-            self.config_dialog.button_next.setEnabled(False)
-            self.config_dialog.button_check_node.setText("Could not connect.")
+            self.config_dialog.label_error.setText(self.tr("Could not connect."))
 
     @pyqtSlot()
-    def check_node(self):
-        asyncio.async(self.coroutine_check_node())
+    def check_connect(self):
+        logging.debug("Check node")
+        asyncio.async(self.coroutine_check_connect())
+
+    @asyncio.coroutine
+    def coroutine_check_register(self):
+        server = self.config_dialog.lineedit_server.text()
+        port = self.config_dialog.spinbox_port.value()
+        logging.debug("Is valid ? ")
+        self.node = yield from Node.from_address(self.config_dialog.app.network_manager, None, server, port)
+        if self.node:
+            community = Community.create(self.app.network_manager, self.node)
+            identity = yield from self.app.identities_registry.future_find(self.account.pubkey, community)
+            if identity.blockchain_state == BlockchainState.NOT_FOUND:
+                password = yield from self.password_asker.future_exec()
+                if self.password_asker.result() == QDialog.Rejected:
+                    return
+                self.config_dialog.label_error.setText(self.tr("Broadcasting identity..."))
+                self.account.selfcert_broadcasted.connect(self.handle_broadcast)
+                self.account.broadcast_error.connect(self.handle_error)
+                yield from self.account.send_selfcert(password, community)
+                self.config_dialog.community = community
+            else:
+                self.config_dialog.label_error.setText(self.tr("Pubkey already exists on the network"))
+        else:
+            self.config_dialog.label_error.setText(self.tr("Could not connect."))
+
+    @pyqtSlot()
+    def check_register(self):
+        logging.debug("Check node")
+        asyncio.async(self.coroutine_check_register())
+
+    @pyqtSlot(int, str)
+    def handle_broadcast(self):
+        if self.app.preferences['notifications']:
+            toast.display(self.tr("UID broadcast"), self.tr("Identity broadcasted to the network"))
+        # Disabled : https://github.com/harvimt/quamash/issues/41
+        # else:
+        #    QMessageBox.information(self, self.tr("UID broadcast"), self.tr("Identity broadcasted to the network"))
+        self.account.selfcert_broadcasted.disconnect()
+        self.account.broadcast_error.disconnect(self.handle_error)
+        QApplication.restoreOverrideCursor()
+        self.config_dialog.next()
+
+    @pyqtSlot(int, str)
+    def handle_error(self, error_code, text):
+        self.config_dialog.label_error.setText(self.tr("Error") + " " + \
+                                               self.tr("{0} : {1}".format(error_code, text)))
+        if self.app.preferences['notifications']:
+            toast.display(self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
+        # Disabled : https://github.com/harvimt/quamash/issues/41
+        #  else:
+        #    QMessageBox.critical(self, self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
+        self.account.selfcert_broadcasted.disconnect()
+        self.account.broadcast_error.disconnect(self.handle_error)
+        QApplication.restoreOverrideCursor()
 
     def is_valid(self):
         return self.node is not None
@@ -66,7 +141,8 @@ class StepPageInit(Step):
         self.config_dialog.community = Community.create(self.config_dialog.app.network_manager, self.node)
 
     def display_page(self):
-        self.config_dialog.button_previous.setEnabled(False)
+        self.config_dialog.button_next.hide()
+        self.config_dialog.button_previous.hide()
 
 
 class StepPageAddpeers(Step):
@@ -83,6 +159,8 @@ class StepPageAddpeers(Step):
         pass
 
     def display_page(self):
+        self.config_dialog.button_next.show()
+        self.config_dialog.button_previous.show()
         # We add already known peers to the displayed list
         self.config_dialog.nodes = self.config_dialog.community.network.root_nodes
         tree_model = PeeringTreeModel(self.config_dialog.community)
@@ -96,6 +174,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
     """
     Dialog to configure or add a community
     """
+    community_added = pyqtSignal()
 
     def __init__(self, app, account, community, password_asker):
         """
@@ -115,6 +194,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         self.step = None
         self.nodes = []
 
+        self.community_added.connect(self.add_community_and_close)
         step_init = StepPageInit(self)
         step_add_peers = StepPageAddpeers(self)
 
@@ -139,7 +219,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
                 self.stacked_pages.setCurrentIndex(next_index)
                 self.step.display_page()
         else:
-            asyncio.async(self.final())
+            self.add_community_and_close()
 
     def previous(self):
         if self.step.previous_step is not None:
@@ -196,49 +276,13 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
                     action.setEnabled(False)
             menu.exec_(QCursor.pos())
 
-    def selfcert_sent(self, pubkey, currency):
-        if self.app.preferences['notifications']:
-            toast.display(self.tr("UID Publishing"),
-                      self.tr("Success publishing  your UID").format(pubkey, currency))
-        else:
-            QMessageBox.information(self, self.tr("UID Publishing"),
-                      self.tr("Success publishing  your UID").format(pubkey, currency))
-        self.account.certification_broadcasted.disconnect()
-        self.account.broadcast_error.disconnect(self.handle_error)
-        QApplication.restoreOverrideCursor()
-        self.add_community_and_close()
-
-    @pyqtSlot(int, str)
-    def handle_error(self, error_code, text):
-        if self.app.preferences['notifications']:
-            toast.display(self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
-        else:
-            QMessageBox.critical(self, self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
-        self.account.certification_broadcasted.disconnect()
-        self.account.broadcast_error.disconnect(self.handle_error)
-        QApplication.restoreOverrideCursor()
+    def async_exec(self):
+        future = asyncio.Future()
+        self.finished.connect(lambda r: future.set_result(r))
+        self.open()
+        return future
 
     def add_community_and_close(self):
         if self.community not in self.account.communities:
             self.account.add_community(self.community)
         self.accept()
-
-    @asyncio.coroutine
-    def final(self):
-        identity = yield from self.app.identities_registry.future_find(self.account.pubkey, self.community)
-        if identity.status == Identity.NOT_FOUND:
-            reply = QMessageBox.question(self, self.tr("Pubkey not found"),
-                                 self.tr("""The public key of your account wasn't found in the community. :\n
-{0}\n
-Would you like to publish the key ?""").format(self.account.pubkey))
-            if reply == QMessageBox.Yes:
-                password = self.password_asker.exec_()
-                if self.password_asker.result() == QDialog.Rejected:
-                    return
-                self.account.selfcert_broadcasted.connect(self.handle_broadcast)
-                self.account.broadcast_error.connect(self.handle_error)
-                asyncio.async(self.account.send_selfcert(password, self.community))
-            else:
-                self.add_community_and_close()
-        else:
-            self.add_community_and_close()

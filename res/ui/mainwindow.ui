@@ -14,18 +14,7 @@
    <string notr="true">CuteCoin</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_6">
-    <item>
-     <widget class="QTabWidget" name="currencies_tabwidget">
-      <property name="iconSize">
-       <size>
-        <width>24</width>
-        <height>24</height>
-       </size>
-      </property>
-     </widget>
-    </item>
-   </layout>
+   <layout class="QVBoxLayout" name="verticalLayout_6"/>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -33,7 +22,7 @@
      <x>0</x>
      <y>0</y>
      <width>681</width>
-     <height>25</height>
+     <height>29</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_file">
@@ -48,11 +37,11 @@
    </widget>
    <widget class="QMenu" name="menu_account">
     <property name="title">
-     <string>Account</string>
+     <string>Acco&amp;unt</string>
     </property>
     <widget class="QMenu" name="menu_contacts_list">
      <property name="title">
-      <string>&amp;Contacts</string>
+      <string>Co&amp;ntacts</string>
      </property>
      <addaction name="separator"/>
     </widget>
@@ -94,7 +83,7 @@
   </action>
   <action name="action_add_a_contact">
    <property name="text">
-    <string>&amp;Add a contact</string>
+    <string>A&amp;dd a contact</string>
    </property>
   </action>
   <action name="actionSend_a_message">
@@ -164,7 +153,7 @@
   </action>
   <action name="actionCertification">
    <property name="text">
-    <string>&amp;Certification</string>
+    <string>C&amp;ertification</string>
    </property>
   </action>
   <action name="action_set_as_default">

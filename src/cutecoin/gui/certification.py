@@ -5,19 +5,20 @@ Created on 24 dec. 2014
 """
 from PyQt5.QtWidgets import QDialog, QMessageBox, QDialogButtonBox, QApplication
 from PyQt5.QtCore import Qt, pyqtSlot
-import quamash
 from ..gen_resources.certification_uic import Ui_CertificationDialog
 from . import toast
+from ..core.net.api import bma as qtbma
+from ..tools.decorators import asyncify
 import asyncio
+import logging
 
 
 class CertificationDialog(QDialog, Ui_CertificationDialog):
-
     """
     classdocs
     """
 
-    def __init__(self, certifier, app, password_asker):
+    def __init__(self, app, certifier, password_asker):
         """
         Constructor
         """
@@ -33,6 +34,14 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
 
         for contact in certifier.contacts:
             self.combo_contact.addItem(contact['name'])
+
+    @staticmethod
+    def certify_identity(app, account, password_asker, community, identity):
+        dialog = CertificationDialog(app, account, password_asker)
+        dialog.combo_community.setCurrentText(community.name)
+        dialog.edit_pubkey.setText(identity.pubkey)
+        dialog.radio_pubkey.setChecked(True)
+        return dialog.exec_()
 
     def accept(self):
         if self.radio_contact.isChecked():
@@ -64,17 +73,25 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
     def handle_error(self, error_code, text):
         if self.app.preferences['notifications']:
             toast.display(self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
-        else:
-            QMessageBox.Critical(self, self.tr("Error", self.tr("{0} : {1}".format(error_code, text))))
+        #else:
+        #    QMessageBox.Critical(self, self.tr("Error", self.tr("{0} : {1}".format(error_code, text))))
         self.account.certification_broadcasted.disconnect()
         self.account.broadcast_error.disconnect(self.handle_error)
         QApplication.restoreOverrideCursor()
 
     def change_current_community(self, index):
         self.community = self.account.communities[index]
-        if self.account.pubkey in self.community.members_pubkeys():
+        self.refresh()
+
+    @asyncify
+    @asyncio.coroutine
+    def refresh(self):
+        account_identity = yield from self.account.identity(self.community)
+        is_member = yield from account_identity.is_member(self.community)
+        block_0 = yield from self.community.get_block(0)
+        if is_member or block_0 == qtbma.blockchain.Block.null_value:
             self.button_box.button(QDialogButtonBox.Ok).setEnabled(True)
-            self.button_box.button(QDialogButtonBox.Ok).setText(self.tr("Ok"))
+            self.button_box.button(QDialogButtonBox.Ok).setText(self.tr("&Ok"))
         else:
             self.button_box.button(QDialogButtonBox.Ok).setEnabled(False)
             self.button_box.button(QDialogButtonBox.Ok).setText(self.tr("Not a member"))
@@ -82,3 +99,9 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
     def recipient_mode_changed(self, pubkey_toggled):
         self.edit_pubkey.setEnabled(pubkey_toggled)
         self.combo_contact.setEnabled(not pubkey_toggled)
+
+    def async_exec(self):
+        future = asyncio.Future()
+        self.finished.connect(lambda r: future.set_result(r))
+        self.open()
+        return future

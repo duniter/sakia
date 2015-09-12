@@ -9,6 +9,7 @@ from PyQt5.QtGui import QRegExpValidator
 
 from ..gen_resources.transfer_uic import Ui_TransferMoneyDialog
 from . import toast
+from ..tools.decorators import asyncify
 import asyncio
 
 
@@ -35,7 +36,6 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         self.wallet = None
         self.community = self.account.communities[0]
         self.wallet = self.account.wallets[0]
-        self.dividend = self.community.dividend
 
         regexp = QRegExp('^([ a-zA-Z0-9-_:/;*?\[\]\(\)\\\?!^+=@&~#{}|<>%.]{0,255})$')
         validator = QRegExpValidator(regexp)
@@ -54,6 +54,14 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
             self.combo_contact.setEnabled(False)
             self.radio_contact.setEnabled(False)
             self.radio_pubkey.setChecked(True)
+
+    @staticmethod
+    def send_money_to_identity(app, account, password_asker, community, identity):
+        dialog = TransferMoneyDialog(app, account, password_asker)
+        dialog.edit_pubkey.setText(identity.pubkey)
+        dialog.combo_community.setCurrentText(community.name)
+        dialog.radio_pubkey.setChecked(True)
+        return dialog.exec()
 
     def accept(self):
         comment = self.edit_message.text()
@@ -105,60 +113,64 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         self.wallet.broadcast_error.disconnect(self.handle_error)
         QApplication.restoreOverrideCursor()
 
-    def amount_changed(self):
-        amount = self.spinbox_amount.value()
-        relative = amount / self.dividend
+    @asyncify
+    @asyncio.coroutine
+    def amount_changed(self, value):
+        dividend = yield from self.community.dividend()
+        relative = value / dividend
         self.spinbox_relative.blockSignals(True)
         self.spinbox_relative.setValue(relative)
         self.spinbox_relative.blockSignals(False)
 
-    def relative_amount_changed(self):
-        relative = self.spinbox_relative.value()
-        amount = relative * self.dividend
+    @asyncify
+    @asyncio.coroutine
+    def relative_amount_changed(self, value):
+        dividend = yield from self.community.dividend()
+        amount = value * dividend
         self.spinbox_amount.blockSignals(True)
         self.spinbox_amount.setValue(amount)
         self.spinbox_amount.blockSignals(False)
 
+    @asyncify
+    @asyncio.coroutine
     def change_current_community(self, index):
         self.community = self.account.communities[index]
-        self.dividend = self.community.dividend
-        amount = self.wallet.value(self.community)
-        ref_amount = self.account.units_to_ref(amount, self.community)
-        ref_name = self.account.ref_name(self.community.currency)
-        # if referential type is quantitative...
-        if self.account.ref_type() == 'q':
-            # display int values
-            ref_amount = QLocale().toString(float(ref_amount), 'f', 0)
-        else:
-            # display float values
-            ref_amount = QLocale().toString(float(ref_amount), 'f', 6)
-        self.label_total.setText("{0} {1}".format(ref_amount, ref_name))
+        amount = yield from self.wallet.value(self.community)
+
+        ref_text = yield from self.account.current_ref(amount, self.community, self.app)\
+            .diff_localized(units=True,
+                            international_system=self.app.preferences['international_system_of_units'])
+        self.label_total.setText("{0}".format(ref_text))
         self.spinbox_amount.setSuffix(" " + self.community.currency)
         self.spinbox_amount.setValue(0)
-        amount = self.wallet.value(self.community)
-        relative = amount / self.dividend
+        amount = yield from self.wallet.value(self.community)
+        dividend = yield from self.community.dividend()
+        relative = amount / dividend
         self.spinbox_amount.setMaximum(amount)
         self.spinbox_relative.setMaximum(relative)
 
+    @asyncify
+    @asyncio.coroutine
     def change_displayed_wallet(self, index):
         self.wallet = self.account.wallets[index]
-        amount = self.wallet.value(self.community)
-        ref_amount = self.account.units_to_ref(amount, self.community)
-        ref_name = self.account.ref_name(self.community.currency)
-        # if referential type is quantitative...
-        if self.account.ref_type() == 'q':
-            # display int values
-            ref_amount = QLocale().toString(float(ref_amount), 'f', 0)
-        else:
-            # display float values
-            ref_amount = QLocale().toString(float(ref_amount), 'f', 6)
-        self.label_total.setText("{0} {1}".format(ref_amount, ref_name))
+        amount = yield from self.wallet.value(self.community)
+        ref_text = yield from self.account.current_ref(amount, self.community, self.app)\
+            .diff_localized(units=True,
+                            international_system=self.app.preferences['international_system_of_units'])
+        self.label_total.setText("{0}".format(ref_text))
         self.spinbox_amount.setValue(0)
-        amount = self.wallet.value(self.community)
-        relative = amount / self.dividend
+        amount = yield from self.wallet.value(self.community)
+        dividend = yield from self.community.dividend()
+        relative = amount / dividend
         self.spinbox_amount.setMaximum(amount)
         self.spinbox_relative.setMaximum(relative)
 
     def recipient_mode_changed(self, pubkey_toggled):
         self.edit_pubkey.setEnabled(pubkey_toggled)
         self.combo_contact.setEnabled(not pubkey_toggled)
+
+    def async_exec(self):
+        future = asyncio.Future()
+        self.finished.connect(lambda r: future.set_result(r))
+        self.open()
+        return future

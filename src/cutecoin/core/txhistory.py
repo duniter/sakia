@@ -1,7 +1,9 @@
 import asyncio
 import logging
+import hashlib
 from .transfer import Transfer
 from ucoinpy.documents.transaction import InputSource, OutputSource
+from ucoinpy.documents.block import Block
 from ..tools.exceptions import LookupFailureError
 from .net.api import bma as qtbma
 
@@ -71,29 +73,29 @@ class TxHistory():
         self._stop_coroutines = True
 
     @staticmethod
+    @asyncio.coroutine
     def _validation_state(community, block_number, current_block):
-        if block_number + community.network.fork_window(community.members_pubkeys()) + 1 < current_block["number"]:
+        members_pubkeys = yield from community.members_pubkeys()
+        if block_number + community.network.fork_window(members_pubkeys) + 1 < current_block["number"]:
             state = Transfer.VALIDATED
         else:
             state = Transfer.VALIDATING
         return state
 
     @asyncio.coroutine
-    def _parse_transaction(self, community, txdata, received_list, txid, current_block):
-        tx_outputs = [OutputSource.from_inline(o) for o in txdata['outputs']]
-        receivers = [o.pubkey for o in tx_outputs
-                     if o.pubkey != txdata['issuers'][0]]
+    def _parse_transaction(self, community, tx, block_number,
+                           mediantime, received_list,
+                           current_block, txid):
+        receivers = [o.pubkey for o in tx.outputs
+                     if o.pubkey != tx.issuers[0]]
 
-        block_number = txdata['block_number']
-
-        mediantime = txdata['time']
-        state = TxHistory._validation_state(community, block_number, current_block)
+        state = yield from TxHistory._validation_state(community, block_number, current_block)
 
         if len(receivers) == 0:
-            receivers = [txdata['issuers'][0]]
+            receivers = [tx.issuers[0]]
 
         try:
-            issuer = yield from self.wallet._identities_registry.future_find(txdata['issuers'][0], community)
+            issuer = yield from self.wallet._identities_registry.future_find(tx.issuers[0], community)
             issuer_uid = issuer.uid
         except LookupFailureError:
             issuer_uid = ""
@@ -106,56 +108,95 @@ class TxHistory():
 
         metadata = {'block': block_number,
                     'time': mediantime,
-                    'comment': txdata['comment'],
-                    'issuer': txdata['issuers'][0],
+                    'comment': tx.comment,
+                    'issuer': tx.issuers[0],
                     'issuer_uid': issuer_uid,
                     'receiver': receivers[0],
                     'receiver_uid': receiver_uid,
                     'txid': txid}
 
-        in_issuers = len([i for i in txdata['issuers']
+        in_issuers = len([i for i in tx.issuers
                      if i == self.wallet.pubkey]) > 0
-        in_outputs = len([o for o in tx_outputs
+        in_outputs = len([o for o in tx.outputs
                        if o.pubkey == self.wallet.pubkey]) > 0
         awaiting = [t for t in self._transfers
                     if t.state in (Transfer.AWAITING, Transfer.VALIDATING)]
 
         # We check if the transaction correspond to one we sent
         # but not from this cutecoin Instance
-        if txdata['hash'] not in [t.hash for t in awaiting]:
+        tx_hash = hashlib.sha1(tx.signed_raw().encode("ascii")).hexdigest().upper()
+        if tx_hash not in [t.hash for t in awaiting]:
             # If the wallet pubkey is in the issuers we sent this transaction
             if in_issuers:
-                outputs = [o for o in tx_outputs
+                outputs = [o for o in tx.outputs
                            if o.pubkey != self.wallet.pubkey]
                 amount = 0
                 for o in outputs:
                     amount += o.amount
                 metadata['amount'] = amount
-                transfer = Transfer.create_from_blockchain(txdata['hash'],
+                transfer = Transfer.create_from_blockchain(tx_hash,
                                                            state,
                                                      metadata.copy())
                 return transfer
             # If we are not in the issuers,
             # maybe it we are in the recipients of this transaction
             elif in_outputs:
-                outputs = [o for o in tx_outputs
+                outputs = [o for o in tx.outputs
                            if o.pubkey == self.wallet.pubkey]
                 amount = 0
                 for o in outputs:
                     amount += o.amount
                 metadata['amount'] = amount
 
-                if txdata['hash'] not in [t.hash for t in awaiting]:
-                    transfer = Transfer.create_from_blockchain(txdata['hash'],
+                if tx_hash not in [t.hash for t in awaiting]:
+                    transfer = Transfer.create_from_blockchain(tx_hash,
                                                                state,
                                                          metadata.copy())
                     received_list.append(transfer)
                     return transfer
         else:
-            transfer = [t for t in awaiting if t.hash == txdata['hash']][0]
-            transfer.check_registered(txdata['hash'], current_block['number'], mediantime,
+            transfer = [t for t in awaiting if t.hash == tx_hash][0]
+
+            transfer.check_registered(tx_hash, current_block['number'], mediantime,
                                       community.network.fork_window(community.members_pubkeys()) + 1)
         return None
+
+    @asyncio.coroutine
+    def _parse_block(self, community, block_number, received_list, current_block, txmax):
+        block = yield from community.bma_access.future_request(qtbma.blockchain.Block,
+                                  req_args={'number': block_number})
+        signed_raw = "{0}{1}\n".format(block['raw'],
+                                       block['signature'])
+        transfers = []
+        try:
+            block_doc = Block.from_signed_raw(signed_raw)
+        except:
+            logging.debug("Error in {0}".format(block_number))
+            raise
+        for (txid, tx) in enumerate(block_doc.transactions):
+            transfer = yield from self._parse_transaction(community, tx, block_number,
+                                    block_doc.mediantime, received_list,
+                                    current_block, txid+txmax)
+            if transfer != None:
+                logging.debug("Transfer amount : {0}".format(transfer.metadata['amount']))
+                transfers.append(transfer)
+            else:
+                logging.debug("None transfer")
+        return transfers
+
+    @asyncio.coroutine
+    def request_dividends(self, community, parsed_block):
+        dividends_data = qtbma.ud.History.null_value
+        for i in range(0, 6):
+            if dividends_data == qtbma.ud.History.null_value:
+                dividends_data = yield from community.bma_access.future_request(qtbma.ud.History,
+                                                req_args={'pubkey': self.wallet.pubkey})
+
+        dividends = dividends_data['history']['history']
+        for d in dividends:
+            if d['block_number'] < parsed_block:
+                dividends.remove(d)
+        return dividends
 
     @asyncio.coroutine
     def refresh(self, community, received_list):
@@ -167,43 +208,27 @@ class TxHistory():
         """
         current_block = yield from community.bma_access.future_request(qtbma.blockchain.Block,
                                 req_args={'number': community.network.latest_block_number})
-
+        members_pubkeys = yield from community.members_pubkeys()
         # We look for the first block to parse, depending on awaiting and validating transfers and ud...
-        blocks = [tx.metadata['block_number'] for tx in self._transfers
+        blocks = [tx.metadata['block'] for tx in self._transfers
                   if tx.state in (Transfer.AWAITING, Transfer.VALIDATING)] +\
                  [ud['block_number'] for ud in self._dividends
                   if ud['state'] in (Transfer.AWAITING, Transfer.VALIDATING)] +\
-                 [max(0, self.latest_block - community.network.fork_window(community.members_pubkeys()))]
+                 [max(0, self.latest_block - community.network.fork_window(members_pubkeys))]
         parsed_block = min(set(blocks))
         logging.debug("Refresh from : {0} to {1}".format(self.latest_block, current_block['number']))
-        dividends_data = qtbma.ud.History.null_value
-        while dividends_data == qtbma.ud.History.null_value:
-            dividends_data = yield from community.bma_access.future_request(qtbma.ud.History,
-                                                req_args={'pubkey': self.wallet.pubkey})
-
-        dividends = dividends_data['history']['history']
-        for d in dividends:
-            if d['block_number'] < parsed_block:
-                dividends.remove(d)
-
+        dividends = yield from self.request_dividends(community, parsed_block)
+        with_tx_data = yield from community.bma_access.future_request(qtbma.blockchain.TX)
+        blocks_with_tx = with_tx_data['result']['blocks']
         new_transfers = []
         new_dividends = []
         # Lets look if transactions took too long to be validated
         awaiting = [t for t in self._transfers
                     if t.state == Transfer.AWAITING]
         while parsed_block < current_block['number']:
-            tx_history = qtbma.tx.history.Blocks.null_value
-            while tx_history == qtbma.tx.history.Blocks.null_value:
-                tx_history = yield from community.bma_access.future_request(qtbma.tx.history.Blocks,
-                                                          req_args={'pubkey': self.wallet.pubkey,
-                                                                 'from_':str(parsed_block),
-                                                                 'to_': str(parsed_block + 99)})
-            if self._stop_coroutines:
-                return
-
             udid = 0
-            for d in [ud for ud in dividends if ud['block_number'] in range(parsed_block, parsed_block+100)]:
-                state = TxHistory._validation_state(community, d['block_number'], current_block)
+            for d in [ud for ud in dividends if ud['block_number'] == parsed_block]:
+                state = yield from TxHistory._validation_state(community, d['block_number'], current_block)
 
                 if d['block_number'] not in [ud['block_number'] for ud in self._dividends]:
                     d['id'] = udid
@@ -216,22 +241,14 @@ class TxHistory():
                     known_dividend['state'] = state
 
             # We parse only blocks with transactions
-            transactions = tx_history['history']['received'] + tx_history['history']['sent']
-            for (txid, txdata) in enumerate(transactions):
-                if self._stop_coroutines:
-                    return
-                if len(txdata['issuers']) == 0:
-                    logging.debug("Error with : {0}, from {1} to {2}".format(self.wallet.pubkey,
-                                                                             parsed_block,
-                                                                             current_block['number']))
-                else:
-                    transfer = yield from self._parse_transaction(community, txdata, received_list,
-                                                                  udid + txid, current_block)
-                    if transfer:
-                        new_transfers.append(transfer)
+            if parsed_block in blocks_with_tx:
+                transfers = yield from self._parse_block(community, parsed_block,
+                                                         received_list, current_block,
+                                                         udid + len(new_transfers))
+                new_transfers += transfers
 
             self.wallet.refresh_progressed.emit(parsed_block, current_block['number'], self.wallet.pubkey)
-            parsed_block += 100
+            parsed_block += 1
 
         if current_block['number'] > self.latest_block:
             self.available_sources = yield from self.wallet.future_sources(community)

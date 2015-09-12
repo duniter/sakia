@@ -1,28 +1,31 @@
 # -*- coding: utf-8 -*-
 
 import logging
-from cutecoin.core.graph import Graph
-from PyQt5.QtWidgets import QWidget, QComboBox, QLineEdit
-from PyQt5.QtCore import pyqtSlot
-from cutecoin.core.net.api import bma
-from cutecoin.core.registry import BlockchainState
+import asyncio
+from PyQt5.QtWidgets import QWidget, QComboBox, QDialog
+from PyQt5.QtCore import pyqtSlot, QEvent, QLocale, QDateTime
+
+from ..tools.exceptions import MembershipNotFoundError
+from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
+from ..core.net.api import bma
+from ..core.graph import Graph
+from ..core.registry import BlockchainState
+from .member import MemberDialog
+from .certification import CertificationDialog
+from .transfer import TransferMoneyDialog
+from .contact import ConfigureContactDialog
 from ..gen_resources.wot_tab_uic import Ui_WotTabWidget
 from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_SELECTED, NODE_STATUS_OUT, ARC_STATUS_STRONG, \
     ARC_STATUS_WEAK
 
 
 class WotTabWidget(QWidget, Ui_WotTabWidget):
-    def __init__(self, app, account, community, password_asker, parent=None):
+    def __init__(self, app):
         """
         :param cutecoin.core.app.Application app:   Application instance
-        :param cutecoin.core.account.Account account: Account instance
-        :param cutecoin.core.community.Community community: Community instance
-        :param QWidget parent: Parent
         :return:
         """
-        super().__init__(parent)
-        self.parent = parent
-
+        super().__init__()
         # construct from qtDesigner
         self.setupUi(self)
 
@@ -41,18 +44,115 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         self.graphicsView.scene().node_contact.connect(self.add_node_as_contact)
         self.graphicsView.scene().node_member.connect(self.identity_informations)
 
-        self.account = account
-        self.community = community
-        self.password_asker = password_asker
+        self.account = None
+        self.community = None
+        self.password_asker = None
         self.app = app
+        self.draw_task = None
 
         # nodes list for menu from search
         self.nodes = list()
 
         # create node metadata from account
         self._current_identity = None
-        self.draw_graph(self.account.identity(self.community))
-        self.community.network.new_block_mined.connect(self.refresh)
+
+    def cancel_once_tasks(self):
+        cancel_once_task(self, self.draw_graph)
+        cancel_once_task(self, self.refresh_informations_frame)
+        cancel_once_task(self, self.reset)
+
+    def change_account(self, account, password_asker):
+        self.account = account
+        self.password_asker = password_asker
+
+    def change_community(self, community):
+        if self.community:
+            self.community.network.new_block_mined.disconnect(self.refresh)
+        if community:
+            community.network.new_block_mined.connect(self.refresh)
+        self.community = community
+        self.reset()
+
+    @once_at_a_time
+    @asyncify
+    @asyncio.coroutine
+    def refresh_informations_frame(self):
+        parameters = self.community.parameters
+        try:
+            identity = yield from self.account.identity(self.community)
+            membership = identity.membership(self.community)
+            renew_block = membership['blockNumber']
+            last_renewal = self.community.get_block(renew_block)['medianTime']
+            expiration = last_renewal + parameters['sigValidity']
+        except MembershipNotFoundError:
+            last_renewal = None
+            expiration = None
+
+        certified = yield from identity.unique_valid_certified_by(self.app.identities_registry, self.community)
+        certifiers = yield from identity.unique_valid_certifiers_of(self.app.identities_registry, self.community)
+        if last_renewal and expiration:
+            date_renewal = QLocale.toString(
+                QLocale(),
+                QDateTime.fromTime_t(last_renewal).date(), QLocale.dateFormat(QLocale(), QLocale.LongFormat)
+            )
+            date_expiration = QLocale.toString(
+                QLocale(),
+                QDateTime.fromTime_t(expiration).date(), QLocale.dateFormat(QLocale(), QLocale.LongFormat)
+            )
+
+            if self.account.pubkey in self.community.members_pubkeys():
+                # set infos in label
+                self.label_general.setText(
+                    self.tr("""
+                    <table cellpadding="5">
+                    <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                    <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                    <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                    </table>
+                    """).format(
+                        self.account.name, self.account.pubkey,
+                        self.tr("Membership"),
+                        self.tr("Last renewal on {:}, expiration on {:}").format(date_renewal, date_expiration),
+                        self.tr("Your web of trust"),
+                        self.tr("Certified by {:} members; Certifier of {:} members").format(len(certifiers),
+                                                                                             len(certified))
+                    )
+                )
+            else:
+                # set infos in label
+                self.label_general.setText(
+                    self.tr("""
+                    <table cellpadding="5">
+                    <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                    <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                    <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                    </table>
+                    """).format(
+                        self.account.name, self.account.pubkey,
+                        self.tr("Not a member"),
+                        self.tr("Last renewal on {:}, expiration on {:}").format(date_renewal, date_expiration),
+                        self.tr("Your web of trust"),
+                        self.tr("Certified by {:} members; Certifier of {:} members").format(len(certifiers),
+                                                                                             len(certified))
+                    )
+                )
+        else:
+            # set infos in label
+            self.label_general.setText(
+                self.tr("""
+                <table cellpadding="5">
+                <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                <tr><td align="right"><b>{:}</b></td></tr>
+                <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                </table>
+                """).format(
+                    self.account.name, self.account.pubkey,
+                    self.tr("Not a member"),
+                    self.tr("Your web of trust"),
+                    self.tr("Certified by {:} members; Certifier of {:} members").format(len(certifiers),
+                                                                                         len(certified))
+                )
+            )
 
     @pyqtSlot(dict)
     def handle_node_click(self, metadata):
@@ -64,6 +164,9 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             )
         )
 
+    @once_at_a_time
+    @asyncify
+    @asyncio.coroutine
     def draw_graph(self, identity):
         """
         Draw community graph centered on the identity
@@ -72,69 +175,65 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         """
         logging.debug("Draw graph - " + identity.uid)
 
-        identity_account = self.account.identity(self.community)
+        if self.community:
+            identity_account = yield from self.account.identity(self.community)
 
-        # Disconnect old identity
-        try:
-            if self._current_identity and self._current_identity != identity:
-                self._current_identity.inner_data_changed.disconnect(self.handle_identity_change)
-        except TypeError as e:
-            if "disconnect()" in str(e):
-                logging.debug("Disconnect of old identity failed.")
+            #Connect new identity
+            if self._current_identity != identity:
+                self._current_identity = identity
 
-        #Connect new identity
-        if self._current_identity != identity:
-            self._current_identity = identity
-            identity.inner_data_changed.connect(self.handle_identity_change)
+            # create Identity from node metadata
+            certifier_list = yield from identity.unique_valid_certifiers_of(self.app.identities_registry,
+                                                                            self.community)
+            certified_list = yield from identity.unique_valid_certified_by(self.app.identities_registry,
+                                                                           self.community)
 
-        # create Identity from node metadata
-        certifier_list = identity.unique_valid_certifiers_of(self.app.identities_registry, self.community)
-        certified_list = identity.unique_valid_certified_by(self.app.identities_registry, self.community)
+            # create empty graph instance
+            graph = Graph(self.app, self.community)
 
-        # create empty graph instance
-        graph = Graph(self.app, self.community)
+            # add wallet node
+            node_status = 0
+            if identity == identity_account:
+                node_status += NODE_STATUS_HIGHLIGHTED
+            if identity.is_member(self.community) is False:
+                node_status += NODE_STATUS_OUT
+            node_status += NODE_STATUS_SELECTED
+            graph.add_identity(identity, node_status)
 
-        # add wallet node
-        node_status = 0
-        if identity == identity_account:
-            node_status += NODE_STATUS_HIGHLIGHTED
-        if identity.is_member(self.community) is False:
-            node_status += NODE_STATUS_OUT
-        node_status += NODE_STATUS_SELECTED
-        graph.add_identity(identity, node_status)
+            # populate graph with certifiers-of
+            yield from graph.add_certifier_list(certifier_list, identity, identity_account)
+            # populate graph with certified-by
+            yield from graph.add_certified_list(certified_list, identity, identity_account)
 
-        # populate graph with certifiers-of
-        graph.add_certifier_list(certifier_list, identity, identity_account)
-        # populate graph with certified-by
-        graph.add_certified_list(certified_list, identity, identity_account)
+            # draw graph in qt scene
+            self.graphicsView.scene().update_wot(graph.get())
 
-        # draw graph in qt scene
-        self.graphicsView.scene().update_wot(graph.get())
+            # if selected member is not the account member...
+            if identity.pubkey != identity_account.pubkey:
+                # add path from selected member to account member
+                path = yield from graph.get_shortest_path_between_members(identity, identity_account)
+                if path:
+                    self.graphicsView.scene().update_path(path)
 
-        # if selected member is not the account member...
-        if identity.pubkey != identity_account.pubkey:
-            # add path from selected member to account member
-            path = graph.get_shortest_path_between_members(identity, identity_account)
-            if path:
-                self.graphicsView.scene().update_path(path)
-
-    def reset(self):
+    @once_at_a_time
+    @asyncify
+    @asyncio.coroutine
+    def reset(self, checked=False):
         """
         Reset graph scene to wallet identity
         """
-        self.draw_graph(
-            self.account.identity(self.community)
-        )
+        if self.account:
+            identity = yield from self.account.identity(self.community)
+            self.draw_graph(identity)
 
     def refresh(self):
         """
         Refresh graph scene to current metadata
         """
-        self.draw_graph(self._current_identity)
-
-    @pyqtSlot(str)
-    def handle_identity_change(self, request):
-        self.refresh()
+        if self._current_identity:
+            self.draw_graph(self._current_identity)
+        else:
+            self.reset()
 
     def search(self):
         """
@@ -185,7 +284,8 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             metadata['id'],
             BlockchainState.VALIDATED
         )
-        self.parent.identity_informations(identity)
+        dialog = MemberDialog(self.app, self.account, self.community, identity)
+        dialog.exec_()
 
     def sign_node(self, metadata):
         identity = self.app.identities_registry.from_handled_data(
@@ -193,7 +293,8 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             metadata['id'],
             BlockchainState.VALIDATED
         )
-        self.parent.certify_identity(identity)
+        CertificationDialog.certify_identity(self.app, self.account, self.password_asker,
+                                             self.community, identity)
 
     def send_money_to_node(self, metadata):
         identity = self.app.identities_registry.from_handled_data(
@@ -201,20 +302,30 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             metadata['id'],
             BlockchainState.VALIDATED
         )
-        self.parent.send_money_to_identity(identity)
+        result = TransferMoneyDialog.send_money_to_identity(self.app, self.account, self.password_asker,
+                                                            self.community, identity)
+        if result == QDialog.Accepted:
+            currency_tab = self.window().currencies_tabwidget.currentWidget()
+            currency_tab.tab_history.table_history.model().sourceModel().refresh_transfers()
 
     def add_node_as_contact(self, metadata):
         # check if contact already exists...
         if metadata['id'] == self.account.pubkey \
                 or metadata['id'] in [contact['pubkey'] for contact in self.account.contacts]:
             return False
-        self.parent.add_identity_as_contact({'name': metadata['text'],
-                                             'pubkey': metadata['id']})
+        dialog = ConfigureContactDialog(self.account, self.window(), {'name': metadata['text'],
+                                                                      'pubkey': metadata['id']})
+        result = dialog.exec_()
+        if result == QDialog.Accepted:
+            self.window().refresh_contacts()
 
-    def get_block_mediantime(self, number):
-        try:
-            block = self.community.get_block(number)
-        except Exception as e:
-            logging.debug('community.get_block request error : ' + str(e))
-            return False
-        return block.mediantime
+    def changeEvent(self, event):
+        """
+        Intercepte LanguageChange event to translate UI
+        :param QEvent QEvent: Event
+        :return:
+        """
+        if event.type() == QEvent.LanguageChange:
+            self.retranslateUi(self)
+            self.refresh()
+        return super(WotTabWidget, self).changeEvent(event)

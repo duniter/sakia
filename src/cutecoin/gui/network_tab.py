@@ -9,7 +9,7 @@ import asyncio
 
 from PyQt5.QtGui import QCursor, QDesktopServices
 from PyQt5.QtWidgets import QWidget, QMenu, QAction
-from PyQt5.QtCore import Qt, QModelIndex, pyqtSlot, QUrl
+from PyQt5.QtCore import Qt, QModelIndex, pyqtSlot, QUrl, QEvent
 from ..models.network import NetworkTableModel, NetworkFilterProxyModel
 from ..core.net.api import bma as qtbma
 from ..gen_resources.network_tab_uic import Ui_NetworkTabWidget
@@ -20,32 +20,39 @@ class NetworkTabWidget(QWidget, Ui_NetworkTabWidget):
     classdocs
     """
 
-    def __init__(self, app, community):
+    def __init__(self, app):
         """
         Constructore of a network tab.
 
         :param cutecoin.core.Application app: The application
-        :param cutecoin.core.Community community: The community
         :return: A new network tab.
         :rtype: NetworkTabWidget
         """
         super().__init__()
         self.app = app
-        self.community = community
+        self.community = None
 
         self.setupUi(self)
-        model = NetworkTableModel(community)
+        model = NetworkTableModel(self.community)
         proxy = NetworkFilterProxyModel(self)
         proxy.setSourceModel(model)
         self.table_network.setModel(proxy)
         self.table_network.sortByColumn(0, Qt.DescendingOrder)
         self.table_network.resizeColumnsToContents()
-        community.network.nodes_changed.connect(self.refresh_nodes)
+
+    def change_community(self, community):
+        if self.community:
+            self.community.network.nodes_changed.disconnect(self.refresh_nodes)
+        if community:
+            community.network.nodes_changed.connect(self.refresh_nodes)
+
+        self.community = community
+        self.table_network.model().change_community(community)
 
     @pyqtSlot()
     def refresh_nodes(self):
         logging.debug("Refresh nodes")
-        self.table_network.model().sourceModel().modelReset.emit()
+        self.table_network.model().sourceModel().refresh_nodes()
 
     def node_context_menu(self, point):
         index = self.table_network.indexAt(point)
@@ -98,4 +105,13 @@ class NetworkTabWidget(QWidget, Ui_NetworkTabWidget):
     def manual_nodes_refresh(self):
         self.community.network.refresh_once()
 
-
+    def changeEvent(self, event):
+        """
+        Intercepte LanguageChange event to translate UI
+        :param QEvent QEvent: Event
+        :return:
+        """
+        if event.type() == QEvent.LanguageChange:
+            self.retranslateUi(self)
+            self.refresh_nodes()
+        return super(NetworkTabWidget, self).changeEvent(event)

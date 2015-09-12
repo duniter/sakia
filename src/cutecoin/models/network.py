@@ -5,11 +5,13 @@ Created on 5 févr. 2014
 """
 
 import logging
+import asyncio
 
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel
 from PyQt5.QtGui import QColor, QFont
 
 from ..tools.exceptions import NoPeerAvailable
+from ..tools.decorators import asyncify
 from cutecoin.core.net.node import Node
 
 
@@ -19,7 +21,11 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
         self.community = None
 
     def columnCount(self, parent):
-        return self.sourceModel().columnCount(None) - 1
+        return self.sourceModel().columnCount(None) - 2
+
+    def change_community(self, community):
+        self.community = community
+        self.sourceModel().change_community(community)
 
     def setSourceModel(self, sourceModel):
         self.community = sourceModel.community
@@ -66,6 +72,13 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
             and role == Qt.DisplayRole:
             return source_data[:5]
 
+        if index.column() == source_model.columns_types.index('current_block') \
+            and role == Qt.DisplayRole:
+            if source_data == -1:
+                return ""
+            else:
+                return source_data
+
         if index.column() == source_model.columns_types.index('current_hash') \
             and role == Qt.DisplayRole:
             return source_data[:10]
@@ -108,7 +121,8 @@ class NetworkTableModel(QAbstractTableModel):
             'pubkey',
             'software',
             'version',
-            'is_root'
+            'is_root',
+            'state'
         )
         self.node_colors = {
             Node.ONLINE: QColor('#99ff99'),
@@ -122,23 +136,13 @@ class NetworkTableModel(QAbstractTableModel):
             Node.DESYNCED: self.tr('Unsynchronized'),
             Node.CORRUPTED: self.tr('Corrupted')
         }
+        self.nodes_data = []
 
-    @property
-    def nodes(self):
-        return self.community.network.nodes
+    def change_community(self, community):
+        self.community = community
+        self.refresh_nodes()
 
-    def rowCount(self, parent):
-        return len(self.nodes)
-
-    def columnCount(self, parent):
-        return len(self.columns_types)
-
-    def headerData(self, section, orientation, role):
-        if role != Qt.DisplayRole:
-            return QVariant()
-
-        return self.columns_types[section]
-
+    @asyncio.coroutine
     def data_node(self, node: Node) -> tuple:
         """
         Return node data tuple
@@ -146,7 +150,8 @@ class NetworkTableModel(QAbstractTableModel):
         :return:
         """
         try:
-            is_member = node.pubkey in self.community.members_pubkeys()
+            members_pubkey = yield from self.community.members_pubkeys()
+            is_member = node.pubkey in members_pubkey
         except NoPeerAvailable as e:
             logging.error(e)
             is_member = None
@@ -162,8 +167,31 @@ class NetworkTableModel(QAbstractTableModel):
 
         is_root = self.community.network.is_root_node(node)
 
-        return (address, port, node.block_number, node.block_hash, node.uid,
-                is_member, node.pubkey, node.software, node.version, is_root)
+        return (address, port, node.block['number'], node.block['hash'], node.uid,
+                is_member, node.pubkey, node.software, node.version, is_root, node.state)
+
+    @asyncify
+    @asyncio.coroutine
+    def refresh_nodes(self):
+        self.beginResetModel()
+        self.nodes_data = []
+        if self.community:
+            for node in self.community.network.nodes:
+                data = yield from self.data_node(node)
+                self.nodes_data.append(data)
+        self.endResetModel()
+
+    def rowCount(self, parent):
+        return len(self.nodes_data)
+
+    def columnCount(self, parent):
+        return len(self.columns_types)
+
+    def headerData(self, section, orientation, role):
+        if role != Qt.DisplayRole:
+            return QVariant()
+
+        return self.columns_types[section]
 
     def data(self, index, role):
         row = index.row()
@@ -172,13 +200,13 @@ class NetworkTableModel(QAbstractTableModel):
         if not index.isValid():
             return QVariant()
 
-        node = self.nodes[row]
+        node = self.nodes_data[row]
         if role == Qt.DisplayRole:
-            return self.data_node(node)[col]
+            return node[col]
         if role == Qt.BackgroundColorRole:
-            return self.node_colors[node.state]
+            return self.node_colors[node[self.columns_types.index('state')]]
         if role == Qt.ToolTipRole:
-            return self.node_states[node.state]
+            return self.node_states[node[self.columns_types.index('state')]]
 
         return QVariant()
 

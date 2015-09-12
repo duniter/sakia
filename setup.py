@@ -15,7 +15,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 print(sys.path)
 includes = ["sip", "re", "json", "logging",
             "hashlib", "os", "urllib",
-            "ucoinpy", "pylibscrypt", "requests"]
+            "ucoinpy", "pylibscrypt"]
 excludes = ['.git']
 packages = ["libnacl", "encodings"]
 
