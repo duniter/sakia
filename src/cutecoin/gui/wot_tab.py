@@ -3,7 +3,7 @@
 import logging
 import asyncio
 from PyQt5.QtWidgets import QWidget, QComboBox, QDialog
-from PyQt5.QtCore import pyqtSlot, QEvent, QLocale, QDateTime
+from PyQt5.QtCore import pyqtSlot, QEvent, QLocale, QDateTime, pyqtSignal
 
 from ..tools.exceptions import MembershipNotFoundError
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
@@ -20,6 +20,9 @@ from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_SELECTED
 
 
 class WotTabWidget(QWidget, Ui_WotTabWidget):
+
+    money_sent = pyqtSignal()
+
     def __init__(self, app):
         """
         :param cutecoin.core.app.Application app:   Application instance

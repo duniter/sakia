@@ -161,7 +161,7 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
             pubkey = model.sourceModel().data(pubkey_index, Qt.DisplayRole)
             identity = yield from self.app.identities_registry.future_find(pubkey, self.community)
 
-            transfer = model.sourceModel().transfers[source_index.row()]
+            transfer = model.sourceModel().transfers()[source_index.row()]
             if state_data == Transfer.REFUSED or state_data == Transfer.TO_SEND:
                 send_back = QAction(self.tr("Send again"), self)
                 send_back.triggered.connect(self.send_again)
@@ -244,8 +244,7 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         result = TransferMoneyDialog.send_money_to_identity(self.app, self.account, self.password_asker,
                                                             self.community, identity)
         if result == QDialog.Accepted:
-            currency_tab = self.window().currencies_tabwidget.currentWidget()
-            currency_tab.tab_history.table_history.model().sourceModel().refresh_transfers()
+            self.table_history.model().sourceModel().refresh_transfers()
 
     def certify_identity(self, identity):
         CertificationDialog.certify_identity(self.app, self.account, self.password_asker,

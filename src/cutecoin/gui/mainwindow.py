@@ -294,8 +294,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
         logging.debug("Refresh started")
         self.refresh_accounts()
-        self.homescreen.show()
         self.community_view.hide()
+        self.homescreen.show()
         self.homescreen.refresh()
 
         if self.app.current_account is None:

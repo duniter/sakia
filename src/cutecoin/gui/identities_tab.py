@@ -27,6 +27,7 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
     classdocs
     """
     view_in_wot = pyqtSignal(Identity)
+    money_sent = pyqtSignal()
 
     def __init__(self, app):
         """
@@ -158,8 +159,7 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         result = TransferMoneyDialog.send_money_to_identity(self.app, self.account, self.password_asker,
                                                             self.community, identity)
         if result == QDialog.Accepted:
-            currency_tab = self.window().currencies_tabwidget.currentWidget()
-            currency_tab.tab_history.table_history.model().sourceModel().refresh_transfers()
+            self.money_sent.emit()
 
     def certify_identity(self, identity):
         CertificationDialog.certify_identity(self.app, self.account, self.password_asker,

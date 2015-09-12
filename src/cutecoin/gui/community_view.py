@@ -59,6 +59,9 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.tab_identities.view_in_wot.connect(lambda: self.tabs.setCurrentWidget(self.tab_wot))
         self.tab_history.view_in_wot.connect(self.tab_wot.draw_graph)
         self.tab_history.view_in_wot.connect(lambda: self.tabs.setCurrentWidget(self.tab_wot))
+        self.tab_identities.money_sent.connect(lambda: self.tab_history.table_history.model().sourceModel().refresh_transfers())
+        self.tab_wot.money_sent.connect(lambda: self.tab_history.table_history.model().sourceModel().refresh_transfers())
+
 
         self.tabs.addTab(self.tab_history,
                                  QIcon(':/icons/tx_icon'),
