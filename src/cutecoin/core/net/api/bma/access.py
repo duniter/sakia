@@ -153,8 +153,9 @@ class BmaAccess(QObject):
                 strdata = bytes(reply.readAll()).decode('utf-8')
                 json_data = json.loads(strdata)
                 self._update_cache(request, req_args, get_args, json_data)
-                future_data.set_result(json_data)
-            else:
+                if not future_data.cancelled():
+                    future_data.set_result(json_data)
+            elif not future_data.cancelled():
                 future_data.set_result(request.null_value)
 
         future_data = asyncio.Future()

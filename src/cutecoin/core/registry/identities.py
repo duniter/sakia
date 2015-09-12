@@ -59,7 +59,8 @@ class IdentitiesRegistry:
                     identity.local_state = LocalState.PARTIAL
                     identity.blockchain_state = BlockchainState.VALIDATED
                     logging.debug("Lookup : found {0}".format(identity))
-                    future_identity.set_result(True)
+                    if not future_identity.cancelled():
+                        future_identity.set_result(True)
                 else:
                     reply = community.bma_access.simple_request(qtbma.wot.Lookup,
                                                                 req_args={'search': pubkey})
@@ -67,7 +68,7 @@ class IdentitiesRegistry:
             elif tries < 3:
                 reply = community.bma_access.simple_request(qtbma.wot.CertifiersOf, req_args={'search': pubkey})
                 reply.finished.connect(lambda: handle_certifiersof_reply(reply, tries=tries+1))
-            else:
+            elif not future_identity.cancelled():
                 future_identity.set_result(True)
 
         def handle_lookup_reply(reply, tries=0):
@@ -89,26 +90,28 @@ class IdentitiesRegistry:
                         identity.blockchain_state = BlockchainState.BUFFERED
                         identity.local_state = LocalState.PARTIAL
                         logging.debug("Lookup : found {0}".format(identity))
-                        future_identity.set_result(True)
+                        if not future_identity.cancelled():
+                            future_identity.set_result(identity)
                         return
-                future_identity.set_result(True)
+                if not future_identity.cancelled():
+                        future_identity.set_result(identity)
             elif tries < 3:
                 reply = community.bma_access.simple_request(qtbma.wot.Lookup, req_args={'search': pubkey})
                 reply.finished.connect(lambda: handle_lookup_reply(reply, tries=tries+1))
-            else:
-                future_identity.set_result(True)
+            elif not future_identity.cancelled():
+                future_identity.set_result(identity)
 
         future_identity = asyncio.Future()
         if pubkey in self._instances:
             identity = self._instances[pubkey]
-            future_identity.set_result(True)
+            if not future_identity.cancelled():
+                future_identity.set_result(identity)
         else:
             identity = Identity.empty(pubkey)
             self._instances[pubkey] = identity
             reply = community.bma_access.simple_request(qtbma.wot.CertifiersOf, req_args={'search': pubkey})
             reply.finished.connect(lambda: handle_certifiersof_reply(reply))
-        yield from future_identity
-        return identity
+        return future_identity
 
     def from_handled_data(self, uid, pubkey, blockchain_state):
         """

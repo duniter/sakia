@@ -48,6 +48,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         self.community = None
         self.password_asker = None
         self.app = app
+        self.draw_task = None
 
         # nodes list for menu from search
         self.nodes = list()
@@ -60,6 +61,9 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         self.password_asker = password_asker
 
     def change_community(self, community):
+        if self.draw_task and not self.draw_task.done:
+            self.draw_task.cancel()
+
         if self.community:
             self.community.network.new_block_mined.disconnect(self.refresh)
         if community:
@@ -157,9 +161,17 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             )
         )
 
-    @asyncify
-    @asyncio.coroutine
     def draw_graph(self, identity):
+        if self.draw_task and not self.draw_task.done():
+            self.draw_task.cancel()
+
+        try:
+            self.draw_task = asyncio.async(self.cor_draw_graph(identity))
+        except asyncio.CancelledError:
+            logging.debug("Cancelled drawing task")
+
+    @asyncio.coroutine
+    def cor_draw_graph(self, identity):
         """
         Draw community graph centered on the identity
 
