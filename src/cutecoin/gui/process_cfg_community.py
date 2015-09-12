@@ -94,6 +94,8 @@ class StepPageInit(Step):
                 self.account.broadcast_error.connect(self.handle_error)
                 yield from self.account.send_selfcert(password, community)
                 self.config_dialog.community = community
+            else:
+                self.config_dialog.label_error.setText(self.tr("Pubkey already exists on the network"))
         else:
             self.config_dialog.label_error.setText(self.tr("Could not connect."))
 

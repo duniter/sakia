@@ -70,6 +70,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.homescreen = HomeScreenWidget(self.app, self.status_label)
         self.homescreen.frame_communities.community_tile_clicked.connect(self.change_community)
+        self.homescreen.toolbutton_new_account.clicked.connect(self.open_add_account_dialog)
         self.homescreen.toolbutton_new_account.addAction(self.action_add_account)
         self.homescreen.toolbutton_new_account.addAction(self.action_import)
         self.homescreen.button_add_community.clicked.connect(self.action_open_add_community)
