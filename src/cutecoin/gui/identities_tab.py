@@ -177,22 +177,23 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
 
     @asyncify
     @asyncio.coroutine
-    def _async_search_members(self):
+    def _async_search_members(self, checked=False):
         """
         Search members of community and display found members
         """
         if self.community:
-            pubkeys = self.community.members_pubkeys()
+            pubkeys = yield from self.community.members_pubkeys()
             identities = []
             for p in pubkeys:
-                identities.append(self.app.identities_registry.find(p, self.community))
+                identity = yield from self.app.identities_registry.future_find(p, self.community)
+                identities.append(identity)
 
             self.edit_textsearch.clear()
             self.refresh_identities(identities)
 
     @asyncify
     @asyncio.coroutine
-    def _async_search_direct_connections(self):
+    def _async_search_direct_connections(self, checked=False):
         """
         Search members of community and display found members
         """

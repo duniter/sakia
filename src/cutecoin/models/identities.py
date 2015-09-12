@@ -127,8 +127,8 @@ class IdentitiesTableModel(QAbstractTableModel):
         :param cutecoin.core.registry.IdentitiesRegistry identities: The new identities to display
         """
         logging.debug("Refresh {0} identities".format(len(identities)))
-        self.identities_data = []
         self.beginResetModel()
+        self.identities_data = []
         for identity in identities:
             data = yield from self.identity_data(identity)
             self.identities_data.append(data)

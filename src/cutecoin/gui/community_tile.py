@@ -35,8 +35,11 @@ class CommunityTile(QFrame):
         amount = yield from self.app.current_account.amount(self.community)
         localized_amount = yield from self.app.current_account.current_ref(amount,
                                                     self.community, self.app).localized(units=True)
-        localized_monetary_mass = yield from self.app.current_account.current_ref(current_block['monetaryMass'],
+        if current_block['monetaryMass']:
+            localized_monetary_mass = yield from self.app.current_account.current_ref(current_block['monetaryMass'],
                                                     self.community, self.app).localized(units=True)
+        else:
+            localized_monetary_mass = ""
         status = self.tr("Member") if self.app.current_account.pubkey in members_pubkeys \
             else self.tr("Non-Member")
         description = """<html>
