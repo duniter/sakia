@@ -14,6 +14,7 @@ from ..core.registry import Identity
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from .transfer import TransferMoneyDialog
 from . import toast
+from .busy import Busy
 
 import logging
 import asyncio
@@ -39,6 +40,8 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         self.account = None
         self.community = None
         self.password_asker = None
+        self.busy_balance = Busy(self.groupbox_balance)
+        self.busy_balance.hide()
 
         ts_from = self.date_from.dateTime().toTime_t()
         ts_to = self.date_to.dateTime().toTime_t()
@@ -127,6 +130,7 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
     @asyncify
     @asyncio.coroutine
     def refresh_balance(self):
+        self.busy_balance.show()
         amount = yield from self.app.current_account.amount(self.community)
         localized_amount = yield from self.app.current_account.current_ref(amount, self.community,
                                                                            self.app).localized(units=True,
@@ -139,6 +143,7 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
                 localized_amount
             )
         )
+        self.busy_balance.hide()
 
     @once_at_a_time
     @asyncify
@@ -293,6 +298,10 @@ QMessageBox.Ok | QMessageBox.Cancel)
             self.table_history.model().set_period(ts_from, ts_to)
 
             self.refresh_balance()
+
+    def resizeEvent(self, event):
+        self.busy_balance.resize(event.size())
+        super().resizeEvent(event)
 
     def changeEvent(self, event):
         """

@@ -163,16 +163,21 @@ class TxHistory():
 
     @asyncio.coroutine
     def _parse_block(self, community, block_number, received_list, current_block, txmax):
-        block = yield from community.bma_access.future_request(qtbma.blockchain.Block,
-                                  req_args={'number': block_number})
-        signed_raw = "{0}{1}\n".format(block['raw'],
-                                       block['signature'])
-        transfers = []
-        try:
-            block_doc = Block.from_signed_raw(signed_raw)
-        except:
-            logging.debug("Error in {0}".format(block_number))
-            raise
+        block = None
+        tries = 0
+        while block is None and tries < 3:
+            block = yield from community.bma_access.future_request(qtbma.blockchain.Block,
+                                      req_args={'number': block_number})
+            signed_raw = "{0}{1}\n".format(block['raw'],
+                                           block['signature'])
+            transfers = []
+            try:
+                block_doc = Block.from_signed_raw(signed_raw)
+            except:
+                logging.debug("Error in {0}".format(block_number))
+                block = None
+                tries += 1
+
         for (txid, tx) in enumerate(block_doc.transactions):
             transfer = yield from self._parse_transaction(community, tx, block_number,
                                     block_doc.mediantime, received_list,
