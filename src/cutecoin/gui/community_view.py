@@ -58,6 +58,8 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.tab_network = NetworkTabWidget(self.app)
         self.tab_identities.view_in_wot.connect(self.tab_wot.draw_graph)
         self.tab_identities.view_in_wot.connect(lambda: self.tabs.setCurrentWidget(self.tab_wot))
+        self.tab_history.view_in_wot.connect(self.tab_wot.draw_graph)
+        self.tab_history.view_in_wot.connect(lambda: self.tabs.setCurrentWidget(self.tab_wot))
 
         self.tabs.addTab(self.tab_history,
                                  QIcon(':/icons/tx_icon'),

@@ -75,12 +75,6 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
     @asyncify
     @asyncio.coroutine
     def identity_context_menu(self, point):
-        def exec_menu(menu):
-            future = asyncio.Future()
-            menu.triggered.connect(future.set_result(True))
-            menu.popup(QCursor.pos())
-            return future
-
         index = self.table_identities.indexAt(point)
         model = self.table_identities.model()
         if index.row() < model.rowCount():
@@ -118,7 +112,7 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
             menu.addAction(view_wot)
 
             # Show the context menu.
-            yield from exec_menu(menu)
+            menu.popup(QCursor.pos())
 
     def menu_informations(self):
         person = self.sender().data()

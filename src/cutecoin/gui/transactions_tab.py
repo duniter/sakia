@@ -129,6 +129,8 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
             )
         )
 
+    @asyncify
+    @asyncio.coroutine
     def history_context_menu(self, point):
         index = self.table_history.indexAt(point)
         model = self.table_history.model()
@@ -141,9 +143,11 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
             state_data = model.sourceModel().data(state_index, Qt.DisplayRole)
 
             pubkey_col = model.sourceModel().columns_types.index('pubkey')
-            identity_index = model.sourceModel().index(source_index.row(),
+            pubkey_index = model.sourceModel().index(source_index.row(),
                                                     pubkey_col)
-            identity = model.sourceModel().data(identity_index, Qt.DisplayRole)
+            pubkey = model.sourceModel().data(pubkey_index, Qt.DisplayRole)
+            identity = yield from self.app.identities_registry.future_find(pubkey, self.community)
+
             transfer = model.sourceModel().transfers[source_index.row()]
             if state_data == Transfer.REFUSED or state_data == Transfer.TO_SEND:
                 send_back = QAction(self.tr("Send again"), self)
@@ -184,7 +188,7 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
             menu.addAction(copy_pubkey)
 
             # Show the context menu.
-            menu.exec_(QCursor.pos())
+            menu.popup(QCursor.pos())
 
     def copy_pubkey_to_clipboard(self):
         data = self.sender().data()
