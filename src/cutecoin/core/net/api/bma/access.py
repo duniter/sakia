@@ -130,10 +130,10 @@ class BmaAccess(QObject):
             self._data[cache_key] = {'metadata': {},
                                      'value': {}}
 
+        self._data[cache_key]['metadata']['block_number'] = self._network.latest_block_number
+        self._data[cache_key]['metadata']['block_hash'] = self._network.latest_block_hash
+        self._data[cache_key]['metadata']['cutecoin_version'] = __version__
         if not self._compare_json(self._data[cache_key]['value'], data):
-            self._data[cache_key]['metadata']['block_number'] = self._network.latest_block_number
-            self._data[cache_key]['metadata']['block_hash'] = self._network.latest_block_hash
-            self._data[cache_key]['metadata']['cutecoin_version'] = __version__
             self._data[cache_key]['value'] = data
             return True
         return False
@@ -148,6 +148,9 @@ class BmaAccess(QObject):
         :return: The future data
         :rtype: dict
         """
+        if request == blockchain.UD:
+            pass
+
         def handle_future_reply(reply):
             if reply.error() == QNetworkReply.NoError:
                 strdata = bytes(reply.readAll()).decode('utf-8')
