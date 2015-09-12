@@ -5,7 +5,7 @@ Created on 2 févr. 2014
 """
 
 import logging
-from PyQt5.QtCore import Qt, pyqtSlot, QEvent
+from PyQt5.QtCore import Qt, pyqtSignal, QEvent
 from PyQt5.QtGui import QIcon, QCursor
 from PyQt5.QtWidgets import QWidget, QMessageBox, QAction, QMenu, QDialog, \
                             QAbstractItemView
@@ -17,6 +17,7 @@ from .transfer import TransferMoneyDialog
 from .certification import CertificationDialog
 import asyncio
 from ..core.net.api import bma as qtbma
+from ..core.registry import Identity
 from ..tools.decorators import asyncify
 
 
@@ -25,6 +26,7 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
     """
     classdocs
     """
+    view_in_wot = pyqtSignal(Identity)
 
     def __init__(self, app):
         """
@@ -137,33 +139,24 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         if result == QDialog.Accepted:
             self.window().refresh_contacts()
 
-    def send_money_to_identity(self, person):
-        if isinstance(person, str):
-            pubkey = person
+    def send_money_to_identity(self, identity):
+        if isinstance(identity, str):
+            pubkey = identity
         else:
-            pubkey = person.pubkey
-        dialog = TransferMoneyDialog(self.app, self.account, self.password_asker)
-        dialog.edit_pubkey.setText(pubkey)
-        dialog.combo_community.setCurrentText(self.community.name)
-        dialog.radio_pubkey.setChecked(True)
-        if dialog.exec_() == QDialog.Accepted:
+            pubkey = identity.pubkey
+        result = TransferMoneyDialog.send_money_to_identity(self.app, self.account, self.password_asker,
+                                                            self.community, identity)
+        if result == QDialog.Accepted:
             currency_tab = self.window().currencies_tabwidget.currentWidget()
             currency_tab.tab_history.table_history.model().sourceModel().refresh_transfers()
 
     def certify_identity(self, identity):
-        dialog = CertificationDialog(self.app, self.account, self.password_asker)
-        dialog.combo_community.setCurrentText(self.community.name)
-        dialog.edit_pubkey.setText(identity.pubkey)
-        dialog.radio_pubkey.setChecked(True)
-        dialog.exec_()
+        CertificationDialog.certify_identity(self.app, self.account, self.password_asker,
+                                             self.community, identity)
 
     def view_wot(self):
-        person = self.sender().data()
-        # redraw WoT with this identity selected
-        self.wot_tab.draw_graph({'text': person.uid, 'id': person.pubkey})
-        # change page to WoT
-        index_wot_tab = self.tabs_information.indexOf(self.wot_tab)
-        self.tabs_information.setCurrentIndex(index_wot_tab)
+        identity = self.sender().data()
+        self.view_in_wot.emit(identity)
 
     def search_text(self):
         """

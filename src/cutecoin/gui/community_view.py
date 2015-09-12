@@ -18,7 +18,7 @@ from .network_tab import NetworkTabWidget
 from .password_asker import PasswordAskerDialog
 from . import toast
 import asyncio
-from ..tools.exceptions import MembershipNotFoundError, LookupFailureError
+from ..tools.exceptions import MembershipNotFoundError, LookupFailureError, NoPeerAvailable
 from ..tools.decorators import asyncify
 from ..gen_resources.community_view_uic import Ui_CommunityWidget
 
@@ -35,6 +35,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         """
         super().__init__()
         self.app = app
+        self.account = None
         self.community = None
         self.password_asker = None
         self.status_label = status_label
@@ -55,6 +56,8 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.tab_history = TransactionsTabWidget(self.app)
 
         self.tab_network = NetworkTabWidget(self.app)
+        self.tab_identities.view_in_wot.connect(self.tab_wot.draw_graph)
+        self.tab_identities.view_in_wot.connect(lambda: self.tabs.setCurrentWidget(self.tab_wot))
 
         self.tabs.addTab(self.tab_history,
                                  QIcon(':/icons/tx_icon'),
@@ -72,8 +75,21 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                                  QIcon(":/icons/network_icon"),
                                  self.tr("Network"))
 
+        self.button_membership.clicked.connect(self.send_membership_demand)
+
     def change_account(self, account, password_asker):
+        if self.account:
+            self.account.broadcast_error.disconnect(self.handle_broadcast_error)
+            self.account.membership_broadcasted.disconnect(self.handle_membership_broadcasted)
+            self.account.selfcert_broadcasted.disconnect(self.handle_selfcert_broadcasted)
+
         self.account = account
+
+        if self.account:
+            self.account.broadcast_error.connect(self.handle_broadcast_error)
+            self.account.membership_broadcasted.connect(self.handle_membership_broadcasted)
+            self.account.selfcert_broadcasted.connect(self.handle_selfcert_broadcasted)
+
         self.password_asker = password_asker
         self.tab_wot.change_account(account, self.password_asker)
         self.tab_identities.change_account(account, self.password_asker)
@@ -300,6 +316,12 @@ Revoking your UID can only success if it is not already validated by the network
             toast.display(self.tr("Self Certification"), self.tr("Success sending Self Certification document"))
         else:
             QMessageBox.information(self.tr("Self Certification"), self.tr("Success sending Self Certification document"))
+
+    def handle_broadcast_error(self, error, strdata):
+        if self.app.preferences['notifications']:
+            toast.display(error, strdata)
+        else:
+            QMessageBox.error(error, strdata)
 
     def changeEvent(self, event):
         """

@@ -35,6 +35,14 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
         for contact in certifier.contacts:
             self.combo_contact.addItem(contact['name'])
 
+    @staticmethod
+    def certify_identity(app, account, password_asker, community, identity):
+        dialog = CertificationDialog(app, account, password_asker)
+        dialog.combo_community.setCurrentText(community.name)
+        dialog.edit_pubkey.setText(identity.pubkey)
+        dialog.radio_pubkey.setChecked(True)
+        return dialog.exec_()
+
     def accept(self):
         if self.radio_contact.isChecked():
             index = self.combo_contact.currentIndex()

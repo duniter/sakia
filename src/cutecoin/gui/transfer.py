@@ -55,6 +55,14 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
             self.radio_contact.setEnabled(False)
             self.radio_pubkey.setChecked(True)
 
+    @staticmethod
+    def send_money_to_identity(app, account, password_asker, community, identity):
+        dialog = TransferMoneyDialog(app, account, password_asker)
+        dialog.edit_pubkey.setText(identity.pubkey)
+        dialog.combo_community.setCurrentText(community.name)
+        dialog.radio_pubkey.setChecked(True)
+        return dialog.exec()
+
     def accept(self):
         comment = self.edit_message.text()
 
@@ -107,20 +115,18 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
 
     @asyncify
     @asyncio.coroutine
-    def amount_changed(self):
+    def amount_changed(self, value):
         dividend = yield from self.community.dividend()
-        amount = self.spinbox_amount.value()
-        relative = amount / dividend
+        relative = value / dividend
         self.spinbox_relative.blockSignals(True)
         self.spinbox_relative.setValue(relative)
         self.spinbox_relative.blockSignals(False)
 
     @asyncify
     @asyncio.coroutine
-    def relative_amount_changed(self):
+    def relative_amount_changed(self, value):
         dividend = yield from self.community.dividend()
-        relative = self.spinbox_relative.value()
-        amount = relative * dividend
+        amount = value * dividend
         self.spinbox_amount.blockSignals(True)
         self.spinbox_amount.setValue(amount)
         self.spinbox_amount.blockSignals(False)

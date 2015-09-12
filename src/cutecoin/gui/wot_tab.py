@@ -2,13 +2,18 @@
 
 import logging
 import asyncio
-from cutecoin.core.graph import Graph
+from PyQt5.QtWidgets import QWidget, QComboBox, QDialog
+from PyQt5.QtCore import pyqtSlot, QEvent, QLocale, QDateTime
+
 from ..tools.exceptions import MembershipNotFoundError
 from ..tools.decorators import asyncify
-from PyQt5.QtWidgets import QWidget, QComboBox, QLineEdit
-from PyQt5.QtCore import pyqtSlot, QEvent, QLocale, QDateTime
-from cutecoin.core.net.api import bma
-from cutecoin.core.registry import BlockchainState
+from ..core.net.api import bma
+from ..core.graph import Graph
+from ..core.registry import BlockchainState
+from .member import MemberDialog
+from .certification import CertificationDialog
+from .transfer import TransferMoneyDialog
+from .contact import ConfigureContactDialog
 from ..gen_resources.wot_tab_uic import Ui_WotTabWidget
 from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_SELECTED, NODE_STATUS_OUT, ARC_STATUS_STRONG, \
     ARC_STATUS_WEAK
@@ -269,7 +274,8 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             metadata['id'],
             BlockchainState.VALIDATED
         )
-        self.parent.identity_informations(identity)
+        dialog = MemberDialog(self.app, self.account, self.community, identity)
+        dialog.exec_()
 
     def sign_node(self, metadata):
         identity = self.app.identities_registry.from_handled_data(
@@ -277,7 +283,8 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             metadata['id'],
             BlockchainState.VALIDATED
         )
-        self.parent.certify_identity(identity)
+        CertificationDialog.certify_identity(self.app, self.account, self.password_asker,
+                                             self.community, identity)
 
     def send_money_to_node(self, metadata):
         identity = self.app.identities_registry.from_handled_data(
@@ -285,23 +292,22 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             metadata['id'],
             BlockchainState.VALIDATED
         )
-        self.parent.send_money_to_identity(identity)
+        result = TransferMoneyDialog.send_money_to_identity(self.app, self.account, self.password_asker,
+                                                            self.community, identity)
+        if result == QDialog.Accepted:
+            currency_tab = self.window().currencies_tabwidget.currentWidget()
+            currency_tab.tab_history.table_history.model().sourceModel().refresh_transfers()
 
     def add_node_as_contact(self, metadata):
         # check if contact already exists...
         if metadata['id'] == self.account.pubkey \
                 or metadata['id'] in [contact['pubkey'] for contact in self.account.contacts]:
             return False
-        self.parent.add_identity_as_contact({'name': metadata['text'],
-                                             'pubkey': metadata['id']})
-
-    def get_block_mediantime(self, number):
-        try:
-            block = self.community.get_block(number)
-        except Exception as e:
-            logging.debug('community.get_block request error : ' + str(e))
-            return False
-        return block.mediantime
+        dialog = ConfigureContactDialog(self.account, self.window(), {'name': metadata['text'],
+                                                                      'pubkey': metadata['id']})
+        result = dialog.exec_()
+        if result == QDialog.Accepted:
+            self.window().refresh_contacts()
 
     def changeEvent(self, event):
         """

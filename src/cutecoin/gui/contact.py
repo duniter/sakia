@@ -27,13 +27,7 @@ class ConfigureContactDialog(QDialog, Ui_ConfigureContactDialog):
         self.account = account
         self.main_window = parent
         self.index_edit = index_edit
-        if type(contact) is Person:
-            self.contact = {'name': contact.uid,
-                            'pubkey': contact.pubkey}
-        elif type(contact) is dict:
-            self.contact = contact
-        else:
-            self.contact = None
+        self.contact = contact
 
         if index_edit is not None:
             self.contact = account.contacts[index_edit]

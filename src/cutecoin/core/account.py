@@ -20,6 +20,7 @@ from .wallet import Wallet
 from .community import Community
 from .registry import LocalState
 from ..tools.exceptions import ContactAlreadyExists
+from ..tools.decorators import asyncify
 from ..core.net.api import bma as qtbma
 from ..core.net.api.bma import PROTOCOL_VERSION
 
