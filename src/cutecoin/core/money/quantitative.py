@@ -3,7 +3,7 @@ import asyncio
 
 class Quantitative():
     _NAME_STR_ = QT_TRANSLATE_NOOP('Quantitative', 'Units')
-    _REF_STR_ = QT_TRANSLATE_NOOP('Quantitative', "{0} {1}")
+    _REF_STR_ = QT_TRANSLATE_NOOP('Quantitative', "{0} {1}{2}")
     _UNITS_STR_ = QT_TRANSLATE_NOOP('Quantitative', "{0}")
 
     def __init__(self, amount, community, app):
