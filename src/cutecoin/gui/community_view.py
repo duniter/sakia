@@ -121,6 +121,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
             community.network.nodes_changed.connect(self.refresh_status)
             self.label_currency.setText(community.currency)
         self.community = community
+        self.refresh_status()
         self.refresh_quality_buttons()
 
     @pyqtSlot(str)
@@ -211,7 +212,9 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                 label_text += " - {0}".format(status_infotext)
 
             if self.app.preferences['expert_mode']:
-                label_text += self.tr(" - Median fork window : {0}").format(self.community.network.fork_window(self.community.members_pubkeys()))
+                members_pubkeys = yield from self.community.members_pubkeys()
+                label_text += self.tr(" - Median fork window : {0}")\
+                    .format(self.community.network.fork_window(members_pubkeys))
 
             self.status_label.setText(label_text)
 

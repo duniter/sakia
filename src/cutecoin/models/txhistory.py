@@ -18,7 +18,6 @@ from PyQt5.QtGui import QFont, QColor
 class TxFilterProxyModel(QSortFilterProxyModel):
     def __init__(self, ts_from, ts_to, parent=None):
         super().__init__(parent)
-        self.community = None
         self.app = None
         self.ts_from = ts_from
         self.ts_to = ts_to
@@ -67,11 +66,14 @@ class TxFilterProxyModel(QSortFilterProxyModel):
 
         return in_period(date)
 
+    @property
+    def community(self):
+        return self.sourceModel().community
+
     def columnCount(self, parent):
         return self.sourceModel().columnCount(None) - 5
 
     def setSourceModel(self, sourceModel):
-        self.community = sourceModel.community
         self.app = sourceModel.app
         super().setSourceModel(sourceModel)
 

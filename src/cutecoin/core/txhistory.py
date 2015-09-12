@@ -225,7 +225,7 @@ class TxHistory():
         # Lets look if transactions took too long to be validated
         awaiting = [t for t in self._transfers
                     if t.state == Transfer.AWAITING]
-        while parsed_block < current_block['number']:
+        while parsed_block <= current_block['number']:
             udid = 0
             for d in [ud for ud in dividends if ud['block_number'] == parsed_block]:
                 state = yield from TxHistory._validation_state(community, d['block_number'], current_block)
@@ -256,10 +256,11 @@ class TxHistory():
                 return
             self.latest_block = current_block['number']
 
+        parameters = yield from community.parameters()
         for transfer in awaiting:
             transfer.check_refused(current_block['medianTime'],
-                                   community.parameters['avgGenTime'],
-                                   community.parameters['medianTimeBlocks'])
+                                   parameters['avgGenTime'],
+                                   parameters['medianTimeBlocks'])
 
         self._transfers = self._transfers + new_transfers
         self._dividends = self._dividends + new_dividends

@@ -255,9 +255,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @pyqtSlot(Community)
     def change_community(self, community):
-        if self.community_view.community:
-            self.community_view.community.stop_coroutines()
-
         if community:
             self.homescreen.hide()
             self.community_view.show()

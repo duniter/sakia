@@ -96,7 +96,6 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         #TODO: Use resetmodel instead of destroy/create
         if self.community:
             self.refresh_minimum_maximum()
-
             self.refresh_balance()
 
     def start_progress(self):

@@ -460,10 +460,13 @@ class Node(QObject):
         if self.check_noerror(reply.error(), status_code):
             strdata = bytes(reply.readAll()).decode('utf-8')
             leaf_data = json.loads(strdata)
-            peer_doc = Peer.from_signed_raw("{0}{1}\n".format(leaf_data['leaf']['value']['raw'],
-                                                        leaf_data['leaf']['value']['signature']))
-            pubkey = leaf_data['leaf']['value']['pubkey']
-            self.neighbour_found.emit(peer_doc, pubkey)
+            if "raw" in leaf_data['leaf']['value']:
+                peer_doc = Peer.from_signed_raw("{0}{1}\n".format(leaf_data['leaf']['value']['raw'],
+                                                            leaf_data['leaf']['value']['signature']))
+                pubkey = leaf_data['leaf']['value']['pubkey']
+                self.neighbour_found.emit(peer_doc, pubkey)
+            else:
+                logging.debug("Incorrect leaf reply")
         else:
             logging.debug("Error in leaf reply")
             self.changed.emit()
