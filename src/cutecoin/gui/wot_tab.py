@@ -209,7 +209,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
 
     @asyncify
     @asyncio.coroutine
-    def reset(self):
+    def reset(self, checked=False):
         """
         Reset graph scene to wallet identity
         """

@@ -162,7 +162,7 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
 
     @asyncify
     @asyncio.coroutine
-    def _async_execute_search_text(self):
+    def _async_execute_search_text(self, checked):
         text = self.edit_textsearch.text()
         if len(text) < 2:
             return
