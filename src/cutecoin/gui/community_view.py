@@ -164,10 +164,9 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
 
     def refresh_data(self):
         """
-        Refresh data when the blockchain watcher finished handling datas
+        Refresh data
         """
         self.tab_history.refresh_balance()
-        self.tab_identities.refresh_data()
         self.refresh_status()
 
     @asyncify

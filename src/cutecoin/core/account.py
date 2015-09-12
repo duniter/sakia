@@ -168,7 +168,7 @@ class Account(QObject):
             maximums = {}
 
             def progressing(value, maximum, hash):
-                logging.debug("Loading = {0} : {1} : {2}".format(value, maximum, loaded_wallets))
+                #logging.debug("Loading = {0} : {1} : {2}".format(value, maximum, loaded_wallets))
                 values[hash] = value
                 maximums[hash] = maximum
                 account_value = sum(values.values())

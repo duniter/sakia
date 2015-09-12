@@ -212,7 +212,6 @@ class HistoryTableModel(QAbstractTableModel):
     def account(self):
         return self.app.current_account
 
-    @property
     def transfers(self):
         return self.account.transfers(self.community) + self.account.dividends(self.community)
 
@@ -279,7 +278,7 @@ class HistoryTableModel(QAbstractTableModel):
     def refresh_transfers(self):
         self.beginResetModel()
         self.transfers_data = []
-        for transfer in self.transfers:
+        for transfer in self.transfers():
             data = None
             if type(transfer) is Transfer:
                 if transfer.metadata['issuer'] == self.account.pubkey:

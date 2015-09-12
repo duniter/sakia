@@ -165,9 +165,10 @@ class Network(QObject):
         Get the latest block considered valid
         It is the most frequent last block of every known nodes
         """
-        blocks = [n.block['number'] for n in self.synced_nodes]
-        if len(blocks) > 0:
-            return max(set(blocks), key=blocks.count)
+        blocks_numbers = [n.block['number'] for n in self.synced_nodes
+                          if n.block != qtbma.blockchain.Block.null_value]
+        if len(blocks_numbers) > 0:
+            return blocks_numbers[0]
         else:
             return 0
 
@@ -177,9 +178,10 @@ class Network(QObject):
         Get the latest block considered valid
         It is the most frequent last block of every known nodes
         """
-        blocks = [n.block['hash'] for n in self.synced_nodes if n.block != qtbma.blockchain.Block.null_value]
-        if len(blocks) > 0:
-            return max(set(blocks), key=blocks.count)
+        blocks_hash = [n.block['hash'] for n in self.synced_nodes
+                       if n.block != qtbma.blockchain.Block.null_value]
+        if len(blocks_hash) > 0:
+            return blocks_hash[0]
         else:
             return Block.Empty_Hash
 
@@ -333,4 +335,5 @@ class Network(QObject):
         if self._block_found != self.latest_block_hash and node.state == Node.ONLINE:
             logging.debug("Latest block changed : {0}".format(self.latest_block_number))
             self._block_found = self.latest_block_hash
+            # Do not emit block change for empty block
             self.new_block_mined.emit(self.latest_block_number)
