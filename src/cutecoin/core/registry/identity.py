@@ -347,8 +347,9 @@ class Identity(QObject):
     def membership_expiration_time(self, community):
         membership = yield from self.membership(community)
         join_block = membership['blockNumber']
-        join_date = community.get_block(join_block)['medianTime']
-        parameters = community.parameters
+        block = yield from community.get_block(join_block)
+        join_date = block['medianTime']
+        parameters = yield from community.parameters()
         expiration_date = join_date + parameters['sigValidity']
         current_time = time.time()
         return expiration_date - current_time

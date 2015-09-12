@@ -130,7 +130,8 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         try:
             person = yield from self.app.identities_registry.future_find(self.app.current_account.pubkey, self.community)
             expiration_time = yield from person.membership_expiration_time(self.community)
-            sig_validity = self.community.parameters['sigValidity']
+            parameters = yield from self.community.parameters()
+            sig_validity = parameters['sigValidity']
             warning_expiration_time = int(sig_validity / 3)
             will_expire_soon = (expiration_time < warning_expiration_time)
 
@@ -146,13 +147,13 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
 
             certifiers_of = yield from person.unique_valid_certifiers_of(self.app.identities_registry,
                                                                          self.community)
-            if len(certifiers_of) < self.community.parameters['sigQty']:
+            if len(certifiers_of) < parameters['sigQty']:
                 self.status_info.append('warning_certifications')
                 if self.app.preferences['notifications']:
                     toast.display(self.tr("Certifications number"),
                               self.tr("<b>Warning : You are certified by only {0} persons, need {1}</b>")
                               .format(len(certifiers_of),
-                                     self.community.parameters['sigQty']))
+                                     parameters['sigQty']))
 
         except MembershipNotFoundError as e:
             pass
