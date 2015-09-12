@@ -22,19 +22,25 @@ class FrameCommunities(QFrame):
         self.grid_layout.setAlignment(Qt.AlignLeft | Qt.AlignTop)
         self.setFrameShape(QFrame.StyledPanel)
         self.setFrameShadow(QFrame.Raised)
+        self.tiles = []
 
     def sizeHint(self):
         return self.parentWidget().size()
 
     def refresh(self, app):
-        for i in reversed(range(self.grid_layout.count())):
-            self.grid_layout.itemAt(i).widget().setParent(None)
-
+        for t in self.tiles:
+            t.setParent(None)
+        self.tiles = []
         if app.current_account:
             for c in app.current_account.communities:
                 community_tile = CommunityTile(self, app, c)
                 community_tile.clicked.connect(self.click_on_tile)
                 self.layout().addWidget(community_tile)
+                self.tiles.append(community_tile)
+
+    def refresh_content(self):
+        for t in self.tiles:
+            t.refresh()
 
     @pyqtSlot()
     def click_on_tile(self):
@@ -68,6 +74,9 @@ class HomeScreenWidget(QWidget, Ui_HomescreenWidget):
         else:
             self.frame_disconnected.show()
             self.frame_connected.hide()
+
+    def referential_changed(self):
+        self.frame_communities.refresh_content()
 
     def showEvent(self, QShowEvent):
         """

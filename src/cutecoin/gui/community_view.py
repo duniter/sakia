@@ -236,10 +236,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
 
     def referential_changed(self):
         if self.community and self.tab_history.table_history.model():
-            self.tab_history.table_history.model().dataChanged.emit(
-                                                     QModelIndex(),
-                                                     QModelIndex(),
-                                                     [])
+            self.tab_history.table_history.model().sourceModel().refresh_transfers()
             self.tab_history.refresh_balance()
 
     def send_membership_demand(self):

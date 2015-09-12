@@ -35,7 +35,7 @@ class Relative():
         if dividend > 0:
             return self.amount / float(dividend)
         else:
-            return 0
+            return self.amount
 
     @asyncio.coroutine
     def differential(self):
@@ -48,7 +48,7 @@ class Relative():
         prefix_index = 0
         prefix = ""
 
-        while int(scientific_value) == 0:
+        while int(scientific_value) == 0 and scientific_value > 0.0:
             if prefix_index > 3:
                 scientific_value *= 1000
             else:

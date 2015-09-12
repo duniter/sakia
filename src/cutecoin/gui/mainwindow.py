@@ -127,6 +127,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.app.current_account.set_display_referential(index)
             if self.community_view:
                 self.community_view.referential_changed()
+                self.homescreen.referential_changed()
 
     @pyqtSlot()
     def update_time(self):
