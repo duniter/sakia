@@ -48,8 +48,6 @@ class Identity(QObject):
     """
     A person with a uid and a pubkey
     """
-    inner_data_changed = pyqtSignal(str)
-
     def __init__(self, uid, pubkey, local_state, blockchain_state):
         """
         Initializing a person object.

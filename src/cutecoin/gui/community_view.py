@@ -93,6 +93,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.password_asker = password_asker
         self.tab_wot.change_account(account, self.password_asker)
         self.tab_identities.change_account(account, self.password_asker)
+        self.tab_history.change_account(account, self.password_asker)
 
     def change_community(self, community):
         self.tab_network.change_community(community)
@@ -103,11 +104,9 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         if self.community:
             self.community.network.new_block_mined.disconnect(self.refresh_block)
             self.community.network.nodes_changed.disconnect(self.refresh_status)
-            self.community.inner_data_changed.disconnect(self.refresh_status)
         if community:
             community.network.new_block_mined.connect(self.refresh_block)
             community.network.nodes_changed.connect(self.refresh_status)
-            community.inner_data_changed.connect(self.refresh_status)
             self.label_currency.setText(community.currency)
         self.community = community
         self.refresh_quality_buttons()
@@ -161,14 +160,12 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.tab_history.start_progress()
         self.refresh_data()
 
-    def refresh_quality_buttons(self):
-        pass
-
     def refresh_data(self):
         """
         Refresh data when the blockchain watcher finished handling datas
         """
         self.tab_history.refresh_balance()
+        self.tab_identities.refresh_data()
         self.refresh_status()
 
     @asyncify
@@ -210,10 +207,11 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
     def refresh_quality_buttons(self):
         if self.account and self.community:
             try:
-                published_uid = yield from self.account.identity(self.community).published_uid(self.community)
+                account_identity = yield from self.account.identity(self.community)
+                published_uid = account_identity.published_uid(self.community)
                 if published_uid:
                     logging.debug("UID Published")
-                    is_member = yield from self.account.identity(self.community).is_member(self.community)
+                    is_member = account_identity.is_member(self.community)
                     if is_member:
                         self.button_membership.setText(self.tr("Renew membership"))
                         self.button_membership.show()

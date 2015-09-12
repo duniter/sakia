@@ -24,8 +24,6 @@ class Wallet(QObject):
     """
     A wallet is used to manage money with a unique key.
     """
-
-    inner_data_changed = pyqtSignal(str)
     refresh_progressed = pyqtSignal(int, int, str)
     refresh_finished = pyqtSignal(list)
     transfer_broadcasted = pyqtSignal(str)

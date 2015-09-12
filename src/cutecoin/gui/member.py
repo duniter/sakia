@@ -53,8 +53,9 @@ class MemberDialog(QDialog, Ui_DialogMember):
         # if selected member is not the account member...
         if self.identity.pubkey != self.account.pubkey:
             # add path from selected member to account member
+            account_identity = yield from self.account.identity(self.community)
             path = yield from graph.get_shortest_path_between_members(self.identity,
-                                                                      self.account.identity(self.community))
+                                                                      account_identity)
 
         text = self.tr("""
             <table cellpadding="5">
@@ -70,8 +71,8 @@ class MemberDialog(QDialog, Ui_DialogMember):
         if path:
             distance = len(path) - 1
             text += self.tr(
-                """<tr><td align="right"><b>{:}</b></div></td><td>{:}</td></tr>""".format(self.tr('Distance'),
-                                                                                          distance))
+                """<tr><td align="right"><b>{:}</b></div></td><td>{:}</td></tr>"""
+                    .format(self.tr('Distance'), distance))
             if distance > 1:
                 index = 0
                 for node in path:
@@ -91,4 +92,3 @@ class MemberDialog(QDialog, Ui_DialogMember):
 
         # set text in label
         self.label_properties.setText(text)
-

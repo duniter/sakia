@@ -1,10 +1,14 @@
 from PyQt5.QtWidgets import QWidget, QAbstractItemView, QHeaderView, QDialog, \
     QMenu, QAction, QApplication, QMessageBox
-from PyQt5.QtCore import Qt, QDateTime, QTime, QModelIndex, QCoreApplication, pyqtSlot, QEvent
+from PyQt5.QtCore import Qt, QDateTime, QTime, QModelIndex, pyqtSignal, pyqtSlot, QEvent
 from PyQt5.QtGui import QCursor
 from ..gen_resources.transactions_tab_uic import Ui_transactionsTabWidget
 from ..models.txhistory import HistoryTableModel, TxFilterProxyModel
 from ..core.transfer import Transfer
+from .contact import ConfigureContactDialog
+from .member import MemberDialog
+from .transfer import TransferMoneyDialog
+from .certification import CertificationDialog
 from ..core.wallet import Wallet
 from ..core.registry import Identity
 from ..tools.decorators import asyncify
@@ -19,6 +23,7 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
     """
     classdocs
     """
+    view_in_wot = pyqtSignal(Identity)
 
     def __init__(self, app):
         """
@@ -31,16 +36,17 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         super().__init__()
         self.setupUi(self)
         self.app = app
+        self.account = None
         self.community = None
         self.password_asker = None
         self.progressbar.hide()
         self.refresh()
 
+    def change_account(self, account, password_asker):
+        self.account = account
+        self.password_asker = password_asker
+
     def change_community(self, community):
-        if self.community:
-            self.community.inner_data_changed.disconnect(self.refresh_minimum_maximum)
-        if community:
-            community.inner_data_changed.connect(self.refresh_minimum_maximum)
         self.community = community
         self.refresh()
         self.stop_progress([])
@@ -152,23 +158,23 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
             else:
                 if isinstance(identity, Identity):
                     informations = QAction(self.tr("Informations"), self)
-                    informations.triggered.connect(self.currency_tab.tab_community.menu_informations)
+                    informations.triggered.connect(self.menu_informations)
                     informations.setData(identity)
                     menu.addAction(informations)
 
                     add_as_contact = QAction(self.tr("Add as contact"), self)
-                    add_as_contact.triggered.connect(self.currency_tab.tab_community.menu_add_as_contact)
+                    add_as_contact.triggered.connect(self.menu_add_as_contact)
                     add_as_contact.setData(identity)
                     menu.addAction(add_as_contact)
 
                 send_money = QAction(self.tr("Send money"), self)
-                send_money.triggered.connect(self.currency_tab.tab_community.menu_send_money)
+                send_money.triggered.connect(self.menu_send_money)
                 send_money.setData(identity)
                 menu.addAction(send_money)
 
                 if isinstance(identity, Identity):
                     view_wot = QAction(self.tr("View in Web of Trust"), self)
-                    view_wot.triggered.connect(self.currency_tab.tab_community.view_wot)
+                    view_wot.triggered.connect(self.view_wot)
                     view_wot.setData(identity)
                     menu.addAction(view_wot)
 
@@ -190,11 +196,52 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         elif data.__class__ is str:
             clipboard.setText(data)
 
+    def menu_informations(self):
+        person = self.sender().data()
+        self.identity_informations(person)
+
+    def menu_add_as_contact(self):
+        person = self.sender().data()
+        self.add_identity_as_contact({'name': person.uid,
+                                    'pubkey': person.pubkey})
+
+    def menu_send_money(self):
+        identity = self.sender().data()
+        self.send_money_to_identity(identity)
+
+    def identity_informations(self, person):
+        dialog = MemberDialog(self.app, self.account, self.community, person)
+        dialog.exec_()
+
+    def add_identity_as_contact(self, person):
+        dialog = ConfigureContactDialog(self.account, self.window(), person)
+        result = dialog.exec_()
+        if result == QDialog.Accepted:
+            self.window().refresh_contacts()
+
+    def send_money_to_identity(self, identity):
+        if isinstance(identity, str):
+            pubkey = identity
+        else:
+            pubkey = identity.pubkey
+        result = TransferMoneyDialog.send_money_to_identity(self.app, self.account, self.password_asker,
+                                                            self.community, identity)
+        if result == QDialog.Accepted:
+            currency_tab = self.window().currencies_tabwidget.currentWidget()
+            currency_tab.tab_history.table_history.model().sourceModel().refresh_transfers()
+
+    def certify_identity(self, identity):
+        CertificationDialog.certify_identity(self.app, self.account, self.password_asker,
+                                             self.community, identity)
+
+    def view_wot(self):
+        identity = self.sender().data()
+        self.view_in_wot.emit(identity)
+
     def send_again(self):
         transfer = self.sender().data()
         dialog = TransferMoneyDialog(self.app, self.app.current_account,
                                      self.password_asker)
-        dialog.accepted.connect(self.currency_tab.refresh_wallets)
         sender = transfer.metadata['issuer']
         wallet_index = [w.pubkey for w in self.app.current_account.wallets].index(sender)
         dialog.combo_wallets.setCurrentIndex(wallet_index)

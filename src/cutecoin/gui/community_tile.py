@@ -16,7 +16,6 @@ class CommunityTile(QFrame):
         super().__init__(parent)
         self.app = app
         self.community = community
-        self.community.inner_data_changed.connect(self.refresh)
         self.text_label = QLabel()
         self.setLayout(QVBoxLayout())
         self.layout().setSizeConstraint(QLayout.SetFixedSize)

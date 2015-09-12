@@ -72,7 +72,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
     def refresh_informations_frame(self):
         parameters = self.community.parameters
         try:
-            identity = self.account.identity(self.community)
+            identity = yield from self.account.identity(self.community)
             membership = identity.membership(self.community)
             renew_block = membership['blockNumber']
             last_renewal = self.community.get_block(renew_block)['medianTime']
@@ -168,7 +168,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         logging.debug("Draw graph - " + identity.uid)
 
         if self.community:
-            identity_account = self.account.identity(self.community)
+            identity_account = yield from self.account.identity(self.community)
 
             #Connect new identity
             if self._current_identity != identity:
@@ -207,14 +207,15 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
                 if path:
                     self.graphicsView.scene().update_path(path)
 
+    @asyncify
+    @asyncio.coroutine
     def reset(self):
         """
         Reset graph scene to wallet identity
         """
         if self.account:
-            self.draw_graph(
-                self.account.identity(self.community)
-            )
+            identity = yield from self.account.identity(self.community)
+            self.draw_graph(identity)
 
     def refresh(self):
         """

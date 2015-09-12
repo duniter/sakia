@@ -33,7 +33,6 @@ class Account(QObject):
     """
     loading_progressed = pyqtSignal(int, int)
     loading_finished = pyqtSignal(list)
-    inner_data_changed = pyqtSignal(str)
     wallets_changed = pyqtSignal()
     membership_broadcasted = pyqtSignal()
     certification_broadcasted = pyqtSignal()
@@ -209,6 +208,7 @@ class Account(QObject):
                                "Wallet", self._identities_registry)
         self.wallets.append(wallet)
 
+    @asyncio.coroutine
     def identity(self, community):
         """
         Get the account identity in the specified community
@@ -216,7 +216,7 @@ class Account(QObject):
         :return: The account identity in the community
         :rtype: cutecoin.core.registry.Identity
         """
-        identity = self._identities_registry.find(self.pubkey, community)
+        identity = yield from self._identities_registry.future_find(self.pubkey, community)
         if identity.local_state == LocalState.NOT_FOUND:
             identity.uid = self.name
         return identity

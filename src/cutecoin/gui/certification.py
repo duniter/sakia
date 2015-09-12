@@ -86,7 +86,8 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
     @asyncify
     @asyncio.coroutine
     def refresh(self):
-        is_member = yield from self.account.identity(self.community).is_member(self.community)
+        account_identity = yield from self.account.identity(self.community)
+        is_member = yield from account_identity.is_member(self.community)
         block_0 = yield from self.community.get_block(0)
         if is_member or block_0 == qtbma.blockchain.Block.null_value:
             self.button_box.button(QDialogButtonBox.Ok).setEnabled(True)

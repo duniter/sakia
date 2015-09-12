@@ -26,8 +26,6 @@ class Community(QObject):
     .. warning:: The currency name is supposed to be unique in cutecoin
     but nothing exists in ucoin to assert that a currency name is unique.
     """
-    inner_data_changed = pyqtSignal(str)
-
     def __init__(self, currency, network, bma_access):
         """
         Initialize community attributes with a currency and a network.

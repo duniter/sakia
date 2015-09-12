@@ -59,7 +59,7 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         direct_connections = QAction(self.tr("Direct connections"), self)
         direct_connections.triggered.connect(self._async_search_direct_connections)
         self.button_search.addAction(direct_connections)
-        self.button_search.clicked.connect(self.search_text)
+        self.button_search.clicked.connect(self._async_execute_search_text)
 
     def change_account(self, account, password_asker):
         self.account = account
@@ -72,7 +72,15 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         self.table_identities.model().change_community(community)
         self._async_search_direct_connections()
 
+    @asyncify
+    @asyncio.coroutine
     def identity_context_menu(self, point):
+        def exec_menu(menu):
+            future = asyncio.Future()
+            menu.triggered.connect(future.set_result(True))
+            menu.popup(QCursor.pos())
+            return future
+
         index = self.table_identities.indexAt(point)
         model = self.table_identities.model()
         if index.row() < model.rowCount():
@@ -81,7 +89,7 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
             pubkey_index = model.sourceModel().index(source_index.row(),
                                                    pubkey_col)
             pubkey = model.sourceModel().data(pubkey_index, Qt.DisplayRole)
-            identity = self.app.identities_registry.find(pubkey, self.community)
+            identity = yield from self.app.identities_registry.future_find(pubkey, self.community)
             menu = QMenu(self)
 
             informations = QAction(self.tr("Informations"), self)
@@ -110,7 +118,7 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
             menu.addAction(view_wot)
 
             # Show the context menu.
-            menu.exec_(QCursor.pos())
+            yield from exec_menu(menu)
 
     def menu_informations(self):
         person = self.sender().data()
@@ -158,19 +166,12 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         identity = self.sender().data()
         self.view_in_wot.emit(identity)
 
-    def search_text(self):
-        """
-        Search text and display found identities
-        """
-        text = self.edit_textsearch.text()
-
-        if len(text) < 2:
-            return False
-        else:
-            asyncio.async(self._async_execute_search_text(text))
-
+    @asyncify
     @asyncio.coroutine
-    def _async_execute_search_text(self, text):
+    def _async_execute_search_text(self):
+        text = self.edit_textsearch.text()
+        if len(text) < 2:
+            return
         response = yield from self.community.bma_access.future_request(qtbma.wot.Lookup, {'search': text})
         identities = []
         for identity_data in response['results']:
@@ -202,7 +203,7 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         Search members of community and display found members
         """
         if self.account and self.community:
-            self_identity = self.account.identity(self.community)
+            self_identity = yield from self.account.identity(self.community)
             account_connections = []
             certs_of = yield from self_identity.unique_valid_certifiers_of(self.app.identities_registry, self.community)
             for p in certs_of:

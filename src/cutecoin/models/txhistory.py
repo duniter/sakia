@@ -181,7 +181,7 @@ class HistoryTableModel(QAbstractTableModel):
         self.account._current_ref
         self.transfers_data = []
         self.refresh_transfers()
-        self._max_validation = 0
+        self._max_validations = 0
 
         self.columns_types = (
             'date',
@@ -291,11 +291,11 @@ class HistoryTableModel(QAbstractTableModel):
             if data:
                 self.transfers_data.append(data)
             members_pubkeys = yield from self.community.members_pubkeys()
-            self._max_validation = self.community.network.fork_window(members_pubkeys) + 1
+            self._max_validations = self.community.network.fork_window(members_pubkeys) + 1
         self.endResetModel()
 
-    def max_validation(self):
-        return self._max_validation
+    def max_validations(self):
+        return self._max_validations
 
     def rowCount(self, parent):
         return len(self.transfers_data)
