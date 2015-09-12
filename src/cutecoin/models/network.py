@@ -76,7 +76,7 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
             and role == Qt.DisplayRole:
             if source_data == -1:
                 return ""
-            else
+            else:
                 return source_data
 
         if index.column() == source_model.columns_types.index('current_hash') \
