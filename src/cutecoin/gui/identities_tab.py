@@ -14,6 +14,7 @@ from ..gen_resources.identities_tab_uic import Ui_IdentitiesTab
 from .contact import ConfigureContactDialog
 from .member import MemberDialog
 from .transfer import TransferMoneyDialog
+from .busy import Busy
 from .certification import CertificationDialog
 import asyncio
 from ..core.net.api import bma as qtbma
@@ -62,11 +63,15 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         self.button_search.addAction(direct_connections)
         self.button_search.clicked.connect(self._async_execute_search_text)
 
+        self.busy = Busy(self.table_identities)
+        self.busy.hide()
+
     def cancel_once_tasks(self):
         cancel_once_task(self, self.identity_context_menu)
         cancel_once_task(self, self._async_execute_search_text)
         cancel_once_task(self, self._async_search_members)
         cancel_once_task(self, self._async_search_direct_connections)
+        cancel_once_task(self, self.refresh_identities)
 
     def change_account(self, account, password_asker):
         self.cancel_once_tasks()
@@ -173,6 +178,7 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
     @asyncify
     @asyncio.coroutine
     def _async_execute_search_text(self, checked):
+        self.busy.show()
         text = self.edit_textsearch.text()
         if len(text) < 2:
             return
@@ -184,6 +190,7 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
 
         self.edit_textsearch.clear()
         self.refresh_identities(identities)
+        self.busy.hide()
 
     @once_at_a_time
     @asyncify
@@ -193,6 +200,7 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         Search members of community and display found members
         """
         if self.community:
+            self.busy.show()
             pubkeys = yield from self.community.members_pubkeys()
             identities = []
             for p in pubkeys:
@@ -201,6 +209,7 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
 
             self.edit_textsearch.clear()
             self.refresh_identities(identities)
+            self.busy.hide()
 
     @once_at_a_time
     @asyncify
@@ -210,6 +219,7 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         Search members of community and display found members
         """
         if self.account and self.community:
+            self.busy.show()
             self_identity = yield from self.account.identity(self.community)
             account_connections = []
             certs_of = yield from self_identity.unique_valid_certifiers_of(self.app.identities_registry, self.community)
@@ -223,14 +233,24 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
                       if p.pubkey not in [i.pubkey for i in certifiers_of]]
             identities = certifiers_of + certified_by
             self.refresh_identities(identities)
+            self.busy.hide()
 
+    @once_at_a_time
+    @asyncify
+    @asyncio.coroutine
     def refresh_identities(self, identities):
         """
         Refresh the table with specified identities.
         If no identities is passed, use the account connections.
         """
-        self.table_identities.model().sourceModel().refresh_identities(identities)
+        self.busy.show()
+        yield from self.table_identities.model().sourceModel().refresh_identities(identities)
         self.table_identities.resizeColumnsToContents()
+        self.busy.hide()
+
+    def resizeEvent(self, event):
+        self.busy.resize(event.size())
+        super().resizeEvent(event)
 
     def changeEvent(self, event):
         """

@@ -40,37 +40,38 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
 
     def data(self, index, role):
         source_index = self.mapToSource(index)
-        source_data = self.sourceModel().data(source_index, role)
-        expiration_col = self.sourceModel().columns_ids.index('expiration')
-        expiration_index = self.sourceModel().index(source_index.row(), expiration_col)
-        expiration_data = self.sourceModel().data(expiration_index, Qt.DisplayRole)
-        current_time = QDateTime().currentDateTime().toMSecsSinceEpoch()
-        sig_validity = self.sourceModel().sig_validity()
-        warning_expiration_time = int(sig_validity / 3)
-        #logging.debug("{0} > {1}".format(current_time, expiration_data))
-        if expiration_data is not None:
-            will_expire_soon = (current_time > expiration_data*1000 - warning_expiration_time*1000)
-        if role == Qt.DisplayRole:
-            if source_index.column() == self.sourceModel().columns_ids.index('renewed') \
-                    or source_index.column() == self.sourceModel().columns_ids.index('expiration'):
-                if source_data is not None:
-                    return QLocale.toString(
-                        QLocale(),
-                        QDateTime.fromTime_t(source_data).date(),
-                        QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
-                    )
-                else:
-                    return ""
-            if source_index.column() == self.sourceModel().columns_ids.index('pubkey'):
-                return "pub:{0}".format(source_data[:5])
+        if source_index.isValid():
+            source_data = self.sourceModel().data(source_index, role)
+            expiration_col = self.sourceModel().columns_ids.index('expiration')
+            expiration_index = self.sourceModel().index(source_index.row(), expiration_col)
+            expiration_data = self.sourceModel().data(expiration_index, Qt.DisplayRole)
+            current_time = QDateTime().currentDateTime().toMSecsSinceEpoch()
+            sig_validity = self.sourceModel().sig_validity()
+            warning_expiration_time = int(sig_validity / 3)
+            #logging.debug("{0} > {1}".format(current_time, expiration_data))
+            if expiration_data is not None:
+                will_expire_soon = (current_time > expiration_data*1000 - warning_expiration_time*1000)
+            if role == Qt.DisplayRole:
+                if source_index.column() == self.sourceModel().columns_ids.index('renewed') \
+                        or source_index.column() == self.sourceModel().columns_ids.index('expiration'):
+                    if source_data is not None:
+                        return QLocale.toString(
+                            QLocale(),
+                            QDateTime.fromTime_t(source_data).date(),
+                            QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
+                        )
+                    else:
+                        return ""
+                if source_index.column() == self.sourceModel().columns_ids.index('pubkey'):
+                    return "pub:{0}".format(source_data[:5])
 
-        if role == Qt.ForegroundRole:
-            if expiration_data:
-                if will_expire_soon:
-                    return QColor(Qt.red)
-            else:
-                return QColor(Qt.blue)
-        return source_data
+            if role == Qt.ForegroundRole:
+                if expiration_data:
+                    if will_expire_soon:
+                        return QColor(Qt.red)
+                else:
+                    return QColor(Qt.blue)
+            return source_data
 
 
 class IdentitiesTableModel(QAbstractTableModel):
@@ -95,7 +96,6 @@ class IdentitiesTableModel(QAbstractTableModel):
         self._sig_validity = 0
 
     def change_community(self, community):
-        cancel_once_task(self, self.refresh_identities)
         self.community = community
 
     def sig_validity(self):
@@ -119,8 +119,6 @@ class IdentitiesTableModel(QAbstractTableModel):
 
         return (identity.uid, identity.pubkey, join_date, expiration_date)
 
-    @once_at_a_time
-    @asyncify
     @asyncio.coroutine
     def refresh_identities(self, identities):
         """
@@ -153,7 +151,8 @@ class IdentitiesTableModel(QAbstractTableModel):
         if role == Qt.DisplayRole:
             row = index.row()
             col = index.column()
-            return self.identities_data[row][col]
+            identity_data = self.identities_data[row]
+            return identity_data[col]
 
     def identity_index(self, pubkey):
         try:

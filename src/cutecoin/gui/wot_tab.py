@@ -17,6 +17,7 @@ from .contact import ConfigureContactDialog
 from ..gen_resources.wot_tab_uic import Ui_WotTabWidget
 from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_SELECTED, NODE_STATUS_OUT, ARC_STATUS_STRONG, \
     ARC_STATUS_WEAK
+from .busy import Busy
 
 
 class WotTabWidget(QWidget, Ui_WotTabWidget):
@@ -39,6 +40,9 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         # To fix a recall of the same item with different case,
         # the edited text is not added in the item list
         self.comboBoxSearch.setInsertPolicy(QComboBox.NoInsert)
+
+        self.busy = Busy(self.graphicsView)
+        self.busy.hide()
 
         # add scene events
         self.graphicsView.scene().node_clicked.connect(self.handle_node_click)
@@ -177,6 +181,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         :param cutecoin.core.registry.Identity identity: Graph node identity
         """
         logging.debug("Draw graph - " + identity.uid)
+        self.busy.show()
 
         if self.community:
             identity_account = yield from self.account.identity(self.community)
@@ -217,6 +222,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
                 path = yield from graph.get_shortest_path_between_members(identity, identity_account)
                 if path:
                     self.graphicsView.scene().update_path(path)
+        self.busy.hide()
 
     @once_at_a_time
     @asyncify
@@ -321,6 +327,10 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         result = dialog.exec_()
         if result == QDialog.Accepted:
             self.window().refresh_contacts()
+
+    def resizeEvent(self, event):
+        self.busy.resize(event.size())
+        super().resizeEvent(event)
 
     def changeEvent(self, event):
         """
