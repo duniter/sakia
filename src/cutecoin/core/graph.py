@@ -58,17 +58,19 @@ class Graph(object):
             self.add_identity(from_identity)
             certifier_list = yield from from_identity.certifiers_of(self.app.identities_registry,
                                                                     self.community)
-            self.add_certifier_list(certifier_list, from_identity, to_identity)
+            yield from self.add_certifier_list(certifier_list, from_identity, to_identity)
             certified_list = yield from from_identity.certified_by(self.app.identities_registry,
                                                                    self.community)
-            self.add_certified_list(certified_list, from_identity, to_identity)
+            yield from self.add_certified_list(certified_list, from_identity, to_identity)
 
         if to_identity.pubkey not in self._graph.keys():
             # recursively feed graph searching for account node...
-            yield from self.explore_to_find_member(to_identity, self._graph[from_identity.pubkey]['connected'], list())
+            yield from self.explore_to_find_member(to_identity,
+                                                   self._graph[from_identity.pubkey]['connected'], list())
         if len(self._graph[from_identity.pubkey]['connected']) > 0:
             # calculate path of nodes between identity and to_identity
-            path = yield from self.find_shortest_path(self._graph[from_identity.pubkey], self._graph[to_identity.pubkey])
+            path = yield from self.find_shortest_path(self._graph[from_identity.pubkey],
+                                                      self._graph[to_identity.pubkey])
 
         if path:
             logging.debug([node['text'] for node in path])
@@ -101,19 +103,21 @@ class Graph(object):
             identity_selected = identity.from_handled_data(node['text'], node['id'], BlockchainState.VALIDATED)
             certifier_list = yield from identity_selected.unique_valid_certifiers_of(self.app.identities_registry,
                                                                                      self.community)
-            self.add_certifier_list(certifier_list, identity_selected, identity)
+            yield from self.add_certifier_list(certifier_list, identity_selected, identity)
             if identity.pubkey in tuple(self._graph.keys()):
                 return False
             certified_list = yield from identity_selected.unique_valid_certified_by(self.app.identities_registry,
                                                                                     self.community)
-            self.add_certified_list(certified_list, identity_selected, identity)
+            yield from self.add_certified_list(certified_list, identity_selected, identity)
             if identity.pubkey in tuple(self._graph.keys()):
                 return False
             if node['id'] not in tuple(done):
                 done.append(node['id'])
             if len(done) >= len(self._graph):
                 return True
-            result = self.explore_to_find_member(identity, self._graph[identity_selected.pubkey]['connected'], done)
+            result = yield from self.explore_to_find_member(identity,
+                                                            self._graph[identity_selected.pubkey]['connected'],
+                                                            done)
             if not result:
                 return False
 
@@ -162,9 +166,10 @@ class Graph(object):
             # new node
             if certifier['identity'].pubkey not in self._graph.keys():
                 node_status = 0
+                is_member = yield from certifier['identity'].is_member(self.community)
                 if certifier['identity'].pubkey == identity_account.pubkey:
                     node_status += NODE_STATUS_HIGHLIGHTED
-                if certifier['identity'].is_member(self.community) is False:
+                if is_member is False:
                     node_status += NODE_STATUS_OUT
                 self._graph[certifier['identity'].pubkey] = {
                     'id': certifier['identity'].pubkey,
@@ -239,9 +244,10 @@ class Graph(object):
                 continue
             if certified['identity'].pubkey not in self._graph.keys():
                 node_status = 0
+                is_member = yield from certified['identity'].is_member(self.community)
                 if certified['identity'].pubkey == identity_account.pubkey:
                     node_status += NODE_STATUS_HIGHLIGHTED
-                if certified['identity'].is_member(self.community) is False:
+                if is_member is False:
                     node_status += NODE_STATUS_OUT
                 self._graph[certified['identity'].pubkey] = {
                     'id': certified['identity'].pubkey,
