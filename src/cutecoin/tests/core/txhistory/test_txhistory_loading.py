@@ -13,10 +13,9 @@ from cutecoin.core.registry.identities import IdentitiesRegistry
 from cutecoin.core.app import Application
 from cutecoin.core import Account, Community, Wallet
 from cutecoin.core.net import Network, Node
-from cutecoin.core.net.endpoint import BMAEndpoint
 from cutecoin.core.net.api.bma.access import BmaAccess
 from cutecoin.tests import get_application
-from cutecoin.core.net.api import bma as qtbma
+from ucoinpy.documents.peer import BMAEndpoint
 
 
 class TestTxHistory(unittest.TestCase):

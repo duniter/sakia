@@ -5,7 +5,7 @@ from .transfer import Transfer
 from ucoinpy.documents.transaction import InputSource, OutputSource
 from ucoinpy.documents.block import Block
 from ..tools.exceptions import LookupFailureError
-from .net.api import bma as qtbma
+from ucoinpy.api import  bma
 
 
 class TxHistory():
@@ -166,7 +166,7 @@ class TxHistory():
         block = None
         tries = 0
         while block is None and tries < 3:
-            block = yield from community.bma_access.future_request(qtbma.blockchain.Block,
+            block = yield from community.bma_access.future_request(bma.blockchain.Block,
                                       req_args={'number': block_number})
             signed_raw = "{0}{1}\n".format(block['raw'],
                                            block['signature'])
@@ -191,17 +191,20 @@ class TxHistory():
 
     @asyncio.coroutine
     def request_dividends(self, community, parsed_block):
-        dividends_data = qtbma.ud.History.null_value
         for i in range(0, 6):
-            if dividends_data == qtbma.ud.History.null_value:
-                dividends_data = yield from community.bma_access.future_request(qtbma.ud.History,
+            try:
+                dividends_data = yield from community.bma_access.future_request(bma.ud.History,
                                                 req_args={'pubkey': self.wallet.pubkey})
 
-        dividends = dividends_data['history']['history']
-        for d in dividends:
-            if d['block_number'] < parsed_block:
-                dividends.remove(d)
-        return dividends
+                dividends = dividends_data['history']['history']
+                for d in dividends:
+                    if d['block_number'] < parsed_block:
+                        dividends.remove(d)
+                return dividends
+            except ValueError as e:
+                if '404' in str(e):
+                    pass
+        return {}
 
     @asyncio.coroutine
     def refresh(self, community, received_list):
@@ -211,7 +214,7 @@ class TxHistory():
         :param cutecoin.core.Community community: The community
         :param list received_list: List of transactions received
         """
-        current_block = yield from community.bma_access.future_request(qtbma.blockchain.Block,
+        current_block = yield from community.bma_access.future_request(bma.blockchain.Block,
                                 req_args={'number': community.network.latest_block_number})
         members_pubkeys = yield from community.members_pubkeys()
         # We look for the first block to parse, depending on awaiting and validating transfers and ud...
@@ -223,7 +226,7 @@ class TxHistory():
         parsed_block = min(set(blocks))
         logging.debug("Refresh from : {0} to {1}".format(self.latest_block, current_block['number']))
         dividends = yield from self.request_dividends(community, parsed_block)
-        with_tx_data = yield from community.bma_access.future_request(qtbma.blockchain.TX)
+        with_tx_data = yield from community.bma_access.future_request(bma.blockchain.TX)
         blocks_with_tx = with_tx_data['result']['blocks']
         new_transfers = []
         new_dividends = []

@@ -30,6 +30,7 @@ class Peering(Network):
     """GET peering information about a peer."""
 
     def __get__(self, **kwargs):
-        return self.requests_get('/peering', **kwargs).json()
+        r = yield from self.requests_get('/peering', **kwargs)
+        return (yield from r.json())
 
 from . import peering

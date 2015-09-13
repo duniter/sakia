@@ -11,7 +11,7 @@ import asyncio
 from ucoinpy.documents.certification import SelfCertification
 from cutecoin.tools.exceptions import Error, NoPeerAvailable,\
                                         MembershipNotFoundError
-from cutecoin.core.net.api import bma as qtbma
+from ucoinpy.api import bma
 from cutecoin.core.net.api.bma import PROTOCOL_VERSION
 from PyQt5.QtCore import QObject, pyqtSignal
 

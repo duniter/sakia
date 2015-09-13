@@ -26,13 +26,26 @@ class Tx(API):
         super(Tx, self).__init__(connection_handler, module)
 
 
+class History(Tx):
+    """Get transaction sources."""
+    def __init__(self, conn_handler, pubkey, module='tx'):
+        super(Tx, self).__init__(conn_handler, module)
+        self.pubkey = pubkey
+
+    def __get__(self, **kwargs):
+        assert self.pubkey is not None
+        r = yield from self.requests_get('/history/%s' % self.pubkey, **kwargs)
+        return (yield from r.json())
+
+
 class Process(Tx):
     """POST a transaction."""
 
     def __post__(self, **kwargs):
         assert 'transaction' in kwargs
 
-        return self.requests_post('/process', **kwargs).json()
+        r = yield from self.requests_post('/process', **kwargs)
+        return (yield from r.text())
 
 
 class Sources(Tx):
@@ -43,4 +56,7 @@ class Sources(Tx):
 
     def __get__(self, **kwargs):
         assert self.pubkey is not None
-        return self.requests_get('/sources/%s' % self.pubkey, **kwargs).json()
+        r = yield from self.requests_get('/sources/%s' % self.pubkey, **kwargs)
+        return (yield from r.json())
+
+from . import history

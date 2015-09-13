@@ -32,13 +32,15 @@ class Peers(Base):
     def __get__(self, **kwargs):
         """creates a generator with one peering entry per iteration."""
 
-        return self.merkle_easy_parser('/peers')
+        r = yield from self.requests_get('/peers', **kwargs)
+        return (yield from r.json())
 
     def __post__(self, **kwargs):
         assert 'entry' in kwargs
         assert 'signature' in kwargs
 
-        return self.requests_post('/peers', **kwargs).json()
+        r = yield from self.requests_post('/peers', **kwargs)
+        return (yield from r.json())
 
 
 class Status(Base):
@@ -48,4 +50,5 @@ class Status(Base):
         assert 'status' in kwargs
         assert 'signature' in kwargs
 
-        return self.requests_post('/status', **kwargs).json()
+        r = yield from self.requests_post('/status', **kwargs)
+        return (yield from r.json())

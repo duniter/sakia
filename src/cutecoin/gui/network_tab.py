@@ -11,7 +11,7 @@ from PyQt5.QtGui import QCursor, QDesktopServices
 from PyQt5.QtWidgets import QWidget, QMenu, QAction
 from PyQt5.QtCore import Qt, QModelIndex, pyqtSlot, QUrl, QEvent
 from ..models.network import NetworkTableModel, NetworkFilterProxyModel
-from ..core.net.api import bma as qtbma
+from ..core.net.api import bma as bma
 from ..gen_resources.network_tab_uic import Ui_NetworkTabWidget
 
 
@@ -98,7 +98,7 @@ class NetworkTabWidget(QWidget, Ui_NetworkTabWidget):
     @pyqtSlot()
     def open_node_in_browser(self):
         node = self.sender().data()
-        peering = qtbma.network.Peering(node.endpoint)
+        peering = bma.network.Peering(node.endpoint)
         url = QUrl(peering.reverse_url("/peering"))
         QDesktopServices.openUrl(url)
 

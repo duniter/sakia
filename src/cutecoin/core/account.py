@@ -21,8 +21,8 @@ from .community import Community
 from .registry import LocalState
 from ..tools.exceptions import ContactAlreadyExists
 from ..tools.decorators import asyncify
-from ..core.net.api import bma as qtbma
-from ..core.net.api.bma import PROTOCOL_VERSION
+from ucoinpy.api import bma
+from ucoinpy.api.bma import PROTOCOL_VERSION
 
 
 class Account(QObject):
@@ -295,38 +295,19 @@ class Account(QObject):
         key = SigningKey(self.salt, password)
         selfcert.sign([key])
         logging.debug("Key publish : {0}".format(selfcert.signed_raw()))
-        replies = community.bma_access.broadcast(qtbma.wot.Add, {}, {'pubkey': self.pubkey,
+        try:
+            error = 0
+            replies = yield from community.bma_access.broadcast(bma.wot.Add, {}, {'pubkey': self.pubkey,
                                               'self_': selfcert.signed_raw(),
                                               'other': ""})
-        for r in replies:
-            r.finished.connect(lambda reply=r: self.__handle_selfcert_replies(replies, reply))
-
-    def __handle_selfcert_replies(self, replies, reply):
-        """
-        Handle the reply, if the request was accepted, disconnect
-        all other replies
-
-        :param QNetworkReply reply: The reply of this handler
-        :param list of QNetworkReply replies: All request replies
-        :return:
-        """
-        strdata = bytes(reply.readAll()).decode('utf-8')
-        logging.debug("Received reply : {0} : {1}".format(reply.error(), strdata))
-        if reply.error() == QNetworkReply.NoError:
-            for r in replies:
-                try:
-                    r.disconnect()
-                except TypeError as e:
-                    if "disconnect()" in str(e):
-                        logging.debug("Could not disconnect a reply")
-                    else:
-                        raise
-            self.selfcert_broadcasted.emit()
-        else:
-            for r in replies:
-                if not r.isFinished() or r.error() == QNetworkReply.NoError:
-                    return
-            self.broadcast_error.emit(r.error(), strdata)
+        except ValueError as e:
+            error += 1
+            error_msg = str(e)
+        finally:
+            if error < len(replies):
+                self.selfcert_broadcasted.emit()
+            else:
+                self.broadcast_error.emit(0, error_msg)
 
     @asyncio.coroutine
     def send_membership(self, password, community, mstype):
@@ -351,37 +332,18 @@ class Account(QObject):
         key = SigningKey(self.salt, password)
         membership.sign([key])
         logging.debug("Membership : {0}".format(membership.signed_raw()))
-        replies = community.bma_access.broadcast(qtbma.blockchain.Membership, {},
+        try:
+            error = 0
+            replies = yield from community.bma_access.broadcast(bma.blockchain.Membership, {},
                             {'membership': membership.signed_raw()})
-        for r in replies:
-            r.finished.connect(lambda reply=r: self.__handle_membership_replies(replies, reply))
-
-    def __handle_membership_replies(self, replies, reply):
-        """
-        Handle the reply, if the request was accepted, disconnect
-        all other replies
-
-        :param QNetworkReply reply: The reply of this handler
-        :param list of QNetworkReply replies: All request replies
-        :return:
-        """
-        strdata = bytes(reply.readAll()).decode('utf-8')
-        logging.debug("Received reply : {0} : {1}".format(reply.error(), strdata))
-        if reply.error() == QNetworkReply.NoError:
-            for r in replies:
-                try:
-                    r.disconnect()
-                except TypeError as e:
-                    if "disconnect()" in str(e):
-                        logging.debug("Could not disconnect a reply")
-                    else:
-                        raise
-            self.membership_broadcasted.emit()
-        else:
-            for r in replies:
-                if not r.isFinished() or r.error() == QNetworkReply.NoError:
-                    return
-            self.broadcast_error.emit(r.error(), strdata)
+        except ValueError as e:
+            error += 1
+            error_msg = str(e)
+        finally:
+            if error < len(replies):
+                self.membership_broadcasted.emit()
+            else:
+                self.broadcast_error.emit(0, error_msg)
 
     @asyncio.coroutine
     def certify(self, password, community, pubkey):
@@ -409,36 +371,17 @@ class Account(QObject):
                 'self_': selfcert.signed_raw(),
                 'other': "{0}\n".format(certification.inline())}
         logging.debug("Posted data : {0}".format(data))
-        replies = community.bma_access.broadcast(qtbma.wot.Add, {}, data)
-        for r in replies:
-            r.finished.connect(lambda reply=r: self.__handle_certification_reply(replies, reply))
-
-    def __handle_certification_reply(self, replies, reply):
-        """
-        Handle the reply, if the request was accepted, disconnect
-        all other replies
-
-        :param QNetworkReply reply: The reply of this handler
-        :param list of QNetworkReply replies: All request replies
-        :return:
-        """
-        strdata = bytes(reply.readAll()).decode('utf-8')
-        logging.debug("Received reply : {0} : {1}".format(reply.error(), strdata))
-        if reply.error() == QNetworkReply.NoError:
-            for r in replies:
-                try:
-                    r.disconnect()
-                except TypeError as e:
-                    if "disconnect()" in str(e):
-                        logging.debug("Could not disconnect a reply")
-                    else:
-                        raise
-            self.certification_broadcasted.emit()
-        else:
-            for r in replies:
-                if not r.isFinished() or r.error() == QNetworkReply.NoError:
-                    return
-            self.broadcast_error.emit(r.error(), strdata)
+        try:
+            error = 0
+            responses = yield from community.bma_access.broadcast(bma.wot.Add, {}, data)
+        except ValueError as e:
+            error += 1
+            error_msg = str(e)
+        finally:
+            if error < len(responses):
+                self.certification_broadcasted.emit()
+            else:
+                self.broadcast_error.emit(0, error_msg)
 
     @asyncio.coroutine
     def revoke(self, password, community):
@@ -465,36 +408,17 @@ class Account(QObject):
             'sig': revocation.signatures[0]
         }
         logging.debug("Posted data : {0}".format(data))
-        replies = community.broadcast(qtbma.wot.Revoke, {}, data)
-        for r in replies:
-            r.finished.connect(lambda reply=r: self.__handle_certification_reply(replies, reply))
-
-    def __handle_revoke_reply(self, replies, reply):
-        """
-        Handle the reply, if the request was accepted, disconnect
-        all other replies
-
-        :param QNetworkReply reply: The reply of this handler
-        :param list of QNetworkReply replies: All request replies
-        :return:
-        """
-        strdata = bytes(reply.readAll()).decode('utf-8')
-        logging.debug("Received reply : {0} : {1}".format(reply.error(), strdata))
-        if reply.error() == QNetworkReply.NoError:
-            for r in replies:
-                try:
-                    r.disconnect()
-                except TypeError as e:
-                    if "disconnect()" in str(e):
-                        logging.debug("Could not disconnect a reply")
-                    else:
-                        raise
-            self.revoke_broadcasted.emit()
-        else:
-            for r in replies:
-                if not r.isFinished() or r.error() == QNetworkReply.NoError:
-                    return
-            self.broadcast_error.emit(r.error(), strdata)
+        try:
+            error = 0
+            replies = yield from community.broadcast(bma.wot.Revoke, {}, data)
+        except ValueError as e:
+            error += 1
+            error_msg = str(e)
+        finally:
+            if error < len(replies):
+                self.revoke_broadcasted.emit()
+            else:
+                self.broadcast_error.emit(error_msg)
 
     def start_coroutines(self):
         for c in self.communities:

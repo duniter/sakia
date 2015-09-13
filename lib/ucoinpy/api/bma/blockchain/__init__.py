@@ -30,7 +30,8 @@ class Parameters(Blockchain):
     """GET the blockchain parameters used by this node."""
 
     def __get__(self, **kwargs):
-        return self.requests_get('/parameters', **kwargs).json()
+        r = yield from self.requests_get('/parameters', **kwargs)
+        return (yield from r.json())
 
 
 class Membership(Blockchain):
@@ -42,11 +43,13 @@ class Membership(Blockchain):
     def __post__(self, **kwargs):
         assert 'membership' in kwargs
 
-        return self.requests_post('/membership', **kwargs).json()
+        r = yield from self.requests_post('/membership', **kwargs)
+        return (yield from r.text())
 
     def __get__(self, **kwargs):
         assert self.search is not None
-        return self.requests_get('/memberships/%s' % self.search, **kwargs).json()
+        r = yield from self.requests_get('/memberships/%s' % self.search, **kwargs)
+        return (yield from r.json())
 
 
 class Block(Blockchain):
@@ -66,20 +69,23 @@ class Block(Blockchain):
 
     def __get__(self, **kwargs):
         assert self.number is not None
-        return self.requests_get('/block/%d' % self.number, **kwargs).json()
+        r = yield from self.requests_get('/block/%d' % self.number, **kwargs)
+        return (yield from r.json())
 
     def __post__(self, **kwargs):
         assert 'block' in kwargs
         assert 'signature' in kwargs
 
-        return self.requests_post('/block', **kwargs).json()
+        r = yield from self.requests_post('/block', **kwargs)
+        return (yield from r.text())
 
 
 class Current(Blockchain):
     """GET, same as block/[number], but return last accepted block."""
 
     def __get__(self, **kwargs):
-        return self.requests_get('/current', **kwargs).json()
+        r = yield from self.requests_get('/current', **kwargs)
+        return (yield from r.json())
 
 
 class Hardship(Blockchain):
@@ -99,60 +105,69 @@ class Hardship(Blockchain):
 
     def __get__(self, **kwargs):
         assert self.fingerprint is not None
-        return self.requests_get('/hardship/%s' % self.fingerprint.upper(), **kwargs).json()
+        r = yield from self.requests_get('/hardship/%s' % self.fingerprint.upper(), **kwargs)
+        return (yield from r.json())
 
 
 class Newcomers(Blockchain):
     """GET, return block numbers containing newcomers."""
 
     def __get__(self, **kwargs):
-        return self.requests_get('/with/newcomers', **kwargs).json()
+        r = yield from self.requests_get('/with/newcomers', **kwargs)
+        return (yield from r.json())
 
 
 class Certifications(Blockchain):
     """GET, return block numbers containing certifications."""
 
     def __get__(self, **kwargs):
-        return self.requests_get('/with/certs', **kwargs).json()
+        r = yield from self.requests_get('/with/certs', **kwargs)
+        return (yield from r.json())
 
 
 class Joiners(Blockchain):
     """GET, return block numbers containing joiners."""
 
     def __get__(self, **kwargs):
-        return self.requests_get('/with/joiners', **kwargs).json()
+        r = yield from self.requests_get('/with/joiners', **kwargs)
+        return (yield from r.json())
 
 
 class Actives(Blockchain):
     """GET, return block numbers containing actives."""
 
     def __get__(self, **kwargs):
-        return self.requests_get('/with/actives', **kwargs).json()
+        r = yield from self.requests_get('/with/actives', **kwargs)
+        return (yield from r.json())
 
 
 class Leavers(Blockchain):
     """GET, return block numbers containing leavers."""
 
     def __get__(self, **kwargs):
-        return self.requests_get('/with/leavers', **kwargs).json()
+        r = yield from self.requests_get('/with/leavers', **kwargs)
+        return (yield from r.json())
 
 
 class Excluded(Blockchain):
     """GET, return block numbers containing excluded."""
 
     def __get__(self, **kwargs):
-        return self.requests_get('/with/excluded', **kwargs).json()
+        r = yield from self.requests_get('/with/excluded', **kwargs)
+        return (yield from r.json())
 
 
 class UD(Blockchain):
     """GET, return block numbers containing universal dividend."""
 
     def __get__(self, **kwargs):
-        return self.requests_get('/with/ud', **kwargs).json()
+        r = yield from self.requests_get('/with/ud', **kwargs)
+        return (yield from r.json())
 
 
 class TX(Blockchain):
     """GET, return block numbers containing transactions."""
 
     def __get__(self, **kwargs):
-        return self.requests_get('/with/tx', **kwargs).json()
+        r = yield from self.requests_get('/with/tx', **kwargs)
+        return (yield from r.json())

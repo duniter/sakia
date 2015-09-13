@@ -17,7 +17,7 @@ from .transfer import TransferMoneyDialog
 from .busy import Busy
 from .certification import CertificationDialog
 import asyncio
-from ..core.net.api import bma as qtbma
+from ucoinpy.api import bma
 from ..core.registry import Identity
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 
@@ -182,7 +182,7 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         text = self.edit_textsearch.text()
         if len(text) < 2:
             return
-        response = yield from self.community.bma_access.future_request(qtbma.wot.Lookup, {'search': text})
+        response = yield from self.community.bma_access.future_request(bma.wot.Lookup, {'search': text})
         identities = []
         for identity_data in response['results']:
             identity = yield from self.app.identities_registry.future_find(identity_data['pubkey'], self.community)

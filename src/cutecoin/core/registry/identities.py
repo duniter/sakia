@@ -1,10 +1,11 @@
 from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
-from cutecoin.core.net.api import bma as qtbma
+from ucoinpy.api import bma
 from .identity import Identity, LocalState, BlockchainState
 
 import json
 import asyncio
 import logging
+from aiohttp.errors import ClientError
 
 
 class IdentitiesRegistry:
@@ -44,74 +45,55 @@ class IdentitiesRegistry:
 
     @asyncio.coroutine
     def future_find(self, pubkey, community):
-        def handle_certifiersof_reply(reply, tries=0):
-            err = reply.error()
-            # https://github.com/ucoin-io/ucoin/issues/146
-            if reply.error() == QNetworkReply.NoError \
-                    or reply.error() == QNetworkReply.ContentNotFoundError \
-                    or reply.error() == QNetworkReply.ProtocolInvalidOperationError:
-                status_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
-                if status_code == 200:
-                    strdata = bytes(reply.readAll()).decode('utf-8')
-                    data = json.loads(strdata)
-
-                    identity.uid = data['uid']
-                    identity.local_state = LocalState.PARTIAL
-                    identity.blockchain_state = BlockchainState.VALIDATED
-                    logging.debug("Lookup : found {0}".format(identity))
-                    if not future_identity.cancelled():
-                        future_identity.set_result(identity)
-                else:
-                    reply = community.bma_access.simple_request(qtbma.wot.Lookup,
+        def lookup():
+            identity = Identity.empty(pubkey)
+            self._instances[pubkey] = identity
+            lookup_tries = 0
+            while lookup_tries < 3:
+                try:
+                    data = yield from community.bma_access.simple_request(bma.wot.Lookup,
                                                                 req_args={'search': pubkey})
-                    reply.finished.connect(lambda: handle_lookup_reply(reply))
-            elif tries < 3:
-                reply = community.bma_access.simple_request(qtbma.wot.CertifiersOf, req_args={'search': pubkey})
-                reply.finished.connect(lambda: handle_certifiersof_reply(reply, tries=tries+1))
-            elif not future_identity.cancelled():
-                future_identity.set_result(identity)
+                    timestamp = 0
+                    for result in data['results']:
+                        if result["pubkey"] == identity.pubkey:
+                            uids = result['uids']
+                            identity_uid = ""
+                            for uid_data in uids:
+                                if uid_data["meta"]["timestamp"] > timestamp:
+                                    timestamp = uid_data["meta"]["timestamp"]
+                                    identity_uid = uid_data["uid"]
+                            identity.uid = identity_uid
+                            identity.blockchain_state = BlockchainState.BUFFERED
+                            identity.local_state = LocalState.PARTIAL
+                            logging.debug("Lookup : found {0}".format(identity))
+                    return identity
+                except ValueError as e:
+                    lookup_tries += 1
+                except ClientError:
+                    lookup_tries += 1
+            return identity
 
-        def handle_lookup_reply(reply, tries=0):
-            status_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
-            if reply.error() == QNetworkReply.NoError and status_code == 200:
-                strdata = bytes(reply.readAll()).decode('utf-8')
-                data = json.loads(strdata)
-
-                timestamp = 0
-                for result in data['results']:
-                    if result["pubkey"] == identity.pubkey:
-                        uids = result['uids']
-                        identity_uid = ""
-                        for uid_data in uids:
-                            if uid_data["meta"]["timestamp"] > timestamp:
-                                timestamp = uid_data["meta"]["timestamp"]
-                                identity_uid = uid_data["uid"]
-                        identity.uid = identity_uid
-                        identity.blockchain_state = BlockchainState.BUFFERED
-                        identity.local_state = LocalState.PARTIAL
-                        logging.debug("Lookup : found {0}".format(identity))
-                        if not future_identity.cancelled():
-                            future_identity.set_result(identity)
-                        return
-                if not future_identity.cancelled():
-                        future_identity.set_result(identity)
-            elif tries < 3:
-                reply = community.bma_access.simple_request(qtbma.wot.Lookup, req_args={'search': pubkey})
-                reply.finished.connect(lambda: handle_lookup_reply(reply, tries=tries+1))
-            elif not future_identity.cancelled():
-                future_identity.set_result(identity)
-
-        future_identity = asyncio.Future()
         if pubkey in self._instances:
             identity = self._instances[pubkey]
-            if not future_identity.cancelled():
-                future_identity.set_result(identity)
         else:
             identity = Identity.empty(pubkey)
             self._instances[pubkey] = identity
-            reply = community.bma_access.simple_request(qtbma.wot.CertifiersOf, req_args={'search': pubkey})
-            reply.finished.connect(lambda: handle_certifiersof_reply(reply))
-        return future_identity
+            tries = 0
+            while tries < 3:
+                try:
+                    data = yield from community.bma_access.simple_request(bma.wot.CertifiersOf, req_args={'search': pubkey})
+                    identity.uid = data['uid']
+                    identity.local_state = LocalState.PARTIAL
+                    identity.blockchain_state = BlockchainState.VALIDATED
+                    return identity
+                except ValueError as e:
+                    if '404' in str(e):
+                        return (yield from lookup())
+                    else:
+                        tries += 1
+                except ClientError:
+                    tries += 1
+        return identity
 
     def from_handled_data(self, uid, pubkey, blockchain_state):
         """

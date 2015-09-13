@@ -34,7 +34,8 @@ class Add(WOT):
         assert 'self_' in kwargs
         assert 'other' in kwargs
 
-        return self.requests_post('/add', **kwargs).json()
+        r = yield from self.requests_post('/add', **kwargs)
+        return (yield from r.text())
 
 
 class Revoke(WOT):
@@ -44,7 +45,8 @@ class Revoke(WOT):
         assert 'pubkey' in kwargs
         assert 'self_' in kwargs
 
-        return self.requests_post('/revoke', **kwargs).json()
+        r = yield from self.requests_post('/revoke', **kwargs)
+        return (yield from r.text())
 
 
 class Lookup(WOT):
@@ -58,7 +60,8 @@ class Lookup(WOT):
     def __get__(self, **kwargs):
         assert self.search is not None
 
-        return self.requests_get('/lookup/%s' % self.search, **kwargs).json()
+        r = yield from self.requests_get('/lookup/%s' % self.search, **kwargs)
+        return (yield from r.json())
 
 
 class CertifiersOf(WOT):
@@ -72,7 +75,8 @@ class CertifiersOf(WOT):
     def __get__(self, **kwargs):
         assert self.search is not None
 
-        return self.requests_get('/certifiers-of/%s' % self.search, **kwargs).json()
+        r = yield from self.requests_get('/certifiers-of/%s' % self.search, **kwargs)
+        return (yield from r.json())
 
 
 class CertifiedBy(WOT):
@@ -86,7 +90,8 @@ class CertifiedBy(WOT):
     def __get__(self, **kwargs):
         assert self.search is not None
 
-        return self.requests_get('/certified-by/%s' % self.search, **kwargs).json()
+        r = yield from self.requests_get('/certified-by/%s' % self.search, **kwargs)
+        return (yield from r.json())
 
 
 class Members(WOT):
@@ -96,4 +101,5 @@ class Members(WOT):
         super(WOT, self).__init__(connection_handler, module)
 
     def __get__(self, **kwargs):
-        return self.requests_get('/members', **kwargs).json()
+        r = yield from self.requests_get('/members', **kwargs)
+        return (yield from r.json())

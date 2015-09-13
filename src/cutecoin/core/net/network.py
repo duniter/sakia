@@ -12,7 +12,8 @@ import asyncio
 from ucoinpy.documents.peer import Peer
 from ucoinpy.documents.block import Block
 
-from .api import bma as qtbma
+from ucoinpy.api import bma
+
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
 from collections import Counter
 
@@ -73,7 +74,13 @@ class Network(QObject):
                 other_node._uid = node.uid
                 other_node._version = node.version
                 other_node._software = node.software
-                if other_node.block['hash'] != node.block['hash']:
+                switch = False
+                if other_node.block and node.block:
+                    if other_node.block['hash'] != node.block['hash']:
+                        switch = True
+                else:
+                    switch = True
+                if switch:
                     other_node.set_block(node.block)
                     other_node.last_change = node.last_change
                     other_node.state = node.state
@@ -165,8 +172,7 @@ class Network(QObject):
         Get the latest block considered valid
         It is the most frequent last block of every known nodes
         """
-        blocks_numbers = [n.block['number'] for n in self.synced_nodes
-                          if n.block != qtbma.blockchain.Block.null_value]
+        blocks_numbers = [n.block['number'] for n in self.synced_nodes if n.block]
         if len(blocks_numbers) > 0:
             return blocks_numbers[0]
         else:
@@ -178,8 +184,7 @@ class Network(QObject):
         Get the latest block considered valid
         It is the most frequent last block of every known nodes
         """
-        blocks_hash = [n.block['hash'] for n in self.synced_nodes
-                       if n.block != qtbma.blockchain.Block.null_value]
+        blocks_hash = [n.block['hash'] for n in self.synced_nodes if n.block]
         if len(blocks_hash) > 0:
             return blocks_hash[0]
         else:
@@ -194,7 +199,7 @@ class Network(QObject):
         4 : The biggest number or timestamp
         """
         # rule number 1 : block of the majority
-        blocks = [n.block['hash'] for n in self.nodes if n.block != qtbma.blockchain.Block.null_value]
+        blocks = [n.block['hash'] for n in self.nodes if n.block]
         blocks_occurences = Counter(blocks)
         blocks_by_occurences = {}
         for key, value in blocks_occurences.items():

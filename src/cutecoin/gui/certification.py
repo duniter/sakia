@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QDialog, QMessageBox, QDialogButtonBox, QApplication
 from PyQt5.QtCore import Qt, pyqtSlot
 from ..gen_resources.certification_uic import Ui_CertificationDialog
 from . import toast
-from ..core.net.api import bma as qtbma
+from ..core.net.api import bma as bma
 from ..tools.decorators import asyncify
 import asyncio
 import logging
@@ -88,8 +88,12 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
     def refresh(self):
         account_identity = yield from self.account.identity(self.community)
         is_member = yield from account_identity.is_member(self.community)
-        block_0 = yield from self.community.get_block(0)
-        if is_member or block_0 == qtbma.blockchain.Block.null_value:
+        try:
+            block_0 = yield from self.community.get_block(0)
+        except ValueError as e:
+            if '404' in str(e):
+                block_0 = None
+        if is_member or not block_0:
             self.button_box.button(QDialogButtonBox.Ok).setEnabled(True)
             self.button_box.button(QDialogButtonBox.Ok).setText(self.tr("&Ok"))
         else:

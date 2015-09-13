@@ -7,6 +7,8 @@ import time
 from PyQt5.QtWidgets import QDialog
 from PyQt5.QtCore import QLocale, Qt
 from PyQt5.QtTest import QTest
+from ucoinpy.api.bma import API
+from cutecoin.tests.mocks.monkeypatch import pretender_reversed
 from cutecoin.tests.mocks.bma import new_blockchain, nice_blockchain
 from cutecoin.tests.mocks.access_manager import MockNetworkAccessManager
 from cutecoin.core.registry.identities import IdentitiesRegistry
@@ -47,6 +49,7 @@ class ProcessAddCommunity(unittest.TestCase):
         time.sleep(2)
         logging.debug(mock.pretend_url)
         self.network_manager.set_mock_path(mock.pretend_url)
+        API.reverse_url = pretender_reversed(mock.pretend_url)
         process_community = ProcessConfigureCommunity(self.application,
                                                     self.account,
                                                     None, self.password_asker)
@@ -104,6 +107,7 @@ class ProcessAddCommunity(unittest.TestCase):
         time.sleep(2)
         logging.debug(mock.pretend_url)
         self.network_manager.set_mock_path(mock.pretend_url)
+        API.reverse_url = pretender_reversed(mock.pretend_url)
         process_community = ProcessConfigureCommunity(self.application,
                                                     self.account,
                                                     None, self.password_asker)
@@ -156,6 +160,7 @@ class ProcessAddCommunity(unittest.TestCase):
         time.sleep(2)
         logging.debug(mock.pretend_url)
         self.network_manager.set_mock_path(mock.pretend_url)
+        API.reverse_url = pretender_reversed(mock.pretend_url)
         process_community = ProcessConfigureCommunity(self.application,
                                                     self.account,
                                                     None, self.password_asker)

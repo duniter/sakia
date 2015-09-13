@@ -1,11 +1,10 @@
 from PyQt5.QtCore import QObject, pyqtSlot
 from PyQt5.QtNetwork import QNetworkReply
-from . import wot
-from . import blockchain, ConnectionHandler
+from ucoinpy.api.bma import blockchain
 from .....tools.exceptions import NoPeerAvailable
 from ..... import __version__
 import logging
-import json
+from aiohttp.errors import ClientError
 import asyncio
 import random
 
@@ -112,7 +111,7 @@ class BmaAccess(QObject):
             ret_data = cached_data['value']
         else:
             need_reload = True
-            ret_data = request.null_value
+            ret_data = None
         return need_reload, ret_data
 
     def _update_cache(self, request, req_args, get_args, data):
@@ -138,6 +137,7 @@ class BmaAccess(QObject):
             return True
         return False
 
+    @asyncio.coroutine
     def future_request(self, request, req_args={}, get_args={}):
         """
         Start a request to the network and returns a future.
@@ -148,33 +148,28 @@ class BmaAccess(QObject):
         :return: The future data
         :rtype: dict
         """
-        def handle_future_reply(reply):
-            if reply.error() == QNetworkReply.NoError:
-                strdata = bytes(reply.readAll()).decode('utf-8')
-                json_data = json.loads(strdata)
-                self._update_cache(request, req_args, get_args, json_data)
-                if not future_data.cancelled():
-                    future_data.set_result(json_data)
-            elif not future_data.cancelled():
-                future_data.set_result(request.null_value)
-
-        future_data = asyncio.Future()
         data = self._get_from_cache(request, req_args, get_args)
         need_reload = data[0]
+        json_data = data[1]
 
         if need_reload:
             nodes = self._network.synced_nodes
             if len(nodes) > 0:
-                node = random.choice(nodes)
-                conn_handler = node.endpoint.conn_handler(self._network.network_manager)
-                req = request(conn_handler, **req_args)
-                reply = req.get(**get_args)
-                reply.finished.connect(lambda: handle_future_reply(reply))
-            else:
-                raise NoPeerAvailable("", len(nodes))
-        else:
-            future_data.set_result(data[1])
-        return future_data
+                for i in range(0, 6):
+                    node = random.choice(nodes)
+                    conn_handler = node.endpoint.conn_handler()
+                    req = request(conn_handler, **req_args)
+                    try:
+                        json_data = yield from req.get(**get_args)
+                        self._update_cache(request, req_args, get_args, json_data)
+                        return json_data
+                    except ValueError as e:
+                        if '404' in str(e) or '400' in str(e):
+                            raise
+                        continue
+                    except ClientError:
+                        continue
+        return json_data
 
     def simple_request(self, request, req_args={}, get_args={}):
         """
@@ -188,9 +183,9 @@ class BmaAccess(QObject):
         nodes = self._network.synced_nodes
         if len(nodes) > 0:
             node = random.choice(nodes)
-            req = request(node.endpoint.conn_handler(self._network.network_manager), **req_args)
-            reply = req.get(**get_args)
-            return reply
+            req = request(node.endpoint.conn_handler(), **req_args)
+            json_data = yield from req.get(**get_args)
+            return json_data
         else:
             raise NoPeerAvailable("", len(nodes))
 
@@ -212,8 +207,8 @@ class BmaAccess(QObject):
         replies = []
         for node in nodes:
             logging.debug("Trying to connect to : " + node.pubkey)
-            conn_handler = node.endpoint.conn_handler(self._network.network_manager)
+            conn_handler = node.endpoint.conn_handler()
             req = request(conn_handler, **req_args)
-            reply = req.post(**post_args)
+            reply = yield from req.post(**post_args)
             replies.append(reply)
         return tuple(replies)

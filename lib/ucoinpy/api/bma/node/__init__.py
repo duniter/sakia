@@ -33,5 +33,6 @@ class Summary(Node):
         super(Summary, self).__init__(connection_handler, module)
 
     def __get__(self, **kwargs):
-        return self.requests_get('/summary', **kwargs).json()
+        r = yield from self.requests_get('/summary', **kwargs)
+        return (yield from r.json())
 

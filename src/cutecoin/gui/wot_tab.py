@@ -7,7 +7,7 @@ from PyQt5.QtCore import pyqtSlot, QEvent, QLocale, QDateTime, pyqtSignal
 
 from ..tools.exceptions import MembershipNotFoundError
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
-from ..core.net.api import bma
+from ucoinpy.api import bma
 from ..core.graph import Graph
 from ..core.registry import BlockchainState
 from .member import MemberDialog

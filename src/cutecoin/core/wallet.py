@@ -7,8 +7,8 @@ Created on 1 févr. 2014
 from ucoinpy.documents.transaction import InputSource, OutputSource, Transaction
 from ucoinpy.key import SigningKey
 
-from .net.api import bma as qtbma
-from .net.api.bma import PROTOCOL_VERSION
+from ucoinpy.api import bma
+from ucoinpy.api.bma import PROTOCOL_VERSION
 from ..tools.exceptions import NotEnoughMoneyError, NoPeerAvailable, LookupFailureError
 from .transfer import Transfer
 from .txhistory import TxHistory
@@ -220,7 +220,7 @@ class Wallet(QObject):
         """
         blockid = yield from community.blockid()
         block_number = blockid['number']
-        block = yield from community.bma_access.future_request(qtbma.blockchain.Block,
+        block = yield from community.bma_access.future_request(bma.blockchain.Block,
                                   req_args={'number': block_number})
         time = block['medianTime']
         txid = len(block['transactions'])
@@ -284,7 +284,7 @@ class Wallet(QObject):
         :param cutecoin.core.community.Community community: The community where we want available sources
         :return: List of InputSource ucoinpy objects
         """
-        data = yield from community.bma_access.future_request(qtbma.tx.Sources,
+        data = yield from community.bma_access.future_request(bma.tx.Sources,
                                  req_args={'pubkey': self.pubkey})
         tx = []
         for s in data['sources']:
@@ -299,7 +299,7 @@ class Wallet(QObject):
         :param cutecoin.core.community.Community community: The community where we want available sources
         :return: List of InputSource ucoinpy objects
         """
-        data = yield from community.bma_access.future_request(qtbma.tx.Sources,
+        data = yield from community.bma_access.future_request(bma.tx.Sources,
                                  req_args={'pubkey': self.pubkey})
         tx = []
         for s in data['sources']:

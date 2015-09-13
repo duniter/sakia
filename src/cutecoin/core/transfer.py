@@ -5,7 +5,7 @@ Created on 31 janv. 2015
 """
 import logging
 import asyncio
-from .net.api import bma as qtbma
+from ucoinpy.api import bma
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 from PyQt5.QtNetwork import QNetworkReply
 import hashlib
@@ -108,36 +108,26 @@ class Transfer(QObject):
         :param txdoc: A transaction ucoinpy object
         :param community: The community target of the transaction
         """
-        replies = community.bma_access.broadcast(qtbma.tx.Process,
+        try:
+            error = 0
+            replies = yield from community.bma_access.broadcast(bma.tx.Process,
                     post_args={'transaction': txdoc.signed_raw()})
-        for r in replies:
-            r.finished.connect(lambda reply=r: self.__handle_transfers_reply(replies, reply))
-
-        self.state = Transfer.AWAITING
-        self.hash = hashlib.sha1(txdoc.signed_raw().encode("ascii")).hexdigest().upper()
-        blockid = yield from community.blockid()
-        block = yield from community.bma_access.future_request(qtbma.blockchain.Block,
-                                  req_args={'number': blockid['number']})
-        if block != qtbma.blockchain.Block.null_value:
-            self._metadata['block'] = blockid['number']
-            self._metadata['time'] = block['medianTime']
-
-    def __handle_transfers_reply(self, replies, reply):
-        strdata = bytes(reply.readAll()).decode('utf-8')
-        logging.debug("Received reply : {0} : {1}".format(reply.error(), strdata))
-        if reply.error() == QNetworkReply.NoError:
-            for r in replies:
-                try:
-                    r.disconnect()
-                except TypeError as e:
-                    if "disconnect()" in str(e):
-                        logging.debug("Could not disconnect a reply")
-            self.transfer_broadcasted.emit(self.metadata['receiver_uid'])
-        else:
-            for r in replies:
-                if not r.isFinished() or r.error() == QNetworkReply.NoError:
-                    return
-            self.broadcast_error.emit(r.error(), strdata)
+            self.state = Transfer.AWAITING
+            self.hash = hashlib.sha1(txdoc.signed_raw().encode("ascii")).hexdigest().upper()
+            blockid = yield from community.blockid()
+            block = yield from community.bma_access.future_request(bma.blockchain.Block,
+                                      req_args={'number': blockid['number']})
+            if block != bma.blockchain.Block.null_value:
+                self._metadata['block'] = blockid['number']
+                self._metadata['time'] = block['medianTime']
+        except ValueError as e:
+            error += 1
+            error_msg = str(e)
+        finally:
+            if error < len(replies):
+                self.transfer_broadcasted.emit(self.metadata['receiver_uid'])
+            else:
+                self.broadcast_error.emit(0, error_msg)
 
     def check_registered(self, txhash, block_number, time, data_validation):
         """

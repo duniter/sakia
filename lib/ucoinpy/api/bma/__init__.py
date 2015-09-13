@@ -20,11 +20,12 @@
 __all__ = ['api']
 
 __author__      = 'Caner Candan'
-__version__     = '0.10.0'
+__version__     = '0.11.0'
 __nonsense__    = 'uCoin'
 
-import requests, logging, json
-# import pylibscrypt
+PROTOCOL_VERSION = "1"
+
+import aiohttp, requests, asyncio, logging, json
 
 logger = logging.getLogger("ucoin")
 
@@ -93,14 +94,13 @@ class API(object):
 
     def __get__(self, **kwargs):
         """interface purpose for GET request"""
-
         pass
 
     def __post__(self, **kwargs):
         """interface purpose for POST request"""
-
         pass
 
+    @asyncio.coroutine
     def requests_get(self, path, **kwargs):
         """
         Requests GET wrapper in order to use API parameters.
@@ -108,12 +108,12 @@ class API(object):
         Arguments:
         - `path`: the request path
         """
+        logging.debug("Request : {0}".format(self.reverse_url(path)))
+        response = yield from asyncio.wait_for(aiohttp.get(self.reverse_url(path), params=kwargs,
+                                headers=self.headers), 15)
 
-        response = requests.get(self.reverse_url(path), params=kwargs,
-                                headers=self.headers, timeout=15)
-
-        if response.status_code != 200:
-            raise ValueError('status code != 200 => %d (%s)' % (response.status_code, response.text))
+        if response.status != 200:
+            raise ValueError('status code != 200 => %d (%s)' % (response.status, (yield from response.text())))
 
         return response
 
@@ -128,17 +128,13 @@ class API(object):
             kwargs['self'] = kwargs.pop('self_')
 
         logging.debug("POST : {0}".format(kwargs))
-        response = requests.post(self.reverse_url(path), data=kwargs, headers=self.headers,
+        response = yield from asyncio.wait_for(
+            aiohttp.post(self.reverse_url(path), data=kwargs, headers=self.headers),
                                  timeout=15)
 
-        if response.status_code != 200:
-            raise ValueError('status code != 200 => %d (%s)' % (response.status_code, response.text))
+        if response.status != 200:
+            raise ValueError('status code != 200 => %d (%s)' % (response.status, (yield from (response.text()))))
 
         return response
 
-    def merkle_easy_parser(self, path, begin=None, end=None):
-        root = self.requests_get(path, leaves='true').json()
-        for leaf in root['leaves'][begin:end]:
-            yield self.requests_get(path, leaf=leaf).json()['leaf']
-
-from . import network, blockchain, tx, wot, node
+from . import network, blockchain, tx, wot, node, ud

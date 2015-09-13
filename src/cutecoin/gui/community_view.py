@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import QWidget, QMessageBox, QDialog
 from PyQt5.QtCore import QModelIndex, pyqtSlot, QDateTime, QLocale, QEvent
 from PyQt5.QtGui import QIcon
 
-from ..core.net.api import bma as qtbma
+from ..core.net.api import bma as bma
 from .wot_tab import WotTabWidget
 from .identities_tab import IdentitiesTabWidget
 from .transactions_tab import TransactionsTabWidget
@@ -193,12 +193,11 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
             text = self.tr(" Block {0}").format(self.community.network.latest_block_number)
 
             block = yield from self.community.get_block(self.community.network.latest_block_number)
-            if block != qtbma.blockchain.Block.null_value:
-                text += " ( {0} )".format(QLocale.toString(
-                            QLocale(),
-                            QDateTime.fromTime_t(block['medianTime']),
-                            QLocale.dateTimeFormat(QLocale(), QLocale.NarrowFormat)
-                        ))
+            text += " ( {0} )".format(QLocale.toString(
+                        QLocale(),
+                        QDateTime.fromTime_t(block['medianTime']),
+                        QLocale.dateTimeFormat(QLocale(), QLocale.NarrowFormat)
+                    ))
 
             if self.community.network.quality > 0.66:
                 icon = '<img src=":/icons/connected" width="12" height="12"/>'
@@ -237,7 +236,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                         logging.debug("Not a member")
                         self.button_membership.setText(self.tr("Send membership demand"))
                         self.button_membership.show()
-                        if self.community.get_block(0) != qtbma.blockchain.Block.null_value:
+                        if self.community.get_block(0) != bma.blockchain.Block.null_value:
                             self.button_certification.hide()
                 else:
                     logging.debug("UID not published")

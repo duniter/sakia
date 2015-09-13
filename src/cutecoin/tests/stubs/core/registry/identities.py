@@ -1,5 +1,5 @@
 from PyQt5.QtCore import QObject, pyqtSlot, pyqtSignal, QTimer
-from cutecoin.core.net.api import bma as qtbma
+from ucoinpy.api import bma
 from .identity import Identity
 
 import asyncio

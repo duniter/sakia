@@ -4,7 +4,7 @@ Created on 5 févr. 2014
 @author: inso
 """
 
-from ..core.net.api import bma as qtbma
+from ..core.net.api import bma as bma
 from ..tools.exceptions import NoPeerAvailable, MembershipNotFoundError
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from PyQt5.QtCore import QAbstractTableModel, QSortFilterProxyModel, Qt, \
