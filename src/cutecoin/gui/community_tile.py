@@ -7,7 +7,7 @@ from PyQt5.QtGui import QPalette
 from PyQt5.QtCore import QEvent, QSize, pyqtSignal
 from ..tools.decorators import asyncify
 import asyncio
-
+from .busy import Busy
 
 class CommunityTile(QFrame):
     clicked = pyqtSignal()
@@ -22,6 +22,8 @@ class CommunityTile(QFrame):
         self.layout().addWidget(self.text_label)
         self.setFrameShape(QFrame.StyledPanel)
         self.setFrameShadow(QFrame.Raised)
+        self.busy = Busy(self)
+        self.busy.hide()
         self.refresh()
 
     def sizeHint(self):
@@ -30,6 +32,8 @@ class CommunityTile(QFrame):
     @asyncify
     @asyncio.coroutine
     def refresh(self):
+        self.busy.show()
+        self.setFixedSize(QSize(150, 150))
         current_block = yield from self.community.get_block(self.community.network.latest_block_number)
         members_pubkeys = yield from self.community.members_pubkeys()
         amount = yield from self.app.current_account.amount(self.community)
@@ -64,10 +68,15 @@ class CommunityTile(QFrame):
                           balance_label=self.tr("Balance"),
                           balance=localized_amount)
         self.text_label.setText(description)
+        self.busy.hide()
 
     def mousePressEvent(self, event):
         self.clicked.emit()
         return super().mousePressEvent(event)
+
+    def resizeEvent(self, event):
+        self.busy.resize(event.size())
+        super().resizeEvent(event)
 
     def enterEvent(self, event):
         self.setStyleSheet("color: rgb(0, 115, 173);")
