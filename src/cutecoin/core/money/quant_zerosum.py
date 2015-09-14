@@ -49,10 +49,8 @@ class QuantitativeZSum:
     @asyncio.coroutine
     def localized(self, units=False, international_system=False):
         value = yield from self.value()
-        if international_system:
-            pass
-        else:
-            localized_value = QLocale().toString(float(value), 'f', 0)
+
+        localized_value = QLocale().toString(float(value), 'f', 0)
 
         if units:
             return QCoreApplication.translate("QuantitativeZSum",
@@ -64,5 +62,5 @@ class QuantitativeZSum:
 
     @asyncio.coroutine
     def diff_localized(self, units=False, international_system=False):
-        localized = yield from  Quantitative(self.amount, self.community, self.app).localized(units, international_system)
+        localized = yield from Quantitative(self.amount, self.community, self.app).localized(units, international_system)
         return localized
