@@ -110,7 +110,6 @@ class IdentitiesRegistry:
             elif self._instances[pubkey].blockchain_state != BlockchainState.VALIDATED \
                     and blockchain_state == BlockchainState.VALIDATED:
                 self._instances[pubkey].blockchain_state = blockchain_state
-                self._instances[pubkey].inner_data_changed.emit("BlockchainState")
 
             # TODO: Random bug in ucoin makes the uid change without reason in requests answers
             # https://github.com/ucoin-io/ucoin/issues/149
