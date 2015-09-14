@@ -295,7 +295,7 @@ class Node(QObject):
             block_data = yield from bma.blockchain.Current(conn_handler).get()
             block_hash = block_data['hash']
 
-            if block_hash != self.block['hash']:
+            if not self.block or block_hash != self.block['hash']:
                 self.set_block(block_data)
                 logging.debug("Changed block {0} -> {1}".format(self.block['number'],
                                                                 block_data['number']))

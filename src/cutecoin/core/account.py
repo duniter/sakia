@@ -301,7 +301,7 @@ class Account(QObject):
             elif not result[0]:
                 result = (False, (yield from r.text()))
             else:
-                yield from r.text()
+                yield from r.release()
         return result
 
     @asyncio.coroutine
@@ -336,7 +336,7 @@ class Account(QObject):
             elif not result[0]:
                 result = (False, (yield from r.text()))
             else:
-                yield from r.text()
+                yield from r.release()
         return result
 
     @asyncio.coroutine
@@ -373,7 +373,7 @@ class Account(QObject):
             elif not result[0]:
                 result = (False, (yield from r.text()))
             else:
-                yield from r.text()
+                yield from r.release()
         return result
 
     @asyncio.coroutine
@@ -409,7 +409,7 @@ class Account(QObject):
             elif not result[0]:
                 result = (False, (yield from r.text()))
             else:
-                yield from r.text()
+                yield from r.release()
         return result
 
     def start_coroutines(self):

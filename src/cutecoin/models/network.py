@@ -166,8 +166,11 @@ class NetworkTableModel(QAbstractTableModel):
         port = node.endpoint.port
 
         is_root = self.community.network.is_root_node(node)
-
-        return (address, port, node.block['number'], node.block['hash'], node.uid,
+        if node.block:
+            number, block_hash = node.block['number'], node.block['hash']
+        else:
+            number, block_hash = "", ""
+        return (address, port, number, block_hash, node.uid,
                 is_member, node.pubkey, node.software, node.version, is_root, node.state)
 
     @asyncify
