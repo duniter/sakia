@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QDialog, QMessageBox, QDialogButtonBox, QApplication
 from PyQt5.QtCore import Qt, pyqtSlot
 from ..gen_resources.certification_uic import Ui_CertificationDialog
 from . import toast
-from ..core.net.api import bma as bma
+from .dialogs import QAsyncMessageBox
 from ..tools.decorators import asyncify
 import asyncio
 import logging
@@ -61,12 +61,18 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
         result = yield from self.account.certify(password, self.community, pubkey)
         if result[0]:
             if self.app.preferences['notifications']:
-                toast.display(self.tr("Success"), self.tr("Success sending certification"))
+                toast.display(self.tr("Certification"), self.tr("Success sending certification"))
+            else:
+                yield from QAsyncMessageBox.information(self, self.tr("Certification"),
+                                             self.tr("Success sending certification"))
             QApplication.restoreOverrideCursor()
             super().accept()
         else:
             if self.app.preferences['notifications']:
-                toast.display(self.tr("Error broadcasting"), self.tr("Could not broadcast certification"))
+                toast.display(self.tr("Certification"), self.tr("Could not broadcast certification"))
+            else:
+                yield from QAsyncMessageBox.critical(self, self.tr("Certification"),
+                                          self.tr("Could not broadcast certification"))
             QApplication.restoreOverrideCursor()
 
     def change_current_community(self, index):

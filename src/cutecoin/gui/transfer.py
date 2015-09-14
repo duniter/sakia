@@ -3,12 +3,13 @@ Created on 2 févr. 2014
 
 @author: inso
 """
-from PyQt5.QtWidgets import QDialog, QMessageBox, QApplication
+from PyQt5.QtWidgets import QDialog, QApplication
 from PyQt5.QtCore import QRegExp, Qt, QLocale, pyqtSlot
 from PyQt5.QtGui import QRegExpValidator
 
 from ..gen_resources.transfer_uic import Ui_TransferMoneyDialog
 from . import toast
+from .dialogs import QAsyncMessageBox, QMessageBox
 from ..tools.decorators import asyncify
 import asyncio
 
@@ -78,12 +79,10 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         amount = self.spinbox_amount.value()
 
         if not amount:
-            return
-            """
-            QMessageBox.critical(self, self.tr("Money transfer"),
+            yield from QAsyncMessageBox.critical(self, self.tr("Money transfer"),
                                  self.tr("No amount. Please give the transfert amount"),
                                  QMessageBox.Ok)
-            return"""
+            return
 
         password = yield from self.password_asker.async_exec()
         if self.password_asker.result() == QDialog.Rejected:
@@ -97,11 +96,17 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
             if self.app.preferences['notifications']:
                 toast.display(self.tr("Transfer"),
                           self.tr("Success sending money to {0}").format(recipient))
+            else:
+                yield from QAsyncMessageBox.information(self, self.tr("Transfer"),
+                          self.tr("Success sending money to {0}").format(recipient))
             QApplication.restoreOverrideCursor()
             super().accept()
         else:
             if self.app.preferences['notifications']:
-                toast.display(self.tr("Error"), "{0}".format(result[1]))
+                toast.display(self.tr("Transfer"), "Error : {0}".format(result[1]))
+            else:
+                yield from QAsyncMessageBox.critical(self, self.tr("Transfer"), result[1])
+
             QApplication.restoreOverrideCursor()
 
     @asyncify

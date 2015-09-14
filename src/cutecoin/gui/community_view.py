@@ -7,7 +7,7 @@ Created on 2 févr. 2014
 import time
 import logging
 from PyQt5.QtWidgets import QWidget, QMessageBox, QDialog
-from PyQt5.QtCore import QModelIndex, pyqtSlot, QDateTime, QLocale, QEvent
+from PyQt5.QtCore import pyqtSlot, QDateTime, QLocale, QEvent
 from PyQt5.QtGui import QIcon
 
 from ..core.net.api import bma as bma
@@ -15,6 +15,7 @@ from .wot_tab import WotTabWidget
 from .identities_tab import IdentitiesTabWidget
 from .transactions_tab import TransactionsTabWidget
 from .network_tab import NetworkTabWidget
+from .dialogs import QAsyncMessageBox
 from . import toast
 import asyncio
 from ..tools.exceptions import MembershipNotFoundError, LookupFailureError, NoPeerAvailable
@@ -255,12 +256,20 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         if result[0]:
             if self.app.preferences['notifications']:
                 toast.display(self.tr("Membership"), self.tr("Success sending Membership demand"))
+            else:
+                yield from QAsyncMessageBox.information(self, self.tr("Membership"),
+                                                        self.tr("Success sending Membership demand"))
         else:
             if self.app.preferences['notifications']:
                 toast.display(self.tr("Membership"), result[1])
+            else:
+                yield from QAsyncMessageBox.critical(self, self.tr("Membership"),
+                                                        result[1])
 
+    @asyncify
+    @asyncio.coroutine
     def send_membership_leaving(self):
-        reply = QMessageBox.warning(self, self.tr("Warning"),
+        reply = yield from QAsyncMessageBox.warning(self, self.tr("Warning"),
                              self.tr("""Are you sure ?
 Sending a leaving demand  cannot be canceled.
 The process to join back the community later will have to be done again.""")
@@ -269,64 +278,19 @@ The process to join back the community later will have to be done again.""")
             password = self.password_asker.exec_()
             if self.password_asker.result() == QDialog.Rejected:
                 return
-
-            asyncio.async(self.account.send_membership(password, self.community, 'OUT'))
-
-    def publish_uid(self):
-        reply = QMessageBox.warning(self, self.tr("Warning"),
-                             self.tr("""Are you sure ?
-Publishing your UID can be canceled by Revoke UID.""")
-.format(self.account.pubkey), QMessageBox.Ok | QMessageBox.Cancel)
-        if reply == QMessageBox.Ok:
-            password = self.password_asker.exec_()
-            if self.password_asker.result() == QDialog.Rejected:
-                return
-
-            try:
-                self.account.send_selfcert(password, self.community)
-                toast.display(self.tr("UID Publishing"),
-                              self.tr("Success publishing your UID"))
-            except ValueError as e:
-                QMessageBox.critical(self, self.tr("Publish UID error"),
-                                  str(e))
-            except NoPeerAvailable as e:
-                QMessageBox.critical(self, self.tr("Network error"),
-                                     self.tr("Couldn't connect to network : {0}").format(e),
-                                     QMessageBox.Ok)
-            except Exception as e:
-                 QMessageBox.critical(self, self.tr("Error"),
-                                      "{0}".format(e),
-                                      QMessageBox.Ok)
-
-    def revoke_uid(self):
-        reply = QMessageBox.warning(self, self.tr("Warning"),
-                                 self.tr("""Are you sure ?
-Revoking your UID can only success if it is not already validated by the network.""")
-.format(self.account.pubkey), QMessageBox.Ok | QMessageBox.Cancel)
-        if reply == QMessageBox.Ok:
-            password = self.password_asker.exec_()
-            if self.password_asker.result() == QDialog.Rejected:
-                return
-
-            asyncio.async(self.account.revoke(password, self.community))
-
-    def handle_revoke_broadcasted(self):
-        if self.app.preferences['notifications']:
-            toast.display(self.tr("Revoke"), self.tr("Success sending Revoke demand"))
-        else:
-            QMessageBox.information(self, self.tr("Revoke"), self.tr("Success sending Revoke demand"))
-
-    def handle_selfcert_broadcasted(self):
-        if self.app.preferences['notifications']:
-            toast.display(self.tr("Self Certification"), self.tr("Success sending Self Certification document"))
-        else:
-            QMessageBox.information(self.tr("Self Certification"), self.tr("Success sending Self Certification document"))
-
-    def handle_broadcast_error(self, error, strdata):
-        if self.app.preferences['notifications']:
-            toast.display(error, strdata)
-        else:
-            QMessageBox.error(error, strdata)
+            result = yield from self.account.send_membership(password, self.community, 'OUT')
+            if result[0]:
+                if self.app.preferences['notifications']:
+                    toast.display(self.tr("Revoke"), self.tr("Success sending Revoke demand"))
+                else:
+                    yield from QAsyncMessageBox.information(self, self.tr("Revoke"),
+                                                            self.tr("Success sending Revoke demand"))
+            else:
+                if self.app.preferences['notifications']:
+                    toast.display(self.tr("Revoke"), result[1])
+                else:
+                    yield from QAsyncMessageBox.critical(self, self.tr("Revoke"),
+                                                         result[1])
 
     def showEvent(self, QShowEvent):
         """
