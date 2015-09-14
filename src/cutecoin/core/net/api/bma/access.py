@@ -152,26 +152,25 @@ class BmaAccess(QObject):
         need_reload = data[0]
         json_data = data[1]
 
-        if need_reload:
-            nodes = self._network.synced_nodes
-            if len(nodes) > 0:
-                tries = 0
-                while tries < 3:
-                    node = random.choice(nodes)
-                    conn_handler = node.endpoint.conn_handler()
-                    req = request(conn_handler, **req_args)
-                    try:
-                        json_data = yield from req.get(**get_args)
-                        self._update_cache(request, req_args, get_args, json_data)
-                        return json_data
-                    except ValueError as e:
-                        if '404' in str(e) or '400' in str(e):
-                            raise
-                        tries += 1
-                    except ClientError:
-                        tries += 1
-            else:
-                raise NoPeerAvailable("", nodes)
+        nodes = self._network.synced_nodes
+        if need_reload and len(nodes) > 0:
+            tries = 0
+            while tries < 3:
+                node = random.choice(nodes)
+                conn_handler = node.endpoint.conn_handler()
+                req = request(conn_handler, **req_args)
+                try:
+                    json_data = yield from req.get(**get_args)
+                    self._update_cache(request, req_args, get_args, json_data)
+                    return json_data
+                except ValueError as e:
+                    if '404' in str(e) or '400' in str(e):
+                        raise
+                    tries += 1
+                except ClientError:
+                    tries += 1
+        if len(nodes) == 0 or json_data is None:
+            raise NoPeerAvailable("", len(nodes))
         return json_data
 
     def simple_request(self, request, req_args={}, get_args={}):
@@ -216,5 +215,5 @@ class BmaAccess(QObject):
                 reply = yield from req.post(**post_args)
                 replies.append(reply)
         else:
-            raise NoPeerAvailable("", nodes)
+            raise NoPeerAvailable("", len(nodes))
         return tuple(replies)

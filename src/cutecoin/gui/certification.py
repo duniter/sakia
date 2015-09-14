@@ -9,6 +9,7 @@ from ..gen_resources.certification_uic import Ui_CertificationDialog
 from . import toast
 from .dialogs import QAsyncMessageBox
 from ..tools.decorators import asyncify
+from ..tools.exceptions import NoPeerAvailable
 import asyncio
 import logging
 
@@ -89,6 +90,10 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
         except ValueError as e:
             if '404' in str(e):
                 block_0 = None
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
+            block_0 = None
+
         if is_member or not block_0:
             self.button_box.button(QDialogButtonBox.Ok).setEnabled(True)
             self.button_box.button(QDialogButtonBox.Ok).setText(self.tr("&Ok"))

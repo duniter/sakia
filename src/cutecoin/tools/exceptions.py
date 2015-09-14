@@ -154,13 +154,13 @@ class NoPeerAvailable(Error):
     Exception raised when a community doesn't have any
     peer available.
     """
-    def __init__(self, currency, peers):
+    def __init__(self, currency, nbpeers):
         """
         Constructor
         """
         super() .__init__(
             "No peer answered in {0} community ({1} peers available)"
-            .format(currency, peers))
+            .format(currency, nbpeers))
 
 
 class InvalidNodeCurrency(Error):

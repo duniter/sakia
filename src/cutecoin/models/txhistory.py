@@ -8,6 +8,7 @@ import datetime
 import logging
 import asyncio
 from ..core.transfer import Transfer
+from ..tools.exceptions import NoPeerAvailable
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, \
     QDateTime, QLocale, QModelIndex
@@ -300,8 +301,12 @@ class HistoryTableModel(QAbstractTableModel):
                     data = yield from self.data_dividend(transfer)
                 if data:
                     self.transfers_data.append(data)
-                members_pubkeys = yield from self.community.members_pubkeys()
-                self._max_validations = self.community.network.fork_window(members_pubkeys) + 1
+                try:
+                    members_pubkeys = yield from self.community.members_pubkeys()
+                    self._max_validations = self.community.network.fork_window(members_pubkeys) + 1
+                except NoPeerAvailable as e:
+                    logging.debug(str(e))
+                    self._max_validations = 0
         self.endResetModel()
 
     def max_validations(self):

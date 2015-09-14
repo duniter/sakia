@@ -204,6 +204,7 @@ class Community(QObject):
             if '404' in e:
                 return 0
         except NoPeerAvailable as e:
+            logging.debug(str(e))
             return 0
 
     @property

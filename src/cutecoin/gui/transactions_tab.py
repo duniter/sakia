@@ -11,6 +11,7 @@ from .transfer import TransferMoneyDialog
 from .certification import CertificationDialog
 from ..core.wallet import Wallet
 from ..core.registry import Identity
+from ..tools.exceptions import NoPeerAvailable
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from .transfer import TransferMoneyDialog
 from . import toast
@@ -81,19 +82,22 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
     @asyncify
     @asyncio.coroutine
     def refresh_minimum_maximum(self):
-        block = yield from self.community.get_block(1)
-        minimum_datetime = QDateTime()
-        minimum_datetime.setTime_t(block['medianTime'])
-        minimum_datetime.setTime(QTime(0, 0))
+        try:
+            block = yield from self.community.get_block(1)
+            minimum_datetime = QDateTime()
+            minimum_datetime.setTime_t(block['medianTime'])
+            minimum_datetime.setTime(QTime(0, 0))
 
-        self.date_from.setMinimumDateTime(minimum_datetime)
-        self.date_from.setDateTime(minimum_datetime)
-        self.date_from.setMaximumDateTime(QDateTime().currentDateTime())
+            self.date_from.setMinimumDateTime(minimum_datetime)
+            self.date_from.setDateTime(minimum_datetime)
+            self.date_from.setMaximumDateTime(QDateTime().currentDateTime())
 
-        self.date_to.setMinimumDateTime(minimum_datetime)
-        tomorrow_datetime = QDateTime().currentDateTime().addDays(1)
-        self.date_to.setDateTime(tomorrow_datetime)
-        self.date_to.setMaximumDateTime(tomorrow_datetime)
+            self.date_to.setMinimumDateTime(minimum_datetime)
+            tomorrow_datetime = QDateTime().currentDateTime().addDays(1)
+            self.date_to.setDateTime(tomorrow_datetime)
+            self.date_to.setMaximumDateTime(tomorrow_datetime)
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
 
     def refresh(self):
         #TODO: Use resetmodel instead of destroy/create

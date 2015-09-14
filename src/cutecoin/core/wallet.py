@@ -273,21 +273,6 @@ class Wallet(QObject):
         return (yield from transfer.send(tx, community))
 
     @asyncio.coroutine
-    def future_sources(self, community):
-        """
-        Get available sources in a given community
-
-        :param cutecoin.core.community.Community community: The community where we want available sources
-        :return: List of InputSource ucoinpy objects
-        """
-        data = yield from community.bma_access.future_request(bma.tx.Sources,
-                                 req_args={'pubkey': self.pubkey})
-        tx = []
-        for s in data['sources']:
-            tx.append(InputSource.from_bma(s))
-        return tx
-
-    @asyncio.coroutine
     def sources(self, community):
         """
         Get available sources in a given community
@@ -295,11 +280,14 @@ class Wallet(QObject):
         :param cutecoin.core.community.Community community: The community where we want available sources
         :return: List of InputSource ucoinpy objects
         """
-        data = yield from community.bma_access.future_request(bma.tx.Sources,
-                                 req_args={'pubkey': self.pubkey})
         tx = []
-        for s in data['sources']:
-            tx.append(InputSource.from_bma(s))
+        try:
+            data = yield from community.bma_access.future_request(bma.tx.Sources,
+                                     req_args={'pubkey': self.pubkey})
+            for s in data['sources']:
+                tx.append(InputSource.from_bma(s))
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
         return tx
 
     def transfers(self, community):

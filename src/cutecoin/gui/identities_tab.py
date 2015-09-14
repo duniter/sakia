@@ -19,6 +19,7 @@ from .certification import CertificationDialog
 import asyncio
 from ucoinpy.api import bma
 from ..core.registry import Identity
+from ..tools.exceptions import NoPeerAvailable
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 
 
@@ -219,21 +220,26 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         Search members of community and display found members
         """
         if self.account and self.community:
-            self.busy.show()
-            self_identity = yield from self.account.identity(self.community)
-            account_connections = []
-            certs_of = yield from self_identity.unique_valid_certifiers_of(self.app.identities_registry, self.community)
-            for p in certs_of:
-                account_connections.append(p['identity'])
-            certifiers_of = [p for p in account_connections]
-            certs_by = yield from self_identity.unique_valid_certified_by(self.app.identities_registry, self.community)
-            for p in certs_by:
-                account_connections.append(p['identity'])
-            certified_by = [p for p in account_connections
-                      if p.pubkey not in [i.pubkey for i in certifiers_of]]
-            identities = certifiers_of + certified_by
-            self.refresh_identities(identities)
-            self.busy.hide()
+            try:
+                self.busy.show()
+                self_identity = yield from self.account.identity(self.community)
+                account_connections = []
+                certs_of = yield from self_identity.unique_valid_certifiers_of(self.app.identities_registry, self.community)
+                for p in certs_of:
+                    account_connections.append(p['identity'])
+                certifiers_of = [p for p in account_connections]
+                certs_by = yield from self_identity.unique_valid_certified_by(self.app.identities_registry, self.community)
+                for p in certs_by:
+                    account_connections.append(p['identity'])
+                certified_by = [p for p in account_connections
+                          if p.pubkey not in [i.pubkey for i in certifiers_of]]
+                identities = certifiers_of + certified_by
+                self.refresh_identities(identities)
+            except NoPeerAvailable:
+                pass
+            finally:
+                self.refresh_identities([])
+                self.busy.hide()
 
     @once_at_a_time
     @asyncify

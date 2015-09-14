@@ -136,6 +136,10 @@ class Identity(QObject):
         except ValueError as e:
             if '404' in str(e) or '400' in str(e):
                 raise MembershipNotFoundError(self.pubkey, community.name)
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
+            raise MembershipNotFoundError(self.pubkey, community.name)
+
 
     @asyncio.coroutine
     def get_expiration_date(self, community):
@@ -184,6 +188,9 @@ class Identity(QObject):
         except ValueError as e:
             if '404' in str(e)  or '400' in str(e):
                 raise MembershipNotFoundError(self.pubkey, community.name)
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
+            raise MembershipNotFoundError(self.pubkey, community.name)
 
     @asyncio.coroutine
     def published_uid(self, community):
@@ -204,6 +211,8 @@ class Identity(QObject):
                                 person_uid = uid_data["uid"]
                             if person_uid == self.uid:
                                 return True
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
         return False
 
     @asyncio.coroutine
@@ -223,6 +232,8 @@ class Identity(QObject):
                 pass
             else:
                 raise
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
         return False
 
     @asyncio.coroutine
@@ -236,7 +247,8 @@ class Identity(QObject):
         """
         certifiers = list()
         try:
-            data = yield from community.bma_access.future_request(bma.wot.CertifiersOf, {'search': self.pubkey})
+            data = yield from community.bma_access.future_request(bma.wot.CertifiersOf,
+                                                                  {'search': self.pubkey})
 
             for certifier_data in data['certifications']:
                 certifier = {}
@@ -269,6 +281,8 @@ class Identity(QObject):
                                         certifiers.append(certifier)
                 except ValueError as e:
                     logging.debug("Lookup error : {0}".format(str(e)))
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
         return certifiers
 
     @asyncio.coroutine
@@ -329,6 +343,8 @@ class Identity(QObject):
                 except ValueError as e:
                     if '404' in str(e):
                         logging.debug('bma.wot.Lookup request error')
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
         return certified_list
 
     @asyncio.coroutine

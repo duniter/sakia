@@ -182,13 +182,25 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         logging.debug("Refresh status")
         if self.community:
             text = self.tr(" Block {0}").format(self.community.network.latest_block_number)
+            try:
+                block = yield from self.community.get_block(self.community.network.latest_block_number)
+                text += " ( {0} )".format(QLocale.toString(
+                            QLocale(),
+                            QDateTime.fromTime_t(block['medianTime']),
+                            QLocale.dateTimeFormat(QLocale(), QLocale.NarrowFormat)
+                        ))
+            except NoPeerAvailable as e:
+                logging.debug(str(e))
+                text += " ( ### ) "
 
-            block = yield from self.community.get_block(self.community.network.latest_block_number)
-            text += " ( {0} )".format(QLocale.toString(
-                        QLocale(),
-                        QDateTime.fromTime_t(block['medianTime']),
-                        QLocale.dateTimeFormat(QLocale(), QLocale.NarrowFormat)
-                    ))
+            if len(self.community.network.synced_nodes) == 0:
+                self.button_membership.setEnabled(False)
+                self.button_certification.setEnabled(False)
+                self.button_send_money.setEnabled(False)
+            else:
+                self.button_membership.setEnabled(True)
+                self.button_certification.setEnabled(True)
+                self.button_send_money.setEnabled(True)
 
             if self.community.network.quality > 0.66:
                 icon = '<img src=":/icons/connected" width="12" height="12"/>'
@@ -196,15 +208,22 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                 icon = '<img src=":/icons/weak_connect" width="12" height="12"/>'
             else:
                 icon = '<img src=":/icons/disconnected" width="12" height="12"/>'
+
             status_infotext = " - ".join([self.status_infotext[info] for info in self.status_info])
             label_text = "{0}{1}".format(icon, text)
             if status_infotext != "":
                 label_text += " - {0}".format(status_infotext)
 
             if self.app.preferences['expert_mode']:
-                members_pubkeys = yield from self.community.members_pubkeys()
-                label_text += self.tr(" - Median fork window : {0}")\
-                    .format(self.community.network.fork_window(members_pubkeys))
+                try:
+                    members_pubkeys = yield from self.community.members_pubkeys()
+                    label_text += self.tr(" - Median fork window : {0}")\
+                        .format(self.community.network.fork_window(members_pubkeys))
+                except NoPeerAvailable as e:
+                    logging.debug(str(e))
+                    label_text += self.tr(" - Median fork window : {0}")\
+                        .format("#")
+
 
             self.status_label.setText(label_text)
 
@@ -227,7 +246,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                         logging.debug("Not a member")
                         self.button_membership.setText(self.tr("Send membership demand"))
                         self.button_membership.show()
-                        if self.community.get_block(0) != bma.blockchain.Block.null_value:
+                        if self.community.get_block(0) != None:
                             self.button_certification.hide()
                 else:
                     logging.debug("UID not published")
