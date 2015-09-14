@@ -299,7 +299,7 @@ class Account(QObject):
             error = 0
             replies = yield from community.bma_access.broadcast(bma.wot.Add, {}, {'pubkey': self.pubkey,
                                               'self_': selfcert.signed_raw(),
-                                              'other': ""})
+                                              'other': {}})
         except ValueError as e:
             error += 1
             error_msg = str(e)

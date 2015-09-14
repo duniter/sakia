@@ -86,9 +86,10 @@ class ProcessAddCommunity(unittest.TestCase):
                 self.assertEqual(mock.get_request(i).method, 'GET')
                 self.assertEqual(mock.get_request(i).url,
                                  '/wot/lookup/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ')
+            yield from asyncio.sleep(1)
 
-            self.assertEqual(mock.get_request(6).method, 'POST')
-            self.assertEqual(mock.get_request(6).url[:8], '/wot/add')
+            self.assertEqual(mock.get_request(5).method, 'POST')
+            self.assertEqual(mock.get_request(5).url[:8], '/wot/add')
             self.assertEqual(process_community.label_error.text(), "Broadcasting identity...")
             yield from asyncio.sleep(1)
 

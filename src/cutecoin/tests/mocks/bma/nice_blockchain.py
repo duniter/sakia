@@ -251,6 +251,13 @@ bma_txsources_john = {
 }
 ]}
 
+bma_with_ud = {
+    "result":
+    {
+        "blocks": []
+    }
+}
+
 
 def get_mock():
     mock = HTTPMock('127.0.0.1', 50000)
@@ -262,6 +269,12 @@ def get_mock():
 
     mock.when('GET /blockchain/parameters')\
             .reply(body=bytes(json.dumps(bma_parameters), "utf-8"),
+                status=200,
+                times=FOREVER,
+                headers={'Content-Type': 'application/json'})
+
+    mock.when('GET /blockchain/with/UD')\
+            .reply(body=bytes(json.dumps(bma_with_ud), "utf-8"),
                 status=200,
                 times=FOREVER,
                 headers={'Content-Type': 'application/json'})

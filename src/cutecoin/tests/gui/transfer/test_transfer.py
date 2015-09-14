@@ -39,7 +39,7 @@ class TestTransferDialog(unittest.TestCase):
         self.endpoint = BMAEndpoint("", "127.0.0.1", "", 50000)
         self.node = Node(self.network_manager, "test_currency", [self.endpoint],
                          "", "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk",
-                         bma.blockchain.Block.null_value, Node.ONLINE,
+                         None, Node.ONLINE,
                          time.time(), {}, "ucoin", "0.14.0", 0)
         self.network = Network.create(self.network_manager, self.node)
         self.bma_access = BmaAccess.create(self.network)
