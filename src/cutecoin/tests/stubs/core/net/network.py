@@ -16,7 +16,7 @@ class Network(QObject):
     nodes_changed = pyqtSignal()
     new_block_mined = pyqtSignal(int)
 
-    def __init__(self, network_manager, currency, nodes):
+    def __init__(self, currency, nodes):
         """
         Constructor of a network
 
@@ -25,21 +25,20 @@ class Network(QObject):
         """
         super().__init__()
         self.currency = currency
-        self.network_manager = network_manager
 
     @classmethod
-    def create(cls, network_manager, node):
+    def create(cls, node):
         nodes = [node]
-        network = cls(network_manager, node.currency, nodes)
+        network = cls(node.currency, nodes)
         return network
 
     def merge_with_json(self, json_data):
         pass
 
     @classmethod
-    def from_json(cls, network_manager, currency, json_data):
+    def from_json(cls, currency, json_data):
         nodes = []
-        network = cls(network_manager, currency, nodes)
+        network = cls(currency, nodes)
         return network
 
     def jsonify(self):

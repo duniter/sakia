@@ -59,9 +59,9 @@ class StepPageInit(Step):
         server = self.config_dialog.lineedit_server.text()
         port = self.config_dialog.spinbox_port.value()
         logging.debug("Is valid ? ")
-        self.node = yield from Node.from_address(self.config_dialog.app.network_manager, None, server, port)
+        self.node = yield from Node.from_address(None, server, port)
         if self.node:
-            community = Community.create(self.app.network_manager, self.node)
+            community = Community.create(self.node)
             identity = yield from self.app.identities_registry.future_find(self.account.pubkey, community)
             if identity.blockchain_state == BlockchainState.NOT_FOUND:
                 self.config_dialog.label_error.setText(self.tr("Could not find your identity on the network."))
@@ -81,9 +81,9 @@ class StepPageInit(Step):
         server = self.config_dialog.lineedit_server.text()
         port = self.config_dialog.spinbox_port.value()
         logging.debug("Is valid ? ")
-        self.node = yield from Node.from_address(self.config_dialog.app.network_manager, None, server, port)
+        self.node = yield from Node.from_address(None, server, port)
         if self.node:
-            community = Community.create(self.app.network_manager, self.node)
+            community = Community.create(self.node)
             identity = yield from self.app.identities_registry.future_find(self.account.pubkey, community)
             if identity.blockchain_state == BlockchainState.NOT_FOUND:
                 password = yield from self.password_asker.future_exec()
@@ -138,7 +138,7 @@ class StepPageInit(Step):
         """
         account = self.config_dialog.account
         logging.debug("Account : {0}".format(account))
-        self.config_dialog.community = Community.create(self.config_dialog.app.network_manager, self.node)
+        self.config_dialog.community = Community.create(self.node)
 
     def display_page(self):
         self.config_dialog.button_next.hide()
@@ -237,7 +237,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         port = self.spinbox_add_port.value()
 
         try:
-            node = yield from Node.from_address(self.app.network_manager, self.community.currency, server, port)
+            node = yield from Node.from_address(self.community.currency, server, port)
             self.community.add_node(node)
         except Exception as e:
             QMessageBox.critical(self, self.tr("Error"),

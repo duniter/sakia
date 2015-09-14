@@ -33,12 +33,11 @@ class Application(QObject):
 
     version_requested = pyqtSignal()
 
-    def __init__(self, qapp, loop, network_manager, identities_registry):
+    def __init__(self, qapp, loop, identities_registry):
         """
         Init a new "cutecoin" application
         :param QCoreApplication qapp: Qt Application
         :param quamash.QEventLoop loop: quamash.QEventLoop instance
-        :param QNetworkAccessManager network_manager: QNetworkAccessManager instance
         :param IdentitiesRegistry identities_registry: IdentitiesRegistry instance
         :return:
         """
@@ -52,7 +51,6 @@ class Application(QObject):
                                   __version__,
                                   "")
         self._identities_registry = identities_registry
-        self._network_manager = network_manager
         self.preferences = {'account': "",
                             'lang': 'en_GB',
                             'ref': 0,
@@ -70,9 +68,8 @@ class Application(QObject):
     @classmethod
     def startup(cls, argv, qapp, loop):
         config.parse_arguments(argv)
-        network_manager = QNetworkAccessManager()
         identities_registry = IdentitiesRegistry()
-        app = cls(qapp, loop, network_manager, identities_registry)
+        app = cls(qapp, loop, identities_registry)
         app.load()
         app.switch_language()
         if app.preferences['enable_proxy'] is True:
@@ -81,7 +78,7 @@ class Application(QObject):
             qtproxy = QNetworkProxy(proxytypes[app.preferences.get('proxy_type', "HTTP")],
                                     app.preferences['proxy_address'],
                                     app.preferences['proxy_port'])
-            network_manager.setProxy(qtproxy)
+            #network_manager.setProxy(qtproxy)
 
         if app.preferences["account"] != "":
             account = app.get_account(app.preferences["account"])
@@ -144,10 +141,6 @@ class Application(QObject):
     @property
     def identities_registry(self):
         return self._identities_registry
-
-    @property
-    def network_manager(self):
-        return self._network_manager
 
     def add_account(self, account):
         self.accounts[account.name] = account
@@ -465,9 +458,9 @@ class Application(QObject):
 
     def get_last_version(self):
         url = QUrl("https://api.github.com/repos/ucoin-io/cutecoin/releases")
-        request = QNetworkRequest(url)
+        """request = QNetworkRequest(url)
         reply = self._network_manager.get(request)
-        reply.finished.connect(self.read_available_version)
+        reply.finished.connect(self.read_available_version)"""
 
     @pyqtSlot(QNetworkReply)
     def read_available_version(self):

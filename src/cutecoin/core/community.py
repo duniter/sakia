@@ -44,27 +44,27 @@ class Community(QObject):
         self._bma_access = bma_access
 
     @classmethod
-    def create(cls, network_manager, node):
+    def create(cls, node):
         """
         Create a community from its first node.
 
         :param node: The first Node of the community
         """
-        network = Network.create(network_manager, node)
+        network = Network.create(node)
         bma_access = BmaAccess.create(network)
         community = cls(node.currency, network, bma_access)
         logging.debug("Creating community")
         return community
 
     @classmethod
-    def load(cls, network_manager, json_data):
+    def load(cls, json_data):
         """
         Load a community from json
 
         :param dict json_data: The community as a dict in json format
         """
         currency = json_data['currency']
-        network = Network.from_json(network_manager, currency, json_data['peers'])
+        network = Network.from_json(currency, json_data['peers'])
         bma_access = BmaAccess.create(network)
         community = cls(currency, network, bma_access)
         return community

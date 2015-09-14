@@ -19,9 +19,8 @@ class MainWindowDialogsTest(unittest.TestCase):
         self.qapplication = get_application()
         self.lp = quamash.QEventLoop(self.qapplication)
         asyncio.set_event_loop(self.lp)
-        network_manager = QNetworkAccessManager()
 
-        self.application = Application(self.qapplication, self.lp, network_manager, IdentitiesRegistry())
+        self.application = Application(self.qapplication, self.lp, IdentitiesRegistry())
         self.main_window = MainWindow(self.application)
 
     def tearDown(self):

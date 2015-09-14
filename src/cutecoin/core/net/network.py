@@ -26,7 +26,7 @@ class Network(QObject):
     nodes_changed = pyqtSignal()
     new_block_mined = pyqtSignal(int)
 
-    def __init__(self, network_manager, currency, nodes):
+    def __init__(self, currency, nodes):
         """
         Constructor of a network
 
@@ -40,12 +40,11 @@ class Network(QObject):
             self.add_node(n)
         self.currency = currency
         self._must_crawl = False
-        self.network_manager = network_manager
         self._block_found = self.latest_block_hash
         self._timer = QTimer()
 
     @classmethod
-    def create(cls, network_manager, node):
+    def create(cls, node):
         """
         Create a new network with one knew node
         Crawls the nodes from the first node to build the
@@ -54,7 +53,7 @@ class Network(QObject):
         :param node: The first knew node of the network
         """
         nodes = [node]
-        network = cls(network_manager, node.currency, nodes)
+        network = cls(node.currency, nodes)
         return network
 
     def merge_with_json(self, json_data):
@@ -65,7 +64,7 @@ class Network(QObject):
         :param dict json_data: Nodes in json format
         """
         for data in json_data:
-            node = Node.from_json(self.network_manager, self.currency, data)
+            node = Node.from_json(self.currency, data)
             if node.pubkey not in [n.pubkey for n in self.nodes]:
                 self.add_node(node)
                 logging.debug("Loading : {:}".format(data['pubkey']))
@@ -86,7 +85,7 @@ class Network(QObject):
                     other_node.state = node.state
 
     @classmethod
-    def from_json(cls, network_manager, currency, json_data):
+    def from_json(cls, currency, json_data):
         """
         Load a network from a configured community
 
@@ -95,9 +94,9 @@ class Network(QObject):
         """
         nodes = []
         for data in json_data:
-            node = Node.from_json(network_manager, currency, data)
+            node = Node.from_json(currency, data)
             nodes.append(node)
-        network = cls(network_manager, currency, nodes)
+        network = cls(currency, nodes)
         # We block the signals until loading the nodes cache
         return network
 
@@ -320,7 +319,7 @@ class Network(QObject):
         pubkeys = [n.pubkey for n in self.nodes]
         if peer.pubkey not in pubkeys:
             logging.debug("New node found : {0}".format(peer.pubkey[:5]))
-            node = Node.from_peer(self.network_manager, self.currency, peer, pubkey)
+            node = Node.from_peer(self.currency, peer, pubkey)
             self.add_node(node)
             self.nodes_changed.emit()
 

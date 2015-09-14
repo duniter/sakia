@@ -22,13 +22,12 @@ from cutecoin.tests import get_application
 class ProcessAddCommunity(unittest.TestCase):
     def setUp(self):
         self.qapplication = get_application()
-        self.network_manager = MockNetworkAccessManager()
         QLocale.setDefault(QLocale("en_GB"))
         self.lp = quamash.QEventLoop(self.qapplication)
         asyncio.set_event_loop(self.lp)
         self.identities_registry = IdentitiesRegistry({})
 
-        self.application = Application(self.qapplication, self.lp, self.network_manager, self.identities_registry)
+        self.application = Application(self.qapplication, self.lp, self.identities_registry)
         self.application.preferences['notifications'] = False
         # Salt/password : "testcutecoin/testcutecoin"
         # Pubkey : 7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ
@@ -48,7 +47,6 @@ class ProcessAddCommunity(unittest.TestCase):
         mock = new_blockchain.get_mock()
         time.sleep(2)
         logging.debug(mock.pretend_url)
-        self.network_manager.set_mock_path(mock.pretend_url)
         API.reverse_url = pretender_reversed(mock.pretend_url)
         process_community = ProcessConfigureCommunity(self.application,
                                                     self.account,
@@ -107,7 +105,6 @@ class ProcessAddCommunity(unittest.TestCase):
         mock = new_blockchain.get_mock()
         time.sleep(2)
         logging.debug(mock.pretend_url)
-        self.network_manager.set_mock_path(mock.pretend_url)
         API.reverse_url = pretender_reversed(mock.pretend_url)
         process_community = ProcessConfigureCommunity(self.application,
                                                     self.account,
@@ -160,7 +157,6 @@ class ProcessAddCommunity(unittest.TestCase):
         mock = nice_blockchain.get_mock()
         time.sleep(2)
         logging.debug(mock.pretend_url)
-        self.network_manager.set_mock_path(mock.pretend_url)
         API.reverse_url = pretender_reversed(mock.pretend_url)
         process_community = ProcessConfigureCommunity(self.application,
                                                     self.account,

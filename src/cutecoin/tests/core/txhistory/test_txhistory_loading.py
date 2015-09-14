@@ -21,21 +21,20 @@ from ucoinpy.documents.peer import BMAEndpoint
 class TestTxHistory(unittest.TestCase):
     def setUp(self):
         self.qapplication = get_application()
-        self.network_manager = MockNetworkAccessManager()
         QLocale.setDefault(QLocale("en_GB"))
         self.lp = quamash.QEventLoop(self.qapplication)
         asyncio.set_event_loop(self.lp)
         self.identities_registry = IdentitiesRegistry({})
 
-        self.application = Application(self.qapplication, self.lp, self.network_manager, self.identities_registry)
+        self.application = Application(self.qapplication, self.lp, self.identities_registry)
         self.application.preferences['notifications'] = False
 
         self.endpoint = BMAEndpoint(PyBMAEndpoint("", "127.0.0.1", "", 50000))
-        self.node = Node(self.network_manager, "test_currency", [self.endpoint],
+        self.node = Node("test_currency", [self.endpoint],
                          "", "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk",
                          nice_blockchain.bma_blockchain_current, Node.ONLINE,
                          time.time(), {}, "ucoin", "0.14.0", 0)
-        self.network = Network.create(self.network_manager, self.node)
+        self.network = Network.create(self.node)
         self.bma_access = BmaAccess.create(self.network)
         self.community = Community("test_currency", self.network, self.bma_access)
 
@@ -59,7 +58,7 @@ class TestTxHistory(unittest.TestCase):
         mock = nice_blockchain.get_mock()
         time.sleep(2)
         logging.debug(mock.pretend_url)
-        self.network_manager.set_mock_path(mock.pretend_url)
+
         received_list = []
         self.lp.run_until_complete(self.wallet.caches[self.community.currency].
                                    refresh(self.community, received_list))

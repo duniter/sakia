@@ -273,7 +273,7 @@ def get_mock():
                 times=FOREVER,
                 headers={'Content-Type': 'application/json'})
 
-    mock.when('GET /blockchain/with/UD')\
+    mock.when('GET /blockchain/with/[UD|ud]')\
             .reply(body=bytes(json.dumps(bma_with_ud), "utf-8"),
                 status=200,
                 times=FOREVER,

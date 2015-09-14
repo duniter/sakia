@@ -84,7 +84,7 @@ class Account(QObject):
         return account
 
     @classmethod
-    def load(cls, json_data, network_manager, identities_registry):
+    def load(cls, json_data, identities_registry):
         """
         Factory method to create an Account object from its json view.
         :rtype : cutecoin.core.account.Account
@@ -108,7 +108,7 @@ class Account(QObject):
 
         communities = []
         for data in json_data['communities']:
-            community = Community.load(network_manager, data)
+            community = Community.load(data)
             communities.append(community)
 
         account = cls(salt, pubkey, name, communities, wallets,

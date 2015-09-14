@@ -16,7 +16,7 @@ class MainWindowMenusTest(unittest.TestCase):
         self.lp = quamash.QEventLoop(self.qapplication)
         asyncio.set_event_loop(self.lp)
 
-        self.application = Application(self.qapplication, self.lp, None, None)
+        self.application = Application(self.qapplication, self.lp, None)
         self.main_window = MainWindow(self.application)
 
     def tearDown(self):

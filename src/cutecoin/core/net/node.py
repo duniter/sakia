@@ -38,13 +38,12 @@ class Node(QObject):
     changed = pyqtSignal()
     neighbour_found = pyqtSignal(Peer, str)
 
-    def __init__(self, network_manager, currency, endpoints, uid, pubkey, block,
+    def __init__(self, currency, endpoints, uid, pubkey, block,
                  state, last_change, last_merkle, software, version, fork_window):
         """
         Constructor
         """
         super().__init__()
-        self.network_manager = network_manager
         self._endpoints = endpoints
         self._uid = uid
         self._pubkey = pubkey
@@ -60,7 +59,7 @@ class Node(QObject):
 
     @classmethod
     @asyncio.coroutine
-    def from_address(cls, network_manager, currency, address, port):
+    def from_address(cls, currency, address, port):
         """
         Factory method to get a node from a given address
 
@@ -78,7 +77,7 @@ class Node(QObject):
             if peer.currency != currency:
                 raise InvalidNodeCurrency(peer.currency, currency)
 
-        node = cls(network_manager, peer.currency,
+        node = cls(peer.currency,
                    [Endpoint.from_inline(e.inline()) for e in peer.endpoints],
                    "", peer.pubkey, None, Node.ONLINE, time.time(),
                    {'root': "", 'leaves': []}, "", "", 0)
@@ -86,7 +85,7 @@ class Node(QObject):
         return node
 
     @classmethod
-    def from_peer(cls, network_manager, currency, peer, pubkey):
+    def from_peer(cls, currency, peer, pubkey):
         """
         Factory method to get a node from a peer document.
 
@@ -98,7 +97,7 @@ class Node(QObject):
             if peer.currency != currency:
                 raise InvalidNodeCurrency(peer.currency, currency)
 
-        node = cls(network_manager, peer.currency, peer.endpoints,
+        node = cls(peer.currency, peer.endpoints,
                    "", pubkey, bma.blockchain.Block.null_value,
                    Node.ONLINE, time.time(),
                    {'root': "", 'leaves': []},
@@ -107,7 +106,7 @@ class Node(QObject):
         return node
 
     @classmethod
-    def from_json(cls, network_manager, currency, data):
+    def from_json(cls, currency, data):
         endpoints = []
         uid = ""
         pubkey = ""
@@ -148,7 +147,7 @@ class Node(QObject):
         if 'fork_window' in data:
             fork_window = data['fork_window']
 
-        node = cls(network_manager, currency, endpoints,
+        node = cls(currency, endpoints,
                    uid, pubkey, block,
                    state, last_change,
                    {'root': "", 'leaves': []},
