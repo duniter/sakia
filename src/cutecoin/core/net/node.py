@@ -12,6 +12,7 @@ from ucoinpy.api import bma as bma
 from ucoinpy.api.bma import ConnectionHandler
 
 import asyncio
+from aiohttp.errors import ClientError
 import logging
 import time
 import json
@@ -251,6 +252,7 @@ class Node(QObject):
                                                                         self.state, new_state))
         if self._state != new_state:
             self.last_change = time.time()
+            self.changed.emit()
         self._state = new_state
 
     @property
@@ -305,6 +307,9 @@ class Node(QObject):
                 self.set_block(None)
             logging.debug("Error in block reply")
             self.changed.emit()
+        except ClientError:
+            logging.debug("Client error : {0}".format(self.pubkey))
+            self.state = Node.OFFLINE
         except asyncio.TimeoutError:
             logging.debug("Timeout error : {0}".format(self.pubkey))
             self.state = Node.OFFLINE
@@ -335,6 +340,9 @@ class Node(QObject):
         except ValueError as e:
             logging.debug("Error in peering reply : {0}".format(str(e)))
             self.changed.emit()
+        except ClientError:
+            logging.debug("Client error : {0}".format(self.pubkey))
+            self.state = Node.OFFLINE
         except asyncio.TimeoutError:
             logging.debug("Timeout error : {0}".format(self.pubkey))
             self.state = Node.OFFLINE
@@ -353,6 +361,9 @@ class Node(QObject):
         except ValueError as e:
             logging.debug("Error in summary : {0}".format(e))
             self.changed.emit()
+        except ClientError:
+            logging.debug("Client error : {0}".format(self.pubkey))
+            self.state = Node.OFFLINE
         except asyncio.TimeoutError:
             logging.debug("Timeout error : {0}".format(self.pubkey))
             self.state = Node.OFFLINE
@@ -379,6 +390,9 @@ class Node(QObject):
             else:
                 logging.debug("error in uid reply")
                 self.changed.emit()
+        except ClientError:
+            logging.debug("Client error : {0}".format(self.pubkey))
+            self.state = Node.OFFLINE
         except asyncio.TimeoutError:
             logging.debug("Timeout error : {0}".format(self.pubkey))
             self.state = Node.OFFLINE
@@ -409,6 +423,9 @@ class Node(QObject):
         except ValueError as e:
             logging.debug("Error in peers reply")
             self.changed.emit()
+        except ClientError:
+            logging.debug("Client error : {0}".format(self.pubkey))
+            self.state = Node.OFFLINE
         except asyncio.TimeoutError:
             logging.debug("Timeout error : {0}".format(self.pubkey))
             self.state = Node.OFFLINE

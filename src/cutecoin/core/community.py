@@ -183,7 +183,7 @@ class Community(QObject):
         """
         # Get cached block by block number
         block_number = self.network.latest_block_number
-        block = yield from self.bma_access.future_request(self, bma.blockchain.Block,
+        block = yield from self.bma_access.future_request(bma.blockchain.Block,
                              req_args={'number': block_number})
         return block['monetaryMass']
 

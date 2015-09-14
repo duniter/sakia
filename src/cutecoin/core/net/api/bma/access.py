@@ -155,7 +155,8 @@ class BmaAccess(QObject):
         if need_reload:
             nodes = self._network.synced_nodes
             if len(nodes) > 0:
-                for i in range(0, 6):
+                tries = 0
+                while tries < 3:
                     node = random.choice(nodes)
                     conn_handler = node.endpoint.conn_handler()
                     req = request(conn_handler, **req_args)
@@ -166,9 +167,11 @@ class BmaAccess(QObject):
                     except ValueError as e:
                         if '404' in str(e) or '400' in str(e):
                             raise
-                        continue
+                        tries += 1
                     except ClientError:
-                        continue
+                        tries += 1
+            else:
+                raise NoPeerAvailable("", nodes)
         return json_data
 
     def simple_request(self, request, req_args={}, get_args={}):
@@ -205,10 +208,13 @@ class BmaAccess(QObject):
         """
         nodes = self._network.online_nodes
         replies = []
-        for node in nodes:
-            logging.debug("Trying to connect to : " + node.pubkey)
-            conn_handler = node.endpoint.conn_handler()
-            req = request(conn_handler, **req_args)
-            reply = yield from req.post(**post_args)
-            replies.append(reply)
+        if len(nodes) > 0:
+            for node in nodes:
+                logging.debug("Trying to connect to : " + node.pubkey)
+                conn_handler = node.endpoint.conn_handler()
+                req = request(conn_handler, **req_args)
+                reply = yield from req.post(**post_args)
+                replies.append(reply)
+        else:
+            raise NoPeerAvailable("", nodes)
         return tuple(replies)

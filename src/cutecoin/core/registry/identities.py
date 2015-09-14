@@ -6,6 +6,7 @@ import json
 import asyncio
 import logging
 from aiohttp.errors import ClientError
+from ...tools.exceptions import NoPeerAvailable
 
 
 class IdentitiesRegistry:
@@ -69,8 +70,12 @@ class IdentitiesRegistry:
                     return identity
                 except ValueError as e:
                     lookup_tries += 1
+                except asyncio.TimeoutError:
+                    lookup_tries += 1
                 except ClientError:
                     lookup_tries += 1
+                except NoPeerAvailable:
+                    return identity
             return identity
 
         if pubkey in self._instances:
@@ -91,8 +96,12 @@ class IdentitiesRegistry:
                         return (yield from lookup())
                     else:
                         tries += 1
+                except asyncio.TimeoutError:
+                    tries += 1
                 except ClientError:
                     tries += 1
+                except NoPeerAvailable:
+                    return identity
         return identity
 
     def from_handled_data(self, uid, pubkey, blockchain_state):
