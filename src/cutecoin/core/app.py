@@ -226,7 +226,7 @@ class Application(QObject):
                                     account_name, 'properties')
         with open(account_path, 'r') as json_data:
             data = json.load(json_data)
-            account = Account.load(data, self._network_manager, self._identities_registry)
+            account = Account.load(data, self._identities_registry)
             self.load_cache(account)
             self.accounts[account_name] = account
 

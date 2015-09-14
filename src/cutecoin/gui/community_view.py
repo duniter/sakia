@@ -88,17 +88,8 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
 
     def change_account(self, account, password_asker):
         self.cancel_once_tasks()
-        if self.account:
-            self.account.broadcast_error.disconnect(self.handle_broadcast_error)
-            self.account.membership_broadcasted.disconnect(self.handle_membership_broadcasted)
-            self.account.selfcert_broadcasted.disconnect(self.handle_selfcert_broadcasted)
 
         self.account = account
-
-        if self.account:
-            self.account.broadcast_error.connect(self.handle_broadcast_error)
-            self.account.membership_broadcasted.connect(self.handle_membership_broadcasted)
-            self.account.selfcert_broadcasted.connect(self.handle_selfcert_broadcasted)
 
         self.password_asker = password_asker
         self.tab_wot.change_account(account, self.password_asker)
@@ -254,11 +245,19 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
             self.tab_history.table_history.model().sourceModel().refresh_transfers()
             self.tab_history.refresh_balance()
 
-    def send_membership_demand(self):
-        password = self.password_asker.exec_()
+    @asyncify
+    @asyncio.coroutine
+    def send_membership_demand(self, checked=False):
+        password = yield from self.password_asker.async_exec()
         if self.password_asker.result() == QDialog.Rejected:
             return
-        asyncio.async(self.account.send_membership(password, self.community, 'IN'))
+        result = yield from self.account.send_membership(password, self.community, 'IN')
+        if result[0]:
+            if self.app.preferences['notifications']:
+                toast.display(self.tr("Membership"), self.tr("Success sending Membership demand"))
+        else:
+            if self.app.preferences['notifications']:
+                toast.display(self.tr("Membership"), result[1])
 
     def send_membership_leaving(self):
         reply = QMessageBox.warning(self, self.tr("Warning"),
@@ -310,12 +309,6 @@ Revoking your UID can only success if it is not already validated by the network
                 return
 
             asyncio.async(self.account.revoke(password, self.community))
-
-    def handle_membership_broadcasted(self):
-        if self.app.preferences['notifications']:
-            toast.display(self.tr("Membership"), self.tr("Success sending Membership demand"))
-        else:
-            QMessageBox.information(self, self.tr("Membership"), self.tr("Success sending Membership demand"))
 
     def handle_revoke_broadcasted(self):
         if self.app.preferences['notifications']:

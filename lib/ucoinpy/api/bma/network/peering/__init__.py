@@ -40,7 +40,7 @@ class Peers(Base):
         assert 'signature' in kwargs
 
         r = yield from self.requests_post('/peers', **kwargs)
-        return (yield from r.json())
+        return r
 
 
 class Status(Base):
@@ -51,4 +51,4 @@ class Status(Base):
         assert 'signature' in kwargs
 
         r = yield from self.requests_post('/status', **kwargs)
-        return (yield from r.json())
+        return r

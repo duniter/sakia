@@ -26,8 +26,6 @@ class Wallet(QObject):
     """
     refresh_progressed = pyqtSignal(int, int, str)
     refresh_finished = pyqtSignal(list)
-    transfer_broadcasted = pyqtSignal(str)
-    broadcast_error = pyqtSignal(int, str)
 
     def __init__(self, walletid, pubkey, name, identities_registry):
         """
@@ -272,9 +270,7 @@ class Wallet(QObject):
 
         tx.sign([key])
         logging.debug("Transaction : {0}".format(tx.signed_raw()))
-        transfer.transfer_broadcasted.connect(self.transfer_broadcasted)
-        transfer.broadcast_error.connect(self.broadcast_error)
-        yield from transfer.send(tx, community)
+        return (yield from transfer.send(tx, community))
 
     @asyncio.coroutine
     def future_sources(self, community):

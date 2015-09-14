@@ -45,7 +45,7 @@ class Process(Tx):
         assert 'transaction' in kwargs
 
         r = yield from self.requests_post('/process', **kwargs)
-        return (yield from r.text())
+        return r
 
 
 class Sources(Tx):

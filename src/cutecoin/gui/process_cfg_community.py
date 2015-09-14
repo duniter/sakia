@@ -86,13 +86,23 @@ class StepPageInit(Step):
             community = Community.create(self.node)
             identity = yield from self.app.identities_registry.future_find(self.account.pubkey, community)
             if identity.blockchain_state == BlockchainState.NOT_FOUND:
-                password = yield from self.password_asker.future_exec()
+                password = yield from self.password_asker.async_exec()
                 if self.password_asker.result() == QDialog.Rejected:
                     return
                 self.config_dialog.label_error.setText(self.tr("Broadcasting identity..."))
-                self.account.selfcert_broadcasted.connect(self.handle_broadcast)
-                self.account.broadcast_error.connect(self.handle_error)
-                yield from self.account.send_selfcert(password, community)
+                result = yield from self.account.send_selfcert(password, community)
+                if result[0]:
+                    if self.app.preferences['notifications']:
+                        toast.display(self.tr("UID broadcast"), self.tr("Identity broadcasted to the network"))
+                    QApplication.restoreOverrideCursor()
+                    self.config_dialog.next()
+                else:
+                    self.config_dialog.label_error.setText(self.tr("Error") + " " + \
+                                                           self.tr("{0}".format(result[1])))
+                    if self.app.preferences['notifications']:
+                        toast.display(self.tr("Error"), self.tr("{0}".format(result[1])))
+                QApplication.restoreOverrideCursor()
+
                 self.config_dialog.community = community
             else:
                 self.config_dialog.label_error.setText(self.tr("Pubkey already exists on the network"))
@@ -103,31 +113,6 @@ class StepPageInit(Step):
     def check_register(self):
         logging.debug("Check node")
         asyncio.async(self.coroutine_check_register())
-
-    @pyqtSlot(int, str)
-    def handle_broadcast(self):
-        if self.app.preferences['notifications']:
-            toast.display(self.tr("UID broadcast"), self.tr("Identity broadcasted to the network"))
-        # Disabled : https://github.com/harvimt/quamash/issues/41
-        # else:
-        #    QMessageBox.information(self, self.tr("UID broadcast"), self.tr("Identity broadcasted to the network"))
-        self.account.selfcert_broadcasted.disconnect()
-        self.account.broadcast_error.disconnect(self.handle_error)
-        QApplication.restoreOverrideCursor()
-        self.config_dialog.next()
-
-    @pyqtSlot(int, str)
-    def handle_error(self, error_code, text):
-        self.config_dialog.label_error.setText(self.tr("Error") + " " + \
-                                               self.tr("{0} : {1}".format(error_code, text)))
-        if self.app.preferences['notifications']:
-            toast.display(self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
-        # Disabled : https://github.com/harvimt/quamash/issues/41
-        #  else:
-        #    QMessageBox.critical(self, self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
-        self.account.selfcert_broadcasted.disconnect()
-        self.account.broadcast_error.disconnect(self.handle_error)
-        QApplication.restoreOverrideCursor()
 
     def is_valid(self):
         return self.node is not None

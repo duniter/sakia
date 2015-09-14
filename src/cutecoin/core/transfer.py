@@ -108,26 +108,25 @@ class Transfer(QObject):
         :param txdoc: A transaction ucoinpy object
         :param community: The community target of the transaction
         """
-        try:
-            error = 0
-            replies = yield from community.bma_access.broadcast(bma.tx.Process,
-                    post_args={'transaction': txdoc.signed_raw()})
-            self.state = Transfer.AWAITING
-            self.hash = hashlib.sha1(txdoc.signed_raw().encode("ascii")).hexdigest().upper()
-            blockid = yield from community.blockid()
-            block = yield from community.bma_access.future_request(bma.blockchain.Block,
-                                      req_args={'number': blockid['number']})
-            if block != bma.blockchain.Block.null_value:
-                self._metadata['block'] = blockid['number']
-                self._metadata['time'] = block['medianTime']
-        except ValueError as e:
-            error += 1
-            error_msg = str(e)
-        finally:
-            if error < len(replies):
-                self.transfer_broadcasted.emit(self.metadata['receiver_uid'])
+        responses = yield from community.bma_access.broadcast(bma.tx.Process,
+                post_args={'transaction': txdoc.signed_raw()})
+        self.state = Transfer.AWAITING
+        self.hash = hashlib.sha1(txdoc.signed_raw().encode("ascii")).hexdigest().upper()
+        blockid = yield from community.blockid()
+        block = yield from community.bma_access.future_request(bma.blockchain.Block,
+                                  req_args={'number': blockid['number']})
+        self._metadata['block'] = blockid['number']
+        self._metadata['time'] = block['medianTime']
+        result = (False, "")
+        for r in responses:
+            if r.status == 200:
+                result = (True, (yield from r.json()))
+            elif not result[0]:
+                result = (False, (yield from r.text()))
             else:
-                self.broadcast_error.emit(0, error_msg)
+                yield from r.text()
+
+        return result
 
     def check_registered(self, txhash, block_number, time, data_validation):
         """

@@ -55,14 +55,18 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
             self.radio_contact.setEnabled(False)
             self.radio_pubkey.setChecked(True)
 
-    @staticmethod
-    def send_money_to_identity(app, account, password_asker, community, identity):
-        dialog = TransferMoneyDialog(app, account, password_asker)
+    @classmethod
+    @asyncify
+    @asyncio.coroutine
+    def send_money_to_identity(cls, app, account, password_asker, community, identity):
+        dialog = cls(app, account, password_asker)
         dialog.edit_pubkey.setText(identity.pubkey)
         dialog.combo_community.setCurrentText(community.name)
         dialog.radio_pubkey.setChecked(True)
-        return dialog.exec()
+        yield from dialog.async_exec()
 
+    @asyncify
+    @asyncio.coroutine
     def accept(self):
         comment = self.edit_message.text()
 
@@ -74,44 +78,31 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         amount = self.spinbox_amount.value()
 
         if not amount:
+            return
+            """
             QMessageBox.critical(self, self.tr("Money transfer"),
                                  self.tr("No amount. Please give the transfert amount"),
                                  QMessageBox.Ok)
-            return
+            return"""
 
-        password = self.password_asker.exec_()
+        password = yield from self.password_asker.async_exec()
         if self.password_asker.result() == QDialog.Rejected:
             return
 
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QApplication.processEvents()
-        self.wallet.transfer_broadcasted.connect(self.money_sent)
-        self.wallet.broadcast_error.connect(self.handle_error)
-        asyncio.async(self.wallet.send_money(self.account.salt, password, self.community,
-                                   recipient, amount, comment))
-
-    @pyqtSlot(str)
-    def money_sent(self, receiver_uid):
-        if self.app.preferences['notifications']:
-            toast.display(self.tr("Transfer"),
-                      self.tr("Success sending money to {0}").format(receiver_uid))
+        result = yield from self.wallet.send_money(self.account.salt, password, self.community,
+                                   recipient, amount, comment)
+        if result[0]:
+            if self.app.preferences['notifications']:
+                toast.display(self.tr("Transfer"),
+                          self.tr("Success sending money to {0}").format(recipient))
+            QApplication.restoreOverrideCursor()
+            super().accept()
         else:
-            QMessageBox.information(self, self.tr("Transfer"),
-                      self.tr("Success sending money to {0}").format(receiver_uid))
-        self.wallet.transfer_broadcasted.disconnect()
-        self.wallet.broadcast_error.disconnect(self.handle_error)
-        QApplication.restoreOverrideCursor()
-        super().accept()
-
-    @pyqtSlot(int, str)
-    def handle_error(self, error_code, text):
-        if self.app.preferences['notifications']:
-            toast.display(self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
-        else:
-            QMessageBox.critical(self, self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
-        self.wallet.transfer_broadcasted.disconnect()
-        self.wallet.broadcast_error.disconnect(self.handle_error)
-        QApplication.restoreOverrideCursor()
+            if self.app.preferences['notifications']:
+                toast.display(self.tr("Error"), "{0}".format(result[1]))
+            QApplication.restoreOverrideCursor()
 
     @asyncify
     @asyncio.coroutine

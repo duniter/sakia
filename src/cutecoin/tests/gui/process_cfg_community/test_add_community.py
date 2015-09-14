@@ -10,7 +10,6 @@ from PyQt5.QtTest import QTest
 from ucoinpy.api.bma import API
 from cutecoin.tests.mocks.monkeypatch import pretender_reversed
 from cutecoin.tests.mocks.bma import new_blockchain, nice_blockchain
-from cutecoin.tests.mocks.access_manager import MockNetworkAccessManager
 from cutecoin.core.registry.identities import IdentitiesRegistry
 from cutecoin.gui.process_cfg_community import ProcessConfigureCommunity
 from cutecoin.gui.password_asker import PasswordAskerDialog

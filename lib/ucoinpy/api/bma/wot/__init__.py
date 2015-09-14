@@ -35,7 +35,7 @@ class Add(WOT):
         assert 'other' in kwargs
 
         r = yield from self.requests_post('/add', **kwargs)
-        return (yield from r.text())
+        return r
 
 
 class Revoke(WOT):
@@ -46,7 +46,7 @@ class Revoke(WOT):
         assert 'self_' in kwargs
 
         r = yield from self.requests_post('/revoke', **kwargs)
-        return (yield from r.text())
+        return r
 
 
 class Lookup(WOT):

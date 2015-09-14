@@ -34,11 +34,6 @@ class Account(QObject):
     loading_progressed = pyqtSignal(int, int)
     loading_finished = pyqtSignal(list)
     wallets_changed = pyqtSignal()
-    membership_broadcasted = pyqtSignal()
-    certification_broadcasted = pyqtSignal()
-    selfcert_broadcasted = pyqtSignal()
-    revoke_broadcasted = pyqtSignal()
-    broadcast_error = pyqtSignal(int, str)
 
     def __init__(self, salt, pubkey, name, communities, wallets, contacts, identities_registry):
         """
@@ -295,19 +290,19 @@ class Account(QObject):
         key = SigningKey(self.salt, password)
         selfcert.sign([key])
         logging.debug("Key publish : {0}".format(selfcert.signed_raw()))
-        try:
-            error = 0
-            replies = yield from community.bma_access.broadcast(bma.wot.Add, {}, {'pubkey': self.pubkey,
+
+        responses = yield from community.bma_access.broadcast(bma.wot.Add, {}, {'pubkey': self.pubkey,
                                               'self_': selfcert.signed_raw(),
                                               'other': {}})
-        except ValueError as e:
-            error += 1
-            error_msg = str(e)
-        finally:
-            if error < len(replies):
-                self.selfcert_broadcasted.emit()
+        result = (False, "")
+        for r in responses:
+            if r.status == 200:
+                result = (True, (yield from r.json()))
+            elif not result[0]:
+                result = (False, (yield from r.text()))
             else:
-                self.broadcast_error.emit(0, error_msg)
+                yield from r.text()
+        return result
 
     @asyncio.coroutine
     def send_membership(self, password, community, mstype):
@@ -332,18 +327,17 @@ class Account(QObject):
         key = SigningKey(self.salt, password)
         membership.sign([key])
         logging.debug("Membership : {0}".format(membership.signed_raw()))
-        try:
-            error = 0
-            replies = yield from community.bma_access.broadcast(bma.blockchain.Membership, {},
-                            {'membership': membership.signed_raw()})
-        except ValueError as e:
-            error += 1
-            error_msg = str(e)
-        finally:
-            if error < len(replies):
-                self.membership_broadcasted.emit()
+        responses = yield from community.bma_access.broadcast(bma.blockchain.Membership, {},
+                        {'membership': membership.signed_raw()})
+        result = (False, "")
+        for r in responses:
+            if r.status == 200:
+                result = (True, (yield from r.json()))
+            elif not result[0]:
+                result = (False, (yield from r.text()))
             else:
-                self.broadcast_error.emit(0, error_msg)
+                yield from r.text()
+        return result
 
     @asyncio.coroutine
     def certify(self, password, community, pubkey):
@@ -371,17 +365,16 @@ class Account(QObject):
                 'self_': selfcert.signed_raw(),
                 'other': "{0}\n".format(certification.inline())}
         logging.debug("Posted data : {0}".format(data))
-        try:
-            error = 0
-            responses = yield from community.bma_access.broadcast(bma.wot.Add, {}, data)
-        except ValueError as e:
-            error += 1
-            error_msg = str(e)
-        finally:
-            if error < len(responses):
-                self.certification_broadcasted.emit()
+        responses = yield from community.bma_access.broadcast(bma.wot.Add, {}, data)
+        result = (False, "")
+        for r in responses:
+            if r.status == 200:
+                result = (True, (yield from r.json()))
+            elif not result[0]:
+                result = (False, (yield from r.text()))
             else:
-                self.broadcast_error.emit(0, error_msg)
+                yield from r.text()
+        return result
 
     @asyncio.coroutine
     def revoke(self, password, community):
@@ -408,17 +401,16 @@ class Account(QObject):
             'sig': revocation.signatures[0]
         }
         logging.debug("Posted data : {0}".format(data))
-        try:
-            error = 0
-            replies = yield from community.broadcast(bma.wot.Revoke, {}, data)
-        except ValueError as e:
-            error += 1
-            error_msg = str(e)
-        finally:
-            if error < len(replies):
-                self.revoke_broadcasted.emit()
+        responses = yield from community.broadcast(bma.wot.Revoke, {}, data)
+        result = (False, "")
+        for r in responses:
+            if r.status == 200:
+                result = (True, (yield from r.json()))
+            elif not result[0]:
+                result = (False, (yield from r.text()))
             else:
-                self.broadcast_error.emit(error_msg)
+                yield from r.text()
+        return result
 
     def start_coroutines(self):
         for c in self.communities:

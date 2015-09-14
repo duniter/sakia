@@ -44,7 +44,7 @@ class Membership(Blockchain):
         assert 'membership' in kwargs
 
         r = yield from self.requests_post('/membership', **kwargs)
-        return (yield from r.text())
+        return r
 
     def __get__(self, **kwargs):
         assert self.search is not None
@@ -77,7 +77,7 @@ class Block(Blockchain):
         assert 'signature' in kwargs
 
         r = yield from self.requests_post('/block', **kwargs)
-        return (yield from r.text())
+        return r
 
 
 class Current(Blockchain):

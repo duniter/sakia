@@ -12,7 +12,6 @@ from ucoinpy.api import bma
 from ucoinpy.api.bma import API
 from cutecoin.tests.mocks.monkeypatch import pretender_reversed
 from cutecoin.tests.mocks.bma import nice_blockchain
-from cutecoin.tests.mocks.access_manager import MockNetworkAccessManager
 from cutecoin.core.registry.identities import IdentitiesRegistry
 from cutecoin.gui.identities_tab import IdentitiesTabWidget
 from cutecoin.gui.password_asker import PasswordAskerDialog

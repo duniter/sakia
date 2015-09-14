@@ -7,7 +7,6 @@ from PyQt5.QtWidgets import QDialog
 from PyQt5.QtCore import QLocale, Qt
 from PyQt5.QtTest import QTest
 from cutecoin.tests.mocks.bma import new_blockchain
-from cutecoin.tests.mocks.access_manager import MockNetworkAccessManager
 from cutecoin.core.registry.identities import IdentitiesRegistry
 from cutecoin.gui.process_cfg_account import ProcessConfigureAccount
 from cutecoin.gui.password_asker import PasswordAskerDialog

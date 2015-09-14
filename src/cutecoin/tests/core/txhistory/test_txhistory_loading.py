@@ -8,7 +8,6 @@ from ucoinpy.documents.peer import BMAEndpoint as PyBMAEndpoint
 from PyQt5.QtCore import QLocale, Qt
 from PyQt5.QtTest import QTest
 from cutecoin.tests.mocks.bma import nice_blockchain
-from cutecoin.tests.mocks.access_manager import MockNetworkAccessManager
 from cutecoin.core.registry.identities import IdentitiesRegistry
 from cutecoin.core.app import Application
 from cutecoin.core import Account, Community, Wallet

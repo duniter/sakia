@@ -29,7 +29,7 @@ class PasswordAskerDialog(QDialog, Ui_PasswordAskerDialog):
         self.password = ""
         self.remember = False
 
-    def future_exec(self):
+    def async_exec(self):
         future = asyncio.Future()
         if not self.remember:
             def future_show():
