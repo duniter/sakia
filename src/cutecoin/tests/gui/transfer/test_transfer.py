@@ -4,8 +4,8 @@ import asyncio
 import quamash
 import time
 import logging
-from ucoinpy.documents.peer import BMAEndpoint as PyBMAEndpoint
-from PyQt5.QtWidgets import QDialog, QDialogButtonBox
+from quamash import QApplication
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QMessageBox
 from PyQt5.QtCore import QLocale, Qt
 from PyQt5.QtTest import QTest
 from ucoinpy.api.bma import API
@@ -85,6 +85,11 @@ class TestTransferDialog(unittest.TestCase):
             QTest.mouseClick(transfer_dialog.radio_pubkey, Qt.LeftButton)
             QTest.keyClicks(transfer_dialog.edit_pubkey, "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn")
             QTest.mouseClick(transfer_dialog.button_box.button(QDialogButtonBox.Cancel), Qt.LeftButton)
+            yield from asyncio.sleep(1)
+            topWidgets = QApplication.topLevelWidgets()
+            for w in topWidgets:
+                if type(w) is QMessageBox:
+                    QTest.keyClick(w, Qt.Key_Enter)
 
         self.lp.call_later(15, close_dialog)
         asyncio.async(exec_test())

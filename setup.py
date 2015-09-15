@@ -16,7 +16,7 @@ print(sys.path)
 includes = ["sip", "re", "json", "logging",
             "hashlib", "os", "urllib",
             "ucoinpy", "pylibscrypt"]
-excludes = ['.git']
+exclude = ['.git']
 packages = ["libnacl", "encodings"]
 
 includefiles = []
@@ -62,7 +62,7 @@ else:
 options = {"path": sys.path,
            "includes": includes,
            "include_files": includefiles,
-           "excludes": excludes,
+           "excludes": exclude,
            "packages": packages,
            }
 

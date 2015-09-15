@@ -296,6 +296,7 @@ class Node(QObject):
         try:
             block_data = yield from bma.blockchain.Current(conn_handler).get()
             block_hash = block_data['hash']
+            self.state = Node.ONLINE
 
             if not self.block or block_hash != self.block['hash']:
                 self.set_block(block_data)
@@ -324,6 +325,7 @@ class Node(QObject):
             logging.debug(peering_data)
             node_pubkey = peering_data["pubkey"]
             node_currency = peering_data["currency"]
+            self.state = Node.ONLINE
 
             change = False
             if node_pubkey != self.pubkey:
@@ -354,6 +356,7 @@ class Node(QObject):
             summary_data = yield from bma.node.Summary(conn_handler).get()
             self.software = summary_data["ucoin"]["software"]
             self.version = summary_data["ucoin"]["version"]
+            self.state = Node.ONLINE
             if "forkWindowSize" in summary_data["ucoin"]:
                 self.fork_window = summary_data["ucoin"]["forkWindowSize"]
             else:
@@ -372,6 +375,7 @@ class Node(QObject):
         conn_handler = self.endpoint.conn_handler()
         try:
             data = yield from bma.wot.Lookup(conn_handler, self.pubkey).get()
+            self.state = Node.ONLINE
             timestamp = 0
             for result in data['results']:
                 if result["pubkey"] == self.pubkey:
@@ -402,6 +406,7 @@ class Node(QObject):
 
         try:
             peers_data = yield from bma.network.peering.Peers(conn_handler).get(leaves='true')
+            self.state = Node.ONLINE
             if peers_data['root'] != self._last_merkle['root']:
                 leaves = [leaf for leaf in peers_data['leaves']
                           if leaf not in self._last_merkle['leaves']]

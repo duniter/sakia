@@ -25,7 +25,7 @@ __nonsense__    = 'uCoin'
 
 PROTOCOL_VERSION = "1"
 
-import aiohttp, requests, asyncio, logging, json
+import aiohttp, asyncio, logging, json
 
 logger = logging.getLogger("ucoin")
 
@@ -42,6 +42,7 @@ class ConnectionHandler(object):
 
         self.server = server
         self.port = port
+        self.connector = None
 
     def __str__(self):
         return 'connection info: %s:%d' % (self.server, self.port)
@@ -49,6 +50,8 @@ class ConnectionHandler(object):
 
 class API(object):
     """APIRequest is a class used as an interface. The intermediate derivated classes are the modules and the leaf classes are the API requests."""
+
+    aiohttp_connector = None
 
     def __init__(self, connection_handler, module):
         """
@@ -110,7 +113,7 @@ class API(object):
         """
         logging.debug("Request : {0}".format(self.reverse_url(path)))
         response = yield from asyncio.wait_for(aiohttp.get(self.reverse_url(path), params=kwargs,
-                                headers=self.headers), 15)
+                                headers=self.headers, connector=API.aiohttp_connector), timeout=15)
 
         if response.status != 200:
             raise ValueError('status code != 200 => %d (%s)' % (response.status, (yield from response.text())))
@@ -129,7 +132,8 @@ class API(object):
 
         logging.debug("POST : {0}".format(kwargs))
         response = yield from asyncio.wait_for(
-            aiohttp.post(self.reverse_url(path), data=kwargs, headers=self.headers),
+            aiohttp.post(self.reverse_url(path), data=kwargs, headers=self.headers,
+                         connector=API.aiohttp_connector),
                                  timeout=15)
         return response
 

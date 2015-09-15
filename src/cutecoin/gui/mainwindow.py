@@ -86,7 +86,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def startup(self):
         self.update_time()
-        self.app.get_last_version()
+        # FIXME : Need python 3.5 self.app.get_last_version()
         if self.app.preferences['maximized']:
             self.showMaximized()
         else:

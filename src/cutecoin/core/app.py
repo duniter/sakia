@@ -10,17 +10,19 @@ import tarfile
 import shutil
 import json
 import datetime
-import i18n_rc
+import asyncio
+import aiohttp
 
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, \
 QUrl, QTranslator, QCoreApplication, QLocale
-from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest, QNetworkProxy
-
+from ucoinpy.api.bma import API
+from aiohttp.connector import ProxyConnector
 from . import config
 from .account import Account
 from .registry.identities import IdentitiesRegistry
 from .. import __version__
 from ..tools.exceptions import NameAlreadyExists, BadAccountFile
+from ..tools.decorators import asyncify
 
 
 class Application(QObject):
@@ -73,12 +75,9 @@ class Application(QObject):
         app.load()
         app.switch_language()
         if app.preferences['enable_proxy'] is True:
-            proxytypes = {"HTTP": QNetworkProxy.HttpProxy,
-                          "SOCKS5": QNetworkProxy.Socks5Proxy}
-            qtproxy = QNetworkProxy(proxytypes[app.preferences.get('proxy_type', "HTTP")],
+            API.aiohttp_connector = ProxyConnector("http://{0}:{1}".format(
                                     app.preferences['proxy_address'],
-                                    app.preferences['proxy_port'])
-            #network_manager.setProxy(qtproxy)
+                                    app.preferences['proxy_port']))
 
         if app.preferences["account"] != "":
             account = app.get_account(app.preferences["account"])
@@ -456,32 +455,35 @@ class Application(QObject):
 
         self.save_registries()
 
+    @asyncify
+    @asyncio.coroutine
     def get_last_version(self):
-        url = QUrl("https://api.github.com/repos/ucoin-io/cutecoin/releases")
-        """request = QNetworkRequest(url)
-        reply = self._network_manager.get(request)
-        reply.finished.connect(self.read_available_version)"""
-
-    @pyqtSlot(QNetworkReply)
-    def read_available_version(self):
-        latest = None
-        reply = self.sender()
-        releases = reply.readAll().data().decode('utf-8')
-        logging.debug(releases)
-        if reply.error() == QNetworkReply.NoError:
-            for r in json.loads(releases):
-                if not latest:
-                    latest = r
-                else:
-                    latest_date = datetime.datetime.strptime(latest['published_at'], "%Y-%m-%dT%H:%M:%SZ")
-                    date = datetime.datetime.strptime(r['published_at'], "%Y-%m-%dT%H:%M:%SZ")
-                    if latest_date < date:
+        if self.preferences['enable_proxy'] is True:
+            connector = ProxyConnector("http://{0}:{1}".format(
+                                    self.preferences['proxy_address'],
+                                    self.preferences['proxy_port']))
+        else:
+            connector = None
+        try:
+            response = yield from asyncio.wait_for(aiohttp.get("https://api.github.com/repos/ucoin-io/cutecoin/releases",
+                                                               connector=connector), timeout=15)
+            if response.status == 200:
+                releases = yield from response.json()
+                for r in releases:
+                    if not latest:
                         latest = r
-            latest_version = latest["tag_name"]
-            version = (__version__ == latest_version,
-                       latest_version,
-                       latest["html_url"])
-            logging.debug("Found version : {0}".format(latest_version))
-            logging.debug("Current version : {0}".format(__version__))
-            self.available_version = version
-        self.version_requested.emit()
+                    else:
+                        latest_date = datetime.datetime.strptime(latest['published_at'], "%Y-%m-%dT%H:%M:%SZ")
+                        date = datetime.datetime.strptime(r['published_at'], "%Y-%m-%dT%H:%M:%SZ")
+                        if latest_date < date:
+                            latest = r
+                latest_version = latest["tag_name"]
+                version = (__version__ == latest_version,
+                           latest_version,
+                           latest["html_url"])
+                logging.debug("Found version : {0}".format(latest_version))
+                logging.debug("Current version : {0}".format(__version__))
+                self.available_version = version
+            self.version_requested.emit()
+        except aiohttp.errors.ClientError as e:
+            logging.debug("Could not connect to github : {0}".format(str(e)))

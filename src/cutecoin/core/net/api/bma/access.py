@@ -169,6 +169,8 @@ class BmaAccess(QObject):
                     tries += 1
                 except ClientError:
                     tries += 1
+                except TimeoutError:
+                    tries += 1
         if len(nodes) == 0 or json_data is None:
             raise NoPeerAvailable("", len(nodes))
         return json_data
@@ -186,8 +188,19 @@ class BmaAccess(QObject):
         if len(nodes) > 0:
             node = random.choice(nodes)
             req = request(node.endpoint.conn_handler(), **req_args)
-            json_data = yield from req.get(**get_args)
-            return json_data
+            tries = 0
+            while tries < 3:
+                try:
+                    json_data = yield from req.get(**get_args)
+                    return json_data
+                except ValueError as e:
+                    if '404' in str(e) or '400' in str(e):
+                        raise
+                    tries += 1
+                except ClientError:
+                    tries += 1
+                except TimeoutError:
+                    tries += 1
         else:
             raise NoPeerAvailable("", len(nodes))
 
@@ -212,8 +225,16 @@ class BmaAccess(QObject):
                 logging.debug("Trying to connect to : " + node.pubkey)
                 conn_handler = node.endpoint.conn_handler()
                 req = request(conn_handler, **req_args)
-                reply = yield from req.post(**post_args)
-                replies.append(reply)
+                try:
+                    reply = yield from req.post(**post_args)
+                    replies.append(reply)
+                except ValueError as e:
+                    if '404' in str(e) or '400' in str(e):
+                        raise
+                except ClientError:
+                    pass
+                except TimeoutError:
+                    pass
         else:
             raise NoPeerAvailable("", len(nodes))
         return tuple(replies)
