@@ -192,6 +192,9 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
             except NoPeerAvailable as e:
                 logging.debug(str(e))
                 text += " ( ### ) "
+            except NoPeerAvailable as e:
+                logging.debug(str(e))
+
 
             if len(self.community.network.synced_nodes) == 0:
                 self.button_membership.setEnabled(False)

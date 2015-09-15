@@ -81,6 +81,19 @@ class CommunityTile(QFrame):
             </html>""".format(currency=self.community.currency,
                               message=self.tr("Not connected"))
             self.text_label.setText(description)
+        except ValueError as e:
+            if '404' in str(e):
+                description = """<html>
+                <body>
+                <p>
+                <span style=" font-size:16pt; font-weight:600;">{currency}</span>
+                </p>
+                <p>{message}</p>
+                </body>
+                </html>""".format(currency=self.community.currency,
+                              message=self.tr("Community not initialized"))
+            self.text_label.setText(description)
+
         self.busy.hide()
 
     def mousePressEvent(self, event):

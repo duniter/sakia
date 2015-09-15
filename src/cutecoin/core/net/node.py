@@ -303,7 +303,7 @@ class Node(QObject):
                                                                 block_data['number']))
                 self.changed.emit()
         except ValueError as e:
-            if '404' in e:
+            if '404' in str(e):
                 self.set_block(None)
             logging.debug("Error in block reply")
             self.changed.emit()
