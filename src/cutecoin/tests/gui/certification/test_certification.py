@@ -82,7 +82,6 @@ class TestCertificationDialog(unittest.TestCase):
         @asyncio.coroutine
         def exec_test():
             yield from asyncio.sleep(1)
-            self.assertEqual(certification_dialog.button_box.button(QDialogButtonBox.Ok).text(), "&Ok")
             QTest.mouseClick(certification_dialog.radio_pubkey, Qt.LeftButton)
             QTest.keyClicks(certification_dialog.edit_pubkey, "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn")
             QTest.mouseClick(certification_dialog.button_box.button(QDialogButtonBox.Ok), Qt.LeftButton)
