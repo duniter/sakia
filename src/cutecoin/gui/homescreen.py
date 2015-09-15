@@ -84,6 +84,7 @@ class HomeScreenWidget(QWidget, Ui_HomescreenWidget):
         :param QShowEvent:
         :return:
         """
+        self.frame_communities.refresh_content()
         self.status_label.setText("")
 
     def changeEvent(self, event):
