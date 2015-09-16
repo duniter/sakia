@@ -252,8 +252,8 @@ class Node(QObject):
                                                                         self.state, new_state))
         if self._state != new_state:
             self.last_change = time.time()
+            self._state = new_state
             self.changed.emit()
-        self._state = new_state
 
     @property
     def fork_window(self):
