@@ -88,7 +88,7 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
         try:
             block_0 = yield from self.community.get_block(0)
         except ValueError as e:
-            if '404' in str(e):
+            if '404' in str(e) or '000' in str(e):
                 block_0 = None
         except NoPeerAvailable as e:
             logging.debug(str(e))

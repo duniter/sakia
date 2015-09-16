@@ -228,7 +228,7 @@ class Identity(QObject):
                                                                         {'search': self.pubkey})
             return certifiers['isMember']
         except ValueError as e:
-            if '404' in str(e):
+            if '404' in str(e) or '400' in str(e):
                 pass
             else:
                 raise

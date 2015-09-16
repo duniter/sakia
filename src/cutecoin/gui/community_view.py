@@ -192,7 +192,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
             except NoPeerAvailable as e:
                 logging.debug(str(e))
                 text += " ( ### ) "
-            except NoPeerAvailable as e:
+            except ValueError as e:
                 logging.debug(str(e))
 
 
