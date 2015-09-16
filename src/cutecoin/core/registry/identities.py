@@ -47,8 +47,7 @@ class IdentitiesRegistry:
     @asyncio.coroutine
     def future_find(self, pubkey, community):
         def lookup():
-            identity = Identity.empty(pubkey)
-            self._instances[pubkey] = identity
+            nonlocal identity
             lookup_tries = 0
             while lookup_tries < 3:
                 try:
@@ -67,7 +66,6 @@ class IdentitiesRegistry:
                             identity.blockchain_state = BlockchainState.BUFFERED
                             identity.local_state = LocalState.PARTIAL
                             logging.debug("Lookup : found {0}".format(identity))
-                    return identity
                 except ValueError as e:
                     lookup_tries += 1
                 except asyncio.TimeoutError:
@@ -75,8 +73,7 @@ class IdentitiesRegistry:
                 except ClientError:
                     lookup_tries += 1
                 except NoPeerAvailable:
-                    return identity
-            return identity
+                    pass
 
         if pubkey in self._instances:
             identity = self._instances[pubkey]
@@ -92,8 +89,8 @@ class IdentitiesRegistry:
                     identity.blockchain_state = BlockchainState.VALIDATED
                     return identity
                 except ValueError as e:
-                    if '404' in str(e):
-                        return (yield from lookup())
+                    if '404' in str(e) or '400' in str(e):
+                        yield from lookup()
                     else:
                         tries += 1
                 except asyncio.TimeoutError:

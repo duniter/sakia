@@ -222,6 +222,7 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         if self.account and self.community:
             try:
                 self.busy.show()
+                self.refresh_identities([])
                 self_identity = yield from self.account.identity(self.community)
                 account_connections = []
                 certs_of = yield from self_identity.unique_valid_certifiers_of(self.app.identities_registry, self.community)
@@ -238,7 +239,6 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
             except NoPeerAvailable:
                 pass
             finally:
-                self.refresh_identities([])
                 self.busy.hide()
 
     @once_at_a_time

@@ -98,6 +98,8 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
             self.date_to.setMaximumDateTime(tomorrow_datetime)
         except NoPeerAvailable as e:
             logging.debug(str(e))
+        except ValueError as e:
+            logging.debug(str(e))
 
     def refresh(self):
         #TODO: Use resetmodel instead of destroy/create
