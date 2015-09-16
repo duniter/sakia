@@ -99,7 +99,7 @@ class Node(QObject):
                 raise InvalidNodeCurrency(peer.currency, currency)
 
         node = cls(peer.currency, peer.endpoints,
-                   "", pubkey, bma.blockchain.Block.null_value,
+                   "", pubkey, None,
                    Node.ONLINE, time.time(),
                    {'root': "", 'leaves': []},
                    "", "", 0)
@@ -349,6 +349,8 @@ class Node(QObject):
             logging.debug("Timeout error : {0}".format(self.pubkey))
             self.state = Node.OFFLINE
 
+    @asyncify
+    @asyncio.coroutine
     def refresh_summary(self):
         conn_handler = self.endpoint.conn_handler()
 
@@ -371,12 +373,15 @@ class Node(QObject):
             logging.debug("Timeout error : {0}".format(self.pubkey))
             self.state = Node.OFFLINE
 
+    @asyncify
+    @asyncio.coroutine
     def refresh_uid(self):
         conn_handler = self.endpoint.conn_handler()
         try:
             data = yield from bma.wot.Lookup(conn_handler, self.pubkey).get()
             self.state = Node.ONLINE
             timestamp = 0
+            uid = None
             for result in data['results']:
                 if result["pubkey"] == self.pubkey:
                     uids = result['uids']
@@ -384,8 +389,7 @@ class Node(QObject):
                         if uid["meta"]["timestamp"] > timestamp:
                             timestamp = uid["meta"]["timestamp"]
                             uid = uid["uid"]
-
-            if self._uid != uid:
+            if uid and self._uid != uid:
                 self._uid = uid
                 self.changed.emit()
         except ValueError as e:
@@ -401,6 +405,8 @@ class Node(QObject):
             logging.debug("Timeout error : {0}".format(self.pubkey))
             self.state = Node.OFFLINE
 
+    @asyncify
+    @asyncio.coroutine
     def refresh_peers(self):
         conn_handler = self.endpoint.conn_handler()
 

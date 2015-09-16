@@ -202,7 +202,7 @@ class Network(QObject):
         blocks_occurences = Counter(blocks)
         blocks_by_occurences = {}
         for key, value in blocks_occurences.items():
-            the_block = [n.block for n in self.nodes if n.block['hash'] == key][0]
+            the_block = [n.block for n in self.nodes if n.block and n.block['hash'] == key][0]
             if value not in blocks_by_occurences:
                 blocks_by_occurences[value] = [the_block]
             else:
@@ -244,7 +244,7 @@ class Network(QObject):
             synced_block_hash = blocks_by_occurences[most_present][0]['hash']
 
         for n in [n for n in self._nodes if n.state in (Node.ONLINE, Node.DESYNCED)]:
-            if n.block['hash'] == synced_block_hash:
+            if n.block and n.block['hash'] == synced_block_hash:
                 n.state = Node.ONLINE
             else:
                 n.state = Node.DESYNCED
