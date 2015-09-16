@@ -57,7 +57,7 @@ class NetworkTabWidget(QWidget, Ui_NetworkTabWidget):
     def node_context_menu(self, point):
         index = self.table_network.indexAt(point)
         model = self.table_network.model()
-        if index.row() < model.rowCount(QModelIndex()):
+        if index.isValid() and index.row() < model.rowCount(QModelIndex()):
             source_index = model.mapToSource(index)
             is_root_col = model.sourceModel().columns_types.index('is_root')
             is_root_index = model.sourceModel().index(source_index.row(), is_root_col)
