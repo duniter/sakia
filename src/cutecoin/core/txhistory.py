@@ -260,7 +260,7 @@ class TxHistory():
                 parsed_block += 1
 
             if current_block['number'] > self.latest_block:
-                self.available_sources = yield from self.wallet.future_sources(community)
+                self.available_sources = yield from self.wallet.sources(community)
                 if self._stop_coroutines:
                     return
                 self.latest_block = current_block['number']
