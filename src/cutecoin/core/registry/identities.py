@@ -73,7 +73,7 @@ class IdentitiesRegistry:
                 except ClientError:
                     lookup_tries += 1
                 except NoPeerAvailable:
-                    pass
+                    return identity
 
         if pubkey in self._instances:
             identity = self._instances[pubkey]
@@ -90,6 +90,7 @@ class IdentitiesRegistry:
                 except ValueError as e:
                     if '404' in str(e) or '400' in str(e):
                         yield from lookup()
+                        return identity
                     else:
                         tries += 1
                 except asyncio.TimeoutError:

@@ -4,7 +4,6 @@ import asyncio
 import quamash
 import logging
 import time
-from ucoinpy.documents.peer import BMAEndpoint as PyBMAEndpoint
 from PyQt5.QtWidgets import QDialog
 from PyQt5.QtCore import QLocale, Qt, QPoint
 from PyQt5.QtTest import QTest
@@ -20,7 +19,7 @@ from cutecoin.core import Account, Community, Wallet
 from cutecoin.core.net import Network, Node
 from ucoinpy.documents.peer import BMAEndpoint
 from cutecoin.core.net.api.bma.access import BmaAccess
-from cutecoin.tests import get_application
+from cutecoin.tests import get_application, unitttest_exception_handler
 
 
 class TestIdentitiesTable(unittest.TestCase):
@@ -29,6 +28,7 @@ class TestIdentitiesTable(unittest.TestCase):
         QLocale.setDefault(QLocale("en_GB"))
         self.lp = quamash.QEventLoop(self.qapplication)
         asyncio.set_event_loop(self.lp)
+        self.lp.set_exception_handler(lambda lp, ctx : unitttest_exception_handler(self, lp, ctx))
         self.identities_registry = IdentitiesRegistry()
 
         self.application = Application(self.qapplication, self.lp, self.identities_registry)
