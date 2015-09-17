@@ -111,9 +111,10 @@ class API(object):
         Arguments:
         - `path`: the request path
         """
+
         logging.debug("Request : {0}".format(self.reverse_url(path)))
         response = yield from asyncio.wait_for(aiohttp.get(self.reverse_url(path), params=kwargs,
-                                headers=self.headers, connector=API.aiohttp_connector), timeout=15)
+                                headers=self.headers, connector=API.aiohttp_connector), timeout=30)
 
         if response.status != 200:
             raise ValueError('status code != 200 => %d (%s)' % (response.status, (yield from response.text())))
@@ -134,7 +135,7 @@ class API(object):
         response = yield from asyncio.wait_for(
             aiohttp.post(self.reverse_url(path), data=kwargs, headers=self.headers,
                          connector=API.aiohttp_connector),
-                                 timeout=15)
+                                 timeout=30)
         return response
 
 from . import network, blockchain, tx, wot, node, ud
