@@ -49,7 +49,7 @@ class IdentitiesRegistry:
         def lookup():
             nonlocal identity
             lookup_tries = 0
-            while lookup_tries < 3:
+            while lookup_tries < 3 and identity.local_state == LocalState.NOT_FOUND:
                 try:
                     data = yield from community.bma_access.simple_request(bma.wot.Lookup,
                                                                 req_args={'search': pubkey})
@@ -81,13 +81,12 @@ class IdentitiesRegistry:
             identity = Identity.empty(pubkey)
             self._instances[pubkey] = identity
             tries = 0
-            while tries < 3:
+            while tries < 3 and identity.local_state == LocalState.NOT_FOUND:
                 try:
                     data = yield from community.bma_access.simple_request(bma.wot.CertifiersOf, req_args={'search': pubkey})
                     identity.uid = data['uid']
                     identity.local_state = LocalState.PARTIAL
                     identity.blockchain_state = BlockchainState.VALIDATED
-                    return identity
                 except ValueError as e:
                     if '404' in str(e) or '400' in str(e):
                         yield from lookup()
