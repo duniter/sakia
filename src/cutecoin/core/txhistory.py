@@ -76,7 +76,7 @@ class TxHistory():
     @asyncio.coroutine
     def _validation_state(community, block_number, current_block):
         members_pubkeys = yield from community.members_pubkeys()
-        if block_number + community.network.fork_window(members_pubkeys) + 1 < current_block["number"]:
+        if block_number + community.network.fork_window(members_pubkeys) <= current_block["number"]:
             state = Transfer.VALIDATED
         else:
             state = Transfer.VALIDATING
@@ -86,6 +86,17 @@ class TxHistory():
     def _parse_transaction(self, community, tx, block_number,
                            mediantime, received_list,
                            current_block, txid):
+        """
+        Parse a transaction
+        :param cutecoin.core.Community community: The community
+        :param dict tx: The tx json data
+        :param int block_number: The block number were we found the tx
+        :param int mediantime: Median time on the network
+        :param list received_list: The list of received transactions
+        :param int current_block: The current block of the network
+        :param int txid: The latest txid
+        :return: the found transaction
+        """
         receivers = [o.pubkey for o in tx.outputs
                      if o.pubkey != tx.issuers[0]]
 
@@ -158,11 +169,20 @@ class TxHistory():
             transfer = [t for t in awaiting if t.hash == tx_hash][0]
 
             transfer.check_registered(tx_hash, current_block['number'], mediantime,
-                                      community.network.fork_window(community.members_pubkeys()) + 1)
+                                      community.network.fork_window(community.members_pubkeys()))
         return None
 
     @asyncio.coroutine
     def _parse_block(self, community, block_number, received_list, current_block, txmax):
+        """
+        Parse a block
+        :param cutecoin.core.Community community: The community
+        :param int block_number: The block to request
+        :param list received_list: The list where we are appending transactions
+        :param int current_block: The current block of the network
+        :param int txmax: Latest tx id
+        :return: The list of transfers sent
+        """
         block = None
         tries = 0
         while block is None and tries < 3:

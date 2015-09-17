@@ -68,6 +68,8 @@ class Node(QObject):
          the currency it should have, for example if its the first one we add
         :param str address: The node address
         :param int port: The node port
+        :return: A new node
+        :rtype: cutecoin.core.net.Node
         """
         peer_data = yield from bma.network.Peering(ConnectionHandler(address, port)).get()
 
@@ -93,6 +95,8 @@ class Node(QObject):
         :param str currency: The node currency. None if we don't know\
          the currency it should have, for example if its the first one we add
         :param peer: The peer document
+        :return: A new node
+        :rtype: cutecoin.core.net.Node
         """
         if currency is not None:
             if peer.currency != currency:
@@ -265,17 +269,11 @@ class Node(QObject):
             self._fork_window = new_fork_window
             self.changed.emit()
 
-    def check_noerror(self, error_code, status_code):
-        if error_code == QNetworkReply.NoError:
-            if status_code in (200, 404):
-                if self.state == Node.OFFLINE:
-                    self.state = Node.ONLINE
-                return True
-        self.state = Node.OFFLINE
-        return False
-
     @pyqtSlot()
     def refresh(self):
+        """
+        Refresh all data of this node
+        """
         logging.debug("Refresh block")
         self.refresh_block()
         logging.debug("Refresh info")
@@ -290,6 +288,9 @@ class Node(QObject):
     @asyncify
     @asyncio.coroutine
     def refresh_block(self):
+        """
+        Refresh the blocks of this node
+        """
         conn_handler = self.endpoint.conn_handler()
 
         logging.debug("Requesting {0}".format(conn_handler))
@@ -318,6 +319,9 @@ class Node(QObject):
     @asyncify
     @asyncio.coroutine
     def refresh_informations(self):
+        """
+        Refresh basic information (pubkey and currency)
+        """
         conn_handler = self.endpoint.conn_handler()
 
         try:
@@ -352,6 +356,9 @@ class Node(QObject):
     @asyncify
     @asyncio.coroutine
     def refresh_summary(self):
+        """
+        Refresh the summary of this node
+        """
         conn_handler = self.endpoint.conn_handler()
 
         try:
@@ -376,6 +383,9 @@ class Node(QObject):
     @asyncify
     @asyncio.coroutine
     def refresh_uid(self):
+        """
+        Refresh the node UID
+        """
         conn_handler = self.endpoint.conn_handler()
         try:
             data = yield from bma.wot.Lookup(conn_handler, self.pubkey).get()
@@ -408,6 +418,9 @@ class Node(QObject):
     @asyncify
     @asyncio.coroutine
     def refresh_peers(self):
+        """
+        Refresh the list of peers knew by this node
+        """
         conn_handler = self.endpoint.conn_handler()
 
         try:

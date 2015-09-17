@@ -142,8 +142,8 @@ class Transfer(QObject):
                 self.state = Transfer.VALIDATING
                 self._metadata['block'] = block_number
                 self._metadata['time'] = time
-            elif self.state == Transfer.VALIDATING and \
-                    self._metadata['block'] - block_number > data_validation:
+            if self.state == Transfer.VALIDATING and \
+                    self._metadata['block'] - block_number >= data_validation:
                 self.state = Transfer.VALIDATED
 
     def check_refused(self, time, block_time, mediantime_blocks):
