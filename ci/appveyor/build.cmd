@@ -15,7 +15,7 @@ pip install pylibscrypt
 pip install libnacl
 pip install requests
 pip install base58
-pip install quamash
+pip install git+https://github.com/Insoleet/quamash.git@sockets_only
 pip install aiohttp
 pip install git+https://github.com/Insoleet/pretenders.git@develop
 

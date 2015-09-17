@@ -35,7 +35,7 @@ install:
 build_script:
   - ".\\ci\\appveyor\\build.cmd"
 
-test_script:
+#test_script:
   - ".\\ci\\appveyor\\tests.cmd"
   - echo %errorlevel%
 
