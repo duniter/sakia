@@ -310,7 +310,7 @@ class Network(QObject):
         while self.continue_crawling():
             for node in self.nodes:
                 if self.continue_crawling():
-                    yield from asyncio.sleep(2)
+                    yield from asyncio.sleep(15)
                     node.refresh()
         logging.debug("End of network discovery")
 
