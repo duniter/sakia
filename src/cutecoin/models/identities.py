@@ -129,6 +129,8 @@ class IdentitiesTableModel(QAbstractTableModel):
         logging.debug("Refresh {0} identities".format(len(identities)))
         self.beginResetModel()
         self.identities_data = []
+        self.endResetModel()
+        self.beginResetModel()
         for identity in identities:
             data = yield from self.identity_data(identity)
             self.identities_data.append(data)

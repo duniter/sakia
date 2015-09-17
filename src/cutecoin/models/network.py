@@ -178,6 +178,8 @@ class NetworkTableModel(QAbstractTableModel):
     def refresh_nodes(self):
         self.beginResetModel()
         self.nodes_data = []
+        self.endResetModel()
+        self.beginResetModel()
         if self.community:
             for node in self.community.network.nodes:
                 data = yield from self.data_node(node)
