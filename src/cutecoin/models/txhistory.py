@@ -289,6 +289,7 @@ class HistoryTableModel(QAbstractTableModel):
     def refresh_transfers(self):
         self.beginResetModel()
         self.transfers_data = []
+        transfers_data = []
         if self.community:
             for transfer in self.transfers():
                 data = None
@@ -300,13 +301,14 @@ class HistoryTableModel(QAbstractTableModel):
                 elif type(transfer) is dict:
                     data = yield from self.data_dividend(transfer)
                 if data:
-                    self.transfers_data.append(data)
+                    transfers_data.append(data)
                 try:
                     members_pubkeys = yield from self.community.members_pubkeys()
                     self._max_validations = self.community.network.fork_window(members_pubkeys) + 1
                 except NoPeerAvailable as e:
                     logging.debug(str(e))
                     self._max_validations = 0
+        self.transfers_data = transfers_data
         self.endResetModel()
 
     def max_validations(self):

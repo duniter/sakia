@@ -11,7 +11,7 @@ from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyMode
 from PyQt5.QtGui import QColor, QFont
 
 from ..tools.exceptions import NoPeerAvailable
-from ..tools.decorators import asyncify
+from ..tools.decorators import asyncify, once_at_a_time
 from cutecoin.core.net.node import Node
 
 
@@ -178,12 +178,12 @@ class NetworkTableModel(QAbstractTableModel):
     def refresh_nodes(self):
         self.beginResetModel()
         self.nodes_data = []
-        self.endResetModel()
-        self.beginResetModel()
+        nodes_data = []
         if self.community:
             for node in self.community.network.nodes:
                 data = yield from self.data_node(node)
-                self.nodes_data.append(data)
+                nodes_data.append(data)
+        self.nodes_data = nodes_data
         self.endResetModel()
 
     def rowCount(self, parent):

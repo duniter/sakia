@@ -129,11 +129,10 @@ class IdentitiesTableModel(QAbstractTableModel):
         logging.debug("Refresh {0} identities".format(len(identities)))
         self.beginResetModel()
         self.identities_data = []
-        self.endResetModel()
-        self.beginResetModel()
+        identities_data = []
         for identity in identities:
             data = yield from self.identity_data(identity)
-            self.identities_data.append(data)
+            identities_data.append(data)
         if len(identities) > 0:
             try:
                 parameters = yield from self.community.parameters()
@@ -141,6 +140,7 @@ class IdentitiesTableModel(QAbstractTableModel):
             except NoPeerAvailable as e:
                 logging.debug(str(e))
                 self._sig_validity = 0
+        self.identities_data = identities_data
         self.endResetModel()
 
     def rowCount(self, parent):
