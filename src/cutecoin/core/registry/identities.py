@@ -45,36 +45,39 @@ class IdentitiesRegistry:
         return {'registry': identities_json}
 
     @asyncio.coroutine
-    def future_find(self, pubkey, community):
-        def lookup():
-            nonlocal identity
-            lookup_tries = 0
-            while lookup_tries < 3 and identity.local_state == LocalState.NOT_FOUND:
-                try:
-                    data = yield from community.bma_access.simple_request(bma.wot.Lookup,
-                                                                req_args={'search': pubkey})
-                    timestamp = 0
-                    for result in data['results']:
-                        if result["pubkey"] == identity.pubkey:
-                            uids = result['uids']
-                            identity_uid = ""
-                            for uid_data in uids:
-                                if uid_data["meta"]["timestamp"] > timestamp:
-                                    timestamp = uid_data["meta"]["timestamp"]
-                                    identity_uid = uid_data["uid"]
-                            identity.uid = identity_uid
-                            identity.blockchain_state = BlockchainState.BUFFERED
-                            identity.local_state = LocalState.PARTIAL
-                            logging.debug("Lookup : found {0}".format(identity))
-                except ValueError as e:
-                    lookup_tries += 1
-                except asyncio.TimeoutError:
-                    lookup_tries += 1
-                except ClientError:
-                    lookup_tries += 1
-                except NoPeerAvailable:
-                    return identity
+    def _find_by_lookup(self, pubkey, community):
+        identity = self._instances[pubkey]
+        lookup_tries = 0
+        while lookup_tries < 3:
+            try:
+                data = yield from community.bma_access.simple_request(bma.wot.Lookup,
+                                                            req_args={'search': pubkey})
+                timestamp = 0
+                for result in data['results']:
+                    if result["pubkey"] == identity.pubkey:
+                        uids = result['uids']
+                        identity_uid = ""
+                        for uid_data in uids:
+                            if uid_data["meta"]["timestamp"] > timestamp:
+                                timestamp = uid_data["meta"]["timestamp"]
+                                identity_uid = uid_data["uid"]
+                                identity.uid = identity_uid
+                                identity.blockchain_state = BlockchainState.BUFFERED
+                                identity.local_state = LocalState.PARTIAL
+                return identity
+                logging.debug("Lookup : found {0}".format(identity))
+            except ValueError as e:
+                lookup_tries += 1
+            except asyncio.TimeoutError:
+                lookup_tries += 1
+            except ClientError:
+                lookup_tries += 1
+            except NoPeerAvailable:
+                return identity
+        return identity
 
+    @asyncio.coroutine
+    def future_find(self, pubkey, community):
         if pubkey in self._instances:
             identity = self._instances[pubkey]
         else:
@@ -89,7 +92,7 @@ class IdentitiesRegistry:
                     identity.blockchain_state = BlockchainState.VALIDATED
                 except ValueError as e:
                     if '404' in str(e) or '400' in str(e):
-                        yield from lookup()
+                        identity = yield from self._find_by_lookup(pubkey, community)
                         return identity
                     else:
                         tries += 1
