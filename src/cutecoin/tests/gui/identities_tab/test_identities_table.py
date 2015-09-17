@@ -97,13 +97,19 @@ class TestIdentitiesTable(unittest.TestCase):
             yield from asyncio.sleep(2)
             self.assertEqual(mock.get_request(3).method, 'GET')
             self.assertEqual(mock.get_request(3).url,
-                             '/blockchain/parameters')
+                             '/wot/lookup/doe')
             self.assertEqual(mock.get_request(4).method, 'GET')
             self.assertEqual(mock.get_request(4).url,
-                             '/wot/lookup/doe')
+                             '/wot/certifiers-of/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn')
             self.assertEqual(mock.get_request(5).method, 'GET')
             self.assertEqual(mock.get_request(5).url,
-                             '/wot/certifiers-of/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn')
+                             '/wot/lookup/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn')
+            self.assertEqual(mock.get_request(6).method, 'GET')
+            self.assertEqual(mock.get_request(6).url,
+                             '/blockchain/memberships/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn')
+            self.assertEqual(mock.get_request(7).method, 'GET')
+            self.assertEqual(mock.get_request(7).url,
+                             '/blockchain/parameters')
             self.assertEqual(identities_tab.table_identities.model().rowCount(), 1)
             yield from asyncio.sleep(2)
             self.lp.call_soon(close_dialog)

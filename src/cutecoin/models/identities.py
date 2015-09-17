@@ -132,12 +132,13 @@ class IdentitiesTableModel(QAbstractTableModel):
         for identity in identities:
             data = yield from self.identity_data(identity)
             self.identities_data.append(data)
-        try:
-            parameters = yield from self.community.parameters()
-            self._sig_validity = parameters['sigValidity']
-        except NoPeerAvailable as e:
-            logging.debug(str(e))
-            self._sig_validity = 0
+        if len(identities) > 0:
+            try:
+                parameters = yield from self.community.parameters()
+                self._sig_validity = parameters['sigValidity']
+            except NoPeerAvailable as e:
+                logging.debug(str(e))
+                self._sig_validity = 0
         self.endResetModel()
 
     def rowCount(self, parent):
