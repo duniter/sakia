@@ -169,12 +169,13 @@ class BmaAccess(QObject):
                     tries += 1
                 except ClientError:
                     tries += 1
-                except TimeoutError:
+                except asyncio.TimeoutError:
                     tries += 1
         if len(nodes) == 0 or json_data is None:
             raise NoPeerAvailable("", len(nodes))
         return json_data
 
+    @asyncio.coroutine
     def simple_request(self, request, req_args={}, get_args={}):
         """
         Start a request to the network but don't cache its result.
@@ -199,11 +200,12 @@ class BmaAccess(QObject):
                     tries += 1
                 except ClientError:
                     tries += 1
-                except TimeoutError:
+                except asyncio.TimeoutError:
                     tries += 1
         else:
             raise NoPeerAvailable("", len(nodes))
 
+    @asyncio.coroutine
     def broadcast(self, request, req_args={}, post_args={}):
         """
         Broadcast data to a network.
@@ -233,7 +235,7 @@ class BmaAccess(QObject):
                         raise
                 except ClientError:
                     pass
-                except TimeoutError:
+                except asyncio.TimeoutError:
                     pass
         else:
             raise NoPeerAvailable("", len(nodes))
