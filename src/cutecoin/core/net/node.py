@@ -104,7 +104,7 @@ class Node(QObject):
 
         node = cls(peer.currency, peer.endpoints,
                    "", pubkey, None,
-                   Node.ONLINE, time.time(),
+                   Node.OFFLINE, time.time(),
                    {'root': "", 'leaves': []},
                    "", "", 0)
         logging.debug("Node from peer : {:}".format(str(node)))
@@ -442,6 +442,12 @@ class Node(QObject):
                     except ValueError as e:
                         logging.debug("Error in leaf reply")
                         self.changed.emit()
+                    except ClientError:
+                        logging.debug("Client error : {0}".format(self.pubkey))
+                        self.state = Node.OFFLINE
+                    except asyncio.TimeoutError:
+                        logging.debug("Timeout error : {0}".format(self.pubkey))
+                        self.state = Node.OFFLINE
                 self._last_merkle = {'root' : peers_data['root'],
                                      'leaves': peers_data['leaves']}
         except ValueError as e:
