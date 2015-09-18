@@ -289,6 +289,8 @@ class HistoryTableModel(QAbstractTableModel):
     def refresh_transfers(self):
         self.beginResetModel()
         self.transfers_data = []
+        self.endResetModel()
+        self.beginResetModel()
         transfers_data = []
         if self.community:
             for transfer in self.transfers():
