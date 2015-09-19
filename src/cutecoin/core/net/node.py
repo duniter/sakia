@@ -104,7 +104,7 @@ class Node(QObject):
 
         node = cls(peer.currency, peer.endpoints,
                    "", pubkey, None,
-                   Node.ONLINE, time.time(),
+                   Node.OFFLINE, time.time(),
                    {'root': "", 'leaves': []},
                    "", "", 0)
         logging.debug("Node from peer : {:}".format(str(node)))
