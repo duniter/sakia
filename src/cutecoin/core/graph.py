@@ -206,8 +206,9 @@ class Graph(object):
                         'cert_time': certifier['cert_time']
                     }
 
-                    if certifier['block_number']:
-                        current_validations = self.community.network.latest_block_number - certifier['block_number']
+                    latest_block_number = self.community.network.latest_block_number
+                    if latest_block_number and certifier['block_number']:
+                        current_validations = latest_block_number - certifier['block_number']
                     else:
                         current_validations = 0
                     members_pubkeys = yield from self.community.members_pubkeys()
@@ -283,8 +284,9 @@ class Graph(object):
                         'cert_time': certified['cert_time']
                     }
 
-                    if certified['block_number']:
-                        current_validations = self.community.network.latest_block_number - certified['block_number']
+                    latest_block_number = self.community.network.latest_block_number
+                    if latest_block_number and certified['block_number']:
+                        current_validations = latest_block_number - certified['block_number']
                     else:
                         current_validations = 0
                     members_pubkeys = yield from self.community.members_pubkeys()

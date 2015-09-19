@@ -175,7 +175,7 @@ class Network(QObject):
         if len(blocks_numbers) > 0:
             return blocks_numbers[0]
         else:
-            return 0
+            return None
 
     @property
     def latest_block_hash(self):

@@ -183,9 +183,12 @@ class Community(QObject):
         """
         # Get cached block by block number
         block_number = self.network.latest_block_number
-        block = yield from self.bma_access.future_request(bma.blockchain.Block,
-                             req_args={'number': block_number})
-        return block['monetaryMass']
+        if block_number:
+            block = yield from self.bma_access.future_request(bma.blockchain.Block,
+                                 req_args={'number': block_number})
+            return block['monetaryMass']
+        else:
+            return 0
 
     @asyncio.coroutine
     def nb_members(self):

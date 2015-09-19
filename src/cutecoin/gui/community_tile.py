@@ -8,7 +8,17 @@ from PyQt5.QtCore import QEvent, QSize, pyqtSignal
 from ..tools.decorators import asyncify
 from ..tools.exceptions import NoPeerAvailable
 import asyncio
+import enum
+from ucoinpy.documents.block import Block
 from .busy import Busy
+
+
+@enum.unique
+class CommunityState(enum.Enum):
+    NOT_INIT = 0
+    OFFLINE = 1
+    READY = 2
+
 
 class CommunityTile(QFrame):
     clicked = pyqtSignal()
@@ -17,6 +27,7 @@ class CommunityTile(QFrame):
         super().__init__(parent)
         self.app = app
         self.community = community
+        self.community.network.nodes_changed.connect(self.handle_nodes_change)
         self.text_label = QLabel()
         self.setLayout(QVBoxLayout())
         self.layout().setSizeConstraint(QLayout.SetFixedSize)
@@ -25,10 +36,23 @@ class CommunityTile(QFrame):
         self.setFrameShadow(QFrame.Raised)
         self.busy = Busy(self)
         self.busy.hide()
+        self._state = CommunityState.NOT_INIT
         self.refresh()
 
     def sizeHint(self):
         return QSize(250, 250)
+
+    def handle_nodes_change(self):
+        if len(self.community.network.online_nodes) > 0:
+            if self.community.network.latest_block_hash == Block.Empty_Hash:
+                state = CommunityState.NOT_INIT
+            else:
+                state = CommunityState.READY
+        else:
+            state = CommunityState.OFFLINE
+
+        if state != self._state:
+            self.refresh()
 
     @asyncify
     @asyncio.coroutine
@@ -36,7 +60,7 @@ class CommunityTile(QFrame):
         self.busy.show()
         self.setFixedSize(QSize(150, 150))
         try:
-            current_block = yield from self.community.get_block(self.community.network.latest_block_number)
+            current_block = yield from self.community.get_block()
             members_pubkeys = yield from self.community.members_pubkeys()
             amount = yield from self.app.current_account.amount(self.community)
             localized_amount = yield from self.app.current_account.current_ref(amount,
@@ -70,6 +94,7 @@ class CommunityTile(QFrame):
                               balance_label=self.tr("Balance"),
                               balance=localized_amount)
             self.text_label.setText(description)
+            self._state = CommunityState.READY
         except NoPeerAvailable:
             description = """<html>
             <body>
@@ -81,6 +106,7 @@ class CommunityTile(QFrame):
             </html>""".format(currency=self.community.currency,
                               message=self.tr("Not connected"))
             self.text_label.setText(description)
+            self._state = CommunityState.OFFLINE
         except ValueError as e:
             if '404' in str(e):
                 description = """<html>
@@ -92,7 +118,10 @@ class CommunityTile(QFrame):
                 </body>
                 </html>""".format(currency=self.community.currency,
                               message=self.tr("Community not initialized"))
-            self.text_label.setText(description)
+                self.text_label.setText(description)
+                self._state = CommunityState.NOT_INIT
+            else:
+                raise
 
         self.busy.hide()
 

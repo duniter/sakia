@@ -151,10 +151,11 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                 block_index = model.index(source_index.row(), block_col)
                 block_data = model.data(block_index, Qt.DisplayRole)
 
+                current_validations = 0
                 if state_data == Transfer.VALIDATING:
-                    current_validations = self.community.network.latest_block_number - block_data
-                else:
-                    current_validations = 0
+                    latest_block_number = self.community.network.latest_block_number
+                    if latest_block_number:
+                        current_validations = latest_block_number - block_data
                 max_validations = self.sourceModel().max_validations()
 
                 if self.app.preferences['expert_mode']:

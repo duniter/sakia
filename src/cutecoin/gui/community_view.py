@@ -179,20 +179,23 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         """
         logging.debug("Refresh status")
         if self.community:
-            text = self.tr(" Block {0}").format(self.community.network.latest_block_number)
-            try:
-                block = yield from self.community.get_block(self.community.network.latest_block_number)
-                text += " ( {0} )".format(QLocale.toString(
-                            QLocale(),
-                            QDateTime.fromTime_t(block['medianTime']),
-                            QLocale.dateTimeFormat(QLocale(), QLocale.NarrowFormat)
-                        ))
-            except NoPeerAvailable as e:
-                logging.debug(str(e))
-                text += " ( ### ) "
-            except ValueError as e:
-                logging.debug(str(e))
+            text = ""
 
+            latest_block_number = self.community.network.latest_block_number
+            if latest_block_number:
+                text += self.tr(" Block {0}").format()
+                try:
+                    block = yield from self.community.get_block(latest_block_number)
+                    text += " ( {0} )".format(QLocale.toString(
+                                QLocale(),
+                                QDateTime.fromTime_t(block['medianTime']),
+                                QLocale.dateTimeFormat(QLocale(), QLocale.NarrowFormat)
+                            ))
+                except NoPeerAvailable as e:
+                    logging.debug(str(e))
+                    text += " ( ### ) "
+                except ValueError as e:
+                    logging.debug(str(e))
 
             if len(self.community.network.synced_nodes) == 0:
                 self.button_membership.setEnabled(False)
