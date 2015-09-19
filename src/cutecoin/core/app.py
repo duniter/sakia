@@ -107,14 +107,13 @@ class Application(QObject):
         logging.debug("Loading translations")
         locale = self.preferences['lang']
         QLocale.setDefault(QLocale(locale))
+        QCoreApplication.removeTranslator(self._translator)
+        self._translator = QTranslator(self.qapp)
         if locale == "en_GB":
-            QCoreApplication.removeTranslator(self._translator)
-        else:
-            QCoreApplication.removeTranslator(self._translator)
-            self._translator = QTranslator(self.qapp)
-            if self._translator.load(":/i18n/{0}".format(locale)):
-                if QCoreApplication.installTranslator(self._translator):
-                    logging.debug("Loaded i18n/{0}".format(locale))
+            QCoreApplication.installTranslator(self._translator)
+        elif self._translator.load(":/i18n/{0}".format(locale)):
+            if QCoreApplication.installTranslator(self._translator):
+                logging.debug("Loaded i18n/{0}".format(locale))
             else:
                 logging.debug("Couldn't load translation")
 
