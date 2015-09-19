@@ -70,7 +70,8 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         self.account = account
         self.password_asker = password_asker
         self.table_history.model().sourceModel().change_account(account)
-        self.connect_progress()
+        if account:
+         self.connect_progress()
 
     def change_community(self, community):
         self.cancel_once_tasks()
