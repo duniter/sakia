@@ -23,6 +23,7 @@ from .registry.identities import IdentitiesRegistry
 from .. import __version__
 from ..tools.exceptions import NameAlreadyExists, BadAccountFile
 from ..tools.decorators import asyncify
+import i18n_rc
 
 
 class Application(QObject):
@@ -52,6 +53,7 @@ class Application(QObject):
         self.available_version = (True,
                                   __version__,
                                   "")
+        self._translator = QTranslator(self.qapp)
         self._identities_registry = identities_registry
         self.preferences = {'account': "",
                             'lang': 'en_GB',
@@ -74,10 +76,7 @@ class Application(QObject):
         app = cls(qapp, loop, identities_registry)
         app.load()
         app.switch_language()
-        if app.preferences['enable_proxy'] is True:
-            API.aiohttp_connector = ProxyConnector("http://{0}:{1}".format(
-                                    app.preferences['proxy_address'],
-                                    app.preferences['proxy_port']))
+        app.set_proxy()
         if app.preferences["account"] != "":
             account = app.get_account(app.preferences["account"])
             app.change_current_account(account)
@@ -96,16 +95,28 @@ class Application(QObject):
 
         return app
 
+    def set_proxy(self):
+        if self.preferences['enable_proxy'] is True:
+            API.aiohttp_connector = ProxyConnector("http://{0}:{1}".format(
+                                    self.preferences['proxy_address'],
+                                    self.preferences['proxy_port']))
+        else:
+            API.aiohttp_connector = None
+
     def switch_language(self):
-        translator = QTranslator(self.qapp)
         logging.debug("Loading translations")
         locale = self.preferences['lang']
         QLocale.setDefault(QLocale(locale))
-        if translator.load(":/i18n/{0}".format(locale)):
-            if QCoreApplication.installTranslator(translator):
-                logging.debug("Loaded i18n/{0}".format(locale))
+        if locale == "en_GB":
+            QCoreApplication.removeTranslator(self._translator)
         else:
-            logging.debug("Couldn't load translation")
+            QCoreApplication.removeTranslator(self._translator)
+            self._translator = QTranslator(self.qapp)
+            if self._translator.load(":/i18n/{0}".format(locale)):
+                if QCoreApplication.installTranslator(self._translator):
+                    logging.debug("Loaded i18n/{0}".format(locale))
+            else:
+                logging.debug("Couldn't load translation")
 
     def get_account(self, name):
         """
@@ -309,6 +320,8 @@ class Application(QObject):
                                         'preferences')
         with open(preferences_path, 'w') as outfile:
             json.dump(preferences, outfile, indent=4)
+
+        self.set_proxy()
 
     def save(self, account):
         """

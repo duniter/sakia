@@ -80,8 +80,6 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
         self.app.save_preferences(pref)
       # change UI translation
         self.app.switch_language()
-        toast.display(self.tr("Preferences"),
-                      self.tr("A restart is needed to apply your new preferences."))
         super().accept()
 
     def reject(self):

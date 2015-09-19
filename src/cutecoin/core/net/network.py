@@ -328,12 +328,12 @@ class Network(QObject):
         node = self.sender()
         if node.state in (Node.ONLINE, Node.DESYNCED):
             self.check_nodes_sync()
-            self.nodes_changed.emit()
         else:
             if node.last_change + 3600 < time.time():
                 node.disconnect()
                 self.nodes.remove(node)
-                self.nodes_changed.emit()
+
+        self.nodes_changed.emit()
 
         logging.debug("{0} -> {1}".format(self._block_found[:10], self.latest_block_hash[:10]))
         if self._block_found != self.latest_block_hash and node.state == Node.ONLINE:
