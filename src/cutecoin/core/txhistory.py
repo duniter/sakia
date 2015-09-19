@@ -304,25 +304,30 @@ class TxHistory():
     @asyncio.coroutine
     def refresh(self, community, received_list):
         # We update the block goal
-        current_block = yield from community.bma_access.future_request(bma.blockchain.Block,
-                                req_args={'number': community.network.latest_block_number})
-        members_pubkeys = yield from community.members_pubkeys()
-        # We look for the first block to parse, depending on awaiting and validating transfers and ud...
-        blocks = [tx.metadata['block'] for tx in self._transfers
-                  if tx.state in (Transfer.AWAITING, Transfer.VALIDATING)] +\
-                 [ud['block_number'] for ud in self._dividends
-                  if ud['state'] in (Transfer.AWAITING, Transfer.VALIDATING)] +\
-                 [max(0, self.latest_block - community.network.fork_window(members_pubkeys))]
-        parsed_block = min(set(blocks))
-        self._block_to = current_block
+        try:
+            current_block = yield from community.bma_access.future_request(bma.blockchain.Block,
+                                    req_args={'number': community.network.latest_block_number})
+            members_pubkeys = yield from community.members_pubkeys()
+            # We look for the first block to parse, depending on awaiting and validating transfers and ud...
+            blocks = [tx.metadata['block'] for tx in self._transfers
+                      if tx.state in (Transfer.AWAITING, Transfer.VALIDATING)] +\
+                     [ud['block_number'] for ud in self._dividends
+                      if ud['state'] in (Transfer.AWAITING, Transfer.VALIDATING)] +\
+                     [max(0, self.latest_block - community.network.fork_window(members_pubkeys))]
+            parsed_block = min(set(blocks))
+            self._block_to = current_block
 
-        # We wait for current refresh coroutines
-        if len(self._running_refresh) > 0:
-            logging.debug("Wait for the end of previous refresh")
-            done, pending = yield from asyncio.wait(self._running_refresh)
-            for cor in done:
-                self._running_refresh.remove(cor)
+            # We wait for current refresh coroutines
+            if len(self._running_refresh) > 0:
+                logging.debug("Wait for the end of previous refresh")
+                done, pending = yield from asyncio.wait(self._running_refresh)
+                for cor in done:
+                    self._running_refresh.remove(cor)
 
-        # Then we start a new one
-        task = asyncio.async(self._refresh(community, parsed_block, received_list))
-        self._running_refresh.append(task)
+            # Then we start a new one
+            task = asyncio.async(self._refresh(community, parsed_block, received_list))
+            self._running_refresh.append(task)
+        except ValueError as e:
+            logging.debug("Block not found")
+        except NoPeerAvailable:
+            logging.debug("No peer available")

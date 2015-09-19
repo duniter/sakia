@@ -120,7 +120,7 @@ class Node(QObject):
         fork_window = 0
         block = None
         last_change = time.time()
-        state = Node.ONLINE
+        state = Node.OFFLINE
         logging.debug(data)
         for endpoint_data in data['endpoints']:
             endpoints.append(Endpoint.from_inline(endpoint_data))

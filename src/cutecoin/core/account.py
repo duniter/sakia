@@ -58,7 +58,6 @@ class Account(QObject):
         self.communities = communities
         self.wallets = wallets
         self.contacts = contacts
-        self._refreshing = False
         self._identities_registry = identities_registry
         self._current_ref = 0
 
@@ -155,38 +154,36 @@ class Account(QObject):
         .. note:: emit the Account pyqtSignal loading_progressed during refresh
         """
         logging.debug("Start refresh transactions")
-        if not self._refreshing:
-            self._refreshing = True
-            loaded_wallets = 0
-            received_list = []
-            values = {}
-            maximums = {}
+        loaded_wallets = 0
+        received_list = []
+        values = {}
+        maximums = {}
 
-            def progressing(value, maximum, hash):
-                #logging.debug("Loading = {0} : {1} : {2}".format(value, maximum, loaded_wallets))
-                values[hash] = value
-                maximums[hash] = maximum
-                account_value = sum(values.values())
-                account_max = sum(maximums.values())
-                self.loading_progressed.emit(community, account_value, account_max)
+        def progressing(value, maximum, hash):
+            #logging.debug("Loading = {0} : {1} : {2}".format(value, maximum, loaded_wallets))
+            values[hash] = value
+            maximums[hash] = maximum
+            account_value = sum(values.values())
+            account_max = sum(maximums.values())
+            self.loading_progressed.emit(community, account_value, account_max)
 
-            def wallet_finished(received):
-                logging.debug("Finished loading wallet")
-                nonlocal loaded_wallets
-                loaded_wallets += 1
-                if loaded_wallets == len(self.wallets):
-                    logging.debug("All wallets loaded")
-                    self._refreshing = False
-                    self.loading_finished.emit(community, received_list)
-                    for w in self.wallets:
-                        w.refresh_progressed.disconnect(progressing)
-                        w.refresh_finished.disconnect(wallet_finished)
+        def wallet_finished(received):
+            logging.debug("Finished loading wallet")
+            nonlocal loaded_wallets
+            loaded_wallets += 1
+            if loaded_wallets == len(self.wallets):
+                logging.debug("All wallets loaded")
+                self._refreshing = False
+                self.loading_finished.emit(community, received_list)
+                for w in self.wallets:
+                    w.refresh_progressed.disconnect(progressing)
+                    w.refresh_finished.disconnect(wallet_finished)
 
-            for w in self.wallets:
-                w.refresh_progressed.connect(progressing)
-                w.refresh_finished.connect(wallet_finished)
-                w.init_cache(app, community)
-                w.refresh_transactions(community, received_list)
+        for w in self.wallets:
+            w.refresh_progressed.connect(progressing)
+            w.refresh_finished.connect(wallet_finished)
+            w.init_cache(app, community)
+            w.refresh_transactions(community, received_list)
 
     def set_display_referential(self, index):
         self._current_ref = index

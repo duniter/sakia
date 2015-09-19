@@ -171,11 +171,6 @@ class Application(QObject):
 
         self.current_account = account
         if self.current_account is not None:
-            for community in self.current_account.communities:
-                community.network.new_block_mined.connect(lambda:
-                                                          self.current_account.refresh_transactions(self, community)
-                                                          )
-                self.current_account.refresh_transactions(self, community)
             self.current_account.start_coroutines()
 
     def stop_current_account(self):
@@ -232,6 +227,12 @@ class Application(QObject):
             account = Account.load(data, self._identities_registry)
             self.load_cache(account)
             self.accounts[account_name] = account
+
+            for community in account.communities:
+                def refresh_tx(blocknumber, co=community):
+                    account.refresh_transactions(self, co)
+                community.network.new_block_mined.connect(refresh_tx)
+                account.refresh_transactions(self, community)
 
     def load_cache(self, account):
         """
