@@ -31,8 +31,8 @@ class Account(QObject):
     Each account has only one key, and a key can
     be locally referenced by only one account.
     """
-    loading_progressed = pyqtSignal(int, int)
-    loading_finished = pyqtSignal(list)
+    loading_progressed = pyqtSignal(Community, int, int)
+    loading_finished = pyqtSignal(Community, list)
     wallets_changed = pyqtSignal()
 
     def __init__(self, salt, pubkey, name, communities, wallets, contacts, identities_registry):
@@ -168,7 +168,7 @@ class Account(QObject):
                 maximums[hash] = maximum
                 account_value = sum(values.values())
                 account_max = sum(maximums.values())
-                self.loading_progressed.emit(account_value, account_max)
+                self.loading_progressed.emit(community, account_value, account_max)
 
             def wallet_finished(received):
                 logging.debug("Finished loading wallet")
@@ -177,7 +177,7 @@ class Account(QObject):
                 if loaded_wallets == len(self.wallets):
                     logging.debug("All wallets loaded")
                     self._refreshing = False
-                    self.loading_finished.emit(received_list)
+                    self.loading_finished.emit(community, received_list)
                     for w in self.wallets:
                         w.refresh_progressed.disconnect(progressing)
                         w.refresh_finished.disconnect(wallet_finished)

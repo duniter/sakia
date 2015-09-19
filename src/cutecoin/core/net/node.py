@@ -246,14 +246,14 @@ class Node(QObject):
 
     @last_change.setter
     def last_change(self, val):
-        logging.debug("{:} | Changed state : {:}".format(self.pubkey[:5],
-                                                         val))
+        #logging.debug("{:} | Changed state : {:}".format(self.pubkey[:5],
+        #                                                val))
         self._last_change = val
 
     @state.setter
     def state(self, new_state):
-        logging.debug("{:} | Last state : {:} / new state : {:}".format(self.pubkey[:5],
-                                                                        self.state, new_state))
+        #logging.debug("{:} | Last state : {:} / new state : {:}".format(self.pubkey[:5],
+        #                                                               self.state, new_state))
         if self._state != new_state:
             self.last_change = time.time()
             self._state = new_state

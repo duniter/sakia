@@ -70,13 +70,14 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         self.account = account
         self.password_asker = password_asker
         self.table_history.model().sourceModel().change_account(account)
+        self.connect_progress()
 
     def change_community(self, community):
         self.cancel_once_tasks()
         self.community = community
+        self.progressbar.hide()
         self.table_history.model().sourceModel().change_community(self.community)
         self.refresh()
-        self.stop_progress([])
 
     @once_at_a_time
     @asyncify
@@ -104,33 +105,36 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
     def refresh(self):
         #TODO: Use resetmodel instead of destroy/create
         if self.community:
+            self.table_history.model().sourceModel().refresh_transfers()
+            self.table_history.resizeColumnsToContents()
             self.refresh_minimum_maximum()
             self.refresh_balance()
 
-    def start_progress(self):
-        def progressing(value, maximum):
-            self.progressbar.setValue(value)
-            self.progressbar.setMaximum(maximum)
+    def connect_progress(self):
+        def progressing(community, value, maximum):
+            if community == self.community:
+                self.progressbar.show()
+                self.progressbar.setValue(value)
+                self.progressbar.setMaximum(maximum)
         self.app.current_account.loading_progressed.connect(progressing)
         self.app.current_account.loading_finished.connect(self.stop_progress)
-        self.app.current_account.refresh_transactions(self.app, self.community)
-        self.progressbar.show()
 
     @pyqtSlot(list)
-    def stop_progress(self, received_list):
-        amount = 0
-        for r in received_list:
-            amount += r.metadata['amount']
-        self.progressbar.hide()
-        if len(received_list) > 0:
-            text = self.tr("Received {0} {1} from {2} transfers").format(amount,
-                                                               self.community.currency,
-                                                               len(received_list))
-            if self.app.preferences['notifications']:
-                toast.display(self.tr("New transactions received"), text)
+    def stop_progress(self, community, received_list):
+        if community == self.community:
+            amount = 0
+            for r in received_list:
+                amount += r.metadata['amount']
+            self.progressbar.hide()
+            if len(received_list) > 0:
+                text = self.tr("Received {0} {1} from {2} transfers").format(amount,
+                                                                   self.community.currency,
+                                                                   len(received_list))
+                if self.app.preferences['notifications']:
+                    toast.display(self.tr("New transactions received"), text)
 
-        self.table_history.model().sourceModel().refresh_transfers()
-        self.table_history.resizeColumnsToContents()
+            self.table_history.model().sourceModel().refresh_transfers()
+            self.table_history.resizeColumnsToContents()
 
     @once_at_a_time
     @asyncify

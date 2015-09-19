@@ -14,7 +14,8 @@ class TxHistory():
         self.wallet = wallet
         self.app = app
         self._stop_coroutines = False
-
+        self._running_refresh = []
+        self._block_to = None
         self._transfers = []
         self.available_sources = []
         self._dividends = []
@@ -209,10 +210,11 @@ class TxHistory():
                                         block_doc.mediantime, received_list,
                                         current_block, txid+txmax)
                 if transfer != None:
-                    logging.debug("Transfer amount : {0}".format(transfer.metadata['amount']))
+                    #logging.debug("Transfer amount : {0}".format(transfer.metadata['amount']))
                     transfers.append(transfer)
                 else:
-                    logging.debug("None transfer")
+                    pass
+                    #logging.debug("None transfer")
         else:
             logging.debug("Could not find or parse block {0}".format(block_number))
         return transfers
@@ -235,7 +237,7 @@ class TxHistory():
         return {}
 
     @asyncio.coroutine
-    def refresh(self, community, received_list):
+    def _refresh(self, community, block_number_from, received_list):
         """
         Refresh last transactions
 
@@ -243,18 +245,8 @@ class TxHistory():
         :param list received_list: List of transactions received
         """
         try:
-            current_block = yield from community.bma_access.future_request(bma.blockchain.Block,
-                                    req_args={'number': community.network.latest_block_number})
-            members_pubkeys = yield from community.members_pubkeys()
-            # We look for the first block to parse, depending on awaiting and validating transfers and ud...
-            blocks = [tx.metadata['block'] for tx in self._transfers
-                      if tx.state in (Transfer.AWAITING, Transfer.VALIDATING)] +\
-                     [ud['block_number'] for ud in self._dividends
-                      if ud['state'] in (Transfer.AWAITING, Transfer.VALIDATING)] +\
-                     [max(0, self.latest_block - community.network.fork_window(members_pubkeys))]
-            parsed_block = min(set(blocks))
-            logging.debug("Refresh from : {0} to {1}".format(self.latest_block, current_block['number']))
-            dividends = yield from self.request_dividends(community, parsed_block)
+            logging.debug("Refresh from : {0} to {1}".format(block_number_from, self._block_to['number']))
+            dividends = yield from self.request_dividends(community, block_number_from)
             with_tx_data = yield from community.bma_access.future_request(bma.blockchain.TX)
             blocks_with_tx = with_tx_data['result']['blocks']
             new_transfers = []
@@ -262,10 +254,10 @@ class TxHistory():
             # Lets look if transactions took too long to be validated
             awaiting = [t for t in self._transfers
                         if t.state == Transfer.AWAITING]
-            while parsed_block <= current_block['number']:
+            while block_number_from <= self._block_to['number']:
                 udid = 0
-                for d in [ud for ud in dividends if ud['block_number'] == parsed_block]:
-                    state = yield from TxHistory._validation_state(community, d['block_number'], current_block)
+                for d in [ud for ud in dividends if ud['block_number'] == block_number_from]:
+                    state = yield from TxHistory._validation_state(community, d['block_number'], self._block_to)
 
                     if d['block_number'] not in [ud['block_number'] for ud in self._dividends]:
                         d['id'] = udid
@@ -278,24 +270,25 @@ class TxHistory():
                         known_dividend['state'] = state
 
                 # We parse only blocks with transactions
-                if parsed_block in blocks_with_tx:
-                    transfers = yield from self._parse_block(community, parsed_block,
-                                                             received_list, current_block,
+                if block_number_from in blocks_with_tx:
+                    transfers = yield from self._parse_block(community, block_number_from,
+                                                             received_list, self._block_to,
                                                              udid + len(new_transfers))
                     new_transfers += transfers
 
-                self.wallet.refresh_progressed.emit(parsed_block, current_block['number'], self.wallet.pubkey)
-                parsed_block += 1
+                self.wallet.refresh_progressed.emit(block_number_from, self._block_to['number'], self.wallet.pubkey)
+                block_number_from += 1
 
-            if current_block['number'] > self.latest_block:
+            # We check if latest parsed block_number is a new high number
+            if block_number_from > self.latest_block:
                 self.available_sources = yield from self.wallet.sources(community)
                 if self._stop_coroutines:
                     return
-                self.latest_block = current_block['number']
+                self.latest_block = block_number_from
 
             parameters = yield from community.parameters()
             for transfer in awaiting:
-                transfer.check_refused(current_block['medianTime'],
+                transfer.check_refused(self._block_to['medianTime'],
                                        parameters['avgGenTime'],
                                        parameters['medianTimeBlocks'])
         except NoPeerAvailable as e:
@@ -307,3 +300,29 @@ class TxHistory():
         self._dividends = self._dividends + new_dividends
 
         self.wallet.refresh_finished.emit(received_list)
+
+    @asyncio.coroutine
+    def refresh(self, community, received_list):
+        # We update the block goal
+        current_block = yield from community.bma_access.future_request(bma.blockchain.Block,
+                                req_args={'number': community.network.latest_block_number})
+        members_pubkeys = yield from community.members_pubkeys()
+        # We look for the first block to parse, depending on awaiting and validating transfers and ud...
+        blocks = [tx.metadata['block'] for tx in self._transfers
+                  if tx.state in (Transfer.AWAITING, Transfer.VALIDATING)] +\
+                 [ud['block_number'] for ud in self._dividends
+                  if ud['state'] in (Transfer.AWAITING, Transfer.VALIDATING)] +\
+                 [max(0, self.latest_block - community.network.fork_window(members_pubkeys))]
+        parsed_block = min(set(blocks))
+        self._block_to = current_block
+
+        # We wait for current refresh coroutines
+        if len(self._running_refresh) > 0:
+            logging.debug("Wait for the end of previous refresh")
+            done, pending = yield from asyncio.wait(self._running_refresh)
+            for cor in done:
+                self._running_refresh.remove(cor)
+
+        # Then we start a new one
+        task = asyncio.async(self._refresh(community, parsed_block, received_list))
+        self._running_refresh.append(task)

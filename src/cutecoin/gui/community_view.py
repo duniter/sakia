@@ -161,8 +161,6 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
 
         except MembershipNotFoundError as e:
             pass
-
-        self.tab_history.start_progress()
         self.refresh_data()
 
     def refresh_data(self):

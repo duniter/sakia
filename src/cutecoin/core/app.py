@@ -78,7 +78,6 @@ class Application(QObject):
             API.aiohttp_connector = ProxyConnector("http://{0}:{1}".format(
                                     app.preferences['proxy_address'],
                                     app.preferences['proxy_port']))
-
         if app.preferences["account"] != "":
             account = app.get_account(app.preferences["account"])
             app.change_current_account(account)
@@ -172,6 +171,11 @@ class Application(QObject):
 
         self.current_account = account
         if self.current_account is not None:
+            for community in self.current_account.communities:
+                community.network.new_block_mined.connect(lambda:
+                                                          self.current_account.refresh_transactions(self, community)
+                                                          )
+                self.current_account.refresh_transactions(self, community)
             self.current_account.start_coroutines()
 
     def stop_current_account(self):
