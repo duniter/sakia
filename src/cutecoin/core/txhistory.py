@@ -89,7 +89,7 @@ class TxHistory():
         """
         Parse a transaction
         :param cutecoin.core.Community community: The community
-        :param dict tx: The tx json data
+        :param ucoinpy.documents.Transaction tx: The tx json data
         :param int block_number: The block number were we found the tx
         :param int mediantime: Median time on the network
         :param list received_list: The list of received transactions
@@ -184,29 +184,37 @@ class TxHistory():
         :return: The list of transfers sent
         """
         block = None
+        block_doc = None
         tries = 0
         while block is None and tries < 3:
-            block = yield from community.bma_access.future_request(bma.blockchain.Block,
-                                      req_args={'number': block_number})
-            signed_raw = "{0}{1}\n".format(block['raw'],
-                                           block['signature'])
-            transfers = []
             try:
-                block_doc = Block.from_signed_raw(signed_raw)
-            except:
-                logging.debug("Error in {0}".format(block_number))
-                block = None
-                tries += 1
-
-        for (txid, tx) in enumerate(block_doc.transactions):
-            transfer = yield from self._parse_transaction(community, tx, block_number,
-                                    block_doc.mediantime, received_list,
-                                    current_block, txid+txmax)
-            if transfer != None:
-                logging.debug("Transfer amount : {0}".format(transfer.metadata['amount']))
-                transfers.append(transfer)
-            else:
-                logging.debug("None transfer")
+                block = yield from community.bma_access.future_request(bma.blockchain.Block,
+                                      req_args={'number': block_number})
+                signed_raw = "{0}{1}\n".format(block['raw'],
+                                           block['signature'])
+                transfers = []
+                try:
+                    block_doc = Block.from_signed_raw(signed_raw)
+                except TypeError:
+                    logging.debug("Error in {0}".format(block_number))
+                    block = None
+                    tries += 1
+            except ValueError as e:
+                if '404' in str(e):
+                    block = None
+                    tries += 1
+        if block_doc:
+            for (txid, tx) in enumerate(block_doc.transactions):
+                transfer = yield from self._parse_transaction(community, tx, block_number,
+                                        block_doc.mediantime, received_list,
+                                        current_block, txid+txmax)
+                if transfer != None:
+                    logging.debug("Transfer amount : {0}".format(transfer.metadata['amount']))
+                    transfers.append(transfer)
+                else:
+                    logging.debug("None transfer")
+        else:
+            logging.debug("Could not find or parse block {0}".format(block_number))
         return transfers
 
     @asyncio.coroutine
