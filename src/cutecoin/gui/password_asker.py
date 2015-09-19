@@ -36,6 +36,7 @@ class PasswordAskerDialog(QDialog, Ui_PasswordAskerDialog):
                 pwd = self.password
                 if not self.remember:
                     self.password = ""
+                self.finished.disconnect(future_show)
                 future.set_result(pwd)
             self.open()
             self.finished.connect(future_show)
