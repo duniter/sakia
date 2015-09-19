@@ -183,7 +183,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
 
             latest_block_number = self.community.network.latest_block_number
             if latest_block_number:
-                text += self.tr(" Block {0}").format()
+                text += self.tr(" Block {0}").format(latest_block_number)
                 try:
                     block = yield from self.community.get_block(latest_block_number)
                     text += " ( {0} )".format(QLocale.toString(
