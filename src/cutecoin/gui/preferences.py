@@ -57,7 +57,6 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
         self.spinbox_proxy_port.setValue(self.app.preferences.get('proxy_port', 8080))
         self.spinbox_proxy_port.setMinimum(0)
         self.spinbox_proxy_port.setMaximum(55636)
-        self.combox_proxytype.setCurrentText(self.app.preferences.get('proxy_type', "HTTP"))
         self.edit_proxy_address.setText(self.app.preferences.get('proxy_address', ""))
 
     def handle_proxy_change(self):
@@ -73,7 +72,6 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
                 'digits_after_comma': self.spinbox_digits_comma.value(),
                 'notifications': self.checkbox_notifications.isChecked(),
                 'enable_proxy': self.checkbox_proxy.isChecked(),
-                'proxy_type': self.combox_proxytype.currentText(),
                 'proxy_address': self.edit_proxy_address.text(),
                 'proxy_port': self.spinbox_proxy_port.value(),
                 'international_system_of_units': self.checkbox_international_system.isChecked()}
