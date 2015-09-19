@@ -274,15 +274,10 @@ class Node(QObject):
         """
         Refresh all data of this node
         """
-        logging.debug("Refresh block")
         self.refresh_block()
-        logging.debug("Refresh info")
         self.refresh_informations()
-        logging.debug("Refresh uid")
         self.refresh_uid()
-        logging.debug("Refresh peers")
         self.refresh_peers()
-        logging.debug("Refresh summary")
         self.refresh_summary()
 
     @asyncify
@@ -291,6 +286,7 @@ class Node(QObject):
         """
         Refresh the blocks of this node
         """
+        logging.debug("Refresh block")
         conn_handler = self.endpoint.conn_handler()
 
         logging.debug("Requesting {0}".format(conn_handler))
@@ -322,6 +318,7 @@ class Node(QObject):
         """
         Refresh basic information (pubkey and currency)
         """
+        logging.debug("Refresh info")
         conn_handler = self.endpoint.conn_handler()
 
         try:
@@ -359,6 +356,7 @@ class Node(QObject):
         """
         Refresh the summary of this node
         """
+        logging.debug("Refresh summary")
         conn_handler = self.endpoint.conn_handler()
 
         try:
@@ -386,6 +384,7 @@ class Node(QObject):
         """
         Refresh the node UID
         """
+        logging.debug("Refresh uid")
         conn_handler = self.endpoint.conn_handler()
         try:
             data = yield from bma.wot.Lookup(conn_handler, self.pubkey).get()
@@ -421,6 +420,7 @@ class Node(QObject):
         """
         Refresh the list of peers knew by this node
         """
+        logging.debug("Refresh peers")
         conn_handler = self.endpoint.conn_handler()
 
         try:
