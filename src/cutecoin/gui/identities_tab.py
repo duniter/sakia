@@ -157,18 +157,22 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         if result == QDialog.Accepted:
             self.window().refresh_contacts()
 
+    @asyncify
+    @asyncio.coroutine
     def send_money_to_identity(self, identity):
         if isinstance(identity, str):
             pubkey = identity
         else:
             pubkey = identity.pubkey
-        result = TransferMoneyDialog.send_money_to_identity(self.app, self.account, self.password_asker,
+        result = yield from TransferMoneyDialog.send_money_to_identity(self.app, self.account, self.password_asker,
                                                             self.community, identity)
         if result == QDialog.Accepted:
             self.money_sent.emit()
 
+    @asyncify
+    @asyncio.coroutine
     def certify_identity(self, identity):
-        CertificationDialog.certify_identity(self.app, self.account, self.password_asker,
+        yield from CertificationDialog.certify_identity(self.app, self.account, self.password_asker,
                                              self.community, identity)
 
     def view_wot(self):

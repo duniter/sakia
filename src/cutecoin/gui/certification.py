@@ -37,14 +37,13 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
             self.combo_contact.addItem(contact['name'])
 
     @classmethod
-    @asyncify
     @asyncio.coroutine
     def certify_identity(cls, app, account, password_asker, community, identity):
         dialog = cls(app, account, password_asker)
         dialog.combo_community.setCurrentText(community.name)
         dialog.edit_pubkey.setText(identity.pubkey)
         dialog.radio_pubkey.setChecked(True)
-        yield from dialog.async_exec()
+        return (yield from dialog.async_exec())
 
     @asyncify
     @asyncio.coroutine

@@ -57,14 +57,13 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
             self.radio_pubkey.setChecked(True)
 
     @classmethod
-    @asyncify
     @asyncio.coroutine
     def send_money_to_identity(cls, app, account, password_asker, community, identity):
         dialog = cls(app, account, password_asker)
         dialog.edit_pubkey.setText(identity.pubkey)
         dialog.combo_community.setCurrentText(community.name)
         dialog.radio_pubkey.setChecked(True)
-        yield from dialog.async_exec()
+        return (yield from dialog.async_exec())
 
     @asyncify
     @asyncio.coroutine
