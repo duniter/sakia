@@ -24,7 +24,7 @@ def unitttest_exception_handler(test, loop, context):
     for key in [k for k in sorted(context) if k not in {'message', 'exception'}]:
         log_lines.append('{}: {!r}'.format(key, context[key]))
 
-    test.failureException('\n'.join(log_lines))
+    test.fail('\n'.join(log_lines))
 
 
 

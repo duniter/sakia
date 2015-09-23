@@ -86,7 +86,8 @@ class IdentitiesRegistry:
             tries = 0
             while tries < 3 and identity.local_state == LocalState.NOT_FOUND:
                 try:
-                    data = yield from community.bma_access.simple_request(bma.wot.CertifiersOf, req_args={'search': pubkey})
+                    data = yield from community.bma_access.simple_request(bma.wot.CertifiersOf,
+                                                                          req_args={'search': pubkey})
                     identity.uid = data['uid']
                     identity.local_state = LocalState.PARTIAL
                     identity.blockchain_state = BlockchainState.VALIDATED

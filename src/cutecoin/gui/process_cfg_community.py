@@ -16,6 +16,7 @@ from ..models.peering import PeeringTreeModel
 from ..core import Community
 from ..core.registry.identity import BlockchainState
 from ..core.net import Node
+from ..tools.decorators import asyncify
 from . import toast
 
 
@@ -62,9 +63,12 @@ class StepPageInit(Step):
         self.node = yield from Node.from_address(None, server, port)
         if self.node:
             community = Community.create(self.node)
-            identity = yield from self.app.identities_registry.future_find(self.account.pubkey, community)
-            if identity.blockchain_state == BlockchainState.NOT_FOUND:
+            registered = yield from self.account.check_registered(community)
+            if registered[0] is False and registered[2] is None:
                 self.config_dialog.label_error.setText(self.tr("Could not find your identity on the network."))
+            elif registered[0] is False and registered[2]:
+                self.config_dialog.label_error.setText(self.tr("""Your pubkey or UID is different on the network.
+Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
             else:
                 self.config_dialog.community = community
                 self.config_dialog.next()
@@ -84,8 +88,8 @@ class StepPageInit(Step):
         self.node = yield from Node.from_address(None, server, port)
         if self.node:
             community = Community.create(self.node)
-            identity = yield from self.app.identities_registry.future_find(self.account.pubkey, community)
-            if identity.blockchain_state == BlockchainState.NOT_FOUND:
+            registered = yield from self.account.check_registered(community)
+            if registered[0] is False and registered[2] is None:
                 password = yield from self.password_asker.async_exec()
                 if self.password_asker.result() == QDialog.Rejected:
                     return
@@ -102,10 +106,12 @@ class StepPageInit(Step):
                     if self.app.preferences['notifications']:
                         toast.display(self.tr("Error"), self.tr("{0}".format(result[1])))
                 QApplication.restoreOverrideCursor()
-
                 self.config_dialog.community = community
+            elif registered[0] is False and registered[2]:
+                self.config_dialog.label_error.setText(self.tr("""Your pubkey or UID was already found on the network.
+Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
             else:
-                self.config_dialog.label_error.setText(self.tr("Pubkey already exists on the network"))
+                self.config_dialog.label_error.setText(self.tr("Your account already exists on the network"))
         else:
             self.config_dialog.label_error.setText(self.tr("Could not connect."))
 

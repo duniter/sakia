@@ -19,10 +19,11 @@ from . import money
 from .wallet import Wallet
 from .community import Community
 from .registry import LocalState
-from ..tools.exceptions import ContactAlreadyExists
+from ..tools.exceptions import ContactAlreadyExists, NoPeerAvailable
 from ..tools.decorators import asyncify
 from ucoinpy.api import bma
 from ucoinpy.api.bma import PROTOCOL_VERSION
+from aiohttp.errors import ClientError
 
 
 class Account(QObject):
@@ -269,6 +270,92 @@ class Account(QObject):
             val = yield from w.value(community)
             value += val
         return value
+
+    @asyncio.coroutine
+    def check_registered(self, community):
+        """
+        Checks for the pubkey and the uid of an account in a community
+        :param cutecoin.core.Community community: The community we check for registration
+        :return: (True if found, local value, network value)
+        """
+        def _parse_uid_certifiers(data):
+            return self.name == data['uid'], self.name, data['uid']
+
+        def _parse_uid_lookup(data):
+            timestamp = 0
+            found_uid = ""
+            for result in data['results']:
+                if result["pubkey"] == self.pubkey:
+                    uids = result['uids']
+                    for uid_data in uids:
+                        if uid_data["meta"]["timestamp"] > timestamp:
+                            timestamp = uid_data["meta"]["timestamp"]
+                            found_uid = uid_data["uid"]
+            return self.name == found_uid, self.name, found_uid
+
+        def _parse_pubkey_certifiers(data):
+            return self.pubkey == data['pubkey'], self.pubkey, data['pubkey']
+
+        def _parse_pubkey_lookup(data):
+            timestamp = 0
+            found_uid = ""
+            found_result = ["", ""]
+            for result in data['results']:
+                uids = result['uids']
+                for uid_data in uids:
+                    if uid_data["meta"]["timestamp"] > timestamp:
+                        timestamp = uid_data["meta"]["timestamp"]
+                        found_uid = uid_data["uid"]
+                if found_uid == self.name:
+                    found_result = result['pubkey'], found_uid
+            if found_result[1] == self.name:
+                return self.pubkey == found_result[0], self.pubkey, found_result[0]
+            else:
+                return False, self.pubkey, None
+
+        @asyncio.coroutine
+        def execute_requests(parsers, search):
+            tries = 0
+            request = bma.wot.CertifiersOf
+            nonlocal registered
+            while tries < 3 and not registered[0] and not registered[2]:
+                try:
+                    data = yield from community.bma_access.simple_request(request,
+                                                                          req_args={'search': search})
+                    registered = parsers[request](data)
+                except ValueError as e:
+                    if '404' in str(e) or '400' in str(e):
+                        if request == bma.wot.CertifiersOf:
+                            request = bma.wot.Lookup
+                            tries = 0
+                        else:
+                            tries += 1
+                    else:
+                        tries += 1
+                except asyncio.TimeoutError:
+                    tries += 1
+                except ClientError:
+                    tries += 1
+
+        registered = (False, self.name, None)
+        # We execute search based on pubkey
+        # And look for account UID
+        uid_parsers = {
+                    bma.wot.CertifiersOf: _parse_uid_certifiers,
+                    bma.wot.Lookup: _parse_uid_lookup
+                   }
+        yield from execute_requests(uid_parsers, self.pubkey)
+
+        # If the uid wasn't found when looking for the pubkey
+        # We look for the uid and check for the pubkey
+        if not registered[0] and not registered[2]:
+            pubkey_parsers = {
+                        bma.wot.CertifiersOf: _parse_pubkey_certifiers,
+                        bma.wot.Lookup: _parse_pubkey_lookup
+                       }
+            yield from execute_requests(pubkey_parsers, self.name)
+
+        return registered
 
     @asyncio.coroutine
     def send_selfcert(self, password, community):
