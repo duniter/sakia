@@ -271,6 +271,11 @@ class TxHistory():
 
                 # We parse only blocks with transactions
                 if block_number_from in blocks_with_tx:
+                    # We check if validated transfers should go back to validating...
+                    for t in [t for t in self._transfers if t.metadata['block'] == block_number_from]:
+                        t.state = yield from TxHistory._validation_state(community, t.metadata['block'],
+                                                                         self._block_to)
+
                     transfers = yield from self._parse_block(community, block_number_from,
                                                              received_list, self._block_to,
                                                              udid + len(new_transfers))
