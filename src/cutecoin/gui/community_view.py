@@ -6,7 +6,7 @@ Created on 2 févr. 2014
 
 import time
 import logging
-from PyQt5.QtWidgets import QWidget, QMessageBox, QDialog, QPushButton, QTabBar
+from PyQt5.QtWidgets import QWidget, QMessageBox, QDialog, QPushButton, QTabBar, QAction
 from PyQt5.QtCore import pyqtSlot, QDateTime, QLocale, QEvent
 from PyQt5.QtGui import QIcon
 
@@ -58,8 +58,6 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
 
         self.tab_informations = InformationsTabWidget(self.app)
 
-        self.tab_menu = QWidget()
-
         self.tab_network = NetworkTabWidget(self.app)
         self.tab_identities.view_in_wot.connect(self.tab_wot.draw_graph)
         self.tab_identities.view_in_wot.connect(lambda: self.tabs.setCurrentWidget(self.tab_wot))
@@ -84,16 +82,23 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                                  QIcon(":/icons/network_icon"),
                                  self.tr("Network"))
 
-        self.tabs.addTab(self.tab_informations,
-                                 QIcon(":/icons/informations_icon"),
-                                 self.tr("Informations"))
 
-        style = self.app.qapp.style()
-        icon = style.standardIcon(style.SP_DockWidgetCloseButton)
-        close_button = QPushButton(icon, '')
-        close_button.clicked.connect(lambda: self.tabs.removeTab(self.tabs.indexOf(self.tab_informations)))
-        close_button.setStyleSheet('border-style: inset;')
-        self.tabs.tabBar().setTabButton(4, QTabBar.RightSide, close_button)
+        action_showinfo = QAction(self.tr("Show informations"), self.toolbutton_menu)
+
+        def show_info():
+            if self.tabs.indexOf(self.tab_informations) == -1:
+                self.tabs.addTab(self.tab_informations,
+                                         QIcon(":/icons/informations_icon"),
+                                         self.tr("Informations"))
+                style = self.app.qapp.style()
+                icon = style.standardIcon(style.SP_DockWidgetCloseButton)
+                close_button = QPushButton(icon, '')
+                close_button.clicked.connect(lambda: self.tabs.removeTab(self.tabs.indexOf(self.tab_informations)))
+                close_button.setStyleSheet('border-style: inset;')
+                self.tabs.tabBar().setTabButton(4, QTabBar.RightSide, close_button)
+
+        action_showinfo.triggered.connect(show_info)
+        self.toolbutton_menu.addAction(action_showinfo)
         self.button_membership.clicked.connect(self.send_membership_demand)
 
     def cancel_once_tasks(self):
