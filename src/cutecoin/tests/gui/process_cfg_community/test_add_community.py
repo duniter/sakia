@@ -233,7 +233,7 @@ Yours : wrong_pubkey, the network : 7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ
             self.assertEqual(mock.get_request(1).method, 'GET')
             self.assertEqual(mock.get_request(1).url,
                              '/wot/certifiers-of/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ')
-            self.assertEqual(process_community.label_error.text(), """Your pubkey or UID  is different on the network.
+            self.assertEqual(process_community.label_error.text(), """Your pubkey or UID is different on the network.
 Yours : wrong_uid, the network : john""")
             process_community.close()
 

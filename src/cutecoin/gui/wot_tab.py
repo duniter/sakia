@@ -167,7 +167,8 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             self.app.identities_registry.from_handled_data(
                 metadata['text'],
                 metadata['id'],
-                BlockchainState.VALIDATED
+                BlockchainState.VALIDATED,
+                self.community
             )
         )
 
@@ -281,7 +282,8 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             self.app.identities_registry.from_handled_data(
                 metadata['text'],
                 metadata['id'],
-                BlockchainState.VALIDATED
+                BlockchainState.VALIDATED,
+                self.community
             )
         )
 
@@ -289,7 +291,8 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         identity = self.app.identities_registry.from_handled_data(
             metadata['text'],
             metadata['id'],
-            BlockchainState.VALIDATED
+            BlockchainState.VALIDATED,
+            self.community
         )
         dialog = MemberDialog(self.app, self.account, self.community, identity)
         dialog.exec_()
@@ -298,7 +301,8 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         identity = self.app.identities_registry.from_handled_data(
             metadata['text'],
             metadata['id'],
-            BlockchainState.VALIDATED
+            BlockchainState.VALIDATED,
+            self.community
         )
         CertificationDialog.certify_identity(self.app, self.account, self.password_asker,
                                              self.community, identity)
@@ -307,7 +311,8 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         identity = self.app.identities_registry.from_handled_data(
             metadata['text'],
             metadata['id'],
-            BlockchainState.VALIDATED
+            BlockchainState.VALIDATED,
+            self.community
         )
         result = TransferMoneyDialog.send_money_to_identity(self.app, self.account, self.password_asker,
                                                             self.community, identity)

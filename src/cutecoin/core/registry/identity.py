@@ -254,7 +254,8 @@ class Identity(QObject):
                 certifier = {}
                 certifier['identity'] = identities_registry.from_handled_data(certifier_data['uid'],
                                                                               certifier_data['pubkey'],
-                                                                              BlockchainState.VALIDATED)
+                                                                              BlockchainState.VALIDATED,
+                                                                              community)
                 certifier['cert_time'] = certifier_data['cert_time']['medianTime']
                 certifier['block_number'] = certifier_data['cert_time']['block']
                 certifiers.append(certifier)
@@ -272,7 +273,8 @@ class Identity(QObject):
                                         certifier = {}
                                         certifier['identity'] = identities_registry.from_handled_data(uid,
                                                                                                       certifier_data['pubkey'],
-                                                                              BlockchainState.BUFFERED)
+                                                                                                        BlockchainState.BUFFERED,
+                                                                                                      community)
                                         block = yield from community.bma_access.future_request(bma.blockchain.Block,
                                                                              {'number': certifier_data['meta']['block_number']})
                                         certifier['cert_time'] = block['medianTime']
@@ -310,6 +312,8 @@ class Identity(QObject):
     def certified_by(self, identities_registry, community):
         """
         Get the list of persons certified by this person
+        :param cutecoin.core.registry.IdentitiesRegistry identities_registry: The registry
+        :param cutecoin.core.Community community: The community
 
         :param cutecoin.core.community.Community community: The community target to request the join date
         :return: The list of the certified persons of this community in BMA json format
@@ -321,7 +325,8 @@ class Identity(QObject):
                 certified = {}
                 certified['identity'] = identities_registry.from_handled_data(certified_data['uid'],
                                                                               certified_data['pubkey'],
-                                                                              BlockchainState.VALIDATED)
+                                                                              BlockchainState.VALIDATED,
+                                                                              community)
                 certified['cert_time'] = certified_data['cert_time']['medianTime']
                 certified['block_number'] = certified_data['cert_time']['block']
                 certified_list.append(certified)
@@ -336,7 +341,8 @@ class Identity(QObject):
                                 certified = {}
                                 certified['identity'] = identities_registry.from_handled_data(certified_data['uid'],
                                                                                   certified_data['pubkey'],
-                                                                                  BlockchainState.BUFFERED)
+                                                                                  BlockchainState.BUFFERED,
+                                                                                  community)
                                 certified['cert_time'] = certified_data['meta']['timestamp']
                                 certified['block_number'] = None
                                 certified_list.append(certified)
