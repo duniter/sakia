@@ -297,6 +297,8 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         dialog = MemberDialog(self.app, self.account, self.community, identity)
         dialog.exec_()
 
+    @asyncify
+    @asyncio.coroutine
     def sign_node(self, metadata):
         identity = self.app.identities_registry.from_handled_data(
             metadata['text'],
@@ -304,9 +306,11 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             BlockchainState.VALIDATED,
             self.community
         )
-        CertificationDialog.certify_identity(self.app, self.account, self.password_asker,
+        yield from CertificationDialog.certify_identity(self.app, self.account, self.password_asker,
                                              self.community, identity)
 
+    @asyncify
+    @asyncio.coroutine
     def send_money_to_node(self, metadata):
         identity = self.app.identities_registry.from_handled_data(
             metadata['text'],
@@ -314,7 +318,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             BlockchainState.VALIDATED,
             self.community
         )
-        result = TransferMoneyDialog.send_money_to_identity(self.app, self.account, self.password_asker,
+        result = yield from TransferMoneyDialog.send_money_to_identity(self.app, self.account, self.password_asker,
                                                             self.community, identity)
         if result == QDialog.Accepted:
             currency_tab = self.window().currencies_tabwidget.currentWidget()
