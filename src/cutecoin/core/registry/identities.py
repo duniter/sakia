@@ -31,20 +31,21 @@ class IdentitiesRegistry:
         """
         instances = {}
         for currency in json_data['registry']:
-            for person_data in currency:
+            instances[currency] = {}
+            for person_data in json_data['registry'][currency]:
                 pubkey = person_data['pubkey']
                 if pubkey not in instances:
                     person = Identity.from_json(person_data)
-                    instances[person.pubkey] = person
+                    instances[currency][person.pubkey] = person
         self._instances = instances
 
     def jsonify(self):
-        communities_json = []
-        for community in self._instances:
+        communities_json = {}
+        for currency in self._instances:
             identities_json = []
-            for identity in self._instances[community].values():
+            for identity in self._instances[currency].values():
                 identities_json.append(identity.jsonify())
-            communities_json[community] = identities_json
+            communities_json[currency] = identities_json
         return {'registry': communities_json}
 
     def _identities(self, community):
