@@ -5,10 +5,13 @@ Created on 31 janv. 2015
 """
 
 import logging
+import asyncio
 import math
 from PyQt5.QtCore import QLocale, QDateTime, QEvent
 from PyQt5.QtWidgets import QWidget
 from ..gen_resources.informations_tab_uic import Ui_InformationsTabWidget
+from ..tools.decorators import asyncify
+from ..tools.exceptions import NoPeerAvailable
 
 
 class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
@@ -16,7 +19,7 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
     classdocs
     """
 
-    def __init__(self, app, community):
+    def __init__(self, app):
         """
         Constructor of the InformationsTabWidget
 
@@ -26,52 +29,61 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
         """
         super().__init__()
         self.app = app
-        self.community = community
-        self.community.inner_data_changed.connect(self.refresh)
+        self.account = None
+        self.community = None
 
         self.setupUi(self)
+
+    def change_account(self, account):
+        self.account = account
+
+    def change_community(self, community):
+        self.community = community
         self.refresh()
 
-    @property
-    def account(self):
-        return self.app.current_account
-
     def refresh(self):
+        if self.account and self.community:
+            self.refresh_labels()
+
+    @asyncify
+    @asyncio.coroutine
+    def refresh_labels(self):
         #  try to request money parameters
         try:
-            params = self.community.parameters
-        except Exception as e:
+            params = yield from self.community.parameters()
+        except NoPeerAvailable as e:
             logging.debug('community parameters error : ' + str(e))
             return False
 
         #  try to request money variables from last ud block
         try:
-            block_ud = self.community.get_ud_block()
-        except Exception as e:
+            block_ud = yield from self.community.get_ud_block()
+        except NoPeerAvailable as e:
             logging.debug('community get_ud_block error : ' + str(e))
             return False
         try:
-            block_ud_minus_1 = self.community.get_ud_block(1)
-        except Exception as e:
+            block_ud_minus_1 = yield from self.community.get_ud_block(1)
+        except NoPeerAvailable as e:
             logging.debug('community get_ud_block error : ' + str(e))
             return False
 
         if block_ud:
             # display float values
-            localized_ud = self.account.current_ref(block_ud['dividend'], self.community, self.app).diff_localized()
+            localized_ud = yield from self.account.current_ref(block_ud['dividend'], self.community, self.app).diff_localized()
 
+            computed_dividend = yield from self.community.computed_dividend()
             # display float values
-            localized_ud_plus_1 = self.account.current_ref(self.community.computed_dividend,
+            localized_ud_plus_1 = yield from self.account.current_ref(computed_dividend,
                                                     self.community, self.app).diff_localized()
 
-            localized_mass = self.account.current_ref(block_ud['monetaryMass'],
+            localized_mass = yield from self.account.current_ref(block_ud['monetaryMass'],
                                                     self.community, self.app).diff_localized()
             if block_ud_minus_1:
                 mass_minus_1 = (float(0) if block_ud['membersCount'] == 0 else
                         block_ud_minus_1['monetaryMass'] / block_ud['membersCount'])
-                localized_mass_minus_1_per_member = self.account.current_ref(mass_minus_1,
+                localized_mass_minus_1_per_member = yield from self.account.current_ref(mass_minus_1,
                                                                   self.community, self.app).diff_localized()
-                localized_mass_minus_1 = self.account.current_ref(block_ud_minus_1['monetaryMass'],
+                localized_mass_minus_1 = yield from self.account.current_ref(block_ud_minus_1['monetaryMass'],
                                                                   self.community, self.app).diff_localized()
 
             else:

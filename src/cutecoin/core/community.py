@@ -141,12 +141,13 @@ class Community(QObject):
         :return: The computed UD or 1 if no UD was generated.
         """
         block = yield from self.get_ud_block()
-        if block and block != bma.blockchain.Block.null_value:
+        if block:
+            parameters = yield from self.parameters()
             return math.ceil(
                 max(
-                    self.dividend,
+                    (yield from self.dividend()),
                     float(0) if block['membersCount'] == 0 else
-                    self.parameters['c'] * block['monetaryMass'] / block['membersCount']
+                    parameters['c'] * block['monetaryMass'] / block['membersCount']
                 )
             )
 

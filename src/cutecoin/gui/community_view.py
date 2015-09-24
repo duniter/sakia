@@ -6,7 +6,7 @@ Created on 2 févr. 2014
 
 import time
 import logging
-from PyQt5.QtWidgets import QWidget, QMessageBox, QDialog
+from PyQt5.QtWidgets import QWidget, QMessageBox, QDialog, QPushButton, QTabBar
 from PyQt5.QtCore import pyqtSlot, QDateTime, QLocale, QEvent
 from PyQt5.QtGui import QIcon
 
@@ -15,6 +15,7 @@ from .wot_tab import WotTabWidget
 from .identities_tab import IdentitiesTabWidget
 from .transactions_tab import TransactionsTabWidget
 from .network_tab import NetworkTabWidget
+from .informations_tab import InformationsTabWidget
 from .dialogs import QAsyncMessageBox
 from . import toast
 import asyncio
@@ -55,6 +56,8 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
 
         self.tab_history = TransactionsTabWidget(self.app)
 
+        self.tab_informations = InformationsTabWidget(self.app)
+
         self.tab_network = NetworkTabWidget(self.app)
         self.tab_identities.view_in_wot.connect(self.tab_wot.draw_graph)
         self.tab_identities.view_in_wot.connect(lambda: self.tabs.setCurrentWidget(self.tab_wot))
@@ -79,6 +82,15 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                                  QIcon(":/icons/network_icon"),
                                  self.tr("Network"))
 
+        self.tabs.addTab(self.tab_informations,
+                                 QIcon(":/icons/informations_icon"),
+                                 self.tr("Informations"))
+
+        style = self.app.qapp.style()
+        icon = style.standardIcon(style.SP_DockWidgetCloseButton)
+        close_button = QPushButton(icon, '')
+        close_button.setStyleSheet('border-style: inset;')
+        self.tabs.tabBar().setTabButton(4, QTabBar.RightSide, close_button)
         self.button_membership.clicked.connect(self.send_membership_demand)
 
     def cancel_once_tasks(self):
@@ -95,6 +107,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.tab_wot.change_account(account, self.password_asker)
         self.tab_identities.change_account(account, self.password_asker)
         self.tab_history.change_account(account, self.password_asker)
+        self.tab_informations.change_account(account)
 
     def change_community(self, community):
         self.cancel_once_tasks()
@@ -103,6 +116,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.tab_wot.change_community(community)
         self.tab_history.change_community(community)
         self.tab_identities.change_community(community)
+        self.tab_informations.change_community(community)
 
         if self.community:
             self.community.network.new_block_mined.disconnect(self.refresh_block)
@@ -228,7 +242,6 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                     label_text += self.tr(" - Median fork window : {0}")\
                         .format("#")
 
-
             self.status_label.setText(label_text)
 
     @once_at_a_time
@@ -267,6 +280,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         if self.community and self.tab_history.table_history.model():
             self.tab_history.table_history.model().sourceModel().refresh_transfers()
             self.tab_history.refresh_balance()
+            self.tab_informations.refresh()
 
     @asyncify
     @asyncio.coroutine
