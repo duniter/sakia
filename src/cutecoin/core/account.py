@@ -323,6 +323,7 @@ class Account(QObject):
                     data = yield from community.bma_access.simple_request(request,
                                                                           req_args={'search': search})
                     registered = parsers[request](data)
+                    tries += 1
                 except ValueError as e:
                     if '404' in str(e) or '400' in str(e):
                         if request == bma.wot.CertifiersOf:
