@@ -58,6 +58,8 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
 
         self.tab_informations = InformationsTabWidget(self.app)
 
+        self.tab_menu = QWidget()
+
         self.tab_network = NetworkTabWidget(self.app)
         self.tab_identities.view_in_wot.connect(self.tab_wot.draw_graph)
         self.tab_identities.view_in_wot.connect(lambda: self.tabs.setCurrentWidget(self.tab_wot))
@@ -89,6 +91,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         style = self.app.qapp.style()
         icon = style.standardIcon(style.SP_DockWidgetCloseButton)
         close_button = QPushButton(icon, '')
+        close_button.clicked.connect(lambda: self.tabs.removeTab(self.tabs.indexOf(self.tab_informations)))
         close_button.setStyleSheet('border-style: inset;')
         self.tabs.tabBar().setTabButton(4, QTabBar.RightSide, close_button)
         self.button_membership.clicked.connect(self.send_membership_demand)
