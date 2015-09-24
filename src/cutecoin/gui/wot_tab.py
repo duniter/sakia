@@ -232,7 +232,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         """
         Reset graph scene to wallet identity
         """
-        if self.account:
+        if self.account and self.community:
             identity = yield from self.account.identity(self.community)
             self.draw_graph(identity)
 
