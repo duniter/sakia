@@ -61,7 +61,8 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
         result = yield from self.account.certify(password, self.community, pubkey)
         if result[0]:
             if self.app.preferences['notifications']:
-                toast.display(self.tr("Certification"), self.tr("Success sending certification"))
+                toast.display(self.tr("Certification"),
+                              self.tr("Success sending certification"))
             else:
                 yield from QAsyncMessageBox.information(self, self.tr("Certification"),
                                              self.tr("Success sending certification"))
@@ -69,10 +70,12 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
             super().accept()
         else:
             if self.app.preferences['notifications']:
-                toast.display(self.tr("Certification"), self.tr("Could not broadcast certification"))
+                toast.display(self.tr("Certification"), self.tr("Could not broadcast certification : {0}"
+                                                                .format(result[1])))
             else:
                 yield from QAsyncMessageBox.critical(self, self.tr("Certification"),
-                                          self.tr("Could not broadcast certification"))
+                                          self.tr("Could not broadcast certification : {0}"
+                                                                .format(result[1])))
             QApplication.restoreOverrideCursor()
 
     def change_current_community(self, index):
