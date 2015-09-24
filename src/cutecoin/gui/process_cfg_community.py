@@ -63,7 +63,11 @@ class StepPageInit(Step):
         self.node = yield from Node.from_address(None, server, port)
         if self.node:
             community = Community.create(self.node)
+            self.config_dialog.button_connect.setEnabled(False)
+            self.config_dialog.button_register.setEnabled(False)
             registered = yield from self.account.check_registered(community)
+            self.config_dialog.button_connect.setEnabled(True)
+            self.config_dialog.button_register.setEnabled(True)
             if registered[0] is False and registered[2] is None:
                 self.config_dialog.label_error.setText(self.tr("Could not find your identity on the network."))
             elif registered[0] is False and registered[2]:
@@ -88,7 +92,11 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
         self.node = yield from Node.from_address(None, server, port)
         if self.node:
             community = Community.create(self.node)
+            self.config_dialog.button_connect.setEnabled(False)
+            self.config_dialog.button_register.setEnabled(False)
             registered = yield from self.account.check_registered(community)
+            self.config_dialog.button_connect.setEnabled(True)
+            self.config_dialog.button_register.setEnabled(True)
             if registered[0] is False and registered[2] is None:
                 password = yield from self.password_asker.async_exec()
                 if self.password_asker.result() == QDialog.Rejected:
