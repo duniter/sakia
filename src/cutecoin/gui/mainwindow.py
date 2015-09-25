@@ -3,15 +3,16 @@ Created on 1 févr. 2014
 
 @author: inso
 """
+import asyncio
+import logging
+
+from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog, QMessageBox, QLabel, QComboBox, QDialog, QApplication
+from PyQt5.QtCore import QLocale, QEvent, \
+    pyqtSlot, QDateTime, QTimer, Qt
+from PyQt5.QtGui import QIcon
+
 from ..gen_resources.mainwindow_uic import Ui_MainWindow
 from ..gen_resources.about_uic import Ui_AboutPopup
-
-from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog, QProgressBar, \
-    QMessageBox, QLabel, QComboBox, QDialog, QApplication
-from PyQt5.QtCore import QSignalMapper, pyqtSlot, QLocale, QEvent, \
-    pyqtSlot, pyqtSignal, QDate, QDateTime, QTimer, QUrl, Qt, QCoreApplication
-from PyQt5.QtGui import QIcon, QDesktopServices
-
 from .process_cfg_account import ProcessConfigureAccount
 from .transfer import TransferMoneyDialog
 from .community_view import CommunityWidget
@@ -26,10 +27,7 @@ from ..core import money
 from ..core.community import Community
 from ..tools.decorators import asyncify
 from ..__init__ import __version__
-from . import toast
-
-import asyncio
-import logging
+from cutecoin.gui.widgets import toast
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):

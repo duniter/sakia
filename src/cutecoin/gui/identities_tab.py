@@ -4,20 +4,21 @@ Created on 2 févr. 2014
 @author: inso
 """
 
-import logging
+import asyncio
+
 from PyQt5.QtCore import Qt, pyqtSignal, QEvent
-from PyQt5.QtGui import QIcon, QCursor
-from PyQt5.QtWidgets import QWidget, QMessageBox, QAction, QMenu, QDialog, \
+from PyQt5.QtGui import QCursor
+from PyQt5.QtWidgets import QWidget, QAction, QMenu, QDialog, \
                             QAbstractItemView
+from ucoinpy.api import bma
+
 from ..models.identities import IdentitiesFilterProxyModel, IdentitiesTableModel
 from ..gen_resources.identities_tab_uic import Ui_IdentitiesTab
 from .contact import ConfigureContactDialog
 from .member import MemberDialog
 from .transfer import TransferMoneyDialog
-from .busy import Busy
+from cutecoin.gui.widgets.busy import Busy
 from .certification import CertificationDialog
-import asyncio
-from ucoinpy.api import bma
 from ..core.registry import Identity
 from ..tools.exceptions import NoPeerAvailable
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task

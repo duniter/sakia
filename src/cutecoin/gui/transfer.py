@@ -3,15 +3,17 @@ Created on 2 févr. 2014
 
 @author: inso
 """
+import asyncio
+
 from PyQt5.QtWidgets import QDialog, QApplication
-from PyQt5.QtCore import QRegExp, Qt, QLocale, pyqtSlot
+from PyQt5.QtCore import QRegExp, Qt
+
 from PyQt5.QtGui import QRegExpValidator
 
 from ..gen_resources.transfer_uic import Ui_TransferMoneyDialog
-from . import toast
-from .dialogs import QAsyncMessageBox, QMessageBox
+from cutecoin.gui.widgets import toast
+from cutecoin.gui.widgets.dialogs import QAsyncMessageBox, QMessageBox
 from ..tools.decorators import asyncify
-import asyncio
 
 
 class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):

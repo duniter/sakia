@@ -14,10 +14,8 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 from ..gen_resources.community_cfg_uic import Ui_CommunityConfigurationDialog
 from ..models.peering import PeeringTreeModel
 from ..core import Community
-from ..core.registry.identity import BlockchainState
 from ..core.net import Node
-from ..tools.decorators import asyncify
-from . import toast
+from cutecoin.gui.widgets import toast
 
 
 class Step(QObject):

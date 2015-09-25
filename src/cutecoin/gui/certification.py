@@ -3,15 +3,18 @@ Created on 24 dec. 2014
 
 @author: inso
 """
-from PyQt5.QtWidgets import QDialog, QMessageBox, QDialogButtonBox, QApplication
-from PyQt5.QtCore import Qt, pyqtSlot
-from ..gen_resources.certification_uic import Ui_CertificationDialog
-from . import toast
-from .dialogs import QAsyncMessageBox
-from ..tools.decorators import asyncify
-from ..tools.exceptions import NoPeerAvailable
 import asyncio
 import logging
+
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QApplication
+
+from PyQt5.QtCore import Qt
+
+from ..gen_resources.certification_uic import Ui_CertificationDialog
+from cutecoin.gui.widgets import toast
+from cutecoin.gui.widgets.dialogs import QAsyncMessageBox
+from ..tools.decorators import asyncify
+from ..tools.exceptions import NoPeerAvailable
 
 
 class CertificationDialog(QDialog, Ui_CertificationDialog):

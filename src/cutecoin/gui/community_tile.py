@@ -2,15 +2,16 @@
 @author: inso
 """
 
-from PyQt5.QtWidgets import QFrame, QLabel, QVBoxLayout, QLayout, QPushButton
-from PyQt5.QtGui import QPalette
-from PyQt5.QtCore import QEvent, QSize, pyqtSignal
-from ..tools.decorators import asyncify
-from ..tools.exceptions import NoPeerAvailable
 import asyncio
 import enum
+
+from PyQt5.QtWidgets import QFrame, QLabel, QVBoxLayout, QLayout
+from PyQt5.QtCore import QSize, pyqtSignal
 from ucoinpy.documents.block import Block
-from .busy import Busy
+
+from ..tools.decorators import asyncify
+from ..tools.exceptions import NoPeerAvailable
+from cutecoin.gui.widgets.busy import Busy
 
 
 @enum.unique

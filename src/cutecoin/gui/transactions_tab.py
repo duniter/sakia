@@ -1,24 +1,25 @@
+import logging
+import asyncio
+
 from PyQt5.QtWidgets import QWidget, QAbstractItemView, QHeaderView, QDialog, \
     QMenu, QAction, QApplication, QMessageBox
 from PyQt5.QtCore import Qt, QDateTime, QTime, QModelIndex, pyqtSignal, pyqtSlot, QEvent
+
 from PyQt5.QtGui import QCursor
+
 from ..gen_resources.transactions_tab_uic import Ui_transactionsTabWidget
 from ..models.txhistory import HistoryTableModel, TxFilterProxyModel
 from ..core.transfer import Transfer
 from .contact import ConfigureContactDialog
 from .member import MemberDialog
-from .transfer import TransferMoneyDialog
 from .certification import CertificationDialog
 from ..core.wallet import Wallet
 from ..core.registry import Identity
 from ..tools.exceptions import NoPeerAvailable
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from .transfer import TransferMoneyDialog
-from . import toast
-from .busy import Busy
-
-import logging
-import asyncio
+from cutecoin.gui.widgets import toast
+from cutecoin.gui.widgets.busy import Busy
 
 
 class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):

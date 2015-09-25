@@ -4,21 +4,21 @@ Created on 2 févr. 2014
 @author: inso
 """
 
-import time
 import logging
+import asyncio
+
 from PyQt5.QtWidgets import QWidget, QMessageBox, QDialog, QPushButton, QTabBar, QAction
 from PyQt5.QtCore import pyqtSlot, QDateTime, QLocale, QEvent
+
 from PyQt5.QtGui import QIcon
 
-from ..core.net.api import bma as bma
 from .wot_tab import WotTabWidget
 from .identities_tab import IdentitiesTabWidget
 from .transactions_tab import TransactionsTabWidget
 from .network_tab import NetworkTabWidget
 from .informations_tab import InformationsTabWidget
-from .dialogs import QAsyncMessageBox
-from . import toast
-import asyncio
+from cutecoin.gui.widgets.dialogs import QAsyncMessageBox
+from cutecoin.gui.widgets import toast
 from ..tools.exceptions import MembershipNotFoundError, LookupFailureError, NoPeerAvailable
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from ..gen_resources.community_view_uic import Ui_CommunityWidget

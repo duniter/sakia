@@ -5,14 +5,10 @@ Created on 11 mai 2015
 """
 
 from PyQt5.QtCore import QCoreApplication
+from PyQt5.QtWidgets import QDialog
 
 from ..core import money
-from . import toast
-from PyQt5.QtWidgets import QDialog
-from PyQt5.QtGui import QIcon
-
 from ..gen_resources.preferences_uic import Ui_PreferencesDialog
-import icons_rc
 
 
 class PreferencesDialog(QDialog, Ui_PreferencesDialog):

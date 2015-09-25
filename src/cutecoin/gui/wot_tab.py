@@ -2,12 +2,13 @@
 
 import logging
 import asyncio
+
 from PyQt5.QtWidgets import QWidget, QComboBox, QDialog
 from PyQt5.QtCore import pyqtSlot, QEvent, QLocale, QDateTime, pyqtSignal
+from ucoinpy.api import bma
 
 from ..tools.exceptions import MembershipNotFoundError
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
-from ucoinpy.api import bma
 from ..core.graph import Graph
 from ..core.registry import BlockchainState
 from .member import MemberDialog
@@ -15,9 +16,8 @@ from .certification import CertificationDialog
 from .transfer import TransferMoneyDialog
 from .contact import ConfigureContactDialog
 from ..gen_resources.wot_tab_uic import Ui_WotTabWidget
-from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_SELECTED, NODE_STATUS_OUT, ARC_STATUS_STRONG, \
-    ARC_STATUS_WEAK
-from .busy import Busy
+from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_SELECTED, NODE_STATUS_OUT
+from cutecoin.gui.widgets.busy import Busy
 
 
 class WotTabWidget(QWidget, Ui_WotTabWidget):

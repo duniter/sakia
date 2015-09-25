@@ -8,7 +8,7 @@ import logging
 from PyQt5.QtCore import Qt, QThread
 from PyQt5.QtWidgets import QMainWindow, QApplication
 from PyQt5.QtGui import QImage, QPixmap
-from ..gen_resources.toast_uic import Ui_Toast
+from cutecoin.gen_resources.toast_uic import Ui_Toast
 
 window = None   # global
 
