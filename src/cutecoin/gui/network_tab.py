@@ -39,6 +39,8 @@ class NetworkTabWidget(QWidget, Ui_NetworkTabWidget):
         self.table_network.setModel(proxy)
         self.table_network.sortByColumn(0, Qt.DescendingOrder)
         self.table_network.resizeColumnsToContents()
+        model.modelAboutToBeReset.connect(lambda: self.table_network.setEnabled(False))
+        model.modelReset.connect(lambda: self.table_network.setEnabled(True))
 
     def change_community(self, community):
         if self.community:

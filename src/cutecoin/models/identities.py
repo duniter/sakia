@@ -104,12 +104,21 @@ class IdentitiesTableModel(QAbstractTableModel):
     @property
     def pubkeys(self):
         """
-        Get pubkeys of displayed identities
+        Ge
+    def resizeEvent(self, event):
+        self.busy.resize(event.size())
+        super().resizeEvent(event)t pubkeys of displayed identities
         """
         return [i[1] for i in self.identities_data]
 
     @asyncio.coroutine
     def identity_data(self, identity):
+        """
+        Return the identity in the form a tuple to display
+        :param cutecoin.core.registry.Identity identity: The identity to get data from
+        :return: The identity data in the form of a tuple
+        :rtype: tuple
+        """
         try:
             join_date = yield from identity.get_join_date(self.community)
             expiration_date = yield from identity.get_expiration_date(self.community)
@@ -117,7 +126,7 @@ class IdentitiesTableModel(QAbstractTableModel):
             join_date = None
             expiration_date = None
 
-        return (identity.uid, identity.pubkey, join_date, expiration_date)
+        return identity.uid, identity.pubkey, join_date, expiration_date
 
     @asyncio.coroutine
     def refresh_identities(self, identities):

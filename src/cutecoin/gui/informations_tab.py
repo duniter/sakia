@@ -10,9 +10,9 @@ import math
 from PyQt5.QtCore import QLocale, QDateTime, QEvent
 from PyQt5.QtWidgets import QWidget
 from ..gen_resources.informations_tab_uic import Ui_InformationsTabWidget
-from ..tools.decorators import asyncify
+from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from ..tools.exceptions import NoPeerAvailable
-
+from .widgets import Busy
 
 class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
     """
@@ -28,16 +28,19 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
         :return:
         """
         super().__init__()
+        self.setupUi(self)
         self.app = app
         self.account = None
         self.community = None
-
-        self.setupUi(self)
+        self.busy = Busy(self.scrollArea)
+        self.busy.hide()
 
     def change_account(self, account):
+        cancel_once_task(self, self.refresh_labels)
         self.account = account
 
     def change_community(self, community):
+        cancel_once_task(self, self.refresh_labels)
         self.community = community
         self.refresh()
 
@@ -45,9 +48,11 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
         if self.account and self.community:
             self.refresh_labels()
 
+    @once_at_a_time
     @asyncify
     @asyncio.coroutine
     def refresh_labels(self):
+        self.busy.show()
         #  try to request money parameters
         try:
             params = yield from self.community.parameters()
@@ -230,6 +235,11 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 self.tr('Maximum distance between each WoT member and a newcomer'),
             )
         )
+        self.busy.hide()
+
+    def resizeEvent(self, event):
+        self.busy.resize(event.size())
+        super().resizeEvent(event)
 
     def changeEvent(self, event):
         """

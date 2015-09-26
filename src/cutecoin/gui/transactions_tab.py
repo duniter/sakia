@@ -58,6 +58,10 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         self.table_history.setSortingEnabled(True)
         self.table_history.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
         self.table_history.resizeColumnsToContents()
+
+        model.modelAboutToBeReset.connect(lambda: self.table_history.setEnabled(False))
+        model.modelReset.connect(lambda: self.table_history.setEnabled(True))
+
         self.progressbar.hide()
         self.refresh()
 

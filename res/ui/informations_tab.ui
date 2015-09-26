@@ -38,8 +38,8 @@ QGroupBox::title {
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>518</width>
-        <height>717</height>
+        <width>522</width>
+        <height>721</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -58,7 +58,7 @@ QGroupBox::title {
           <item>
            <widget class="QLabel" name="label_general">
             <property name="text">
-             <string>label_general</string>
+             <string/>
             </property>
             <property name="scaledContents">
              <bool>false</bool>
@@ -80,7 +80,7 @@ QGroupBox::title {
           <item>
            <widget class="QLabel" name="label_rules">
             <property name="text">
-             <string>label_rules</string>
+             <string/>
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -99,7 +99,7 @@ QGroupBox::title {
           <item>
            <widget class="QLabel" name="label_money">
             <property name="text">
-             <string>label_money</string>
+             <string/>
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -118,7 +118,7 @@ QGroupBox::title {
           <item>
            <widget class="QLabel" name="label_wot">
             <property name="text">
-             <string>label_wot</string>
+             <string/>
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>

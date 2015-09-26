@@ -56,6 +56,8 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         self.table_identities.customContextMenuRequested.connect(self.identity_context_menu)
         self.table_identities.sortByColumn(0, Qt.AscendingOrder)
         self.table_identities.resizeColumnsToContents()
+        identities_model.modelAboutToBeReset.connect(lambda: self.table_identities.setEnabled(False))
+        identities_model.modelReset.connect(lambda: self.table_identities.setEnabled(True))
 
         members_action = QAction(self.tr("Members"), self)
         members_action.triggered.connect(self._async_search_members)
