@@ -1,10 +1,1 @@
-@startuml
-
-[*] --> To_send
-To_send --> Awaiting : Broadcasted at B
-Awaiting --> Validated : Registered in [B; B+15]
-Awaiting --> Refused : Not registered in [B; B+15]
-Refused --> To_send : Send back order
-Refused --> Dropped : Drop order
-
-@enduml
+@startumlnote "With B a Block\nWith W the Median fork window\nWith Cur the current block of the main branch" as N1state Local_Tx { [*] --> To_send : Signed locally To_send : B = none To_send --> Awaiting : Node answered\n200 OK to POST Awaiting : B = Cur Awaiting --> Refused : Not registered in [B; B+W] Refused --> To_send : Send back Refused --> [*] : Drop}state Registered { [*] --> Validating : Posted\nsin the blockchain Validating : B = Block containing the Tx Awaiting --> Validating : Found in the blockchain Validating --> Validated : Cur-B > W Validated --> Validating : Blockchain\nrollback,\ntx still present Validated --> Awaiting : Blockchain\nrollback,\ntx not\npresent anymore}@enduml
