@@ -100,9 +100,7 @@ class TxHistory():
         """
         receivers = [o.pubkey for o in tx.outputs
                      if o.pubkey != tx.issuers[0]]
-
-        state = yield from TxHistory._validation_state(community, block_number, current_block)
-
+        nb_validations = community.network.fork_window((yield from community.members_pubkeys()))
         if len(receivers) == 0:
             receivers = [tx.issuers[0]]
 
@@ -131,13 +129,13 @@ class TxHistory():
                      if i == self.wallet.pubkey]) > 0
         in_outputs = len([o for o in tx.outputs
                        if o.pubkey == self.wallet.pubkey]) > 0
-        awaiting = [t for t in self._transfers
+        watched = [t for t in self._transfers
                     if t.state in (Transfer.AWAITING, Transfer.VALIDATING)]
 
         # We check if the transaction correspond to one we sent
         # but not from this cutecoin Instance
         tx_hash = hashlib.sha1(tx.signed_raw().encode("ascii")).hexdigest().upper()
-        if tx_hash not in [t.hash for t in awaiting]:
+        if tx_hash not in [t.hash for t in watched]:
             # If the wallet pubkey is in the issuers we sent this transaction
             if in_issuers:
                 outputs = [o for o in tx.outputs
@@ -147,8 +145,9 @@ class TxHistory():
                     amount += o.amount
                 metadata['amount'] = amount
                 transfer = Transfer.create_from_blockchain(tx_hash,
-                                                           state,
-                                                     metadata.copy())
+                                                     metadata.copy(),
+                                                   current_block['number'],
+                                                   mediantime, nb_validations)
                 return transfer
             # If we are not in the issuers,
             # maybe it we are in the recipients of this transaction
@@ -159,18 +158,16 @@ class TxHistory():
                 for o in outputs:
                     amount += o.amount
                 metadata['amount'] = amount
-
-                if tx_hash not in [t.hash for t in awaiting]:
-                    transfer = Transfer.create_from_blockchain(tx_hash,
-                                                               state,
-                                                         metadata.copy())
-                    received_list.append(transfer)
-                    return transfer
+                transfer = Transfer.create_from_blockchain(tx_hash,
+                                                     metadata.copy(),
+                                                       current_block['number'],
+                                                       mediantime, nb_validations)
+                received_list.append(transfer)
+                return transfer
         else:
-            transfer = [t for t in awaiting if t.hash == tx_hash][0]
+            transfer = [t for t in watched if t.hash == tx_hash][0]
 
-            transfer.check_registered(tx_hash, current_block['number'], mediantime,
-                                      community.network.fork_window(community.members_pubkeys()))
+            transfer.check_registered(tx_hash, current_block['number'], mediantime, nb_validations)
         return None
 
     @asyncio.coroutine

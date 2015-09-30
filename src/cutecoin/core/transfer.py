@@ -70,11 +70,13 @@ class Transfer(QObject):
         return cls(None, Transfer.TO_SEND, metadata)
 
     @classmethod
-    def create_from_blockchain(cls, hash, state, metadata):
+    def create_from_blockchain(cls, hash, metadata, block_number, time, nb_validation):
         """
         Create a new transfer sent from another cutecoin instance
         """
-        return cls(hash, state, metadata)
+        tx = cls(hash, Transfer.VALIDATING, metadata)
+        tx.check_registered(block_number, time, nb_validation)
+        return tx
 
     @classmethod
     def load(cls, data):
@@ -128,7 +130,7 @@ class Transfer(QObject):
 
         return result
 
-    def check_registered(self, txhash, block_number, time, data_validation):
+    def check_registered(self, txhash, block_number, time, nb_validation):
         """
         Check if the transfer was registered in a block.
         Update the transfer state to VALIDATED if it was registered.
@@ -136,6 +138,7 @@ class Transfer(QObject):
         :param txhash: A transaction ucoinpy object found in the block
         :param int block_number: The block number checked
         :param int time: The time of the block
+        :param int nb_validation: The number of validations needed to become VALIDATED
         """
         if txhash == self.hash:
             if self.state == Transfer.AWAITING:
@@ -143,7 +146,7 @@ class Transfer(QObject):
                 self._metadata['block'] = block_number
                 self._metadata['time'] = time
             if self.state == Transfer.VALIDATING and \
-                    self._metadata['block'] - block_number >= data_validation:
+                    self._metadata['block'] - block_number >= nb_validation:
                 self.state = Transfer.VALIDATED
 
     def check_refused(self, time, block_time, mediantime_blocks):
