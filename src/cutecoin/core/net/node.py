@@ -5,7 +5,6 @@ Created on 21 févr. 2015
 """
 
 from ucoinpy.documents.peer import Peer, Endpoint, BMAEndpoint
-from ucoinpy.documents.block import Block
 from ...tools.exceptions import InvalidNodeCurrency
 from ...tools.decorators import asyncify
 from ucoinpy.api import bma as bma
@@ -49,6 +48,7 @@ class Node(QObject):
         self._uid = uid
         self._pubkey = pubkey
         self._block = block
+        self.main_chain_previous_block = None
         self._state = state
         self._neighbours = []
         self._currency = currency
@@ -295,12 +295,29 @@ class Node(QObject):
             self.state = Node.ONLINE
 
             if not self.block or block_hash != self.block['hash']:
-                self.set_block(block_data)
-                logging.debug("Changed block {0} -> {1}".format(self.block['number'],
-                                                                block_data['number']))
-                self.changed.emit()
+                try:
+                    #TODO: Check previous block
+                    self.main_chain_previous_block = yield from bma.blockchain.Block(conn_handler,
+                                                                                     self.block['number']).get()
+                except ValueError as e:
+                    if '404' in str(e):
+                        self.main_chain_previous_block = None
+                    logging.debug("Error in block reply")
+                    self.changed.emit()
+                except ClientError:
+                    logging.debug("Client error : {0}".format(self.pubkey))
+                    self.state = Node.OFFLINE
+                except asyncio.TimeoutError:
+                    logging.debug("Timeout error : {0}".format(self.pubkey))
+                    self.state = Node.OFFLINE
+                finally:
+                    self.set_block(block_data)
+                    logging.debug("Changed block {0} -> {1}".format(self.block['number'],
+                                                                    block_data['number']))
+                    self.changed.emit()
         except ValueError as e:
             if '404' in str(e):
+                self.main_chain_previous_block = None
                 self.set_block(None)
             logging.debug("Error in block reply")
             self.changed.emit()
