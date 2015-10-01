@@ -231,6 +231,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         <p>inso</p>
         <p>vit</p>
+        <p>Moul</p>
         <p>canercandan</p>
         """).format(__version__, new_version_text=new_version_text)
 
