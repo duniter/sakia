@@ -56,13 +56,28 @@ class Graph(object):
         """
         path = list()
 
+        # if from_identity has no certifications, we can not make a path
+        certifier_list = yield from from_identity.unique_valid_certifiers_of(self.app.identities_registry, self.community)
+        certified_list = yield from from_identity.unique_valid_certified_by(self.app.identities_registry, self.community)
+        print (certifier_list, certified_list)
+        if not certifier_list and not certified_list:
+            logging.debug('from_identity has no certifications : can not calculate wot path')
+            return path
+
+        # if to_identity has no certifications, we can not make a path
+        certifier_list = yield from to_identity.unique_valid_certifiers_of(self.app.identities_registry, self.community)
+        certified_list = yield from to_identity.unique_valid_certified_by(self.app.identities_registry, self.community)
+        if not certifier_list and not certified_list:
+            logging.debug('to_identity has no certifications : can not calculate wot path')
+            return path
+
         logging.debug("path between %s to %s..." % (from_identity.uid, to_identity.uid))
         if from_identity.pubkey not in self._graph.keys():
             self.add_identity(from_identity)
-            certifier_list = yield from from_identity.certifiers_of(self.app.identities_registry,
+            certifier_list = yield from from_identity.unique_valid_certifiers_of(self.app.identities_registry,
                                                                     self.community)
             yield from self.add_certifier_list(certifier_list, from_identity, to_identity)
-            certified_list = yield from from_identity.certified_by(self.app.identities_registry,
+            certified_list = yield from from_identity.unique_valid_certified_by(self.app.identities_registry,
                                                                    self.community)
             yield from self.add_certified_list(certified_list, from_identity, to_identity)
 
