@@ -7,7 +7,7 @@ import re
 import base64
 import logging
 
-from . import Document
+from .document import Document
 
 
 class SelfCertification(Document):

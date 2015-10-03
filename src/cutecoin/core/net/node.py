@@ -296,8 +296,8 @@ class Node(QObject):
 
             if not self.block or block_hash != self.block['hash']:
                 try:
-                    #TODO: Check previous block
-                    self.main_chain_previous_block = yield from bma.blockchain.Block(conn_handler,
+                    if self.block:
+                        self.main_chain_previous_block = yield from bma.blockchain.Block(conn_handler,
                                                                                      self.block['number']).get()
                 except ValueError as e:
                     if '404' in str(e):

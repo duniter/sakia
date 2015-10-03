@@ -16,7 +16,7 @@ from PyQt5.QtCore import QObject, pyqtSignal
 from ..tools.exceptions import NoPeerAvailable
 from .net.network import Network
 from ucoinpy.api import bma
-from ucoinpy.documents.block import Block
+from ucoinpy.documents import Block, BlockId
 from .net.api.bma.access import BmaAccess
 
 
@@ -287,14 +287,11 @@ class Community(QObject):
         try:
             block = yield from self.bma_access.future_request(bma.blockchain.Current)
             signed_raw = "{0}{1}\n".format(block['raw'], block['signature'])
-            block_hash = hashlib.sha1(signed_raw.encode("ascii")).hexdigest().upper()
-            block_number = block['number']
         except ValueError as e:
             if '404' in str(e):
-                block_hash = Block.Empty_Hash
-                block_number = 0
+                return BlockId.empty()
 
-        return {'number': block_number, 'hash': block_hash}
+        return Block.from_signed_raw(signed_raw).blockid
 
     @asyncio.coroutine
     def members_pubkeys(self):

@@ -7,7 +7,7 @@ Created on 5 févr. 2014
 import datetime
 import logging
 import asyncio
-from ..core.transfer import Transfer
+from ..core.transfer import Transfer, TransferState
 from ..tools.exceptions import NoPeerAvailable
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, \
@@ -119,20 +119,20 @@ class TxFilterProxyModel(QSortFilterProxyModel):
 
         if role == Qt.FontRole:
             font = QFont()
-            if state_data == Transfer.AWAITING or state_data == Transfer.VALIDATING:
+            if state_data == TransferState.AWAITING or state_data == TransferState.VALIDATING:
                 font.setItalic(True)
-            elif state_data == Transfer.REFUSED:
+            elif state_data == TransferState.REFUSED:
                 font.setItalic(True)
-            elif state_data == Transfer.TO_SEND:
+            elif state_data == TransferState.TO_SEND:
                 font.setBold(True)
             else:
                 font.setItalic(False)
             return font
 
         if role == Qt.ForegroundRole:
-            if state_data == Transfer.REFUSED:
+            if state_data == TransferState.REFUSED:
                 return QColor(Qt.red)
-            elif state_data == Transfer.TO_SEND:
+            elif state_data == TransferState.TO_SEND:
                 return QColor(Qt.blue)
 
         if role == Qt.TextAlignmentRole:
@@ -146,13 +146,13 @@ class TxFilterProxyModel(QSortFilterProxyModel):
             if source_index.column() == self.sourceModel().columns_types.index('date'):
                 return QDateTime.fromTime_t(source_data).toString(Qt.SystemLocaleLongDate)
 
-            if state_data == Transfer.VALIDATING or state_data == Transfer.AWAITING:
+            if state_data == TransferState.VALIDATING or state_data == TransferState.AWAITING:
                 block_col = model.columns_types.index('block_number')
                 block_index = model.index(source_index.row(), block_col)
                 block_data = model.data(block_index, Qt.DisplayRole)
 
                 current_validations = 0
-                if state_data == Transfer.VALIDATING:
+                if state_data == TransferState.VALIDATING:
                     latest_block_number = self.community.network.latest_block_number
                     if latest_block_number:
                         current_validations = latest_block_number - block_data
@@ -241,7 +241,10 @@ class HistoryTableModel(QAbstractTableModel):
 
         date_ts = transfer.metadata['time']
         txid = transfer.metadata['txid']
-        block_number = transfer.metadata['block']
+        if transfer.blockid:
+            block_number = transfer.blockid.number
+        else:
+            block_number = None
 
         return (date_ts, sender, "", deposit,
                 comment, transfer.state, txid,
@@ -262,7 +265,10 @@ class HistoryTableModel(QAbstractTableModel):
 
         date_ts = transfer.metadata['time']
         txid = transfer.metadata['txid']
-        block_number = transfer.metadata['block']
+        if transfer.blockid:
+            block_number = transfer.blockid.number
+        else:
+            block_number = None
 
         return (date_ts, receiver, paiment,
                 "", comment, transfer.state, txid,

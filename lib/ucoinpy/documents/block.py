@@ -5,13 +5,43 @@ Created on 2 déc. 2014
 """
 
 from .. import PROTOCOL_VERSION
-from . import Document
+from .document import Document
 from .certification import SelfCertification, Certification
 from .membership import Membership
 from .transaction import Transaction
 
 import re
 import logging
+
+
+class BlockId:
+    """
+    A simple block id
+    """
+    re_hash = re.compile("([0-9a-fA-F]{5,40})")
+
+    @classmethod
+    def empty(cls):
+        return cls(0, Block.Empty_Hash)
+
+    def __init__(self, number, sha_hash):
+        assert(type(number) is int)
+        assert(BlockId.re_hash.match(sha_hash) is not None)
+        self.number = number
+        self.sha_hash = sha_hash
+
+    @classmethod
+    def from_str(cls, blockid):
+        """
+        :param str blockid: The block id
+        """
+        data = blockid.split("-")
+        number = int(data[0])
+        sha_hash = data[1]
+        return cls(number, sha_hash)
+
+    def __str__(self):
+        return "{0}-{1}".format(self.number, self.sha_hash)
 
 
 class Block(Document):
@@ -106,6 +136,10 @@ BOTTOM_SIGNATURE
         self.excluded = excluded
         self.certifications = certifications
         self.transactions = transactions
+
+    @property
+    def blockid(self):
+        return BlockId(self.number, self.sha_hash)
 
     @classmethod
     def from_signed_raw(cls, raw):

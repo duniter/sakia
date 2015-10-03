@@ -12,8 +12,6 @@ import asyncio
 from ucoinpy.documents.peer import Peer
 from ucoinpy.documents.block import Block
 
-from ...tools.decorators import asyncify
-
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
 from collections import Counter
 

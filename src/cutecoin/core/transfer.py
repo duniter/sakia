@@ -6,14 +6,14 @@ Created on 31 janv. 2015
 import logging
 import asyncio
 from ucoinpy.api import bma
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
-from PyQt5.QtNetwork import QNetworkReply
+from ucoinpy.documents import Block, BlockId
+from PyQt5.QtCore import pyqtSignal, QObject
 import hashlib
+from enum import Enum
 
 
-class Transfer(QObject):
+class TransferState(Enum):
     """
-    A transfer is the lifecycle of a transaction.
     TO_SEND means the transaction wasn't sent yet
     AWAITING means the transaction is waiting to reach K blockchain validation
     VALIDATED means the transaction was validated locally and is considered present in the blockchain
@@ -29,10 +29,15 @@ class Transfer(QObject):
     REFUSED = 3
     DROPPED = 5
 
+
+class Transfer(QObject):
+    """
+    A transfer is the lifecycle of a transaction.
+    """
     transfer_broadcasted = pyqtSignal(str)
     broadcast_error = pyqtSignal(int, str)
 
-    def __init__(self, hash, state, metadata):
+    def __init__(self, sha_hash, state, blockid, metadata, locally_created):
         """
         The constructor of a transfer.
         Check for metadata keys which must be present :
@@ -43,12 +48,12 @@ class Transfer(QObject):
         - amount
         - comment
 
-        :param txdoc: The Transaction ucoinpy object
-        :param state: The state of the Transfer (TO_SEND, AWAITING, VALIDATED, REFUSED or DROPPED)
-        :param metadata: The transfer metadata
+        :param str sha_hash: The hash of the transaction
+        :param TransferState state: The state of the Transfer
+        :param ucoinpy.documents.BlockId blockid: The blockid of the transaction in the blockchain
+        :param dict metadata: The transfer metadata
         """
         assert('receiver' in metadata)
-        assert('block' in metadata)
         assert('time' in metadata)
         assert('issuer' in metadata)
         assert('amount' in metadata)
@@ -58,32 +63,81 @@ class Transfer(QObject):
         assert('txid' in metadata)
         super().__init__()
 
-        self.hash = hash
+        self.sha_hash = sha_hash
         self.state = state
+        self.blockid = blockid
+        self._locally_created = locally_created
         self._metadata = metadata
+
+        self._table_states = {
+            (TransferState.TO_SEND, (list, Block)):
+                (self._broadcast_success, self._wait, TransferState.AWAITING),
+
+            (TransferState.AWAITING, (bool, Block)):
+                (self._found_in_block, self._be_validating, TransferState.VALIDATING),
+            (TransferState.AWAITING, (bool, Block, int)):
+                (self._not_found_in_blockchain, None, TransferState.REFUSED),
+
+            (TransferState.VALIDATING, (bool, Block, int)):
+                (self._reached_enough_validation, None, TransferState.VALIDATED),
+            (TransferState.VALIDATING, (bool, Block)):
+                (self._rollback_and_removed, self._drop, TransferState.DROPPED),
+
+            (TransferState.VALIDATED, (bool, Block)):
+                (self._rollback_still_present, self._be_validating, TransferState.VALIDATING),
+            (TransferState.VALIDATED, (bool, Block)):
+                (self._rollback_and_removed, self._drop, TransferState.DROPPED),
+            (TransferState.VALIDATED, (bool, Block)):
+                (self._rollback_and_local, self._wait, TransferState.AWAITING),
+
+            (TransferState.DROPPED, ()):
+                (self._is_locally_created, None, TransferState.TO_SEND),
+            (TransferState.REFUSED, ()):
+                (self._is_locally_created, self._drop, TransferState.DROPPED),
+        }
 
     @classmethod
     def initiate(cls, metadata):
         """
         Create a new transfer in a "TO_SEND" state.
+        :param dict metadata: The computed metadata of the transfer
+        :return: A new transfer
+        :rtype: Transfer
         """
-        return cls(None, Transfer.TO_SEND, metadata)
+        return cls(None, TransferState.TO_SEND, None, metadata, True)
 
     @classmethod
-    def create_from_blockchain(cls, hash, metadata, block_number, time, nb_validation):
+    def create_from_blockchain(cls, hash, blockid, metadata):
         """
         Create a new transfer sent from another cutecoin instance
+        :param str hash: The transaction hash
+        :param ucoinpy.documents.BlockId blockid: The block id were we found the tx
+        :param dict metadata: The computed metadata of the transaction
+        :return: A new transfer
+        :rtype: Transfer
         """
-        tx = cls(hash, Transfer.VALIDATING, metadata)
-        tx.check_registered(block_number, time, nb_validation)
-        return tx
+        return cls(hash, TransferState.VALIDATING, blockid, metadata, False)
 
     @classmethod
     def load(cls, data):
         """
         Create a new transfer from a dict in json format.
+        :param dict data: The loaded data
+        :return: A new transfer
+        :rtype: Transfer
         """
-        return cls(data['hash'], data['state'], data['metadata'])
+        return cls(data['hash'], TransferState[data['state']], BlockId.from_str(data['blockid']),
+                   data['metadata'], data['local'])
+
+    def jsonify(self):
+        """
+        :return: The transfer as a dict in json format
+        """
+        return {'hash': self.sha_hash,
+                'state': self.state.name,
+                'blockid': str(self.blockid),
+                'metadata': self._metadata,
+                'local': self._locally_created}
 
     @property
     def metadata(self):
@@ -92,13 +146,159 @@ class Transfer(QObject):
         """
         return self._metadata
 
-    def jsonify(self):
+    def _not_found_in_blockchain(self, rollback, block, mediantime_target):
         """
-        :return: The transfer as a dict in json format
+        Check if the transaction could not be found in the blockchain
+        :param bool rollback: True if we are in a rollback procedure
+        :param ucoinpy.documents.Block block: The block to look for the tx
+        :param int mediantime_target: The mediantime to mine a block in the community parameters
+        :return: True if the transaction could not be found in a given time
+        :rtype: bool
         """
-        return {'hash': self.hash,
-                'state': self.state,
-                'metadata': self._metadata}
+        if not rollback:
+            for tx in block.transactions:
+                if tx.hash == self.sha_hash:
+                    return False
+            if block.time > self.metadata['time'] + mediantime_target*10:
+                return True
+        return False
+
+    def _found_in_block(self, rollback, block):
+        """
+        Check if the transaction can be found in the blockchain
+        :param bool rollback: True if we are in a rollback procedure
+        :param ucoinpy.documents.Block block: The block to check for the transaction
+        :return: True if the transaction was found
+        :rtype: bool
+        """
+        if not rollback:
+            for tx in block.transactions:
+                if tx.hash == self.sha_hash:
+                    return True
+        return False
+
+    def _broadcast_success(self, ret_codes, time):
+        """
+        Check if the retcode is 200 after a POST
+        :param list ret_codes: The POST return codes of the broadcast
+        :param int time: The mediantime of the blockchain. Used for transition.
+        :return: True if the post was successful
+        :rtype: bool
+        """
+        return 200 in ret_codes
+
+    def _reached_enough_validation(self, rollback, current_block, fork_window):
+        """
+        Check if the transfer reached enough validation in the blockchain
+        :param bool rollback: True if we are in a rollback procedure
+        :param ucoinpy.documents.Block current_block: The current block of the main blockchain
+        :param int fork_window: The number of validations needed on the network
+        :return: True if the transfer reached enough validations
+        :rtype: bool
+        """
+        return not rollback and self.blockid.number + fork_window <= current_block.number
+
+    def _rollback_and_removed(self, rollback, block):
+        """
+        Check if the transfer is not in the block anymore
+        :param bool rollback: True if we are in a rollback procedure
+        :param ucoinpy.documents.Block block: The block to check for the transaction
+        :return: True if the transfer is not found in the block
+        """
+        if rollback and block.blockid == self.blockid:
+            return self.sha_hash not in [t.hash for t in block.transactions]
+        return False
+
+    def _rollback_still_present(self, rollback, block):
+        """
+        Check if the transfer is not in the block anymore
+        :param bool rollback: True if we are in a rollback procedure
+        :param ucoinpy.documents.Block block: The block to check for the transaction
+        :return: True if the transfer is found in the block
+        """
+        if rollback and block.blockid == self.blockid:
+            return self.sha_hash in [t.hash for t in block.transactions]
+        return False
+
+    def _rollback_and_local(self, rollback, block):
+        """
+        Check if the transfer is not in the block anymore
+        :param bool rollback: True if we are in a rollback procedure
+        :param ucoinpy.documents.Block block: The block to check for the transaction
+        :return: True if the transfer is found in the block
+        """
+        if rollback and self._locally_created and block.blockid == self.blockid:
+            return self.sha_hash not in [t.hash for t in block.transactions]
+        return False
+
+    def _is_locally_created(self):
+        """
+        Check if we can send back the transaction if it was locally created
+        :return: True if the transaction was locally created
+        """
+        return self._locally_created
+
+    def _wait(self, ret_codes, current_block):
+        """
+        Set the transfer as AWAITING validation.
+        :param list ret_codes: The responses return codes
+        :param ucoinpy.documents.Block current_block: Current block of the main blockchain
+        """
+        self.blockid = current_block
+        self._metadata['time'] = current_block.mediantime
+
+    def _be_validating(self, rollback, block):
+        """
+        Action when the transfer ins found in a block
+
+        :param bool rollback: True if we are in a rollback procedure
+        :param ucoinpy.documents.Block block: The block checked
+        """
+        self.blockid = block.blockid
+        self._metadata['time'] = block.mediantime
+
+    def _drop(self):
+        """
+        Cancel the transfer locally.
+        The transfer state becomes TransferState.DROPPED.
+        """
+        self.blockid = None
+
+    def _try_transition(self, transition_key, inputs):
+        """
+        Try the transition defined by the given transition_key
+        with inputs
+        :param tuple transition_key: The transition key in the table states
+        :param tuple inputs: The inputs
+        :return: True if the transition was applied
+        :rtype: bool
+        """
+        if len(inputs) == len(transition_key[1]):
+            for i, input in enumerate(inputs):
+                if type(input) is not transition_key[1][i]:
+                    return False
+            if self._table_states[transition_key][0](*inputs):
+                next_state = self._table_states[transition_key]
+                logging.debug("{0} : {1} --> {2}".format(self.sha_hash[:5], self.state.name, next_state[2].name))
+                # If the transition changes data, apply changes
+                if next_state[1]:
+                    next_state[1](*inputs)
+                self.state = next_state[2]
+                return True
+        return False
+
+    def run_state_transitions(self, inputs):
+        """
+        Try all current state transitions with inputs
+        :param tuple inputs: The inputs passed to the transitions
+        :return: True if the transaction changed state
+        :rtype: bool
+        """
+        transition_keys = [k for k in self._table_states.keys() if k[0] == self.state]
+        for key in transition_keys:
+            if self._try_transition(key, inputs):
+                return True
+        return False
 
     @asyncio.coroutine
     def send(self, txdoc, community):
@@ -112,13 +312,10 @@ class Transfer(QObject):
         """
         responses = yield from community.bma_access.broadcast(bma.tx.Process,
                 post_args={'transaction': txdoc.signed_raw()})
-        self.state = Transfer.AWAITING
-        self.hash = hashlib.sha1(txdoc.signed_raw().encode("ascii")).hexdigest().upper()
         blockid = yield from community.blockid()
         block = yield from community.bma_access.future_request(bma.blockchain.Block,
-                                  req_args={'number': blockid['number']})
-        self._metadata['block'] = blockid['number']
-        self._metadata['time'] = block['medianTime']
+                                  req_args={'number': blockid.number})
+        time = block['medianTime']
         result = (False, "")
         for r in responses:
             if r.status == 200:
@@ -127,43 +324,5 @@ class Transfer(QObject):
                 result = (False, (yield from r.text()))
             else:
                 yield from r.text()
-
+        self.run_state_transitions(([r.status for r in responses], time))
         return result
-
-    def check_registered(self, txhash, block_number, time, nb_validation):
-        """
-        Check if the transfer was registered in a block.
-        Update the transfer state to VALIDATED if it was registered.
-
-        :param txhash: A transaction ucoinpy object found in the block
-        :param int block_number: The block number checked
-        :param int time: The time of the block
-        :param int nb_validation: The number of validations needed to become VALIDATED
-        """
-        if txhash == self.hash:
-            if self.state == Transfer.AWAITING:
-                self.state = Transfer.VALIDATING
-                self._metadata['block'] = block_number
-                self._metadata['time'] = time
-            if self.state == Transfer.VALIDATING and \
-                    self._metadata['block'] - block_number >= nb_validation:
-                self.state = Transfer.VALIDATED
-
-    def check_refused(self, time, block_time, mediantime_blocks):
-        """
-        Check if the transfer was refused
-        If more than block_time*15 seconds passed since
-        transfer, it is considered as refused.
-
-        :param int block: The current block number
-        """
-        if time > self._metadata['time'] + block_time*mediantime_blocks*10:
-            self.state = Transfer.REFUSED
-
-    def drop(self):
-        """
-        Cancel the transfer locally.
-        The transfer state becomes "DROPPED".
-        """
-        self.state = Transfer.DROPPED
-

@@ -7,7 +7,7 @@ Created on 2 déc. 2014
 import re
 
 from ..api.bma import ConnectionHandler
-from . import Document
+from .document import Document
 from .. import PROTOCOL_VERSION, MANAGED_API
 
 

@@ -4,9 +4,10 @@ Created on 2 déc. 2014
 @author: inso
 """
 
-from . import Document
+from .document import Document
 import re
 import logging
+
 
 class Transaction(Document):
     """

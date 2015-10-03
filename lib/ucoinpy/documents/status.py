@@ -5,7 +5,7 @@ Created on 2 déc. 2014
 """
 
 import re
-from . import Document
+from .document import Document
 
 
 class Status(Document):
