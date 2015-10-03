@@ -273,7 +273,7 @@ class TxHistory():
             signed_raw = "{0}{1}\n".format(self._block_to['raw'],
                                        self._block_to['signature'])
             block_to = Block.from_signed_raw(signed_raw)
-            for transfer in [t for t in self._transfers if t.state == TransferState.VALIDATING]:
+            for transfer in [t for t in self._transfers + new_transfers if t.state == TransferState.VALIDATING]:
                 transfer.run_state_transitions((False, block_to, fork_window))
 
             # We check if latest parsed block_number is a new high number
