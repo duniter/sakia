@@ -75,7 +75,7 @@ class Transfer(QObject):
 
             (TransferState.AWAITING, (bool, Block)):
                 (self._found_in_block, self._be_validating, TransferState.VALIDATING),
-            (TransferState.AWAITING, (bool, Block, int)):
+            (TransferState.AWAITING, (bool, Block, int, int)):
                 (self._not_found_in_blockchain, None, TransferState.REFUSED),
 
             (TransferState.VALIDATING, (bool, Block, int)):
@@ -146,12 +146,13 @@ class Transfer(QObject):
         """
         return self._metadata
 
-    def _not_found_in_blockchain(self, rollback, block, mediantime_target):
+    def _not_found_in_blockchain(self, rollback, block, mediantime_target, mediantime_blocks):
         """
         Check if the transaction could not be found in the blockchain
         :param bool rollback: True if we are in a rollback procedure
         :param ucoinpy.documents.Block block: The block to look for the tx
         :param int mediantime_target: The mediantime to mine a block in the community parameters
+        :param int mediantime_blocks: The number of block used to derive the mediantime
         :return: True if the transaction could not be found in a given time
         :rtype: bool
         """
@@ -159,7 +160,7 @@ class Transfer(QObject):
             for tx in block.transactions:
                 if tx.hash == self.sha_hash:
                     return False
-            if block.time > self.metadata['time'] + mediantime_target*10:
+            if block.time > self.metadata['time'] + mediantime_target*mediantime_blocks:
                 return True
         return False
 
@@ -205,8 +206,11 @@ class Transfer(QObject):
         :param ucoinpy.documents.Block block: The block to check for the transaction
         :return: True if the transfer is not found in the block
         """
-        if rollback and block.blockid == self.blockid:
-            return self.sha_hash not in [t.hash for t in block.transactions]
+        if rollback:
+            if not block or block.blockid != self.blockid:
+                return True
+            else:
+                return self.sha_hash not in [t.hash for t in block.transactions]
         return False
 
     def _rollback_still_present(self, rollback, block):

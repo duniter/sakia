@@ -231,6 +231,8 @@ class TxHistory():
         :param cutecoin.core.Community community: The community
         :param list received_list: List of transactions received
         """
+        new_transfers = []
+        new_dividends = []
         try:
             logging.debug("Refresh from : {0} to {1}".format(block_number_from, self._block_to['number']))
             dividends = yield from self.request_dividends(community, block_number_from)
@@ -238,11 +240,6 @@ class TxHistory():
             members_pubkeys = yield from community.members_pubkeys()
             fork_window = community.network.fork_window(members_pubkeys)
             blocks_with_tx = with_tx_data['result']['blocks']
-            new_transfers = []
-            new_dividends = []
-            # Lets look if transactions took too long to be validated
-            awaiting = [t for t in self._transfers
-                        if t.state == TransferState.AWAITING]
             while block_number_from <= self._block_to['number']:
                 udid = 0
                 for d in [ud for ud in dividends if ud['block_number'] == block_number_from]:
@@ -284,10 +281,9 @@ class TxHistory():
                 self.latest_block = block_number_from
 
             parameters = yield from community.parameters()
-            for transfer in awaiting:
-                transfer.check_refused(self._block_to['medianTime'],
-                                       parameters['avgGenTime'],
-                                       parameters['medianTimeBlocks'])
+            for transfer in [t for t in self._transfers if t.state == TransferState.AWAITING]:
+                transfer.run_state_transitions((False, self._block_to,
+                                                parameters['avgGenTime'], parameters['medianTimeBlocks']))
         except NoPeerAvailable as e:
             logging.debug(str(e))
             self.wallet.refresh_finished.emit([])
@@ -297,6 +293,57 @@ class TxHistory():
         self._dividends = self._dividends + new_dividends
 
         self.wallet.refresh_finished.emit(received_list)
+
+    @asyncio.coroutine
+    def _check_block(self, block_number, community):
+        """
+        Parse a block
+        :param cutecoin.core.Community community: The community
+        :param cutecoin.core.Transfer transfer: The transfer to check the presence
+        """
+        block = None
+        block_doc = None
+        tries = 0
+        while block is None and tries < 3:
+            try:
+                block = yield from community.bma_access.future_request(bma.blockchain.Block,
+                                      req_args={'number': block_number})
+                signed_raw = "{0}{1}\n".format(block['raw'],
+                                           block['signature'])
+                try:
+                    block_doc = Block.from_signed_raw(signed_raw)
+                except TypeError:
+                    logging.debug("Error in {0}".format(block_number))
+                    block = None
+                    tries += 1
+            except ValueError as e:
+                if '404' in str(e):
+                    block = None
+                    tries += 1
+        for transfer in [t for t in self._transfers
+                         if t.state in (TransferState.VALIDATING, TransferState.VALIDATED)]:
+            return not transfer.run_state_transitions((True, block_doc))
+
+    @asyncio.coroutine
+    def _rollback(self, community):
+        """
+        Rollback last transactions until we find one still present
+        in the main blockchain
+
+        :param cutecoin.core.Community community: The community
+        """
+        try:
+            logging.debug("Rollback from : {0}".format(self._block_to['number']))
+            # We look for the block goal to check for rollback,
+            #  depending on validating and validated transfers...
+            tx_blocks = [tx.blockid.number for tx in self._transfers
+                      if tx.state in (TransferState.VALIDATED, TransferState.VALIDATING) \
+                     and tx.blockid is not None]
+            for block_number in tx_blocks:
+                if (yield from self._check_block(community, block_number)):
+                    return
+        except NoPeerAvailable:
+            logging.debug("No peer available")
 
     @asyncio.coroutine
     def refresh(self, community, received_list):
