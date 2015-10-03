@@ -204,7 +204,8 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             node_status = 0
             if identity == identity_account:
                 node_status += NODE_STATUS_HIGHLIGHTED
-            if identity.is_member(self.community) is False:
+            is_member = yield from identity.is_member(self.community)
+            if is_member is False:
                 node_status += NODE_STATUS_OUT
             node_status += NODE_STATUS_SELECTED
             graph.add_identity(identity, node_status)

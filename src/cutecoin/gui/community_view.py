@@ -208,7 +208,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                 text += self.tr(" Block {0}").format(latest_block_number)
                 try:
                     block = yield from self.community.get_block(latest_block_number)
-                    text += " ( {0} )".format(QLocale.toString(
+                    text += " ({0})".format(QLocale.toString(
                                 QLocale(),
                                 QDateTime.fromTime_t(block['medianTime']),
                                 QLocale.dateTimeFormat(QLocale(), QLocale.NarrowFormat)
