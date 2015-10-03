@@ -439,7 +439,7 @@ class Account(QObject):
         selfcert = yield from identity.selfcert(community)
         certification = Certification(PROTOCOL_VERSION, community.currency,
                                       self.pubkey, pubkey,
-                                      blockid['number'], blockid['hash'], None)
+                                      blockid.number, blockid.sha_hash, None)
 
         key = SigningKey(self.salt, password)
         certification.sign(selfcert, [key])

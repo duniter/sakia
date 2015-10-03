@@ -217,9 +217,8 @@ class Wallet(QObject):
         :param str message: The message to send with the transfer
         """
         blockid = yield from community.blockid()
-        block_number = blockid['number']
         block = yield from community.bma_access.future_request(bma.blockchain.Block,
-                                  req_args={'number': block_number})
+                                  req_args={'number': blockid.number})
         time = block['medianTime']
         txid = len(block['transactions'])
         key = None
