@@ -437,29 +437,32 @@ class Account(QObject):
         blockid = yield from community.blockid()
         identity = yield from self._identities_registry.future_find(pubkey, community)
         selfcert = yield from identity.selfcert(community)
-        certification = Certification(PROTOCOL_VERSION, community.currency,
-                                      self.pubkey, pubkey,
-                                      blockid.number, blockid.sha_hash, None)
+        if selfcert:
+            certification = Certification(PROTOCOL_VERSION, community.currency,
+                                          self.pubkey, pubkey,
+                                          blockid.number, blockid.sha_hash, None)
 
-        key = SigningKey(self.salt, password)
-        certification.sign(selfcert, [key])
-        signed_cert = certification.signed_raw(selfcert)
-        logging.debug("Certification : {0}".format(signed_cert))
+            key = SigningKey(self.salt, password)
+            certification.sign(selfcert, [key])
+            signed_cert = certification.signed_raw(selfcert)
+            logging.debug("Certification : {0}".format(signed_cert))
 
-        data = {'pubkey': pubkey,
-                'self_': selfcert.signed_raw(),
-                'other': "{0}\n".format(certification.inline())}
-        logging.debug("Posted data : {0}".format(data))
-        responses = yield from community.bma_access.broadcast(bma.wot.Add, {}, data)
-        result = (False, "")
-        for r in responses:
-            if r.status == 200:
-                result = (True, (yield from r.json()))
-            elif not result[0]:
-                result = (False, (yield from r.text()))
-            else:
-                yield from r.release()
-        return result
+            data = {'pubkey': pubkey,
+                    'self_': selfcert.signed_raw(),
+                    'other': "{0}\n".format(certification.inline())}
+            logging.debug("Posted data : {0}".format(data))
+            responses = yield from community.bma_access.broadcast(bma.wot.Add, {}, data)
+            result = (False, "")
+            for r in responses:
+                if r.status == 200:
+                    result = (True, (yield from r.json()))
+                elif not result[0]:
+                    result = (False, (yield from r.text()))
+                else:
+                    yield from r.release()
+            return result
+        else:
+            return (False, self.tr("Could not find user self certification."))
 
     @asyncio.coroutine
     def revoke(self, password, community):
