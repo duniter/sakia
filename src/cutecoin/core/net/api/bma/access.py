@@ -106,7 +106,7 @@ class BmaAccess(QObject):
             cached_data = self._data[cache_key]
             need_reload = True
             if str(request) in BmaAccess.__saved_requests \
-                or cached_data['metadata']['block_hash'] == self._network.latest_block_hash:
+                or cached_data['metadata']['block_hash'] == self._network.current_blockid.sha_hash:
                 need_reload = False
             ret_data = cached_data['value']
         else:
@@ -129,8 +129,8 @@ class BmaAccess(QObject):
             self._data[cache_key] = {'metadata': {},
                                      'value': {}}
 
-        self._data[cache_key]['metadata']['block_number'] = self._network.latest_block_number
-        self._data[cache_key]['metadata']['block_hash'] = self._network.latest_block_hash
+        self._data[cache_key]['metadata']['block_number'] = self._network.current_blockid.number
+        self._data[cache_key]['metadata']['block_hash'] = self._network.current_blockid.sha_hash
         self._data[cache_key]['metadata']['cutecoin_version'] = __version__
         if not self._compare_json(self._data[cache_key]['value'], data):
             self._data[cache_key]['value'] = data

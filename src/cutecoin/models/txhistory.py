@@ -153,9 +153,9 @@ class TxFilterProxyModel(QSortFilterProxyModel):
 
                 current_validations = 0
                 if state_data == TransferState.VALIDATING:
-                    latest_block_number = self.community.network.latest_block_number
-                    if latest_block_number:
-                        current_validations = latest_block_number - block_data
+                    current_blockid.number = self.community.network.current_blockid.number
+                    if current_blockid.number:
+                        current_validations = current_blockid.number - block_data
                 max_validations = self.sourceModel().max_validations()
 
                 if self.app.preferences['expert_mode']:

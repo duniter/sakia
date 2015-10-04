@@ -10,7 +10,7 @@ import statistics
 import time
 import asyncio
 from ucoinpy.documents.peer import Peer
-from ucoinpy.documents.block import Block
+from ucoinpy.documents.block import Block, BlockId
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
 from collections import Counter
@@ -39,7 +39,7 @@ class Network(QObject):
             self.add_node(n)
         self.currency = currency
         self._must_crawl = False
-        self._refresh_block_found()
+        self._block_found = self.current_blockid
         self._timer = QTimer()
 
     @classmethod
@@ -165,32 +165,16 @@ class Network(QObject):
         return self._root_nodes
 
     @property
-    def latest_block_number(self):
+    def current_blockid(self):
         """
         Get the latest block considered valid
         It is the most frequent last block of every known nodes
         """
-        blocks_numbers = [n.block['number'] for n in self.synced_nodes if n.block]
-        if len(blocks_numbers) > 0:
-            return blocks_numbers[0]
+        blocks = [n.block for n in self.synced_nodes if n.block]
+        if len(blocks) > 0:
+            return BlockId(blocks[0]['number'], blocks[0]['hash'])
         else:
-            return None
-
-    @property
-    def latest_block_hash(self):
-        """
-        Get the latest block considered valid
-        It is the most frequent last block of every known nodes
-        """
-        blocks_hash = [n.block['hash'] for n in self.synced_nodes if n.block]
-        if len(blocks_hash) > 0:
-            return blocks_hash[0]
-        else:
-            return Block.Empty_Hash
-
-    def _refresh_block_found(self):
-        self._block_found = {'hash': self.latest_block_hash,
-                             'number': self.latest_block_number}
+            return BlockId.empty()
 
     def check_nodes_sync(self):
         """
@@ -338,18 +322,19 @@ class Network(QObject):
 
         self.nodes_changed.emit()
         if node.state == Node.ONLINE:
-            logging.debug("{0} -> {1}".format(self._block_found['hash'][:10], self.latest_block_hash[:10]))
-            if self._block_found['hash'] != self.latest_block_hash:
-                logging.debug("Latest block changed : {0}".format(self.latest_block_number))
+            logging.debug("{0} -> {1}".format(self._block_found.sha_hash[:10], self.current_blockid.sha_hash[:10]))
+            if self._block_found.sha_hash != self.current_blockid.sha_hash:
+                logging.debug("Latest block changed : {0}".format(self.current_blockid.number))
                 # If new latest block is lower than the previously found one
                 # or if the previously found block is different locally
                 # than in the main chain, we declare a rollback
-                if self._block_found['number'] and \
-                    self.latest_block_number <= self._block_found['number'] \
+                if self._block_found.number and \
+                    self.current_blockid.number <= self._block_found.number \
                     or node.main_chain_previous_block and \
-                        node.main_chain_previous_block['hash'] != self._block_found['hash']:
-                    self._refresh_block_found()
-                    self.blockchain_rollback.emit(self.latest_block_number)
+                        node.main_chain_previous_block['hash'] != self._block_found.sha_hash:
+
+                    self._block_found = self.current_blockid
+                    self.blockchain_rollback.emit(self.current_blockid.number)
                 else:
-                    self._refresh_block_found()
-                    self.new_block_mined.emit(self.latest_block_number)
+                    self._block_found = self.current_blockid
+                    self.new_block_mined.emit(self.current_blockid.number)

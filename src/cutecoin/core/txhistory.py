@@ -321,7 +321,8 @@ class TxHistory():
                     block = None
                     tries += 1
         for transfer in [t for t in self._transfers
-                         if t.state in (TransferState.VALIDATING, TransferState.VALIDATED)]:
+                         if t.state in (TransferState.VALIDATING, TransferState.VALIDATED) and
+                         t.blockid.number == block_number]:
             return not transfer.run_state_transitions((True, block_doc))
 
     @asyncio.coroutine
@@ -349,10 +350,10 @@ class TxHistory():
     def refresh(self, community, received_list):
         # We update the block goal
         try:
-            latest_block_number = community.network.latest_block_number
-            if latest_block_number:
+            current_block_number = community.network.current_blockid.number
+            if current_block_number:
                 current_block = yield from community.bma_access.future_request(bma.blockchain.Block,
-                                        req_args={'number': latest_block_number})
+                                        req_args={'number': current_block_number})
                 members_pubkeys = yield from community.members_pubkeys()
                 # We look for the first block to parse, depending on awaiting and validating transfers and ud...
                 tx_blocks = [tx.blockid.number for tx in self._transfers

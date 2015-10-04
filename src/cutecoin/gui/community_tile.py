@@ -45,7 +45,7 @@ class CommunityTile(QFrame):
 
     def handle_nodes_change(self):
         if len(self.community.network.online_nodes) > 0:
-            if self.community.network.latest_block_hash == Block.Empty_Hash:
+            if self.community.network.current_blockid.sha_hash == Block.Empty_Hash:
                 state = CommunityState.NOT_INIT
             else:
                 state = CommunityState.READY

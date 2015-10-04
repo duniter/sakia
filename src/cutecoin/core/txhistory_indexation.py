@@ -167,7 +167,7 @@ class TxHistory():
         :param list received_list: List of transactions received
         """
         current_block = yield from community.bma_access.future_request(bma.blockchain.Block,
-                                req_args={'number': community.network.latest_block_number})
+                                req_args={'number': community.network.current_blockid.number})
         members_pubkeys = yield from community.members_pubkeys()
         # We look for the first block to parse, depending on awaiting and validating transfers and ud...
         blocks = [tx.metadata['block'] for tx in self._transfers

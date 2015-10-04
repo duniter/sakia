@@ -203,11 +203,11 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         if self.community:
             text = ""
 
-            latest_block_number = self.community.network.latest_block_number
-            if latest_block_number:
-                text += self.tr(" Block {0}").format(latest_block_number)
+            current_block_number = self.community.network.current_blockid.number
+            if current_block_number:
+                text += self.tr(" Block {0}").format(current_block_number)
                 try:
-                    block = yield from self.community.get_block(latest_block_number)
+                    block = yield from self.community.get_block(current_block_number)
                     text += " ({0})".format(QLocale.toString(
                                 QLocale(),
                                 QDateTime.fromTime_t(block['medianTime']),

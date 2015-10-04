@@ -221,15 +221,15 @@ class Graph(object):
                         'cert_time': certifier['cert_time']
                     }
 
-                    latest_block_number = self.community.network.latest_block_number
-                    if latest_block_number and certifier['block_number']:
-                        current_validations = latest_block_number - certifier['block_number']
+                    current_block_number = self.community.network.current_blockid.number
+                    if current_block_number and certifier['block_number']:
+                        current_validations = current_block_number - certifier['block_number']
                     else:
                         current_validations = 0
                     members_pubkeys = yield from self.community.members_pubkeys()
                     max_validation = self.community.network.fork_window(members_pubkeys) + 1
 
-                    # Current validation can be negative if self.community.network.latest_block_number
+                    # Current validation can be negative if self.community.network.current_blockid.number
                     # is not refreshed yet
                     if max_validation > current_validations > 0:
                         if self.app.preferences['expert_mode']:
@@ -299,9 +299,9 @@ class Graph(object):
                         'cert_time': certified['cert_time']
                     }
 
-                    latest_block_number = self.community.network.latest_block_number
-                    if latest_block_number and certified['block_number']:
-                        current_validations = latest_block_number - certified['block_number']
+                    current_block_number = self.community.network.current_blockid.number
+                    if current_block_number and certified['block_number']:
+                        current_validations = current_block_number - certified['block_number']
                     else:
                         current_validations = 0
                     members_pubkeys = yield from self.community.members_pubkeys()
