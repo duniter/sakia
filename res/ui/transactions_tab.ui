@@ -30,7 +30,7 @@
          </font>
         </property>
         <property name="text">
-         <string>label_balance</string>
+         <string>loading...</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignHCenter|Qt::AlignTop</set>
