@@ -9,7 +9,7 @@ from PyQt5.QtGui import QCursor
 
 from ..gen_resources.transactions_tab_uic import Ui_transactionsTabWidget
 from ..models.txhistory import HistoryTableModel, TxFilterProxyModel
-from ..core.transfer import Transfer
+from ..core.transfer import Transfer, TransferState
 from .contact import ConfigureContactDialog
 from .member import MemberDialog
 from .certification import CertificationDialog
@@ -182,7 +182,7 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
             identity = yield from self.app.identities_registry.future_find(pubkey, self.community)
 
             transfer = model.sourceModel().transfers()[source_index.row()]
-            if state_data == Transfer.REFUSED or state_data == Transfer.TO_SEND:
+            if state_data == TransferState.REFUSED or state_data == TransferState.TO_SEND:
                 send_back = QAction(self.tr("Send again"), self)
                 send_back.triggered.connect(self.send_again)
                 send_back.setData(transfer)
