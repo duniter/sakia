@@ -68,8 +68,10 @@ class TestTransferDialog(unittest.TestCase):
         logging.debug(mock.pretend_url)
         API.reverse_url = pretender_reversed(mock.pretend_url)
         transfer_dialog = TransferMoneyDialog(self.application,
-                                                   self.account,
-                                                   self.password_asker)
+                                              self.account,
+                                              self.password_asker,
+                                              self.community,
+                                              None)
 
         @asyncio.coroutine
         def open_dialog(certification_dialog):

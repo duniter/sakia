@@ -82,11 +82,14 @@ class TestIdentitiesTable(unittest.TestCase):
         @asyncio.coroutine
         def exec_test():
             yield from asyncio.sleep(2)
-            urls = [mock.get_request(i).url for i in range(0, 3)]
+            urls = [mock.get_request(i).url for i in range(0, 4)]
             self.assertTrue('/wot/certifiers-of/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ' in urls,
+                            msg="Not found in {0}".format(urls))
+            self.assertTrue('/wot/lookup/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ' in urls,
                             msg="Not found in {0}".format(urls))
             self.assertTrue('/wot/certified-by/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ' in urls,
                             msg="Not found in {0}".format(urls))
+
 
             # requests 1 to 3 are for getting certifiers-of and certified-by
             # on john, + a lookup
@@ -94,20 +97,20 @@ class TestIdentitiesTable(unittest.TestCase):
             QTest.keyClicks(identities_tab.edit_textsearch, "doe")
             QTest.mouseClick(identities_tab.button_search, Qt.LeftButton)
             yield from asyncio.sleep(2)
-            self.assertEqual(mock.get_request(3).method, 'GET')
-            self.assertEqual(mock.get_request(3).url,
-                             '/wot/lookup/doe')
             self.assertEqual(mock.get_request(4).method, 'GET')
             self.assertEqual(mock.get_request(4).url,
-                             '/wot/certifiers-of/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn')
+                             '/wot/lookup/doe')
             self.assertEqual(mock.get_request(5).method, 'GET')
             self.assertEqual(mock.get_request(5).url,
-                             '/wot/lookup/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn')
+                             '/wot/certifiers-of/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn')
             self.assertEqual(mock.get_request(6).method, 'GET')
             self.assertEqual(mock.get_request(6).url,
-                             '/blockchain/memberships/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn')
+                             '/wot/lookup/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn')
             self.assertEqual(mock.get_request(7).method, 'GET')
             self.assertEqual(mock.get_request(7).url,
+                             '/blockchain/memberships/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn')
+            self.assertEqual(mock.get_request(8).method, 'GET')
+            self.assertEqual(mock.get_request(8).url,
                              '/blockchain/parameters')
             self.assertEqual(identities_tab.table_identities.model().rowCount(), 1)
             yield from asyncio.sleep(2)
