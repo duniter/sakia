@@ -231,7 +231,7 @@ class Graph(object):
 
                     # Current validation can be negative if self.community.network.current_blockid.number
                     # is not refreshed yet
-                    if max_validation > current_validations > 0:
+                    if max_validation > current_validations >= 0:
                         if self.app.preferences['expert_mode']:
                             arc['validation_text'] = "{0}/{1}".format(current_validations,
                                                                       max_validation)

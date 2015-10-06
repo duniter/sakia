@@ -262,27 +262,32 @@ class Identity(QObject):
         except ValueError as e:
             if '404' in str(e):
                 logging.debug('bma.wot.CertifiersOf request error: {0}'.format(str(e)))
-                try:
-                    data = yield from community.bma_access.future_request(bma.wot.Lookup, {'search': self.pubkey})
-                    for result in data['results']:
-                        if result["pubkey"] == self.pubkey:
-                            for uid_data in result['uids']:
-                                for certifier_data in uid_data['others']:
-                                    for uid in certifier_data['uids']:
-                                        # add a certifier
-                                        certifier = {}
-                                        certifier['identity'] = identities_registry.from_handled_data(uid,
-                                                                                                      certifier_data['pubkey'],
-                                                                                                        BlockchainState.BUFFERED,
-                                                                                                      community)
-                                        block = yield from community.bma_access.future_request(bma.blockchain.Block,
-                                                                             {'number': certifier_data['meta']['block_number']})
-                                        certifier['cert_time'] = block['medianTime']
-                                        certifier['block_number'] = None
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
 
-                                        certifiers.append(certifier)
-                except ValueError as e:
-                    logging.debug("Lookup error : {0}".format(str(e)))
+        try:
+            data = yield from community.bma_access.future_request(bma.wot.Lookup, {'search': self.pubkey})
+            for result in data['results']:
+                if result["pubkey"] == self.pubkey:
+                    for uid_data in result['uids']:
+                        for certifier_data in uid_data['others']:
+                            for uid in certifier_data['uids']:
+                                # add a certifier
+                                certifier = {}
+                                certifier['identity'] = identities_registry.\
+                                    from_handled_data(uid,
+                                                      certifier_data['pubkey'],
+                                                      BlockchainState.BUFFERED,
+                                                      community)
+                                if certifier['identity'] not in certifiers:
+                                    block = yield from community.bma_access.future_request(bma.blockchain.Block,
+                                                                         {'number': certifier_data['meta']['block_number']})
+                                    certifier['cert_time'] = block['medianTime']
+                                    certifier['block_number'] = None
+
+                                    certifiers.append(certifier)
+        except ValueError as e:
+            logging.debug("Lookup error : {0}".format(str(e)))
         except NoPeerAvailable as e:
             logging.debug(str(e))
         return certifiers
@@ -333,22 +338,26 @@ class Identity(QObject):
         except ValueError as e:
             if '404' in str(e):
                 logging.debug('bma.wot.CertifiersOf request error')
-                try:
-                    data = yield from community.bma_access.future_request(bma.wot.Lookup, {'search': self.pubkey})
-                    for result in data['results']:
-                        if result["pubkey"] == self.pubkey:
-                            for certified_data in result['signed']:
-                                certified = {}
-                                certified['identity'] = identities_registry.from_handled_data(certified_data['uid'],
-                                                                                  certified_data['pubkey'],
-                                                                                  BlockchainState.BUFFERED,
-                                                                                  community)
-                                certified['cert_time'] = certified_data['meta']['timestamp']
-                                certified['block_number'] = None
-                                certified_list.append(certified)
-                except ValueError as e:
-                    if '404' in str(e):
-                        logging.debug('bma.wot.Lookup request error')
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
+
+        try:
+            data = yield from community.bma_access.future_request(bma.wot.Lookup, {'search': self.pubkey})
+            for result in data['results']:
+                if result["pubkey"] == self.pubkey:
+                    for certified_data in result['signed']:
+                        certified = {}
+                        certified['identity'] = identities_registry.from_handled_data(certified_data['uid'],
+                                                                          certified_data['pubkey'],
+                                                                          BlockchainState.BUFFERED,
+                                                                          community)
+                        if certified['identity'] not in certified_list:
+                            certified['cert_time'] = certified_data['meta']['timestamp']
+                            certified['block_number'] = None
+                            certified_list.append(certified)
+        except ValueError as e:
+            if '404' in str(e):
+                logging.debug('bma.wot.Lookup request error')
         except NoPeerAvailable as e:
             logging.debug(str(e))
         return certified_list
