@@ -17,7 +17,7 @@ pip install requests
 pip install base58
 pip install git+https://github.com/Insoleet/quamash.git@sockets_only
 pip install aiohttp
-pip install git+https://github.com/ucoin-io/ucoin-python-api.git@refactor
+pip install git+https://github.com/ucoin-io/ucoin-python-api.git
 pip install git+https://github.com/Insoleet/pretenders.git@develop
 
 python gen_resources.py

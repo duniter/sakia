@@ -57,7 +57,7 @@ install:
   - pip install base58
   - pip install quamash
   - pip install aiohttp
-  - pip install git+https://github.com/ucoin-io/ucoin-python-api.git@refactor
+  - pip install git+https://github.com/ucoin-io/ucoin-python-api.git
   - pip install git+https://github.com/Insoleet/pretenders.git@develop
   - python gen_resources.py
   - python gen_translations.py
