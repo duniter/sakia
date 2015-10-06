@@ -76,7 +76,7 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         self.password_asker = password_asker
         self.table_history.model().sourceModel().change_account(account)
         if account:
-         self.connect_progress()
+            self.connect_progress()
 
     def change_community(self, community):
         self.cancel_once_tasks()
@@ -184,7 +184,7 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
             transfer = model.sourceModel().transfers()[source_index.row()]
             if state_data == TransferState.REFUSED or state_data == TransferState.TO_SEND:
                 send_back = QAction(self.tr("Send again"), self)
-                send_back.triggered.connect(self.send_again)
+                send_back.triggered.connect(lambda checked, tr=transfer: self.send_again(checked, tr))
                 send_back.setData(transfer)
                 menu.addAction(send_back)
 
@@ -259,14 +259,9 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
     @asyncify
     @asyncio.coroutine
     def send_money_to_identity(self, identity):
-        if isinstance(identity, str):
-            pubkey = identity
-        else:
-            pubkey = identity.pubkey
-        result = yield from TransferMoneyDialog.send_money_to_identity(self.app, self.account, self.password_asker,
+        yield from TransferMoneyDialog.send_money_to_identity(self.app, self.account, self.password_asker,
                                                             self.community, identity)
-        if result == QDialog.Accepted:
-            self.table_history.model().sourceModel().refresh_transfers()
+        self.table_history.model().sourceModel().refresh_transfers()
 
     @asyncify
     @asyncio.coroutine
@@ -278,22 +273,12 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         identity = self.sender().data()
         self.view_in_wot.emit(identity)
 
-    def send_again(self):
-        transfer = self.sender().data()
-        dialog = TransferMoneyDialog(self.app, self.app.current_account,
-                                     self.password_asker)
-        sender = transfer.metadata['issuer']
-        wallet_index = [w.pubkey for w in self.app.current_account.wallets].index(sender)
-        dialog.combo_wallets.setCurrentIndex(wallet_index)
-        dialog.edit_pubkey.setText(transfer.metadata['receiver'])
-        dialog.combo_community.setCurrentText(self.community.name)
-        dialog.spinbox_amount.setValue(transfer.metadata['amount'])
-        dialog.radio_pubkey.setChecked(True)
-        dialog.edit_message.setText(transfer.metadata['comment'])
-        result = dialog.exec_()
-        if result == QDialog.Accepted:
-            transfer.drop()
-            self.table_history.model().sourceModel().refresh_transfers()
+    @asyncify
+    @asyncio.coroutine
+    def send_again(self, checked=False, transfer=None):
+        result = yield from TransferMoneyDialog.send_transfer_again(self.app, self.app.current_account,
+                                     self.password_asker, self.community, transfer)
+        self.table_history.model().sourceModel().refresh_transfers()
 
     def cancel_transfer(self):
         reply = QMessageBox.warning(self, self.tr("Warning"),
@@ -302,7 +287,7 @@ This money transfer will be removed and not sent."""),
 QMessageBox.Ok | QMessageBox.Cancel)
         if reply == QMessageBox.Ok:
             transfer = self.sender().data()
-            transfer.drop()
+            transfer.cancel()
             self.table_history.model().sourceModel().refresh_transfers()
 
     def dates_changed(self):

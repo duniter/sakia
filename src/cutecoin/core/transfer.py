@@ -71,29 +71,32 @@ class Transfer(QObject):
 
         self._table_states = {
             (TransferState.TO_SEND, (list, Block)):
-                (self._broadcast_success, self._wait, TransferState.AWAITING),
+                (
+                    (self._broadcast_success, self._wait, TransferState.AWAITING),
+                    (self._broadcast_failure, None, TransferState.REFUSED),
+                ),
+            (TransferState.TO_SEND, ()):
+                ((self._is_locally_created, self._drop, TransferState.DROPPED),),
 
             (TransferState.AWAITING, (bool, Block)):
-                (self._found_in_block, self._be_validating, TransferState.VALIDATING),
+                ((self._found_in_block, self._be_validating, TransferState.VALIDATING),),
             (TransferState.AWAITING, (bool, Block, int, int)):
-                (self._not_found_in_blockchain, None, TransferState.REFUSED),
+                ((self._not_found_in_blockchain, None, TransferState.REFUSED),),
 
             (TransferState.VALIDATING, (bool, Block, int)):
-                (self._reached_enough_validation, None, TransferState.VALIDATED),
+                ((self._reached_enough_validation, None, TransferState.VALIDATED),),
             (TransferState.VALIDATING, (bool, Block)):
-                (self._rollback_and_removed, self._drop, TransferState.DROPPED),
+                ((self._rollback_and_removed, self._drop, TransferState.DROPPED),),
 
             (TransferState.VALIDATED, (bool, Block)):
-                (self._rollback_still_present, self._be_validating, TransferState.VALIDATING),
-            (TransferState.VALIDATED, (bool, Block)):
-                (self._rollback_and_removed, self._drop, TransferState.DROPPED),
-            (TransferState.VALIDATED, (bool, Block)):
-                (self._rollback_and_local, self._wait, TransferState.AWAITING),
+                (
+                    (self._rollback_still_present, self._be_validating, TransferState.VALIDATING),
+                    (self._rollback_and_removed, self._drop, TransferState.DROPPED),
+                    (self._rollback_and_local, self._wait, TransferState.AWAITING),
+                ),
 
-            (TransferState.DROPPED, ()):
-                (self._is_locally_created, None, TransferState.TO_SEND),
             (TransferState.REFUSED, ()):
-                (self._is_locally_created, self._drop, TransferState.DROPPED),
+                ((self._is_locally_created, self._drop, TransferState.DROPPED),)
         }
 
     @classmethod
@@ -180,15 +183,24 @@ class Transfer(QObject):
                     return True
         return False
 
-    def _broadcast_success(self, ret_codes, time):
+    def _broadcast_success(self, ret_codes, block):
         """
         Check if the retcode is 200 after a POST
         :param list ret_codes: The POST return codes of the broadcast
-        :param int time: The mediantime of the blockchain. Used for transition.
+        :param ucoinpy.documents.Block block: The current block used for transition.
         :return: True if the post was successful
         :rtype: bool
         """
         return 200 in ret_codes
+
+    def _broadcast_failure(self, ret_codes):
+        """
+        Check if no retcode is 200 after a POST
+        :param list ret_codes: The POST return codes of the broadcast
+        :return: True if the post was failed
+        :rtype: bool
+        """
+        return 200 not in ret_codes
 
     def _reached_enough_validation(self, rollback, current_block, fork_window):
         """
@@ -250,7 +262,7 @@ class Transfer(QObject):
         :param list ret_codes: The responses return codes
         :param ucoinpy.documents.Block current_block: Current block of the main blockchain
         """
-        self.blockid = current_block
+        self.blockid = current_block.blockid
         self._metadata['time'] = current_block.mediantime
 
     def _be_validating(self, rollback, block):
@@ -283,14 +295,15 @@ class Transfer(QObject):
             for i, input in enumerate(inputs):
                 if type(input) is not transition_key[1][i]:
                     return False
-            if self._table_states[transition_key][0](*inputs):
-                next_state = self._table_states[transition_key]
-                logging.debug("{0} : {1} --> {2}".format(self.sha_hash[:5], self.state.name, next_state[2].name))
-                # If the transition changes data, apply changes
-                if next_state[1]:
-                    next_state[1](*inputs)
-                self.state = next_state[2]
-                return True
+            for transition in self._table_states[transition_key]:
+                if transition[0](*inputs):
+                    logging.debug("{0} : {1} --> {2}".format(self.sha_hash[:5], self.state.name,
+                                                             transition[2].name))
+                    # If the transition changes data, apply changes
+                    if transition[1]:
+                        transition[1](*inputs)
+                    self.state = transition[2]
+                    return True
         return False
 
     def run_state_transitions(self, inputs):
@@ -306,6 +319,12 @@ class Transfer(QObject):
                 return True
         return False
 
+    def cancel(self):
+        """
+        Cancel a local transaction
+        """
+        self.run_state_transitions(())
+
     @asyncio.coroutine
     def send(self, txdoc, community):
         """
@@ -318,10 +337,12 @@ class Transfer(QObject):
         """
         responses = yield from community.bma_access.broadcast(bma.tx.Process,
                 post_args={'transaction': txdoc.signed_raw()})
+        self.sha_hash = txdoc.sha_hash
         blockid = yield from community.blockid()
         block = yield from community.bma_access.future_request(bma.blockchain.Block,
                                   req_args={'number': blockid.number})
-        time = block['medianTime']
+        signed_raw = "{0}{1}\n".format(block['raw'], block['signature'])
+        block_doc = Block.from_signed_raw(signed_raw)
         result = (False, "")
         for r in responses:
             if r.status == 200:
@@ -330,5 +351,6 @@ class Transfer(QObject):
                 result = (False, (yield from r.text()))
             else:
                 yield from r.text()
-        self.run_state_transitions(([r.status for r in responses], time))
+        self.run_state_transitions(([r.status for r in responses], block_doc))
+        self.run_state_transitions(([r.status for r in responses]))
         return result

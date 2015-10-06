@@ -37,7 +37,7 @@
         <item>
          <widget class="QRadioButton" name="radio_contact">
           <property name="text">
-           <string>Contact</string>
+           <string>Con&amp;tact</string>
           </property>
           <property name="checked">
            <bool>true</bool>
@@ -283,6 +283,22 @@
     <hint type="destinationlabel">
      <x>199</x>
      <y>165</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>spinbox_amount</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>TransferMoneyDialog</receiver>
+   <slot>amount_changed()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>209</x>
+     <y>292</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>247</x>
+     <y>219</y>
     </hint>
    </hints>
   </connection>

@@ -22,7 +22,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
     classdocs
     """
 
-    def __init__(self, app, sender, password_asker):
+    def __init__(self, app, sender, password_asker, community, transfer):
         """
         Constructor
         :param cutecoin.core.Application app: The application
@@ -36,8 +36,9 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         self.account = sender
         self.password_asker = password_asker
         self.recipient_trusts = []
+        self.transfer = transfer
         self.wallet = None
-        self.community = self.account.communities[0]
+        self.community = community if community else self.account.communities[0]
         self.wallet = self.account.wallets[0]
 
         regexp = QRegExp('^([ a-zA-Z0-9-_:/;*?\[\]\(\)\\\?!^+=@&~#{}|<>%.]{0,255})$')
@@ -58,13 +59,35 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
             self.radio_contact.setEnabled(False)
             self.radio_pubkey.setChecked(True)
 
+        self.combo_community.setCurrentText(self.community.name)
+
+        if self.transfer:
+            sender = self.transfer.metadata['issuer']
+            wallet_index = [w.pubkey for w in app.current_account.wallets].index(sender)
+            self.combo_wallets.setCurrentIndex(wallet_index)
+            self.edit_pubkey.setText(transfer.metadata['receiver'])
+            self.radio_pubkey.setChecked(True)
+            self.edit_message.setText(transfer.metadata['comment'])
+
+
     @classmethod
     @asyncio.coroutine
     def send_money_to_identity(cls, app, account, password_asker, community, identity):
-        dialog = cls(app, account, password_asker)
+        dialog = cls(app, account, password_asker, community, None)
         dialog.edit_pubkey.setText(identity.pubkey)
-        dialog.combo_community.setCurrentText(community.name)
         dialog.radio_pubkey.setChecked(True)
+        return (yield from dialog.async_exec())
+
+    @classmethod
+    @asyncio.coroutine
+    def send_transfer_again(cls, app, account, password_asker, community, transfer):
+        dialog = cls(app, account, password_asker, community, transfer)
+        dividend = yield from community.dividend()
+        relative = transfer.metadata['amount'] / dividend
+        dialog.spinbox_amount.setMaximum(transfer.metadata['amount'])
+        dialog.spinbox_relative.setMaximum(relative)
+        dialog.spinbox_amount.setValue(transfer.metadata['amount'])
+
         return (yield from dialog.async_exec())
 
     @asyncify
@@ -101,6 +124,11 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
                 yield from QAsyncMessageBox.information(self, self.tr("Transfer"),
                           self.tr("Success sending money to {0}").format(recipient))
             QApplication.restoreOverrideCursor()
+
+            # If we sent back a transaction we cancel the first one
+            if self.transfer:
+                self.transfer.cancel()
+
             super().accept()
         else:
             if self.app.preferences['notifications']:
@@ -139,7 +167,6 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
                             international_system=self.app.preferences['international_system_of_units'])
         self.label_total.setText("{0}".format(ref_text))
         self.spinbox_amount.setSuffix(" " + self.community.currency)
-        self.spinbox_amount.setValue(0)
         amount = yield from self.wallet.value(self.community)
         dividend = yield from self.community.dividend()
         relative = amount / dividend
@@ -155,7 +182,6 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
             .diff_localized(units=True,
                             international_system=self.app.preferences['international_system_of_units'])
         self.label_total.setText("{0}".format(ref_text))
-        self.spinbox_amount.setValue(0)
         amount = yield from self.wallet.value(self.community)
         dividend = yield from self.community.dividend()
         relative = amount / dividend
