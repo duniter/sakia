@@ -126,7 +126,9 @@ class Transfer(QObject):
         :return: A new transfer
         :rtype: Transfer
         """
-        return cls(data['hash'], TransferState[data['state']], BlockId.from_str(data['blockid']),
+        return cls(data['hash'],
+                   TransferState[data['state']],
+                   BlockId.from_str(data['blockid']) if data['blockid'] else None,
                    data['metadata'], data['local'])
 
     def jsonify(self):
@@ -135,7 +137,7 @@ class Transfer(QObject):
         """
         return {'hash': self.sha_hash,
                 'state': self.state.name,
-                'blockid': str(self.blockid),
+                'blockid': str(self.blockid) if self.blockid else None,
                 'metadata': self._metadata,
                 'local': self._locally_created}
 
