@@ -12,6 +12,7 @@ import json
 import datetime
 import asyncio
 import aiohttp
+import time
 
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, \
 QUrl, QTranslator, QCoreApplication, QLocale
@@ -67,6 +68,18 @@ class Application(QObject):
                             'proxy_address': "",
                             'proxy_port': 8080,
                             'international_system_of_units': True
+                            }
+
+        self.notifications = {'membership_expire_soon':
+                                  (
+                                      self.tr("Warning : Your membership is expiring soon."),
+                                      0
+                                   ),
+                            'warning_certifications':
+                                    (
+                                        self.tr("Warning : Your could miss certifications soon."),
+                                        0
+                                    )
                             }
 
     @classmethod
@@ -296,7 +309,6 @@ class Application(QObject):
         """
         Load the preferences.
         """
-
         try:
             preferences_path = os.path.join(config.parameters['home'],
                                             'preferences')

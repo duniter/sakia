@@ -6,6 +6,7 @@ Created on 2 févr. 2014
 
 import logging
 import asyncio
+import time
 
 from PyQt5.QtWidgets import QWidget, QMessageBox, QDialog, QPushButton, QTabBar, QAction
 from PyQt5.QtCore import pyqtSlot, QDateTime, QLocale, QEvent
@@ -42,11 +43,6 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.status_label = status_label
 
         self.status_info = []
-        self.status_infotext = {'membership_expire_soon':
-                            self.tr("Warning : Your membership is expiring soon."),
-                            'warning_certifications':
-                            self.tr("Warning : Your could miss certifications soon.")
-                            }
 
         super().setupUi(self)
 
@@ -165,21 +161,27 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
             if will_expire_soon:
                 days = int(expiration_time / 3600 / 24)
                 if days > 0:
-                    self.status_info.append('membership_expire_soon')
+                    if 'membership_expire_soon' not in self.status_info:
+                        self.status_info.append('membership_expire_soon')
 
-                    if self.app.preferences['notifications']:
+                    if self.app.preferences['notifications'] and\
+                            self.app.notifications['membership_expire_soon'][1] < time.time()+24*3600:
                         toast.display(self.tr("Membership expiration"),
                                   self.tr("<b>Warning : Membership expiration in {0} days</b>").format(days))
+                        self.app.notifications['membership_expire_soon'][1] = time.time()
 
             certifiers_of = yield from person.unique_valid_certifiers_of(self.app.identities_registry,
                                                                          self.community)
             if len(certifiers_of) < parameters['sigQty']:
-                self.status_info.append('warning_certifications')
-                if self.app.preferences['notifications']:
+                if 'warning_certifications' not in self.status_info:
+                    self.status_info.append('warning_certifications')
+                if self.app.preferences['notifications'] and\
+                        self.app.notifications['warning_certifications'][1] < time.time()+24*3600:
                     toast.display(self.tr("Certifications number"),
                               self.tr("<b>Warning : You are certified by only {0} persons, need {1}</b>")
                               .format(len(certifiers_of),
                                      parameters['sigQty']))
+                    self.app.notifications['warning_certifications'][1] = time.time()
 
         except MembershipNotFoundError as e:
             pass
@@ -235,7 +237,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
             else:
                 icon = '<img src=":/icons/disconnected" width="12" height="12"/>'
 
-            status_infotext = " - ".join([self.status_infotext[info] for info in self.status_info])
+            status_infotext = " - ".join([self.app.notifications[info][0] for info in self.status_info])
             label_text = "{0}{1}".format(icon, text)
             if status_infotext != "":
                 label_text += " - {0}".format(status_infotext)
