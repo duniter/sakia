@@ -244,6 +244,7 @@ class Identity(QObject):
         :param cutecoin.core.registry.identities.IdentitiesRegistry identities_registry: The identities registry
         :param cutecoin.core.community.Community community: The community target to request the join date
         :return: The list of the certifiers of this community
+        :rtype: list
         """
         certifiers = list()
         try:
@@ -269,6 +270,7 @@ class Identity(QObject):
             data = yield from community.bma_access.future_request(bma.wot.Lookup, {'search': self.pubkey})
             for result in data['results']:
                 if result["pubkey"] == self.pubkey:
+                    self._refresh_uid(result['uids'])
                     for uid_data in result['uids']:
                         for certifier_data in uid_data['others']:
                             for uid in certifier_data['uids']:
@@ -322,6 +324,7 @@ class Identity(QObject):
 
         :param cutecoin.core.community.Community community: The community target to request the join date
         :return: The list of the certified persons of this community in BMA json format
+        :rtype: list
         """
         certified_list = list()
         try:
@@ -345,6 +348,7 @@ class Identity(QObject):
             data = yield from community.bma_access.future_request(bma.wot.Lookup, {'search': self.pubkey})
             for result in data['results']:
                 if result["pubkey"] == self.pubkey:
+                    self._refresh_uid(result['uids'])
                     for certified_data in result['signed']:
                         certified = {}
                         certified['identity'] = identities_registry.from_handled_data(certified_data['uid'],
@@ -393,6 +397,20 @@ class Identity(QObject):
         expiration_date = join_date + parameters['sigValidity']
         current_time = time.time()
         return expiration_date - current_time
+
+    def _refresh_uid(self, uids):
+        """
+        Refresh UID from uids list, got from a successful lookup request
+        :param list uids: UIDs got from a lookup request
+        """
+        if self.local_state == LocalState.NOT_FOUND:
+            for uid_data in uids:
+                if uid_data["meta"]["timestamp"] > timestamp:
+                    timestamp = uid_data["meta"]["timestamp"]
+                    identity_uid = uid_data["uid"]
+                    self.uid = identity_uid
+                    self.blockchain_state = BlockchainState.BUFFERED
+                    self.local_state = LocalState.PARTIAL
 
     def jsonify(self):
         """

@@ -83,7 +83,6 @@ class IdentitiesRegistry:
                                 identity.blockchain_state = BlockchainState.BUFFERED
                                 identity.local_state = LocalState.PARTIAL
                 return identity
-                logging.debug("Lookup : found {0}".format(identity))
             except ValueError as e:
                 lookup_tries += 1
             except asyncio.TimeoutError:
