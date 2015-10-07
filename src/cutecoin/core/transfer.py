@@ -163,7 +163,7 @@ class Transfer(QObject):
         """
         if not rollback:
             for tx in block.transactions:
-                if tx.hash == self.sha_hash:
+                if tx.sha_hash == self.sha_hash:
                     return False
             if block.time > self.metadata['time'] + mediantime_target*mediantime_blocks:
                 return True
@@ -179,7 +179,7 @@ class Transfer(QObject):
         """
         if not rollback:
             for tx in block.transactions:
-                if tx.hash == self.sha_hash:
+                if tx.sha_hash == self.sha_hash:
                     return True
         return False
 
@@ -224,7 +224,7 @@ class Transfer(QObject):
             if not block or block.blockid != self.blockid:
                 return True
             else:
-                return self.sha_hash not in [t.hash for t in block.transactions]
+                return self.sha_hash not in [t.sha_hash for t in block.transactions]
         return False
 
     def _rollback_still_present(self, rollback, block):
@@ -235,7 +235,7 @@ class Transfer(QObject):
         :return: True if the transfer is found in the block
         """
         if rollback and block.blockid == self.blockid:
-            return self.sha_hash in [t.hash for t in block.transactions]
+            return self.sha_hash in [t.sha_hash for t in block.transactions]
         return False
 
     def _rollback_and_local(self, rollback, block):
@@ -246,7 +246,7 @@ class Transfer(QObject):
         :return: True if the transfer is found in the block
         """
         if rollback and self._locally_created and block.blockid == self.blockid:
-            return self.sha_hash not in [t.hash for t in block.transactions]
+            return self.sha_hash not in [t.sha_hash for t in block.transactions]
         return False
 
     def _is_locally_created(self):

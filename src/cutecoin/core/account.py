@@ -186,6 +186,45 @@ class Account(QObject):
             w.init_cache(app, community)
             w.refresh_transactions(community, received_list)
 
+    def rollback_transaction(self, app, community):
+        """
+        Refresh the local account cache
+        This needs n_wallets * n_communities cache refreshing to end
+
+        .. note:: emit the Account pyqtSignal loading_progressed during refresh
+        """
+        logging.debug("Start refresh transactions")
+        loaded_wallets = 0
+        received_list = []
+        values = {}
+        maximums = {}
+
+        def progressing(value, maximum, hash):
+            #logging.debug("Loading = {0} : {1} : {2}".format(value, maximum, loaded_wallets))
+            values[hash] = value
+            maximums[hash] = maximum
+            account_value = sum(values.values())
+            account_max = sum(maximums.values())
+            self.loading_progressed.emit(community, account_value, account_max)
+
+        def wallet_finished(received):
+            logging.debug("Finished loading wallet")
+            nonlocal loaded_wallets
+            loaded_wallets += 1
+            if loaded_wallets == len(self.wallets):
+                logging.debug("All wallets loaded")
+                self._refreshing = False
+                self.loading_finished.emit(community, received_list)
+                for w in self.wallets:
+                    w.refresh_progressed.disconnect(progressing)
+                    w.refresh_finished.disconnect(wallet_finished)
+
+        for w in self.wallets:
+            w.refresh_progressed.connect(progressing)
+            w.refresh_finished.connect(wallet_finished)
+            w.init_cache(app, community)
+            w.rollback_transactions(community, received_list)
+
     def set_display_referential(self, index):
         self._current_ref = index
 

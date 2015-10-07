@@ -112,6 +112,15 @@ class Wallet(QObject):
         logging.debug("Refresh transactions for {0}".format(self.pubkey))
         asyncio.async(self.caches[community.currency].refresh(community, received_list))
 
+    def rollback_transactions(self, community, received_list):
+        """
+        Rollback the transactions of this wallet for the specified community.
+
+        :param community: The community to refresh its cache
+        """
+        logging.debug("Refresh transactions for {0}".format(self.pubkey))
+        asyncio.async(self.caches[community.currency].rollback(community, received_list))
+
     def check_password(self, salt, password):
         """
         Check if wallet password is ok.

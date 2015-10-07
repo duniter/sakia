@@ -242,7 +242,10 @@ class Application(QObject):
                 def refresh_tx(blocknumber, co=community):
                     account.refresh_transactions(self, co)
                 community.network.new_block_mined.connect(refresh_tx)
-                account.refresh_transactions(self, community)
+
+                def rollback_tx(blocknumber, co=community):
+                    account.rollback_transaction(self, co)
+                community.network.new_block_mined.connect(rollback_tx)
 
     def load_cache(self, account):
         """

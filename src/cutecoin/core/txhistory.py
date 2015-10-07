@@ -15,7 +15,6 @@ class TxHistory():
         self.app = app
         self._stop_coroutines = False
         self._running_refresh = []
-        self._block_to = None
         self._transfers = []
         self.available_sources = []
         self._dividends = []
@@ -224,7 +223,7 @@ class TxHistory():
         return {}
 
     @asyncio.coroutine
-    def _refresh(self, community, block_number_from, received_list):
+    def _refresh(self, community, block_number_from, block_to, received_list):
         """
         Refresh last transactions
 
@@ -234,16 +233,16 @@ class TxHistory():
         new_transfers = []
         new_dividends = []
         try:
-            logging.debug("Refresh from : {0} to {1}".format(block_number_from, self._block_to['number']))
+            logging.debug("Refresh from : {0} to {1}".format(block_number_from, block_to['number']))
             dividends = yield from self.request_dividends(community, block_number_from)
             with_tx_data = yield from community.bma_access.future_request(bma.blockchain.TX)
             members_pubkeys = yield from community.members_pubkeys()
             fork_window = community.network.fork_window(members_pubkeys)
             blocks_with_tx = with_tx_data['result']['blocks']
-            while block_number_from <= self._block_to['number']:
+            while block_number_from <= block_to['number']:
                 udid = 0
                 for d in [ud for ud in dividends if ud['block_number'] == block_number_from]:
-                    state = TransferState.VALIDATED if block_number_from + fork_window <= self._block_to['number'] \
+                    state = TransferState.VALIDATED if block_number_from + fork_window <= block_to['number'] \
                         else TransferState.VALIDATING
 
                     if d['block_number'] not in [ud['block_number'] for ud in self._dividends]:
@@ -260,15 +259,15 @@ class TxHistory():
                 # We parse only blocks with transactions
                 if block_number_from in blocks_with_tx:
                     transfers = yield from self._parse_block(community, block_number_from,
-                                                             received_list, self._block_to,
+                                                             received_list, block_to,
                                                              udid + len(new_transfers))
                     new_transfers += transfers
 
-                self.wallet.refresh_progressed.emit(block_number_from, self._block_to['number'], self.wallet.pubkey)
+                self.wallet.refresh_progressed.emit(block_number_from, block_to['number'], self.wallet.pubkey)
                 block_number_from += 1
 
-            signed_raw = "{0}{1}\n".format(self._block_to['raw'],
-                                       self._block_to['signature'])
+            signed_raw = "{0}{1}\n".format(block_to['raw'],
+                                       block_to['signature'])
             block_to = Block.from_signed_raw(signed_raw)
             for transfer in [t for t in self._transfers + new_transfers if t.state == TransferState.VALIDATING]:
                 transfer.run_state_transitions((False, block_to, fork_window))
@@ -282,7 +281,7 @@ class TxHistory():
 
             parameters = yield from community.parameters()
             for transfer in [t for t in self._transfers if t.state == TransferState.AWAITING]:
-                transfer.run_state_transitions((False, self._block_to,
+                transfer.run_state_transitions((False, block_to,
                                                 parameters['avgGenTime'], parameters['medianTimeBlocks']))
         except NoPeerAvailable as e:
             logging.debug(str(e))
@@ -320,10 +319,13 @@ class TxHistory():
                 if '404' in str(e):
                     block = None
                     tries += 1
-        for transfer in [t for t in self._transfers
-                         if t.state in (TransferState.VALIDATING, TransferState.VALIDATED) and
-                         t.blockid.number == block_number]:
-            return not transfer.run_state_transitions((True, block_doc))
+        if block_doc:
+            for transfer in [t for t in self._transfers
+                             if t.state in (TransferState.VALIDATING, TransferState.VALIDATED) and
+                             t.blockid.number == block_number]:
+                return not transfer.run_state_transitions((True, block_doc))
+        else:
+            return False
 
     @asyncio.coroutine
     def _rollback(self, community):
@@ -334,13 +336,14 @@ class TxHistory():
         :param cutecoin.core.Community community: The community
         """
         try:
-            logging.debug("Rollback from : {0}".format(self._block_to['number']))
+            logging.debug("Rollback from : {0}".format(self.latest_block))
             # We look for the block goal to check for rollback,
             #  depending on validating and validated transfers...
             tx_blocks = [tx.blockid.number for tx in self._transfers
-                      if tx.state in (TransferState.VALIDATED, TransferState.VALIDATING) \
-                     and tx.blockid is not None]
-            for block_number in tx_blocks:
+                          if tx.state in (TransferState.VALIDATED, TransferState.VALIDATING) and
+                          tx.blockid is not None]
+            for i, block_number in enumerate(tx_blocks):
+                self.wallet.refresh_progressed.emit(i, len(tx_blocks), self.wallet.pubkey)
                 if (yield from self._check_block(community, block_number)):
                     return
         except NoPeerAvailable:
@@ -363,20 +366,43 @@ class TxHistory():
                           if ud['state'] in (TransferState.AWAITING, TransferState.VALIDATING)]
                 blocks = tx_blocks + ud_blocks + \
                          [max(0, self.latest_block - community.network.fork_window(members_pubkeys))]
-                parsed_block = min(set(blocks))
-                self._block_to = current_block
+                block_from = min(set(blocks))
 
-                # We wait for current refresh coroutines
-                if len(self._running_refresh) > 0:
-                    logging.debug("Wait for the end of previous refresh")
-                    done, pending = yield from asyncio.wait(self._running_refresh)
-                    for cor in done:
-                        self._running_refresh.remove(cor)
+                yield from self._wait_for_previous_refresh()
 
                 # Then we start a new one
-                task = asyncio.async(self._refresh(community, parsed_block, received_list))
+                logging.debug("Starts a new refresh")
+                task = asyncio.async(self._refresh(community, block_from, current_block, received_list))
                 self._running_refresh.append(task)
         except ValueError as e:
             logging.debug("Block not found")
         except NoPeerAvailable:
             logging.debug("No peer available")
+
+    @asyncio.coroutine
+    def rollback(self, community, received_list):
+        yield from self._wait_for_previous_refresh()
+        # Then we start a new one
+        logging.debug("Starts a new refresh")
+        task = asyncio.async(self._rollback(community))
+        self._running_refresh.append(task)
+
+        # Then we start a refresh to check for new transactions
+        yield from self.refresh(community, received_list)
+
+    @asyncio.coroutine
+    def _wait_for_previous_refresh(self):
+        # We wait for current refresh coroutines
+        if len(self._running_refresh) > 0:
+            logging.debug("Wait for the end of previous refresh")
+            done, pending = yield from asyncio.wait(self._running_refresh)
+            for cor in done:
+                try:
+                    self._running_refresh.remove(cor)
+                except ValueError:
+                    logging.debug("Task already removed.")
+            for p in pending:
+                logging.debug("Still waiting for : {0}".format(p))
+            logging.debug("Previous refresh finished")
+        else:
+            logging.debug("No previous refresh")
