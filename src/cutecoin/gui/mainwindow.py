@@ -172,7 +172,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def open_transfer_money_dialog(self):
         dialog = TransferMoneyDialog(self.app,
                                      self.app.current_account,
-                                     self.password_asker)
+                                     self.password_asker,
+                                     self.community_view.community,
+                                     None)
         if dialog.exec_() == QDialog.Accepted:
             self.community_view.tab_history.table_history.model().sourceModel().refresh_transfers()
 
