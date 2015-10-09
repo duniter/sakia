@@ -294,11 +294,11 @@ class TxHistory():
         self.wallet.refresh_finished.emit(received_list)
 
     @asyncio.coroutine
-    def _check_block(self, block_number, community):
+    def _check_block(self, community, block_number):
         """
         Parse a block
         :param cutecoin.core.Community community: The community
-        :param cutecoin.core.Transfer transfer: The transfer to check the presence
+        :param int block_number: The block to check for transfers
         """
         block = None
         block_doc = None
@@ -319,11 +319,10 @@ class TxHistory():
                 if '404' in str(e):
                     block = None
                     tries += 1
-        if block_doc:
-            for transfer in [t for t in self._transfers
-                             if t.state in (TransferState.VALIDATING, TransferState.VALIDATED) and
-                             t.blockid.number == block_number]:
-                return not transfer.run_state_transitions((True, block_doc))
+        for transfer in [t for t in self._transfers
+                         if t.state in (TransferState.VALIDATING, TransferState.VALIDATED) and
+                         t.blockid.number == block_number]:
+            return not transfer.run_state_transitions((True, block_doc))
         else:
             return False
 
@@ -383,7 +382,7 @@ class TxHistory():
     def rollback(self, community, received_list):
         yield from self._wait_for_previous_refresh()
         # Then we start a new one
-        logging.debug("Starts a new refresh")
+        logging.debug("Starts a new rollback")
         task = asyncio.async(self._rollback(community))
         self._running_refresh.append(task)
 

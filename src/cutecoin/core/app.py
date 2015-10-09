@@ -252,13 +252,8 @@ class Application(QObject):
             self.accounts[account_name] = account
 
             for community in account.communities:
-                def refresh_tx(blocknumber, co=community):
-                    account.refresh_transactions(self, co)
-                community.network.new_block_mined.connect(refresh_tx)
-
-                def rollback_tx(blocknumber, co=community):
-                    account.rollback_transaction(self, co)
-                community.network.new_block_mined.connect(rollback_tx)
+                community.network.new_block_mined.connect(lambda b, co=community: account.refresh_transactions(self, co))
+                community.network.blockchain_rollback.connect(lambda b, co=community: account.rollback_transaction(self, co))
 
     def load_cache(self, account):
         """

@@ -72,27 +72,27 @@ class Transfer(QObject):
         self._table_states = {
             (TransferState.TO_SEND, (list, Block)):
                 (
-                    (self._broadcast_success, self._wait, TransferState.AWAITING),
-                    (self._broadcast_failure, None, TransferState.REFUSED),
+                    (self._broadcast_success, lambda l, b: self._wait(b), TransferState.AWAITING),
+                    (lambda l,b: self._broadcast_failure(b), None, TransferState.REFUSED),
                 ),
             (TransferState.TO_SEND, ()):
                 ((self._is_locally_created, self._drop, TransferState.DROPPED),),
 
             (TransferState.AWAITING, (bool, Block)):
-                ((self._found_in_block, self._be_validating, TransferState.VALIDATING),),
+                ((self._found_in_block, lambda r, b: self._be_validating(b), TransferState.VALIDATING),),
             (TransferState.AWAITING, (bool, Block, int, int)):
                 ((self._not_found_in_blockchain, None, TransferState.REFUSED),),
 
             (TransferState.VALIDATING, (bool, Block, int)):
                 ((self._reached_enough_validation, None, TransferState.VALIDATED),),
             (TransferState.VALIDATING, (bool, Block)):
-                ((self._rollback_and_removed, self._drop, TransferState.DROPPED),),
+                ((self._rollback_and_removed, lambda r, b: self._drop(), TransferState.DROPPED),),
 
             (TransferState.VALIDATED, (bool, Block)):
                 (
-                    (self._rollback_still_present, self._be_validating, TransferState.VALIDATING),
-                    (self._rollback_and_removed, self._drop, TransferState.DROPPED),
-                    (self._rollback_and_local, self._wait, TransferState.AWAITING),
+                    (self._rollback_still_present, lambda r, b: self._be_validating(b), TransferState.VALIDATING),
+                    (self._rollback_and_removed, lambda r, b: self._drop(), TransferState.DROPPED),
+                    (self._rollback_and_local, lambda r, b: self._wait(b), TransferState.AWAITING),
                 ),
 
             (TransferState.REFUSED, ()):
@@ -256,16 +256,15 @@ class Transfer(QObject):
         """
         return self._locally_created
 
-    def _wait(self, ret_codes, current_block):
+    def _wait(self, current_block):
         """
         Set the transfer as AWAITING validation.
-        :param list ret_codes: The responses return codes
         :param ucoinpy.documents.Block current_block: Current block of the main blockchain
         """
         self.blockid = current_block.blockid
         self._metadata['time'] = current_block.mediantime
 
-    def _be_validating(self, rollback, block):
+    def _be_validating(self, block):
         """
         Action when the transfer ins found in a block
 
