@@ -16,6 +16,7 @@ from ..models.peering import PeeringTreeModel
 from ..core import Community
 from ..core.net import Node
 from cutecoin.gui.widgets import toast
+from .widgets.dialogs import QAsyncMessageBox
 
 
 class Step(QObject):
@@ -198,7 +199,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         step_init.next_step = step_add_peers
 
         if self.community is not None:
-            self.stacked_pages.removeWidget(self.page_init)
+            self.stacked_pages.removeWidget(self.page_node)
             self.step = step_add_peers
             self.setWindowTitle(self.tr("Configure community {0}").format(self.community.currency))
         else:
@@ -237,7 +238,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
             node = yield from Node.from_address(self.community.currency, server, port)
             self.community.add_node(node)
         except Exception as e:
-            QMessageBox.critical(self, self.tr("Error"),
+            yield from QAsyncMessageBox.critical(self, self.tr("Error"),
                                  str(e))
         self.tree_peers.setModel(PeeringTreeModel(self.community))
 
