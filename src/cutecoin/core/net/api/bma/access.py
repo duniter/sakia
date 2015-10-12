@@ -1,6 +1,7 @@
 from PyQt5.QtCore import QObject, pyqtSlot
 from PyQt5.QtNetwork import QNetworkReply
 from ucoinpy.api.bma import blockchain
+from ucoinpy.documents import Block, BlockId
 from .....tools.exceptions import NoPeerAvailable
 from ..... import __version__
 import logging
@@ -25,6 +26,7 @@ class BmaAccess(QObject):
         """
         super().__init__()
         self._data = data
+        self._rollback_to = None
         self._pending_requests = {}
         self._network = network
 
@@ -50,11 +52,12 @@ class BmaAccess(QObject):
         :param dict data: The cache in json format
         """
         data = {}
-        for entry in json_data:
+        for entry in json_data['entries']:
             key = entry['key']
             cache_key = (key[0], key[1], key[2], key[3], key[4])
             data[cache_key] = entry['value']
         self._data = data
+        self._rollback_to = json_data['rollback']
 
     def jsonify(self):
         """
@@ -67,7 +70,8 @@ class BmaAccess(QObject):
         for d in data:
             entries.append({'key': d,
                             'value': data[d]})
-        return entries
+        return {'rollback': self._rollback_to,
+                'entries': entries}
 
     @staticmethod
     def _gen_cache_key(request, req_args, get_args):
@@ -99,13 +103,21 @@ class BmaAccess(QObject):
         Get data from the cache
         :param request: The requested data
         :param cache_key: The key
-        :return:
+        :rtype: tuple[bool, dict]
         """
         cache_key = BmaAccess._gen_cache_key(request, req_args, get_args)
         if cache_key in self._data.keys():
             cached_data = self._data[cache_key]
             need_reload = True
-            if str(request) in BmaAccess.__saved_requests \
+            # If we detected a rollback
+            # We reload if we don't know if this block changed or not
+            if self._rollback_to:
+                if request is blockchain.Block:
+                    if get_args["number"] >= self._rollback_to:
+                        need_reload = True
+                if request is blockchain.Parameters and self._rollback_to == 0:
+                    need_reload = True
+            elif str(request) in BmaAccess.__saved_requests \
                 or cached_data['metadata']['block_hash'] == self._network.current_blockid.sha_hash:
                 need_reload = False
             ret_data = cached_data['value']
@@ -113,6 +125,20 @@ class BmaAccess(QObject):
             need_reload = True
             ret_data = None
         return need_reload, ret_data
+
+    def _update_rollback(self, request, req_args, get_args, data):
+        """
+        Update the rollback
+        :param class request: A bma request class calling for data
+        :param dict req_args: Arguments to pass to the request constructor
+        :param dict get_args: Arguments to pass to the request __get__ method
+        :param dict data: Json data got from the blockchain
+        """
+        if self._rollback_to and request is blockchain.Block:
+            if get_args['number'] >= self._rollback_to:
+                cache_key = BmaAccess._gen_cache_key(request, req_args, get_args)
+                if cache_key in self._data and self._data[cache_key]['value']['hash'] == data['hash']:
+                    self._rollback_to = get_args['number']
 
     def _update_cache(self, request, req_args, get_args, data):
         """
@@ -124,6 +150,8 @@ class BmaAccess(QObject):
         :return: True if data changed
         :rtype: bool
         """
+        self._update_rollback(request, req_args, get_args, data)
+
         cache_key = BmaAccess._gen_cache_key(request, req_args, get_args)
         if cache_key not in self._data:
             self._data[cache_key] = {'metadata': {},
