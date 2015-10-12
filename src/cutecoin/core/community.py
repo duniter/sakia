@@ -309,6 +309,9 @@ class Community(QObject):
     def stop_coroutines(self):
         self.network.stop_coroutines()
 
+    def rollback_cache(self):
+        self._bma_access.rollback()
+
     def jsonify(self):
         """
         Jsonify the community datas.

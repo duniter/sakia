@@ -165,6 +165,12 @@ class BmaAccess(QObject):
             return True
         return False
 
+    def rollback(self):
+        """
+        When a rollback is detected, we move the rollback cursor to 0
+        """
+        self._rollback_to = 0
+
     @asyncio.coroutine
     def future_request(self, request, req_args={}, get_args={}):
         """

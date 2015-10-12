@@ -252,6 +252,7 @@ class Application(QObject):
             self.accounts[account_name] = account
 
             for community in account.communities:
+                community.network.blockchain_rollback.connect(community.rollback_cache)
                 community.network.new_block_mined.connect(lambda b, co=community: account.refresh_transactions(self, co))
                 community.network.blockchain_rollback.connect(lambda b, co=community: account.rollback_transaction(self, co))
 

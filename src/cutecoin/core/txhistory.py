@@ -74,6 +74,34 @@ class TxHistory():
     def stop_coroutines(self):
         self._stop_coroutines = True
 
+    def _get_block_doc(self, community, number):
+        """
+        Retrieve the current block document
+        :param cutecoin.core.Community community: The community we look for a block
+        :param int number: The block number to retrieve
+        :return: the block doc or None if no block was found
+        """
+        tries = 0
+        block_doc = None
+        block = None
+        while block is None and tries < 3:
+            try:
+                block = yield from community.bma_access.future_request(bma.blockchain.Block,
+                                      req_args={'number': number})
+                signed_raw = "{0}{1}\n".format(block['raw'],
+                                           block['signature'])
+                try:
+                    block_doc = Block.from_signed_raw(signed_raw)
+                except TypeError:
+                    logging.debug("Error in {0}".format(number))
+                    block = None
+                    tries += 1
+            except ValueError as e:
+                if '404' in str(e):
+                    block = None
+                    tries += 1
+        return block_doc
+
     @asyncio.coroutine
     def _parse_transaction(self, community, tx, blockid,
                            mediantime, received_list, txid):
@@ -153,36 +181,17 @@ class TxHistory():
         return None
 
     @asyncio.coroutine
-    def _parse_block(self, community, block_number, received_list, current_block, txmax):
+    def _parse_block(self, community, block_number, received_list, txmax):
         """
         Parse a block
         :param cutecoin.core.Community community: The community
         :param int block_number: The block to request
         :param list received_list: The list where we are appending transactions
-        :param int current_block: The current block of the network
         :param int txmax: Latest tx id
         :return: The list of transfers sent
         """
-        block = None
-        block_doc = None
-        tries = 0
-        while block is None and tries < 3:
-            try:
-                block = yield from community.bma_access.future_request(bma.blockchain.Block,
-                                      req_args={'number': block_number})
-                signed_raw = "{0}{1}\n".format(block['raw'],
-                                           block['signature'])
-                transfers = []
-                try:
-                    block_doc = Block.from_signed_raw(signed_raw)
-                except TypeError:
-                    logging.debug("Error in {0}".format(block_number))
-                    block = None
-                    tries += 1
-            except ValueError as e:
-                if '404' in str(e):
-                    block = None
-                    tries += 1
+        block_doc = yield from self._get_block_doc(community, block_number)
+        transfers = []
         if block_doc:
             for transfer in [t for t in self._transfers if t.state == TransferState.AWAITING]:
                 transfer.run_state_transitions((False, block_doc))
@@ -259,7 +268,7 @@ class TxHistory():
                 # We parse only blocks with transactions
                 if block_number_from in blocks_with_tx:
                     transfers = yield from self._parse_block(community, block_number_from,
-                                                             received_list, block_to,
+                                                             received_list,
                                                              udid + len(new_transfers))
                     new_transfers += transfers
 
@@ -300,25 +309,9 @@ class TxHistory():
         :param cutecoin.core.Community community: The community
         :param int block_number: The block to check for transfers
         """
-        block = None
-        block_doc = None
-        tries = 0
-        while block is None and tries < 3:
-            try:
-                block = yield from community.bma_access.future_request(bma.blockchain.Block,
-                                      req_args={'number': block_number})
-                signed_raw = "{0}{1}\n".format(block['raw'],
-                                           block['signature'])
-                try:
-                    block_doc = Block.from_signed_raw(signed_raw)
-                except TypeError:
-                    logging.debug("Error in {0}".format(block_number))
-                    block = None
-                    tries += 1
-            except ValueError as e:
-                if '404' in str(e):
-                    block = None
-                    tries += 1
+        block_doc = yield from self._get_block_doc(community, block_number)
+
+        # We check if transactions are still present
         for transfer in [t for t in self._transfers
                          if t.state in (TransferState.VALIDATING, TransferState.VALIDATED) and
                          t.blockid.number == block_number]:
@@ -341,10 +334,19 @@ class TxHistory():
             tx_blocks = [tx.blockid.number for tx in self._transfers
                           if tx.state in (TransferState.VALIDATED, TransferState.VALIDATING) and
                           tx.blockid is not None]
+            tx_blocks.reverse()
             for i, block_number in enumerate(tx_blocks):
                 self.wallet.refresh_progressed.emit(i, len(tx_blocks), self.wallet.pubkey)
                 if (yield from self._check_block(community, block_number)):
-                    return
+                    break
+
+            current_block = yield from self._get_block_doc(community, community.network.current_blockid.number)
+            members_pubkeys = yield from community.members_pubkeys()
+            fork_window = community.network.fork_window(members_pubkeys)
+            # We check if transactions VALIDATED are in the fork window now
+            for transfer in [t for t in self._transfers
+                             if t.state == TransferState.VALIDATED]:
+                transfer.run_state_transitions((True, current_block, fork_window))
         except NoPeerAvailable:
             logging.debug("No peer available")
 

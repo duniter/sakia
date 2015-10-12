@@ -88,9 +88,11 @@ class Transfer(QObject):
             (TransferState.VALIDATING, (bool, Block)):
                 ((self._rollback_and_removed, lambda r, b: self._drop(), TransferState.DROPPED),),
 
+            (TransferState.VALIDATED, (bool, Block, int)):
+                ((self._rollback_in_fork_window, lambda r, b: self._be_validating(b), TransferState.VALIDATING),),
+
             (TransferState.VALIDATED, (bool, Block)):
                 (
-                    (self._rollback_still_present, lambda r, b: self._be_validating(b), TransferState.VALIDATING),
                     (self._rollback_and_removed, lambda r, b: self._drop(), TransferState.DROPPED),
                     (self._rollback_and_local, lambda r, b: self._wait(b), TransferState.AWAITING),
                 ),
@@ -227,15 +229,15 @@ class Transfer(QObject):
                 return self.sha_hash not in [t.sha_hash for t in block.transactions]
         return False
 
-    def _rollback_still_present(self, rollback, block):
+    def _rollback_in_fork_window(self, rollback, current_block, fork_window):
         """
         Check if the transfer is not in the block anymore
         :param bool rollback: True if we are in a rollback procedure
-        :param ucoinpy.documents.Block block: The block to check for the transaction
+        :param ucoinpy.documents.Block current_block: The block to check for the transaction
         :return: True if the transfer is found in the block
         """
-        if rollback and block.blockid == self.blockid:
-            return self.sha_hash in [t.sha_hash for t in block.transactions]
+        if rollback:
+            return self.blockid.number + fork_window > current_block.number
         return False
 
     def _rollback_and_local(self, rollback, block):
