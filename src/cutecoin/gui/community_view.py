@@ -185,6 +185,8 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
 
         except MembershipNotFoundError as e:
             pass
+        except NoPeerAvailable:
+            logging.debug("No peer available")
         self.refresh_data()
 
     def refresh_data(self):
