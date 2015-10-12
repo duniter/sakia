@@ -403,6 +403,7 @@ class Identity(QObject):
         Refresh UID from uids list, got from a successful lookup request
         :param list uids: UIDs got from a lookup request
         """
+        timestamp = 0
         if self.local_state == LocalState.NOT_FOUND:
             for uid_data in uids:
                 if uid_data["meta"]["timestamp"] > timestamp:
