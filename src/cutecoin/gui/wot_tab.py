@@ -73,12 +73,22 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         self.password_asker = password_asker
 
     def change_community(self, community):
-        if self.community:
-            self.community.network.new_block_mined.disconnect(self.refresh)
-        if community:
-            community.network.new_block_mined.connect(self.refresh)
+        self._auto_refresh(community)
         self.community = community
         self.reset()
+
+    def _auto_refresh(self, new_community):
+        if self.community:
+            try:
+                self.community.network.new_block_mined.disconnect(self.refresh)
+            except ValueError as e:
+                if "disconnect" in str(e):
+                    logging.debug("new block mined not connected")
+        if self.app.preferences["auto_refresh"]:
+            if new_community:
+                new_community.network.new_block_mined.connect(self.refresh)
+            elif self.community:
+                self.community.network.new_block_mined.connect(self.refresh)
 
     @once_at_a_time
     @asyncify
@@ -348,5 +358,6 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         """
         if event.type() == QEvent.LanguageChange:
             self.retranslateUi(self)
+            self._auto_refresh(None)
             self.refresh()
         return super(WotTabWidget, self).changeEvent(event)

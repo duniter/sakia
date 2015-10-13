@@ -67,7 +67,8 @@ class Application(QObject):
                             'proxy_type': "HTTP",
                             'proxy_address': "",
                             'proxy_port': 8080,
-                            'international_system_of_units': True
+                            'international_system_of_units': True,
+                            'auto_refresh': False
                             }
 
         self.notifications = {'membership_expire_soon':

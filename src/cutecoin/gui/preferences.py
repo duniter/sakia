@@ -70,7 +70,8 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
                 'enable_proxy': self.checkbox_proxy.isChecked(),
                 'proxy_address': self.edit_proxy_address.text(),
                 'proxy_port': self.spinbox_proxy_port.value(),
-                'international_system_of_units': self.checkbox_international_system.isChecked()}
+                'international_system_of_units': self.checkbox_international_system.isChecked(),
+                'auto_refresh': self.checkbox_auto_refresh.isChecked()}
         self.app.save_preferences(pref)
       # change UI translation
         self.app.switch_language()
