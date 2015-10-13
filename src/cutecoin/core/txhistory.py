@@ -370,11 +370,11 @@ class TxHistory():
                 block_from = min(set(blocks))
 
                 yield from self._wait_for_previous_refresh()
-
-                # Then we start a new one
-                logging.debug("Starts a new refresh")
-                task = asyncio.async(self._refresh(community, block_from, current_block, received_list))
-                self._running_refresh.append(task)
+                if block_from < current_block["number"]:
+                    # Then we start a new one
+                    logging.debug("Starts a new refresh")
+                    task = asyncio.async(self._refresh(community, block_from, current_block, received_list))
+                    self._running_refresh.append(task)
         except ValueError as e:
             logging.debug("Block not found")
         except NoPeerAvailable:
