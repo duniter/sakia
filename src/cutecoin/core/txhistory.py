@@ -347,6 +347,7 @@ class TxHistory():
             for transfer in [t for t in self._transfers
                              if t.state == TransferState.VALIDATED]:
                 transfer.run_state_transitions((True, current_block, fork_window))
+            self.wallet.refresh_finished.emit([])
         except NoPeerAvailable:
             logging.debug("No peer available")
 
