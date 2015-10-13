@@ -301,8 +301,12 @@ class Identity(QObject):
         #  add certifiers of uid
         for certifier in tuple(certifier_list):
             # add only valid certification...
-            cert_expired = yield from community.certification_expired(certifier['cert_time'])
-            if cert_expired:
+            try:
+                cert_expired = yield from community.certification_expired(certifier['cert_time'])
+                if cert_expired:
+                    continue
+            except NoPeerAvailable:
+                logging.debug("No peer available")
                 continue
 
             # keep only the latest certification
@@ -373,8 +377,12 @@ class Identity(QObject):
         #  add certifiers of uid
         for certified in tuple(certified_list):
             # add only valid certification...
-            cert_expired = yield from community.certification_expired(certified['cert_time'])
-            if cert_expired:
+            try:
+                cert_expired = yield from community.certification_expired(certified['cert_time'])
+                if cert_expired:
+                    continue
+            except NoPeerAvailable:
+                logging.debug("No peer available")
                 continue
 
             # keep only the latest certification
