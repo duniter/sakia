@@ -163,10 +163,6 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
     @asyncify
     @asyncio.coroutine
     def send_money_to_identity(self, identity):
-        if isinstance(identity, str):
-            pubkey = identity
-        else:
-            pubkey = identity.pubkey
         result = yield from TransferMoneyDialog.send_money_to_identity(self.app, self.account, self.password_asker,
                                                             self.community, identity)
         if result == QDialog.Accepted:

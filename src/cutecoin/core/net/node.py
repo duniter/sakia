@@ -302,7 +302,8 @@ class Node(QObject):
                 except ValueError as e:
                     if '404' in str(e):
                         self.main_chain_previous_block = None
-                    logging.debug("Error in block reply")
+                    logging.debug("Error in previous block reply :  {0}".format(self.pubkey))
+                    logging.debug(str(e))
                     self.changed.emit()
                 except ClientError:
                     logging.debug("Client error : {0}".format(self.pubkey))
@@ -319,7 +320,8 @@ class Node(QObject):
             if '404' in str(e):
                 self.main_chain_previous_block = None
                 self.set_block(None)
-            logging.debug("Error in block reply")
+            logging.debug("Error in block reply :  {0}".format(self.pubkey))
+            logging.debug(str(e))
             self.changed.emit()
         except ClientError:
             logging.debug("Client error : {0}".format(self.pubkey))
