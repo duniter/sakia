@@ -36,6 +36,7 @@ class Node(QObject):
     CORRUPTED = 4
 
     changed = pyqtSignal()
+    identity_changed = pyqtSignal()
     neighbour_found = pyqtSignal(Peer, str)
 
     def __init__(self, currency, endpoints, uid, pubkey, block,
@@ -345,18 +346,15 @@ class Node(QObject):
             node_currency = peering_data["currency"]
             self.state = Node.ONLINE
 
-            change = False
             if node_pubkey != self.pubkey:
                 self._pubkey = node_pubkey
-                change = True
+                self.identity_changed.emit()
 
             if node_currency != self.currency:
                 self.state = Node.CORRUPTED
                 logging.debug("Change : new state corrupted")
-                change = True
-
-            if change:
                 self.changed.emit()
+
         except ValueError as e:
             logging.debug("Error in peering reply : {0}".format(str(e)))
             self.changed.emit()
@@ -415,13 +413,13 @@ class Node(QObject):
                             uid = uid["uid"]
             if self._uid != uid:
                 self._uid = uid
-                self.changed.emit()
+                self.identity_changed.emit()
         except ValueError as e:
             if '404' in str(e):
                 logging.debug("UID not found")
             else:
                 logging.debug("error in uid reply")
-                self.changed.emit()
+                self.identity_changed.emit()
         except ClientError:
             logging.debug("Client error : {0}".format(self.pubkey))
             self.state = Node.OFFLINE

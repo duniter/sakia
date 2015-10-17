@@ -98,7 +98,6 @@ class Network(QObject):
             node = Node.from_json(currency, data)
             nodes.append(node)
         network = cls(currency, nodes)
-        # We block the signals until loading the nodes cache
         return network
 
     def jsonify(self):
@@ -269,6 +268,7 @@ class Network(QObject):
         """
         self._nodes.append(node)
         node.changed.connect(self.handle_change)
+        node.identity_changed.connect(self.handle_identity_change)
         node.neighbour_found.connect(self.handle_new_node)
         logging.debug("{:} connected".format(node.pubkey[:5]))
 
@@ -329,6 +329,13 @@ class Network(QObject):
                 self.nodes_changed.emit()
             except InvalidNodeCurrency as e:
                 logging.debug(str(e))
+
+    @pyqtSlot()
+    def handle_identity_change(self):
+        node = self.sender()
+        if node in self._root_nodes:
+            self.root_nodes_changed.emit()
+        self.nodes_changed.emit()
 
     @pyqtSlot()
     def handle_change(self):

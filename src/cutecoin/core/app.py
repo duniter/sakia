@@ -72,15 +72,15 @@ class Application(QObject):
                             }
 
         self.notifications = {'membership_expire_soon':
-                                  (
+                                  [
                                       self.tr("Warning : Your membership is expiring soon."),
                                       0
-                                   ),
+                                   ],
                             'warning_certifications':
-                                    (
+                                    [
                                         self.tr("Warning : Your could miss certifications soon."),
                                         0
-                                    )
+                                    ]
                             }
 
     @classmethod
