@@ -81,8 +81,8 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         if self.community:
             try:
                 self.community.network.new_block_mined.disconnect(self.refresh)
-            except ValueError as e:
-                if "disconnect" in str(e):
+            except TypeError as e:
+                if "connected" in str(e):
                     logging.debug("new block mined not connected")
         if self.app.preferences["auto_refresh"]:
             if new_community:
