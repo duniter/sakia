@@ -177,7 +177,7 @@ class Network(QObject):
         else:
             return BlockId.empty()
 
-    def check_nodes_sync(self):
+    def _check_nodes_sync(self):
         """
         Check nodes sync with the following rules :
         1 : The block of the majority
@@ -236,6 +236,15 @@ class Network(QObject):
                 n.state = Node.ONLINE
             else:
                 n.state = Node.DESYNCED
+
+    def _check_nodes_unique(self):
+        pubkeys = set()
+        unique_nodes = []
+        for n in self.nodes:
+            if n.pubkey not in pubkeys:
+                unique_nodes.append(n)
+                pubkeys.add(n.pubkey)
+        self._nodes = unique_nodes
 
     def fork_window(self, members_pubkeys):
         """
@@ -317,14 +326,16 @@ class Network(QObject):
     @pyqtSlot()
     def handle_change(self):
         node = self.sender()
+
         if node.state in (Node.ONLINE, Node.DESYNCED):
-            self.check_nodes_sync()
+            self._check_nodes_sync()
         else:
             if node.last_change + 3600 < time.time():
                 node.disconnect()
                 self.nodes.remove(node)
-
+        self._check_nodes_unique()
         self.nodes_changed.emit()
+
         if node.state == Node.ONLINE:
             logging.debug("{0} -> {1}".format(self._block_found.sha_hash[:10], self.current_blockid.sha_hash[:10]))
             if self._block_found.sha_hash != self.current_blockid.sha_hash:
