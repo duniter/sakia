@@ -405,7 +405,7 @@ class Node(QObject):
             data = yield from bma.wot.Lookup(conn_handler, self.pubkey).get()
             self.state = Node.ONLINE
             timestamp = 0
-            uid = None
+            uid = ""
             for result in data['results']:
                 if result["pubkey"] == self.pubkey:
                     uids = result['uids']
@@ -413,7 +413,7 @@ class Node(QObject):
                         if uid["meta"]["timestamp"] > timestamp:
                             timestamp = uid["meta"]["timestamp"]
                             uid = uid["uid"]
-            if uid and self._uid != uid:
+            if self._uid != uid:
                 self._uid = uid
                 self.changed.emit()
         except ValueError as e:
