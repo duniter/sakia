@@ -165,7 +165,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                         self.status_info.append('membership_expire_soon')
 
                     if self.app.preferences['notifications'] and\
-                            self.app.notifications['membership_expire_soon'][1] < time.time()+24*3600:
+                            self.app.notifications['membership_expire_soon'][1]+24*3600 < time.time():
                         toast.display(self.tr("Membership expiration"),
                                   self.tr("<b>Warning : Membership expiration in {0} days</b>").format(days))
                         self.app.notifications['membership_expire_soon'][1] = time.time()
@@ -176,7 +176,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                 if 'warning_certifications' not in self.status_info:
                     self.status_info.append('warning_certifications')
                 if self.app.preferences['notifications'] and\
-                        self.app.notifications['warning_certifications'][1] < time.time()+24*3600:
+                        self.app.notifications['warning_certifications'][1]+24*3600 < time.time():
                     toast.display(self.tr("Certifications number"),
                               self.tr("<b>Warning : You are certified by only {0} persons, need {1}</b>")
                               .format(len(certifiers_of),
