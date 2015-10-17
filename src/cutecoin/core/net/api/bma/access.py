@@ -1,6 +1,6 @@
 from PyQt5.QtCore import QObject, pyqtSlot
 from PyQt5.QtNetwork import QNetworkReply
-from ucoinpy.api.bma import blockchain
+from ucoinpy.api import bma
 from ucoinpy.documents import Block, BlockId
 from .....tools.exceptions import NoPeerAvailable
 from ..... import __version__
@@ -15,7 +15,7 @@ class BmaAccess(QObject):
     This class is used to access BMA API.
     """
 
-    __saved_requests = [str(blockchain.Block), str(blockchain.Parameters)]
+    __saved_requests = [str(bma.blockchain.Block), str(bma.blockchain.Parameters)]
 
     def __init__(self, data, network):
         """
@@ -112,10 +112,10 @@ class BmaAccess(QObject):
             # If we detected a rollback
             # We reload if we don't know if this block changed or not
             if self._rollback_to:
-                if request is blockchain.Block:
+                if request is bma.blockchain.Block:
                     if get_args["number"] >= self._rollback_to:
                         need_reload = True
-                if request is blockchain.Parameters and self._rollback_to == 0:
+                if request is bma.blockchain.Parameters and self._rollback_to == 0:
                     need_reload = True
             elif str(request) in BmaAccess.__saved_requests \
                 or cached_data['metadata']['block_hash'] == self._network.current_blockid.sha_hash:
@@ -134,7 +134,7 @@ class BmaAccess(QObject):
         :param dict get_args: Arguments to pass to the request __get__ method
         :param dict data: Json data got from the blockchain
         """
-        if self._rollback_to and request is blockchain.Block:
+        if self._rollback_to and request is bma.blockchain.Block:
             if get_args['number'] >= self._rollback_to:
                 cache_key = BmaAccess._gen_cache_key(request, req_args, get_args)
                 if cache_key in self._data and self._data[cache_key]['value']['hash'] == data['hash']:
@@ -171,6 +171,16 @@ class BmaAccess(QObject):
         """
         self._rollback_to = 0
 
+    def filter_nodes(self, request, nodes):
+        filters = {
+            bma.ud.History: lambda n: int(n.version.split(".")[1]) > 11,
+            bma.tx.History: lambda n: int(n.version.split(".")[1]) > 11
+        }
+        if request in filters:
+            return [n for n in nodes if filters[request](n)]
+        else:
+            return nodes
+
     @asyncio.coroutine
     def future_request(self, request, req_args={}, get_args={}):
         """
@@ -186,7 +196,7 @@ class BmaAccess(QObject):
         need_reload = data[0]
         json_data = data[1]
 
-        nodes = self._network.synced_nodes
+        nodes = self.filter_nodes(request, self._network.synced_nodes)
         if need_reload and len(nodes) > 0:
             tries = 0
             while tries < 3:
@@ -219,7 +229,7 @@ class BmaAccess(QObject):
         :param dict get_args: Arguments to pass to the request __get__ method
         :return: The returned data if cached = True else return the QNetworkReply
         """
-        nodes = self._network.synced_nodes
+        nodes = self.filter_nodes(request, self._network.synced_nodes)
         if len(nodes) > 0:
             node = random.choice(nodes)
             req = request(node.endpoint.conn_handler(), **req_args)

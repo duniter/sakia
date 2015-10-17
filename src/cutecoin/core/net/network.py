@@ -3,7 +3,8 @@ Created on 24 févr. 2015
 
 @author: inso
 """
-from cutecoin.core.net.node import Node
+from .node import Node
+from ...tools.exceptions import InvalidNodeCurrency
 
 import logging
 import statistics
@@ -306,9 +307,12 @@ class Network(QObject):
         pubkeys = [n.pubkey for n in self.nodes]
         if peer.pubkey not in pubkeys:
             logging.debug("New node found : {0}".format(peer.pubkey[:5]))
-            node = Node.from_peer(self.currency, peer, pubkey)
-            self.add_node(node)
-            self.nodes_changed.emit()
+            try:
+                node = Node.from_peer(self.currency, peer, pubkey)
+                self.add_node(node)
+                self.nodes_changed.emit()
+            except InvalidNodeCurrency as e:
+                logging.debug(str(e))
 
     @pyqtSlot()
     def handle_change(self):
