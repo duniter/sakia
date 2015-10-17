@@ -91,11 +91,13 @@ class NetworkTabWidget(QWidget, Ui_NetworkTabWidget):
     def set_root_node(self):
         node = self.sender().data()
         self.community.network.add_root_node(node)
+        self.table_network.model().sourceModel().refresh_nodes()
 
     @pyqtSlot()
     def unset_root_node(self):
         index = self.sender().data()
         self.community.network.remove_root_node(index)
+        self.table_network.model().sourceModel().refresh_nodes()
 
     @pyqtSlot()
     def open_node_in_browser(self):

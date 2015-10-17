@@ -23,6 +23,7 @@ class Network(QObject):
     given community.
     """
     nodes_changed = pyqtSignal()
+    root_nodes_changed = pyqtSignal()
     new_block_mined = pyqtSignal(int)
     blockchain_rollback = pyqtSignal(int)
 
@@ -238,12 +239,16 @@ class Network(QObject):
                 n.state = Node.DESYNCED
 
     def _check_nodes_unique(self):
+        """
+        Check that all nodes are unique by them pubkeys
+        """
         pubkeys = set()
         unique_nodes = []
         for n in self.nodes:
             if n.pubkey not in pubkeys:
                 unique_nodes.append(n)
                 pubkeys.add(n.pubkey)
+
         self._nodes = unique_nodes
 
     def fork_window(self, members_pubkeys):
@@ -272,12 +277,14 @@ class Network(QObject):
         Add a node to the root nodes list
         """
         self._root_nodes.append(node)
+        self.root_nodes_changed.emit()
 
     def remove_root_node(self, index):
         """
         Remove a node from the root nodes list
         """
         self._root_nodes.pop(index)
+        self.root_nodes_changed.emit()
 
     def is_root_node(self, node):
         """
