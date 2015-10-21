@@ -35,8 +35,9 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
         """
         Sort table by given column number.
         """
-        left_data = self.sourceModel().data(left, Qt.DisplayRole)
-        right_data = self.sourceModel().data(right, Qt.DisplayRole)
+        left_data = str(self.sourceModel().data(left, Qt.DisplayRole))
+        right_data = str(self.sourceModel().data(right, Qt.DisplayRole))
+
         return (left_data < right_data)
 
     def headerData(self, section, orientation, role):
