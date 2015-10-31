@@ -7,8 +7,7 @@ from PyQt5.QtNetwork import QNetworkAccessManager
 from cutecoin.gui.mainwindow import MainWindow
 from cutecoin.core.app import Application
 from cutecoin.tests import get_application
-
-from cutecoin.tests.stubs.core.registry import IdentitiesRegistry
+from cutecoin.core.registry.identities import IdentitiesRegistry
 
 # Qapplication cause a core dumped when re-run in setup
 # set it as global var
