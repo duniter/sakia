@@ -9,7 +9,6 @@ from PyQt5 import QtCore
 
 #############################################################################
 # preparation des options
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'lib')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 
 print(sys.path)
@@ -31,7 +30,7 @@ if sys.platform == "win32":
             libEGL_path = os.path.join(os.path.dirname(path), "libEGL.dll")
 
     if 'CONDA_ENV_PATH' in os.environ:
-	# Check if we are in Conda env
+        # Check if we are in Conda env
         path = QtCore.QCoreApplication.libraryPaths()[0]
         libEGL_path = os.path.join(path, "Scripts", "libEGL.dll")
         libsodium_path = os.path.join(path, "Scripts", "libsodium.dll")
@@ -87,7 +86,7 @@ target = Executable(
 # creation du setup
 setup(
     name = "cutecoin",
-    version = "0.10",
+    version = "0.11",
     description = "UCoin client",
     author = "Inso",
     options = {"build_exe": options},

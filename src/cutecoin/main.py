@@ -41,7 +41,8 @@ def async_exception_handler(loop, context):
         log_lines.append('{}: {!r}'.format(key, context[key]))
 
     logging.error('\n'.join(log_lines), exc_info=exc_info)
-    os._exit(1)
+    if "Unclosed" not in message:
+        os._exit(1)
 
 
 if __name__ == '__main__':

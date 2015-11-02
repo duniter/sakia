@@ -1,4 +1,5 @@
 import json
+import time
 from pretenders.client.http import HTTPMock
 from pretenders.common.constants import FOREVER
 
@@ -33,6 +34,23 @@ bma_lookup_john = {
       "signed": []
     }
   ]
+}
+
+bma_membership_john = {
+    "pubkey": "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
+    "uid": "inso",
+    "sigDate": 1441130831,
+    "memberships":
+    [
+        {
+
+            "version": "1",
+            "currency": "test_currency",
+            "membership": "IN",
+            "blockNumber": 0,
+            "blockHash": "DA39A3EE5E6B4B0D3255BFEF95601890AFD80709"
+        }
+    ]
 }
 
 bma_lookup_doe = {
@@ -342,6 +360,12 @@ def get_mock():
 
     mock.when('GET /wot/lookup/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn')\
             .reply(body=bytes(json.dumps(bma_lookup_doe), "utf-8"),
+                status=200,
+                times=FOREVER,
+                headers={'Content-Type': 'application/json'})
+
+    mock.when('GET /blockchain/memberships/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ')\
+            .reply(body=bytes(json.dumps(bma_membership_john), "utf-8"),
                 status=200,
                 times=FOREVER,
                 headers={'Content-Type': 'application/json'})

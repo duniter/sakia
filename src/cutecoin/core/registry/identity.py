@@ -171,11 +171,13 @@ class Identity(QObject):
 
         :param cutecoin.core.community.Community community: The community target to request the join date
         :return: The membership data in BMA json format
+        :rtype: dict
         """
         try:
             search = yield from community.bma_access.future_request(bma.blockchain.Membership,
                                            {'search': self.pubkey})
             block_number = -1
+            membership_data = None
             for ms in search['memberships']:
                 if ms['blockNumber'] > block_number:
                     block_number = ms['blockNumber']
@@ -184,13 +186,19 @@ class Identity(QObject):
                             membership_data = ms
                     else:
                         membership_data = ms
-            return membership_data
+            if membership_data:
+                return membership_data
+            else:
+                raise MembershipNotFoundError(self.pubkey, community.name)
+
         except ValueError as e:
-            if '404' in str(e)  or '400' in str(e):
+            if '404' in str(e) or '400' in str(e):
                 raise MembershipNotFoundError(self.pubkey, community.name)
         except NoPeerAvailable as e:
             logging.debug(str(e))
             raise MembershipNotFoundError(self.pubkey, community.name)
+        except UnboundLocalError:
+            raise
 
     @asyncio.coroutine
     def published_uid(self, community):

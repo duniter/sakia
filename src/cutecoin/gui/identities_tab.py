@@ -193,7 +193,7 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
             identities.append(identity)
 
         self.edit_textsearch.clear()
-        self.refresh_identities(identities)
+        yield from self.refresh_identities(identities)
         self.busy.hide()
 
     @once_at_a_time
@@ -212,7 +212,7 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
                 identities.append(identity)
 
             self.edit_textsearch.clear()
-            self.refresh_identities(identities)
+            yield from self.refresh_identities(identities)
             self.busy.hide()
 
     @once_at_a_time
@@ -224,8 +224,8 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         """
         if self.account and self.community:
             try:
+                yield from self.refresh_identities([])
                 self.busy.show()
-                self.refresh_identities([])
                 self_identity = yield from self.account.identity(self.community)
                 account_connections = []
                 certs_of = yield from self_identity.unique_valid_certifiers_of(self.app.identities_registry, self.community)
@@ -238,24 +238,19 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
                 certified_by = [p for p in account_connections
                           if p.pubkey not in [i.pubkey for i in certifiers_of]]
                 identities = certifiers_of + certified_by
-                self.refresh_identities(identities)
+                self.busy.hide()
+                yield from self.refresh_identities(identities)
             except NoPeerAvailable:
-                pass
-            finally:
                 self.busy.hide()
 
-    @once_at_a_time
-    @asyncify
     @asyncio.coroutine
     def refresh_identities(self, identities):
         """
         Refresh the table with specified identities.
         If no identities is passed, use the account connections.
         """
-        self.busy.show()
         yield from self.table_identities.model().sourceModel().refresh_identities(identities)
         self.table_identities.resizeColumnsToContents()
-        self.busy.hide()
 
     def resizeEvent(self, event):
         self.busy.resize(event.size())
