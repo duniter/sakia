@@ -8,6 +8,7 @@ import logging
 from aiohttp.errors import ClientError
 import asyncio
 import random
+from distutils.version import StrictVersion
 
 
 class BmaAccess(QObject):
@@ -173,8 +174,8 @@ class BmaAccess(QObject):
 
     def filter_nodes(self, request, nodes):
         filters = {
-            bma.ud.History: lambda n: int(n.version.split(".")[1]) > 11,
-            bma.tx.History: lambda n: int(n.version.split(".")[1]) > 11
+            bma.ud.History: lambda n: StrictVersion(n) > StrictVersion("0.11.0"),
+            bma.tx.History: lambda n: StrictVersion(n) > StrictVersion("0.11.0")
         }
         if request in filters:
             return [n for n in nodes if filters[request](n)]
