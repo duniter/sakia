@@ -173,9 +173,14 @@ class BmaAccess(QObject):
         self._rollback_to = 0
 
     def filter_nodes(self, request, nodes):
+        def compare_versions(node, version):
+            try:
+                return StrictVersion(node.version) > StrictVersion(version)
+            except TypeError:
+                return False
         filters = {
-            bma.ud.History: lambda n: StrictVersion(n) > StrictVersion("0.11.0"),
-            bma.tx.History: lambda n: StrictVersion(n) > StrictVersion("0.11.0")
+            bma.ud.History: lambda n: compare_versions(n, "0.11.0"),
+            bma.tx.History: lambda n: compare_versions(n, "0.11.0")
         }
         if request in filters:
             return [n for n in nodes if filters[request](n)]
