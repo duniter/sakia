@@ -203,7 +203,10 @@ class Node(QGraphicsEllipseItem):
         self.status_wallet = self.metadata['status'] & NODE_STATUS_HIGHLIGHTED
         self.status_member = not self.metadata['status'] & NODE_STATUS_OUT
         self.text = self.metadata['text']
-        self.setToolTip(self.metadata['tooltip'])
+        try:
+            self.setToolTip(self.metadata['tooltip'])
+        except TypeError:
+            raise
         self.arcs = []
         self.menu = None
         self.action_sign = None
