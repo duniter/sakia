@@ -5,14 +5,12 @@ Created on 24 févr. 2015
 """
 from .node import Node
 from ...tools.exceptions import InvalidNodeCurrency
-
 import logging
 import statistics
 import time
 import asyncio
 from ucoinpy.documents.peer import Peer
 from ucoinpy.documents.block import Block, BlockId
-
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
 from collections import Counter
 
@@ -256,7 +254,7 @@ class Network(QObject):
         :return: the medium fork window of knew network
         """
         fork_windows = [n.fork_window for n in self.online_nodes if n.software != ""
-                                  and n.pubkey in members_pubkeys]
+                        and n.pubkey in members_pubkeys]
         if len(fork_windows) > 0:
             return int(statistics.median(fork_windows))
         else:
@@ -268,6 +266,7 @@ class Network(QObject):
         """
         self._nodes.append(node)
         node.changed.connect(self.handle_change)
+        node.error.connect(self.handle_error)
         node.identity_changed.connect(self.handle_identity_change)
         node.neighbour_found.connect(self.handle_new_node)
         logging.debug("{:} connected".format(node.pubkey[:5]))
@@ -338,15 +337,20 @@ class Network(QObject):
         self.nodes_changed.emit()
 
     @pyqtSlot()
+    def handle_error(self):
+        node = self.sender()
+        if node.state in (Node.OFFLINE, Node.CORRUPTED) and \
+                                node.last_change + 3600 < time.time():
+            node.disconnect()
+            self.nodes.remove(node)
+            self.nodes_changed.emit()
+
+    @pyqtSlot()
     def handle_change(self):
         node = self.sender()
 
         if node.state in (Node.ONLINE, Node.DESYNCED):
             self._check_nodes_sync()
-        else:
-            if node.last_change + 3600 < time.time():
-                node.disconnect()
-                self.nodes.remove(node)
         self._check_nodes_unique()
         self.nodes_changed.emit()
 
@@ -358,9 +362,9 @@ class Network(QObject):
                 # or if the previously found block is different locally
                 # than in the main chain, we declare a rollback
                 if self._block_found.number and \
-                    self.current_blockid.number <= self._block_found.number \
-                    or node.main_chain_previous_block and \
-                        node.main_chain_previous_block['hash'] != self._block_found.sha_hash:
+                                self.current_blockid.number <= self._block_found.number \
+                        or node.main_chain_previous_block and \
+                                        node.main_chain_previous_block['hash'] != self._block_found.sha_hash:
 
                     self._block_found = self.current_blockid
                     self.blockchain_rollback.emit(self.current_blockid.number)

@@ -36,6 +36,7 @@ class Node(QObject):
     CORRUPTED = 4
 
     changed = pyqtSignal()
+    error = pyqtSignal()
     identity_changed = pyqtSignal()
     neighbour_found = pyqtSignal(Peer, str)
 
@@ -259,6 +260,8 @@ class Node(QObject):
             self.last_change = time.time()
             self._state = new_state
             self.changed.emit()
+        if new_state in (Node.OFFLINE, Node.ONLINE):
+            self.error.emit()
 
     @property
     def fork_window(self):
