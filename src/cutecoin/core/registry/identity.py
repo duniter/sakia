@@ -266,11 +266,17 @@ class Identity(QObject):
                                                                               BlockchainState.VALIDATED,
                                                                               community)
                 certifier['cert_time'] = certifier_data['cert_time']['medianTime']
-                certifier['block_number'] = certifier_data['cert_time']['block']
+                if 'written' in certifier_data and certifier_data['written'] and 'number' in certifier_data['written']:
+                    certifier['block_number'] = certifier_data['written']['number']
+                else:
+                    certifier['block_number'] = certifier_data['cert_time']['block']
+
                 certifiers.append(certifier)
         except ValueError as e:
             if '404' in str(e):
                 logging.debug('bma.wot.CertifiersOf request error: {0}'.format(str(e)))
+            else:
+                logging.debug(str(e))
         except NoPeerAvailable as e:
             logging.debug(str(e))
 
@@ -311,20 +317,19 @@ class Identity(QObject):
             # add only valid certification...
             try:
                 cert_expired = yield from community.certification_expired(certifier['cert_time'])
-                if cert_expired:
-                    continue
             except NoPeerAvailable:
                 logging.debug("No peer available")
-                continue
+                cert_expired = True
 
-            # keep only the latest certification
-            already_found = [c['identity'].pubkey for c in unique_valid]
-            if certifier['identity'].pubkey in already_found:
-                index = already_found.index(certifier['identity'].pubkey)
-                if certifier['cert_time'] > unique_valid[index]['cert_time']:
-                    unique_valid[index] = certifier
-            else:
-                unique_valid.append(certifier)
+            if not cert_expired:
+                # keep only the latest certification
+                already_found = [c['identity'].pubkey for c in unique_valid]
+                if certifier['identity'].pubkey in already_found:
+                    index = already_found.index(certifier['identity'].pubkey)
+                    if certifier['cert_time'] > unique_valid[index]['cert_time']:
+                        unique_valid[index] = certifier
+                else:
+                    unique_valid.append(certifier)
         return unique_valid
 
     @asyncio.coroutine
@@ -348,7 +353,10 @@ class Identity(QObject):
                                                                               BlockchainState.VALIDATED,
                                                                               community)
                 certified['cert_time'] = certified_data['cert_time']['medianTime']
-                certified['block_number'] = certified_data['cert_time']['block']
+                if 'written' in certified_data and certified_data['written'] and 'number' in certified_data['written']:
+                    certified['block_number'] = certified_data['written']['number']
+                else:
+                    certified['block_number'] = certified_data['cert_time']['block']
                 certified_list.append(certified)
         except ValueError as e:
             if '404' in str(e):
@@ -387,20 +395,19 @@ class Identity(QObject):
             # add only valid certification...
             try:
                 cert_expired = yield from community.certification_expired(certified['cert_time'])
-                if cert_expired:
-                    continue
             except NoPeerAvailable:
                 logging.debug("No peer available")
-                continue
+                cert_expired = True
 
-            # keep only the latest certification
-            already_found = [c['identity'].pubkey for c in unique_valid]
-            if certified['identity'].pubkey in already_found:
-                index = already_found.index(certified['identity'].pubkey)
-                if certified['cert_time'] > unique_valid[index]['cert_time']:
-                    unique_valid[index] = certified
-            else:
-                unique_valid.append(certified)
+            if not cert_expired:
+                # keep only the latest certification
+                already_found = [c['identity'].pubkey for c in unique_valid]
+                if certified['identity'].pubkey in already_found:
+                    index = already_found.index(certified['identity'].pubkey)
+                    if certified['cert_time'] > unique_valid[index]['cert_time']:
+                        unique_valid[index] = certified
+                else:
+                    unique_valid.append(certified)
         return unique_valid
 
     @asyncio.coroutine
