@@ -266,7 +266,7 @@ class Identity(QObject):
                                                                               BlockchainState.VALIDATED,
                                                                               community)
                 certifier['cert_time'] = certifier_data['cert_time']['medianTime']
-                if 'written' in certifier_data and certifier_data['written'] and 'number' in certifier_data['written']:
+                if 'written' in certifier_data and type(certifier_data['written']) is dict:
                     certifier['block_number'] = certifier_data['written']['number']
                 else:
                     certifier['block_number'] = certifier_data['cert_time']['block']
@@ -353,7 +353,7 @@ class Identity(QObject):
                                                                               BlockchainState.VALIDATED,
                                                                               community)
                 certified['cert_time'] = certified_data['cert_time']['medianTime']
-                if 'written' in certified_data and certified_data['written'] and 'number' in certified_data['written']:
+                if 'written' in certified_data and type(certified_data['written']) is dict:
                     certified['block_number'] = certified_data['written']['number']
                 else:
                     certified['block_number'] = certified_data['cert_time']['block']
