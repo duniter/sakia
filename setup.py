@@ -54,8 +54,8 @@ else:
     libsodium_path = ""
     print(QtCore.QCoreApplication.libraryPaths())
     # Check if we are in Conda env
-    if 'CONDA_DEFAULT_ENV' in os.environ:
-        libsodium_path = os.path.join(os.environ['CONDA_DEFAULT_ENV'], "lib",
+    if 'CONDA_ENV_PATH' in os.environ:
+        libsodium_path = os.path.join(os.environ['CONDA_ENV_PATH'], "lib",
                                       "libsodium.so.13")
         includefiles.append((libsodium_path, "libsodium.so.13"))
 
