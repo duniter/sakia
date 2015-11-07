@@ -92,9 +92,15 @@ class BmaAccess(QObject):
         """
         def ordered(obj):
             if isinstance(obj, dict):
-                return sorted((k, ordered(v)) for k, v in obj.items())
+                try:
+                    return sorted((k, ordered(v)) for k, v in obj.items())
+                except TypeError:
+                    return obj
             if isinstance(obj, list):
-                return sorted(ordered(x) for x in obj)
+                try:
+                    return sorted(ordered(x) for x in obj)
+                except TypeError:
+                    return obj
             else:
                 return obj
         return ordered(first) == ordered(second)

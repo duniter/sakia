@@ -11,6 +11,18 @@ bma_memberships_empty_array = {
 }
 
 
+bma_null_data = {
+  "certifications": [
+    {
+      "written": {
+      },
+    },
+    {
+      "written": None,
+    }
+  ]
+}
+
 def get_mock():
     mock = HTTPMock('127.0.0.1', 50000)
 
