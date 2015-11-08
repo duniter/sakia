@@ -223,11 +223,11 @@ class Graph(object):
 
                     current_block_number = self.community.network.current_blockid.number
                     if current_block_number and certifier['block_number']:
-                        current_validations = current_block_number - certifier['block_number']
+                        current_validations = current_block_number - certifier['block_number'] + 1
                     else:
                         current_validations = 0
                     members_pubkeys = yield from self.community.members_pubkeys()
-                    max_validation = self.community.network.fork_window(members_pubkeys)
+                    max_validation = self.community.network.fork_window(members_pubkeys) + 1
 
                     # Current validation can be negative if self.community.network.current_blockid.number
                     # is not refreshed yet
@@ -301,13 +301,13 @@ class Graph(object):
 
                     current_block_number = self.community.network.current_blockid.number
                     if current_block_number and certified['block_number']:
-                        current_validations = current_block_number - certified['block_number']
+                        current_validations = current_block_number - certified['block_number'] + 1
                     else:
                         current_validations = 0
                     members_pubkeys = yield from self.community.members_pubkeys()
-                    max_validations = self.community.network.fork_window(members_pubkeys)
+                    max_validations = self.community.network.fork_window(members_pubkeys) + 1
 
-                    if max_validations > current_validations > 0:
+                    if max_validations > current_validations >= 0:
                         if self.app.preferences['expert_mode']:
                             arc['validation_text'] = "{0}/{1}".format(current_validations,
                                                                       max_validations)

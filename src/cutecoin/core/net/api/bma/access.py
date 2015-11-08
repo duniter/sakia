@@ -172,6 +172,18 @@ class BmaAccess(QObject):
             return True
         return False
 
+    def _invalidate_cache(self, post_request):
+        """
+        Invalidate data depending on posted request
+        :param class post_request: The posted request
+        """
+        invalidated = {bma.wot.Add: bma.wot.Lookup}
+        invalidated_cache = self._data.copy()
+        for data in self._data:
+            if data[0] == str(invalidated[post_request]):
+                invalidated_cache.pop(data)
+        self._data = invalidated_cache
+
     def rollback(self):
         """
         When a rollback is detected, we move the rollback cursor to 0
@@ -293,6 +305,7 @@ class BmaAccess(QObject):
                     pass
                 except asyncio.TimeoutError:
                     pass
+            self._invalidate_cache(request)
         else:
             raise NoPeerAvailable("", len(nodes))
         return tuple(replies)
