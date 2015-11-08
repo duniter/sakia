@@ -178,11 +178,12 @@ class BmaAccess(QObject):
         :param class post_request: The posted request
         """
         invalidated = {bma.wot.Add: bma.wot.Lookup}
-        invalidated_cache = self._data.copy()
-        for data in self._data:
-            if data[0] == str(invalidated[post_request]):
-                invalidated_cache.pop(data)
-        self._data = invalidated_cache
+        if post_request in invalidated:
+            invalidated_cache = self._data.copy()
+            for data in self._data:
+                if data[0] == str(invalidated[post_request]):
+                    invalidated_cache.pop(data)
+            self._data = invalidated_cache
 
     def rollback(self):
         """
