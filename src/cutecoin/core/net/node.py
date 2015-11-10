@@ -59,6 +59,7 @@ class Node(QObject):
         self._software = software
         self._version = version
         self._fork_window = fork_window
+        self._refresh_counter = 0
 
     @classmethod
     @asyncio.coroutine
@@ -273,16 +274,21 @@ class Node(QObject):
             self._fork_window = new_fork_window
             self.changed.emit()
 
-    @pyqtSlot()
-    def refresh(self):
+    def refresh(self, manual=False):
         """
         Refresh all data of this node
+        :param bool manual: True if the refresh was manually initiated
         """
         self.refresh_block()
-        self.refresh_informations()
-        self.refresh_uid()
         self.refresh_peers()
-        self.refresh_summary()
+
+        if self._refresh_counter % 20 == 0 or manual:
+            self.refresh_informations()
+            self.refresh_uid()
+            self.refresh_summary()
+            self._refresh_counter = self._refresh_counter if manual else 1
+        else:
+            self._refresh_counter += 1
 
     @asyncify
     @asyncio.coroutine

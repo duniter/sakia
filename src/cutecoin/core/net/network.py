@@ -301,7 +301,7 @@ class Network(QObject):
 
     def refresh_once(self):
         for node in self._nodes:
-            node.refresh()
+            node.refresh(manual=True)
 
     @asyncio.coroutine
     def discover_network(self):
