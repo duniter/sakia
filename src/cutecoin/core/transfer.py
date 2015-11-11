@@ -336,9 +336,9 @@ class Transfer(QObject):
         :param txdoc: A transaction ucoinpy object
         :param community: The community target of the transaction
         """
+        self.sha_hash = txdoc.sha_hash
         responses = yield from community.bma_access.broadcast(bma.tx.Process,
                 post_args={'transaction': txdoc.signed_raw()})
-        self.sha_hash = txdoc.sha_hash
         blockid = yield from community.blockid()
         block = yield from community.bma_access.future_request(bma.blockchain.Block,
                                   req_args={'number': blockid.number})
