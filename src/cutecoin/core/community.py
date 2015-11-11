@@ -162,17 +162,25 @@ class Community(QObject):
         :param int x: Get the 'x' older block with UD in it
         :return: The last block with universal dividend.
         """
-        udblocks = yield from self.bma_access.future_request(bma.blockchain.UD)
-        blocks = udblocks['result']['blocks']
-        if len(blocks) > 0:
-            index = len(blocks)-(1+x)
-            if index < 0:
-                index = 0
-            block_number = blocks[index]
-            block = yield from self.bma_access.future_request(bma.blockchain.Block,
-                                 req_args={'number': block_number})
-            return block
-        else:
+        try:
+            udblocks = yield from self.bma_access.future_request(bma.blockchain.UD)
+            blocks = udblocks['result']['blocks']
+            if len(blocks) > 0:
+                index = len(blocks)-(1+x)
+                if index < 0:
+                    index = 0
+                block_number = blocks[index]
+                block = yield from self.bma_access.future_request(bma.blockchain.Block,
+                                     req_args={'number': block_number})
+                return block
+            else:
+                return None
+        except ValueError as e:
+            if '404' in e:
+                logging.debug(str(e))
+                return None
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
             return None
 
     @asyncio.coroutine
@@ -204,6 +212,26 @@ class Community(QObject):
             block = yield from self.bma_access.future_request(bma.blockchain.Block,
                                  req_args={'number': block_number})
             return block['membersCount']
+        except ValueError as e:
+            if '404' in e:
+                return 0
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
+            return 0
+
+    @asyncio.coroutine
+    def time(self):
+        """
+        Get the blockchain time
+        :return: The community blockchain time
+        :rtype: int
+        """
+        try:
+            # Get cached block by block number
+            block_number = self.network.current_blockid.number
+            block = yield from self.bma_access.future_request(bma.blockchain.Block,
+                                 req_args={'number': block_number})
+            return block['medianTime']
         except ValueError as e:
             if '404' in e:
                 return 0
@@ -244,7 +272,8 @@ class Community(QObject):
         Return True if the certificaton time is too old
         """
         parameters = yield from self.parameters()
-        return time.time() - certtime > parameters['sigValidity']
+        blockchain_time = yield from self.time()
+        return blockchain_time - certtime > parameters['sigValidity']
 
     def add_node(self, node):
         """
@@ -270,10 +299,12 @@ class Community(QObject):
         :param int number: The block number. If none, returns current block.
         """
         if number is None:
-            data = self.bma_access.future_request(bma.blockchain.Current)
+            block_number = self.network.current_blockid.number
+            data = yield from self.bma_access.future_request(bma.blockchain.Block,
+                                 req_args={'number': block_number})
         else:
             logging.debug("Requesting block {0}".format(number))
-            data = self.bma_access.future_request(bma.blockchain.Block,
+            data = yield from self.bma_access.future_request(bma.blockchain.Block,
                                 req_args={'number': number})
         return data
 
@@ -285,7 +316,9 @@ class Community(QObject):
         :return: The current block ID as [NUMBER-HASH] format.
         """
         try:
-            block = yield from self.bma_access.future_request(bma.blockchain.Current)
+            block_number = self.network.current_blockid.number
+            block = yield from self.bma_access.future_request(bma.blockchain.Block,
+                                 req_args={'number': block_number})
             signed_raw = "{0}{1}\n".format(block['raw'], block['signature'])
         except ValueError as e:
             if '404' in str(e):
