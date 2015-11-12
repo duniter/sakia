@@ -1,13 +1,13 @@
 from PyQt5.QtCore import QObject, pyqtSlot
 from PyQt5.QtNetwork import QNetworkReply
 from ucoinpy.api import bma
-from ucoinpy.documents import Block, BlockId
 from .....tools.exceptions import NoPeerAvailable
 from ..... import __version__
 import logging
 from aiohttp.errors import ClientError
 import asyncio
 import random
+import jsonschema
 from distutils.version import StrictVersion
 
 
@@ -136,6 +136,10 @@ class BmaAccess(QObject):
     def _update_rollback(self, request, req_args, get_args, data):
         """
         Update the rollback
+
+        If the request is a bma/blockchain/Block, we check if
+        the hash answered is the same as our hash, in which case,
+        we know that the rollback didn't reset blocks before this one
         :param class request: A bma request class calling for data
         :param dict req_args: Arguments to pass to the request constructor
         :param dict get_args: Arguments to pass to the request __get__ method
@@ -240,6 +244,9 @@ class BmaAccess(QObject):
                     tries += 1
                 except asyncio.TimeoutError:
                     tries += 1
+                except jsonschema.ValidationError as e:
+                    logging.debug(str(e))
+                    tries += 1
         if len(nodes) == 0 or json_data is None:
             raise NoPeerAvailable("", len(nodes))
         return json_data
@@ -270,6 +277,9 @@ class BmaAccess(QObject):
                 except ClientError:
                     tries += 1
                 except asyncio.TimeoutError:
+                    tries += 1
+                except jsonschema.ValidationError as e:
+                    logging.debug(str(e))
                     tries += 1
         else:
             raise NoPeerAvailable("", len(nodes))

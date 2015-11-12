@@ -14,10 +14,9 @@ import asyncio
 from aiohttp.errors import ClientError
 import logging
 import time
-import json
+import jsonschema
 
-from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
-from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
+from PyQt5.QtCore import QObject, pyqtSignal
 
 
 class Node(QObject):
@@ -321,6 +320,9 @@ class Node(QObject):
                 except asyncio.TimeoutError:
                     logging.debug("Timeout error : {0}".format(self.pubkey))
                     self.state = Node.OFFLINE
+                except jsonschema.ValidationError:
+                    logging.debug("Validation error : {0}".format(self.pubkey))
+                    self.state = Node.CORRUPTED
                 finally:
                     self.set_block(block_data)
                     logging.debug("Changed block {0} -> {1}".format(self.block['number'],
@@ -373,6 +375,9 @@ class Node(QObject):
         except asyncio.TimeoutError:
             logging.debug("Timeout error : {0}".format(self.pubkey))
             self.state = Node.OFFLINE
+        except jsonschema.ValidationError:
+            logging.debug("Validation error : {0}".format(self.pubkey))
+            self.state = Node.CORRUPTED
 
     @asyncify
     @asyncio.coroutine
@@ -400,6 +405,9 @@ class Node(QObject):
         except asyncio.TimeoutError:
             logging.debug("Timeout error : {0}".format(self.pubkey))
             self.state = Node.OFFLINE
+        except jsonschema.ValidationError:
+            logging.debug("Validation error : {0}".format(self.pubkey))
+            self.state = Node.CORRUPTED
 
     @asyncify
     @asyncio.coroutine
@@ -435,6 +443,9 @@ class Node(QObject):
         except asyncio.TimeoutError:
             logging.debug("Timeout error : {0}".format(self.pubkey))
             self.state = Node.OFFLINE
+        except jsonschema.ValidationError:
+            logging.debug("Validation error : {0}".format(self.pubkey))
+            self.state = Node.CORRUPTED
 
     @asyncify
     @asyncio.coroutine
@@ -469,6 +480,9 @@ class Node(QObject):
                     except asyncio.TimeoutError:
                         logging.debug("Timeout error : {0}".format(self.pubkey))
                         self.state = Node.OFFLINE
+                    except jsonschema.ValidationError:
+                        logging.debug("Validation error : {0}".format(self.pubkey))
+                        self.state = Node.CORRUPTED
                 self._last_merkle = {'root' : peers_data['root'],
                                      'leaves': peers_data['leaves']}
         except ValueError as e:
@@ -480,6 +494,9 @@ class Node(QObject):
         except asyncio.TimeoutError:
             logging.debug("Timeout error : {0}".format(self.pubkey))
             self.state = Node.OFFLINE
+        except jsonschema.ValidationError:
+            logging.debug("Validation error : {0}".format(self.pubkey))
+            self.state = Node.CORRUPTED
 
     def __str__(self):
         return ','.join([str(self.pubkey), str(self.endpoint.server),

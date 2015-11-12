@@ -197,8 +197,6 @@ class Identity(QObject):
         except NoPeerAvailable as e:
             logging.debug(str(e))
             raise MembershipNotFoundError(self.pubkey, community.name)
-        except UnboundLocalError:
-            raise
 
     @asyncio.coroutine
     def published_uid(self, community):

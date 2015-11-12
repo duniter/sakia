@@ -5,6 +5,7 @@ Created on 2 févr. 2014
 """
 
 import asyncio
+import logging
 
 from PyQt5.QtCore import Qt, pyqtSignal, QEvent
 from PyQt5.QtGui import QCursor
@@ -186,15 +187,19 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         text = self.edit_textsearch.text()
         if len(text) < 2:
             return
-        response = yield from self.community.bma_access.future_request(bma.wot.Lookup, {'search': text})
-        identities = []
-        for identity_data in response['results']:
-            identity = yield from self.app.identities_registry.future_find(identity_data['pubkey'], self.community)
-            identities.append(identity)
+        try:
+            response = yield from self.community.bma_access.future_request(bma.wot.Lookup, {'search': text})
+            identities = []
+            for identity_data in response['results']:
+                identity = yield from self.app.identities_registry.future_find(identity_data['pubkey'], self.community)
+                identities.append(identity)
 
-        self.edit_textsearch.clear()
-        yield from self.refresh_identities(identities)
-        self.busy.hide()
+            self.edit_textsearch.clear()
+            yield from self.refresh_identities(identities)
+        except ValueError as e:
+            logging.debug(str(e))
+        finally:
+            self.busy.hide()
 
     @once_at_a_time
     @asyncify
