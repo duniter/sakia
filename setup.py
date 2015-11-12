@@ -3,9 +3,11 @@
 
 # source d'inspiration: http://wiki.wxpython.org/cx_freeze
 
-import sys, os, subprocess, multiprocessing
+import sys, os, subprocess, multiprocessing, site
 from cx_Freeze import setup, Executable
 from PyQt5 import QtCore
+from os import listdir
+from os.path import isfile, join
 
 #############################################################################
 # preparation des options
@@ -17,11 +19,19 @@ print(os.environ)
 includes = ["sip", "re", "json", "logging",
             "hashlib", "os", "urllib",
             "ucoinpy", "pylibscrypt", "aiohttp", "asyncio",
-            "quamash"]
+            "quamash", "jsonschema"]
 exclude = ['.git']
-packages = ["libnacl", "encodings"]
+packages = ["libnacl", "encodings", "jsonschema"]
 
 includefiles = []
+zipincludes = []
+
+schemas = os.path.join(site.getsitepackages()[0], "jsonschema", "schemas")
+
+onlyfiles = [ f for f in listdir(schemas) if isfile(join(schemas,f)) ]
+
+for f in onlyfiles:
+    zipincludes.append((os.path.join(schemas, f), os.path.join("jsonschema", "schemas", f)))
 
 if sys.platform == "win32":
     app = QtCore.QCoreApplication(sys.argv)
@@ -75,6 +85,7 @@ options = {"path": sys.path,
            "include_files": includefiles,
            "excludes": exclude,
            "packages": packages,
+           "zip_includes": zipincludes
            }
 
 #############################################################################
