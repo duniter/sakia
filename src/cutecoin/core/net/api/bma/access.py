@@ -197,9 +197,12 @@ class BmaAccess(QObject):
 
     def filter_nodes(self, request, nodes):
         def compare_versions(node, version):
-            try:
-                return StrictVersion(node.version) > StrictVersion(version)
-            except TypeError:
+            if node.version and node.version != '':
+                try:
+                    return StrictVersion(node.version) > StrictVersion(version)
+                except TypeError:
+                    return False
+            else:
                 return False
         filters = {
             bma.ud.History: lambda n: compare_versions(n, "0.11.0"),

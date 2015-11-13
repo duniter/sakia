@@ -42,7 +42,7 @@ def async_exception_handler(loop, context):
 
     logging.error('\n'.join(log_lines), exc_info=exc_info)
     if "Unclosed" not in message and \
-        "gaierror(-2" not in message:
+        "socket.gaierror" not in message:
         os._exit(1)
 
 

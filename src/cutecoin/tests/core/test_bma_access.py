@@ -48,6 +48,9 @@ class TestBmaAccess(unittest.TestCase):
         res = self.bma_access._compare_json({}, corrupted.bma_null_data)
         self.assertFalse(res)
 
+    def test_filter_nodes(self):
+        pass#TODO
+
 if __name__ == '__main__':
     logging.basicConfig(stream=sys.stderr)
     logging.getLogger().setLevel(logging.DEBUG)
