@@ -6,6 +6,7 @@ Created on 8 mars 2014
 
 import logging
 import asyncio
+import aiohttp
 
 from PyQt5.QtWidgets import QDialog, QMenu, QMessageBox, QApplication
 from PyQt5.QtGui import QCursor
@@ -88,8 +89,8 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
         server = self.config_dialog.lineedit_server.text()
         port = self.config_dialog.spinbox_port.value()
         logging.debug("Is valid ? ")
-        self.node = yield from Node.from_address(None, server, port)
-        if self.node:
+        try:
+            self.node = yield from Node.from_address(None, server, port)
             community = Community.create(self.node)
             self.config_dialog.button_connect.setEnabled(False)
             self.config_dialog.button_register.setEnabled(False)
@@ -119,8 +120,10 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
 Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
             else:
                 self.config_dialog.label_error.setText(self.tr("Your account already exists on the network"))
-        else:
-            self.config_dialog.label_error.setText(self.tr("Could not connect."))
+        except aiohttp.errors.DisconnectedError as e:
+            self.config_dialog.label_error.setText(str(e))
+        except aiohttp.errors.ClientError as e:
+            self.config_dialog.label_error.setText(str(e))
 
     @pyqtSlot()
     def check_register(self):

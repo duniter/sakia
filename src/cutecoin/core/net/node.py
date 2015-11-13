@@ -11,7 +11,7 @@ from ucoinpy.api import bma as bma
 from ucoinpy.api.bma import ConnectionHandler
 
 import asyncio
-from aiohttp.errors import ClientError
+from aiohttp.errors import ClientError, DisconnectedError
 import logging
 import time
 import jsonschema
@@ -21,7 +21,7 @@ from PyQt5.QtCore import QObject, pyqtSignal
 
 class Node(QObject):
     """
-    A node is a peer seend from the client point of view.
+    A node is a peer send from the client point of view.
     This node can have multiple states :
     - ONLINE : The node is available for requests
     - OFFLINE: The node is disconnected
@@ -317,6 +317,9 @@ class Node(QObject):
                 except ClientError:
                     logging.debug("Client error : {0}".format(self.pubkey))
                     self.state = Node.OFFLINE
+                except DisconnectedError:
+                    logging.debug("Disconnected error : {0}".format(self.pubkey))
+                    self.state = Node.OFFLINE
                 except asyncio.TimeoutError:
                     logging.debug("Timeout error : {0}".format(self.pubkey))
                     self.state = Node.OFFLINE
@@ -337,6 +340,9 @@ class Node(QObject):
             self.changed.emit()
         except ClientError:
             logging.debug("Client error : {0}".format(self.pubkey))
+            self.state = Node.OFFLINE
+        except DisconnectedError:
+            logging.debug("Disconnected error : {0}".format(self.pubkey))
             self.state = Node.OFFLINE
         except asyncio.TimeoutError:
             logging.debug("Timeout error : {0}".format(self.pubkey))
@@ -375,6 +381,9 @@ class Node(QObject):
         except asyncio.TimeoutError:
             logging.debug("Timeout error : {0}".format(self.pubkey))
             self.state = Node.OFFLINE
+        except DisconnectedError:
+            logging.debug("Disconnected error : {0}".format(self.pubkey))
+            self.state = Node.OFFLINE
         except jsonschema.ValidationError:
             logging.debug("Validation error : {0}".format(self.pubkey))
             self.state = Node.CORRUPTED
@@ -404,6 +413,9 @@ class Node(QObject):
             self.state = Node.OFFLINE
         except asyncio.TimeoutError:
             logging.debug("Timeout error : {0}".format(self.pubkey))
+            self.state = Node.OFFLINE
+        except DisconnectedError:
+            logging.debug("Disconnected error : {0}".format(self.pubkey))
             self.state = Node.OFFLINE
         except jsonschema.ValidationError:
             logging.debug("Validation error : {0}".format(self.pubkey))
@@ -443,6 +455,9 @@ class Node(QObject):
         except asyncio.TimeoutError:
             logging.debug("Timeout error : {0}".format(self.pubkey))
             self.state = Node.OFFLINE
+        except DisconnectedError:
+            logging.debug("Disconnected error : {0}".format(self.pubkey))
+            self.state = Node.OFFLINE
         except jsonschema.ValidationError:
             logging.debug("Validation error : {0}".format(self.pubkey))
             self.state = Node.CORRUPTED
@@ -480,6 +495,9 @@ class Node(QObject):
                     except asyncio.TimeoutError:
                         logging.debug("Timeout error : {0}".format(self.pubkey))
                         self.state = Node.OFFLINE
+                    except DisconnectedError:
+                        logging.debug("Disconnected error : {0}".format(self.pubkey))
+                        self.state = Node.OFFLINE
                     except jsonschema.ValidationError:
                         logging.debug("Validation error : {0}".format(self.pubkey))
                         self.state = Node.CORRUPTED
@@ -493,6 +511,9 @@ class Node(QObject):
             self.state = Node.OFFLINE
         except asyncio.TimeoutError:
             logging.debug("Timeout error : {0}".format(self.pubkey))
+            self.state = Node.OFFLINE
+        except DisconnectedError:
+            logging.debug("Disconnected error : {0}".format(self.pubkey))
             self.state = Node.OFFLINE
         except jsonschema.ValidationError:
             logging.debug("Validation error : {0}".format(self.pubkey))
