@@ -42,15 +42,15 @@ build_script:
 artifacts:
   - path: build
     name: Cutecoin-win$(PYTHON_ARCH)
-
+# upload to releases
 deploy:
   release: Cutecoin $(APPVEYOR_REPO_TAG_NAME)
   provider: GitHub
   auth_token:
-    secure: wbzlh6nx1zY1J1avlB0C3hKGm1abFNHBdM60u/U09i5Nam//D6kazvnv5ZBKdR89 # your encrypted token from GitHub
-  artifact: Cutecoin-win$(PYTHON_ARCH)      # upload to releases
+    secure: wbzlh6nx1zY1J1avlB0C3hKGm1abFNHBdM60u/U09i5Nam//D6kazvnv5ZBKdR89
+  artifact: Cutecoin-win$(PYTHON_ARCH)
   draft: true
   prerelease: true
   on:
-    appveyor_repo_tag: true        # deploy on tag push only
+    appveyor_repo_tag: true
 
