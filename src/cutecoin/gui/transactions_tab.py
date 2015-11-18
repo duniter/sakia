@@ -109,7 +109,6 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
             logging.debug(str(e))
 
     def refresh(self):
-        #TODO: Use resetmodel instead of destroy/create
         if self.community:
             self.table_history.model().sourceModel().refresh_transfers()
             self.table_history.resizeColumnsToContents()
