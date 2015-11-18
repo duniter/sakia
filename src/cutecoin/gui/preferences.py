@@ -50,9 +50,9 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
         self.edit_proxy_address.setEnabled(self.checkbox_proxy.isChecked())
         self.checkbox_proxy.stateChanged.connect(self.handle_proxy_change)
 
-        self.spinbox_proxy_port.setValue(self.app.preferences.get('proxy_port', 8080))
         self.spinbox_proxy_port.setMinimum(0)
         self.spinbox_proxy_port.setMaximum(55636)
+        self.spinbox_proxy_port.setValue(self.app.preferences.get('proxy_port', 8080))
         self.edit_proxy_address.setText(self.app.preferences.get('proxy_address', ""))
 
     def handle_proxy_change(self):

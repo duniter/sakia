@@ -357,6 +357,8 @@ class Account(QObject):
             tries = 0
             request = bma.wot.CertifiersOf
             nonlocal registered
+            #TODO: The algorithm is quite dirty
+            #Multiplying the tries without any reason...
             while tries < 3 and not registered[0] and not registered[2]:
                 try:
                     data = yield from community.bma_access.simple_request(request,
