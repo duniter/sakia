@@ -1,0 +1,9 @@
+pylibscrypt
+libnacl
+requests
+base58
+aiohttp
+jsonschema
+pretenders
+git+https://github.com/ucoin-io/ucoin-python-api.git
+git+https://github.com/Insoleet/quamash.git@sockets_only

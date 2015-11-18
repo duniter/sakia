@@ -11,15 +11,7 @@ pyrcc5 -version
 
 lrelease -version
 
-pip install pylibscrypt
-pip install libnacl
-pip install requests
-pip install base58
-pip install git+https://github.com/Insoleet/quamash.git@sockets_only
-pip install aiohttp
-pip install jsonschema
-pip install git+https://github.com/ucoin-io/ucoin-python-api.git
-pip install pretenders
+pip install -r requirements.txt
 
 python gen_resources.py
 if %errorlevel% neq 0 exit /b 1s

@@ -51,15 +51,7 @@ install:
   - source activate test-environment
   - ldd $HOME/miniconda/envs/test-environment/lib/qt5/plugins/platforms/*.so
   - pip install coveralls
-  - pip install pylibscrypt
-  - pip install libnacl
-  - pip install requests
-  - pip install base58
-  - pip install quamash
-  - pip install aiohttp
-  - pip install jsonschema
-  - pip install git+https://github.com/ucoin-io/ucoin-python-api.git
-  - pip install git+https://github.com/Insoleet/pretenders.git@develop
+  - pip install -r requirements.txt
   - python gen_resources.py
   - python gen_translations.py
   - python setup.py build
