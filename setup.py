@@ -64,10 +64,10 @@ else:
     libsodium_path = ""
     print(QtCore.QCoreApplication.libraryPaths())
     schemas = os.path.join(site.getsitepackages()[0], "jsonschema", "schemas")
+    onlyfiles = [ f for f in listdir(schemas) if isfile(join(schemas,f)) ]
     for f in onlyfiles:
         zipincludes.append((os.path.join(schemas, f), os.path.join("jsonschema", "schemas", f)))
 
-    onlyfiles = [ f for f in listdir(schemas) if isfile(join(schemas,f)) ]
     # Check if we are in Conda env
     if 'CONDA_ENV_PATH' in os.environ:
         libsodium_path = os.path.join(os.environ['CONDA_ENV_PATH'], "lib",
