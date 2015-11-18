@@ -73,7 +73,7 @@ class Transfer(QObject):
             (TransferState.TO_SEND, (list, Block)):
                 (
                     (self._broadcast_success, lambda l, b: self._wait(b), TransferState.AWAITING),
-                    (lambda l,b: self._broadcast_failure(b), None, TransferState.REFUSED),
+                    (lambda l,b: self._broadcast_failure(l), None, TransferState.REFUSED),
                 ),
             (TransferState.TO_SEND, ()):
                 ((self._is_locally_created, self._drop, TransferState.DROPPED),),

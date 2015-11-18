@@ -29,7 +29,7 @@ class TestTransferDialog(unittest.TestCase):
         QLocale.setDefault(QLocale("en_GB"))
         self.lp = quamash.QEventLoop(self.qapplication)
         asyncio.set_event_loop(self.lp)
-        self.lp.set_exception_handler(lambda lp, ctx : unitttest_exception_handler(self, lp, ctx))
+        #self.lp.set_exception_handler(lambda lp, ctx : unitttest_exception_handler(self, lp, ctx))
         self.identities_registry = IdentitiesRegistry({})
 
         self.application = Application(self.qapplication, self.lp, self.identities_registry)
@@ -72,11 +72,12 @@ class TestTransferDialog(unittest.TestCase):
                                               self.password_asker,
                                               self.community,
                                               None)
+        self.account.wallets[0].init_cache(self.application, self.community)
 
         @asyncio.coroutine
         def open_dialog(certification_dialog):
             result = yield from certification_dialog.async_exec()
-            self.assertEqual(result, QDialog.Rejected)
+            self.assertEqual(result, QDialog.Accepted)
 
         def close_dialog():
             if transfer_dialog.isVisible():
@@ -85,9 +86,11 @@ class TestTransferDialog(unittest.TestCase):
         @asyncio.coroutine
         def exec_test():
             yield from asyncio.sleep(1)
+            self.account.wallets[0].caches[self.community.currency].available_sources = yield from self.wallet.sources(self.community)
             QTest.mouseClick(transfer_dialog.radio_pubkey, Qt.LeftButton)
             QTest.keyClicks(transfer_dialog.edit_pubkey, "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn")
-            QTest.mouseClick(transfer_dialog.button_box.button(QDialogButtonBox.Cancel), Qt.LeftButton)
+            transfer_dialog.spinbox_amount.setValue(10)
+            QTest.mouseClick(transfer_dialog.button_box.button(QDialogButtonBox.Ok), Qt.LeftButton)
             yield from asyncio.sleep(1)
             topWidgets = QApplication.topLevelWidgets()
             for w in topWidgets:

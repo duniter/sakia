@@ -225,9 +225,14 @@ class Wallet(QObject):
         :param int amount: The amount of money to transfer
         :param str message: The message to send with the transfer
         """
-        blockid = yield from community.blockid()
-        block = yield from community.bma_access.future_request(bma.blockchain.Block,
-                                  req_args={'number': blockid.number})
+        try:
+            blockid = yield from community.blockid()
+            block = yield from community.bma_access.future_request(bma.blockchain.Block,
+                                      req_args={'number': blockid.number})
+        except ValueError as e:
+            if '404' in str(e):
+                return (False, "Could not send transfer with null blockchain")
+
         time = block['medianTime']
         txid = len(block['transactions'])
         key = None
