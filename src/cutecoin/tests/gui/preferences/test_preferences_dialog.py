@@ -62,8 +62,6 @@ class TestCertificationDialog(unittest.TestCase):
                          self.application.preferences['international_system_of_units'])
         self.assertEqual(preferences_dialog.checkbox_auto_refresh.isChecked(),
                          self.application.preferences['auto_refresh'])
-        self.lp.run_until_complete(asyncio.sleep(1))
-
 
 if __name__ == '__main__':
     logging.basicConfig(stream=sys.stderr)
