@@ -17,7 +17,7 @@ class IdentitiesRegistry:
         """
         Initializer of the IdentitiesRegistry
 
-        :param list of Identity instances:
+        :param dict instances: A dictionary containing identities based on communities
         :return: An IdentitiesRegistry object
         :rtype: IdentitiesRegistry
         """
@@ -131,7 +131,8 @@ class IdentitiesRegistry:
         :param dict metadata: The person metadata
         :return: A new person if pubkey wasn't knwon, else the existing instance.
         """
-        if pubkey in self._instances:
+        identities = self._identities(community)
+        if pubkey in identities:
             if self._identities(community)[pubkey].blockchain_state == BlockchainState.NOT_FOUND:
                 self._identities(community)[pubkey].blockchain_state = blockchain_state
             elif self._identities(community)[pubkey].blockchain_state != BlockchainState.VALIDATED \

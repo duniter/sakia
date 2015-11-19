@@ -43,6 +43,23 @@ class TestIdentity(unittest.TestCase):
         finally:
             asyncio.set_event_loop(None)
 
+    def test_identity_certified_by(self):
+        mock = nice_blockchain.get_mock()
+        time.sleep(2)
+        logging.debug(mock.pretend_url)
+        API.reverse_url = pretender_reversed(mock.pretend_url)
+        identity = Identity("john", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
+                            LocalState.COMPLETED, BlockchainState.VALIDATED)
+
+        @asyncio.coroutine
+        def exec_test():
+            certified = yield from identity.certifiers_of(self.identities_registry, self.community)
+            self.assertEqual(len(certified), 1)
+            self.assertEqual(certified[0]['identity'].uid, "doe")
+
+        self.lp.run_until_complete(exec_test())
+        mock.delete_mock()
+
     def test_identity_membership(self):
         mock = nice_blockchain.get_mock()
         time.sleep(2)

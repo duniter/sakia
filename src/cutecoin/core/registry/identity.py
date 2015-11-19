@@ -293,7 +293,7 @@ class Identity(QObject):
                                                       certifier_data['pubkey'],
                                                       BlockchainState.BUFFERED,
                                                       community)
-                                if certifier['identity'] not in certifiers:
+                                if certifier['identity'] not in [cert['identity'] for cert in certifiers]:
                                     block = yield from community.bma_access.future_request(bma.blockchain.Block,
                                                                          {'number': certifier_data['meta']['block_number']})
                                     certifier['cert_time'] = block['medianTime']
@@ -373,7 +373,7 @@ class Identity(QObject):
                                                                           certified_data['pubkey'],
                                                                           BlockchainState.BUFFERED,
                                                                           community)
-                        if certified['identity'] not in certified_list:
+                        if certified['identity'] not in [cert['identity'] for cert in certified_list]:
                             certified['cert_time'] = certified_data['meta']['timestamp']
                             certified['block_number'] = None
                             certified_list.append(certified)
