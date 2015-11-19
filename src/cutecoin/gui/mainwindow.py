@@ -227,7 +227,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         <p>Version : {:}</p>
         {new_version_text}
 
-        <p>License : MIT</p>
+        <p>License : GPLv3</p>
 
         <p><b>Authors</b></p>
 
