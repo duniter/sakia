@@ -60,8 +60,8 @@ class StepPageInit(Step):
         server = self.config_dialog.lineedit_server.text()
         port = self.config_dialog.spinbox_port.value()
         logging.debug("Is valid ? ")
-        self.node = yield from Node.from_address(None, server, port)
-        if self.node:
+        try:
+            self.node = yield from Node.from_address(None, server, port)
             community = Community.create(self.node)
             self.config_dialog.button_connect.setEnabled(False)
             self.config_dialog.button_register.setEnabled(False)
@@ -72,12 +72,12 @@ class StepPageInit(Step):
                 self.config_dialog.label_error.setText(self.tr("Could not find your identity on the network."))
             elif registered[0] is False and registered[2]:
                 self.config_dialog.label_error.setText(self.tr("""Your pubkey or UID is different on the network.
-Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
+    Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
             else:
                 self.config_dialog.community = community
                 self.config_dialog.next()
-        else:
-            self.config_dialog.label_error.setText(self.tr("Could not connect."))
+        except Exception as e:
+            self.config_dialog.label_error.setText(self.tr(str(e)))
 
     @pyqtSlot()
     def check_connect(self):
