@@ -315,9 +315,10 @@ class TxHistory():
         for transfer in [t for t in self._transfers
                          if t.state in (TransferState.VALIDATING, TransferState.VALIDATED) and
                          t.blockid.number == block_number]:
-            return not transfer.run_state_transitions((True, block_doc))
-        else:
-            return False
+            if transfer.blockid.sha_hash == block_doc.blockid.sha_hash:
+                return True
+            transfer.run_state_transitions((True, block_doc))
+        return False
 
     @asyncio.coroutine
     def _rollback(self, community):
