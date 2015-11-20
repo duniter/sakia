@@ -50,3 +50,6 @@ Qt Client for [uCoin](http://www.ucoin.io) project.
   * Download corresponding package to your operating system
   * Unzip and start "cutecoin" :)
   * Join our beta community by contacting us on [uCoin forums](http://forum.ucoin.io/)
+
+## License
+This software is distributed under [GNU GPLv3](https://raw.github.com/ucoin-io/cutecoin/dev/LICENSE).
