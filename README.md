@@ -45,8 +45,8 @@ Qt Client for [uCoin](http://www.ucoin.io) project.
   * Run __python3 setup.py build__ in cutecoin folder
   * The executable is generated in "build" folder, named "cutecoin"
 
-### How to download latest release
-  * Go to the [current release](https://github.com/ucoin-io/cutecoin/release)
-  * Download the package corresponding to your operating system
+### Download latest release
+  * Go to [current release](https://github.com/ucoin-io/cutecoin/release)
+  * Download corresponding package to your operating system
   * Unzip and start "cutecoin" :)
   * Join our beta community by contacting us on [uCoin forums](http://forum.ucoin.io/)
