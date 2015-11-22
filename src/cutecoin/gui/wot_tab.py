@@ -50,6 +50,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         self.graphicsView.scene().node_transaction.connect(self.send_money_to_node)
         self.graphicsView.scene().node_contact.connect(self.add_node_as_contact)
         self.graphicsView.scene().node_member.connect(self.identity_informations)
+        self.graphicsView.scene().node_copy_pubkey.connect(self.copy_node_pubkey)
 
         self.account = None
         self.community = None
@@ -333,6 +334,11 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
                                                             self.community, identity)
         if result == QDialog.Accepted:
             self.money_sent.emit()
+
+    def copy_node_pubkey(self, metadata):
+        cb = self.app.qapp.clipboard()
+        cb.clear(mode=cb.Clipboard)
+        cb.setText(metadata['id'], mode=cb.Clipboard)
 
     def add_node_as_contact(self, metadata):
         # check if contact already exists...

@@ -125,11 +125,16 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
             view_wot.triggered.connect(self.view_wot)
             view_wot.setData(identity)
 
+            copy_pubkey = QAction(self.tr("Copy pubkey"), self)
+            copy_pubkey.triggered.connect(self.copy_identity_pubkey)
+            copy_pubkey.setData(identity)
+
             menu.addAction(informations)
             menu.addAction(add_contact)
             menu.addAction(send_money)
             menu.addAction(certify)
             menu.addAction(view_wot)
+            menu.addAction(copy_pubkey)
 
             # Show the context menu.
             menu.popup(QCursor.pos())
@@ -174,6 +179,17 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
     def certify_identity(self, identity):
         yield from CertificationDialog.certify_identity(self.app, self.account, self.password_asker,
                                              self.community, identity)
+
+    def copy_identity_pubkey(self):
+        """
+        Copy the identity pubkey to the clipboard
+
+        :param cutecoin.core.registry.Identity identity: The identity
+        """
+        identity = self.sender().data()
+        cb = self.app.qapp.clipboard()
+        cb.clear(mode=cb.Clipboard)
+        cb.setText(identity.pubkey, mode=cb.Clipboard)
 
     def view_wot(self):
         identity = self.sender().data()

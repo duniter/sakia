@@ -63,6 +63,7 @@ class Scene(QGraphicsScene):
     node_transaction = pyqtSignal(dict, name='nodeTransaction')
     node_contact = pyqtSignal(dict, name='nodeContact')
     node_member = pyqtSignal(dict, name='nodeMember')
+    node_copy_pubkey = pyqtSignal(dict, name='nodeCopyPubkey')
 
     def __init__(self, parent=None):
         """
@@ -308,6 +309,12 @@ class Node(QGraphicsEllipseItem):
         self.action_sign = QAction(QCoreApplication.translate('WoT.Node', 'Certify identity'), self.scene())
         self.menu.addAction(self.action_sign)
         self.action_sign.triggered.connect(self.sign_action)
+        # action copy identity pubkey
+        QT_TRANSLATE_NOOP('WoT.Node', 'Copy pubkey')
+        self.action_copy = QAction(QCoreApplication.translate('WoT.Node', 'Copy pubkey'), self.scene())
+        self.menu.addAction(self.action_copy)
+        self.action_copy.triggered.connect(self.copy_action)
+
         # run menu
         self.menu.exec(event.screenPos())
 
@@ -339,6 +346,13 @@ class Node(QGraphicsEllipseItem):
         """
         # trigger scene signal
         self.scene().node_signed.emit(self.metadata)
+
+    def copy_action(self):
+        """
+        Copy identity node pubkey
+        """
+        # trigger scene signal
+        self.scene().node_copy_pubkey.emit(self.metadata)
 
     def transaction_action(self):
         """
