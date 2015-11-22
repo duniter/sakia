@@ -252,7 +252,6 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         cancel_once_task(self, self._async_search_members)
         cancel_once_task(self, self._async_execute_search_text)
 
-        self.cancel_once_tasks()
         if self.account and self.community:
             try:
                 yield from self.refresh_identities([])
