@@ -517,7 +517,7 @@ class Account(QObject):
         revoked = yield from self._identities_registry.future_find(self.pubkey, community)
 
         revocation = Revocation(PROTOCOL_VERSION, community.currency, None)
-        selfcert = revoked.selfcert(community)
+        selfcert = yield from revoked.selfcert(community)
 
         key = SigningKey(self.salt, password)
         revocation.sign(selfcert, [key])
@@ -531,7 +531,7 @@ class Account(QObject):
             'sig': revocation.signatures[0]
         }
         logging.debug("Posted data : {0}".format(data))
-        responses = yield from community.broadcast(bma.wot.Revoke, {}, data)
+        responses = yield from community.bma_access.broadcast(bma.wot.Revoke, {}, data)
         result = (False, "")
         for r in responses:
             if r.status == 200:

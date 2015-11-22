@@ -140,7 +140,6 @@ class Identity(QObject):
             logging.debug(str(e))
             raise MembershipNotFoundError(self.pubkey, community.name)
 
-
     @asyncio.coroutine
     def get_expiration_date(self, community):
         try:
@@ -203,22 +202,35 @@ class Identity(QObject):
         try:
             data = yield from community.bma_access.future_request(bma.wot.Lookup,
                                  req_args={'search': self.pubkey})
+            timestamp = 0
+
+            for result in data['results']:
+                if result["pubkey"] == self.pubkey:
+                    uids = result['uids']
+                    person_uid = ""
+                    for uid_data in uids:
+                        if uid_data["meta"]["timestamp"] > timestamp:
+                            timestamp = uid_data["meta"]["timestamp"]
+                            person_uid = uid_data["uid"]
+                        if person_uid == self.uid:
+                            return True
         except ValueError as e:
             if '404' in str(e):
-                timestamp = 0
-
-                for result in data['results']:
-                    if result["pubkey"] == self.pubkey:
-                        uids = result['uids']
-                        person_uid = ""
-                        for uid_data in uids:
-                            if uid_data["meta"]["timestamp"] > timestamp:
-                                timestamp = uid_data["meta"]["timestamp"]
-                                person_uid = uid_data["uid"]
-                            if person_uid == self.uid:
-                                return True
+                return False
         except NoPeerAvailable as e:
             logging.debug(str(e))
+        return False
+
+    @asyncio.coroutine
+    def uid_is_revokable(self, community):
+        published = yield from self.published_uid(community)
+        if published:
+            try:
+                yield from community.bma_access.future_request(bma.wot.CertifiersOf,
+                                                               {'search': self.pubkey})
+            except ValueError as e:
+                if '404' in str(e) or '400' in str(e):
+                    return True
         return False
 
     @asyncio.coroutine

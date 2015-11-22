@@ -78,7 +78,6 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                                  QIcon(":/icons/network_icon"),
                                  self.tr("Network"))
 
-
         action_showinfo = QAction(self.tr("Show informations"), self.toolbutton_menu)
 
         def show_info():
@@ -95,6 +94,15 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
 
         action_showinfo.triggered.connect(show_info)
         self.toolbutton_menu.addAction(action_showinfo)
+
+        self.action_publish_uid = QAction(self.tr("Publish UID"), self.toolbutton_menu)
+        self.action_publish_uid.triggered.connect(self.publish_uid)
+        self.toolbutton_menu.addAction(self.action_publish_uid)
+
+        self.action_revoke_uid = QAction(self.tr("Revoke UID"), self.toolbutton_menu)
+        self.action_revoke_uid.triggered.connect(self.revoke_uid)
+        self.toolbutton_menu.addAction(self.action_revoke_uid)
+
         self.button_membership.clicked.connect(self.send_membership_demand)
 
     def cancel_once_tasks(self):
@@ -263,24 +271,29 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         if self.account and self.community:
             try:
                 account_identity = yield from self.account.identity(self.community)
-                published_uid = account_identity.published_uid(self.community)
+                published_uid = yield from account_identity.published_uid(self.community)
+                uid_is_revokable = yield from account_identity.uid_is_revokable(self.community)
                 if published_uid:
                     logging.debug("UID Published")
+                    self.action_revoke_uid.setEnabled(uid_is_revokable)
                     is_member = account_identity.is_member(self.community)
                     if is_member:
                         self.button_membership.setText(self.tr("Renew membership"))
-                        self.button_membership.show()
-                        self.button_certification.show()
+                        self.button_membership.setEnabled(True)
+                        self.button_certification.setEnabled(True)
+                        self.action_publish_uid.setEnabled(False)
                     else:
                         logging.debug("Not a member")
                         self.button_membership.setText(self.tr("Send membership demand"))
-                        self.button_membership.show()
-                        if self.community.get_block(0) != None:
-                            self.button_certification.hide()
+                        self.button_membership.setEnabled(True)
+                        self.action_publish_uid.setEnabled(False)
+                        if self.community.get_block(0) is not None:
+                            self.button_certification.setEnable(False)
                 else:
                     logging.debug("UID not published")
-                    self.button_membership.hide()
-                    self.button_certification.hide()
+                    self.button_membership.setEnabled(False)
+                    self.button_certification.setEnabled(False)
+                    self.action_publish_uid.setEnabled(True)
             except LookupFailureError:
                 self.button_membership.hide()
                 self.button_certification.hide()
@@ -339,6 +352,46 @@ The process to join back the community later will have to be done again.""")
                 else:
                     yield from QAsyncMessageBox.critical(self, self.tr("Revoke"),
                                                          result[1])
+
+    @asyncify
+    @asyncio.coroutine
+    def publish_uid(self, checked=False):
+        password = yield from self.password_asker.async_exec()
+        if self.password_asker.result() == QDialog.Rejected:
+            return
+        result = yield from self.account.send_selfcert(password, self.community)
+        if result[0]:
+            if self.app.preferences['notifications']:
+                toast.display(self.tr("UID"), self.tr("Success publishing your UID"))
+            else:
+                yield from QAsyncMessageBox.information(self, self.tr("Membership"),
+                                                        self.tr("Success publishing your UID"))
+        else:
+            if self.app.preferences['notifications']:
+                toast.display(self.tr("UID"), result[1])
+            else:
+                yield from QAsyncMessageBox.critical(self, self.tr("UID"),
+                                                        result[1])
+
+    @asyncify
+    @asyncio.coroutine
+    def revoke_uid(self, checked=False):
+        password = yield from self.password_asker.async_exec()
+        if self.password_asker.result() == QDialog.Rejected:
+            return
+        result = yield from self.account.revoke(password, self.community)
+        if result[0]:
+            if self.app.preferences['notifications']:
+                toast.display(self.tr("Revoke UID"), self.tr("Your UID was revoked successfully."))
+            else:
+                yield from QAsyncMessageBox.information(self, self.tr("Membership"),
+                                                        self.tr("Your UID was revoked successfully."))
+        else:
+            if self.app.preferences['notifications']:
+                toast.display(self.tr("Revoke UID"), result[1])
+            else:
+                yield from QAsyncMessageBox.critical(self, self.tr("UID"),
+                                                        result[1])
 
     def showEvent(self, QShowEvent):
         """
