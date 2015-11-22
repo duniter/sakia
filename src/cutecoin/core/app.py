@@ -364,10 +364,13 @@ class Application(QObject):
         """
         identities_path = os.path.join(config.parameters['home'],
                                     '__identities__')
-        with open(identities_path, 'w')as outfile:
+        buffer_path = identities_path + ".buf"
+        with open(buffer_path, 'w') as outfile:
             data = self.identities_registry.jsonify()
             data['version'] = __version__
-            json.dump(data, outfile, indent=4, sort_keys=True)
+            for chunk in json.JSONEncoder().iterencode(data):
+                outfile.write(chunk)
+        shutil.move(buffer_path, identities_path)
 
     def save_wallet(self, account, wallet):
         """
@@ -382,10 +385,13 @@ class Application(QObject):
                                      account.name, '__cache__'))
         wallet_path = os.path.join(config.parameters['home'],
                                    account.name, '__cache__', wallet.pubkey + "_wal")
-        with open(wallet_path, 'w') as outfile:
+        buffer_path = wallet_path + ".buf"
+        with open(buffer_path, 'w') as outfile:
             data = wallet.jsonify_caches()
             data['version'] = __version__
-            json.dump(data, outfile, indent=4, sort_keys=True)
+            for chunk in json.JSONEncoder().iterencode(data):
+                outfile.write(chunk)
+        shutil.move(buffer_path, wallet_path)
 
     def save_cache(self, account):
         """
@@ -408,17 +414,24 @@ class Application(QObject):
             network_path = os.path.join(config.parameters['home'],
                                         account.name, '__cache__',
                                         community.currency + '_network')
+            buffer_path = network_path + ".buf"
 
-            with open(network_path, 'w') as outfile:
+            with open(buffer_path, 'w') as outfile:
                 data = dict()
                 data['network'] = community.network.jsonify()
                 data['version'] = __version__
-                json.dump(data, outfile, indent=4, sort_keys=True)
+                for chunk in json.JSONEncoder().iterencode(data):
+                    outfile.write(chunk)
+            shutil.move(buffer_path, network_path)
 
-            with open(bma_path, 'w') as outfile:
+            buffer_path = bma_path + ".buf"
+
+            with open(buffer_path, 'w') as outfile:
                 data['cache'] = community.bma_access.jsonify()
                 data['version'] = __version__
-                json.dump(data, outfile, indent=4, sort_keys=True)
+                for chunk in json.JSONEncoder().iterencode(data):
+                    outfile.write(chunk)
+            shutil.move(buffer_path, bma_path)
 
     def import_account(self, file, name):
         """
