@@ -199,6 +199,9 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
     @asyncify
     @asyncio.coroutine
     def _async_execute_search_text(self, checked):
+        cancel_once_task(self, self._async_search_members)
+        cancel_once_task(self, self._async_search_direct_connections)
+
         self.busy.show()
         text = self.edit_textsearch.text()
         if len(text) < 2:
@@ -224,6 +227,9 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         """
         Search members of community and display found members
         """
+        cancel_once_task(self, self._async_execute_search_text)
+        cancel_once_task(self, self._async_search_direct_connections)
+
         if self.community:
             self.busy.show()
             pubkeys = yield from self.community.members_pubkeys()
@@ -243,6 +249,10 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         """
         Search members of community and display found members
         """
+        cancel_once_task(self, self._async_search_members)
+        cancel_once_task(self, self._async_execute_search_text)
+
+        self.cancel_once_tasks()
         if self.account and self.community:
             try:
                 yield from self.refresh_identities([])
