@@ -89,7 +89,7 @@ class Transfer(QObject):
                 ((self._rollback_and_removed, lambda r, b: self._drop(), TransferState.DROPPED),),
 
             (TransferState.VALIDATED, (bool, Block, int)):
-                ((self._rollback_in_fork_window, lambda r, b: self._be_validating(b), TransferState.VALIDATING),),
+                ((self._rollback_in_fork_window, lambda r, b, i: self._be_validating(b), TransferState.VALIDATING),),
 
             (TransferState.VALIDATED, (bool, Block)):
                 (
