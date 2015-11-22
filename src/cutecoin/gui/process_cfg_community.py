@@ -18,6 +18,7 @@ from ..core import Community
 from ..core.net import Node
 from cutecoin.gui.widgets import toast
 from .widgets.dialogs import QAsyncMessageBox
+from ..tools.decorators import asyncify
 
 
 class Step(QObject):
@@ -38,6 +39,7 @@ class StepPageInit(Step):
         logging.debug("Init")
         self.config_dialog.button_connect.clicked.connect(self.check_connect)
         self.config_dialog.button_register.clicked.connect(self.check_register)
+        self.config_dialog.button_guest.clicked.connect(self.check_guest)
 
     @property
     def app(self):
@@ -55,8 +57,27 @@ class StepPageInit(Step):
     def password_asker(self):
         return self.config_dialog.password_asker
 
+    @asyncify
     @asyncio.coroutine
-    def coroutine_check_connect(self):
+    def check_guest(self, checked=False):
+        server = self.config_dialog.lineedit_server.text()
+        port = self.config_dialog.spinbox_port.value()
+        logging.debug("Is valid ? ")
+        try:
+            self.node = yield from Node.from_address(None, server, port)
+            community = Community.create(self.node)
+            self.config_dialog.button_connect.setEnabled(False)
+            self.config_dialog.button_register.setEnabled(False)
+            self.config_dialog.community = community
+            self.config_dialog.next()
+        except aiohttp.errors.DisconnectedError as e:
+            self.config_dialog.label_error.setText(str(e))
+        except aiohttp.errors.ClientError as e:
+            self.config_dialog.label_error.setText(str(e))
+
+    @asyncify
+    @asyncio.coroutine
+    def check_connect(self, checked=False):
         server = self.config_dialog.lineedit_server.text()
         port = self.config_dialog.spinbox_port.value()
         logging.debug("Is valid ? ")
@@ -76,16 +97,14 @@ class StepPageInit(Step):
             else:
                 self.config_dialog.community = community
                 self.config_dialog.next()
-        except Exception as e:
-            self.config_dialog.label_error.setText(self.tr(str(e)))
+        except aiohttp.errors.DisconnectedError as e:
+            self.config_dialog.label_error.setText(str(e))
+        except aiohttp.errors.ClientError as e:
+            self.config_dialog.label_error.setText(str(e))
 
-    @pyqtSlot()
-    def check_connect(self):
-        logging.debug("Check node")
-        asyncio.async(self.coroutine_check_connect())
-
+    @asyncify
     @asyncio.coroutine
-    def coroutine_check_register(self):
+    def check_register(self, checked=False):
         server = self.config_dialog.lineedit_server.text()
         port = self.config_dialog.spinbox_port.value()
         logging.debug("Is valid ? ")
@@ -124,11 +143,6 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
             self.config_dialog.label_error.setText(str(e))
         except aiohttp.errors.ClientError as e:
             self.config_dialog.label_error.setText(str(e))
-
-    @pyqtSlot()
-    def check_register(self):
-        logging.debug("Check node")
-        asyncio.async(self.coroutine_check_register())
 
     def is_valid(self):
         return self.node is not None

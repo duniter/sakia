@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="icons">
+    <file alias="guest_icon">noun_178537_cc.svg</file>
     <file alias="menu_icon">noun_100552_cc.svg</file>
     <file alias="leave_icon">noun_155520_cc.svg</file>
     <file alias="new_membership">noun_155540_cc.svg</file>
