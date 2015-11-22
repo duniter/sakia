@@ -85,7 +85,7 @@ class Graph(object):
             # recursively feed graph searching for account node...
             yield from self.explore_to_find_member(to_identity,
                                                    self._graph[from_identity.pubkey]['connected'], list())
-        if len(self._graph[from_identity.pubkey]['connected']) > 0:
+        if len(self._graph[from_identity.pubkey]['connected']) > 0 and to_identity.pubkey in self._graph:
             # calculate path of nodes between identity and to_identity
             path = yield from self.find_shortest_path(self._graph[from_identity.pubkey],
                                                       self._graph[to_identity.pubkey])
@@ -105,7 +105,7 @@ class Graph(object):
         :param list connected:  Optional, default=None, Pubkey list of the connected nodes
         around the current scanned node
         :param list done:       Optional, default=None, List of node already scanned
-        :return:
+        :return: False when the identity is added in the graph
         """
         # functions keywords args are persistent... Need to reset it with None trick
         connected = connected or (list() and (connected is None))
@@ -123,23 +123,23 @@ class Graph(object):
                                                                                      self.community)
             yield from self.add_certifier_list(certifier_list, identity_selected, identity)
             if identity.pubkey in tuple(self._graph.keys()):
-                return False
+                return True
             certified_list = yield from identity_selected.unique_valid_certified_by(self.app.identities_registry,
                                                                                     self.community)
             yield from self.add_certified_list(certified_list, identity_selected, identity)
             if identity.pubkey in tuple(self._graph.keys()):
-                return False
+                return True
             if node['id'] not in tuple(done):
                 done.append(node['id'])
             if len(done) >= len(self._graph):
-                return True
-            result = yield from self.explore_to_find_member(identity,
+                return False
+            found = yield from self.explore_to_find_member(identity,
                                                             self._graph[identity_selected.pubkey]['connected'],
                                                             done)
-            if not result:
-                return False
+            if found:
+                return True
 
-        return True
+        return False
 
     @asyncio.coroutine
     def find_shortest_path(self, start, end, path=None):
