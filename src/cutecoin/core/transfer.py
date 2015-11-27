@@ -15,7 +15,7 @@ from enum import Enum
 class TransferState(Enum):
     """
     TO_SEND means the transaction wasn't sent yet
-    AWAITING means the transaction is waiting to reach K blockchain validation
+    AWAITING means the transaction is waiting to reach K blockchain confrmation
     VALIDATED means the transaction was validated locally and is considered present in the blockchain
     REFUSED means the transaction took too long to be registered in the blockchain,
     therefore it is considered as refused
@@ -84,7 +84,7 @@ class Transfer(QObject):
                 ((self._not_found_in_blockchain, None, TransferState.REFUSED),),
 
             (TransferState.VALIDATING, (bool, Block, int)):
-                ((self._reached_enough_validation, None, TransferState.VALIDATED),),
+                ((self._reached_enough_confrmation, None, TransferState.VALIDATED),),
             (TransferState.VALIDATING, (bool, Block)):
                 ((self._rollback_and_removed, lambda r, b: self._drop(), TransferState.DROPPED),),
 
@@ -204,13 +204,13 @@ class Transfer(QObject):
         """
         return 200 not in ret_codes
 
-    def _reached_enough_validation(self, rollback, current_block, fork_window):
+    def _reached_enough_confrmation(self, rollback, current_block, fork_window):
         """
-        Check if the transfer reached enough validation in the blockchain
+        Check if the transfer reached enough confrmation in the blockchain
         :param bool rollback: True if we are in a rollback procedure
         :param ucoinpy.documents.Block current_block: The current block of the main blockchain
-        :param int fork_window: The number of validations needed on the network
-        :return: True if the transfer reached enough validations
+        :param int fork_window: The number of confrmations needed on the network
+        :return: True if the transfer reached enough confrmations
         :rtype: bool
         """
         return not rollback and self.blockid.number + fork_window <= current_block.number
@@ -260,7 +260,7 @@ class Transfer(QObject):
 
     def _wait(self, current_block):
         """
-        Set the transfer as AWAITING validation.
+        Set the transfer as AWAITING confrmation.
         :param ucoinpy.documents.Block current_block: Current block of the main blockchain
         """
         self.blockid = current_block.blockid

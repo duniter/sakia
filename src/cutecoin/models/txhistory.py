@@ -151,22 +151,22 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                 block_index = model.index(source_index.row(), block_col)
                 block_data = model.data(block_index, Qt.DisplayRole)
 
-                current_validations = 0
+                current_confirmations = 0
                 if state_data == TransferState.VALIDATING:
                     current_blockid_number = self.community.network.current_blockid.number
                     if current_blockid_number:
-                        current_validations = current_blockid_number - block_data
+                        current_confirmations = current_blockid_number - block_data
                 elif state_data == TransferState.AWAITING:
-                    current_validations = 0
+                    current_confirmations = 0
 
-                max_validations = self.sourceModel().max_validations()
+                max_confirmations = self.sourceModel().max_confirmations()
 
                 if self.app.preferences['expert_mode']:
-                    return self.tr("{0} / {1} validations").format(current_validations, max_validations)
+                    return self.tr("{0} / {1} confirmations").format(current_confirmations, max_confirmations)
                 else:
-                    validation = current_validations / max_validations * 100
-                    validation = 100 if validation > 100 else validation
-                    return self.tr("Validating... {0} %").format(QLocale().toString(float(validation), 'f', 0))
+                    confirmation = current_confirmations / max_confirmations * 100
+                    confirmation = 100 if confirmation > 100 else confirmation
+                    return self.tr("Confirming... {0} %").format(QLocale().toString(float(confirmation), 'f', 0))
 
             return None
 
@@ -188,7 +188,7 @@ class HistoryTableModel(QAbstractTableModel):
         self.community = community
         self.transfers_data = []
         self.refresh_transfers()
-        self._max_validations = 0
+        self._max_confirmations = 0
 
         self.columns_types = (
             'date',
@@ -316,15 +316,15 @@ class HistoryTableModel(QAbstractTableModel):
                     transfers_data.append(data)
                 try:
                     members_pubkeys = yield from self.community.members_pubkeys()
-                    self._max_validations = self.community.network.fork_window(members_pubkeys) + 1
+                    self._max_confirmations = self.community.network.fork_window(members_pubkeys) + 1
                 except NoPeerAvailable as e:
                     logging.debug(str(e))
-                    self._max_validations = 0
+                    self._max_confirmations = 0
         self.transfers_data = transfers_data
         self.endResetModel()
 
-    def max_validations(self):
-        return self._max_validations
+    def max_confirmations(self):
+        return self._max_confirmations
 
     def rowCount(self, parent):
         return len(self.transfers_data)

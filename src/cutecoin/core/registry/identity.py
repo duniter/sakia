@@ -305,13 +305,12 @@ class Identity(QObject):
                                                       certifier_data['pubkey'],
                                                       BlockchainState.BUFFERED,
                                                       community)
-                                if certifier['identity'] not in [cert['identity'] for cert in certifiers]:
-                                    block = yield from community.bma_access.future_request(bma.blockchain.Block,
-                                                                         {'number': certifier_data['meta']['block_number']})
-                                    certifier['cert_time'] = block['medianTime']
-                                    certifier['block_number'] = None
+                                block = yield from community.bma_access.future_request(bma.blockchain.Block,
+                                                                     {'number': certifier_data['meta']['block_number']})
+                                certifier['cert_time'] = block['medianTime']
+                                certifier['block_number'] = None
 
-                                    certifiers.append(certifier)
+                                certifiers.append(certifier)
         except ValueError as e:
             logging.debug("Lookup error : {0}".format(str(e)))
         except NoPeerAvailable as e:
@@ -320,6 +319,14 @@ class Identity(QObject):
 
     @asyncio.coroutine
     def unique_valid_certifiers_of(self, identities_registry, community):
+        """
+        Get the certifications in the blockchain and in the pools
+        Get only unique and last certification for each pubkey
+        :param cutecoin.core.registry.identities.IdentitiesRegistry identities_registry: The identities registry
+        :param cutecoin.core.community.Community community: The community target to request the join date
+        :return: The list of the certifiers of this community
+        :rtype: list
+        """
         certifier_list = yield from self.certifiers_of(identities_registry, community)
         unique_valid = []
         #  add certifiers of uid
@@ -385,10 +392,9 @@ class Identity(QObject):
                                                                           certified_data['pubkey'],
                                                                           BlockchainState.BUFFERED,
                                                                           community)
-                        if certified['identity'] not in [cert['identity'] for cert in certified_list]:
-                            certified['cert_time'] = certified_data['meta']['timestamp']
-                            certified['block_number'] = None
-                            certified_list.append(certified)
+                        certified['cert_time'] = certified_data['meta']['timestamp']
+                        certified['block_number'] = None
+                        certified_list.append(certified)
         except ValueError as e:
             if '404' in str(e):
                 logging.debug('bma.wot.Lookup request error')

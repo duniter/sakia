@@ -488,5 +488,5 @@ class Arc(QGraphicsLineItem):
         painter.setBrush(color)
         painter.drawPolygon(QPolygonF([head_point, destination_arrow_p1, destination_arrow_p2]))
 
-        if self.metadata["validation_text"]:
-            painter.drawText(head_point, self.metadata["validation_text"])
+        if self.metadata["confirmation_text"]:
+            painter.drawText(head_point, self.metadata["confirmation_text"])
