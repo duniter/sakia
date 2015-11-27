@@ -4,42 +4,41 @@ import asyncio
 import quamash
 import logging
 import time
-from ucoinpy.documents.peer import BMAEndpoint as PyBMAEndpoint
 from PyQt5.QtWidgets import QDialog
 from PyQt5.QtCore import QLocale, Qt, QPoint
 from PyQt5.QtTest import QTest
-from cutecoin.core.net.api import bma as qtbma
+from ucoinpy.api import bma
+from ucoinpy.api.bma import API
+from cutecoin.tests.mocks.monkeypatch import pretender_reversed
 from cutecoin.tests.mocks.bma import nice_blockchain
-from cutecoin.tests.mocks.access_manager import MockNetworkAccessManager
 from cutecoin.core.registry.identities import IdentitiesRegistry
 from cutecoin.gui.identities_tab import IdentitiesTabWidget
 from cutecoin.gui.password_asker import PasswordAskerDialog
 from cutecoin.core.app import Application
 from cutecoin.core import Account, Community, Wallet
 from cutecoin.core.net import Network, Node
-from cutecoin.core.net.endpoint import BMAEndpoint
+from ucoinpy.documents.peer import BMAEndpoint
 from cutecoin.core.net.api.bma.access import BmaAccess
-from cutecoin.tests import get_application
+from cutecoin.tests import get_application, unitttest_exception_handler
 
 
 class TestIdentitiesTable(unittest.TestCase):
     def setUp(self):
         self.qapplication = get_application()
-        self.network_manager = MockNetworkAccessManager()
         QLocale.setDefault(QLocale("en_GB"))
         self.lp = quamash.QEventLoop(self.qapplication)
         asyncio.set_event_loop(self.lp)
         self.identities_registry = IdentitiesRegistry()
 
-        self.application = Application(self.qapplication, self.lp, self.network_manager, self.identities_registry)
+        self.application = Application(self.qapplication, self.lp, self.identities_registry)
         self.application.preferences['notifications'] = False
 
-        self.endpoint = BMAEndpoint(PyBMAEndpoint("", "127.0.0.1", "", 50000))
-        self.node = Node(self.network_manager, "test_currency", [self.endpoint],
+        self.endpoint = BMAEndpoint("", "127.0.0.1", "", 50000)
+        self.node = Node("test_currency", [self.endpoint],
                          "", "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk",
-                         qtbma.blockchain.Block.null_value, Node.ONLINE,
+                         None, Node.ONLINE,
                          time.time(), {}, "ucoin", "0.14.0", 0)
-        self.network = Network.create(self.network_manager, self.node)
+        self.network = Network.create(self.node)
         self.bma_access = BmaAccess.create(self.network)
         self.community = Community("test_currency", self.network, self.bma_access)
 
@@ -65,7 +64,7 @@ class TestIdentitiesTable(unittest.TestCase):
         mock = nice_blockchain.get_mock()
         time.sleep(2)
         logging.debug(mock.pretend_url)
-        self.network_manager.set_mock_path(mock.pretend_url)
+        API.reverse_url = pretender_reversed(mock.pretend_url)
         identities_tab = IdentitiesTabWidget(self.application)
         identities_tab.change_account(self.account, self.password_asker)
         identities_tab.change_community(self.community)
@@ -83,11 +82,14 @@ class TestIdentitiesTable(unittest.TestCase):
         @asyncio.coroutine
         def exec_test():
             yield from asyncio.sleep(2)
-            urls = [mock.get_request(i).url for i in range(0, 3)]
+            urls = [mock.get_request(i).url for i in range(0, 6)]
             self.assertTrue('/wot/certifiers-of/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ' in urls,
+                            msg="Not found in {0}".format(urls))
+            self.assertTrue('/wot/lookup/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ' in urls,
                             msg="Not found in {0}".format(urls))
             self.assertTrue('/wot/certified-by/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ' in urls,
                             msg="Not found in {0}".format(urls))
+
 
             # requests 1 to 3 are for getting certifiers-of and certified-by
             # on john, + a lookup
@@ -95,15 +97,13 @@ class TestIdentitiesTable(unittest.TestCase):
             QTest.keyClicks(identities_tab.edit_textsearch, "doe")
             QTest.mouseClick(identities_tab.button_search, Qt.LeftButton)
             yield from asyncio.sleep(2)
-            self.assertEqual(mock.get_request(3).method, 'GET')
-            self.assertEqual(mock.get_request(3).url,
-                             '/blockchain/parameters')
-            self.assertEqual(mock.get_request(4).method, 'GET')
-            self.assertEqual(mock.get_request(4).url,
-                             '/wot/lookup/doe')
-            self.assertEqual(mock.get_request(5).method, 'GET')
-            self.assertEqual(mock.get_request(5).url,
-                             '/wot/certifiers-of/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn')
+            req = 6
+
+            self.assertEqual(mock.get_request(req).method, 'GET')
+            self.assertEqual(mock.get_request(req).url,
+                             '/blockchain/memberships/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn')
+            req += 1
+
             self.assertEqual(identities_tab.table_identities.model().rowCount(), 1)
             yield from asyncio.sleep(2)
             self.lp.call_soon(close_dialog)

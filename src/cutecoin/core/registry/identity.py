@@ -10,10 +10,11 @@ import asyncio
 from enum import Enum
 
 from ucoinpy.documents.certification import SelfCertification
+from ucoinpy.api import bma as bma
+from ucoinpy.api.bma import PROTOCOL_VERSION
+
 from ...tools.exceptions import Error, NoPeerAvailable,\
                                         MembershipNotFoundError
-from ..net.api import bma as qtbma
-from ..net.api.bma import PROTOCOL_VERSION
 from PyQt5.QtCore import QObject, pyqtSignal
 
 
@@ -97,7 +98,7 @@ class Identity(QObject):
         :rtype: ucoinpy.documents.certification.SelfCertification
         """
         timestamp = 0
-        lookup_data = yield from community.bma_access.future_request(qtbma.wot.Lookup, req_args={'search': self.pubkey})
+        lookup_data = yield from community.bma_access.future_request(bma.wot.Lookup, req_args={'search': self.pubkey})
         for result in lookup_data['results']:
             if result["pubkey"] == self.pubkey:
                 uids = result['uids']
@@ -124,16 +125,19 @@ class Identity(QObject):
         :param cutecoin.core.community.Community community: The community target to request the join date
         :return: A datetime object
         """
-        search = yield from community.bma_access.future_request(qtbma.blockchain.Membership, {'search': self.pubkey})
-        if search != qtbma.blockchain.Membership.null_value:
+        try:
+            search = yield from community.bma_access.future_request(bma.blockchain.Membership,
+                                                                    {'search': self.pubkey})
             if len(search['memberships']) > 0:
                 membership_data = search['memberships'][0]
-                block = yield from community.bma_access.future_request(qtbma.blockchain.Block,
+                block = yield from community.bma_access.future_request(bma.blockchain.Block,
                                 req_args={'number': membership_data['blockNumber']})
-                if block != qtbma.blockchain.Block.null_value:
-                    return block['medianTime']
-            return None
-        else:
+                return block['medianTime']
+        except ValueError as e:
+            if '404' in str(e) or '400' in str(e):
+                raise MembershipNotFoundError(self.pubkey, community.name)
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
             raise MembershipNotFoundError(self.pubkey, community.name)
 
     @asyncio.coroutine
@@ -142,17 +146,16 @@ class Identity(QObject):
             membership = yield from self.membership(community)
             join_block_number = membership['blockNumber']
             try:
-                join_block = yield from community.bma_access.future_request(qtbma.blockchain.Block,
+                join_block = yield from community.bma_access.future_request(bma.blockchain.Block,
                                 req_args={'number': join_block_number})
 
-                parameters = yield from community.bma_access.future_request(qtbma.blockchain.Parameters)
-                if join_block != qtbma.blockchain.Block.null_value \
-                        and parameters != qtbma.blockchain.Parameters.null_value:
-                    join_date = join_block['medianTime']
-                    expiration_date = join_date + parameters['sigValidity']
-                else:
-                    return None
+                parameters = yield from community.bma_access.future_request(bma.blockchain.Parameters)
+                join_date = join_block['medianTime']
+                expiration_date = join_date + parameters['sigValidity']
             except NoPeerAvailable:
+                expiration_date = None
+            except ValueError as e:
+                logging.debug("Expiration date not found")
                 expiration_date = None
         except MembershipNotFoundError:
             expiration_date = None
@@ -167,11 +170,13 @@ class Identity(QObject):
 
         :param cutecoin.core.community.Community community: The community target to request the join date
         :return: The membership data in BMA json format
+        :rtype: dict
         """
-        search = yield from community.bma_access.future_request(qtbma.blockchain.Membership,
+        try:
+            search = yield from community.bma_access.future_request(bma.blockchain.Membership,
                                            {'search': self.pubkey})
-        if search != qtbma.blockchain.Membership.null_value:
             block_number = -1
+            membership_data = None
             for ms in search['memberships']:
                 if ms['blockNumber'] > block_number:
                     block_number = ms['blockNumber']
@@ -180,15 +185,23 @@ class Identity(QObject):
                             membership_data = ms
                     else:
                         membership_data = ms
-            return membership_data
-        else:
+            if membership_data:
+                return membership_data
+            else:
+                raise MembershipNotFoundError(self.pubkey, community.name)
+
+        except ValueError as e:
+            if '404' in str(e) or '400' in str(e):
+                raise MembershipNotFoundError(self.pubkey, community.name)
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
             raise MembershipNotFoundError(self.pubkey, community.name)
 
     @asyncio.coroutine
     def published_uid(self, community):
-        data = yield from community.bma_access.future_request(qtbma.wot.Lookup,
+        try:
+            data = yield from community.bma_access.future_request(bma.wot.Lookup,
                                  req_args={'search': self.pubkey})
-        if data != qtbma.wot.Lookup.null_value:
             timestamp = 0
 
             for result in data['results']:
@@ -201,6 +214,23 @@ class Identity(QObject):
                             person_uid = uid_data["uid"]
                         if person_uid == self.uid:
                             return True
+        except ValueError as e:
+            if '404' in str(e):
+                return False
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
+        return False
+
+    @asyncio.coroutine
+    def uid_is_revokable(self, community):
+        published = yield from self.published_uid(community)
+        if published:
+            try:
+                yield from community.bma_access.future_request(bma.wot.CertifiersOf,
+                                                               {'search': self.pubkey})
+            except ValueError as e:
+                if '404' in str(e) or '400' in str(e):
+                    return True
         return False
 
     @asyncio.coroutine
@@ -211,9 +241,17 @@ class Identity(QObject):
         :param cutecoin.core.community.Community community: The community target to request the join date
         :return: True if the person is a member of a community
         """
-        certifiers = yield from community.bma_access.future_request(qtbma.wot.CertifiersOf, {'search': self.pubkey})
-        if certifiers != qtbma.wot.CertifiersOf.null_value:
+        try:
+            certifiers = yield from community.bma_access.future_request(bma.wot.CertifiersOf,
+                                                                        {'search': self.pubkey})
             return certifiers['isMember']
+        except ValueError as e:
+            if '404' in str(e) or '400' in str(e):
+                pass
+            else:
+                raise
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
         return False
 
     @asyncio.coroutine
@@ -224,100 +262,144 @@ class Identity(QObject):
         :param cutecoin.core.registry.identities.IdentitiesRegistry identities_registry: The identities registry
         :param cutecoin.core.community.Community community: The community target to request the join date
         :return: The list of the certifiers of this community
+        :rtype: list
         """
-        data = yield from community.bma_access.future_request(qtbma.wot.CertifiersOf, {'search': self.pubkey})
-
         certifiers = list()
+        try:
+            data = yield from community.bma_access.future_request(bma.wot.CertifiersOf,
+                                                                  {'search': self.pubkey})
 
-        if data == qtbma.wot.CertifiersOf.null_value:
-            logging.debug('bma.wot.CertifiersOf request error')
-            data = yield from community.bma_access.future_request(qtbma.wot.Lookup, {'search': self.pubkey})
-            if data == qtbma.wot.Lookup.null_value:
-                logging.debug('bma.wot.Lookup request error')
-            else:
-                for result in data['results']:
-                    if result["pubkey"] == self.pubkey:
-                        for uid_data in result['uids']:
-                            for certifier_data in uid_data['others']:
-                                for uid in certifier_data['uids']:
-                                    # add a certifier
-                                    certifier = {}
-                                    certifier['identity'] = identities_registry.from_handled_data(uid,
-                                                                                                  certifier_data['pubkey'],
-                                                                          BlockchainState.BUFFERED)
-                                    block = yield from community.bma_access.future_request(qtbma.blockchain.Block,
-                                                                         {'number': certifier_data['meta']['block_number']})
-                                    certifier['cert_time'] = block['medianTime']
-                                    certifier['block_number'] = None
-
-                                    certifiers.append(certifier)
-        else:
             for certifier_data in data['certifications']:
                 certifier = {}
                 certifier['identity'] = identities_registry.from_handled_data(certifier_data['uid'],
                                                                               certifier_data['pubkey'],
-                                                                              BlockchainState.VALIDATED)
+                                                                              BlockchainState.VALIDATED,
+                                                                              community)
                 certifier['cert_time'] = certifier_data['cert_time']['medianTime']
-                certifier['block_number'] = certifier_data['cert_time']['block']
+                if 'written' in certifier_data and type(certifier_data['written']) is dict:
+                    certifier['block_number'] = certifier_data['written']['number']
+                else:
+                    certifier['block_number'] = certifier_data['cert_time']['block']
+
                 certifiers.append(certifier)
+        except ValueError as e:
+            if '404' in str(e):
+                logging.debug('bma.wot.CertifiersOf request error: {0}'.format(str(e)))
+            else:
+                logging.debug(str(e))
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
+
+        try:
+            data = yield from community.bma_access.future_request(bma.wot.Lookup, {'search': self.pubkey})
+            for result in data['results']:
+                if result["pubkey"] == self.pubkey:
+                    self._refresh_uid(result['uids'])
+                    for uid_data in result['uids']:
+                        for certifier_data in uid_data['others']:
+                            for uid in certifier_data['uids']:
+                                # add a certifier
+                                certifier = {}
+                                certifier['identity'] = identities_registry.\
+                                    from_handled_data(uid,
+                                                      certifier_data['pubkey'],
+                                                      BlockchainState.BUFFERED,
+                                                      community)
+                                block = yield from community.bma_access.future_request(bma.blockchain.Block,
+                                                                     {'number': certifier_data['meta']['block_number']})
+                                certifier['cert_time'] = block['medianTime']
+                                certifier['block_number'] = None
+
+                                certifiers.append(certifier)
+        except ValueError as e:
+            logging.debug("Lookup error : {0}".format(str(e)))
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
         return certifiers
 
     @asyncio.coroutine
     def unique_valid_certifiers_of(self, identities_registry, community):
+        """
+        Get the certifications in the blockchain and in the pools
+        Get only unique and last certification for each pubkey
+        :param cutecoin.core.registry.identities.IdentitiesRegistry identities_registry: The identities registry
+        :param cutecoin.core.community.Community community: The community target to request the join date
+        :return: The list of the certifiers of this community
+        :rtype: list
+        """
         certifier_list = yield from self.certifiers_of(identities_registry, community)
         unique_valid = []
         #  add certifiers of uid
         for certifier in tuple(certifier_list):
             # add only valid certification...
-            cert_expired = yield from community.certification_expired(certifier['cert_time'])
-            if cert_expired:
-                continue
+            try:
+                cert_expired = yield from community.certification_expired(certifier['cert_time'])
+            except NoPeerAvailable:
+                logging.debug("No peer available")
+                cert_expired = True
 
-            # keep only the latest certification
-            already_found = [c['identity'].pubkey for c in unique_valid]
-            if certifier['identity'].pubkey in already_found:
-                index = already_found.index(certifier['identity'].pubkey)
-                if certifier['cert_time'] > unique_valid[index]['cert_time']:
-                    unique_valid[index] = certifier
-            else:
-                unique_valid.append(certifier)
+            if not cert_expired:
+                # keep only the latest certification
+                already_found = [c['identity'].pubkey for c in unique_valid]
+                if certifier['identity'].pubkey in already_found:
+                    index = already_found.index(certifier['identity'].pubkey)
+                    if certifier['cert_time'] > unique_valid[index]['cert_time']:
+                        unique_valid[index] = certifier
+                else:
+                    unique_valid.append(certifier)
         return unique_valid
 
     @asyncio.coroutine
     def certified_by(self, identities_registry, community):
         """
         Get the list of persons certified by this person
+        :param cutecoin.core.registry.IdentitiesRegistry identities_registry: The registry
+        :param cutecoin.core.Community community: The community
 
         :param cutecoin.core.community.Community community: The community target to request the join date
         :return: The list of the certified persons of this community in BMA json format
+        :rtype: list
         """
-        data = yield from community.bma_access.future_request(qtbma.wot.CertifiedBy, {'search': self.pubkey})
         certified_list = list()
-        if data == qtbma.wot.CertifiedBy.null_value:
-            logging.debug('bma.wot.CertifiersOf request error')
-            data = yield from community.bma_access.future_request(qtbma.wot.Lookup, {'search': self.pubkey})
-            if data == qtbma.wot.Lookup.null_value:
-                logging.debug('bma.wot.Lookup request error')
-            else:
-                for result in data['results']:
-                    if result["pubkey"] == self.pubkey:
-                        for certified_data in result['signed']:
-                            certified = {}
-                            certified['identity'] = identities_registry.from_handled_data(certified_data['uid'],
-                                                                              certified_data['pubkey'],
-                                                                              BlockchainState.BUFFERED)
-                            certified['cert_time'] = certified_data['meta']['timestamp']
-                            certified['block_number'] = None
-                            certified_list.append(certified)
-        else:
+        try:
+            data = yield from community.bma_access.future_request(bma.wot.CertifiedBy, {'search': self.pubkey})
             for certified_data in data['certifications']:
                 certified = {}
                 certified['identity'] = identities_registry.from_handled_data(certified_data['uid'],
                                                                               certified_data['pubkey'],
-                                                                              BlockchainState.VALIDATED)
+                                                                              BlockchainState.VALIDATED,
+                                                                              community)
                 certified['cert_time'] = certified_data['cert_time']['medianTime']
-                certified['block_number'] = certified_data['cert_time']['block']
+                if 'written' in certified_data and type(certified_data['written']) is dict:
+                    certified['block_number'] = certified_data['written']['number']
+                else:
+                    certified['block_number'] = certified_data['cert_time']['block']
                 certified_list.append(certified)
+        except ValueError as e:
+            if '404' in str(e):
+                logging.debug('bma.wot.CertifiersOf request error')
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
+
+        try:
+            data = yield from community.bma_access.future_request(bma.wot.Lookup, {'search': self.pubkey})
+            for result in data['results']:
+                if result["pubkey"] == self.pubkey:
+                    self._refresh_uid(result['uids'])
+                    for certified_data in result['signed']:
+                        certified = {}
+                        certified['identity'] = identities_registry.from_handled_data(certified_data['uid'],
+                                                                          certified_data['pubkey'],
+                                                                          BlockchainState.BUFFERED,
+                                                                          community)
+                        certified['cert_time'] = certified_data['meta']['timestamp']
+                        certified['block_number'] = None
+                        certified_list.append(certified)
+        except ValueError as e:
+            if '404' in str(e):
+                logging.debug('bma.wot.Lookup request error')
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
         return certified_list
 
     @asyncio.coroutine
@@ -327,18 +409,21 @@ class Identity(QObject):
         #  add certifiers of uid
         for certified in tuple(certified_list):
             # add only valid certification...
-            cert_expired = yield from community.certification_expired(certified['cert_time'])
-            if cert_expired:
-                continue
+            try:
+                cert_expired = yield from community.certification_expired(certified['cert_time'])
+            except NoPeerAvailable:
+                logging.debug("No peer available")
+                cert_expired = True
 
-            # keep only the latest certification
-            already_found = [c['identity'].pubkey for c in unique_valid]
-            if certified['identity'].pubkey in already_found:
-                index = already_found.index(certified['identity'].pubkey)
-                if certified['cert_time'] > unique_valid[index]['cert_time']:
-                    unique_valid[index] = certified
-            else:
-                unique_valid.append(certified)
+            if not cert_expired:
+                # keep only the latest certification
+                already_found = [c['identity'].pubkey for c in unique_valid]
+                if certified['identity'].pubkey in already_found:
+                    index = already_found.index(certified['identity'].pubkey)
+                    if certified['cert_time'] > unique_valid[index]['cert_time']:
+                        unique_valid[index] = certified
+                else:
+                    unique_valid.append(certified)
         return unique_valid
 
     @asyncio.coroutine
@@ -351,6 +436,21 @@ class Identity(QObject):
         expiration_date = join_date + parameters['sigValidity']
         current_time = time.time()
         return expiration_date - current_time
+
+    def _refresh_uid(self, uids):
+        """
+        Refresh UID from uids list, got from a successful lookup request
+        :param list uids: UIDs got from a lookup request
+        """
+        timestamp = 0
+        if self.local_state == LocalState.NOT_FOUND:
+            for uid_data in uids:
+                if uid_data["meta"]["timestamp"] > timestamp:
+                    timestamp = uid_data["meta"]["timestamp"]
+                    identity_uid = uid_data["uid"]
+                    self.uid = identity_uid
+                    self.blockchain_state = BlockchainState.BUFFERED
+                    self.local_state = LocalState.PARTIAL
 
     def jsonify(self):
         """

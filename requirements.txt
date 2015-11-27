@@ -1,0 +1,3 @@
+pretenders
+ucoinpy
+git+https://github.com/Insoleet/quamash.git@sockets_only

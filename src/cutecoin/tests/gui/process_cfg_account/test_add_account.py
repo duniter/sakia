@@ -7,7 +7,6 @@ from PyQt5.QtWidgets import QDialog
 from PyQt5.QtCore import QLocale, Qt
 from PyQt5.QtTest import QTest
 from cutecoin.tests.mocks.bma import new_blockchain
-from cutecoin.tests.mocks.access_manager import MockNetworkAccessManager
 from cutecoin.core.registry.identities import IdentitiesRegistry
 from cutecoin.gui.process_cfg_account import ProcessConfigureAccount
 from cutecoin.gui.password_asker import PasswordAskerDialog
@@ -19,13 +18,12 @@ from cutecoin.tests import get_application
 class ProcessAddCommunity(unittest.TestCase):
     def setUp(self):
         self.qapplication = get_application()
-        self.network_manager = MockNetworkAccessManager()
         QLocale.setDefault(QLocale("en_GB"))
         self.lp = quamash.QEventLoop(self.qapplication)
         asyncio.set_event_loop(self.lp)
         self.identities_registry = IdentitiesRegistry({})
 
-        self.application = Application(self.qapplication, self.lp, self.network_manager, self.identities_registry)
+        self.application = Application(self.qapplication, self.lp, self.identities_registry)
         self.application.preferences['notifications'] = False
         # Salt/password : "testcutecoin/testcutecoin"
         # Pubkey : 7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ

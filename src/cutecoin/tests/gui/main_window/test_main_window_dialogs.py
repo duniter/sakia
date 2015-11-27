@@ -7,8 +7,7 @@ from PyQt5.QtNetwork import QNetworkAccessManager
 from cutecoin.gui.mainwindow import MainWindow
 from cutecoin.core.app import Application
 from cutecoin.tests import get_application
-
-from cutecoin.tests.stubs.core.registry import IdentitiesRegistry
+from cutecoin.core.registry.identities import IdentitiesRegistry
 
 # Qapplication cause a core dumped when re-run in setup
 # set it as global var
@@ -19,9 +18,8 @@ class MainWindowDialogsTest(unittest.TestCase):
         self.qapplication = get_application()
         self.lp = quamash.QEventLoop(self.qapplication)
         asyncio.set_event_loop(self.lp)
-        network_manager = QNetworkAccessManager()
 
-        self.application = Application(self.qapplication, self.lp, network_manager, IdentitiesRegistry())
+        self.application = Application(self.qapplication, self.lp, IdentitiesRegistry())
         self.main_window = MainWindow(self.application)
 
     def tearDown(self):

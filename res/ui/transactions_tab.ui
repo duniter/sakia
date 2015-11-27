@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QGroupBox" name="groupBox_2">
+    <widget class="QGroupBox" name="groupbox_balance">
      <property name="title">
       <string>Balance</string>
      </property>
@@ -30,7 +30,7 @@
          </font>
         </property>
         <property name="text">
-         <string>label_balance</string>
+         <string>loading...</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignHCenter|Qt::AlignTop</set>

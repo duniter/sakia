@@ -7,31 +7,32 @@ import time
 from PyQt5.QtWidgets import QDialog
 from PyQt5.QtCore import QLocale, Qt
 from PyQt5.QtTest import QTest
+from ucoinpy.api.bma import API
+from cutecoin.tests.mocks.monkeypatch import pretender_reversed
 from cutecoin.tests.mocks.bma import new_blockchain, nice_blockchain
-from cutecoin.tests.mocks.access_manager import MockNetworkAccessManager
 from cutecoin.core.registry.identities import IdentitiesRegistry
 from cutecoin.gui.process_cfg_community import ProcessConfigureCommunity
 from cutecoin.gui.password_asker import PasswordAskerDialog
 from cutecoin.core.app import Application
 from cutecoin.core.account import Account
-from cutecoin.tests import get_application
+from cutecoin.tests import get_application, unitttest_exception_handler
 
 
 class ProcessAddCommunity(unittest.TestCase):
     def setUp(self):
         self.qapplication = get_application()
-        self.network_manager = MockNetworkAccessManager()
         QLocale.setDefault(QLocale("en_GB"))
         self.lp = quamash.QEventLoop(self.qapplication)
         asyncio.set_event_loop(self.lp)
+        #self.lp.set_exception_handler(lambda lp, ctx : unitttest_exception_handler(self, lp, ctx))
         self.identities_registry = IdentitiesRegistry({})
 
-        self.application = Application(self.qapplication, self.lp, self.network_manager, self.identities_registry)
+        self.application = Application(self.qapplication, self.lp, self.identities_registry)
         self.application.preferences['notifications'] = False
         # Salt/password : "testcutecoin/testcutecoin"
         # Pubkey : 7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ
         self.account = Account("testcutecoin", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
-                               "test", [], [], [], self.identities_registry)
+                               "john", [], [], [], self.identities_registry)
         self.password_asker = PasswordAskerDialog(self.account)
         self.password_asker.password = "testcutecoin"
         self.password_asker.remember = True
@@ -46,15 +47,10 @@ class ProcessAddCommunity(unittest.TestCase):
         mock = new_blockchain.get_mock()
         time.sleep(2)
         logging.debug(mock.pretend_url)
-        self.network_manager.set_mock_path(mock.pretend_url)
+        API.reverse_url = pretender_reversed(mock.pretend_url)
         process_community = ProcessConfigureCommunity(self.application,
                                                     self.account,
                                                     None, self.password_asker)
-
-        @asyncio.coroutine
-        def open_dialog(process_community):
-            result = yield from process_community.async_exec()
-            self.assertEqual(result, QDialog.Accepted)
 
         def close_dialog():
             if process_community.isVisible():
@@ -83,9 +79,17 @@ class ProcessAddCommunity(unittest.TestCase):
                 self.assertEqual(mock.get_request(i).method, 'GET')
                 self.assertEqual(mock.get_request(i).url,
                                  '/wot/lookup/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ')
+            yield from asyncio.sleep(5)
+            self.assertEqual(mock.get_request(5).method, 'GET')
+            self.assertEqual(mock.get_request(5).url,
+                             '/wot/certifiers-of/john')
+            for i in range(6, 9):
+                self.assertEqual(mock.get_request(i).method, 'GET')
+                self.assertEqual(mock.get_request(i).url,
+                                 '/wot/lookup/john')
 
-            self.assertEqual(mock.get_request(6).method, 'POST')
-            self.assertEqual(mock.get_request(6).url[:8], '/wot/add')
+            self.assertEqual(mock.get_request(9).url[:8], '/wot/add')
+            self.assertEqual(mock.get_request(9).method, 'POST')
             self.assertEqual(process_community.label_error.text(), "Broadcasting identity...")
             yield from asyncio.sleep(1)
 
@@ -96,22 +100,18 @@ class ProcessAddCommunity(unittest.TestCase):
 
         self.lp.call_later(15, close_dialog)
         asyncio.async(exec_test())
-        self.lp.run_until_complete(open_dialog(process_community))
+        self.lp.run_until_complete(process_community.async_exec())
+        self.assertEqual(process_community.result(), QDialog.Accepted)
         mock.delete_mock()
 
     def test_connect_community_empty_blockchain(self):
         mock = new_blockchain.get_mock()
         time.sleep(2)
         logging.debug(mock.pretend_url)
-        self.network_manager.set_mock_path(mock.pretend_url)
+        API.reverse_url = pretender_reversed(mock.pretend_url)
         process_community = ProcessConfigureCommunity(self.application,
                                                     self.account,
                                                     None, self.password_asker)
-
-        @asyncio.coroutine
-        def open_dialog(process_community):
-            result = yield from process_community.async_exec()
-            self.assertEqual(result, QDialog.Rejected)
 
         def close_dialog():
             if process_community.isVisible():
@@ -130,9 +130,11 @@ class ProcessAddCommunity(unittest.TestCase):
             self.assertEqual(process_community.lineedit_server.text(), "127.0.0.1")
             self.assertEqual(process_community.spinbox_port.value(), 50000)
             QTest.mouseClick(process_community.button_connect, Qt.LeftButton)
-            yield from asyncio.sleep(1)
+            yield from asyncio.sleep(3)
+            self.assertNotEqual(mock.get_request(0), None)
             self.assertEqual(mock.get_request(0).method, 'GET')
             self.assertEqual(mock.get_request(0).url, '/network/peering')
+            self.assertNotEqual(mock.get_request(1), None)
             self.assertEqual(mock.get_request(1).method, 'GET')
             self.assertEqual(mock.get_request(1).url,
                              '/wot/certifiers-of/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ')
@@ -148,22 +150,18 @@ class ProcessAddCommunity(unittest.TestCase):
 
         self.lp.call_later(15, close_dialog)
         asyncio.async(exec_test())
-        self.lp.run_until_complete(open_dialog(process_community))
+        self.lp.run_until_complete(process_community.async_exec())
         mock.delete_mock()
 
-    def test_connect_community_nice_blockchain(self):
+    def test_connect_community_wrong_pubkey(self):
         mock = nice_blockchain.get_mock()
         time.sleep(2)
         logging.debug(mock.pretend_url)
-        self.network_manager.set_mock_path(mock.pretend_url)
+        API.reverse_url = pretender_reversed(mock.pretend_url)
+        self.account.pubkey = "wrong_pubkey"
         process_community = ProcessConfigureCommunity(self.application,
                                                     self.account,
                                                     None, self.password_asker)
-
-        @asyncio.coroutine
-        def open_dialog(process_community):
-            result = yield from process_community.async_exec()
-            self.assertEqual(result, QDialog.Accepted)
 
         def close_dialog():
             if process_community.isVisible():
@@ -183,8 +181,99 @@ class ProcessAddCommunity(unittest.TestCase):
             self.assertEqual(process_community.spinbox_port.value(), 50000)
             QTest.mouseClick(process_community.button_connect, Qt.LeftButton)
             yield from asyncio.sleep(1)
+            self.assertNotEqual(mock.get_request(0), None)
             self.assertEqual(mock.get_request(0).method, 'GET')
             self.assertEqual(mock.get_request(0).url, '/network/peering')
+            self.assertNotEqual(mock.get_request(1), None)
+            self.assertEqual(mock.get_request(1).method, 'GET')
+            self.assertEqual(mock.get_request(1).url,
+                             '/wot/certifiers-of/wrong_pubkey')
+            self.assertEqual(process_community.label_error.text(), """Your pubkey or UID is different on the network.
+Yours : wrong_pubkey, the network : 7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ""")
+            process_community.close()
+
+        self.lp.call_later(15, close_dialog)
+        asyncio.async(exec_test())
+        self.lp.run_until_complete(process_community.async_exec())
+        self.assertEqual(process_community.result(), QDialog.Rejected)
+        mock.delete_mock()
+
+    def test_connect_community_wrong_uid(self):
+        mock = nice_blockchain.get_mock()
+        time.sleep(2)
+        logging.debug(mock.pretend_url)
+        API.reverse_url = pretender_reversed(mock.pretend_url)
+        self.account.name = "wrong_uid"
+        process_community = ProcessConfigureCommunity(self.application,
+                                                    self.account,
+                                                    None, self.password_asker)
+
+        def close_dialog():
+            if process_community.isVisible():
+                process_community.close()
+
+        @asyncio.coroutine
+        def exec_test():
+            yield from asyncio.sleep(1)
+            QTest.mouseClick(process_community.lineedit_server, Qt.LeftButton)
+            QTest.keyClicks(process_community.lineedit_server, "127.0.0.1")
+            QTest.mouseDClick(process_community.spinbox_port, Qt.LeftButton)
+            process_community.spinbox_port.setValue(50000)
+            self.assertEqual(process_community.stacked_pages.currentWidget(),
+                             process_community.page_node,
+                             msg="Current widget : {0}".format(process_community.stacked_pages.currentWidget().objectName()))
+            self.assertEqual(process_community.lineedit_server.text(), "127.0.0.1")
+            self.assertEqual(process_community.spinbox_port.value(), 50000)
+            QTest.mouseClick(process_community.button_connect, Qt.LeftButton)
+            yield from asyncio.sleep(1)
+            self.assertNotEqual(mock.get_request(0), None)
+            self.assertEqual(mock.get_request(0).method, 'GET')
+            self.assertEqual(mock.get_request(0).url, '/network/peering')
+            self.assertNotEqual(mock.get_request(1), None)
+            self.assertEqual(mock.get_request(1).method, 'GET')
+            self.assertEqual(mock.get_request(1).url,
+                             '/wot/certifiers-of/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ')
+            self.assertEqual(process_community.label_error.text(), """Your pubkey or UID is different on the network.
+Yours : wrong_uid, the network : john""")
+            process_community.close()
+
+        self.lp.call_later(15, close_dialog)
+        asyncio.async(exec_test())
+        self.lp.run_until_complete(process_community.async_exec())
+        self.assertEqual(process_community.result(), QDialog.Rejected)
+        mock.delete_mock()
+
+    def test_connect_community_success(self):
+        mock = nice_blockchain.get_mock()
+        time.sleep(2)
+        logging.debug(mock.pretend_url)
+        API.reverse_url = pretender_reversed(mock.pretend_url)
+        process_community = ProcessConfigureCommunity(self.application,
+                                                    self.account,
+                                                    None, self.password_asker)
+
+        def close_dialog():
+            if process_community.isVisible():
+                process_community.close()
+
+        @asyncio.coroutine
+        def exec_test():
+            yield from asyncio.sleep(1)
+            QTest.mouseClick(process_community.lineedit_server, Qt.LeftButton)
+            QTest.keyClicks(process_community.lineedit_server, "127.0.0.1")
+            QTest.mouseDClick(process_community.spinbox_port, Qt.LeftButton)
+            process_community.spinbox_port.setValue(50000)
+            self.assertEqual(process_community.stacked_pages.currentWidget(),
+                             process_community.page_node,
+                             msg="Current widget : {0}".format(process_community.stacked_pages.currentWidget().objectName()))
+            self.assertEqual(process_community.lineedit_server.text(), "127.0.0.1")
+            self.assertEqual(process_community.spinbox_port.value(), 50000)
+            QTest.mouseClick(process_community.button_connect, Qt.LeftButton)
+            yield from asyncio.sleep(1)
+            self.assertNotEqual(mock.get_request(0), None)
+            self.assertEqual(mock.get_request(0).method, 'GET')
+            self.assertEqual(mock.get_request(0).url, '/network/peering')
+            self.assertNotEqual(mock.get_request(1), None)
             self.assertEqual(mock.get_request(1).method, 'GET')
             self.assertEqual(mock.get_request(1).url,
                              '/wot/certifiers-of/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ')
@@ -195,7 +284,7 @@ class ProcessAddCommunity(unittest.TestCase):
 
         self.lp.call_later(15, close_dialog)
         asyncio.async(exec_test())
-        self.lp.run_until_complete(open_dialog(process_community))
+        self.lp.run_until_complete(process_community.async_exec())
         mock.delete_mock()
 
 if __name__ == '__main__':

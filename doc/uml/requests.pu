@@ -1,49 +1,26 @@
 @startuml
 
-QModel -->o "Core Component" : Connect to data_changed()
-QModel -> "Core Component" : Data access
 activate "Core Component"
-"Core Component" -> Community : Request data
-Community -> Cache : Request cache
-ref over Cache
-Data is obsolete
-(new block mined
-since last caching)
+"Core Component" -> BmaAccess : Request data
+BmaAccess -> BmaAccess : Request cache
+ref over BmaAccess
+    Data is obsolete
+    (new block mined
+    since last caching)
 end ref
-Cache -> QNetworkManager : HTTP GET
-create QNetworkReply
-QNetworkManager -> QNetworkReply : Instantiate
-Cache <- QNetworkManager : QNetworkReply
-create ReceiverSlot
-Cache -> ReceiverSlot : Instantiate Slot
-QNetworkReply o<-- ReceiverSlot : Connect to finished()
-Community <- Cache : Cached data
-"Core Component" <- Community : Cached data
-"Core Component" -> "Core Component" : Compute data
-QModel <- "Core Component" : Data
-deactivate "Core Component"
-
-...Network request is processed...
-
-ReceiverSlot <-- QNetworkReply  : finished()
-activate ReceiverSlot
-ReceiverSlot -> Cache : Update cache data
-ReceiverSlot -> "Core Component" : emit data_changed()
-deactivate ReceiverSlot
-destroy ReceiverSlot
-destroy QNetworkReply
-|||
-QModel <-- "Core Component" : data_changed()
-QModel -> "Core Component" : Data access
-activate "Core Component"
-ref over "Core Component", Community
-Community is requested again,
-and last cached data are returned
-No new block mined, so no HTTP GET
-initialized between cache
-and QNetworkManager
+BmaAccess -> ucoinpy : HTTP GET
+alt Rollback
+BmaAccess -> BmaAccess : Find last block number rollbacked
+ref over BmaAccess
+    If the request is a bma/blockchain/Block, we check if the hash answered is the same
+    as our hash, in which case, we know that the rollback didn't reset blocks before
+    this one.
+    Blocks from this one to the current block are considered obsolete
 end ref
-QModel <- "Core Component" : Data
+end
+BmaAccess -> BmaAccess : Update cache data
+
+"Core Component" <- BmaAccess : Return data data
 deactivate "Core Component"
 
 

@@ -6,6 +6,7 @@ Created on 8 mars 2014
 
 import logging
 import asyncio
+import aiohttp
 
 from PyQt5.QtWidgets import QDialog, QMenu, QMessageBox, QApplication
 from PyQt5.QtGui import QCursor
@@ -14,9 +15,10 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 from ..gen_resources.community_cfg_uic import Ui_CommunityConfigurationDialog
 from ..models.peering import PeeringTreeModel
 from ..core import Community
-from ..core.registry.identity import BlockchainState
 from ..core.net import Node
-from . import toast
+from cutecoin.gui.widgets import toast
+from .widgets.dialogs import QAsyncMessageBox
+from ..tools.decorators import asyncify
 
 
 class Step(QObject):
@@ -37,6 +39,7 @@ class StepPageInit(Step):
         logging.debug("Init")
         self.config_dialog.button_connect.clicked.connect(self.check_connect)
         self.config_dialog.button_register.clicked.connect(self.check_register)
+        self.config_dialog.button_guest.clicked.connect(self.check_guest)
 
     @property
     def app(self):
@@ -54,80 +57,92 @@ class StepPageInit(Step):
     def password_asker(self):
         return self.config_dialog.password_asker
 
+    @asyncify
     @asyncio.coroutine
-    def coroutine_check_connect(self):
+    def check_guest(self, checked=False):
         server = self.config_dialog.lineedit_server.text()
         port = self.config_dialog.spinbox_port.value()
         logging.debug("Is valid ? ")
-        self.node = yield from Node.from_address(self.config_dialog.app.network_manager, None, server, port)
-        if self.node:
-            community = Community.create(self.app.network_manager, self.node)
-            identity = yield from self.app.identities_registry.future_find(self.account.pubkey, community)
-            if identity.blockchain_state == BlockchainState.NOT_FOUND:
+        try:
+            self.node = yield from Node.from_address(None, server, port)
+            community = Community.create(self.node)
+            self.config_dialog.button_connect.setEnabled(False)
+            self.config_dialog.button_register.setEnabled(False)
+            self.config_dialog.community = community
+            self.config_dialog.next()
+        except aiohttp.errors.DisconnectedError as e:
+            self.config_dialog.label_error.setText(str(e))
+        except aiohttp.errors.ClientError as e:
+            self.config_dialog.label_error.setText(str(e))
+
+    @asyncify
+    @asyncio.coroutine
+    def check_connect(self, checked=False):
+        server = self.config_dialog.lineedit_server.text()
+        port = self.config_dialog.spinbox_port.value()
+        logging.debug("Is valid ? ")
+        try:
+            self.node = yield from Node.from_address(None, server, port)
+            community = Community.create(self.node)
+            self.config_dialog.button_connect.setEnabled(False)
+            self.config_dialog.button_register.setEnabled(False)
+            registered = yield from self.account.check_registered(community)
+            self.config_dialog.button_connect.setEnabled(True)
+            self.config_dialog.button_register.setEnabled(True)
+            if registered[0] is False and registered[2] is None:
                 self.config_dialog.label_error.setText(self.tr("Could not find your identity on the network."))
+            elif registered[0] is False and registered[2]:
+                self.config_dialog.label_error.setText(self.tr("""Your pubkey or UID is different on the network.
+    Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
             else:
                 self.config_dialog.community = community
                 self.config_dialog.next()
-        else:
-            self.config_dialog.label_error.setText(self.tr("Could not connect."))
+        except aiohttp.errors.DisconnectedError as e:
+            self.config_dialog.label_error.setText(str(e))
+        except aiohttp.errors.ClientError as e:
+            self.config_dialog.label_error.setText(str(e))
 
-    @pyqtSlot()
-    def check_connect(self):
-        logging.debug("Check node")
-        asyncio.async(self.coroutine_check_connect())
-
+    @asyncify
     @asyncio.coroutine
-    def coroutine_check_register(self):
+    def check_register(self, checked=False):
         server = self.config_dialog.lineedit_server.text()
         port = self.config_dialog.spinbox_port.value()
         logging.debug("Is valid ? ")
-        self.node = yield from Node.from_address(self.config_dialog.app.network_manager, None, server, port)
-        if self.node:
-            community = Community.create(self.app.network_manager, self.node)
-            identity = yield from self.app.identities_registry.future_find(self.account.pubkey, community)
-            if identity.blockchain_state == BlockchainState.NOT_FOUND:
-                password = yield from self.password_asker.future_exec()
+        try:
+            self.node = yield from Node.from_address(None, server, port)
+            community = Community.create(self.node)
+            self.config_dialog.button_connect.setEnabled(False)
+            self.config_dialog.button_register.setEnabled(False)
+            registered = yield from self.account.check_registered(community)
+            self.config_dialog.button_connect.setEnabled(True)
+            self.config_dialog.button_register.setEnabled(True)
+            if registered[0] is False and registered[2] is None:
+                password = yield from self.password_asker.async_exec()
                 if self.password_asker.result() == QDialog.Rejected:
                     return
                 self.config_dialog.label_error.setText(self.tr("Broadcasting identity..."))
-                self.account.selfcert_broadcasted.connect(self.handle_broadcast)
-                self.account.broadcast_error.connect(self.handle_error)
-                yield from self.account.send_selfcert(password, community)
+                result = yield from self.account.send_selfcert(password, community)
+                if result[0]:
+                    if self.app.preferences['notifications']:
+                        toast.display(self.tr("UID broadcast"), self.tr("Identity broadcasted to the network"))
+                    QApplication.restoreOverrideCursor()
+                    self.config_dialog.next()
+                else:
+                    self.config_dialog.label_error.setText(self.tr("Error") + " " + \
+                                                           self.tr("{0}".format(result[1])))
+                    if self.app.preferences['notifications']:
+                        toast.display(self.tr("Error"), self.tr("{0}".format(result[1])))
+                QApplication.restoreOverrideCursor()
                 self.config_dialog.community = community
+            elif registered[0] is False and registered[2]:
+                self.config_dialog.label_error.setText(self.tr("""Your pubkey or UID was already found on the network.
+Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
             else:
-                self.config_dialog.label_error.setText(self.tr("Pubkey already exists on the network"))
-        else:
-            self.config_dialog.label_error.setText(self.tr("Could not connect."))
-
-    @pyqtSlot()
-    def check_register(self):
-        logging.debug("Check node")
-        asyncio.async(self.coroutine_check_register())
-
-    @pyqtSlot(int, str)
-    def handle_broadcast(self):
-        if self.app.preferences['notifications']:
-            toast.display(self.tr("UID broadcast"), self.tr("Identity broadcasted to the network"))
-        # Disabled : https://github.com/harvimt/quamash/issues/41
-        # else:
-        #    QMessageBox.information(self, self.tr("UID broadcast"), self.tr("Identity broadcasted to the network"))
-        self.account.selfcert_broadcasted.disconnect()
-        self.account.broadcast_error.disconnect(self.handle_error)
-        QApplication.restoreOverrideCursor()
-        self.config_dialog.next()
-
-    @pyqtSlot(int, str)
-    def handle_error(self, error_code, text):
-        self.config_dialog.label_error.setText(self.tr("Error") + " " + \
-                                               self.tr("{0} : {1}".format(error_code, text)))
-        if self.app.preferences['notifications']:
-            toast.display(self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
-        # Disabled : https://github.com/harvimt/quamash/issues/41
-        #  else:
-        #    QMessageBox.critical(self, self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
-        self.account.selfcert_broadcasted.disconnect()
-        self.account.broadcast_error.disconnect(self.handle_error)
-        QApplication.restoreOverrideCursor()
+                self.config_dialog.label_error.setText(self.tr("Your account already exists on the network"))
+        except aiohttp.errors.DisconnectedError as e:
+            self.config_dialog.label_error.setText(str(e))
+        except aiohttp.errors.ClientError as e:
+            self.config_dialog.label_error.setText(str(e))
 
     def is_valid(self):
         return self.node is not None
@@ -138,7 +153,7 @@ class StepPageInit(Step):
         """
         account = self.config_dialog.account
         logging.debug("Account : {0}".format(account))
-        self.config_dialog.community = Community.create(self.config_dialog.app.network_manager, self.node)
+        self.config_dialog.community = Community.create(self.node)
 
     def display_page(self):
         self.config_dialog.button_next.hide()
@@ -201,7 +216,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         step_init.next_step = step_add_peers
 
         if self.community is not None:
-            self.stacked_pages.removeWidget(self.page_init)
+            self.stacked_pages.removeWidget(self.page_node)
             self.step = step_add_peers
             self.setWindowTitle(self.tr("Configure community {0}").format(self.community.currency))
         else:
@@ -237,10 +252,10 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         port = self.spinbox_add_port.value()
 
         try:
-            node = yield from Node.from_address(self.app.network_manager, self.community.currency, server, port)
+            node = yield from Node.from_address(self.community.currency, server, port)
             self.community.add_node(node)
         except Exception as e:
-            QMessageBox.critical(self, self.tr("Error"),
+            yield from QAsyncMessageBox.critical(self, self.tr("Error"),
                                  str(e))
         self.tree_peers.setModel(PeeringTreeModel(self.community))
 

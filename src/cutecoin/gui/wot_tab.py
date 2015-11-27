@@ -2,12 +2,13 @@
 
 import logging
 import asyncio
+
 from PyQt5.QtWidgets import QWidget, QComboBox, QDialog
-from PyQt5.QtCore import pyqtSlot, QEvent, QLocale, QDateTime
+from PyQt5.QtCore import pyqtSlot, QEvent, QLocale, QDateTime, pyqtSignal
+from ucoinpy.api import bma
 
 from ..tools.exceptions import MembershipNotFoundError
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
-from ..core.net.api import bma
 from ..core.graph import Graph
 from ..core.registry import BlockchainState
 from .member import MemberDialog
@@ -15,11 +16,14 @@ from .certification import CertificationDialog
 from .transfer import TransferMoneyDialog
 from .contact import ConfigureContactDialog
 from ..gen_resources.wot_tab_uic import Ui_WotTabWidget
-from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_SELECTED, NODE_STATUS_OUT, ARC_STATUS_STRONG, \
-    ARC_STATUS_WEAK
+from cutecoin.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_SELECTED, NODE_STATUS_OUT
+from cutecoin.gui.widgets.busy import Busy
 
 
 class WotTabWidget(QWidget, Ui_WotTabWidget):
+
+    money_sent = pyqtSignal()
+
     def __init__(self, app):
         """
         :param cutecoin.core.app.Application app:   Application instance
@@ -37,12 +41,16 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         # the edited text is not added in the item list
         self.comboBoxSearch.setInsertPolicy(QComboBox.NoInsert)
 
+        self.busy = Busy(self.graphicsView)
+        self.busy.hide()
+
         # add scene events
         self.graphicsView.scene().node_clicked.connect(self.handle_node_click)
         self.graphicsView.scene().node_signed.connect(self.sign_node)
         self.graphicsView.scene().node_transaction.connect(self.send_money_to_node)
         self.graphicsView.scene().node_contact.connect(self.add_node_as_contact)
         self.graphicsView.scene().node_member.connect(self.identity_informations)
+        self.graphicsView.scene().node_copy_pubkey.connect(self.copy_node_pubkey)
 
         self.account = None
         self.community = None
@@ -66,12 +74,22 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         self.password_asker = password_asker
 
     def change_community(self, community):
-        if self.community:
-            self.community.network.new_block_mined.disconnect(self.refresh)
-        if community:
-            community.network.new_block_mined.connect(self.refresh)
+        self._auto_refresh(community)
         self.community = community
         self.reset()
+
+    def _auto_refresh(self, new_community):
+        if self.community:
+            try:
+                self.community.network.new_block_mined.disconnect(self.refresh)
+            except TypeError as e:
+                if "connected" in str(e):
+                    logging.debug("new block mined not connected")
+        if self.app.preferences["auto_refresh"]:
+            if new_community:
+                new_community.network.new_block_mined.connect(self.refresh)
+            elif self.community:
+                self.community.network.new_block_mined.connect(self.refresh)
 
     @once_at_a_time
     @asyncify
@@ -160,7 +178,8 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             self.app.identities_registry.from_handled_data(
                 metadata['text'],
                 metadata['id'],
-                BlockchainState.VALIDATED
+                BlockchainState.VALIDATED,
+                self.community
             )
         )
 
@@ -174,6 +193,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         :param cutecoin.core.registry.Identity identity: Graph node identity
         """
         logging.debug("Draw graph - " + identity.uid)
+        self.busy.show()
 
         if self.community:
             identity_account = yield from self.account.identity(self.community)
@@ -195,7 +215,8 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             node_status = 0
             if identity == identity_account:
                 node_status += NODE_STATUS_HIGHLIGHTED
-            if identity.is_member(self.community) is False:
+            is_member = yield from identity.is_member(self.community)
+            if is_member is False:
                 node_status += NODE_STATUS_OUT
             node_status += NODE_STATUS_SELECTED
             graph.add_identity(identity, node_status)
@@ -214,6 +235,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
                 path = yield from graph.get_shortest_path_between_members(identity, identity_account)
                 if path:
                     self.graphicsView.scene().update_path(path)
+        self.busy.hide()
 
     @once_at_a_time
     @asyncify
@@ -222,7 +244,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         """
         Reset graph scene to wallet identity
         """
-        if self.account:
+        if self.account and self.community:
             identity = yield from self.account.identity(self.community)
             self.draw_graph(identity)
 
@@ -235,6 +257,8 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         else:
             self.reset()
 
+    @asyncify
+    @asyncio.coroutine
     def search(self):
         """
         Search nodes when return is pressed in combobox lineEdit
@@ -243,11 +267,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
 
         if len(text) < 2:
             return False
-        try:
-            response = self.community.simple_request(bma.wot.Lookup, {'search': text})
-        except Exception as e:
-            logging.debug('bma.wot.Lookup request error : ' + str(e))
-            return False
+        response = yield from self.community.bma_access.future_request(bma.wot.Lookup, {'search': text})
 
         nodes = {}
         for identity in response['results']:
@@ -274,7 +294,8 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             self.app.identities_registry.from_handled_data(
                 metadata['text'],
                 metadata['id'],
-                BlockchainState.VALIDATED
+                BlockchainState.VALIDATED,
+                self.community
             )
         )
 
@@ -282,31 +303,42 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         identity = self.app.identities_registry.from_handled_data(
             metadata['text'],
             metadata['id'],
-            BlockchainState.VALIDATED
+            BlockchainState.VALIDATED,
+            self.community
         )
         dialog = MemberDialog(self.app, self.account, self.community, identity)
         dialog.exec_()
 
+    @asyncify
+    @asyncio.coroutine
     def sign_node(self, metadata):
         identity = self.app.identities_registry.from_handled_data(
             metadata['text'],
             metadata['id'],
-            BlockchainState.VALIDATED
+            BlockchainState.VALIDATED,
+            self.community
         )
-        CertificationDialog.certify_identity(self.app, self.account, self.password_asker,
+        yield from CertificationDialog.certify_identity(self.app, self.account, self.password_asker,
                                              self.community, identity)
 
+    @asyncify
+    @asyncio.coroutine
     def send_money_to_node(self, metadata):
         identity = self.app.identities_registry.from_handled_data(
             metadata['text'],
             metadata['id'],
-            BlockchainState.VALIDATED
+            BlockchainState.VALIDATED,
+            self.community
         )
-        result = TransferMoneyDialog.send_money_to_identity(self.app, self.account, self.password_asker,
+        result = yield from TransferMoneyDialog.send_money_to_identity(self.app, self.account, self.password_asker,
                                                             self.community, identity)
         if result == QDialog.Accepted:
-            currency_tab = self.window().currencies_tabwidget.currentWidget()
-            currency_tab.tab_history.table_history.model().sourceModel().refresh_transfers()
+            self.money_sent.emit()
+
+    def copy_node_pubkey(self, metadata):
+        cb = self.app.qapp.clipboard()
+        cb.clear(mode=cb.Clipboard)
+        cb.setText(metadata['id'], mode=cb.Clipboard)
 
     def add_node_as_contact(self, metadata):
         # check if contact already exists...
@@ -319,6 +351,10 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         if result == QDialog.Accepted:
             self.window().refresh_contacts()
 
+    def resizeEvent(self, event):
+        self.busy.resize(event.size())
+        super().resizeEvent(event)
+
     def changeEvent(self, event):
         """
         Intercepte LanguageChange event to translate UI
@@ -327,5 +363,6 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         """
         if event.type() == QEvent.LanguageChange:
             self.retranslateUi(self)
+            self._auto_refresh(None)
             self.refresh()
         return super(WotTabWidget, self).changeEvent(event)

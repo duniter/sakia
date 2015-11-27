@@ -11,7 +11,7 @@ from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyMode
 from PyQt5.QtGui import QColor, QFont
 
 from ..tools.exceptions import NoPeerAvailable
-from ..tools.decorators import asyncify
+from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from cutecoin.core.net.node import Node
 
 
@@ -35,8 +35,9 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
         """
         Sort table by given column number.
         """
-        left_data = self.sourceModel().data(left, Qt.DisplayRole)
-        right_data = self.sourceModel().data(right, Qt.DisplayRole)
+        left_data = str(self.sourceModel().data(left, Qt.DisplayRole))
+        right_data = str(self.sourceModel().data(right, Qt.DisplayRole))
+
         return (left_data < right_data)
 
     def headerData(self, section, orientation, role):
@@ -139,6 +140,7 @@ class NetworkTableModel(QAbstractTableModel):
         self.nodes_data = []
 
     def change_community(self, community):
+        cancel_once_task(self, self.refresh_nodes)
         self.community = community
         self.refresh_nodes()
 
@@ -166,19 +168,25 @@ class NetworkTableModel(QAbstractTableModel):
         port = node.endpoint.port
 
         is_root = self.community.network.is_root_node(node)
-
-        return (address, port, node.block['number'], node.block['hash'], node.uid,
+        if node.block:
+            number, block_hash = node.block['number'], node.block['hash']
+        else:
+            number, block_hash = "", ""
+        return (address, port, number, block_hash, node.uid,
                 is_member, node.pubkey, node.software, node.version, is_root, node.state)
 
+    @once_at_a_time
     @asyncify
     @asyncio.coroutine
     def refresh_nodes(self):
         self.beginResetModel()
         self.nodes_data = []
+        nodes_data = []
         if self.community:
             for node in self.community.network.nodes:
                 data = yield from self.data_node(node)
-                self.nodes_data.append(data)
+                nodes_data.append(data)
+        self.nodes_data = nodes_data
         self.endResetModel()
 
     def rowCount(self, parent):

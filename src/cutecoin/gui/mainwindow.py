@@ -3,15 +3,16 @@ Created on 1 févr. 2014
 
 @author: inso
 """
+import asyncio
+import logging
+
+from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog, QMessageBox, QLabel, QComboBox, QDialog, QApplication
+from PyQt5.QtCore import QLocale, QEvent, \
+    pyqtSlot, QDateTime, QTimer, Qt
+from PyQt5.QtGui import QIcon
+
 from ..gen_resources.mainwindow_uic import Ui_MainWindow
 from ..gen_resources.about_uic import Ui_AboutPopup
-
-from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog, QProgressBar, \
-    QMessageBox, QLabel, QComboBox, QDialog, QApplication
-from PyQt5.QtCore import QSignalMapper, pyqtSlot, QLocale, QEvent, \
-    pyqtSlot, pyqtSignal, QDate, QDateTime, QTimer, QUrl, Qt, QCoreApplication
-from PyQt5.QtGui import QIcon, QDesktopServices
-
 from .process_cfg_account import ProcessConfigureAccount
 from .transfer import TransferMoneyDialog
 from .community_view import CommunityWidget
@@ -26,10 +27,7 @@ from ..core import money
 from ..core.community import Community
 from ..tools.decorators import asyncify
 from ..__init__ import __version__
-from . import toast
-
-import asyncio
-import logging
+from cutecoin.gui.widgets import toast
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -86,7 +84,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def startup(self):
         self.update_time()
-        self.app.get_last_version()
+        # FIXME : Need python 3.5 self.app.get_last_version()
         if self.app.preferences['maximized']:
             self.showMaximized()
         else:
@@ -174,7 +172,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def open_transfer_money_dialog(self):
         dialog = TransferMoneyDialog(self.app,
                                      self.app.current_account,
-                                     self.password_asker)
+                                     self.password_asker,
+                                     self.community_view.community,
+                                     None)
         if dialog.exec_() == QDialog.Accepted:
             self.community_view.tab_history.table_history.model().sourceModel().refresh_transfers()
 
@@ -227,12 +227,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         <p>Version : {:}</p>
         {new_version_text}
 
-        <p>License : MIT</p>
+        <p>License : GPLv3</p>
 
         <p><b>Authors</b></p>
 
         <p>inso</p>
         <p>vit</p>
+        <p>Moul</p>
         <p>canercandan</p>
         """).format(__version__, new_version_text=new_version_text)
 
@@ -255,9 +256,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @pyqtSlot(Community)
     def change_community(self, community):
-        if self.community_view.community:
-            self.community_view.community.stop_coroutines()
-
         if community:
             self.homescreen.hide()
             self.community_view.show()
@@ -294,8 +292,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
         logging.debug("Refresh started")
         self.refresh_accounts()
-        self.homescreen.show()
         self.community_view.hide()
+        self.homescreen.show()
         self.homescreen.refresh()
 
         if self.app.current_account is None:

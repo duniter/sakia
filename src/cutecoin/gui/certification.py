@@ -3,14 +3,18 @@ Created on 24 dec. 2014
 
 @author: inso
 """
-from PyQt5.QtWidgets import QDialog, QMessageBox, QDialogButtonBox, QApplication
-from PyQt5.QtCore import Qt, pyqtSlot
-from ..gen_resources.certification_uic import Ui_CertificationDialog
-from . import toast
-from ..core.net.api import bma as qtbma
-from ..tools.decorators import asyncify
 import asyncio
 import logging
+
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QApplication
+
+from PyQt5.QtCore import Qt
+
+from ..gen_resources.certification_uic import Ui_CertificationDialog
+from cutecoin.gui.widgets import toast
+from cutecoin.gui.widgets.dialogs import QAsyncMessageBox
+from ..tools.decorators import asyncify
+from ..tools.exceptions import NoPeerAvailable
 
 
 class CertificationDialog(QDialog, Ui_CertificationDialog):
@@ -35,14 +39,17 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
         for contact in certifier.contacts:
             self.combo_contact.addItem(contact['name'])
 
-    @staticmethod
-    def certify_identity(app, account, password_asker, community, identity):
-        dialog = CertificationDialog(app, account, password_asker)
+    @classmethod
+    @asyncio.coroutine
+    def certify_identity(cls, app, account, password_asker, community, identity):
+        dialog = cls(app, account, password_asker)
         dialog.combo_community.setCurrentText(community.name)
         dialog.edit_pubkey.setText(identity.pubkey)
         dialog.radio_pubkey.setChecked(True)
-        return dialog.exec_()
+        return (yield from dialog.async_exec())
 
+    @asyncify
+    @asyncio.coroutine
     def accept(self):
         if self.radio_contact.isChecked():
             index = self.combo_contact.currentIndex()
@@ -50,34 +57,29 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
         else:
             pubkey = self.edit_pubkey.text()
 
-        password = self.password_asker.exec_()
+        password = yield from self.password_asker.async_exec()
         if password == "":
             return
-
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        self.account.certification_broadcasted.connect(lambda: self.certification_sent(pubkey,
-                                                                                       self.community.currency))
-        self.account.broadcast_error.connect(self.handle_error)
-
-        asyncio.async(self.account.certify(password, self.community, pubkey))
-
-    def certification_sent(self, pubkey, currency):
-        toast.display(self.tr("Certification"),
-                      self.tr("Success certifying {0} from {1}").format(pubkey, currency))
-        self.account.certification_broadcasted.disconnect()
-        self.account.broadcast_error.disconnect(self.handle_error)
-        QApplication.restoreOverrideCursor()
-        super().accept()
-
-    @pyqtSlot(int, str)
-    def handle_error(self, error_code, text):
-        if self.app.preferences['notifications']:
-            toast.display(self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
-        #else:
-        #    QMessageBox.Critical(self, self.tr("Error", self.tr("{0} : {1}".format(error_code, text))))
-        self.account.certification_broadcasted.disconnect()
-        self.account.broadcast_error.disconnect(self.handle_error)
-        QApplication.restoreOverrideCursor()
+        result = yield from self.account.certify(password, self.community, pubkey)
+        if result[0]:
+            if self.app.preferences['notifications']:
+                toast.display(self.tr("Certification"),
+                              self.tr("Success sending certification"))
+            else:
+                yield from QAsyncMessageBox.information(self, self.tr("Certification"),
+                                             self.tr("Success sending certification"))
+            QApplication.restoreOverrideCursor()
+            super().accept()
+        else:
+            if self.app.preferences['notifications']:
+                toast.display(self.tr("Certification"), self.tr("Could not broadcast certification : {0}"
+                                                                .format(result[1])))
+            else:
+                yield from QAsyncMessageBox.critical(self, self.tr("Certification"),
+                                          self.tr("Could not broadcast certification : {0}"
+                                                                .format(result[1])))
+            QApplication.restoreOverrideCursor()
 
     def change_current_community(self, index):
         self.community = self.account.communities[index]
@@ -88,8 +90,16 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
     def refresh(self):
         account_identity = yield from self.account.identity(self.community)
         is_member = yield from account_identity.is_member(self.community)
-        block_0 = yield from self.community.get_block(0)
-        if is_member or block_0 == qtbma.blockchain.Block.null_value:
+        try:
+            block_0 = yield from self.community.get_block(0)
+        except ValueError as e:
+            if '404' in str(e) or '000' in str(e):
+                block_0 = None
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
+            block_0 = None
+
+        if is_member or not block_0:
             self.button_box.button(QDialogButtonBox.Ok).setEnabled(True)
             self.button_box.button(QDialogButtonBox.Ok).setText(self.tr("&Ok"))
         else:

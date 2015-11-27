@@ -41,6 +41,7 @@ class RelativeZSum:
             relative_value = self.amount / float(dividend)
             relative_median = median / dividend
         else:
+            relative_value = self.amount
             relative_median = 0
         return relative_value - relative_median
 
@@ -51,10 +52,8 @@ class RelativeZSum:
     @asyncio.coroutine
     def localized(self, units=False, international_system=False):
         value = yield from self.value()
-        if international_system:
-            pass
-        else:
-            localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
+
+        localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
 
         if units:
             return QCoreApplication.translate("RelativeZSum", RelativeZSum._REF_STR_)\
@@ -64,12 +63,9 @@ class RelativeZSum:
             return localized_value
 
     def diff_localized(self, units=False, international_system=False):
-        value = self.differential()
+        value = yield from self.differential()
 
-        if international_system:
-            pass
-        else:
-            localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
+        localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
 
         if units:
             return QCoreApplication.translate("RelativeZSum", RelativeZSum._REF_STR_)\

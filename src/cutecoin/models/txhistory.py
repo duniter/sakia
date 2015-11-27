@@ -7,7 +7,8 @@ Created on 5 févr. 2014
 import datetime
 import logging
 import asyncio
-from ..core.transfer import Transfer
+from ..core.transfer import Transfer, TransferState
+from ..tools.exceptions import NoPeerAvailable
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, \
     QDateTime, QLocale, QModelIndex
@@ -18,7 +19,6 @@ from PyQt5.QtGui import QFont, QColor
 class TxFilterProxyModel(QSortFilterProxyModel):
     def __init__(self, ts_from, ts_to, parent=None):
         super().__init__(parent)
-        self.community = None
         self.app = None
         self.ts_from = ts_from
         self.ts_to = ts_to
@@ -67,11 +67,14 @@ class TxFilterProxyModel(QSortFilterProxyModel):
 
         return in_period(date)
 
+    @property
+    def community(self):
+        return self.sourceModel().community
+
     def columnCount(self, parent):
         return self.sourceModel().columnCount(None) - 5
 
     def setSourceModel(self, sourceModel):
-        self.community = sourceModel.community
         self.app = sourceModel.app
         super().setSourceModel(sourceModel)
 
@@ -116,20 +119,20 @@ class TxFilterProxyModel(QSortFilterProxyModel):
 
         if role == Qt.FontRole:
             font = QFont()
-            if state_data == Transfer.AWAITING or state_data == Transfer.VALIDATING:
+            if state_data == TransferState.AWAITING or state_data == TransferState.VALIDATING:
                 font.setItalic(True)
-            elif state_data == Transfer.REFUSED:
+            elif state_data == TransferState.REFUSED:
                 font.setItalic(True)
-            elif state_data == Transfer.TO_SEND:
+            elif state_data == TransferState.TO_SEND:
                 font.setBold(True)
             else:
                 font.setItalic(False)
             return font
 
         if role == Qt.ForegroundRole:
-            if state_data == Transfer.REFUSED:
+            if state_data == TransferState.REFUSED:
                 return QColor(Qt.red)
-            elif state_data == Transfer.TO_SEND:
+            elif state_data == TransferState.TO_SEND:
                 return QColor(Qt.blue)
 
         if role == Qt.TextAlignmentRole:
@@ -143,23 +146,27 @@ class TxFilterProxyModel(QSortFilterProxyModel):
             if source_index.column() == self.sourceModel().columns_types.index('date'):
                 return QDateTime.fromTime_t(source_data).toString(Qt.SystemLocaleLongDate)
 
-            if state_data == Transfer.VALIDATING or state_data == Transfer.AWAITING:
+            if state_data == TransferState.VALIDATING or state_data == TransferState.AWAITING:
                 block_col = model.columns_types.index('block_number')
                 block_index = model.index(source_index.row(), block_col)
                 block_data = model.data(block_index, Qt.DisplayRole)
 
-                if state_data == Transfer.VALIDATING:
-                    current_validations = self.community.network.latest_block_number - block_data
-                else:
-                    current_validations = 0
-                max_validations = self.sourceModel().max_validations()
+                current_confirmations = 0
+                if state_data == TransferState.VALIDATING:
+                    current_blockid_number = self.community.network.current_blockid.number
+                    if current_blockid_number:
+                        current_confirmations = current_blockid_number - block_data
+                elif state_data == TransferState.AWAITING:
+                    current_confirmations = 0
+
+                max_confirmations = self.sourceModel().max_confirmations()
 
                 if self.app.preferences['expert_mode']:
-                    return self.tr("{0} / {1} validations").format(current_validations, max_validations)
+                    return self.tr("{0} / {1} confirmations").format(current_confirmations, max_confirmations)
                 else:
-                    validation = current_validations / max_validations * 100
-                    validation = 100 if validation > 100 else validation
-                    return self.tr("Validating... {0} %").format(QLocale().toString(float(validation), 'f', 0))
+                    confirmation = current_confirmations / max_confirmations * 100
+                    confirmation = 100 if confirmation > 100 else confirmation
+                    return self.tr("Confirming... {0} %").format(QLocale().toString(float(confirmation), 'f', 0))
 
             return None
 
@@ -181,7 +188,7 @@ class HistoryTableModel(QAbstractTableModel):
         self.community = community
         self.transfers_data = []
         self.refresh_transfers()
-        self._max_validations = 0
+        self._max_confirmations = 0
 
         self.columns_types = (
             'date',
@@ -237,7 +244,10 @@ class HistoryTableModel(QAbstractTableModel):
 
         date_ts = transfer.metadata['time']
         txid = transfer.metadata['txid']
-        block_number = transfer.metadata['block']
+        if transfer.blockid:
+            block_number = transfer.blockid.number
+        else:
+            block_number = None
 
         return (date_ts, sender, "", deposit,
                 comment, transfer.state, txid,
@@ -258,7 +268,10 @@ class HistoryTableModel(QAbstractTableModel):
 
         date_ts = transfer.metadata['time']
         txid = transfer.metadata['txid']
-        block_number = transfer.metadata['block']
+        if transfer.blockid:
+            block_number = transfer.blockid.number
+        else:
+            block_number = None
 
         return (date_ts, receiver, paiment,
                 "", comment, transfer.state, txid,
@@ -286,6 +299,9 @@ class HistoryTableModel(QAbstractTableModel):
     def refresh_transfers(self):
         self.beginResetModel()
         self.transfers_data = []
+        self.endResetModel()
+        self.beginResetModel()
+        transfers_data = []
         if self.community:
             for transfer in self.transfers():
                 data = None
@@ -297,13 +313,18 @@ class HistoryTableModel(QAbstractTableModel):
                 elif type(transfer) is dict:
                     data = yield from self.data_dividend(transfer)
                 if data:
-                    self.transfers_data.append(data)
-                members_pubkeys = yield from self.community.members_pubkeys()
-                self._max_validations = self.community.network.fork_window(members_pubkeys) + 1
+                    transfers_data.append(data)
+                try:
+                    members_pubkeys = yield from self.community.members_pubkeys()
+                    self._max_confirmations = self.community.network.fork_window(members_pubkeys) + 1
+                except NoPeerAvailable as e:
+                    logging.debug(str(e))
+                    self._max_confirmations = 0
+        self.transfers_data = transfers_data
         self.endResetModel()
 
-    def max_validations(self):
-        return self._max_validations
+    def max_confirmations(self):
+        return self._max_confirmations
 
     def rowCount(self, parent):
         return len(self.transfers_data)

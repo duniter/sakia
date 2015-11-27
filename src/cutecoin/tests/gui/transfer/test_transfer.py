@@ -4,42 +4,43 @@ import asyncio
 import quamash
 import time
 import logging
-from ucoinpy.documents.peer import BMAEndpoint as PyBMAEndpoint
-from PyQt5.QtWidgets import QDialog, QDialogButtonBox
+from quamash import QApplication
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QMessageBox
 from PyQt5.QtCore import QLocale, Qt
 from PyQt5.QtTest import QTest
+from ucoinpy.api.bma import API
+from cutecoin.tests.mocks.monkeypatch import pretender_reversed
 from cutecoin.tests.mocks.bma import nice_blockchain
-from cutecoin.tests.mocks.access_manager import MockNetworkAccessManager
 from cutecoin.core.registry.identities import IdentitiesRegistry
 from cutecoin.gui.transfer import TransferMoneyDialog
 from cutecoin.gui.password_asker import PasswordAskerDialog
 from cutecoin.core.app import Application
 from cutecoin.core import Account, Community, Wallet
 from cutecoin.core.net import Network, Node
-from cutecoin.core.net.endpoint import BMAEndpoint
+from ucoinpy.documents.peer import BMAEndpoint
 from cutecoin.core.net.api.bma.access import BmaAccess
-from cutecoin.tests import get_application
-from cutecoin.core.net.api import bma as qtbma
+from cutecoin.tests import get_application, unitttest_exception_handler
+from ucoinpy.api import bma
 
 
 class TestTransferDialog(unittest.TestCase):
     def setUp(self):
         self.qapplication = get_application()
-        self.network_manager = MockNetworkAccessManager()
         QLocale.setDefault(QLocale("en_GB"))
         self.lp = quamash.QEventLoop(self.qapplication)
         asyncio.set_event_loop(self.lp)
+        #self.lp.set_exception_handler(lambda lp, ctx : unitttest_exception_handler(self, lp, ctx))
         self.identities_registry = IdentitiesRegistry({})
 
-        self.application = Application(self.qapplication, self.lp, self.network_manager, self.identities_registry)
+        self.application = Application(self.qapplication, self.lp, self.identities_registry)
         self.application.preferences['notifications'] = False
 
-        self.endpoint = BMAEndpoint(PyBMAEndpoint("", "127.0.0.1", "", 50000))
-        self.node = Node(self.network_manager, "test_currency", [self.endpoint],
+        self.endpoint = BMAEndpoint("", "127.0.0.1", "", 50000)
+        self.node = Node("test_currency", [self.endpoint],
                          "", "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk",
-                         qtbma.blockchain.Block.null_value, Node.ONLINE,
+                         None, Node.ONLINE,
                          time.time(), {}, "ucoin", "0.14.0", 0)
-        self.network = Network.create(self.network_manager, self.node)
+        self.network = Network.create(self.node)
         self.bma_access = BmaAccess.create(self.network)
         self.community = Community("test_currency", self.network, self.bma_access)
 
@@ -65,15 +66,18 @@ class TestTransferDialog(unittest.TestCase):
         mock = nice_blockchain.get_mock()
         time.sleep(2)
         logging.debug(mock.pretend_url)
-        self.network_manager.set_mock_path(mock.pretend_url)
+        API.reverse_url = pretender_reversed(mock.pretend_url)
         transfer_dialog = TransferMoneyDialog(self.application,
-                                                   self.account,
-                                                   self.password_asker)
+                                              self.account,
+                                              self.password_asker,
+                                              self.community,
+                                              None)
+        self.account.wallets[0].init_cache(self.application, self.community)
 
         @asyncio.coroutine
         def open_dialog(certification_dialog):
             result = yield from certification_dialog.async_exec()
-            self.assertEqual(result, QDialog.Rejected)
+            self.assertEqual(result, QDialog.Accepted)
 
         def close_dialog():
             if transfer_dialog.isVisible():
@@ -82,9 +86,16 @@ class TestTransferDialog(unittest.TestCase):
         @asyncio.coroutine
         def exec_test():
             yield from asyncio.sleep(1)
+            self.account.wallets[0].caches[self.community.currency].available_sources = yield from self.wallet.sources(self.community)
             QTest.mouseClick(transfer_dialog.radio_pubkey, Qt.LeftButton)
             QTest.keyClicks(transfer_dialog.edit_pubkey, "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn")
-            QTest.mouseClick(transfer_dialog.button_box.button(QDialogButtonBox.Cancel), Qt.LeftButton)
+            transfer_dialog.spinbox_amount.setValue(10)
+            QTest.mouseClick(transfer_dialog.button_box.button(QDialogButtonBox.Ok), Qt.LeftButton)
+            yield from asyncio.sleep(1)
+            topWidgets = QApplication.topLevelWidgets()
+            for w in topWidgets:
+                if type(w) is QMessageBox:
+                    QTest.keyClick(w, Qt.Key_Enter)
 
         self.lp.call_later(15, close_dialog)
         asyncio.async(exec_test())

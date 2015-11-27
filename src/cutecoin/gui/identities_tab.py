@@ -4,20 +4,24 @@ Created on 2 févr. 2014
 @author: inso
 """
 
+import asyncio
 import logging
+
 from PyQt5.QtCore import Qt, pyqtSignal, QEvent
-from PyQt5.QtGui import QIcon, QCursor
-from PyQt5.QtWidgets import QWidget, QMessageBox, QAction, QMenu, QDialog, \
+from PyQt5.QtGui import QCursor
+from PyQt5.QtWidgets import QWidget, QAction, QMenu, QDialog, \
                             QAbstractItemView
+from ucoinpy.api import bma
+
 from ..models.identities import IdentitiesFilterProxyModel, IdentitiesTableModel
 from ..gen_resources.identities_tab_uic import Ui_IdentitiesTab
 from .contact import ConfigureContactDialog
 from .member import MemberDialog
 from .transfer import TransferMoneyDialog
+from cutecoin.gui.widgets.busy import Busy
 from .certification import CertificationDialog
-import asyncio
-from ..core.net.api import bma as qtbma
 from ..core.registry import Identity
+from ..tools.exceptions import NoPeerAvailable
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 
 
@@ -27,6 +31,7 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
     classdocs
     """
     view_in_wot = pyqtSignal(Identity)
+    money_sent = pyqtSignal()
 
     def __init__(self, app):
         """
@@ -52,6 +57,8 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         self.table_identities.customContextMenuRequested.connect(self.identity_context_menu)
         self.table_identities.sortByColumn(0, Qt.AscendingOrder)
         self.table_identities.resizeColumnsToContents()
+        identities_model.modelAboutToBeReset.connect(lambda: self.table_identities.setEnabled(False))
+        identities_model.modelReset.connect(lambda: self.table_identities.setEnabled(True))
 
         members_action = QAction(self.tr("Members"), self)
         members_action.triggered.connect(self._async_search_members)
@@ -61,11 +68,15 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         self.button_search.addAction(direct_connections)
         self.button_search.clicked.connect(self._async_execute_search_text)
 
+        self.busy = Busy(self.table_identities)
+        self.busy.hide()
+
     def cancel_once_tasks(self):
         cancel_once_task(self, self.identity_context_menu)
         cancel_once_task(self, self._async_execute_search_text)
         cancel_once_task(self, self._async_search_members)
         cancel_once_task(self, self._async_search_direct_connections)
+        cancel_once_task(self, self.refresh_identities)
 
     def change_account(self, account, password_asker):
         self.cancel_once_tasks()
@@ -114,11 +125,16 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
             view_wot.triggered.connect(self.view_wot)
             view_wot.setData(identity)
 
+            copy_pubkey = QAction(self.tr("Copy pubkey"), self)
+            copy_pubkey.triggered.connect(self.copy_identity_pubkey)
+            copy_pubkey.setData(identity)
+
             menu.addAction(informations)
             menu.addAction(add_contact)
             menu.addAction(send_money)
             menu.addAction(certify)
             menu.addAction(view_wot)
+            menu.addAction(copy_pubkey)
 
             # Show the context menu.
             menu.popup(QCursor.pos())
@@ -150,20 +166,30 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         if result == QDialog.Accepted:
             self.window().refresh_contacts()
 
+    @asyncify
+    @asyncio.coroutine
     def send_money_to_identity(self, identity):
-        if isinstance(identity, str):
-            pubkey = identity
-        else:
-            pubkey = identity.pubkey
-        result = TransferMoneyDialog.send_money_to_identity(self.app, self.account, self.password_asker,
+        result = yield from TransferMoneyDialog.send_money_to_identity(self.app, self.account, self.password_asker,
                                                             self.community, identity)
         if result == QDialog.Accepted:
-            currency_tab = self.window().currencies_tabwidget.currentWidget()
-            currency_tab.tab_history.table_history.model().sourceModel().refresh_transfers()
+            self.money_sent.emit()
 
+    @asyncify
+    @asyncio.coroutine
     def certify_identity(self, identity):
-        CertificationDialog.certify_identity(self.app, self.account, self.password_asker,
+        yield from CertificationDialog.certify_identity(self.app, self.account, self.password_asker,
                                              self.community, identity)
+
+    def copy_identity_pubkey(self):
+        """
+        Copy the identity pubkey to the clipboard
+
+        :param cutecoin.core.registry.Identity identity: The identity
+        """
+        identity = self.sender().data()
+        cb = self.app.qapp.clipboard()
+        cb.clear(mode=cb.Clipboard)
+        cb.setText(identity.pubkey, mode=cb.Clipboard)
 
     def view_wot(self):
         identity = self.sender().data()
@@ -173,17 +199,26 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
     @asyncify
     @asyncio.coroutine
     def _async_execute_search_text(self, checked):
+        cancel_once_task(self, self._async_search_members)
+        cancel_once_task(self, self._async_search_direct_connections)
+
+        self.busy.show()
         text = self.edit_textsearch.text()
         if len(text) < 2:
             return
-        response = yield from self.community.bma_access.future_request(qtbma.wot.Lookup, {'search': text})
-        identities = []
-        for identity_data in response['results']:
-            identity = yield from self.app.identities_registry.future_find(identity_data['pubkey'], self.community)
-            identities.append(identity)
+        try:
+            response = yield from self.community.bma_access.future_request(bma.wot.Lookup, {'search': text})
+            identities = []
+            for identity_data in response['results']:
+                identity = yield from self.app.identities_registry.future_find(identity_data['pubkey'], self.community)
+                identities.append(identity)
 
-        self.edit_textsearch.clear()
-        self.refresh_identities(identities)
+            self.edit_textsearch.clear()
+            yield from self.refresh_identities(identities)
+        except ValueError as e:
+            logging.debug(str(e))
+        finally:
+            self.busy.hide()
 
     @once_at_a_time
     @asyncify
@@ -192,7 +227,11 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         """
         Search members of community and display found members
         """
+        cancel_once_task(self, self._async_execute_search_text)
+        cancel_once_task(self, self._async_search_direct_connections)
+
         if self.community:
+            self.busy.show()
             pubkeys = yield from self.community.members_pubkeys()
             identities = []
             for p in pubkeys:
@@ -200,7 +239,8 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
                 identities.append(identity)
 
             self.edit_textsearch.clear()
-            self.refresh_identities(identities)
+            yield from self.refresh_identities(identities)
+            self.busy.hide()
 
     @once_at_a_time
     @asyncify
@@ -209,28 +249,42 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         """
         Search members of community and display found members
         """
-        if self.account and self.community:
-            self_identity = yield from self.account.identity(self.community)
-            account_connections = []
-            certs_of = yield from self_identity.unique_valid_certifiers_of(self.app.identities_registry, self.community)
-            for p in certs_of:
-                account_connections.append(p['identity'])
-            certifiers_of = [p for p in account_connections]
-            certs_by = yield from self_identity.unique_valid_certified_by(self.app.identities_registry, self.community)
-            for p in certs_by:
-                account_connections.append(p['identity'])
-            certified_by = [p for p in account_connections
-                      if p.pubkey not in [i.pubkey for i in certifiers_of]]
-            identities = certifiers_of + certified_by
-            self.refresh_identities(identities)
+        cancel_once_task(self, self._async_search_members)
+        cancel_once_task(self, self._async_execute_search_text)
 
+        if self.account and self.community:
+            try:
+                yield from self.refresh_identities([])
+                self.busy.show()
+                self_identity = yield from self.account.identity(self.community)
+                account_connections = []
+                certs_of = yield from self_identity.unique_valid_certifiers_of(self.app.identities_registry, self.community)
+                for p in certs_of:
+                    account_connections.append(p['identity'])
+                certifiers_of = [p for p in account_connections]
+                certs_by = yield from self_identity.unique_valid_certified_by(self.app.identities_registry, self.community)
+                for p in certs_by:
+                    account_connections.append(p['identity'])
+                certified_by = [p for p in account_connections
+                          if p.pubkey not in [i.pubkey for i in certifiers_of]]
+                identities = certifiers_of + certified_by
+                self.busy.hide()
+                yield from self.refresh_identities(identities)
+            except NoPeerAvailable:
+                self.busy.hide()
+
+    @asyncio.coroutine
     def refresh_identities(self, identities):
         """
         Refresh the table with specified identities.
         If no identities is passed, use the account connections.
         """
-        self.table_identities.model().sourceModel().refresh_identities(identities)
+        yield from self.table_identities.model().sourceModel().refresh_identities(identities)
         self.table_identities.resizeColumnsToContents()
+
+    def resizeEvent(self, event):
+        self.busy.resize(event.size())
+        super().resizeEvent(event)
 
     def changeEvent(self, event):
         """

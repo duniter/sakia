@@ -10,17 +10,21 @@ import tarfile
 import shutil
 import json
 import datetime
-import i18n_rc
+import asyncio
+import aiohttp
+import time
 
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, \
 QUrl, QTranslator, QCoreApplication, QLocale
-from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest, QNetworkProxy
-
+from ucoinpy.api.bma import API
+from aiohttp.connector import ProxyConnector
 from . import config
 from .account import Account
 from .registry.identities import IdentitiesRegistry
 from .. import __version__
 from ..tools.exceptions import NameAlreadyExists, BadAccountFile
+from ..tools.decorators import asyncify
+import i18n_rc
 
 
 class Application(QObject):
@@ -33,12 +37,11 @@ class Application(QObject):
 
     version_requested = pyqtSignal()
 
-    def __init__(self, qapp, loop, network_manager, identities_registry):
+    def __init__(self, qapp, loop, identities_registry):
         """
         Init a new "cutecoin" application
         :param QCoreApplication qapp: Qt Application
         :param quamash.QEventLoop loop: quamash.QEventLoop instance
-        :param QNetworkAccessManager network_manager: QNetworkAccessManager instance
         :param IdentitiesRegistry identities_registry: IdentitiesRegistry instance
         :return:
         """
@@ -51,8 +54,8 @@ class Application(QObject):
         self.available_version = (True,
                                   __version__,
                                   "")
+        self._translator = QTranslator(self.qapp)
         self._identities_registry = identities_registry
-        self._network_manager = network_manager
         self.preferences = {'account': "",
                             'lang': 'en_GB',
                             'ref': 0,
@@ -64,25 +67,30 @@ class Application(QObject):
                             'proxy_type': "HTTP",
                             'proxy_address': "",
                             'proxy_port': 8080,
-                            'international_system_of_units': True
+                            'international_system_of_units': True,
+                            'auto_refresh': False
+                            }
+
+        self.notifications = {'membership_expire_soon':
+                                  [
+                                      self.tr("Warning : Your membership is expiring soon."),
+                                      0
+                                   ],
+                            'warning_certifications':
+                                    [
+                                        self.tr("Warning : Your could miss certifications soon."),
+                                        0
+                                    ]
                             }
 
     @classmethod
     def startup(cls, argv, qapp, loop):
         config.parse_arguments(argv)
-        network_manager = QNetworkAccessManager()
         identities_registry = IdentitiesRegistry()
-        app = cls(qapp, loop, network_manager, identities_registry)
+        app = cls(qapp, loop, identities_registry)
         app.load()
         app.switch_language()
-        if app.preferences['enable_proxy'] is True:
-            proxytypes = {"HTTP": QNetworkProxy.HttpProxy,
-                          "SOCKS5": QNetworkProxy.Socks5Proxy}
-            qtproxy = QNetworkProxy(proxytypes[app.preferences.get('proxy_type', "HTTP")],
-                                    app.preferences['proxy_address'],
-                                    app.preferences['proxy_port'])
-            network_manager.setProxy(qtproxy)
-
+        app.set_proxy()
         if app.preferences["account"] != "":
             account = app.get_account(app.preferences["account"])
             app.change_current_account(account)
@@ -101,16 +109,27 @@ class Application(QObject):
 
         return app
 
+    def set_proxy(self):
+        if self.preferences['enable_proxy'] is True:
+            API.aiohttp_connector = ProxyConnector("http://{0}:{1}".format(
+                                    self.preferences['proxy_address'],
+                                    self.preferences['proxy_port']))
+        else:
+            API.aiohttp_connector = None
+
     def switch_language(self):
-        translator = QTranslator(self.qapp)
         logging.debug("Loading translations")
         locale = self.preferences['lang']
         QLocale.setDefault(QLocale(locale))
-        if translator.load(":/i18n/{0}".format(locale)):
-            if QCoreApplication.installTranslator(translator):
+        QCoreApplication.removeTranslator(self._translator)
+        self._translator = QTranslator(self.qapp)
+        if locale == "en_GB":
+            QCoreApplication.installTranslator(self._translator)
+        elif self._translator.load(":/i18n/{0}".format(locale)):
+            if QCoreApplication.installTranslator(self._translator):
                 logging.debug("Loaded i18n/{0}".format(locale))
-        else:
-            logging.debug("Couldn't load translation")
+            else:
+                logging.debug("Couldn't load translation")
 
     def get_account(self, name):
         """
@@ -144,10 +163,6 @@ class Application(QObject):
     @property
     def identities_registry(self):
         return self._identities_registry
-
-    @property
-    def network_manager(self):
-        return self._network_manager
 
     def add_account(self, account):
         self.accounts[account.name] = account
@@ -233,9 +248,17 @@ class Application(QObject):
                                     account_name, 'properties')
         with open(account_path, 'r') as json_data:
             data = json.load(json_data)
-            account = Account.load(data, self._network_manager, self._identities_registry)
+            account = Account.load(data, self._identities_registry)
             self.load_cache(account)
             self.accounts[account_name] = account
+
+            for community in account.communities:
+                community.network.blockchain_rollback.connect(community.rollback_cache)
+                community.network.new_block_mined.connect(lambda b, co=community:
+                                                          account.refresh_transactions(self, co))
+                community.network.blockchain_rollback.connect(lambda b, co=community:
+                                                              account.rollback_transaction(self, co))
+                community.network.root_nodes_changed.connect(lambda acc=account: self.save(acc))
 
     def load_cache(self, account):
         """
@@ -286,7 +309,6 @@ class Application(QObject):
         """
         Load the preferences.
         """
-
         try:
             preferences_path = os.path.join(config.parameters['home'],
                                             'preferences')
@@ -312,6 +334,8 @@ class Application(QObject):
                                         'preferences')
         with open(preferences_path, 'w') as outfile:
             json.dump(preferences, outfile, indent=4)
+
+        self.set_proxy()
 
     def save(self, account):
         """
@@ -340,10 +364,13 @@ class Application(QObject):
         """
         identities_path = os.path.join(config.parameters['home'],
                                     '__identities__')
-        with open(identities_path, 'w')as outfile:
+        buffer_path = identities_path + ".buf"
+        with open(buffer_path, 'w') as outfile:
             data = self.identities_registry.jsonify()
             data['version'] = __version__
-            json.dump(data, outfile, indent=4, sort_keys=True)
+            for chunk in json.JSONEncoder().iterencode(data):
+                outfile.write(chunk)
+        shutil.move(buffer_path, identities_path)
 
     def save_wallet(self, account, wallet):
         """
@@ -358,10 +385,13 @@ class Application(QObject):
                                      account.name, '__cache__'))
         wallet_path = os.path.join(config.parameters['home'],
                                    account.name, '__cache__', wallet.pubkey + "_wal")
-        with open(wallet_path, 'w') as outfile:
+        buffer_path = wallet_path + ".buf"
+        with open(buffer_path, 'w') as outfile:
             data = wallet.jsonify_caches()
             data['version'] = __version__
-            json.dump(data, outfile, indent=4, sort_keys=True)
+            for chunk in json.JSONEncoder().iterencode(data):
+                outfile.write(chunk)
+        shutil.move(buffer_path, wallet_path)
 
     def save_cache(self, account):
         """
@@ -384,17 +414,24 @@ class Application(QObject):
             network_path = os.path.join(config.parameters['home'],
                                         account.name, '__cache__',
                                         community.currency + '_network')
+            buffer_path = network_path + ".buf"
 
-            with open(network_path, 'w') as outfile:
+            with open(buffer_path, 'w') as outfile:
                 data = dict()
                 data['network'] = community.network.jsonify()
                 data['version'] = __version__
-                json.dump(data, outfile, indent=4, sort_keys=True)
+                for chunk in json.JSONEncoder().iterencode(data):
+                    outfile.write(chunk)
+            shutil.move(buffer_path, network_path)
 
-            with open(bma_path, 'w') as outfile:
+            buffer_path = bma_path + ".buf"
+
+            with open(buffer_path, 'w') as outfile:
                 data['cache'] = community.bma_access.jsonify()
                 data['version'] = __version__
-                json.dump(data, outfile, indent=4, sort_keys=True)
+                for chunk in json.JSONEncoder().iterencode(data):
+                    outfile.write(chunk)
+            shutil.move(buffer_path, bma_path)
 
     def import_account(self, file, name):
         """
@@ -463,32 +500,35 @@ class Application(QObject):
 
         self.save_registries()
 
+    @asyncify
+    @asyncio.coroutine
     def get_last_version(self):
-        url = QUrl("https://api.github.com/repos/ucoin-io/cutecoin/releases")
-        request = QNetworkRequest(url)
-        reply = self._network_manager.get(request)
-        reply.finished.connect(self.read_available_version)
-
-    @pyqtSlot(QNetworkReply)
-    def read_available_version(self):
-        latest = None
-        reply = self.sender()
-        releases = reply.readAll().data().decode('utf-8')
-        logging.debug(releases)
-        if reply.error() == QNetworkReply.NoError:
-            for r in json.loads(releases):
-                if not latest:
-                    latest = r
-                else:
-                    latest_date = datetime.datetime.strptime(latest['published_at'], "%Y-%m-%dT%H:%M:%SZ")
-                    date = datetime.datetime.strptime(r['published_at'], "%Y-%m-%dT%H:%M:%SZ")
-                    if latest_date < date:
+        if self.preferences['enable_proxy'] is True:
+            connector = ProxyConnector("http://{0}:{1}".format(
+                                    self.preferences['proxy_address'],
+                                    self.preferences['proxy_port']))
+        else:
+            connector = None
+        try:
+            response = yield from asyncio.wait_for(aiohttp.get("https://api.github.com/repos/ucoin-io/cutecoin/releases",
+                                                               connector=connector), timeout=15)
+            if response.status == 200:
+                releases = yield from response.json()
+                for r in releases:
+                    if not latest:
                         latest = r
-            latest_version = latest["tag_name"]
-            version = (__version__ == latest_version,
-                       latest_version,
-                       latest["html_url"])
-            logging.debug("Found version : {0}".format(latest_version))
-            logging.debug("Current version : {0}".format(__version__))
-            self.available_version = version
-        self.version_requested.emit()
+                    else:
+                        latest_date = datetime.datetime.strptime(latest['published_at'], "%Y-%m-%dT%H:%M:%SZ")
+                        date = datetime.datetime.strptime(r['published_at'], "%Y-%m-%dT%H:%M:%SZ")
+                        if latest_date < date:
+                            latest = r
+                latest_version = latest["tag_name"]
+                version = (__version__ == latest_version,
+                           latest_version,
+                           latest["html_url"])
+                logging.debug("Found version : {0}".format(latest_version))
+                logging.debug("Current version : {0}".format(__version__))
+                self.available_version = version
+            self.version_requested.emit()
+        except aiohttp.errors.ClientError as e:
+            logging.debug("Could not connect to github : {0}".format(str(e)))

@@ -4,25 +4,24 @@ Created on 21 févr. 2015
 @author: inso
 """
 
-from ucoinpy.documents.peer import Peer
-from ucoinpy.documents.block import Block
+from ucoinpy.documents.peer import Peer, Endpoint, BMAEndpoint
 from ...tools.exceptions import InvalidNodeCurrency
-from ..net.api import bma as qtbma
-from ..net.endpoint import Endpoint, BMAEndpoint
-from ..net.api.bma import ConnectionHandler
+from ...tools.decorators import asyncify
+from ucoinpy.api import bma as bma
+from ucoinpy.api.bma import ConnectionHandler
 
 import asyncio
+from aiohttp.errors import ClientError, DisconnectedError
 import logging
 import time
-import json
+import jsonschema
 
-from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
-from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
+from PyQt5.QtCore import QObject, pyqtSignal
 
 
 class Node(QObject):
     """
-    A node is a peer seend from the client point of view.
+    A node is a peer send from the client point of view.
     This node can have multiple states :
     - ONLINE : The node is available for requests
     - OFFLINE: The node is disconnected
@@ -36,19 +35,21 @@ class Node(QObject):
     CORRUPTED = 4
 
     changed = pyqtSignal()
+    error = pyqtSignal()
+    identity_changed = pyqtSignal()
     neighbour_found = pyqtSignal(Peer, str)
 
-    def __init__(self, network_manager, currency, endpoints, uid, pubkey, block,
+    def __init__(self, currency, endpoints, uid, pubkey, block,
                  state, last_change, last_merkle, software, version, fork_window):
         """
         Constructor
         """
         super().__init__()
-        self.network_manager = network_manager
         self._endpoints = endpoints
         self._uid = uid
         self._pubkey = pubkey
         self._block = block
+        self.main_chain_previous_block = None
         self._state = state
         self._neighbours = []
         self._currency = currency
@@ -57,10 +58,11 @@ class Node(QObject):
         self._software = software
         self._version = version
         self._fork_window = fork_window
+        self._refresh_counter = 0
 
     @classmethod
     @asyncio.coroutine
-    def from_address(cls, network_manager, currency, address, port):
+    def from_address(cls, currency, address, port):
         """
         Factory method to get a node from a given address
 
@@ -68,72 +70,59 @@ class Node(QObject):
          the currency it should have, for example if its the first one we add
         :param str address: The node address
         :param int port: The node port
+        :return: A new node
+        :rtype: cutecoin.core.net.Node
         """
-        def handle_reply(reply):
-            if reply.error() == QNetworkReply.NoError:
-                strdata = bytes(reply.readAll()).decode('utf-8')
-                nonlocal peer_data
-                peer_data = json.loads(strdata)
-                future_reply.set_result(True)
-            else:
-                future_reply.set_result(False)
+        peer_data = yield from bma.network.Peering(ConnectionHandler(address, port)).get()
 
-        future_reply = asyncio.Future()
-        peer_data = {}
-        reply = qtbma.network.Peering(ConnectionHandler(network_manager, address, port)).get()
-        reply.finished.connect(lambda: handle_reply(reply))
+        peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],
+                                                  peer_data['signature']))
 
-        yield from future_reply
-        if future_reply.result():
-            peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],
-                                                      peer_data['signature']))
+        if currency is not None:
+            if peer.currency != currency:
+                raise InvalidNodeCurrency(peer.currency, currency)
 
-            if currency is not None:
-                if peer.currency != currency:
-                    raise InvalidNodeCurrency(peer.currency, currency)
-
-            node = cls(network_manager, peer.currency,
-                       [Endpoint.from_inline(e.inline()) for e in peer.endpoints],
-                       "", peer.pubkey, qtbma.blockchain.Block.null_value, Node.ONLINE, time.time(),
-                       {'root': "", 'leaves': []}, "", "", 0)
-            logging.debug("Node from address : {:}".format(str(node)))
-            return node
-        else:
-            return None
+        node = cls(peer.currency,
+                   [Endpoint.from_inline(e.inline()) for e in peer.endpoints],
+                   "", peer.pubkey, None, Node.ONLINE, time.time(),
+                   {'root': "", 'leaves': []}, "", "", 0)
+        logging.debug("Node from address : {:}".format(str(node)))
+        return node
 
     @classmethod
-    def from_peer(cls, network_manager, currency, peer, pubkey):
+    def from_peer(cls, currency, peer, pubkey):
         """
         Factory method to get a node from a peer document.
 
         :param str currency: The node currency. None if we don't know\
          the currency it should have, for example if its the first one we add
         :param peer: The peer document
+        :return: A new node
+        :rtype: cutecoin.core.net.Node
         """
         if currency is not None:
             if peer.currency != currency:
                 raise InvalidNodeCurrency(peer.currency, currency)
 
-        node = cls(network_manager, peer.currency,
-                    [Endpoint.from_inline(e.inline()) for e in peer.endpoints],
-                   "", pubkey, qtbma.blockchain.Block.null_value,
-                   Node.ONLINE, time.time(),
+        node = cls(peer.currency, peer.endpoints,
+                   "", pubkey, None,
+                   Node.OFFLINE, time.time(),
                    {'root': "", 'leaves': []},
                    "", "", 0)
         logging.debug("Node from peer : {:}".format(str(node)))
         return node
 
     @classmethod
-    def from_json(cls, network_manager, currency, data):
+    def from_json(cls, currency, data):
         endpoints = []
         uid = ""
         pubkey = ""
         software = ""
         version = ""
         fork_window = 0
-        block = qtbma.blockchain.Block.null_value
+        block = None
         last_change = time.time()
-        state = Node.ONLINE
+        state = Node.OFFLINE
         logging.debug(data)
         for endpoint_data in data['endpoints']:
             endpoints.append(Endpoint.from_inline(endpoint_data))
@@ -165,7 +154,7 @@ class Node(QObject):
         if 'fork_window' in data:
             fork_window = data['fork_window']
 
-        node = cls(network_manager, currency, endpoints,
+        node = cls(currency, endpoints,
                    uid, pubkey, block,
                    state, last_change,
                    {'root': "", 'leaves': []},
@@ -259,17 +248,20 @@ class Node(QObject):
 
     @last_change.setter
     def last_change(self, val):
-        logging.debug("{:} | Changed state : {:}".format(self.pubkey[:5],
-                                                         val))
+        #logging.debug("{:} | Changed state : {:}".format(self.pubkey[:5],
+        #                                                val))
         self._last_change = val
 
     @state.setter
     def state(self, new_state):
-        logging.debug("{:} | Last state : {:} / new state : {:}".format(self.pubkey[:5],
-                                                                        self.state, new_state))
+        #logging.debug("{:} | Last state : {:} / new state : {:}".format(self.pubkey[:5],
+        #                                                               self.state, new_state))
         if self._state != new_state:
             self.last_change = time.time()
-        self._state = new_state
+            self._state = new_state
+            self.changed.emit()
+        if new_state in (Node.OFFLINE, Node.ONLINE):
+            self.error.emit()
 
     @property
     def fork_window(self):
@@ -281,193 +273,254 @@ class Node(QObject):
             self._fork_window = new_fork_window
             self.changed.emit()
 
-    def check_noerror(self, error_code, status_code):
-        if error_code == QNetworkReply.NoError:
-            if status_code in (200, 404):
-                if self.state == Node.OFFLINE:
-                    self.state = Node.ONLINE
-                return True
-        self.state = Node.OFFLINE
-        return False
-
-    @pyqtSlot()
-    def refresh(self):
-        logging.debug("Refresh block")
+    def refresh(self, manual=False):
+        """
+        Refresh all data of this node
+        :param bool manual: True if the refresh was manually initiated
+        """
         self.refresh_block()
-        logging.debug("Refresh info")
-        self.refresh_informations()
-        logging.debug("Refresh uid")
-        self.refresh_uid()
-        logging.debug("Refresh peers")
         self.refresh_peers()
-        logging.debug("Refresh summary")
-        self.refresh_summary()
 
+        if self._refresh_counter % 20 == 0 or manual:
+            self.refresh_informations()
+            self.refresh_uid()
+            self.refresh_summary()
+            self._refresh_counter = self._refresh_counter if manual else 1
+        else:
+            self._refresh_counter += 1
+
+    @asyncify
+    @asyncio.coroutine
     def refresh_block(self):
-        conn_handler = self.endpoint.conn_handler(self.network_manager)
+        """
+        Refresh the blocks of this node
+        """
+        conn_handler = self.endpoint.conn_handler()
 
         logging.debug("Requesting {0}".format(conn_handler))
-        reply = qtbma.blockchain.Current(conn_handler).get()
-        reply.finished.connect(self.handle_block_reply)
+        try:
+            block_data = yield from bma.blockchain.Current(conn_handler).get()
+            block_hash = block_data['hash']
+            self.state = Node.ONLINE
 
-    @pyqtSlot()
-    def handle_block_reply(self):
-        reply = self.sender()
-        status_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
-
-        if self.check_noerror(reply.error(), status_code):
-            if status_code == 200:
-                strdata = bytes(reply.readAll()).decode('utf-8')
-                block_data = json.loads(strdata)
-                block_hash = block_data['hash']
-            elif status_code == 404:
-                self.set_block(qtbma.blockchain.Block.null_value)
-
-            if block_hash != self.block['hash']:
-                self.set_block(block_data)
-                logging.debug("Changed block {0} -> {1}".format(self.block['number'],
-                                                                block_data['number']))
-                self.changed.emit()
-
-        else:
-            logging.debug("Error in block reply")
+            if not self.block or block_hash != self.block['hash']:
+                try:
+                    if self.block:
+                        self.main_chain_previous_block = yield from bma.blockchain.Block(conn_handler,
+                                                                                     self.block['number']).get()
+                except ValueError as e:
+                    if '404' in str(e):
+                        self.main_chain_previous_block = None
+                    logging.debug("Error in previous block reply :  {0}".format(self.pubkey))
+                    logging.debug(str(e))
+                    self.changed.emit()
+                except ClientError:
+                    logging.debug("Client error : {0}".format(self.pubkey))
+                    self.state = Node.OFFLINE
+                except DisconnectedError:
+                    logging.debug("Disconnected error : {0}".format(self.pubkey))
+                    self.state = Node.OFFLINE
+                except asyncio.TimeoutError:
+                    logging.debug("Timeout error : {0}".format(self.pubkey))
+                    self.state = Node.OFFLINE
+                except jsonschema.ValidationError:
+                    logging.debug("Validation error : {0}".format(self.pubkey))
+                    self.state = Node.CORRUPTED
+                finally:
+                    self.set_block(block_data)
+                    logging.debug("Changed block {0} -> {1}".format(self.block['number'],
+                                                                    block_data['number']))
+                    self.changed.emit()
+        except ValueError as e:
+            if '404' in str(e):
+                self.main_chain_previous_block = None
+                self.set_block(None)
+            logging.debug("Error in block reply :  {0}".format(self.pubkey))
+            logging.debug(str(e))
             self.changed.emit()
+        except ClientError:
+            logging.debug("Client error : {0}".format(self.pubkey))
+            self.state = Node.OFFLINE
+        except DisconnectedError:
+            logging.debug("Disconnected error : {0}".format(self.pubkey))
+            self.state = Node.OFFLINE
+        except asyncio.TimeoutError:
+            logging.debug("Timeout error : {0}".format(self.pubkey))
+            self.state = Node.OFFLINE
 
+    @asyncify
+    @asyncio.coroutine
     def refresh_informations(self):
-        conn_handler = self.endpoint.conn_handler(self.network_manager)
+        """
+        Refresh basic information (pubkey and currency)
+        """
+        conn_handler = self.endpoint.conn_handler()
 
-        peering_reply = qtbma.network.Peering(conn_handler).get()
-        peering_reply.finished.connect(self.handle_peering_reply)
-
-    @pyqtSlot()
-    def handle_peering_reply(self):
-        reply = self.sender()
-        status_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
-
-        if self.check_noerror(reply.error(), status_code):
-            strdata = bytes(reply.readAll()).decode('utf-8')
-            peering_data = json.loads(strdata)
+        try:
+            peering_data = yield from bma.network.Peering(conn_handler).get()
             logging.debug(peering_data)
             node_pubkey = peering_data["pubkey"]
             node_currency = peering_data["currency"]
+            self.state = Node.ONLINE
 
-            change = False
             if node_pubkey != self.pubkey:
                 self._pubkey = node_pubkey
-                change = True
+                self.identity_changed.emit()
 
             if node_currency != self.currency:
                 self.state = Node.CORRUPTED
                 logging.debug("Change : new state corrupted")
-                change = True
-
-            if change:
                 self.changed.emit()
-        else:
-            logging.debug("Error in peering reply")
+
+        except ValueError as e:
+            logging.debug("Error in peering reply : {0}".format(str(e)))
             self.changed.emit()
+        except ClientError:
+            logging.debug("Client error : {0}".format(self.pubkey))
+            self.state = Node.OFFLINE
+        except asyncio.TimeoutError:
+            logging.debug("Timeout error : {0}".format(self.pubkey))
+            self.state = Node.OFFLINE
+        except DisconnectedError:
+            logging.debug("Disconnected error : {0}".format(self.pubkey))
+            self.state = Node.OFFLINE
+        except jsonschema.ValidationError:
+            logging.debug("Validation error : {0}".format(self.pubkey))
+            self.state = Node.CORRUPTED
 
+    @asyncify
+    @asyncio.coroutine
     def refresh_summary(self):
-        conn_handler = self.endpoint.conn_handler(self.network_manager)
+        """
+        Refresh the summary of this node
+        """
+        conn_handler = self.endpoint.conn_handler()
 
-        summary_reply = qtbma.node.Summary(conn_handler).get()
-        summary_reply.finished.connect(self.handle_summary_reply)
-
-    @pyqtSlot()
-    def handle_summary_reply(self):
-        reply = self.sender()
-        status_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
-
-        if self.check_noerror(reply.error(), status_code):
-            strdata = bytes(reply.readAll()).decode('utf-8')
-            summary_data = json.loads(strdata)
+        try:
+            summary_data = yield from bma.node.Summary(conn_handler).get()
             self.software = summary_data["ucoin"]["software"]
             self.version = summary_data["ucoin"]["version"]
+            self.state = Node.ONLINE
             if "forkWindowSize" in summary_data["ucoin"]:
                 self.fork_window = summary_data["ucoin"]["forkWindowSize"]
             else:
                 self.fork_window = 0
-        else:
+        except ValueError as e:
+            logging.debug("Error in summary : {0}".format(e))
             self.changed.emit()
+        except ClientError:
+            logging.debug("Client error : {0}".format(self.pubkey))
+            self.state = Node.OFFLINE
+        except asyncio.TimeoutError:
+            logging.debug("Timeout error : {0}".format(self.pubkey))
+            self.state = Node.OFFLINE
+        except DisconnectedError:
+            logging.debug("Disconnected error : {0}".format(self.pubkey))
+            self.state = Node.OFFLINE
+        except jsonschema.ValidationError:
+            logging.debug("Validation error : {0}".format(self.pubkey))
+            self.state = Node.CORRUPTED
 
+    @asyncify
+    @asyncio.coroutine
     def refresh_uid(self):
-        conn_handler = self.endpoint.conn_handler(self.network_manager)
-        uid_reply = qtbma.wot.Lookup(conn_handler, self.pubkey).get()
-        uid_reply.finished.connect(self.handle_uid_reply)
-        uid_reply.error.connect(lambda code: logging.debug("Error : {0}".format(code)))
-
-    @pyqtSlot()
-    def handle_uid_reply(self):
-        reply = self.sender()
-        status_code = reply.attribute( QNetworkRequest.HttpStatusCodeAttribute );
-
-        if self.check_noerror(reply.error(), status_code):
-            uid = ''
-            if status_code == 200:
-                strdata = bytes(reply.readAll()).decode('utf-8')
-                data = json.loads(strdata)
-                timestamp = 0
-                for result in data['results']:
-                    if result["pubkey"] == self.pubkey:
-                        uids = result['uids']
-                        for uid in uids:
-                            if uid["meta"]["timestamp"] > timestamp:
-                                timestamp = uid["meta"]["timestamp"]
-                                uid = uid["uid"]
-            elif status_code == 404:
-                logging.debug("UID not found")
-
+        """
+        Refresh the node UID
+        """
+        conn_handler = self.endpoint.conn_handler()
+        try:
+            data = yield from bma.wot.Lookup(conn_handler, self.pubkey).get()
+            self.state = Node.ONLINE
+            timestamp = 0
+            uid = ""
+            for result in data['results']:
+                if result["pubkey"] == self.pubkey:
+                    uids = result['uids']
+                    for uid in uids:
+                        if uid["meta"]["timestamp"] > timestamp:
+                            timestamp = uid["meta"]["timestamp"]
+                            uid = uid["uid"]
             if self._uid != uid:
                 self._uid = uid
-                self.changed.emit()
-        else:
-            logging.debug("error in uid reply")
-            self.changed.emit()
+                self.identity_changed.emit()
+        except ValueError as e:
+            if '404' in str(e):
+                logging.debug("UID not found")
+            else:
+                logging.debug("error in uid reply")
+                self.identity_changed.emit()
+        except ClientError:
+            logging.debug("Client error : {0}".format(self.pubkey))
+            self.state = Node.OFFLINE
+        except asyncio.TimeoutError:
+            logging.debug("Timeout error : {0}".format(self.pubkey))
+            self.state = Node.OFFLINE
+        except DisconnectedError:
+            logging.debug("Disconnected error : {0}".format(self.pubkey))
+            self.state = Node.OFFLINE
+        except jsonschema.ValidationError:
+            logging.debug("Validation error : {0}".format(self.pubkey))
+            self.state = Node.CORRUPTED
 
+    @asyncify
+    @asyncio.coroutine
     def refresh_peers(self):
-        conn_handler = self.endpoint.conn_handler(self.network_manager)
+        """
+        Refresh the list of peers knew by this node
+        """
+        conn_handler = self.endpoint.conn_handler()
 
-        reply = qtbma.network.peering.Peers(conn_handler).get(leaves='true')
-        reply.finished.connect(self.handle_peers_reply)
-        reply.error.connect(lambda code: logging.debug("Error : {0}".format(code)))
-
-    @pyqtSlot()
-    def handle_peers_reply(self):
-        reply = self.sender()
-        status_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
-
-        if self.check_noerror(reply.error(), status_code):
-            strdata = bytes(reply.readAll()).decode('utf-8')
-            peers_data = json.loads(strdata)
+        try:
+            peers_data = yield from bma.network.peering.Peers(conn_handler).get(leaves='true')
+            self.state = Node.ONLINE
             if peers_data['root'] != self._last_merkle['root']:
                 leaves = [leaf for leaf in peers_data['leaves']
                           if leaf not in self._last_merkle['leaves']]
                 for leaf_hash in leaves:
-                    conn_handler = self.endpoint.conn_handler(self.network_manager)
-                    leaf_reply = qtbma.network.peering.Peers(conn_handler).get(leaf=leaf_hash)
-                    leaf_reply.finished.connect(self.handle_leaf_reply)
+                    try:
+                        leaf_data = yield from bma.network.peering.Peers(conn_handler).get(leaf=leaf_hash)
+                        if "raw" in leaf_data['leaf']['value']:
+                            peer_doc = Peer.from_signed_raw("{0}{1}\n".format(leaf_data['leaf']['value']['raw'],
+                                                                        leaf_data['leaf']['value']['signature']))
+                            pubkey = leaf_data['leaf']['value']['pubkey']
+                            self.neighbour_found.emit(peer_doc, pubkey)
+                        else:
+                            logging.debug("Incorrect leaf reply")
+                    except ValueError as e:
+                        logging.debug("Error in leaf reply")
+                        self.changed.emit()
+                    except ClientError:
+                        logging.debug("Client error : {0}".format(self.pubkey))
+                        self.state = Node.OFFLINE
+                    except asyncio.TimeoutError:
+                        logging.debug("Timeout error : {0}".format(self.pubkey))
+                        self.state = Node.OFFLINE
+                    except DisconnectedError:
+                        logging.debug("Disconnected error : {0}".format(self.pubkey))
+                        self.state = Node.OFFLINE
+                    except jsonschema.ValidationError:
+                        logging.debug("Validation error : {0}".format(self.pubkey))
+                        self.state = Node.CORRUPTED
                 self._last_merkle = {'root' : peers_data['root'],
                                      'leaves': peers_data['leaves']}
-        else:
+        except ValueError as e:
             logging.debug("Error in peers reply")
             self.changed.emit()
-
-    @pyqtSlot()
-    def handle_leaf_reply(self):
-        reply = self.sender()
-        status_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
-
-        if self.check_noerror(reply.error(), status_code):
-            strdata = bytes(reply.readAll()).decode('utf-8')
-            leaf_data = json.loads(strdata)
-            peer_doc = Peer.from_signed_raw("{0}{1}\n".format(leaf_data['leaf']['value']['raw'],
-                                                        leaf_data['leaf']['value']['signature']))
-            pubkey = leaf_data['leaf']['value']['pubkey']
-            self.neighbour_found.emit(peer_doc, pubkey)
-        else:
-            logging.debug("Error in leaf reply")
-            self.changed.emit()
+        except ClientError:
+            logging.debug("Client error : {0}".format(self.pubkey))
+            self.state = Node.OFFLINE
+        except asyncio.TimeoutError:
+            logging.debug("Timeout error : {0}".format(self.pubkey))
+            self.state = Node.OFFLINE
+        except DisconnectedError:
+            logging.debug("Disconnected error : {0}".format(self.pubkey))
+            self.state = Node.OFFLINE
+        except jsonschema.ValidationError:
+            logging.debug("Validation error : {0}".format(self.pubkey))
+            self.state = Node.CORRUPTED
 
     def __str__(self):
-        return ','.join([str(self.pubkey), str(self.endpoint.server), str(self.endpoint.ipv4), str(self.endpoint.port), str(self.block['number']),
+        return ','.join([str(self.pubkey), str(self.endpoint.server),
+                         str(self.endpoint.ipv4), str(self.endpoint.port),
+                         str(self.block['number'] if self.block else "None"),
                          str(self.currency), str(self.state), str(self.neighbours)])

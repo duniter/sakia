@@ -57,9 +57,11 @@ class Relative():
 
         if prefix_index < len(prefixes):
             prefix = prefixes[prefix_index]
-            localized_value = QLocale().toString(float(scientific_value), 'f', self.app.preferences['digits_after_comma'])
+            localized_value = QLocale().toString(float(scientific_value), 'f',
+                                                 self.app.preferences['digits_after_comma'])
         else:
-            localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
+            localized_value = QLocale().toString(float(value), 'f',
+                                                 self.app.preferences['digits_after_comma'])
 
         return localized_value, prefix
 

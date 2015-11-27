@@ -3,7 +3,7 @@ import logging
 from .transfer import Transfer
 from ucoinpy.documents.transaction import InputSource, OutputSource
 from ..tools.exceptions import LookupFailureError
-from .net.api import bma as qtbma
+from ucoinpy.api import bma
 
 
 class TxHistory():
@@ -166,8 +166,8 @@ class TxHistory():
         :param cutecoin.core.Community community: The community
         :param list received_list: List of transactions received
         """
-        current_block = yield from community.bma_access.future_request(qtbma.blockchain.Block,
-                                req_args={'number': community.network.latest_block_number})
+        current_block = yield from community.bma_access.future_request(bma.blockchain.Block,
+                                req_args={'number': community.network.current_blockid.number})
         members_pubkeys = yield from community.members_pubkeys()
         # We look for the first block to parse, depending on awaiting and validating transfers and ud...
         blocks = [tx.metadata['block'] for tx in self._transfers
@@ -177,10 +177,10 @@ class TxHistory():
                  [max(0, self.latest_block - community.network.fork_window(members_pubkeys))]
         parsed_block = min(set(blocks))
         logging.debug("Refresh from : {0} to {1}".format(self.latest_block, current_block['number']))
-        dividends_data = qtbma.ud.History.null_value
+        dividends_data = bma.ud.History.null_value
         for i in range(0, 6):
-            if dividends_data == qtbma.ud.History.null_value:
-                dividends_data = yield from community.bma_access.future_request(qtbma.ud.History,
+            if dividends_data == bma.ud.History.null_value:
+                dividends_data = yield from community.bma_access.future_request(bma.ud.History,
                                                 req_args={'pubkey': self.wallet.pubkey})
 
         dividends = dividends_data['history']['history']
@@ -208,16 +208,16 @@ class TxHistory():
                                       if ud['block_number'] == d['block_number']][0]
                     known_dividend['state'] = state
 
-            tx_history = qtbma.tx.history.Blocks.null_value
+            tx_history = bma.tx.history.Blocks.null_value
             for i in range(0, 6):
-                if tx_history == qtbma.tx.history.Blocks.null_value:
-                    tx_history = yield from community.bma_access.future_request(qtbma.tx.history.Blocks,
+                if tx_history == bma.tx.history.Blocks.null_value:
+                    tx_history = yield from community.bma_access.future_request(bma.tx.history.Blocks,
                                                           req_args={'pubkey': self.wallet.pubkey,
                                                                  'from_':str(parsed_block),
                                                                  'to_': str(parsed_block + 99)})
             # If after 6 requests we still get wrong data
             # we continue to next loop
-            if tx_history == qtbma.tx.history.Blocks.null_value:
+            if tx_history == bma.tx.history.Blocks.null_value:
                 continue
 
             # We parse only blocks with transactions
@@ -239,7 +239,7 @@ class TxHistory():
             parsed_block += 100
 
         if current_block['number'] > self.latest_block:
-            self.available_sources = yield from self.wallet.future_sources(community)
+            self.available_sources = yield from self.wallet.sources(community)
             if self._stop_coroutines:
                 return
             self.latest_block = current_block['number']

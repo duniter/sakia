@@ -11,7 +11,7 @@ from PyQt5.QtGui import QCursor, QDesktopServices
 from PyQt5.QtWidgets import QWidget, QMenu, QAction
 from PyQt5.QtCore import Qt, QModelIndex, pyqtSlot, QUrl, QEvent
 from ..models.network import NetworkTableModel, NetworkFilterProxyModel
-from ..core.net.api import bma as qtbma
+from ucoinpy.api import bma
 from ..gen_resources.network_tab_uic import Ui_NetworkTabWidget
 
 
@@ -37,8 +37,10 @@ class NetworkTabWidget(QWidget, Ui_NetworkTabWidget):
         proxy = NetworkFilterProxyModel(self)
         proxy.setSourceModel(model)
         self.table_network.setModel(proxy)
-        self.table_network.sortByColumn(0, Qt.DescendingOrder)
+        self.table_network.sortByColumn(2, Qt.DescendingOrder)
         self.table_network.resizeColumnsToContents()
+        model.modelAboutToBeReset.connect(lambda: self.table_network.setEnabled(False))
+        model.modelReset.connect(lambda: self.table_network.setEnabled(True))
 
     def change_community(self, community):
         if self.community:
@@ -57,7 +59,7 @@ class NetworkTabWidget(QWidget, Ui_NetworkTabWidget):
     def node_context_menu(self, point):
         index = self.table_network.indexAt(point)
         model = self.table_network.model()
-        if index.row() < model.rowCount(QModelIndex()):
+        if index.isValid() and index.row() < model.rowCount(QModelIndex()):
             source_index = model.mapToSource(index)
             is_root_col = model.sourceModel().columns_types.index('is_root')
             is_root_index = model.sourceModel().index(source_index.row(), is_root_col)
@@ -89,16 +91,18 @@ class NetworkTabWidget(QWidget, Ui_NetworkTabWidget):
     def set_root_node(self):
         node = self.sender().data()
         self.community.network.add_root_node(node)
+        self.table_network.model().sourceModel().refresh_nodes()
 
     @pyqtSlot()
     def unset_root_node(self):
         index = self.sender().data()
         self.community.network.remove_root_node(index)
+        self.table_network.model().sourceModel().refresh_nodes()
 
     @pyqtSlot()
     def open_node_in_browser(self):
         node = self.sender().data()
-        peering = qtbma.network.Peering(node.endpoint)
+        peering = bma.network.Peering(node.endpoint.conn_handler())
         url = QUrl(peering.reverse_url("/peering"))
         QDesktopServices.openUrl(url)
 

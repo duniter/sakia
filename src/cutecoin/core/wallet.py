@@ -7,8 +7,8 @@ Created on 1 févr. 2014
 from ucoinpy.documents.transaction import InputSource, OutputSource, Transaction
 from ucoinpy.key import SigningKey
 
-from .net.api import bma as qtbma
-from .net.api.bma import PROTOCOL_VERSION
+from ucoinpy.api import bma
+from ucoinpy.api.bma import PROTOCOL_VERSION
 from ..tools.exceptions import NotEnoughMoneyError, NoPeerAvailable, LookupFailureError
 from .transfer import Transfer
 from .txhistory import TxHistory
@@ -26,8 +26,6 @@ class Wallet(QObject):
     """
     refresh_progressed = pyqtSignal(int, int, str)
     refresh_finished = pyqtSignal(list)
-    transfer_broadcasted = pyqtSignal(str)
-    broadcast_error = pyqtSignal(int, str)
 
     def __init__(self, walletid, pubkey, name, identities_registry):
         """
@@ -113,6 +111,15 @@ class Wallet(QObject):
         """
         logging.debug("Refresh transactions for {0}".format(self.pubkey))
         asyncio.async(self.caches[community.currency].refresh(community, received_list))
+
+    def rollback_transactions(self, community, received_list):
+        """
+        Rollback the transactions of this wallet for the specified community.
+
+        :param community: The community to refresh its cache
+        """
+        logging.debug("Refresh transactions for {0}".format(self.pubkey))
+        asyncio.async(self.caches[community.currency].rollback(community, received_list))
 
     def check_password(self, salt, password):
         """
@@ -218,10 +225,14 @@ class Wallet(QObject):
         :param int amount: The amount of money to transfer
         :param str message: The message to send with the transfer
         """
-        blockid = yield from community.blockid()
-        block_number = blockid['number']
-        block = yield from community.bma_access.future_request(qtbma.blockchain.Block,
-                                  req_args={'number': block_number})
+        try:
+            blockid = yield from community.blockid()
+            block = yield from community.bma_access.future_request(bma.blockchain.Block,
+                                      req_args={'number': blockid.number})
+        except ValueError as e:
+            if '404' in str(e):
+                return (False, "Could not send transfer with null blockchain")
+
         time = block['medianTime']
         txid = len(block['transactions'])
         key = None
@@ -272,24 +283,7 @@ class Wallet(QObject):
 
         tx.sign([key])
         logging.debug("Transaction : {0}".format(tx.signed_raw()))
-        transfer.transfer_broadcasted.connect(self.transfer_broadcasted)
-        transfer.broadcast_error.connect(self.broadcast_error)
-        yield from transfer.send(tx, community)
-
-    @asyncio.coroutine
-    def future_sources(self, community):
-        """
-        Get available sources in a given community
-
-        :param cutecoin.core.community.Community community: The community where we want available sources
-        :return: List of InputSource ucoinpy objects
-        """
-        data = yield from community.bma_access.future_request(qtbma.tx.Sources,
-                                 req_args={'pubkey': self.pubkey})
-        tx = []
-        for s in data['sources']:
-            tx.append(InputSource.from_bma(s))
-        return tx
+        return (yield from transfer.send(tx, community))
 
     @asyncio.coroutine
     def sources(self, community):
@@ -299,11 +293,14 @@ class Wallet(QObject):
         :param cutecoin.core.community.Community community: The community where we want available sources
         :return: List of InputSource ucoinpy objects
         """
-        data = yield from community.bma_access.future_request(qtbma.tx.Sources,
-                                 req_args={'pubkey': self.pubkey})
         tx = []
-        for s in data['sources']:
-            tx.append(InputSource.from_bma(s))
+        try:
+            data = yield from community.bma_access.future_request(bma.tx.Sources,
+                                     req_args={'pubkey': self.pubkey})
+            for s in data['sources']:
+                tx.append(InputSource.from_bma(s))
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
         return tx
 
     def transfers(self, community):

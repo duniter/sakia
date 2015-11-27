@@ -4,42 +4,42 @@ import asyncio
 import quamash
 import logging
 import time
-from ucoinpy.documents.peer import BMAEndpoint as PyBMAEndpoint
+from ucoinpy.documents.peer import BMAEndpoint
 from PyQt5.QtWidgets import QDialog
 from PyQt5.QtCore import QLocale, Qt
 from PyQt5.QtTest import QTest
-from cutecoin.core.net.api import bma as qtbma
+from ucoinpy.api import bma
+from ucoinpy.api.bma import API
+from cutecoin.tests.mocks.monkeypatch import pretender_reversed
 from cutecoin.tests.mocks.bma import nice_blockchain
-from cutecoin.tests.mocks.access_manager import MockNetworkAccessManager
 from cutecoin.core.registry.identities import IdentitiesRegistry
 from cutecoin.gui.wot_tab import WotTabWidget
 from cutecoin.gui.password_asker import PasswordAskerDialog
 from cutecoin.core.app import Application
 from cutecoin.core import Account, Community, Wallet
 from cutecoin.core.net import Network, Node
-from cutecoin.core.net.endpoint import BMAEndpoint
 from cutecoin.core.net.api.bma.access import BmaAccess
-from cutecoin.tests import get_application
+from cutecoin.tests import get_application, unitttest_exception_handler
 
 
 class TestIdentitiesTable(unittest.TestCase):
     def setUp(self):
         self.qapplication = get_application()
-        self.network_manager = MockNetworkAccessManager()
         QLocale.setDefault(QLocale("en_GB"))
         self.lp = quamash.QEventLoop(self.qapplication)
         asyncio.set_event_loop(self.lp)
+        self.lp.set_exception_handler(lambda lp, ctx : unitttest_exception_handler(self, lp, ctx))
         self.identities_registry = IdentitiesRegistry()
 
-        self.application = Application(self.qapplication, self.lp, self.network_manager, self.identities_registry)
+        self.application = Application(self.qapplication, self.lp, self.identities_registry)
         self.application.preferences['notifications'] = False
 
-        self.endpoint = BMAEndpoint(PyBMAEndpoint("", "127.0.0.1", "", 50000))
-        self.node = Node(self.network_manager, "test_currency", [self.endpoint],
+        self.endpoint = BMAEndpoint("", "127.0.0.1", "", 50000)
+        self.node = Node("test_currency", [self.endpoint],
                          "", "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk",
-                         qtbma.blockchain.Block.null_value, Node.ONLINE,
+                         None, Node.ONLINE,
                          time.time(), {}, "ucoin", "0.14.0", 0)
-        self.network = Network.create(self.network_manager, self.node)
+        self.network = Network.create(self.node)
         self.bma_access = BmaAccess.create(self.network)
         self.community = Community("test_currency", self.network, self.bma_access)
 
@@ -65,7 +65,7 @@ class TestIdentitiesTable(unittest.TestCase):
         mock = nice_blockchain.get_mock()
         time.sleep(2)
         logging.debug(mock.pretend_url)
-        self.network_manager.set_mock_path(mock.pretend_url)
+        API.reverse_url = pretender_reversed(mock.pretend_url)
         wot_tab = WotTabWidget(self.application)
         future = asyncio.Future()
 

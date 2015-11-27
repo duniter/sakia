@@ -3,23 +3,28 @@
 
 # source d'inspiration: http://wiki.wxpython.org/cx_freeze
 
-import sys, os, subprocess, multiprocessing
+import sys, os, subprocess, multiprocessing, site
 from cx_Freeze import setup, Executable
 from PyQt5 import QtCore
+from os import listdir
+from os.path import isfile, join
 
 #############################################################################
 # preparation des options
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'lib')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 
 print(sys.path)
+print("Environnement:")
+print(os.environ)
 includes = ["sip", "re", "json", "logging",
             "hashlib", "os", "urllib",
-            "ucoinpy", "pylibscrypt"]
-excludes = ['.git']
-packages = ["libnacl", "encodings"]
+            "ucoinpy", "pylibscrypt", "aiohttp", "asyncio",
+            "quamash", "jsonschema"]
+exclude = ['.git']
+packages = ["libnacl", "encodings", "jsonschema"]
 
 includefiles = []
+zipincludes = []
 
 if sys.platform == "win32":
     app = QtCore.QCoreApplication(sys.argv)
@@ -30,8 +35,14 @@ if sys.platform == "win32":
         if os.path.isfile(os.path.join(os.path.dirname(path), "libEGL.dll")):
             libEGL_path = os.path.join(os.path.dirname(path), "libEGL.dll")
 
-    if 'CONDA_ENV_PATH' in os.environ:
-	# Check if we are in Conda env
+    if 'CONDA_DEFAULT_ENV' in os.environ:
+            # Check if we are in Conda env
+        schemas = os.path.join(site.getsitepackages()[1], "jsonschema", "schemas")
+
+        onlyfiles = [ f for f in listdir(schemas) if isfile(join(schemas,f)) ]
+        for f in onlyfiles:
+            zipincludes.append((os.path.join(schemas, f), os.path.join("jsonschema", "schemas", f)))
+
         path = QtCore.QCoreApplication.libraryPaths()[0]
         libEGL_path = os.path.join(path, "Scripts", "libEGL.dll")
         libsodium_path = os.path.join(path, "Scripts", "libsodium.dll")
@@ -52,18 +63,36 @@ elif sys.platform == "darwin":
 else:
     libsodium_path = ""
     print(QtCore.QCoreApplication.libraryPaths())
+    schemas = os.path.join(site.getsitepackages()[0], "jsonschema", "schemas")
+    onlyfiles = [ f for f in listdir(schemas) if isfile(join(schemas,f)) ]
+    for f in onlyfiles:
+        zipincludes.append((os.path.join(schemas, f), os.path.join("jsonschema", "schemas", f)))
+
     # Check if we are in Conda env
     if 'CONDA_ENV_PATH' in os.environ:
         libsodium_path = os.path.join(os.environ['CONDA_ENV_PATH'], "lib",
                                       "libsodium.so.13")
         includefiles.append((libsodium_path, "libsodium.so.13"))
 
+        
+print("Includes : ")
+print(includes)
+print("Excludes : ")
+print(exclude)
+print("Include files : ")
+print(includefiles)
+print("Zip files : ")
+print(zipincludes)
+print("Packages : ")
+print(packages)
+print(sys.path)
 
 options = {"path": sys.path,
            "includes": includes,
            "include_files": includefiles,
-           "excludes": excludes,
+           "excludes": exclude,
            "packages": packages,
+           "zip_includes": zipincludes
            }
 
 #############################################################################
@@ -87,7 +116,7 @@ target = Executable(
 # creation du setup
 setup(
     name = "cutecoin",
-    version = "0.10",
+    version = "0.11",
     description = "UCoin client",
     author = "Inso",
     options = {"build_exe": options},

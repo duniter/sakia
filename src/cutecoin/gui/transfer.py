@@ -3,14 +3,17 @@ Created on 2 févr. 2014
 
 @author: inso
 """
-from PyQt5.QtWidgets import QDialog, QMessageBox, QApplication
-from PyQt5.QtCore import QRegExp, Qt, QLocale, pyqtSlot
+import asyncio
+
+from PyQt5.QtWidgets import QDialog, QApplication
+from PyQt5.QtCore import QRegExp, Qt
+
 from PyQt5.QtGui import QRegExpValidator
 
 from ..gen_resources.transfer_uic import Ui_TransferMoneyDialog
-from . import toast
+from cutecoin.gui.widgets import toast
+from cutecoin.gui.widgets.dialogs import QAsyncMessageBox, QMessageBox
 from ..tools.decorators import asyncify
-import asyncio
 
 
 class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
@@ -19,7 +22,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
     classdocs
     """
 
-    def __init__(self, app, sender, password_asker):
+    def __init__(self, app, sender, password_asker, community, transfer):
         """
         Constructor
         :param cutecoin.core.Application app: The application
@@ -33,8 +36,9 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         self.account = sender
         self.password_asker = password_asker
         self.recipient_trusts = []
+        self.transfer = transfer
         self.wallet = None
-        self.community = self.account.communities[0]
+        self.community = community if community else self.account.communities[0]
         self.wallet = self.account.wallets[0]
 
         regexp = QRegExp('^([ a-zA-Z0-9-_:/;*?\[\]\(\)\\\?!^+=@&~#{}|<>%.]{0,255})$')
@@ -55,14 +59,39 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
             self.radio_contact.setEnabled(False)
             self.radio_pubkey.setChecked(True)
 
-    @staticmethod
-    def send_money_to_identity(app, account, password_asker, community, identity):
-        dialog = TransferMoneyDialog(app, account, password_asker)
-        dialog.edit_pubkey.setText(identity.pubkey)
-        dialog.combo_community.setCurrentText(community.name)
-        dialog.radio_pubkey.setChecked(True)
-        return dialog.exec()
+        self.combo_community.setCurrentText(self.community.name)
 
+        if self.transfer:
+            sender = self.transfer.metadata['issuer']
+            wallet_index = [w.pubkey for w in app.current_account.wallets].index(sender)
+            self.combo_wallets.setCurrentIndex(wallet_index)
+            self.edit_pubkey.setText(transfer.metadata['receiver'])
+            self.radio_pubkey.setChecked(True)
+            self.edit_message.setText(transfer.metadata['comment'])
+
+
+    @classmethod
+    @asyncio.coroutine
+    def send_money_to_identity(cls, app, account, password_asker, community, identity):
+        dialog = cls(app, account, password_asker, community, None)
+        dialog.edit_pubkey.setText(identity.pubkey)
+        dialog.radio_pubkey.setChecked(True)
+        return (yield from dialog.async_exec())
+
+    @classmethod
+    @asyncio.coroutine
+    def send_transfer_again(cls, app, account, password_asker, community, transfer):
+        dialog = cls(app, account, password_asker, community, transfer)
+        dividend = yield from community.dividend()
+        relative = transfer.metadata['amount'] / dividend
+        dialog.spinbox_amount.setMaximum(transfer.metadata['amount'])
+        dialog.spinbox_relative.setMaximum(relative)
+        dialog.spinbox_amount.setValue(transfer.metadata['amount'])
+
+        return (yield from dialog.async_exec())
+
+    @asyncify
+    @asyncio.coroutine
     def accept(self):
         comment = self.edit_message.text()
 
@@ -74,44 +103,40 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         amount = self.spinbox_amount.value()
 
         if not amount:
-            QMessageBox.critical(self, self.tr("Money transfer"),
+            yield from QAsyncMessageBox.critical(self, self.tr("Money transfer"),
                                  self.tr("No amount. Please give the transfert amount"),
                                  QMessageBox.Ok)
             return
 
-        password = self.password_asker.exec_()
+        password = yield from self.password_asker.async_exec()
         if self.password_asker.result() == QDialog.Rejected:
             return
 
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QApplication.processEvents()
-        self.wallet.transfer_broadcasted.connect(self.money_sent)
-        self.wallet.broadcast_error.connect(self.handle_error)
-        asyncio.async(self.wallet.send_money(self.account.salt, password, self.community,
-                                   recipient, amount, comment))
+        result = yield from self.wallet.send_money(self.account.salt, password, self.community,
+                                   recipient, amount, comment)
+        if result[0]:
+            if self.app.preferences['notifications']:
+                toast.display(self.tr("Transfer"),
+                          self.tr("Success sending money to {0}").format(recipient))
+            else:
+                yield from QAsyncMessageBox.information(self, self.tr("Transfer"),
+                          self.tr("Success sending money to {0}").format(recipient))
+            QApplication.restoreOverrideCursor()
 
-    @pyqtSlot(str)
-    def money_sent(self, receiver_uid):
-        if self.app.preferences['notifications']:
-            toast.display(self.tr("Transfer"),
-                      self.tr("Success sending money to {0}").format(receiver_uid))
-        else:
-            QMessageBox.information(self, self.tr("Transfer"),
-                      self.tr("Success sending money to {0}").format(receiver_uid))
-        self.wallet.transfer_broadcasted.disconnect()
-        self.wallet.broadcast_error.disconnect(self.handle_error)
-        QApplication.restoreOverrideCursor()
-        super().accept()
+            # If we sent back a transaction we cancel the first one
+            if self.transfer:
+                self.transfer.cancel()
 
-    @pyqtSlot(int, str)
-    def handle_error(self, error_code, text):
-        if self.app.preferences['notifications']:
-            toast.display(self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
+            super().accept()
         else:
-            QMessageBox.critical(self, self.tr("Error"), self.tr("{0} : {1}".format(error_code, text)))
-        self.wallet.transfer_broadcasted.disconnect()
-        self.wallet.broadcast_error.disconnect(self.handle_error)
-        QApplication.restoreOverrideCursor()
+            if self.app.preferences['notifications']:
+                toast.display(self.tr("Transfer"), "Error : {0}".format(result[1]))
+            else:
+                yield from QAsyncMessageBox.critical(self, self.tr("Transfer"), result[1])
+
+            QApplication.restoreOverrideCursor()
 
     @asyncify
     @asyncio.coroutine
@@ -142,7 +167,6 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
                             international_system=self.app.preferences['international_system_of_units'])
         self.label_total.setText("{0}".format(ref_text))
         self.spinbox_amount.setSuffix(" " + self.community.currency)
-        self.spinbox_amount.setValue(0)
         amount = yield from self.wallet.value(self.community)
         dividend = yield from self.community.dividend()
         relative = amount / dividend
@@ -158,7 +182,6 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
             .diff_localized(units=True,
                             international_system=self.app.preferences['international_system_of_units'])
         self.label_total.setText("{0}".format(ref_text))
-        self.spinbox_amount.setValue(0)
         amount = yield from self.wallet.value(self.community)
         dividend = yield from self.community.dividend()
         relative = amount / dividend

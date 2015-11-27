@@ -19,10 +19,11 @@ from . import money
 from .wallet import Wallet
 from .community import Community
 from .registry import LocalState
-from ..tools.exceptions import ContactAlreadyExists
+from ..tools.exceptions import ContactAlreadyExists, NoPeerAvailable
 from ..tools.decorators import asyncify
-from ..core.net.api import bma as qtbma
-from ..core.net.api.bma import PROTOCOL_VERSION
+from ucoinpy.api import bma
+from ucoinpy.api.bma import PROTOCOL_VERSION
+from aiohttp.errors import ClientError
 
 
 class Account(QObject):
@@ -31,14 +32,9 @@ class Account(QObject):
     Each account has only one key, and a key can
     be locally referenced by only one account.
     """
-    loading_progressed = pyqtSignal(int, int)
-    loading_finished = pyqtSignal(list)
+    loading_progressed = pyqtSignal(Community, int, int)
+    loading_finished = pyqtSignal(Community, list)
     wallets_changed = pyqtSignal()
-    membership_broadcasted = pyqtSignal()
-    certification_broadcasted = pyqtSignal()
-    selfcert_broadcasted = pyqtSignal()
-    revoke_broadcasted = pyqtSignal()
-    broadcast_error = pyqtSignal(int, str)
 
     def __init__(self, salt, pubkey, name, communities, wallets, contacts, identities_registry):
         """
@@ -63,7 +59,6 @@ class Account(QObject):
         self.communities = communities
         self.wallets = wallets
         self.contacts = contacts
-        self._refreshing = False
         self._identities_registry = identities_registry
         self._current_ref = 0
 
@@ -84,7 +79,7 @@ class Account(QObject):
         return account
 
     @classmethod
-    def load(cls, json_data, network_manager, identities_registry):
+    def load(cls, json_data, identities_registry):
         """
         Factory method to create an Account object from its json view.
         :rtype : cutecoin.core.account.Account
@@ -108,7 +103,7 @@ class Account(QObject):
 
         communities = []
         for data in json_data['communities']:
-            community = Community.load(network_manager, data)
+            community = Community.load(data)
             communities.append(community)
 
         account = cls(salt, pubkey, name, communities, wallets,
@@ -160,38 +155,75 @@ class Account(QObject):
         .. note:: emit the Account pyqtSignal loading_progressed during refresh
         """
         logging.debug("Start refresh transactions")
-        if not self._refreshing:
-            self._refreshing = True
-            loaded_wallets = 0
-            received_list = []
-            values = {}
-            maximums = {}
+        loaded_wallets = 0
+        received_list = []
+        values = {}
+        maximums = {}
 
-            def progressing(value, maximum, hash):
-                #logging.debug("Loading = {0} : {1} : {2}".format(value, maximum, loaded_wallets))
-                values[hash] = value
-                maximums[hash] = maximum
-                account_value = sum(values.values())
-                account_max = sum(maximums.values())
-                self.loading_progressed.emit(account_value, account_max)
+        def progressing(value, maximum, hash):
+            #logging.debug("Loading = {0} : {1} : {2}".format(value, maximum, loaded_wallets))
+            values[hash] = value
+            maximums[hash] = maximum
+            account_value = sum(values.values())
+            account_max = sum(maximums.values())
+            self.loading_progressed.emit(community, account_value, account_max)
 
-            def wallet_finished(received):
-                logging.debug("Finished loading wallet")
-                nonlocal loaded_wallets
-                loaded_wallets += 1
-                if loaded_wallets == len(self.wallets):
-                    logging.debug("All wallets loaded")
-                    self._refreshing = False
-                    self.loading_finished.emit(received_list)
-                    for w in self.wallets:
-                        w.refresh_progressed.disconnect(progressing)
-                        w.refresh_finished.disconnect(wallet_finished)
+        def wallet_finished(received):
+            logging.debug("Finished loading wallet")
+            nonlocal loaded_wallets
+            loaded_wallets += 1
+            if loaded_wallets == len(self.wallets):
+                logging.debug("All wallets loaded")
+                self._refreshing = False
+                self.loading_finished.emit(community, received_list)
+                for w in self.wallets:
+                    w.refresh_progressed.disconnect(progressing)
+                    w.refresh_finished.disconnect(wallet_finished)
 
-            for w in self.wallets:
-                w.refresh_progressed.connect(progressing)
-                w.refresh_finished.connect(wallet_finished)
-                w.init_cache(app, community)
-                w.refresh_transactions(community, received_list)
+        for w in self.wallets:
+            w.refresh_progressed.connect(progressing)
+            w.refresh_finished.connect(wallet_finished)
+            w.init_cache(app, community)
+            w.refresh_transactions(community, received_list)
+
+    def rollback_transaction(self, app, community):
+        """
+        Refresh the local account cache
+        This needs n_wallets * n_communities cache refreshing to end
+
+        .. note:: emit the Account pyqtSignal loading_progressed during refresh
+        """
+        logging.debug("Start refresh transactions")
+        loaded_wallets = 0
+        received_list = []
+        values = {}
+        maximums = {}
+
+        def progressing(value, maximum, hash):
+            #logging.debug("Loading = {0} : {1} : {2}".format(value, maximum, loaded_wallets))
+            values[hash] = value
+            maximums[hash] = maximum
+            account_value = sum(values.values())
+            account_max = sum(maximums.values())
+            self.loading_progressed.emit(community, account_value, account_max)
+
+        def wallet_finished(received):
+            logging.debug("Finished loading wallet")
+            nonlocal loaded_wallets
+            loaded_wallets += 1
+            if loaded_wallets == len(self.wallets):
+                logging.debug("All wallets loaded")
+                self._refreshing = False
+                self.loading_finished.emit(community, received_list)
+                for w in self.wallets:
+                    w.refresh_progressed.disconnect(progressing)
+                    w.refresh_finished.disconnect(wallet_finished)
+
+        for w in self.wallets:
+            w.refresh_progressed.connect(progressing)
+            w.refresh_finished.connect(wallet_finished)
+            w.init_cache(app, community)
+            w.rollback_transactions(community, received_list)
 
     def set_display_referential(self, index):
         self._current_ref = index
@@ -279,6 +311,96 @@ class Account(QObject):
         return value
 
     @asyncio.coroutine
+    def check_registered(self, community):
+        """
+        Checks for the pubkey and the uid of an account in a community
+        :param cutecoin.core.Community community: The community we check for registration
+        :return: (True if found, local value, network value)
+        """
+        def _parse_uid_certifiers(data):
+            return self.name == data['uid'], self.name, data['uid']
+
+        def _parse_uid_lookup(data):
+            timestamp = 0
+            found_uid = ""
+            for result in data['results']:
+                if result["pubkey"] == self.pubkey:
+                    uids = result['uids']
+                    for uid_data in uids:
+                        if uid_data["meta"]["timestamp"] > timestamp:
+                            timestamp = uid_data["meta"]["timestamp"]
+                            found_uid = uid_data["uid"]
+            return self.name == found_uid, self.name, found_uid
+
+        def _parse_pubkey_certifiers(data):
+            return self.pubkey == data['pubkey'], self.pubkey, data['pubkey']
+
+        def _parse_pubkey_lookup(data):
+            timestamp = 0
+            found_uid = ""
+            found_result = ["", ""]
+            for result in data['results']:
+                uids = result['uids']
+                for uid_data in uids:
+                    if uid_data["meta"]["timestamp"] > timestamp:
+                        timestamp = uid_data["meta"]["timestamp"]
+                        found_uid = uid_data["uid"]
+                if found_uid == self.name:
+                    found_result = result['pubkey'], found_uid
+            if found_result[1] == self.name:
+                return self.pubkey == found_result[0], self.pubkey, found_result[0]
+            else:
+                return False, self.pubkey, None
+
+        @asyncio.coroutine
+        def execute_requests(parsers, search):
+            tries = 0
+            request = bma.wot.CertifiersOf
+            nonlocal registered
+            #TODO: The algorithm is quite dirty
+            #Multiplying the tries without any reason...
+            while tries < 3 and not registered[0] and not registered[2]:
+                try:
+                    data = yield from community.bma_access.simple_request(request,
+                                                                          req_args={'search': search})
+                    if data:
+                        registered = parsers[request](data)
+                    tries += 1
+                except ValueError as e:
+                    if '404' in str(e) or '400' in str(e):
+                        if request == bma.wot.CertifiersOf:
+                            request = bma.wot.Lookup
+                            tries = 0
+                        else:
+                            tries += 1
+                    else:
+                        tries += 1
+                except asyncio.TimeoutError:
+                    tries += 1
+                except ClientError:
+                    tries += 1
+
+        registered = (False, self.name, None)
+        # We execute search based on pubkey
+        # And look for account UID
+        uid_parsers = {
+                    bma.wot.CertifiersOf: _parse_uid_certifiers,
+                    bma.wot.Lookup: _parse_uid_lookup
+                   }
+        yield from execute_requests(uid_parsers, self.pubkey)
+
+        # If the uid wasn't found when looking for the pubkey
+        # We look for the uid and check for the pubkey
+        if not registered[0] and not registered[2]:
+            pubkey_parsers = {
+                        bma.wot.CertifiersOf: _parse_pubkey_certifiers,
+                        bma.wot.Lookup: _parse_pubkey_lookup
+                       }
+            yield from execute_requests(pubkey_parsers, self.name)
+
+        return registered
+
+    @asyncio.coroutine
     def send_selfcert(self, password, community):
         """
         Send our self certification to a target community
@@ -295,38 +417,19 @@ class Account(QObject):
         key = SigningKey(self.salt, password)
         selfcert.sign([key])
         logging.debug("Key publish : {0}".format(selfcert.signed_raw()))
-        replies = community.bma_access.broadcast(qtbma.wot.Add, {}, {'pubkey': self.pubkey,
+
+        responses = yield from community.bma_access.broadcast(bma.wot.Add, {}, {'pubkey': self.pubkey,
                                               'self_': selfcert.signed_raw(),
-                                              'other': ""})
-        for r in replies:
-            r.finished.connect(lambda reply=r: self.__handle_selfcert_replies(replies, reply))
-
-    def __handle_selfcert_replies(self, replies, reply):
-        """
-        Handle the reply, if the request was accepted, disconnect
-        all other replies
-
-        :param QNetworkReply reply: The reply of this handler
-        :param list of QNetworkReply replies: All request replies
-        :return:
-        """
-        strdata = bytes(reply.readAll()).decode('utf-8')
-        logging.debug("Received reply : {0} : {1}".format(reply.error(), strdata))
-        if reply.error() == QNetworkReply.NoError:
-            for r in replies:
-                try:
-                    r.disconnect()
-                except TypeError as e:
-                    if "disconnect()" in str(e):
-                        logging.debug("Could not disconnect a reply")
-                    else:
-                        raise
-            self.selfcert_broadcasted.emit()
-        else:
-            for r in replies:
-                if not r.isFinished() or r.error() == QNetworkReply.NoError:
-                    return
-            self.broadcast_error.emit(r.error(), strdata)
+                                              'other': {}})
+        result = (False, "")
+        for r in responses:
+            if r.status == 200:
+                result = (True, (yield from r.json()))
+            elif not result[0]:
+                result = (False, (yield from r.text()))
+            else:
+                yield from r.release()
+        return result
 
     @asyncio.coroutine
     def send_membership(self, password, community, mstype):
@@ -345,43 +448,23 @@ class Account(QObject):
         selfcert = yield from self_identity.selfcert(community)
 
         membership = Membership(PROTOCOL_VERSION, community.currency,
-                                selfcert.pubkey, blockid['number'],
-                                blockid['hash'], mstype, selfcert.uid,
+                                selfcert.pubkey, blockid.number,
+                                blockid.sha_hash, mstype, selfcert.uid,
                                 selfcert.timestamp, None)
         key = SigningKey(self.salt, password)
         membership.sign([key])
         logging.debug("Membership : {0}".format(membership.signed_raw()))
-        replies = community.bma_access.broadcast(qtbma.blockchain.Membership, {},
-                            {'membership': membership.signed_raw()})
-        for r in replies:
-            r.finished.connect(lambda reply=r: self.__handle_membership_replies(replies, reply))
-
-    def __handle_membership_replies(self, replies, reply):
-        """
-        Handle the reply, if the request was accepted, disconnect
-        all other replies
-
-        :param QNetworkReply reply: The reply of this handler
-        :param list of QNetworkReply replies: All request replies
-        :return:
-        """
-        strdata = bytes(reply.readAll()).decode('utf-8')
-        logging.debug("Received reply : {0} : {1}".format(reply.error(), strdata))
-        if reply.error() == QNetworkReply.NoError:
-            for r in replies:
-                try:
-                    r.disconnect()
-                except TypeError as e:
-                    if "disconnect()" in str(e):
-                        logging.debug("Could not disconnect a reply")
-                    else:
-                        raise
-            self.membership_broadcasted.emit()
-        else:
-            for r in replies:
-                if not r.isFinished() or r.error() == QNetworkReply.NoError:
-                    return
-            self.broadcast_error.emit(r.error(), strdata)
+        responses = yield from community.bma_access.broadcast(bma.blockchain.Membership, {},
+                        {'membership': membership.signed_raw()})
+        result = (False, "")
+        for r in responses:
+            if r.status == 200:
+                result = (True, (yield from r.json()))
+            elif not result[0]:
+                result = (False, (yield from r.text()))
+            else:
+                yield from r.release()
+        return result
 
     @asyncio.coroutine
     def certify(self, password, community, pubkey):
@@ -396,49 +479,32 @@ class Account(QObject):
         blockid = yield from community.blockid()
         identity = yield from self._identities_registry.future_find(pubkey, community)
         selfcert = yield from identity.selfcert(community)
-        certification = Certification(PROTOCOL_VERSION, community.currency,
-                                      self.pubkey, pubkey,
-                                      blockid['number'], blockid['hash'], None)
+        if selfcert:
+            certification = Certification(PROTOCOL_VERSION, community.currency,
+                                          self.pubkey, pubkey,
+                                          blockid.number, blockid.sha_hash, None)
 
-        key = SigningKey(self.salt, password)
-        certification.sign(selfcert, [key])
-        signed_cert = certification.signed_raw(selfcert)
-        logging.debug("Certification : {0}".format(signed_cert))
+            key = SigningKey(self.salt, password)
+            certification.sign(selfcert, [key])
+            signed_cert = certification.signed_raw(selfcert)
+            logging.debug("Certification : {0}".format(signed_cert))
 
-        data = {'pubkey': pubkey,
-                'self_': selfcert.signed_raw(),
-                'other': "{0}\n".format(certification.inline())}
-        logging.debug("Posted data : {0}".format(data))
-        replies = community.bma_access.broadcast(qtbma.wot.Add, {}, data)
-        for r in replies:
-            r.finished.connect(lambda reply=r: self.__handle_certification_reply(replies, reply))
-
-    def __handle_certification_reply(self, replies, reply):
-        """
-        Handle the reply, if the request was accepted, disconnect
-        all other replies
-
-        :param QNetworkReply reply: The reply of this handler
-        :param list of QNetworkReply replies: All request replies
-        :return:
-        """
-        strdata = bytes(reply.readAll()).decode('utf-8')
-        logging.debug("Received reply : {0} : {1}".format(reply.error(), strdata))
-        if reply.error() == QNetworkReply.NoError:
-            for r in replies:
-                try:
-                    r.disconnect()
-                except TypeError as e:
-                    if "disconnect()" in str(e):
-                        logging.debug("Could not disconnect a reply")
-                    else:
-                        raise
-            self.certification_broadcasted.emit()
+            data = {'pubkey': pubkey,
+                    'self_': selfcert.signed_raw(),
+                    'other': "{0}\n".format(certification.inline())}
+            logging.debug("Posted data : {0}".format(data))
+            responses = yield from community.bma_access.broadcast(bma.wot.Add, {}, data)
+            result = (False, "")
+            for r in responses:
+                if r.status == 200:
+                    result = (True, (yield from r.json()))
+                elif not result[0]:
+                    result = (False, (yield from r.text()))
+                else:
+                    yield from r.release()
+            return result
         else:
-            for r in replies:
-                if not r.isFinished() or r.error() == QNetworkReply.NoError:
-                    return
-            self.broadcast_error.emit(r.error(), strdata)
+            return (False, self.tr("Could not find user self certification."))
 
     @asyncio.coroutine
     def revoke(self, password, community):
@@ -451,7 +517,7 @@ class Account(QObject):
         revoked = yield from self._identities_registry.future_find(self.pubkey, community)
 
         revocation = Revocation(PROTOCOL_VERSION, community.currency, None)
-        selfcert = revoked.selfcert(community)
+        selfcert = yield from revoked.selfcert(community)
 
         key = SigningKey(self.salt, password)
         revocation.sign(selfcert, [key])
@@ -465,36 +531,16 @@ class Account(QObject):
             'sig': revocation.signatures[0]
         }
         logging.debug("Posted data : {0}".format(data))
-        replies = community.broadcast(qtbma.wot.Revoke, {}, data)
-        for r in replies:
-            r.finished.connect(lambda reply=r: self.__handle_certification_reply(replies, reply))
-
-    def __handle_revoke_reply(self, replies, reply):
-        """
-        Handle the reply, if the request was accepted, disconnect
-        all other replies
-
-        :param QNetworkReply reply: The reply of this handler
-        :param list of QNetworkReply replies: All request replies
-        :return:
-        """
-        strdata = bytes(reply.readAll()).decode('utf-8')
-        logging.debug("Received reply : {0} : {1}".format(reply.error(), strdata))
-        if reply.error() == QNetworkReply.NoError:
-            for r in replies:
-                try:
-                    r.disconnect()
-                except TypeError as e:
-                    if "disconnect()" in str(e):
-                        logging.debug("Could not disconnect a reply")
-                    else:
-                        raise
-            self.revoke_broadcasted.emit()
-        else:
-            for r in replies:
-                if not r.isFinished() or r.error() == QNetworkReply.NoError:
-                    return
-            self.broadcast_error.emit(r.error(), strdata)
+        responses = yield from community.bma_access.broadcast(bma.wot.Revoke, {}, data)
+        result = (False, "")
+        for r in responses:
+            if r.status == 200:
+                result = (True, (yield from r.json()))
+            elif not result[0]:
+                result = (False, (yield from r.text()))
+            else:
+                yield from r.release()
+        return result
 
     def start_coroutines(self):
         for c in self.communities:

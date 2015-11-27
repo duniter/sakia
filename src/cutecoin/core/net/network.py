@@ -3,16 +3,14 @@ Created on 24 févr. 2015
 
 @author: inso
 """
-from cutecoin.core.net.node import Node
-
+from .node import Node
+from ...tools.exceptions import InvalidNodeCurrency
 import logging
 import statistics
 import time
 import asyncio
 from ucoinpy.documents.peer import Peer
-from ucoinpy.documents.block import Block
-
-from .api import bma as qtbma
+from ucoinpy.documents.block import Block, BlockId
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
 from collections import Counter
 
@@ -23,9 +21,11 @@ class Network(QObject):
     given community.
     """
     nodes_changed = pyqtSignal()
+    root_nodes_changed = pyqtSignal()
     new_block_mined = pyqtSignal(int)
+    blockchain_rollback = pyqtSignal(int)
 
-    def __init__(self, network_manager, currency, nodes):
+    def __init__(self, currency, nodes):
         """
         Constructor of a network
 
@@ -39,12 +39,11 @@ class Network(QObject):
             self.add_node(n)
         self.currency = currency
         self._must_crawl = False
-        self.network_manager = network_manager
-        self._block_found = self.latest_block_hash
+        self._block_found = self.current_blockid
         self._timer = QTimer()
 
     @classmethod
-    def create(cls, network_manager, node):
+    def create(cls, node):
         """
         Create a new network with one knew node
         Crawls the nodes from the first node to build the
@@ -53,7 +52,7 @@ class Network(QObject):
         :param node: The first knew node of the network
         """
         nodes = [node]
-        network = cls(network_manager, node.currency, nodes)
+        network = cls(node.currency, nodes)
         return network
 
     def merge_with_json(self, json_data):
@@ -64,7 +63,7 @@ class Network(QObject):
         :param dict json_data: Nodes in json format
         """
         for data in json_data:
-            node = Node.from_json(self.network_manager, self.currency, data)
+            node = Node.from_json(self.currency, data)
             if node.pubkey not in [n.pubkey for n in self.nodes]:
                 self.add_node(node)
                 logging.debug("Loading : {:}".format(data['pubkey']))
@@ -73,13 +72,19 @@ class Network(QObject):
                 other_node._uid = node.uid
                 other_node._version = node.version
                 other_node._software = node.software
-                if other_node.block['hash'] != node.block['hash']:
+                switch = False
+                if other_node.block and node.block:
+                    if other_node.block['hash'] != node.block['hash']:
+                        switch = True
+                else:
+                    switch = True
+                if switch:
                     other_node.set_block(node.block)
                     other_node.last_change = node.last_change
                     other_node.state = node.state
 
     @classmethod
-    def from_json(cls, network_manager, currency, json_data):
+    def from_json(cls, currency, json_data):
         """
         Load a network from a configured community
 
@@ -88,10 +93,9 @@ class Network(QObject):
         """
         nodes = []
         for data in json_data:
-            node = Node.from_json(network_manager, currency, data)
+            node = Node.from_json(currency, data)
             nodes.append(node)
-        network = cls(network_manager, currency, nodes)
-        # We block the signals until loading the nodes cache
+        network = cls(currency, nodes)
         return network
 
     def jsonify(self):
@@ -160,32 +164,18 @@ class Network(QObject):
         return self._root_nodes
 
     @property
-    def latest_block_number(self):
+    def current_blockid(self):
         """
         Get the latest block considered valid
         It is the most frequent last block of every known nodes
         """
-        blocks_numbers = [n.block['number'] for n in self.synced_nodes
-                          if n.block != qtbma.blockchain.Block.null_value]
-        if len(blocks_numbers) > 0:
-            return blocks_numbers[0]
+        blocks = [n.block for n in self.synced_nodes if n.block]
+        if len(blocks) > 0:
+            return BlockId(blocks[0]['number'], blocks[0]['hash'])
         else:
-            return 0
+            return BlockId.empty()
 
-    @property
-    def latest_block_hash(self):
-        """
-        Get the latest block considered valid
-        It is the most frequent last block of every known nodes
-        """
-        blocks_hash = [n.block['hash'] for n in self.synced_nodes
-                       if n.block != qtbma.blockchain.Block.null_value]
-        if len(blocks_hash) > 0:
-            return blocks_hash[0]
-        else:
-            return Block.Empty_Hash
-
-    def check_nodes_sync(self):
+    def _check_nodes_sync(self):
         """
         Check nodes sync with the following rules :
         1 : The block of the majority
@@ -194,18 +184,18 @@ class Network(QObject):
         4 : The biggest number or timestamp
         """
         # rule number 1 : block of the majority
-        blocks = [n.block['hash'] for n in self.nodes if n.block != qtbma.blockchain.Block.null_value]
+        blocks = [n.block['hash'] for n in self.online_nodes if n.block]
         blocks_occurences = Counter(blocks)
         blocks_by_occurences = {}
         for key, value in blocks_occurences.items():
-            the_block = [n.block for n in self.nodes if n.block['hash'] == key][0]
+            the_block = [n.block for n in self.online_nodes if n.block and n.block['hash'] == key][0]
             if value not in blocks_by_occurences:
                 blocks_by_occurences[value] = [the_block]
             else:
                 blocks_by_occurences[value].append(the_block)
 
         if len(blocks_by_occurences) == 0:
-            for n in [n for n in self._nodes if n.state in (Node.ONLINE, Node.DESYNCED)]:
+            for n in [n for n in self.online_nodes if n.state in (Node.ONLINE, Node.DESYNCED)]:
                 n.state = Node.ONLINE
             return
 
@@ -239,11 +229,24 @@ class Network(QObject):
         else:
             synced_block_hash = blocks_by_occurences[most_present][0]['hash']
 
-        for n in [n for n in self._nodes if n.state in (Node.ONLINE, Node.DESYNCED)]:
-            if n.block['hash'] == synced_block_hash:
+        for n in self.online_nodes:
+            if n.block and n.block['hash'] == synced_block_hash:
                 n.state = Node.ONLINE
             else:
                 n.state = Node.DESYNCED
+
+    def _check_nodes_unique(self):
+        """
+        Check that all nodes are unique by them pubkeys
+        """
+        pubkeys = set()
+        unique_nodes = []
+        for n in self.nodes:
+            if n.pubkey not in pubkeys:
+                unique_nodes.append(n)
+                pubkeys.add(n.pubkey)
+
+        self._nodes = unique_nodes
 
     def fork_window(self, members_pubkeys):
         """
@@ -251,7 +254,7 @@ class Network(QObject):
         :return: the medium fork window of knew network
         """
         fork_windows = [n.fork_window for n in self.online_nodes if n.software != ""
-                                  and n.pubkey in members_pubkeys]
+                        and n.pubkey in members_pubkeys]
         if len(fork_windows) > 0:
             return int(statistics.median(fork_windows))
         else:
@@ -263,6 +266,8 @@ class Network(QObject):
         """
         self._nodes.append(node)
         node.changed.connect(self.handle_change)
+        node.error.connect(self.handle_error)
+        node.identity_changed.connect(self.handle_identity_change)
         node.neighbour_found.connect(self.handle_new_node)
         logging.debug("{:} connected".format(node.pubkey[:5]))
 
@@ -271,12 +276,14 @@ class Network(QObject):
         Add a node to the root nodes list
         """
         self._root_nodes.append(node)
+        self.root_nodes_changed.emit()
 
     def remove_root_node(self, index):
         """
         Remove a node from the root nodes list
         """
         self._root_nodes.pop(index)
+        self.root_nodes_changed.emit()
 
     def is_root_node(self, node):
         """
@@ -294,7 +301,7 @@ class Network(QObject):
 
     def refresh_once(self):
         for node in self._nodes:
-            node.refresh()
+            node.refresh(manual=True)
 
     @asyncio.coroutine
     def discover_network(self):
@@ -306,8 +313,8 @@ class Network(QObject):
         while self.continue_crawling():
             for node in self.nodes:
                 if self.continue_crawling():
-                    yield from asyncio.sleep(2)
                     node.refresh()
+                    yield from asyncio.sleep(15)
         logging.debug("End of network discovery")
 
     @pyqtSlot(Peer, str)
@@ -315,25 +322,52 @@ class Network(QObject):
         pubkeys = [n.pubkey for n in self.nodes]
         if peer.pubkey not in pubkeys:
             logging.debug("New node found : {0}".format(peer.pubkey[:5]))
-            node = Node.from_peer(self.network_manager, self.currency, peer, pubkey)
-            self.add_node(node)
+            try:
+                node = Node.from_peer(self.currency, peer, pubkey)
+                self.add_node(node)
+                self.nodes_changed.emit()
+            except InvalidNodeCurrency as e:
+                logging.debug(str(e))
+
+    @pyqtSlot()
+    def handle_identity_change(self):
+        node = self.sender()
+        if node in self._root_nodes:
+            self.root_nodes_changed.emit()
+        self.nodes_changed.emit()
+
+    @pyqtSlot()
+    def handle_error(self):
+        node = self.sender()
+        if node.state in (Node.OFFLINE, Node.CORRUPTED) and \
+                                node.last_change + 3600 < time.time():
+            node.disconnect()
+            self.nodes.remove(node)
             self.nodes_changed.emit()
 
     @pyqtSlot()
     def handle_change(self):
         node = self.sender()
-        if node.state in (Node.ONLINE, Node.DESYNCED):
-            self.check_nodes_sync()
-            self.nodes_changed.emit()
-        else:
-            if node.last_change + 3600 < time.time():
-                node.disconnect()
-                self.nodes.remove(node)
-                self.nodes_changed.emit()
 
-        logging.debug("{0} -> {1}".format(self._block_found[:10], self.latest_block_hash[:10]))
-        if self._block_found != self.latest_block_hash and node.state == Node.ONLINE:
-            logging.debug("Latest block changed : {0}".format(self.latest_block_number))
-            self._block_found = self.latest_block_hash
-            # Do not emit block change for empty block
-            self.new_block_mined.emit(self.latest_block_number)
+        if node.state in (Node.ONLINE, Node.DESYNCED):
+            self._check_nodes_sync()
+        self._check_nodes_unique()
+        self.nodes_changed.emit()
+
+        if node.state == Node.ONLINE:
+            logging.debug("{0} -> {1}".format(self._block_found.sha_hash[:10], self.current_blockid.sha_hash[:10]))
+            if self._block_found.sha_hash != self.current_blockid.sha_hash:
+                logging.debug("Latest block changed : {0}".format(self.current_blockid.number))
+                # If new latest block is lower than the previously found one
+                # or if the previously found block is different locally
+                # than in the main chain, we declare a rollback
+                if self._block_found.number and \
+                                self.current_blockid.number <= self._block_found.number \
+                        or node.main_chain_previous_block and \
+                                        node.main_chain_previous_block['hash'] != self._block_found.sha_hash:
+
+                    self._block_found = self.current_blockid
+                    self.blockchain_rollback.emit(self.current_blockid.number)
+                else:
+                    self._block_found = self.current_blockid
+                    self.new_block_mined.emit(self.current_blockid.number)

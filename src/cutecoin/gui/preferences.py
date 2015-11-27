@@ -5,14 +5,10 @@ Created on 11 mai 2015
 """
 
 from PyQt5.QtCore import QCoreApplication
+from PyQt5.QtWidgets import QDialog
 
 from ..core import money
-from . import toast
-from PyQt5.QtWidgets import QDialog
-from PyQt5.QtGui import QIcon
-
 from ..gen_resources.preferences_uic import Ui_PreferencesDialog
-import icons_rc
 
 
 class PreferencesDialog(QDialog, Ui_PreferencesDialog):
@@ -54,10 +50,9 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
         self.edit_proxy_address.setEnabled(self.checkbox_proxy.isChecked())
         self.checkbox_proxy.stateChanged.connect(self.handle_proxy_change)
 
-        self.spinbox_proxy_port.setValue(self.app.preferences.get('proxy_port', 8080))
         self.spinbox_proxy_port.setMinimum(0)
         self.spinbox_proxy_port.setMaximum(55636)
-        self.combox_proxytype.setCurrentText(self.app.preferences.get('proxy_type', "HTTP"))
+        self.spinbox_proxy_port.setValue(self.app.preferences.get('proxy_port', 8080))
         self.edit_proxy_address.setText(self.app.preferences.get('proxy_address', ""))
 
     def handle_proxy_change(self):
@@ -73,15 +68,13 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
                 'digits_after_comma': self.spinbox_digits_comma.value(),
                 'notifications': self.checkbox_notifications.isChecked(),
                 'enable_proxy': self.checkbox_proxy.isChecked(),
-                'proxy_type': self.combox_proxytype.currentText(),
                 'proxy_address': self.edit_proxy_address.text(),
                 'proxy_port': self.spinbox_proxy_port.value(),
-                'international_system_of_units': self.checkbox_international_system.isChecked()}
+                'international_system_of_units': self.checkbox_international_system.isChecked(),
+                'auto_refresh': self.checkbox_auto_refresh.isChecked()}
         self.app.save_preferences(pref)
       # change UI translation
         self.app.switch_language()
-        toast.display(self.tr("Preferences"),
-                      self.tr("A restart is needed to apply your new preferences."))
         super().accept()
 
     def reject(self):
