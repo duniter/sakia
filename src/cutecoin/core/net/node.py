@@ -347,6 +347,9 @@ class Node(QObject):
         except asyncio.TimeoutError:
             logging.debug("Timeout error : {0}".format(self.pubkey))
             self.state = Node.OFFLINE
+        except jsonschema.ValidationError:
+            logging.debug("Validation error : {0}".format(self.pubkey))
+            self.state = Node.CORRUPTED
 
     @asyncify
     @asyncio.coroutine
