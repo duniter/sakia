@@ -20,7 +20,7 @@ from .member import MemberDialog
 from .transfer import TransferMoneyDialog
 from cutecoin.gui.widgets.busy import Busy
 from .certification import CertificationDialog
-from ..core.registry import Identity
+from ..core.registry import Identity, BlockchainState
 from ..tools.exceptions import NoPeerAvailable
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 
@@ -210,8 +210,12 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
             response = yield from self.community.bma_access.future_request(bma.wot.Lookup, {'search': text})
             identities = []
             for identity_data in response['results']:
-                identity = yield from self.app.identities_registry.future_find(identity_data['pubkey'], self.community)
-                identities.append(identity)
+                for uid_data in identity_data['uids']:
+                    identity = Identity.from_handled_data(uid_data['uid'],
+                                                         identity_data['pubkey'],
+                                                         uid_data['meta']['timestamp'],
+                                                         BlockchainState.BUFFERED)
+                    identities.append(identity)
 
             self.edit_textsearch.clear()
             yield from self.refresh_identities(identities)

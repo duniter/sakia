@@ -14,7 +14,7 @@ from ucoinpy.api import bma as bma
 from ucoinpy.api.bma import PROTOCOL_VERSION
 
 from ...tools.exceptions import Error, NoPeerAvailable,\
-                                        MembershipNotFoundError
+                                        MembershipNotFoundError, LookupFailureError
 from PyQt5.QtCore import QObject, pyqtSignal
 
 
@@ -49,28 +49,30 @@ class Identity(QObject):
     """
     A person with a uid and a pubkey
     """
-    def __init__(self, uid, pubkey, local_state, blockchain_state):
+    def __init__(self, uid, pubkey, sigdate, local_state, blockchain_state):
         """
         Initializing a person object.
 
-        :param str uid: The person uid, also known as its uid on the network
-        :param str pubkey: The person pubkey
+        :param str uid: The identity uid, also known as its uid on the network
+        :param str pubkey: The identity pubkey
+        :parma int sig_date: The date of signature of the self certification
         :param LocalState local_state: The local status of the identity
         :param BlockchainState blockchain_state: The blockchain status of the identity
         """
         super().__init__()
         self.uid = uid
         self.pubkey = pubkey
+        self.sigdate = sigdate
         self.local_state = local_state
         self.blockchain_state = blockchain_state
 
     @classmethod
     def empty(cls, pubkey):
-        return cls("", pubkey, LocalState.NOT_FOUND, BlockchainState.NOT_FOUND)
+        return cls("", pubkey, None, LocalState.NOT_FOUND, BlockchainState.NOT_FOUND)
 
     @classmethod
-    def from_handled_data(cls, uid, pubkey, blockchain_state):
-        return cls(uid, pubkey, LocalState.COMPLETED, blockchain_state)
+    def from_handled_data(cls, uid, pubkey, sigdate, blockchain_state):
+        return cls(uid, pubkey, sigdate, LocalState.COMPLETED, blockchain_state)
 
     @classmethod
     def from_json(cls, json_data):
@@ -82,10 +84,11 @@ class Identity(QObject):
         """
         pubkey = json_data['pubkey']
         uid = json_data['uid']
+        sigdate = json_data['sigdate']
         local_state = LocalState[json_data['local_state']]
         blockchain_state = BlockchainState[json_data['blockchain_state']]
 
-        return cls(uid, pubkey, local_state, blockchain_state)
+        return cls(uid, pubkey, sigdate, local_state, blockchain_state)
 
     @asyncio.coroutine
     def selfcert(self, community):
@@ -97,24 +100,40 @@ class Identity(QObject):
         :return: A SelfCertification ucoinpy object
         :rtype: ucoinpy.documents.certification.SelfCertification
         """
-        timestamp = 0
-        lookup_data = yield from community.bma_access.future_request(bma.wot.Lookup, req_args={'search': self.pubkey})
-        for result in lookup_data['results']:
-            if result["pubkey"] == self.pubkey:
-                uids = result['uids']
-                for uid_data in uids:
-                    if uid_data["meta"]["timestamp"] > timestamp:
-                        timestamp = uid_data["meta"]["timestamp"]
-                        uid = uid_data["uid"]
-                        signature = uid_data["self"]
+        try:
+            timestamp = 0
+            lookup_data = yield from community.bma_access.future_request(bma.wot.Lookup,
+                                                                         req_args={'search': self.pubkey})
 
-                return SelfCertification(PROTOCOL_VERSION,
-                                         community.currency,
-                                         self.pubkey,
-                                         timestamp,
-                                         uid,
-                                         signature)
-        return None
+            for result in lookup_data['results']:
+                if result["pubkey"] == self.pubkey:
+                    uids = result['uids']
+                    for uid_data in uids:
+                        # If we sigDate was written in the blockchain
+                        if self.sigdate and uid_data["meta"]["timestamp"] == self.sigdate:
+                                timestamp = uid_data["meta"]["timestamp"]
+                                uid = uid_data["uid"]
+                                signature = uid_data["self"]
+                        # Else we choose the latest one found
+                        elif uid_data["meta"]["timestamp"] > timestamp:
+                            timestamp = uid_data["meta"]["timestamp"]
+                            uid = uid_data["uid"]
+                            signature = uid_data["self"]
+
+                    if not self.sigdate:
+                        self.sigdate = timestamp
+
+                    return SelfCertification(PROTOCOL_VERSION,
+                                             community.currency,
+                                             self.pubkey,
+                                             timestamp,
+                                             uid,
+                                             signature)
+        except ValueError as e:
+            if '404' in str(e):
+                raise LookupFailureError(self.pubkey, community)
+        except NoPeerAvailable:
+            logging.debug("No peer available")
 
     @asyncio.coroutine
     def get_join_date(self, community):
@@ -177,6 +196,9 @@ class Identity(QObject):
                                            {'search': self.pubkey})
             block_number = -1
             membership_data = None
+            #TODO: Should not be here, should be set when we look for the identity
+            #We do it because we do not have this info in certifiers-of yet...
+            self.sigdate = search['sigDate']
             for ms in search['memberships']:
                 if ms['blockNumber'] > block_number:
                     block_number = ms['blockNumber']
@@ -273,6 +295,7 @@ class Identity(QObject):
                 certifier = {}
                 certifier['identity'] = identities_registry.from_handled_data(certifier_data['uid'],
                                                                               certifier_data['pubkey'],
+                                                                              None,
                                                                               BlockchainState.VALIDATED,
                                                                               community)
                 certifier['cert_time'] = certifier_data['cert_time']['medianTime']
@@ -303,6 +326,7 @@ class Identity(QObject):
                                 certifier['identity'] = identities_registry.\
                                     from_handled_data(uid,
                                                       certifier_data['pubkey'],
+                                                      None,
                                                       BlockchainState.BUFFERED,
                                                       community)
                                 block = yield from community.bma_access.future_request(bma.blockchain.Block,
@@ -367,6 +391,7 @@ class Identity(QObject):
                 certified = {}
                 certified['identity'] = identities_registry.from_handled_data(certified_data['uid'],
                                                                               certified_data['pubkey'],
+                                                                              None,
                                                                               BlockchainState.VALIDATED,
                                                                               community)
                 certified['cert_time'] = certified_data['cert_time']['medianTime']
@@ -390,6 +415,7 @@ class Identity(QObject):
                         certified = {}
                         certified['identity'] = identities_registry.from_handled_data(certified_data['uid'],
                                                                           certified_data['pubkey'],
+                                                                          None,
                                                                           BlockchainState.BUFFERED,
                                                                           community)
                         certified['cert_time'] = certified_data['meta']['timestamp']
@@ -459,12 +485,14 @@ class Identity(QObject):
         """
         data = {'uid': self.uid,
                 'pubkey': self.pubkey,
+                'sigdate': self.sigdate,
                 'local_state': self.local_state.name,
                 'blockchain_state': self.blockchain_state.name}
         return data
 
     def __str__(self):
-        return "{0} - {1} - {2} - {3}".format(self.uid,
-                                        self.pubkey,
-                                        self.local_state,
-                                        self.blockchain_state)
+        return "{uid} - {pubkey} - {sigdate} - {local} - {blockchain}".format(uid=self.uid,
+                                                                            pubkey=self.pubkey,
+                                                                            sigdate=self.sigdate,
+                                                                            local=self.local_state,
+                                                                            blockchain=self.blockchain_state)

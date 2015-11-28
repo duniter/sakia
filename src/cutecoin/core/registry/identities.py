@@ -74,16 +74,15 @@ class IdentitiesRegistry:
                 for result in data['results']:
                     if result["pubkey"] == identity.pubkey:
                         uids = result['uids']
-                        identity_uid = ""
                         for uid_data in uids:
                             if uid_data["meta"]["timestamp"] > timestamp:
-                                timestamp = uid_data["meta"]["timestamp"]
-                                identity_uid = uid_data["uid"]
-                                identity.uid = identity_uid
+                                identity.sigdate = uid_data["meta"]["timestamp"]
+                                identity.uid = uid_data["uid"]
                                 identity.blockchain_state = BlockchainState.BUFFERED
                                 identity.local_state = LocalState.PARTIAL
+                                timestamp = identity.sigdate
                 return identity
-            except ValueError as e:
+            except ValueError:
                 lookup_tries += 1
             except asyncio.TimeoutError:
                 lookup_tries += 1
@@ -95,6 +94,13 @@ class IdentitiesRegistry:
 
     @asyncio.coroutine
     def future_find(self, pubkey, community):
+        """
+
+        :param pubkey: The pubkey we look for
+        :param community: The community where we look for the identity
+        :return: The identity found
+        :rtype: cutecoin.core.registry.Identity
+        """
         if pubkey in self._identities(community):
             identity = self._identities(community)[pubkey]
         else:
@@ -103,9 +109,10 @@ class IdentitiesRegistry:
             tries = 0
             while tries < 3 and identity.local_state == LocalState.NOT_FOUND:
                 try:
-                    data = yield from community.bma_access.simple_request(bma.wot.CertifiersOf,
+                    data = yield from community.bma_access.simple_request(bma.blockchain.Membership,
                                                                           req_args={'search': pubkey})
                     identity.uid = data['uid']
+                    identity.sigdate = data['sigDate']
                     identity.local_state = LocalState.PARTIAL
                     identity.blockchain_state = BlockchainState.VALIDATED
                 except ValueError as e:
@@ -122,34 +129,38 @@ class IdentitiesRegistry:
                     return identity
         return identity
 
-    def from_handled_data(self, uid, pubkey, blockchain_state, community):
+    def from_handled_data(self, uid, pubkey, sigdate, blockchain_state, community):
         """
         Get a person from a metadata dict.
         A metadata dict has a 'text' key corresponding to the person uid,
         and a 'id' key corresponding to the person pubkey.
 
-        :param dict metadata: The person metadata
-        :return: A new person if pubkey wasn't knwon, else the existing instance.
+        :param str uid: The person uid, also known as its uid on the network
+        :param str pubkey: The person pubkey
+        :param int sig_date: The date of signature of the self certification
+        :param LocalState local_state: The local status of the identity
+        :param cutecoin.core.Community community: The community from which we found data
+        :rtype: cutecoin.core.registry.Identity
         """
         identities = self._identities(community)
         if pubkey in identities:
-            if self._identities(community)[pubkey].blockchain_state == BlockchainState.NOT_FOUND:
-                self._identities(community)[pubkey].blockchain_state = blockchain_state
-            elif self._identities(community)[pubkey].blockchain_state != BlockchainState.VALIDATED \
+            if identities[pubkey].blockchain_state == BlockchainState.NOT_FOUND:
+                identities[pubkey].blockchain_state = blockchain_state
+            elif identities[pubkey].blockchain_state != BlockchainState.VALIDATED \
                     and blockchain_state == BlockchainState.VALIDATED:
-                self._identities(community)[pubkey].blockchain_state = blockchain_state
+                identities[pubkey].blockchain_state = blockchain_state
 
-            # TODO: Random bug in ucoin makes the uid change without reason in requests answers
-            # https://github.com/ucoin-io/ucoin/issues/149
-            #if self._instances[pubkey].uid != uid:
-            #    self._instances[pubkey].uid = uid
-            #    self._instances[pubkey].inner_data_changed.emit("BlockchainState")
+            if identities[pubkey].uid != uid:
+                identities[pubkey].uid = uid
 
-            if self._identities(community)[pubkey].local_state == LocalState.NOT_FOUND:
-                self._identities(community)[pubkey].local_state = LocalState.COMPLETED
+            if sigdate and identities[pubkey].sigdate != sigdate:
+                identities[pubkey].sigdate = sigdate
 
-            return self._identities(community)[pubkey]
+            if identities[pubkey].local_state == LocalState.NOT_FOUND:
+                identities[pubkey].local_state = LocalState.COMPLETED
+
+            return identities[pubkey]
         else:
-            identity = Identity.from_handled_data(uid, pubkey, blockchain_state)
+            identity = Identity.from_handled_data(uid, pubkey, sigdate, blockchain_state)
             self._identities(community)[pubkey] = identity
             return identity

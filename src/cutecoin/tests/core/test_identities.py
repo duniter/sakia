@@ -26,7 +26,7 @@ class TestIdentity(unittest.TestCase):
         community = mock.MagicMock()
         type(community).currency = mock.PropertyMock(return_value="test_currency")
 
-        identity = Identity("john", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
+        identity = Identity("john", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ", None,
                             LocalState.COMPLETED, BlockchainState.VALIDATED)
         test_instances = {
             "test_currency": {"7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ": identity}
@@ -34,7 +34,9 @@ class TestIdentity(unittest.TestCase):
         identities_registry = IdentitiesRegistry(test_instances)
 
         identity_from_data = identities_registry.from_handled_data("john",
-                                                                    "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ", BlockchainState.VALIDATED,
+                                                                    "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
+                                                                   None,
+                                                                   BlockchainState.VALIDATED,
                                                                    community)
         self.assertEqual(identity, identity_from_data)
 

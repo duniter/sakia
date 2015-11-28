@@ -52,8 +52,9 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
             if expiration_data is not None:
                 will_expire_soon = (current_time > expiration_data*1000 - warning_expiration_time*1000)
             if role == Qt.DisplayRole:
-                if source_index.column() == self.sourceModel().columns_ids.index('renewed') \
-                        or source_index.column() == self.sourceModel().columns_ids.index('expiration'):
+                if source_index.column() in (self.sourceModel().columns_ids.index('renewed'),
+                                             self.sourceModel().columns_ids.index('expiration'),
+                                             self.sourceModel().columns_ids.index('publication')):
                     if source_data is not None:
                         return QLocale.toString(
                             QLocale(),
@@ -90,8 +91,9 @@ class IdentitiesTableModel(QAbstractTableModel):
                                'pubkey': self.tr('Pubkey'),
                                'renewed': self.tr('Renewed'),
                                'expiration': self.tr('Expiration'),
-                               'validation': self.tr('Validation')}
-        self.columns_ids = ('uid', 'pubkey', 'renewed', 'expiration')
+                               'publication': self.tr('Publication'),
+                               'validation': self.tr('Validation'),}
+        self.columns_ids = ('uid', 'pubkey', 'renewed', 'expiration', 'publication')
         self.identities_data = []
         self._sig_validity = 0
 
@@ -126,7 +128,7 @@ class IdentitiesTableModel(QAbstractTableModel):
             join_date = None
             expiration_date = None
 
-        return identity.uid, identity.pubkey, join_date, expiration_date
+        return identity.uid, identity.pubkey, join_date, expiration_date, identity.sigdate
 
     @asyncio.coroutine
     def refresh_identities(self, identities):
