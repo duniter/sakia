@@ -1,5 +1,24 @@
+import asyncio
+import quamash
 
 _application_ = []
+
+
+class QuamashTest:
+    def setUpQuamash(self):
+        self.qapplication = get_application()
+        self.lp = quamash.QEventLoop(self.qapplication)
+        asyncio.set_event_loop(self.lp)
+        self.lp.set_exception_handler(lambda l, c: unitttest_exception_handler(self, l, c))
+        self.exceptions = []
+
+    def tearDownQuamash(self):
+        try:
+            self.lp.close()
+        finally:
+            asyncio.set_event_loop(None)
+        for exc in self.exceptions:
+            raise exc
 
 
 def unitttest_exception_handler(test, loop, context):
@@ -9,23 +28,8 @@ def unitttest_exception_handler(test, loop, context):
     :param loop: the asyncio loop
     :param context: the exception context
     """
-    message = context.get('message')
-    if not message:
-        message = 'Unhandled exception in event loop'
-
-    try:
-        exception = context['exception']
-    except KeyError:
-        exc_info = False
-    else:
-        exc_info = (type(exception), exception, exception.__traceback__)
-
-    log_lines = [message]
-    for key in [k for k in sorted(context) if k not in {'message', 'exception'}]:
-        log_lines.append('{}: {!r}'.format(key, context[key]))
-
-    test.fail('\n'.join(log_lines))
-
+    exception = context['exception']
+    test.exceptions.append(exception)
 
 
 def get_application():

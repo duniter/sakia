@@ -12,15 +12,13 @@ from cutecoin.gui.process_cfg_account import ProcessConfigureAccount
 from cutecoin.gui.password_asker import PasswordAskerDialog
 from cutecoin.core.app import Application
 from cutecoin.core.account import Account
-from cutecoin.tests import get_application
+from cutecoin.tests import QuamashTest
 
 
-class ProcessAddCommunity(unittest.TestCase):
+class ProcessAddCommunity(unittest.TestCase, QuamashTest):
     def setUp(self):
-        self.qapplication = get_application()
+        self.setUpQuamash()
         QLocale.setDefault(QLocale("en_GB"))
-        self.lp = quamash.QEventLoop(self.qapplication)
-        asyncio.set_event_loop(self.lp)
         self.identities_registry = IdentitiesRegistry({})
 
         self.application = Application(self.qapplication, self.lp, self.identities_registry)
@@ -34,10 +32,7 @@ class ProcessAddCommunity(unittest.TestCase):
         self.password_asker.remember = True
 
     def tearDown(self):
-        try:
-            self.lp.close()
-        finally:
-            asyncio.set_event_loop(None)
+        self.tearDownQuamash()
 
     def test_create_account(self):
         process_account = ProcessConfigureAccount(self.application,

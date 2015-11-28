@@ -8,7 +8,7 @@ from PyQt5.QtCore import QLocale
 from cutecoin.core.registry.identities import Identity, IdentitiesRegistry, LocalState, BlockchainState
 from cutecoin.tests.mocks.monkeypatch import pretender_reversed
 from cutecoin.tests.mocks.bma import nice_blockchain, corrupted
-from cutecoin.tests import get_application
+from cutecoin.tests import QuamashTest
 from cutecoin.core import Application, Community
 from cutecoin.core.net import Network, Node
 from ucoinpy.documents.peer import BMAEndpoint
@@ -17,12 +17,10 @@ from cutecoin.tools.exceptions import MembershipNotFoundError
 from ucoinpy.api.bma import API
 
 
-class TestIdentity(unittest.TestCase):
+class TestIdentity(unittest.TestCase, QuamashTest):
     def setUp(self):
-        self.qapplication = get_application()
+        self.setUpQuamash()
         QLocale.setDefault(QLocale("en_GB"))
-        self.lp = quamash.QEventLoop(self.qapplication)
-        asyncio.set_event_loop(self.lp)
         self.identities_registry = IdentitiesRegistry()
 
         self.application = Application(self.qapplication, self.lp, self.identities_registry)
@@ -38,17 +36,14 @@ class TestIdentity(unittest.TestCase):
         self.community = Community("test_currency", self.network, self.bma_access)
 
     def tearDown(self):
-        try:
-            self.lp.close()
-        finally:
-            asyncio.set_event_loop(None)
+        self.tearDownQuamash()
 
     def test_identity_certified_by(self):
         mock = nice_blockchain.get_mock()
         time.sleep(2)
         logging.debug(mock.pretend_url)
         API.reverse_url = pretender_reversed(mock.pretend_url)
-        identity = Identity("john", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
+        identity = Identity("john", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ", 1441130831,
                             LocalState.COMPLETED, BlockchainState.VALIDATED)
 
         @asyncio.coroutine
@@ -65,7 +60,7 @@ class TestIdentity(unittest.TestCase):
         time.sleep(2)
         logging.debug(mock.pretend_url)
         API.reverse_url = pretender_reversed(mock.pretend_url)
-        identity = Identity("john", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
+        identity = Identity("john", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ", 1441130831,
                             LocalState.COMPLETED, BlockchainState.VALIDATED)
 
         @asyncio.coroutine
@@ -84,7 +79,7 @@ class TestIdentity(unittest.TestCase):
         time.sleep(2)
         logging.debug(mock.pretend_url)
         API.reverse_url = pretender_reversed(mock.pretend_url)
-        identity = Identity("john", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
+        identity = Identity("john", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ", 1441130831,
                             LocalState.COMPLETED, BlockchainState.VALIDATED)
 
         @asyncio.coroutine

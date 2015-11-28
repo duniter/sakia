@@ -15,16 +15,13 @@ from cutecoin.gui.process_cfg_community import ProcessConfigureCommunity
 from cutecoin.gui.password_asker import PasswordAskerDialog
 from cutecoin.core.app import Application
 from cutecoin.core.account import Account
-from cutecoin.tests import get_application, unitttest_exception_handler
+from cutecoin.tests import QuamashTest
 
 
-class ProcessAddCommunity(unittest.TestCase):
+class ProcessAddCommunity(unittest.TestCase, QuamashTest):
     def setUp(self):
-        self.qapplication = get_application()
+        self.setUpQuamash()
         QLocale.setDefault(QLocale("en_GB"))
-        self.lp = quamash.QEventLoop(self.qapplication)
-        asyncio.set_event_loop(self.lp)
-        #self.lp.set_exception_handler(lambda lp, ctx : unitttest_exception_handler(self, lp, ctx))
         self.identities_registry = IdentitiesRegistry({})
 
         self.application = Application(self.qapplication, self.lp, self.identities_registry)
@@ -38,10 +35,7 @@ class ProcessAddCommunity(unittest.TestCase):
         self.password_asker.remember = True
 
     def tearDown(self):
-        try:
-            self.lp.close()
-        finally:
-            asyncio.set_event_loop(None)
+        self.tearDownQuamash()
 
     def test_register_community_empty_blockchain(self):
         mock = new_blockchain.get_mock()

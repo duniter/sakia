@@ -8,21 +8,16 @@ from cutecoin.core.registry.identities import IdentitiesRegistry
 from cutecoin.core.net.api.bma.access import BmaAccess
 from cutecoin.core.net.network import Network
 from cutecoin.core import Community
-from cutecoin.tests import get_application
+from cutecoin.tests import QuamashTest
 
 
-class TestCommunity(unittest.TestCase):
+class TestCommunity(unittest.TestCase, QuamashTest):
     def setUp(self):
-        self.qapplication = get_application()
+        self.setUpQuamash()
         QLocale.setDefault(QLocale("en_GB"))
-        self.lp = quamash.QEventLoop(self.qapplication)
-        asyncio.set_event_loop(self.lp)
 
     def tearDown(self):
-        try:
-            self.lp.close()
-        finally:
-            asyncio.set_event_loop(None)
+        self.tearDownQuamash()
 
     def test_load_save_community(self):
         network = Network("test_currency", [])

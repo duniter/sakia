@@ -7,23 +7,18 @@ from PyQt5.QtWidgets import QMenu
 from PyQt5.QtCore import QLocale
 from cutecoin.gui.mainwindow import MainWindow
 from cutecoin.core.app import Application
-from cutecoin.tests import get_application
+from cutecoin.tests import QuamashTest
 
-class MainWindowMenusTest(unittest.TestCase):
+class MainWindowMenusTest(unittest.TestCase, QuamashTest):
     def setUp(self):
-        self.qapplication = get_application()
+        self.setUpQuamash()
         QLocale.setDefault(QLocale("en_GB"))
-        self.lp = quamash.QEventLoop(self.qapplication)
-        asyncio.set_event_loop(self.lp)
 
         self.application = Application(self.qapplication, self.lp, None)
         self.main_window = MainWindow(self.application)
 
     def tearDown(self):
-        try:
-            self.lp.close()
-        finally:
-            asyncio.set_event_loop(None)
+        self.tearDownQuamash()
 
     def test_menubar(self):
         children = self.main_window.menubar.children()

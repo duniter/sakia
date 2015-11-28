@@ -6,28 +6,22 @@ from PyQt5.QtCore import QLocale, QTimer
 from PyQt5.QtNetwork import QNetworkAccessManager
 from cutecoin.gui.mainwindow import MainWindow
 from cutecoin.core.app import Application
-from cutecoin.tests import get_application
+from cutecoin.tests import QuamashTest
 from cutecoin.core.registry.identities import IdentitiesRegistry
 
 # Qapplication cause a core dumped when re-run in setup
 # set it as global var
 
-class MainWindowDialogsTest(unittest.TestCase):
+class MainWindowDialogsTest(unittest.TestCase, QuamashTest):
     def setUp(self):
+        self.setUpQuamash()
         QLocale.setDefault(QLocale("en_GB"))
-        self.qapplication = get_application()
-        self.lp = quamash.QEventLoop(self.qapplication)
-        asyncio.set_event_loop(self.lp)
 
         self.application = Application(self.qapplication, self.lp, IdentitiesRegistry())
         self.main_window = MainWindow(self.application)
 
     def tearDown(self):
-        # delete all top widgets from main QApplication
-        try:
-            self.lp.close()
-        finally:
-            asyncio.set_event_loop(None)
+        self.tearDownQuamash()
 
     def test_action_about(self):
         #select menu

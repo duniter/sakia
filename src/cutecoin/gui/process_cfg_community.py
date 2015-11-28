@@ -93,7 +93,7 @@ class StepPageInit(Step):
                 self.config_dialog.label_error.setText(self.tr("Could not find your identity on the network."))
             elif registered[0] is False and registered[2]:
                 self.config_dialog.label_error.setText(self.tr("""Your pubkey or UID is different on the network.
-    Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
+Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
             else:
                 self.config_dialog.community = community
                 self.config_dialog.next()

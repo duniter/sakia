@@ -8,7 +8,7 @@ from PyQt5.QtCore import QLocale
 from cutecoin.core.registry.identities import Identity, IdentitiesRegistry, LocalState, BlockchainState
 from cutecoin.tests.mocks.monkeypatch import pretender_reversed
 from cutecoin.tests.mocks.bma import nice_blockchain, corrupted
-from cutecoin.tests import get_application
+from cutecoin.tests import QuamashTest
 from cutecoin.core import Application, Community
 from cutecoin.core.net import Network, Node
 from ucoinpy.documents.peer import BMAEndpoint
@@ -17,12 +17,10 @@ from cutecoin.tools.exceptions import MembershipNotFoundError
 from ucoinpy.api.bma import API
 
 
-class TestBmaAccess(unittest.TestCase):
+class TestBmaAccess(unittest.TestCase, QuamashTest):
     def setUp(self):
-        self.qapplication = get_application()
+        self.setUpQuamash()
         QLocale.setDefault(QLocale("en_GB"))
-        self.lp = quamash.QEventLoop(self.qapplication)
-        asyncio.set_event_loop(self.lp)
         self.identities_registry = IdentitiesRegistry()
 
         self.application = Application(self.qapplication, self.lp, self.identities_registry)
@@ -38,11 +36,7 @@ class TestBmaAccess(unittest.TestCase):
         self.community = Community("test_currency", self.network, self.bma_access)
 
     def tearDown(self):
-        try:
-            if not self.lp.is_closed():
-                self.lp.close()
-        finally:
-            asyncio.set_event_loop(None)
+        self.tearDownQuamash()
 
     def test_compare_json_with_nonetype(self):
         res = self.bma_access._compare_json({}, corrupted.bma_null_data)

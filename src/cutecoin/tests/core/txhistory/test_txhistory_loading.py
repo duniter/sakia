@@ -6,23 +6,20 @@ import time
 import logging
 from ucoinpy.documents.peer import BMAEndpoint as PyBMAEndpoint
 from PyQt5.QtCore import QLocale, Qt
-from PyQt5.QtTest import QTest
 from cutecoin.tests.mocks.bma import nice_blockchain
 from cutecoin.core.registry.identities import IdentitiesRegistry
 from cutecoin.core.app import Application
 from cutecoin.core import Account, Community, Wallet
 from cutecoin.core.net import Network, Node
 from cutecoin.core.net.api.bma.access import BmaAccess
-from cutecoin.tests import get_application
+from cutecoin.tests import QuamashTest
 from ucoinpy.documents.peer import BMAEndpoint
 
 
-class TestTxHistory(unittest.TestCase):
+class TestTxHistory(unittest.TestCase, QuamashTest):
     def setUp(self):
-        self.qapplication = get_application()
+        self.setUpQuamash()
         QLocale.setDefault(QLocale("en_GB"))
-        self.lp = quamash.QEventLoop(self.qapplication)
-        asyncio.set_event_loop(self.lp)
         self.identities_registry = IdentitiesRegistry({})
 
         self.application = Application(self.qapplication, self.lp, self.identities_registry)
@@ -47,10 +44,7 @@ class TestTxHistory(unittest.TestCase):
                                "john", [self.community], [self.wallet], [], self.identities_registry)
 
     def tearDown(self):
-        try:
-            self.lp.close()
-        finally:
-            asyncio.set_event_loop(None)
+        self.tearDownQuamash()
 
     # this test fails with old algorithm
     def notest_txhistory_reload(self):

@@ -6,22 +6,17 @@ import logging
 from PyQt5.QtCore import QLocale
 from cutecoin.core.registry.identities import IdentitiesRegistry
 from cutecoin.core import Wallet
-from cutecoin.tests import get_application
+from cutecoin.tests import QuamashTest
 
 
-class TestWallet(unittest.TestCase):
+class TestWallet(unittest.TestCase, QuamashTest):
     def setUp(self):
-        self.qapplication = get_application()
+        self.setUpQuamash()
         QLocale.setDefault(QLocale("en_GB"))
-        self.lp = quamash.QEventLoop(self.qapplication)
-        asyncio.set_event_loop(self.lp)
         self.identities_registry = IdentitiesRegistry({})
 
     def tearDown(self):
-        try:
-            self.lp.close()
-        finally:
-            asyncio.set_event_loop(None)
+        self.tearDownQuamash()
 
     def test_load_save_wallet(self):
         wallet = Wallet(0, "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",

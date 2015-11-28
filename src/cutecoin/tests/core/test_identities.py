@@ -6,21 +6,16 @@ import quamash
 import logging
 from PyQt5.QtCore import QLocale
 from cutecoin.core.registry.identities import Identity, IdentitiesRegistry, LocalState, BlockchainState
-from cutecoin.tests import get_application
+from cutecoin.tests import QuamashTest
 
 
-class TestIdentity(unittest.TestCase):
+class TestIdentity(unittest.TestCase, QuamashTest):
     def setUp(self):
-        self.qapplication = get_application()
+        self.setUpQuamash()
         QLocale.setDefault(QLocale("en_GB"))
-        self.lp = quamash.QEventLoop(self.qapplication)
-        asyncio.set_event_loop(self.lp)
 
     def tearDown(self):
-        try:
-            self.lp.close()
-        finally:
-            asyncio.set_event_loop(None)
+        self.tearDownQuamash()
 
     def test_identity_from_handled_data(self):
         community = mock.MagicMock()

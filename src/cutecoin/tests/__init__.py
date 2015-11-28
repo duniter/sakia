@@ -1,1 +1,1 @@
-from .qapp import get_application, unitttest_exception_handler
+from .quamash_test import QuamashTest

@@ -6,22 +6,17 @@ import logging
 from PyQt5.QtCore import QLocale
 from cutecoin.core.registry.identities import IdentitiesRegistry
 from cutecoin.core import Account
-from cutecoin.tests import get_application
+from cutecoin.tests import QuamashTest
 
 
-class TestAccount(unittest.TestCase):
+class TestAccount(unittest.TestCase, QuamashTest):
     def setUp(self):
-        self.qapplication = get_application()
+        self.setUpQuamash()
         QLocale.setDefault(QLocale("en_GB"))
-        self.lp = quamash.QEventLoop(self.qapplication)
-        asyncio.set_event_loop(self.lp)
         self.identities_registry = IdentitiesRegistry()
 
     def tearDown(self):
-        try:
-            self.lp.close()
-        finally:
-            asyncio.set_event_loop(None)
+        self.tearDownQuamash()
 
     def test_load_save_account(self):
         account = Account("test_salt", "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk",

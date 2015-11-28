@@ -19,17 +19,14 @@ from cutecoin.core.app import Application
 from cutecoin.core import Account, Community, Wallet
 from cutecoin.core.net import Network, Node
 from cutecoin.core.net.api.bma.access import BmaAccess
-from cutecoin.tests import get_application, unitttest_exception_handler
+from cutecoin.tests import QuamashTest
 from ucoinpy.api import bma
 
 
-class TestCertificationDialog(unittest.TestCase):
+class TestCertificationDialog(unittest.TestCase, QuamashTest):
     def setUp(self):
-        self.qapplication = get_application()
+        self.setUpQuamash()
         QLocale.setDefault(QLocale("en_GB"))
-        self.lp = quamash.QEventLoop(self.qapplication)
-        asyncio.set_event_loop(self.lp)
-        #self.lp.set_exception_handler(lambda lp, ctx : unitttest_exception_handler(self, lp, ctx))
         self.identities_registry = IdentitiesRegistry({})
 
         self.application = Application(self.qapplication, self.lp, self.identities_registry)
@@ -57,10 +54,7 @@ class TestCertificationDialog(unittest.TestCase):
         self.password_asker.remember = True
 
     def tearDown(self):
-        try:
-            self.lp.close()
-        finally:
-            asyncio.set_event_loop(None)
+        self.tearDownQuamash()
 
     def test_certification_init_community(self):
         mock = init_new_community.get_mock()
