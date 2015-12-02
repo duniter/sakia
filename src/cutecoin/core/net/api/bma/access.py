@@ -7,6 +7,7 @@ import logging
 from aiohttp.errors import ClientError
 import asyncio
 import random
+from socket import gaierror
 import jsonschema
 from distutils.version import StrictVersion
 
@@ -243,9 +244,7 @@ class BmaAccess(QObject):
                     if '404' in str(e) or '400' in str(e):
                         raise
                     tries += 1
-                except ClientError:
-                    tries += 1
-                except asyncio.TimeoutError:
+                except (ClientError, gaierror, asyncio.TimeoutError):
                     tries += 1
                 except jsonschema.ValidationError as e:
                     logging.debug(str(e))
@@ -277,9 +276,7 @@ class BmaAccess(QObject):
                     if '404' in str(e) or '400' in str(e):
                         raise
                     tries += 1
-                except ClientError:
-                    tries += 1
-                except asyncio.TimeoutError:
+                except (ClientError, gaierror, asyncio.TimeoutError):
                     tries += 1
                 except jsonschema.ValidationError as e:
                     logging.debug(str(e))
@@ -315,7 +312,7 @@ class BmaAccess(QObject):
                 except ValueError as e:
                     if '404' in str(e) or '400' in str(e):
                         raise
-                except ClientError:
+                except (ClientError, gaierror):
                     pass
                 except asyncio.TimeoutError:
                     pass
