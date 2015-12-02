@@ -257,7 +257,10 @@ class Node(QObject):
     def state(self, new_state):
         #logging.debug("{:} | Last state : {:} / new state : {:}".format(self.pubkey[:5],
         #                                                               self.state, new_state))
+
         if self._state != new_state:
+            if self.pubkey[:5] in ("6YfbK", "J78bP"):
+                pass
             self.last_change = time.time()
             self._state = new_state
             self.changed.emit()
@@ -354,7 +357,6 @@ class Node(QObject):
 
         try:
             peering_data = yield from bma.network.Peering(conn_handler).get()
-            logging.debug(peering_data)
             node_pubkey = peering_data["pubkey"]
             node_currency = peering_data["currency"]
             self.state = Node.ONLINE
@@ -431,9 +433,9 @@ class Node(QObject):
                 self.identity_changed.emit()
         except ValueError as e:
             if '404' in str(e):
-                logging.debug("UID not found")
+                logging.debug("UID not found : {0}".format(self.pubkey))
             else:
-                logging.debug("error in uid reply")
+                logging.debug("error in uid reply : {0}".format(self.pubkey))
                 self.state = Node.OFFLINE
                 self.identity_changed.emit()
         except (ClientError, gaierror, asyncio.TimeoutError, DisconnectedError) as e:

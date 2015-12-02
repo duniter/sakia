@@ -332,6 +332,7 @@ class Network(QObject):
     @pyqtSlot()
     def handle_identity_change(self):
         node = self.sender()
+        self._check_nodes_unique()
         if node in self._root_nodes:
             self.root_nodes_changed.emit()
         self.nodes_changed.emit()
