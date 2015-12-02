@@ -118,7 +118,7 @@ class Graph(object):
             node = self._graph[pubkey]
             if node['id'] in tuple(done):
                 continue
-            identity_selected = identity.from_handled_data(node['text'], node['id'], BlockchainState.VALIDATED)
+            identity_selected = identity.from_handled_data(node['text'], node['id'], None, BlockchainState.VALIDATED)
             certifier_list = yield from identity_selected.unique_valid_certifiers_of(self.app.identities_registry,
                                                                                      self.community)
             yield from self.add_certifier_list(certifier_list, identity_selected, identity)

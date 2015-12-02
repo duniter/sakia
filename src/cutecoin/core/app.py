@@ -42,7 +42,7 @@ class Application(QObject):
         Init a new "cutecoin" application
         :param QCoreApplication qapp: Qt Application
         :param quamash.QEventLoop loop: quamash.QEventLoop instance
-        :param IdentitiesRegistry identities_registry: IdentitiesRegistry instance
+        :param cutecoin.core.registry.IdentitiesRegistry identities_registry: IdentitiesRegistry instance
         :return:
         """
 

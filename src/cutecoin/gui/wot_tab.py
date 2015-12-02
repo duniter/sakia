@@ -26,8 +26,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
 
     def __init__(self, app):
         """
-        :param cutecoin.core.app.Application app:   Application instance
-        :return:
+        :param cutecoin.core.app.Application app: Application instance
         """
         super().__init__()
         # construct from qtDesigner
@@ -178,6 +177,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             self.app.identities_registry.from_handled_data(
                 metadata['text'],
                 metadata['id'],
+                None,
                 BlockchainState.VALIDATED,
                 self.community
             )
@@ -294,6 +294,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             self.app.identities_registry.from_handled_data(
                 metadata['text'],
                 metadata['id'],
+                None,
                 BlockchainState.VALIDATED,
                 self.community
             )
@@ -303,6 +304,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         identity = self.app.identities_registry.from_handled_data(
             metadata['text'],
             metadata['id'],
+            None,
             BlockchainState.VALIDATED,
             self.community
         )
@@ -315,6 +317,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         identity = self.app.identities_registry.from_handled_data(
             metadata['text'],
             metadata['id'],
+            None,
             BlockchainState.VALIDATED,
             self.community
         )
@@ -327,6 +330,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         identity = self.app.identities_registry.from_handled_data(
             metadata['text'],
             metadata['id'],
+            None,
             BlockchainState.VALIDATED,
             self.community
         )
@@ -346,7 +350,8 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
                 or metadata['id'] in [contact['pubkey'] for contact in self.account.contacts]:
             return False
         dialog = ConfigureContactDialog(self.account, self.window(), {'name': metadata['text'],
-                                                                      'pubkey': metadata['id']})
+                                                                      'pubkey': metadata['id'],
+                                                                      })
         result = dialog.exec_()
         if result == QDialog.Accepted:
             self.window().refresh_contacts()
