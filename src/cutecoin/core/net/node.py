@@ -311,6 +311,8 @@ class Node(QObject):
                 except ValueError as e:
                     if '404' in str(e):
                         self.main_chain_previous_block = None
+                    else:
+                        self.state = Node.OFFLINE
                     logging.debug("Error in previous block reply :  {0}".format(self.pubkey))
                     logging.debug(str(e))
                     self.changed.emit()
@@ -335,6 +337,8 @@ class Node(QObject):
             if '404' in str(e):
                 self.main_chain_previous_block = None
                 self.set_block(None)
+            else:
+                self.state = Node.OFFLINE
             logging.debug("Error in block reply :  {0}".format(self.pubkey))
             logging.debug(str(e))
             self.changed.emit()
@@ -377,6 +381,7 @@ class Node(QObject):
 
         except ValueError as e:
             logging.debug("Error in peering reply : {0}".format(str(e)))
+            self.state = Node.OFFLINE
             self.changed.emit()
         except ClientError:
             logging.debug("Client error : {0}".format(self.pubkey))
@@ -410,6 +415,7 @@ class Node(QObject):
                 self.fork_window = 0
         except ValueError as e:
             logging.debug("Error in summary : {0}".format(e))
+            self.state = Node.OFFLINE
             self.changed.emit()
         except ClientError:
             logging.debug("Client error : {0}".format(self.pubkey))
@@ -451,6 +457,7 @@ class Node(QObject):
                 logging.debug("UID not found")
             else:
                 logging.debug("error in uid reply")
+                self.state = Node.OFFLINE
                 self.identity_changed.emit()
         except ClientError:
             logging.debug("Client error : {0}".format(self.pubkey))
@@ -491,6 +498,7 @@ class Node(QObject):
                             logging.debug("Incorrect leaf reply")
                     except ValueError as e:
                         logging.debug("Error in leaf reply")
+                        self.state = Node.OFFLINE
                         self.changed.emit()
                     except ClientError:
                         logging.debug("Client error : {0}".format(self.pubkey))
@@ -508,6 +516,7 @@ class Node(QObject):
                                      'leaves': peers_data['leaves']}
         except ValueError as e:
             logging.debug("Error in peers reply")
+            self.state = Node.OFFLINE
             self.changed.emit()
         except ClientError:
             logging.debug("Client error : {0}".format(self.pubkey))
