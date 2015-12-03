@@ -2,7 +2,7 @@
 
 ![sakia logo](https://raw.github.com/ucoin-io/sakia/dev/sakia.png)
 
-Sakia [![Coverage Status](https://coveralls.io/repos/ucoin-io/sakia/badge.svg?branch=dev)](https://coveralls.io/r/ucoin-io/sakia) [![Build Status](https://travis-ci.org/ucoin-io/sakia.svg?branch=travis)](https://travis-ci.org/ucoin-io/sakia) [![Build status](https://ci.appveyor.com/api/projects/status/0wmo0rk5mds5t3lr/branch/dev)](https://ci.appveyor.com/project/Insoleet/sakia/branch/dev) [![Translation status](http://weblate.ucoin.io/widgets/sakia/-/svg-badge.svg)](http://weblate.ucoin.io/engage/sakia/?utm_source=widget)
+Sakia [![Coverage Status](https://coveralls.io/repos/ucoin-io/sakia/badge.svg?branch=dev)](https://coveralls.io/r/ucoin-io/sakia) [![Build Status](https://travis-ci.org/ucoin-io/sakia.svg?branch=travis)](https://travis-ci.org/ucoin-io/sakia) [![Build status](https://ci.appveyor.com/api/projects/status/nd7idaoi6s2fpsqy/branch/dev)](https://ci.appveyor.com/project/Insoleet/sakia/branch/dev) [![Translation status](http://weblate.ucoin.io/widgets/sakia/-/svg-badge.svg)](http://weblate.ucoin.io/engage/sakia/?utm_source=widget)
 ========
 
 Python3 and PyQt5 Client for [uCoin](http://www.ucoin.io) project.
