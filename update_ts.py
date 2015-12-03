@@ -1,6 +1,6 @@
 import sys, os, multiprocessing, subprocess, time
 
-src = os.path.abspath(os.path.join(os.path.dirname(__file__), 'src', 'cutecoin'))
+src = os.path.abspath(os.path.join(os.path.dirname(__file__), 'src', 'sakia'))
 res = os.path.abspath(os.path.join(os.path.dirname(__file__), 'res'))
 pro_file_template = """
 FORMS = {0}
@@ -14,7 +14,7 @@ def generate_pro():
     translations = []
     project_filename = os.path.abspath(os.path.join(
                                         os.path.dirname(__file__),
-                                        "cutecoin-ts-{0}".format(int(time.time()))))
+                                        "sakia-ts-{0}".format(int(time.time()))))
     for root, dirs, files in os.walk(src):
         for f in files:
             if f.endswith('.py') and not f.endswith('_uic.py'):

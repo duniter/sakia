@@ -28,7 +28,7 @@ install:
   - "SET QT_QPA_PLATFORM_PLUGIN_PATH=%PYTHON%\\envs\\test-environment\\Scripts\\plugins"
   - choco install -y vcredist2013
   - "%CMD_IN_ENV% conda config --set always_yes yes --set changeps1 no"
-  - "%CMD_IN_ENV% conda config --add channels inso/channel/cutecoin"
+  - "%CMD_IN_ENV% conda config --add channels inso/channel/sakia"
   - "%CMD_IN_ENV% conda config --add channels pyzo"
   - "%CMD_IN_ENV% conda create -q -n test-environment python=%PYTHON_VERSION% cx_freeze pyqt5 libsodium=1.0.3"
 
@@ -41,14 +41,14 @@ build_script:
 
 artifacts:
   - path: build
-    name: Cutecoin-win$(PYTHON_ARCH)
+    name: sakia-win$(PYTHON_ARCH)
 # upload to releases
 deploy:
-  release: Cutecoin $(APPVEYOR_REPO_TAG_NAME)
+  release: sakia $(APPVEYOR_REPO_TAG_NAME)
   provider: GitHub
   auth_token:
     secure: wbzlh6nx1zY1J1avlB0C3hKGm1abFNHBdM60u/U09i5Nam//D6kazvnv5ZBKdR89
-  artifact: Cutecoin-win$(PYTHON_ARCH)
+  artifact: sakia-win$(PYTHON_ARCH)
   draft: true
   prerelease: true
   on:

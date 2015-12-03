@@ -40,7 +40,7 @@ before_install:
   - export PATH="$HOME/miniconda/bin:$PATH"
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
-  - conda config --add channels inso/channel/cutecoin
+  - conda config --add channels inso/channel/sakia
   - conda config --add channels pyzo
   - conda update -q conda
   # Useful for debugging any issues with conda
@@ -68,7 +68,7 @@ script:
   - export QT_QPA_PLATFORM_PLUGIN_PATH=$HOME/miniconda/envs/test-environment/lib/qt5/plugins/platforms;
   - export QT_PLUGIN_PATH=$HOME/miniconda/envs/test-environment/lib/qt5/plugins
   - export QT_XKB_CONFIG_ROOT=/usr/share/X11/xkb
-  - coverage run --source=cutecoin.core,cutecoin.gui,cutecoin.models run_tests.py
+  - coverage run --source=sakia.core,sakia.gui,sakia.models run_tests.py
 
 after_success:
   - coverage -rm

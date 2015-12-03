@@ -74,7 +74,7 @@ else:
                                       "libsodium.so.13")
         includefiles.append((libsodium_path, "libsodium.so.13"))
 
-        
+
 print("Includes : ")
 print(includes)
 print("Excludes : ")
@@ -99,15 +99,15 @@ options = {"path": sys.path,
 # preparation des cibles
 base = None
 file_type=""
-icon="cutecoin.png"
+icon="sakia.png"
 if sys.platform == "win32":
     base = "Win32GUI"
     file_type=".exe"
-    icon="cutecoin.ico"
+    icon="sakia.ico"
 
 target = Executable(
-    script = "src/cutecoin/main.py",
-    targetName="cutecoin"+file_type,
+    script = "src/sakia/main.py",
+    targetName="sakia"+file_type,
     base = base,
     icon = icon,
     )
@@ -115,7 +115,7 @@ target = Executable(
 #############################################################################
 # creation du setup
 setup(
-    name = "cutecoin",
+    name = "sakia",
     version = "0.11",
     description = "UCoin client",
     author = "Inso",

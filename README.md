@@ -1,8 +1,8 @@
-<!-- Landscape | [![Code Health](https://landscape.io/github/ucoin-io/cutecoin/dev/landscape.svg?style=flat)](https://landscape.io/github/ucoin-io/cutecoin/dev) -->
+<!-- Landscape | [![Code Health](https://landscape.io/github/ucoin-io/sakia/dev/landscape.svg?style=flat)](https://landscape.io/github/ucoin-io/sakia/dev) -->
 
-![cutecoin logo](https://raw.github.com/ucoin-io/cutecoin/master/cutecoin.png)
+![sakia logo](https://raw.github.com/ucoin-io/sakia/master/sakia.png)
 
-Cutecoin [![Coverage Status](https://coveralls.io/repos/ucoin-io/cutecoin/badge.svg?branch=dev)](https://coveralls.io/r/ucoin-io/cutecoin) [![Build Status](https://travis-ci.org/ucoin-io/cutecoin.svg?branch=travis)](https://travis-ci.org/ucoin-io/cutecoin) [![Build status](https://ci.appveyor.com/api/projects/status/0wmo0rk5mds5t3lr/branch/dev)](https://ci.appveyor.com/project/Insoleet/cutecoin/branch/dev) [![Translation status](http://weblate.ucoin.io/widgets/cutecoin/-/svg-badge.svg)](http://weblate.ucoin.io/engage/cutecoin/?utm_source=widget)
+sakia [![Coverage Status](https://coveralls.io/repos/ucoin-io/sakia/badge.svg?branch=dev)](https://coveralls.io/r/ucoin-io/sakia) [![Build Status](https://travis-ci.org/ucoin-io/sakia.svg?branch=travis)](https://travis-ci.org/ucoin-io/sakia) [![Build status](https://ci.appveyor.com/api/projects/status/0wmo0rk5mds5t3lr/branch/dev)](https://ci.appveyor.com/project/Insoleet/sakia/branch/dev) [![Translation status](http://weblate.ucoin.io/widgets/sakia/-/svg-badge.svg)](http://weblate.ucoin.io/engage/sakia/?utm_source=widget)
 ========
 
 Qt Client for [uCoin](http://www.ucoin.io) project.
@@ -29,7 +29,7 @@ Qt Client for [uCoin](http://www.ucoin.io) project.
   * Multiple wallets management
 
 ### How to build
-  * __git clone --recursive https://github.com/ucoin-io/cutecoin.git__
+  * __git clone --recursive https://github.com/ucoin-io/sakia.git__
   * Dependencies :
    * [python3](https://www.python.org/downloads/)
    * [cx_freeze for python 3](http://cx-freeze.sourceforge.net/)
@@ -40,16 +40,16 @@ Qt Client for [uCoin](http://www.ucoin.io) project.
    * __pip install libnacl__
    * __pip install requests__
    * __pip install base58__
-  * Run __python3 gen_resources.py__ in cutecoin folder
-  * Run __python3 gen_translations.py__ in cutecoin folder
-  * Run __python3 setup.py build__ in cutecoin folder
-  * The executable is generated in "build" folder, named "cutecoin"
+  * Run __python3 gen_resources.py__ in sakia folder
+  * Run __python3 gen_translations.py__ in sakia folder
+  * Run __python3 setup.py build__ in sakia folder
+  * The executable is generated in "build" folder, named "sakia"
 
 ### Download latest release
-  * Go to [current release](https://github.com/ucoin-io/cutecoin/release)
+  * Go to [current release](https://github.com/ucoin-io/sakia/release)
   * Download corresponding package to your operating system
-  * Unzip and start "cutecoin" :)
+  * Unzip and start "sakia" :)
   * Join our beta community by contacting us on [uCoin forum](http://forum.ucoin.io/)
 
 ## License
-This software is distributed under [GNU GPLv3](https://raw.github.com/ucoin-io/cutecoin/dev/LICENSE).
+This software is distributed under [GNU GPLv3](https://raw.github.com/ucoin-io/sakia/dev/LICENSE).

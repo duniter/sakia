@@ -54,7 +54,7 @@
   <customwidget>
    <class>WotView</class>
    <extends>QGraphicsView</extends>
-   <header>cutecoin.gui.views.wot</header>
+   <header>sakia.gui.views.wot</header>
   </customwidget>
  </customwidgets>
  <resources>
