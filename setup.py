@@ -116,7 +116,7 @@ target = Executable(
 # creation du setup
 setup(
     name = "sakia",
-    version = "0.11",
+    version = "0.11.0",
     description = "UCoin client",
     author = "Inso",
     options = {"build_exe": options},
