@@ -38,6 +38,9 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
 
         for contact in certifier.contacts:
             self.combo_contact.addItem(contact['name'])
+        if len(certifier.contacts) == 0:
+            self.radio_pubkey.setChecked(True)
+            self.radio_contact.setEnabled(False)
 
     @classmethod
     @asyncio.coroutine
