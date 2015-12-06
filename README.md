@@ -28,18 +28,18 @@ Python3 and PyQt5 Client for [uCoin](http://www.ucoin.io) project.
   * Joining a community, publishing keys
   * Multiple wallets management
 
-### How to build
-  * __git clone --recursive https://github.com/ucoin-io/sakia.git__
+### Dependencies
   * Dependencies :
    * [python3](https://www.python.org/downloads/)
    * [cx_freeze for python 3](http://cx-freeze.sourceforge.net/)
    * [pyqt5](http://www.riverbankcomputing.co.uk/software/pyqt/download5)
    * [libsodium](http://doc.libsodium.org/installation/README.html)
-  * To get python libraries dependencies :
-   * __pip install pylibscrypt__
-   * __pip install libnacl__
-   * __pip install requests__
-   * __pip install base58__
+  * Python libraries dependencies :
+   * __ucoinpy__
+
+  * General tips : use pyenv to build sakia, as described in the [wiki](https://github.com/ucoin-io/sakia/wiki/Cutecoin-install-for-developpers)
+
+### Build scripts
   * Run __python3 gen_resources.py__ in sakia folder
   * Run __python3 gen_translations.py__ in sakia folder
   * Run __python3 setup.py build__ in sakia folder
