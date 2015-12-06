@@ -87,10 +87,9 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
 
     @once_at_a_time
     @asyncify
-    @asyncio.coroutine
-    def refresh_minimum_maximum(self):
+    async def refresh_minimum_maximum(self):
         try:
-            block = yield from self.community.get_block(1)
+            block = await self.community.get_block(1)
             minimum_datetime = QDateTime()
             minimum_datetime.setTime_t(block['medianTime'])
             minimum_datetime.setTime(QTime(0, 0))
@@ -143,11 +142,10 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
 
     @once_at_a_time
     @asyncify
-    @asyncio.coroutine
-    def refresh_balance(self):
+    async def refresh_balance(self):
         self.busy_balance.show()
-        amount = yield from self.app.current_account.amount(self.community)
-        localized_amount = yield from self.app.current_account.current_ref(amount, self.community,
+        amount = await self.app.current_account.amount(self.community)
+        localized_amount = await self.app.current_account.current_ref(amount, self.community,
                                                                            self.app).localized(units=True,
                                         international_system=self.app.preferences['international_system_of_units'])
 
@@ -162,8 +160,7 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
 
     @once_at_a_time
     @asyncify
-    @asyncio.coroutine
-    def history_context_menu(self, point):
+    async def history_context_menu(self, point):
         index = self.table_history.indexAt(point)
         model = self.table_history.model()
         if index.row() < model.rowCount(QModelIndex()):
@@ -178,7 +175,7 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
             pubkey_index = model.sourceModel().index(source_index.row(),
                                                     pubkey_col)
             pubkey = model.sourceModel().data(pubkey_index, Qt.DisplayRole)
-            identity = yield from self.app.identities_registry.future_find(pubkey, self.community)
+            identity = await self.app.identities_registry.future_find(pubkey, self.community)
 
             transfer = model.sourceModel().transfers()[source_index.row()]
             if state_data == TransferState.REFUSED or state_data == TransferState.TO_SEND:
@@ -256,16 +253,14 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
             self.window().refresh_contacts()
 
     @asyncify
-    @asyncio.coroutine
-    def send_money_to_identity(self, identity):
-        yield from TransferMoneyDialog.send_money_to_identity(self.app, self.account, self.password_asker,
+    async def send_money_to_identity(self, identity):
+        await TransferMoneyDialog.send_money_to_identity(self.app, self.account, self.password_asker,
                                                             self.community, identity)
         self.table_history.model().sourceModel().refresh_transfers()
 
     @asyncify
-    @asyncio.coroutine
-    def certify_identity(self, identity):
-        yield from CertificationDialog.certify_identity(self.app, self.account, self.password_asker,
+    async def certify_identity(self, identity):
+        await CertificationDialog.certify_identity(self.app, self.account, self.password_asker,
                                              self.community, identity)
 
     def view_wot(self):
@@ -273,9 +268,8 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
         self.view_in_wot.emit(identity)
 
     @asyncify
-    @asyncio.coroutine
-    def send_again(self, checked=False, transfer=None):
-        result = yield from TransferMoneyDialog.send_transfer_again(self.app, self.app.current_account,
+    async def send_again(self, checked=False, transfer=None):
+        result = await TransferMoneyDialog.send_transfer_again(self.app, self.app.current_account,
                                      self.password_asker, self.community, transfer)
         self.table_history.model().sourceModel().refresh_transfers()
 

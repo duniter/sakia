@@ -240,15 +240,14 @@ class Account(QObject):
                                "Wallet", self._identities_registry)
         self.wallets.append(wallet)
 
-    @asyncio.coroutine
-    def identity(self, community):
+    async def identity(self, community):
         """
         Get the account identity in the specified community
         :param sakia.core.community.Community community: The community where to look after the identity
         :return: The account identity in the community
         :rtype: sakia.core.registry.Identity
         """
-        identity = yield from self._identities_registry.future_find(self.pubkey, community)
+        identity = await self._identities_registry.future_find(self.pubkey, community)
         if identity.local_state == LocalState.NOT_FOUND:
             identity.uid = self.name
         return identity
@@ -280,8 +279,7 @@ class Account(QObject):
         """
         return self.wallets[0].dividends(community)
 
-    @asyncio.coroutine
-    def future_amount(self, community):
+    async def future_amount(self, community):
         """
         Get amount of money owned in a community by all the wallets
         owned by this account
@@ -291,12 +289,11 @@ class Account(QObject):
         """
         value = 0
         for w in self.wallets:
-            val = yield from w.future_value(community)
+            val = await w.future_value(community)
             value += val
         return value
 
-    @asyncio.coroutine
-    def amount(self, community):
+    async def amount(self, community):
         """
         Get amount of money owned in a community by all the wallets
         owned by this account
@@ -306,12 +303,11 @@ class Account(QObject):
         """
         value = 0
         for w in self.wallets:
-            val = yield from w.value(community)
+            val = await w.value(community)
             value += val
         return value
 
-    @asyncio.coroutine
-    def check_registered(self, community):
+    async def check_registered(self, community):
         """
         Checks for the pubkey and the uid of an account in a community
         :param sakia.core.Community community: The community we check for registration
@@ -352,8 +348,7 @@ class Account(QObject):
             else:
                 return False, self.pubkey, None
 
-        @asyncio.coroutine
-        def execute_requests(parsers, search):
+        async     def execute_requests(parsers, search):
             tries = 0
             request = bma.wot.CertifiersOf
             nonlocal registered
@@ -361,7 +356,7 @@ class Account(QObject):
             #Multiplying the tries without any reason...
             while tries < 3 and not registered[0] and not registered[2]:
                 try:
-                    data = yield from community.bma_access.simple_request(request,
+                    data = await community.bma_access.simple_request(request,
                                                                           req_args={'search': search})
                     if data:
                         registered = parsers[request](data)
@@ -387,7 +382,7 @@ class Account(QObject):
                     bma.wot.CertifiersOf: _parse_uid_certifiers,
                     bma.wot.Lookup: _parse_uid_lookup
                    }
-        yield from execute_requests(uid_parsers, self.pubkey)
+        await execute_requests(uid_parsers, self.pubkey)
 
         # If the uid wasn't found when looking for the pubkey
         # We look for the uid and check for the pubkey
@@ -396,12 +391,11 @@ class Account(QObject):
                         bma.wot.CertifiersOf: _parse_pubkey_certifiers,
                         bma.wot.Lookup: _parse_pubkey_lookup
                        }
-            yield from execute_requests(pubkey_parsers, self.name)
+            await execute_requests(pubkey_parsers, self.name)
 
         return registered
 
-    @asyncio.coroutine
-    def send_selfcert(self, password, community):
+    async def send_selfcert(self, password, community):
         """
         Send our self certification to a target community
 
@@ -418,21 +412,20 @@ class Account(QObject):
         selfcert.sign([key])
         logging.debug("Key publish : {0}".format(selfcert.signed_raw()))
 
-        responses = yield from community.bma_access.broadcast(bma.wot.Add, {}, {'pubkey': self.pubkey,
+        responses = await community.bma_access.broadcast(bma.wot.Add, {}, {'pubkey': self.pubkey,
                                               'self_': selfcert.signed_raw(),
                                               'other': {}})
         result = (False, "")
         for r in responses:
             if r.status == 200:
-                result = (True, (yield from r.json()))
+                result = (True, (await r.json()))
             elif not result[0]:
-                result = (False, (yield from r.text()))
+                result = (False, (await r.text()))
             else:
-                yield from r.release()
+                await r.release()
         return result
 
-    @asyncio.coroutine
-    def send_membership(self, password, community, mstype):
+    async def send_membership(self, password, community, mstype):
         """
         Send a membership document to a target community.
         Signal "document_broadcasted" is emitted at the end.
@@ -443,9 +436,9 @@ class Account(QObject):
         """
         logging.debug("Send membership")
 
-        blockid = yield from community.blockid()
-        self_identity = yield from self._identities_registry.future_find(self.pubkey, community)
-        selfcert = yield from self_identity.selfcert(community)
+        blockid = await community.blockid()
+        self_identity = await self._identities_registry.future_find(self.pubkey, community)
+        selfcert = await self_identity.selfcert(community)
 
         membership = Membership(PROTOCOL_VERSION, community.currency,
                                 selfcert.pubkey, blockid.number,
@@ -454,20 +447,19 @@ class Account(QObject):
         key = SigningKey(self.salt, password)
         membership.sign([key])
         logging.debug("Membership : {0}".format(membership.signed_raw()))
-        responses = yield from community.bma_access.broadcast(bma.blockchain.Membership, {},
+        responses = await community.bma_access.broadcast(bma.blockchain.Membership, {},
                         {'membership': membership.signed_raw()})
         result = (False, "")
         for r in responses:
             if r.status == 200:
-                result = (True, (yield from r.json()))
+                result = (True, (await r.json()))
             elif not result[0]:
-                result = (False, (yield from r.text()))
+                result = (False, (await r.text()))
             else:
-                yield from r.release()
+                await r.release()
         return result
 
-    @asyncio.coroutine
-    def certify(self, password, community, pubkey):
+    async def certify(self, password, community, pubkey):
         """
         Certify an other identity
 
@@ -476,9 +468,9 @@ class Account(QObject):
         :param str pubkey: The certified identity pubkey
         """
         logging.debug("Certdata")
-        blockid = yield from community.blockid()
-        identity = yield from self._identities_registry.future_find(pubkey, community)
-        selfcert = yield from identity.selfcert(community)
+        blockid = await community.blockid()
+        identity = await self._identities_registry.future_find(pubkey, community)
+        selfcert = await identity.selfcert(community)
         if selfcert:
             certification = Certification(PROTOCOL_VERSION, community.currency,
                                           self.pubkey, pubkey,
@@ -493,31 +485,30 @@ class Account(QObject):
                     'self_': selfcert.signed_raw(),
                     'other': "{0}\n".format(certification.inline())}
             logging.debug("Posted data : {0}".format(data))
-            responses = yield from community.bma_access.broadcast(bma.wot.Add, {}, data)
+            responses = await community.bma_access.broadcast(bma.wot.Add, {}, data)
             result = (False, "")
             for r in responses:
                 if r.status == 200:
-                    result = (True, (yield from r.json()))
+                    result = (True, (await r.json()))
                 elif not result[0]:
-                    result = (False, (yield from r.text()))
+                    result = (False, (await r.text()))
                 else:
-                    yield from r.release()
+                    await r.release()
             return result
         else:
             return (False, self.tr("Could not find user self certification."))
 
-    @asyncio.coroutine
-    def revoke(self, password, community):
+    async def revoke(self, password, community):
         """
         Revoke self-identity on server, not in blockchain
 
         :param str password: The account SigningKey password
         :param sakia.core.community.Community community: The community target of the revocation
         """
-        revoked = yield from self._identities_registry.future_find(self.pubkey, community)
+        revoked = await self._identities_registry.future_find(self.pubkey, community)
 
         revocation = Revocation(PROTOCOL_VERSION, community.currency, None)
-        selfcert = yield from revoked.selfcert(community)
+        selfcert = await revoked.selfcert(community)
 
         key = SigningKey(self.salt, password)
         revocation.sign(selfcert, [key])
@@ -531,15 +522,15 @@ class Account(QObject):
             'sig': revocation.signatures[0]
         }
         logging.debug("Posted data : {0}".format(data))
-        responses = yield from community.bma_access.broadcast(bma.wot.Revoke, {}, data)
+        responses = await community.bma_access.broadcast(bma.wot.Revoke, {}, data)
         result = (False, "")
         for r in responses:
             if r.status == 200:
-                result = (True, (yield from r.json()))
+                result = (True, (await r.json()))
             elif not result[0]:
-                result = (False, (yield from r.text()))
+                result = (False, (await r.text()))
             else:
-                yield from r.release()
+                await r.release()
         return result
 
     def start_coroutines(self):

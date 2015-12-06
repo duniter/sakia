@@ -67,22 +67,20 @@ class TestWotTab(unittest.TestCase, QuamashTest):
             wot_tab.show()
             return future
 
-        @asyncio.coroutine
-        def async_open_widget():
-            yield from open_widget()
+        async     def async_open_widget():
+            await open_widget()
 
         def close_dialog():
             if wot_tab.isVisible():
                 wot_tab.close()
             future.set_result(True)
 
-        @asyncio.coroutine
-        def exec_test():
-            yield from asyncio.sleep(1)
+        async     def exec_test():
+            await asyncio.sleep(1)
             self.assertTrue(wot_tab.isVisible())
             self.lp.call_soon(close_dialog)
 
-        asyncio.async(exec_test())
+        asyncio.ensure_future(exec_test())
         self.lp.call_later(15, close_dialog)
         self.lp.run_until_complete(async_open_widget())
         mock.delete_mock()

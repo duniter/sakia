@@ -74,7 +74,7 @@ class TxHistory():
     def stop_coroutines(self):
         self._stop_coroutines = True
 
-    def _get_block_doc(self, community, number):
+    async def _get_block_doc(self, community, number):
         """
         Retrieve the current block document
         :param sakia.core.Community community: The community we look for a block
@@ -86,7 +86,7 @@ class TxHistory():
         block = None
         while block is None and tries < 3:
             try:
-                block = yield from community.bma_access.future_request(bma.blockchain.Block,
+                block = await community.bma_access.future_request(bma.blockchain.Block,
                                       req_args={'number': number})
                 signed_raw = "{0}{1}\n".format(block['raw'],
                                            block['signature'])
@@ -102,8 +102,7 @@ class TxHistory():
                     tries += 1
         return block_doc
 
-    @asyncio.coroutine
-    def _parse_transaction(self, community, tx, blockid,
+    async def _parse_transaction(self, community, tx, blockid,
                            mediantime, received_list, txid):
         """
         Parse a transaction
@@ -122,13 +121,13 @@ class TxHistory():
             receivers = [tx.issuers[0]]
 
         try:
-            issuer = yield from self.wallet._identities_registry.future_find(tx.issuers[0], community)
+            issuer = await self.wallet._identities_registry.future_find(tx.issuers[0], community)
             issuer_uid = issuer.uid
         except LookupFailureError:
             issuer_uid = ""
 
         try:
-            receiver = yield from self.wallet._identities_registry.future_find(receivers[0], community)
+            receiver = await self.wallet._identities_registry.future_find(receivers[0], community)
             receiver_uid = receiver.uid
         except LookupFailureError:
             receiver_uid = ""
@@ -180,8 +179,7 @@ class TxHistory():
             return transfer
         return None
 
-    @asyncio.coroutine
-    def _parse_block(self, community, block_number, received_list, txmax):
+    async def _parse_block(self, community, block_number, received_list, txmax):
         """
         Parse a block
         :param sakia.core.Community community: The community
@@ -190,7 +188,7 @@ class TxHistory():
         :param int txmax: Latest tx id
         :return: The list of transfers sent
         """
-        block_doc = yield from self._get_block_doc(community, block_number)
+        block_doc = await self._get_block_doc(community, block_number)
         transfers = []
         if block_doc:
             for transfer in [t for t in self._transfers if t.state == TransferState.AWAITING]:
@@ -201,7 +199,7 @@ class TxHistory():
                       ]
 
             for (txid, tx) in enumerate(new_tx):
-                transfer = yield from self._parse_transaction(community, tx, block_doc.blockid,
+                transfer = await self._parse_transaction(community, tx, block_doc.blockid,
                                         block_doc.mediantime, received_list, txid+txmax)
                 if transfer != None:
                     #logging.debug("Transfer amount : {0}".format(transfer.metadata['amount']))
@@ -213,11 +211,10 @@ class TxHistory():
             logging.debug("Could not find or parse block {0}".format(block_number))
         return transfers
 
-    @asyncio.coroutine
-    def request_dividends(self, community, parsed_block):
+    async def request_dividends(self, community, parsed_block):
         for i in range(0, 6):
             try:
-                dividends_data = yield from community.bma_access.future_request(bma.ud.History,
+                dividends_data = await community.bma_access.future_request(bma.ud.History,
                                                 req_args={'pubkey': self.wallet.pubkey})
 
                 dividends = dividends_data['history']['history'].copy()
@@ -231,8 +228,7 @@ class TxHistory():
                     pass
         return {}
 
-    @asyncio.coroutine
-    def _refresh(self, community, block_number_from, block_to, received_list):
+    async def _refresh(self, community, block_number_from, block_to, received_list):
         """
         Refresh last transactions
 
@@ -243,9 +239,9 @@ class TxHistory():
         new_dividends = []
         try:
             logging.debug("Refresh from : {0} to {1}".format(block_number_from, block_to['number']))
-            dividends = yield from self.request_dividends(community, block_number_from)
-            with_tx_data = yield from community.bma_access.future_request(bma.blockchain.TX)
-            members_pubkeys = yield from community.members_pubkeys()
+            dividends = await self.request_dividends(community, block_number_from)
+            with_tx_data = await community.bma_access.future_request(bma.blockchain.TX)
+            members_pubkeys = await community.members_pubkeys()
             fork_window = community.network.fork_window(members_pubkeys)
             blocks_with_tx = with_tx_data['result']['blocks']
             while block_number_from <= block_to['number']:
@@ -267,7 +263,7 @@ class TxHistory():
 
                 # We parse only blocks with transactions
                 if block_number_from in blocks_with_tx:
-                    transfers = yield from self._parse_block(community, block_number_from,
+                    transfers = await self._parse_block(community, block_number_from,
                                                              received_list,
                                                              udid + len(new_transfers))
                     new_transfers += transfers
@@ -283,12 +279,12 @@ class TxHistory():
 
             # We check if latest parsed block_number is a new high number
             if block_number_from > self.latest_block:
-                self.available_sources = yield from self.wallet.sources(community)
+                self.available_sources = await self.wallet.sources(community)
                 if self._stop_coroutines:
                     return
                 self.latest_block = block_number_from
 
-            parameters = yield from community.parameters()
+            parameters = await community.parameters()
             for transfer in [t for t in self._transfers if t.state == TransferState.AWAITING]:
                 transfer.run_state_transitions((False, block_to,
                                                 parameters['avgGenTime'], parameters['medianTimeBlocks']))
@@ -302,14 +298,13 @@ class TxHistory():
 
         self.wallet.refresh_finished.emit(received_list)
 
-    @asyncio.coroutine
-    def _check_block(self, community, block_number):
+    async def _check_block(self, community, block_number):
         """
         Parse a block
         :param sakia.core.Community community: The community
         :param int block_number: The block to check for transfers
         """
-        block_doc = yield from self._get_block_doc(community, block_number)
+        block_doc = await self._get_block_doc(community, block_number)
 
         # We check if transactions are still present
         for transfer in [t for t in self._transfers
@@ -320,8 +315,7 @@ class TxHistory():
             transfer.run_state_transitions((True, block_doc))
         return False
 
-    @asyncio.coroutine
-    def _rollback(self, community):
+    async def _rollback(self, community):
         """
         Rollback last transactions until we find one still present
         in the main blockchain
@@ -338,11 +332,11 @@ class TxHistory():
             tx_blocks.reverse()
             for i, block_number in enumerate(tx_blocks):
                 self.wallet.refresh_progressed.emit(i, len(tx_blocks), self.wallet.pubkey)
-                if (yield from self._check_block(community, block_number)):
+                if (await self._check_block(community, block_number)):
                     break
 
-            current_block = yield from self._get_block_doc(community, community.network.current_blockid.number)
-            members_pubkeys = yield from community.members_pubkeys()
+            current_block = await self._get_block_doc(community, community.network.current_blockid.number)
+            members_pubkeys = await community.members_pubkeys()
             fork_window = community.network.fork_window(members_pubkeys)
             # We check if transactions VALIDATED are in the fork window now
             for transfer in [t for t in self._transfers
@@ -351,15 +345,14 @@ class TxHistory():
         except NoPeerAvailable:
             logging.debug("No peer available")
 
-    @asyncio.coroutine
-    def refresh(self, community, received_list):
+    async def refresh(self, community, received_list):
         # We update the block goal
         try:
             current_block_number = community.network.current_blockid.number
             if current_block_number:
-                current_block = yield from community.bma_access.future_request(bma.blockchain.Block,
+                current_block = await community.bma_access.future_request(bma.blockchain.Block,
                                         req_args={'number': current_block_number})
-                members_pubkeys = yield from community.members_pubkeys()
+                members_pubkeys = await community.members_pubkeys()
                 # We look for the first block to parse, depending on awaiting and validating transfers and ud...
                 tx_blocks = [tx.blockid.number for tx in self._transfers
                           if tx.state in (TransferState.AWAITING, TransferState.VALIDATING) \
@@ -370,34 +363,32 @@ class TxHistory():
                          [max(0, self.latest_block - community.network.fork_window(members_pubkeys))]
                 block_from = min(set(blocks))
 
-                yield from self._wait_for_previous_refresh()
+                await self._wait_for_previous_refresh()
                 if block_from < current_block["number"]:
                     # Then we start a new one
                     logging.debug("Starts a new refresh")
-                    task = asyncio.async(self._refresh(community, block_from, current_block, received_list))
+                    task = asyncio.ensure_future(self._refresh(community, block_from, current_block, received_list))
                     self._running_refresh.append(task)
         except ValueError as e:
             logging.debug("Block not found")
         except NoPeerAvailable:
             logging.debug("No peer available")
 
-    @asyncio.coroutine
-    def rollback(self, community, received_list):
-        yield from self._wait_for_previous_refresh()
+    async def rollback(self, community, received_list):
+        await self._wait_for_previous_refresh()
         # Then we start a new one
         logging.debug("Starts a new rollback")
-        task = asyncio.async(self._rollback(community))
+        task = asyncio.ensure_future(self._rollback(community))
         self._running_refresh.append(task)
 
         # Then we start a refresh to check for new transactions
-        yield from self.refresh(community, received_list)
+        await self.refresh(community, received_list)
 
-    @asyncio.coroutine
-    def _wait_for_previous_refresh(self):
+    async def _wait_for_previous_refresh(self):
         # We wait for current refresh coroutines
         if len(self._running_refresh) > 0:
             logging.debug("Wait for the end of previous refresh")
-            done, pending = yield from asyncio.wait(self._running_refresh)
+            done, pending = await asyncio.wait(self._running_refresh)
             for cor in done:
                 try:
                     self._running_refresh.remove(cor)

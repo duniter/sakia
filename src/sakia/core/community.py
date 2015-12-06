@@ -116,21 +116,19 @@ class Community(QObject):
         u = ord('\u24B6') + ord(letter) - ord('A')
         return chr(u)
 
-    @asyncio.coroutine
-    def dividend(self):
+    async def dividend(self):
         """
         Get the last generated community universal dividend.
 
         :return: The last UD or 1 if no UD was generated.
         """
-        block = yield from self.get_ud_block()
+        block = await self.get_ud_block()
         if block:
             return block['dividend']
         else:
             return 1
 
-    @asyncio.coroutine
-    def computed_dividend(self):
+    async def computed_dividend(self):
         """
         Get the computed community universal dividend.
 
@@ -140,12 +138,12 @@ class Community(QObject):
 
         :return: The computed UD or 1 if no UD was generated.
         """
-        block = yield from self.get_ud_block()
+        block = await self.get_ud_block()
         if block:
-            parameters = yield from self.parameters()
+            parameters = await self.parameters()
             return math.ceil(
                 max(
-                    (yield from self.dividend()),
+                    (await self.dividend()),
                     float(0) if block['membersCount'] == 0 else
                     parameters['c'] * block['monetaryMass'] / block['membersCount']
                 )
@@ -154,8 +152,7 @@ class Community(QObject):
         else:
             return 1
 
-    @asyncio.coroutine
-    def get_ud_block(self, x=0):
+    async def get_ud_block(self, x=0):
         """
         Get a block with universal dividend
 
@@ -163,14 +160,14 @@ class Community(QObject):
         :return: The last block with universal dividend.
         """
         try:
-            udblocks = yield from self.bma_access.future_request(bma.blockchain.UD)
+            udblocks = await self.bma_access.future_request(bma.blockchain.UD)
             blocks = udblocks['result']['blocks']
             if len(blocks) > 0:
                 index = len(blocks)-(1+x)
                 if index < 0:
                     index = 0
                 block_number = blocks[index]
-                block = yield from self.bma_access.future_request(bma.blockchain.Block,
+                block = await self.bma_access.future_request(bma.blockchain.Block,
                                      req_args={'number': block_number})
                 return block
             else:
@@ -183,8 +180,7 @@ class Community(QObject):
             logging.debug(str(e))
             return None
 
-    @asyncio.coroutine
-    def monetary_mass(self):
+    async def monetary_mass(self):
         """
         Get the community monetary mass
 
@@ -193,14 +189,13 @@ class Community(QObject):
         # Get cached block by block number
         block_number = self.network.current_blockid.number
         if block_number:
-            block = yield from self.bma_access.future_request(bma.blockchain.Block,
+            block = await self.bma_access.future_request(bma.blockchain.Block,
                                  req_args={'number': block_number})
             return block['monetaryMass']
         else:
             return 0
 
-    @asyncio.coroutine
-    def nb_members(self):
+    async def nb_members(self):
         """
         Get the community members number
 
@@ -209,7 +204,7 @@ class Community(QObject):
         try:
             # Get cached block by block number
             block_number = self.network.current_blockid.number
-            block = yield from self.bma_access.future_request(bma.blockchain.Block,
+            block = await self.bma_access.future_request(bma.blockchain.Block,
                                  req_args={'number': block_number})
             return block['membersCount']
         except ValueError as e:
@@ -219,8 +214,7 @@ class Community(QObject):
             logging.debug(str(e))
             return 0
 
-    @asyncio.coroutine
-    def time(self):
+    async def time(self):
         """
         Get the blockchain time
         :return: The community blockchain time
@@ -229,7 +223,7 @@ class Community(QObject):
         try:
             # Get cached block by block number
             block_number = self.network.current_blockid.number
-            block = yield from self.bma_access.future_request(bma.blockchain.Block,
+            block = await self.bma_access.future_request(bma.blockchain.Block,
                                  req_args={'number': block_number})
             return block['medianTime']
         except ValueError as e:
@@ -259,20 +253,18 @@ class Community(QObject):
         """
         return self._bma_access
 
-    @asyncio.coroutine
-    def parameters(self):
+    async def parameters(self):
         """
         Return community parameters in bma format
         """
-        return self.bma_access.future_request(bma.blockchain.Parameters)
+        return await self.bma_access.future_request(bma.blockchain.Parameters)
 
-    @asyncio.coroutine
-    def certification_expired(self, certtime):
+    async def certification_expired(self, certtime):
         """
         Return True if the certificaton time is too old
         """
-        parameters = yield from self.parameters()
-        blockchain_time = yield from self.time()
+        parameters = await self.parameters()
+        blockchain_time = await self.time()
         return blockchain_time - certtime > parameters['sigValidity']
 
     def add_node(self, node):
@@ -291,8 +283,7 @@ class Community(QObject):
         """
         self._network.remove_root_node(index)
 
-    @asyncio.coroutine
-    def get_block(self, number=None):
+    async def get_block(self, number=None):
         """
         Get a block
 
@@ -300,16 +291,15 @@ class Community(QObject):
         """
         if number is None:
             block_number = self.network.current_blockid.number
-            data = yield from self.bma_access.future_request(bma.blockchain.Block,
+            data = await self.bma_access.future_request(bma.blockchain.Block,
                                  req_args={'number': block_number})
         else:
             logging.debug("Requesting block {0}".format(number))
-            data = yield from self.bma_access.future_request(bma.blockchain.Block,
+            data = await self.bma_access.future_request(bma.blockchain.Block,
                                 req_args={'number': number})
         return data
 
-    @asyncio.coroutine
-    def blockid(self):
+    async def blockid(self):
         """
         Get the block id.
 
@@ -317,7 +307,7 @@ class Community(QObject):
         """
         try:
             block_number = self.network.current_blockid.number
-            block = yield from self.bma_access.future_request(bma.blockchain.Block,
+            block = await self.bma_access.future_request(bma.blockchain.Block,
                                  req_args={'number': block_number})
             signed_raw = "{0}{1}\n".format(block['raw'], block['signature'])
         except ValueError as e:
@@ -326,14 +316,13 @@ class Community(QObject):
 
         return Block.from_signed_raw(signed_raw).blockid
 
-    @asyncio.coroutine
-    def members_pubkeys(self):
+    async def members_pubkeys(self):
         """
         Listing members pubkeys of a community
 
         :return: All members pubkeys.
         """
-        memberships = yield from self.bma_access.future_request(bma.wot.Members)
+        memberships = await self.bma_access.future_request(bma.wot.Members)
         return [m['pubkey'] for m in memberships["results"]]
 
     def start_coroutines(self):

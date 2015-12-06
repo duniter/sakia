@@ -24,8 +24,7 @@ class RelativeZSum:
     def diff_units(cls, currency):
         return RelativeZSum.units(currency)
 
-    @asyncio.coroutine
-    def value(self):
+    async def value(self):
         """
         Return relative value of amount minus the average value
 
@@ -33,10 +32,10 @@ class RelativeZSum:
         :param sakia.core.community.Community community: Community instance
         :return: float
         """
-        ud_block = yield from self.community.get_ud_block()
+        ud_block = await self.community.get_ud_block()
         if ud_block and ud_block['membersCount'] > 0:
-            monetary_mass = yield from self.community.monetary_mass()
-            dividend = yield from self.community.dividend()
+            monetary_mass = await self.community.monetary_mass()
+            dividend = await self.community.dividend()
             median = monetary_mass / ud_block['membersCount']
             relative_value = self.amount / float(dividend)
             relative_median = median / dividend
@@ -45,13 +44,11 @@ class RelativeZSum:
             relative_median = 0
         return relative_value - relative_median
 
-    @asyncio.coroutine
-    def differential(self):
+    async def differential(self):
         return Relative(self.amount, self.community, self.app).value()
 
-    @asyncio.coroutine
-    def localized(self, units=False, international_system=False):
-        value = yield from self.value()
+    async def localized(self, units=False, international_system=False):
+        value = await self.value()
 
         localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
 
@@ -62,8 +59,8 @@ class RelativeZSum:
         else:
             return localized_value
 
-    def diff_localized(self, units=False, international_system=False):
-        value = yield from self.differential()
+    async def diff_localized(self, units=False, international_system=False):
+        value = await self.differential()
 
         localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
 

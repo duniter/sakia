@@ -38,17 +38,15 @@ class ProcessAddCommunity(unittest.TestCase, QuamashTest):
         process_account = ProcessConfigureAccount(self.application,
                                                     None)
 
-        @asyncio.coroutine
-        def open_dialog(process_account):
-            result = yield from process_account.async_exec()
+        async     def open_dialog(process_account):
+            result = await process_account.async_exec()
             self.assertEqual(result, QDialog.Accepted)
 
         def close_dialog():
             if process_account.isVisible():
                 process_account.close()
 
-        @asyncio.coroutine
-        def exec_test():
+        async     def exec_test():
             QTest.keyClicks(process_account.edit_account_name, "test")
             self.assertEqual(process_account.stacked_pages.currentWidget(),
                              process_account.page_init,
@@ -82,7 +80,7 @@ class ProcessAddCommunity(unittest.TestCase, QuamashTest):
                              msg="Current widget : {0}".format(process_account.stacked_pages.currentWidget().objectName()))
             process_account.password_asker.password = "testsakia"
             process_account.password_asker.remember = True
-            yield from asyncio.sleep(1)
+            await asyncio.sleep(1)
             QTest.mouseClick(process_account.button_next, Qt.LeftButton)
             self.assertEqual(len(self.application.accounts), 1)
             self.assertEqual(self.application.current_account.name, "test")
@@ -90,7 +88,7 @@ class ProcessAddCommunity(unittest.TestCase, QuamashTest):
             self.assertEqual(len(self.application.current_account.wallets), 1)
 
         self.lp.call_later(10, close_dialog)
-        asyncio.async(exec_test())
+        asyncio.ensure_future(exec_test())
         self.lp.run_until_complete(open_dialog(process_account))
 
 if __name__ == '__main__':

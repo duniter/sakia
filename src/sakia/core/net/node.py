@@ -62,8 +62,7 @@ class Node(QObject):
         self._refresh_counter = 0
 
     @classmethod
-    @asyncio.coroutine
-    def from_address(cls, currency, address, port):
+    async def from_address(cls, currency, address, port):
         """
         Factory method to get a node from a given address
 
@@ -74,7 +73,7 @@ class Node(QObject):
         :return: A new node
         :rtype: sakia.core.net.Node
         """
-        peer_data = yield from bma.network.Peering(ConnectionHandler(address, port)).get()
+        peer_data = await bma.network.Peering(ConnectionHandler(address, port)).get()
 
         peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],
                                                   peer_data['signature']))
@@ -294,8 +293,7 @@ class Node(QObject):
             self._refresh_counter += 1
 
     @asyncify
-    @asyncio.coroutine
-    def refresh_block(self):
+    async def refresh_block(self):
         """
         Refresh the blocks of this node
         """
@@ -303,14 +301,14 @@ class Node(QObject):
 
         logging.debug("Requesting {0}".format(conn_handler))
         try:
-            block_data = yield from bma.blockchain.Current(conn_handler).get()
+            block_data = await bma.blockchain.Current(conn_handler).get()
             block_hash = block_data['hash']
             self.state = Node.ONLINE
 
             if not self.block or block_hash != self.block['hash']:
                 try:
                     if self.block:
-                        self.main_chain_previous_block = yield from bma.blockchain.Block(conn_handler,
+                        self.main_chain_previous_block = await bma.blockchain.Block(conn_handler,
                                                                                      self.block['number']).get()
                 except ValueError as e:
                     if '404' in str(e):
@@ -348,15 +346,14 @@ class Node(QObject):
             self.state = Node.CORRUPTED
 
     @asyncify
-    @asyncio.coroutine
-    def refresh_informations(self):
+    async def refresh_informations(self):
         """
         Refresh basic information (pubkey and currency)
         """
         conn_handler = self.endpoint.conn_handler()
 
         try:
-            peering_data = yield from bma.network.Peering(conn_handler).get()
+            peering_data = await bma.network.Peering(conn_handler).get()
             node_pubkey = peering_data["pubkey"]
             node_currency = peering_data["currency"]
             self.state = Node.ONLINE
@@ -382,15 +379,14 @@ class Node(QObject):
             self.state = Node.CORRUPTED
 
     @asyncify
-    @asyncio.coroutine
-    def refresh_summary(self):
+    async def refresh_summary(self):
         """
         Refresh the summary of this node
         """
         conn_handler = self.endpoint.conn_handler()
 
         try:
-            summary_data = yield from bma.node.Summary(conn_handler).get()
+            summary_data = await bma.node.Summary(conn_handler).get()
             self.software = summary_data["ucoin"]["software"]
             self.version = summary_data["ucoin"]["version"]
             self.state = Node.ONLINE
@@ -410,14 +406,13 @@ class Node(QObject):
             self.state = Node.CORRUPTED
 
     @asyncify
-    @asyncio.coroutine
-    def refresh_uid(self):
+    async def refresh_uid(self):
         """
         Refresh the node UID
         """
         conn_handler = self.endpoint.conn_handler()
         try:
-            data = yield from bma.wot.Lookup(conn_handler, self.pubkey).get()
+            data = await bma.wot.Lookup(conn_handler, self.pubkey).get()
             self.state = Node.ONLINE
             timestamp = 0
             uid = ""
@@ -446,22 +441,21 @@ class Node(QObject):
             self.state = Node.CORRUPTED
 
     @asyncify
-    @asyncio.coroutine
-    def refresh_peers(self):
+    async def refresh_peers(self):
         """
         Refresh the list of peers knew by this node
         """
         conn_handler = self.endpoint.conn_handler()
 
         try:
-            peers_data = yield from bma.network.peering.Peers(conn_handler).get(leaves='true')
+            peers_data = await bma.network.peering.Peers(conn_handler).get(leaves='true')
             self.state = Node.ONLINE
             if peers_data['root'] != self._last_merkle['root']:
                 leaves = [leaf for leaf in peers_data['leaves']
                           if leaf not in self._last_merkle['leaves']]
                 for leaf_hash in leaves:
                     try:
-                        leaf_data = yield from bma.network.peering.Peers(conn_handler).get(leaf=leaf_hash)
+                        leaf_data = await bma.network.peering.Peers(conn_handler).get(leaf=leaf_hash)
                         if "raw" in leaf_data['leaf']['value']:
                             peer_doc = Peer.from_signed_raw("{0}{1}\n".format(leaf_data['leaf']['value']['raw'],
                                                                         leaf_data['leaf']['value']['signature']))

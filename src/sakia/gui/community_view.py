@@ -149,8 +149,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
 
     @once_at_a_time
     @asyncify
-    @asyncio.coroutine
-    def refresh_block(self, block_number):
+    async def refresh_block(self, block_number):
         """
         When a new block is found, start handling data.
         @param: block_number: The number of the block mined
@@ -158,9 +157,9 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         logging.debug("Refresh block")
         self.status_info.clear()
         try:
-            person = yield from self.app.identities_registry.future_find(self.app.current_account.pubkey, self.community)
-            expiration_time = yield from person.membership_expiration_time(self.community)
-            parameters = yield from self.community.parameters()
+            person = await self.app.identities_registry.future_find(self.app.current_account.pubkey, self.community)
+            expiration_time = await person.membership_expiration_time(self.community)
+            parameters = await self.community.parameters()
             sig_validity = parameters['sigValidity']
             warning_expiration_time = int(sig_validity / 3)
             will_expire_soon = (expiration_time < warning_expiration_time)
@@ -178,7 +177,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                                   self.tr("<b>Warning : Membership expiration in {0} days</b>").format(days))
                         self.app.notifications['membership_expire_soon'][1] = time.time()
 
-            certifiers_of = yield from person.unique_valid_certifiers_of(self.app.identities_registry,
+            certifiers_of = await person.unique_valid_certifiers_of(self.app.identities_registry,
                                                                          self.community)
             if len(certifiers_of) < parameters['sigQty']:
                 if 'warning_certifications' not in self.status_info:
@@ -206,8 +205,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
 
     @once_at_a_time
     @asyncify
-    @asyncio.coroutine
-    def refresh_status(self):
+    async def refresh_status(self):
         """
         Refresh status bar
         """
@@ -219,7 +217,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
             if current_block_number:
                 text += self.tr(" Block {0}").format(current_block_number)
                 try:
-                    block = yield from self.community.get_block(current_block_number)
+                    block = await self.community.get_block(current_block_number)
                     text += " ({0})".format(QLocale.toString(
                                 QLocale(),
                                 QDateTime.fromTime_t(block['medianTime']),
@@ -254,7 +252,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
 
             if self.app.preferences['expert_mode']:
                 try:
-                    members_pubkeys = yield from self.community.members_pubkeys()
+                    members_pubkeys = await self.community.members_pubkeys()
                     label_text += self.tr(" - Median fork window : {0}")\
                         .format(self.community.network.fork_window(members_pubkeys))
                 except NoPeerAvailable as e:
@@ -266,13 +264,12 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
 
     @once_at_a_time
     @asyncify
-    @asyncio.coroutine
-    def refresh_quality_buttons(self):
+    async def refresh_quality_buttons(self):
         if self.account and self.community:
             try:
-                account_identity = yield from self.account.identity(self.community)
-                published_uid = yield from account_identity.published_uid(self.community)
-                uid_is_revokable = yield from account_identity.uid_is_revokable(self.community)
+                account_identity = await self.account.identity(self.community)
+                published_uid = await account_identity.published_uid(self.community)
+                uid_is_revokable = await account_identity.uid_is_revokable(self.community)
                 if published_uid:
                     logging.debug("UID Published")
                     self.action_revoke_uid.setEnabled(uid_is_revokable)
@@ -308,29 +305,27 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
             self.tab_informations.refresh()
 
     @asyncify
-    @asyncio.coroutine
-    def send_membership_demand(self, checked=False):
-        password = yield from self.password_asker.async_exec()
+    async def send_membership_demand(self, checked=False):
+        password = await self.password_asker.async_exec()
         if self.password_asker.result() == QDialog.Rejected:
             return
-        result = yield from self.account.send_membership(password, self.community, 'IN')
+        result = await self.account.send_membership(password, self.community, 'IN')
         if result[0]:
             if self.app.preferences['notifications']:
                 toast.display(self.tr("Membership"), self.tr("Success sending Membership demand"))
             else:
-                yield from QAsyncMessageBox.information(self, self.tr("Membership"),
+                await QAsyncMessageBox.information(self, self.tr("Membership"),
                                                         self.tr("Success sending Membership demand"))
         else:
             if self.app.preferences['notifications']:
                 toast.display(self.tr("Membership"), result[1])
             else:
-                yield from QAsyncMessageBox.critical(self, self.tr("Membership"),
+                await QAsyncMessageBox.critical(self, self.tr("Membership"),
                                                         result[1])
 
     @asyncify
-    @asyncio.coroutine
-    def send_membership_leaving(self):
-        reply = yield from QAsyncMessageBox.warning(self, self.tr("Warning"),
+    async def send_membership_leaving(self):
+        reply = await QAsyncMessageBox.warning(self, self.tr("Warning"),
                              self.tr("""Are you sure ?
 Sending a leaving demand  cannot be canceled.
 The process to join back the community later will have to be done again.""")
@@ -339,58 +334,56 @@ The process to join back the community later will have to be done again.""")
             password = self.password_asker.exec_()
             if self.password_asker.result() == QDialog.Rejected:
                 return
-            result = yield from self.account.send_membership(password, self.community, 'OUT')
+            result = await self.account.send_membership(password, self.community, 'OUT')
             if result[0]:
                 if self.app.preferences['notifications']:
                     toast.display(self.tr("Revoke"), self.tr("Success sending Revoke demand"))
                 else:
-                    yield from QAsyncMessageBox.information(self, self.tr("Revoke"),
+                    await QAsyncMessageBox.information(self, self.tr("Revoke"),
                                                             self.tr("Success sending Revoke demand"))
             else:
                 if self.app.preferences['notifications']:
                     toast.display(self.tr("Revoke"), result[1])
                 else:
-                    yield from QAsyncMessageBox.critical(self, self.tr("Revoke"),
+                    await QAsyncMessageBox.critical(self, self.tr("Revoke"),
                                                          result[1])
 
     @asyncify
-    @asyncio.coroutine
-    def publish_uid(self, checked=False):
-        password = yield from self.password_asker.async_exec()
+    async def publish_uid(self, checked=False):
+        password = await self.password_asker.async_exec()
         if self.password_asker.result() == QDialog.Rejected:
             return
-        result = yield from self.account.send_selfcert(password, self.community)
+        result = await self.account.send_selfcert(password, self.community)
         if result[0]:
             if self.app.preferences['notifications']:
                 toast.display(self.tr("UID"), self.tr("Success publishing your UID"))
             else:
-                yield from QAsyncMessageBox.information(self, self.tr("Membership"),
+                await QAsyncMessageBox.information(self, self.tr("Membership"),
                                                         self.tr("Success publishing your UID"))
         else:
             if self.app.preferences['notifications']:
                 toast.display(self.tr("UID"), result[1])
             else:
-                yield from QAsyncMessageBox.critical(self, self.tr("UID"),
+                await QAsyncMessageBox.critical(self, self.tr("UID"),
                                                         result[1])
 
     @asyncify
-    @asyncio.coroutine
-    def revoke_uid(self, checked=False):
-        password = yield from self.password_asker.async_exec()
+    async def revoke_uid(self, checked=False):
+        password = await self.password_asker.async_exec()
         if self.password_asker.result() == QDialog.Rejected:
             return
-        result = yield from self.account.revoke(password, self.community)
+        result = await self.account.revoke(password, self.community)
         if result[0]:
             if self.app.preferences['notifications']:
                 toast.display(self.tr("Revoke UID"), self.tr("Your UID was revoked successfully."))
             else:
-                yield from QAsyncMessageBox.information(self, self.tr("Membership"),
+                await QAsyncMessageBox.information(self, self.tr("Membership"),
                                                         self.tr("Your UID was revoked successfully."))
         else:
             if self.app.preferences['notifications']:
                 toast.display(self.tr("Revoke UID"), result[1])
             else:
-                yield from QAsyncMessageBox.critical(self, self.tr("UID"),
+                await QAsyncMessageBox.critical(self, self.tr("UID"),
                                                         result[1])
 
     def showEvent(self, QShowEvent):

@@ -110,7 +110,7 @@ class Wallet(QObject):
         :param community: The community to refresh its cache
         """
         logging.debug("Refresh transactions for {0}".format(self.pubkey))
-        asyncio.async(self.caches[community.currency].refresh(community, received_list))
+        asyncio.ensure_future(self.caches[community.currency].refresh(community, received_list))
 
     def rollback_transactions(self, community, received_list):
         """
@@ -119,7 +119,7 @@ class Wallet(QObject):
         :param community: The community to refresh its cache
         """
         logging.debug("Refresh transactions for {0}".format(self.pubkey))
-        asyncio.async(self.caches[community.currency].rollback(community, received_list))
+        asyncio.ensure_future(self.caches[community.currency].rollback(community, received_list))
 
     def check_password(self, salt, password):
         """
@@ -137,21 +137,19 @@ class Wallet(QObject):
             key = SigningKey("{0}{1}".format(salt, self.walletid), password)
         return (key.pubkey == self.pubkey)
 
-    @asyncio.coroutine
-    def relative_value(self, community):
+    async def relative_value(self, community):
         """
         Get wallet value relative to last generated UD
 
         :param community: The community to get value
         :return: The wallet relative value
         """
-        value = yield from self.value(community)
+        value = await self.value(community)
         ud = community.dividend
         relative_value = value / float(ud)
         return relative_value
 
-    @asyncio.coroutine
-    def value(self, community):
+    async def value(self, community):
         """
         Get wallet absolute value
 
@@ -159,7 +157,7 @@ class Wallet(QObject):
         :return: The wallet absolute value
         """
         value = 0
-        sources = yield from self.sources(community)
+        sources = await self.sources(community)
         for s in sources:
             value += s.amount
         return value
@@ -212,8 +210,7 @@ class Wallet(QObject):
             outputs.append(OutputSource(self.pubkey, overhead))
         return outputs
 
-    @asyncio.coroutine
-    def send_money(self, salt, password, community,
+    async def send_money(self, salt, password, community,
                    recipient, amount, message):
         """
         Send money to a given recipient in a specified community
@@ -226,8 +223,8 @@ class Wallet(QObject):
         :param str message: The message to send with the transfer
         """
         try:
-            blockid = yield from community.blockid()
-            block = yield from community.bma_access.future_request(bma.blockchain.Block,
+            blockid = await community.blockid()
+            block = await community.bma_access.future_request(bma.blockchain.Block,
                                       req_args={'number': blockid.number})
         except ValueError as e:
             if '404' in str(e):
@@ -244,13 +241,13 @@ class Wallet(QObject):
         logging.debug("Sender pubkey:{0}".format(key.pubkey))
 
         try:
-            issuer = yield from self._identities_registry.future_find(key.pubkey, community)
+            issuer = await self._identities_registry.future_find(key.pubkey, community)
             issuer_uid = issuer.uid
         except LookupFailureError as e:
             issuer_uid = ""
 
         try:
-            receiver = yield from self._identities_registry.future_find(recipient, community)
+            receiver = await self._identities_registry.future_find(recipient, community)
             receiver_uid = receiver.uid
         except LookupFailureError as e:
             receiver_uid = ""
@@ -283,10 +280,9 @@ class Wallet(QObject):
 
         tx.sign([key])
         logging.debug("Transaction : {0}".format(tx.signed_raw()))
-        return (yield from transfer.send(tx, community))
+        return (await transfer.send(tx, community))
 
-    @asyncio.coroutine
-    def sources(self, community):
+    async def sources(self, community):
         """
         Get available sources in a given community
 
@@ -295,7 +291,7 @@ class Wallet(QObject):
         """
         tx = []
         try:
-            data = yield from community.bma_access.future_request(bma.tx.Sources,
+            data = await community.bma_access.future_request(bma.tx.Sources,
                                      req_args={'pubkey': self.pubkey})
             for s in data['sources']:
                 tx.append(InputSource.from_bma(s))

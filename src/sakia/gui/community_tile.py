@@ -56,19 +56,18 @@ class CommunityTile(QFrame):
             self.refresh()
 
     @asyncify
-    @asyncio.coroutine
-    def refresh(self):
+    async def refresh(self):
         self.busy.show()
         self.setFixedSize(QSize(150, 150))
         try:
-            current_block = yield from self.community.get_block()
-            members_pubkeys = yield from self.community.members_pubkeys()
-            amount = yield from self.app.current_account.amount(self.community)
-            localized_amount = yield from self.app.current_account.current_ref(amount,
+            current_block = await self.community.get_block()
+            members_pubkeys = await self.community.members_pubkeys()
+            amount = await self.app.current_account.amount(self.community)
+            localized_amount = await self.app.current_account.current_ref(amount,
                                                         self.community, self.app).localized(units=True,
                                             international_system=self.app.preferences['international_system_of_units'])
             if current_block['monetaryMass']:
-                localized_monetary_mass = yield from self.app.current_account.current_ref(current_block['monetaryMass'],
+                localized_monetary_mass = await self.app.current_account.current_ref(current_block['monetaryMass'],
                                                         self.community, self.app).localized(units=True,
                                             international_system=self.app.preferences['international_system_of_units'])
             else:

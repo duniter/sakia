@@ -229,10 +229,9 @@ class HistoryTableModel(QAbstractTableModel):
         else:
             return []
 
-    @asyncio.coroutine
-    def data_received(self, transfer):
+    async def data_received(self, transfer):
         amount = transfer.metadata['amount']
-        deposit = yield from self.account.current_ref(transfer.metadata['amount'], self.community, self.app)\
+        deposit = await self.account.current_ref(transfer.metadata['amount'], self.community, self.app)\
             .diff_localized(international_system=self.app.preferences['international_system_of_units'])
         comment = ""
         if transfer.metadata['comment'] != "":
@@ -253,10 +252,9 @@ class HistoryTableModel(QAbstractTableModel):
                 comment, transfer.state, txid,
                 transfer.metadata['issuer'], block_number, amount)
 
-    @asyncio.coroutine
-    def data_sent(self, transfer):
+    async def data_sent(self, transfer):
         amount = transfer.metadata['amount']
-        paiment = yield from self.account.current_ref(transfer.metadata['amount'], self.community, self.app)\
+        paiment = await self.account.current_ref(transfer.metadata['amount'], self.community, self.app)\
             .diff_localized(international_system=self.app.preferences['international_system_of_units'])
         comment = ""
         if transfer.metadata['comment'] != "":
@@ -277,10 +275,9 @@ class HistoryTableModel(QAbstractTableModel):
                 "", comment, transfer.state, txid,
                 transfer.metadata['receiver'], block_number, amount)
 
-    @asyncio.coroutine
-    def data_dividend(self, dividend):
+    async def data_dividend(self, dividend):
         amount = dividend['amount']
-        deposit = yield from self.account.current_ref(dividend['amount'], self.community, self.app)\
+        deposit = await self.account.current_ref(dividend['amount'], self.community, self.app)\
             .diff_localized(international_system=self.app.preferences['international_system_of_units'])
         comment = ""
         receiver = self.account.name
@@ -295,8 +292,7 @@ class HistoryTableModel(QAbstractTableModel):
 
     @once_at_a_time
     @asyncify
-    @asyncio.coroutine
-    def refresh_transfers(self):
+    async def refresh_transfers(self):
         self.beginResetModel()
         self.transfers_data = []
         self.endResetModel()
@@ -307,15 +303,15 @@ class HistoryTableModel(QAbstractTableModel):
                 data = None
                 if type(transfer) is Transfer:
                     if transfer.metadata['issuer'] == self.account.pubkey:
-                        data = yield from self.data_sent(transfer)
+                        data = await self.data_sent(transfer)
                     else:
-                        data = yield from self.data_received(transfer)
+                        data = await self.data_received(transfer)
                 elif type(transfer) is dict:
-                    data = yield from self.data_dividend(transfer)
+                    data = await self.data_dividend(transfer)
                 if data:
                     transfers_data.append(data)
                 try:
-                    members_pubkeys = yield from self.community.members_pubkeys()
+                    members_pubkeys = await self.community.members_pubkeys()
                     self._max_confirmations = self.community.network.fork_window(members_pubkeys) + 1
                 except NoPeerAvailable as e:
                     logging.debug(str(e))

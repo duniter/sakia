@@ -58,13 +58,12 @@ class StepPageInit(Step):
         return self.config_dialog.password_asker
 
     @asyncify
-    @asyncio.coroutine
-    def check_guest(self, checked=False):
+    async def check_guest(self, checked=False):
         server = self.config_dialog.lineedit_server.text()
         port = self.config_dialog.spinbox_port.value()
         logging.debug("Is valid ? ")
         try:
-            self.node = yield from Node.from_address(None, server, port)
+            self.node = await Node.from_address(None, server, port)
             community = Community.create(self.node)
             self.config_dialog.button_connect.setEnabled(False)
             self.config_dialog.button_register.setEnabled(False)
@@ -76,17 +75,16 @@ class StepPageInit(Step):
             self.config_dialog.label_error.setText(str(e))
 
     @asyncify
-    @asyncio.coroutine
-    def check_connect(self, checked=False):
+    async def check_connect(self, checked=False):
         server = self.config_dialog.lineedit_server.text()
         port = self.config_dialog.spinbox_port.value()
         logging.debug("Is valid ? ")
         try:
-            self.node = yield from Node.from_address(None, server, port)
+            self.node = await Node.from_address(None, server, port)
             community = Community.create(self.node)
             self.config_dialog.button_connect.setEnabled(False)
             self.config_dialog.button_register.setEnabled(False)
-            registered = yield from self.account.check_registered(community)
+            registered = await self.account.check_registered(community)
             self.config_dialog.button_connect.setEnabled(True)
             self.config_dialog.button_register.setEnabled(True)
             if registered[0] is False and registered[2] is None:
@@ -103,25 +101,24 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
             self.config_dialog.label_error.setText(str(e))
 
     @asyncify
-    @asyncio.coroutine
-    def check_register(self, checked=False):
+    async def check_register(self, checked=False):
         server = self.config_dialog.lineedit_server.text()
         port = self.config_dialog.spinbox_port.value()
         logging.debug("Is valid ? ")
         try:
-            self.node = yield from Node.from_address(None, server, port)
+            self.node = await Node.from_address(None, server, port)
             community = Community.create(self.node)
             self.config_dialog.button_connect.setEnabled(False)
             self.config_dialog.button_register.setEnabled(False)
-            registered = yield from self.account.check_registered(community)
+            registered = await self.account.check_registered(community)
             self.config_dialog.button_connect.setEnabled(True)
             self.config_dialog.button_register.setEnabled(True)
             if registered[0] is False and registered[2] is None:
-                password = yield from self.password_asker.async_exec()
+                password = await self.password_asker.async_exec()
                 if self.password_asker.result() == QDialog.Rejected:
                     return
                 self.config_dialog.label_error.setText(self.tr("Broadcasting identity..."))
-                result = yield from self.account.send_selfcert(password, community)
+                result = await self.account.send_selfcert(password, community)
                 if result[0]:
                     if self.app.preferences['notifications']:
                         toast.display(self.tr("UID broadcast"), self.tr("Identity broadcasted to the network"))
@@ -243,8 +240,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
             self.stacked_pages.setCurrentIndex(previous_index)
             self.step.display_page()
 
-    @asyncio.coroutine
-    def start_add_node(self):
+    async def start_add_node(self):
         """
         Add node slot
         """
@@ -252,15 +248,15 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         port = self.spinbox_add_port.value()
 
         try:
-            node = yield from Node.from_address(self.community.currency, server, port)
+            node = await Node.from_address(self.community.currency, server, port)
             self.community.add_node(node)
         except Exception as e:
-            yield from QAsyncMessageBox.critical(self, self.tr("Error"),
+            await QAsyncMessageBox.critical(self, self.tr("Error"),
                                  str(e))
         self.tree_peers.setModel(PeeringTreeModel(self.community))
 
     def add_node(self):
-        asyncio.async(self.start_add_node())
+        asyncio.ensure_future(self.start_add_node())
 
     def remove_node(self):
         """

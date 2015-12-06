@@ -23,8 +23,7 @@ class Quantitative():
     def diff_units(cls, currency):
         return Quantitative.units(currency)
 
-    @asyncio.coroutine
-    def value(self):
+    async def value(self):
         """
         Return quantitative value of amount
 
@@ -34,9 +33,8 @@ class Quantitative():
         """
         return int(self.amount)
 
-    @asyncio.coroutine
-    def differential(self):
-        value = yield from self.value()
+    async def differential(self):
+        value = await self.value()
         return value
 
     def _to_si(self, value):
@@ -58,9 +56,8 @@ class Quantitative():
 
         return localized_value, prefix
 
-    @asyncio.coroutine
-    def localized(self, units=False, international_system=False):
-        value = yield from self.value()
+    async def localized(self, units=False, international_system=False):
+        value = await self.value()
         prefix = ""
         if international_system:
             localized_value, prefix = self._to_si(value)
@@ -76,9 +73,8 @@ class Quantitative():
         else:
             return localized_value
 
-    @asyncio.coroutine
-    def diff_localized(self, units=False, international_system=False):
-        value = yield from self.differential()
+    async def diff_localized(self, units=False, international_system=False):
+        value = await self.differential()
         prefix = ""
         if international_system:
             localized_value, prefix = self._to_si(value)

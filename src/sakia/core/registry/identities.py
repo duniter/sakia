@@ -62,13 +62,12 @@ class IdentitiesRegistry:
             self._instances[community.currency] = {}
             return self._identities(community)
 
-    @asyncio.coroutine
-    def _find_by_lookup(self, pubkey, community):
+    async def _find_by_lookup(self, pubkey, community):
         identity = self._identities(community)[pubkey]
         lookup_tries = 0
         while lookup_tries < 3:
             try:
-                data = yield from community.bma_access.simple_request(bma.wot.Lookup,
+                data = await community.bma_access.simple_request(bma.wot.Lookup,
                                                             req_args={'search': pubkey})
                 timestamp = 0
                 for result in data['results']:
@@ -92,8 +91,7 @@ class IdentitiesRegistry:
                 return identity
         return identity
 
-    @asyncio.coroutine
-    def future_find(self, pubkey, community):
+    async def future_find(self, pubkey, community):
         """
 
         :param pubkey: The pubkey we look for
@@ -109,7 +107,7 @@ class IdentitiesRegistry:
             tries = 0
             while tries < 3 and identity.local_state == LocalState.NOT_FOUND:
                 try:
-                    data = yield from community.bma_access.simple_request(bma.blockchain.Membership,
+                    data = await community.bma_access.simple_request(bma.blockchain.Membership,
                                                                           req_args={'search': pubkey})
                     identity.uid = data['uid']
                     identity.sigdate = data['sigDate']
@@ -117,7 +115,7 @@ class IdentitiesRegistry:
                     identity.blockchain_state = BlockchainState.VALIDATED
                 except ValueError as e:
                     if '404' in str(e) or '400' in str(e):
-                        identity = yield from self._find_by_lookup(pubkey, community)
+                        identity = await self._find_by_lookup(pubkey, community)
                         return identity
                     else:
                         tries += 1

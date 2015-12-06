@@ -144,15 +144,14 @@ class NetworkTableModel(QAbstractTableModel):
         self.community = community
         self.refresh_nodes()
 
-    @asyncio.coroutine
-    def data_node(self, node: Node) -> tuple:
+    async def data_node(self, node: Node) -> tuple:
         """
         Return node data tuple
         :param ..core.net.node.Node node: Network node
         :return:
         """
         try:
-            members_pubkey = yield from self.community.members_pubkeys()
+            members_pubkey = await self.community.members_pubkeys()
             is_member = node.pubkey in members_pubkey
         except NoPeerAvailable as e:
             logging.error(e)
@@ -177,14 +176,13 @@ class NetworkTableModel(QAbstractTableModel):
 
     @once_at_a_time
     @asyncify
-    @asyncio.coroutine
-    def refresh_nodes(self):
+    async def refresh_nodes(self):
         self.beginResetModel()
         self.nodes_data = []
         nodes_data = []
         if self.community:
             for node in self.community.network.nodes:
-                data = yield from self.data_node(node)
+                data = await self.data_node(node)
                 nodes_data.append(data)
         self.nodes_data = nodes_data
         self.endResetModel()

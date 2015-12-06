@@ -34,11 +34,10 @@ class MemberDialog(QDialog, Ui_DialogMember):
         self.refresh()
 
     @asyncify
-    @asyncio.coroutine
-    def refresh(self):
+    async def refresh(self):
 
         try:
-            join_date = yield from self.identity.get_join_date(self.community)
+            join_date = await self.identity.get_join_date(self.community)
         except MembershipNotFoundError:
             join_date = None
 
@@ -53,8 +52,8 @@ class MemberDialog(QDialog, Ui_DialogMember):
         # if selected member is not the account member...
         if self.identity.pubkey != self.account.pubkey:
             # add path from selected member to account member
-            account_identity = yield from self.account.identity(self.community)
-            path = yield from graph.get_shortest_path_between_members(self.identity,
+            account_identity = await self.account.identity(self.community)
+            path = await graph.get_shortest_path_between_members(self.identity,
                                                                       account_identity)
 
         text = self.tr("""

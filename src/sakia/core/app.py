@@ -501,8 +501,7 @@ class Application(QObject):
         self.save_registries()
 
     @asyncify
-    @asyncio.coroutine
-    def get_last_version(self):
+    async def get_last_version(self):
         if self.preferences['enable_proxy'] is True:
             connector = ProxyConnector("http://{0}:{1}".format(
                                     self.preferences['proxy_address'],
@@ -510,10 +509,10 @@ class Application(QObject):
         else:
             connector = None
         try:
-            response = yield from asyncio.wait_for(aiohttp.get("https://api.github.com/repos/ucoin-io/sakia/releases",
+            response = await asyncio.wait_for(aiohttp.get("https://api.github.com/repos/ucoin-io/sakia/releases",
                                                                connector=connector), timeout=15)
             if response.status == 200:
-                releases = yield from response.json()
+                releases = await response.json()
                 for r in releases:
                     if not latest:
                         latest = r

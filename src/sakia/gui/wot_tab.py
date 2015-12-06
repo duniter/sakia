@@ -92,11 +92,10 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
 
     @once_at_a_time
     @asyncify
-    @asyncio.coroutine
-    def refresh_informations_frame(self):
+    async def refresh_informations_frame(self):
         parameters = self.community.parameters
         try:
-            identity = yield from self.account.identity(self.community)
+            identity = await self.account.identity(self.community)
             membership = identity.membership(self.community)
             renew_block = membership['blockNumber']
             last_renewal = self.community.get_block(renew_block)['medianTime']
@@ -105,8 +104,8 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             last_renewal = None
             expiration = None
 
-        certified = yield from identity.unique_valid_certified_by(self.app.identities_registry, self.community)
-        certifiers = yield from identity.unique_valid_certifiers_of(self.app.identities_registry, self.community)
+        certified = await identity.unique_valid_certified_by(self.app.identities_registry, self.community)
+        certifiers = await identity.unique_valid_certifiers_of(self.app.identities_registry, self.community)
         if last_renewal and expiration:
             date_renewal = QLocale.toString(
                 QLocale(),
@@ -185,8 +184,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
 
     @once_at_a_time
     @asyncify
-    @asyncio.coroutine
-    def draw_graph(self, identity):
+    async def draw_graph(self, identity):
         """
         Draw community graph centered on the identity
 
@@ -196,16 +194,16 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         self.busy.show()
 
         if self.community:
-            identity_account = yield from self.account.identity(self.community)
+            identity_account = await self.account.identity(self.community)
 
             #Connect new identity
             if self._current_identity != identity:
                 self._current_identity = identity
 
             # create Identity from node metadata
-            certifier_list = yield from identity.unique_valid_certifiers_of(self.app.identities_registry,
+            certifier_list = await identity.unique_valid_certifiers_of(self.app.identities_registry,
                                                                             self.community)
-            certified_list = yield from identity.unique_valid_certified_by(self.app.identities_registry,
+            certified_list = await identity.unique_valid_certified_by(self.app.identities_registry,
                                                                            self.community)
 
             # create empty graph instance
@@ -215,16 +213,16 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             node_status = 0
             if identity == identity_account:
                 node_status += NODE_STATUS_HIGHLIGHTED
-            is_member = yield from identity.is_member(self.community)
+            is_member = await identity.is_member(self.community)
             if is_member is False:
                 node_status += NODE_STATUS_OUT
             node_status += NODE_STATUS_SELECTED
             graph.add_identity(identity, node_status)
 
             # populate graph with certifiers-of
-            yield from graph.add_certifier_list(certifier_list, identity, identity_account)
+            await graph.add_certifier_list(certifier_list, identity, identity_account)
             # populate graph with certified-by
-            yield from graph.add_certified_list(certified_list, identity, identity_account)
+            await graph.add_certified_list(certified_list, identity, identity_account)
 
             # draw graph in qt scene
             self.graphicsView.scene().update_wot(graph.get())
@@ -232,20 +230,19 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             # if selected member is not the account member...
             if identity.pubkey != identity_account.pubkey:
                 # add path from selected member to account member
-                path = yield from graph.get_shortest_path_between_members(identity, identity_account)
+                path = await graph.get_shortest_path_between_members(identity, identity_account)
                 if path:
                     self.graphicsView.scene().update_path(path)
         self.busy.hide()
 
     @once_at_a_time
     @asyncify
-    @asyncio.coroutine
-    def reset(self, checked=False):
+    async def reset(self, checked=False):
         """
         Reset graph scene to wallet identity
         """
         if self.account and self.community:
-            identity = yield from self.account.identity(self.community)
+            identity = await self.account.identity(self.community)
             self.draw_graph(identity)
 
     def refresh(self):
@@ -258,8 +255,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             self.reset()
 
     @asyncify
-    @asyncio.coroutine
-    def search(self):
+    async def search(self):
         """
         Search nodes when return is pressed in combobox lineEdit
         """
@@ -267,7 +263,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
 
         if len(text) < 2:
             return False
-        response = yield from self.community.bma_access.future_request(bma.wot.Lookup, {'search': text})
+        response = await self.community.bma_access.future_request(bma.wot.Lookup, {'search': text})
 
         nodes = {}
         for identity in response['results']:
@@ -312,8 +308,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         dialog.exec_()
 
     @asyncify
-    @asyncio.coroutine
-    def sign_node(self, metadata):
+    async def sign_node(self, metadata):
         identity = self.app.identities_registry.from_handled_data(
             metadata['text'],
             metadata['id'],
@@ -321,12 +316,11 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             BlockchainState.VALIDATED,
             self.community
         )
-        yield from CertificationDialog.certify_identity(self.app, self.account, self.password_asker,
+        await CertificationDialog.certify_identity(self.app, self.account, self.password_asker,
                                              self.community, identity)
 
     @asyncify
-    @asyncio.coroutine
-    def send_money_to_node(self, metadata):
+    async def send_money_to_node(self, metadata):
         identity = self.app.identities_registry.from_handled_data(
             metadata['text'],
             metadata['id'],
@@ -334,7 +328,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
             BlockchainState.VALIDATED,
             self.community
         )
-        result = yield from TransferMoneyDialog.send_money_to_identity(self.app, self.account, self.password_asker,
+        result = await TransferMoneyDialog.send_money_to_identity(self.app, self.account, self.password_asker,
                                                             self.community, identity)
         if result == QDialog.Accepted:
             self.money_sent.emit()

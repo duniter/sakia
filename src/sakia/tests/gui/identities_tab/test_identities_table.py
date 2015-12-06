@@ -74,9 +74,8 @@ class TestIdentitiesTable(unittest.TestCase, QuamashTest):
                 identities_tab.close()
             future.set_result(True)
 
-        @asyncio.coroutine
-        def exec_test():
-            yield from asyncio.sleep(2)
+        async     def exec_test():
+            await asyncio.sleep(2)
             urls = [mock.get_request(i).url for i in range(0, 7)]
             self.assertTrue('/wot/certifiers-of/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ' in urls,
                             msg="Not found in {0}".format(urls))
@@ -91,7 +90,7 @@ class TestIdentitiesTable(unittest.TestCase, QuamashTest):
 
             QTest.keyClicks(identities_tab.edit_textsearch, "doe")
             QTest.mouseClick(identities_tab.button_search, Qt.LeftButton)
-            yield from asyncio.sleep(2)
+            await asyncio.sleep(2)
             req = 7
 
             self.assertEqual(mock.get_request(req).method, 'GET')
@@ -100,10 +99,10 @@ class TestIdentitiesTable(unittest.TestCase, QuamashTest):
             req += 1
 
             self.assertEqual(identities_tab.table_identities.model().rowCount(), 1)
-            yield from asyncio.sleep(2)
+            await asyncio.sleep(2)
             self.lp.call_soon(close_dialog)
 
-        asyncio.async(exec_test())
+        asyncio.ensure_future(exec_test())
         self.lp.call_later(15, close_dialog)
         self.lp.run_until_complete(open_widget())
         mock.delete_mock()

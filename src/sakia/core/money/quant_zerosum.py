@@ -24,8 +24,7 @@ class QuantitativeZSum:
     def diff_units(cls, currency):
         return QuantitativeZSum.units(currency)
 
-    @asyncio.coroutine
-    def value(self):
+    async def value(self):
         """
         Return quantitative value of amount minus the average value
 
@@ -33,22 +32,20 @@ class QuantitativeZSum:
         :param sakia.core.community.Community community: Community instance
         :return: int
         """
-        ud_block = yield from self.community.get_ud_block()
+        ud_block = await self.community.get_ud_block()
         if ud_block and ud_block['membersCount'] > 0:
-            monetary_mass = yield from self.community.monetary_mass()
+            monetary_mass = await self.community.monetary_mass()
             average = monetary_mass / ud_block['membersCount']
         else:
             average = 0
         return self.amount - average
 
-    @asyncio.coroutine
-    def differential(self):
-        value = yield from Quantitative(self.amount, self.community, self.app).value()
+    async def differential(self):
+        value = await Quantitative(self.amount, self.community, self.app).value()
         return value
 
-    @asyncio.coroutine
-    def localized(self, units=False, international_system=False):
-        value = yield from self.value()
+    async def localized(self, units=False, international_system=False):
+        value = await self.value()
 
         localized_value = QLocale().toString(float(value), 'f', 0)
 
@@ -60,7 +57,6 @@ class QuantitativeZSum:
         else:
             return localized_value
 
-    @asyncio.coroutine
-    def diff_localized(self, units=False, international_system=False):
-        localized = yield from Quantitative(self.amount, self.community, self.app).localized(units, international_system)
+    async def diff_localized(self, units=False, international_system=False):
+        localized = await Quantitative(self.amount, self.community, self.app).localized(units, international_system)
         return localized

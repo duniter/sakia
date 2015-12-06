@@ -95,18 +95,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.refresh()
 
     @asyncify
-    @asyncio.coroutine
-    def open_add_account_dialog(self, checked=False):
+    async def open_add_account_dialog(self, checked=False):
         dialog = ProcessConfigureAccount(self.app, None)
-        result = yield from dialog.async_exec()
+        result = await dialog.async_exec()
         if result == QDialog.Accepted:
             self.action_change_account(self.app.current_account.name)
 
     @asyncify
-    @asyncio.coroutine
-    def open_configure_account_dialog(self, checked=False):
+    async def open_configure_account_dialog(self, checked=False):
         dialog = ProcessConfigureAccount(self.app, self.app.current_account)
-        result = yield from dialog.async_exec()
+        result = await dialog.async_exec()
         if result == QDialog.Accepted:
             if self.app.current_account:
                 self.action_change_account(self.app.current_account.name)

@@ -50,9 +50,8 @@ class ProcessAddCommunity(unittest.TestCase, QuamashTest):
             if process_community.isVisible():
                 process_community.close()
 
-        @asyncio.coroutine
-        def exec_test():
-            yield from asyncio.sleep(1)
+        async     def exec_test():
+            await asyncio.sleep(1)
             QTest.mouseClick(process_community.lineedit_server, Qt.LeftButton)
             QTest.keyClicks(process_community.lineedit_server, "127.0.0.1")
             QTest.mouseDClick(process_community.spinbox_port, Qt.LeftButton)
@@ -63,7 +62,7 @@ class ProcessAddCommunity(unittest.TestCase, QuamashTest):
             self.assertEqual(process_community.lineedit_server.text(), "127.0.0.1")
             self.assertEqual(process_community.spinbox_port.value(), 50000)
             QTest.mouseClick(process_community.button_register, Qt.LeftButton)
-            yield from asyncio.sleep(1)
+            await asyncio.sleep(1)
             self.assertEqual(mock.get_request(0).method, 'GET')
             self.assertEqual(mock.get_request(0).url, '/network/peering')
             self.assertEqual(mock.get_request(1).method, 'GET')
@@ -73,7 +72,7 @@ class ProcessAddCommunity(unittest.TestCase, QuamashTest):
                 self.assertEqual(mock.get_request(i).method, 'GET')
                 self.assertEqual(mock.get_request(i).url,
                                  '/wot/lookup/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ')
-            yield from asyncio.sleep(5)
+            await asyncio.sleep(5)
             self.assertEqual(mock.get_request(5).method, 'GET')
             self.assertEqual(mock.get_request(5).url,
                              '/wot/certifiers-of/john')
@@ -85,7 +84,7 @@ class ProcessAddCommunity(unittest.TestCase, QuamashTest):
             self.assertEqual(mock.get_request(9).url[:8], '/wot/add')
             self.assertEqual(mock.get_request(9).method, 'POST')
             self.assertEqual(process_community.label_error.text(), "Broadcasting identity...")
-            yield from asyncio.sleep(1)
+            await asyncio.sleep(1)
 
             self.assertEqual(process_community.stacked_pages.currentWidget(),
                              process_community.page_add_nodes,
@@ -93,7 +92,7 @@ class ProcessAddCommunity(unittest.TestCase, QuamashTest):
             QTest.mouseClick(process_community.button_next, Qt.LeftButton)
 
         self.lp.call_later(15, close_dialog)
-        asyncio.async(exec_test())
+        asyncio.ensure_future(exec_test())
         self.lp.run_until_complete(process_community.async_exec())
         self.assertEqual(process_community.result(), QDialog.Accepted)
         mock.delete_mock()
@@ -111,9 +110,8 @@ class ProcessAddCommunity(unittest.TestCase, QuamashTest):
             if process_community.isVisible():
                 process_community.close()
 
-        @asyncio.coroutine
-        def exec_test():
-            yield from asyncio.sleep(1)
+        async     def exec_test():
+            await asyncio.sleep(1)
             QTest.mouseClick(process_community.lineedit_server, Qt.LeftButton)
             QTest.keyClicks(process_community.lineedit_server, "127.0.0.1")
             QTest.mouseDClick(process_community.spinbox_port, Qt.LeftButton)
@@ -124,7 +122,7 @@ class ProcessAddCommunity(unittest.TestCase, QuamashTest):
             self.assertEqual(process_community.lineedit_server.text(), "127.0.0.1")
             self.assertEqual(process_community.spinbox_port.value(), 50000)
             QTest.mouseClick(process_community.button_connect, Qt.LeftButton)
-            yield from asyncio.sleep(3)
+            await asyncio.sleep(3)
             self.assertNotEqual(mock.get_request(0), None)
             self.assertEqual(mock.get_request(0).method, 'GET')
             self.assertEqual(mock.get_request(0).url, '/network/peering')
@@ -143,7 +141,7 @@ class ProcessAddCommunity(unittest.TestCase, QuamashTest):
             process_community.close()
 
         self.lp.call_later(15, close_dialog)
-        asyncio.async(exec_test())
+        asyncio.ensure_future(exec_test())
         self.lp.run_until_complete(process_community.async_exec())
         mock.delete_mock()
 
@@ -161,9 +159,8 @@ class ProcessAddCommunity(unittest.TestCase, QuamashTest):
             if process_community.isVisible():
                 process_community.close()
 
-        @asyncio.coroutine
-        def exec_test():
-            yield from asyncio.sleep(1)
+        async     def exec_test():
+            await asyncio.sleep(1)
             QTest.mouseClick(process_community.lineedit_server, Qt.LeftButton)
             QTest.keyClicks(process_community.lineedit_server, "127.0.0.1")
             QTest.mouseDClick(process_community.spinbox_port, Qt.LeftButton)
@@ -174,7 +171,7 @@ class ProcessAddCommunity(unittest.TestCase, QuamashTest):
             self.assertEqual(process_community.lineedit_server.text(), "127.0.0.1")
             self.assertEqual(process_community.spinbox_port.value(), 50000)
             QTest.mouseClick(process_community.button_connect, Qt.LeftButton)
-            yield from asyncio.sleep(1)
+            await asyncio.sleep(1)
             self.assertNotEqual(mock.get_request(0), None)
             self.assertEqual(mock.get_request(0).method, 'GET')
             self.assertEqual(mock.get_request(0).url, '/network/peering')
@@ -187,7 +184,7 @@ Yours : wrong_pubkey, the network : 7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ
             process_community.close()
 
         self.lp.call_later(15, close_dialog)
-        asyncio.async(exec_test())
+        asyncio.ensure_future(exec_test())
         self.lp.run_until_complete(process_community.async_exec())
         self.assertEqual(process_community.result(), QDialog.Rejected)
         mock.delete_mock()
@@ -206,9 +203,8 @@ Yours : wrong_pubkey, the network : 7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ
             if process_community.isVisible():
                 process_community.close()
 
-        @asyncio.coroutine
-        def exec_test():
-            yield from asyncio.sleep(1)
+        async     def exec_test():
+            await asyncio.sleep(1)
             QTest.mouseClick(process_community.lineedit_server, Qt.LeftButton)
             QTest.keyClicks(process_community.lineedit_server, "127.0.0.1")
             QTest.mouseDClick(process_community.spinbox_port, Qt.LeftButton)
@@ -219,7 +215,7 @@ Yours : wrong_pubkey, the network : 7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ
             self.assertEqual(process_community.lineedit_server.text(), "127.0.0.1")
             self.assertEqual(process_community.spinbox_port.value(), 50000)
             QTest.mouseClick(process_community.button_connect, Qt.LeftButton)
-            yield from asyncio.sleep(1)
+            await asyncio.sleep(1)
             self.assertNotEqual(mock.get_request(0), None)
             self.assertEqual(mock.get_request(0).method, 'GET')
             self.assertEqual(mock.get_request(0).url, '/network/peering')
@@ -232,7 +228,7 @@ Yours : wrong_uid, the network : john""")
             process_community.close()
 
         self.lp.call_later(15, close_dialog)
-        asyncio.async(exec_test())
+        asyncio.ensure_future(exec_test())
         self.lp.run_until_complete(process_community.async_exec())
         self.assertEqual(process_community.result(), QDialog.Rejected)
         mock.delete_mock()
@@ -250,9 +246,8 @@ Yours : wrong_uid, the network : john""")
             if process_community.isVisible():
                 process_community.close()
 
-        @asyncio.coroutine
-        def exec_test():
-            yield from asyncio.sleep(1)
+        async     def exec_test():
+            await asyncio.sleep(1)
             QTest.mouseClick(process_community.lineedit_server, Qt.LeftButton)
             QTest.keyClicks(process_community.lineedit_server, "127.0.0.1")
             QTest.mouseDClick(process_community.spinbox_port, Qt.LeftButton)
@@ -263,7 +258,7 @@ Yours : wrong_uid, the network : john""")
             self.assertEqual(process_community.lineedit_server.text(), "127.0.0.1")
             self.assertEqual(process_community.spinbox_port.value(), 50000)
             QTest.mouseClick(process_community.button_connect, Qt.LeftButton)
-            yield from asyncio.sleep(1)
+            await asyncio.sleep(1)
             self.assertNotEqual(mock.get_request(0), None)
             self.assertEqual(mock.get_request(0).method, 'GET')
             self.assertEqual(mock.get_request(0).url, '/network/peering')
@@ -277,7 +272,7 @@ Yours : wrong_uid, the network : john""")
             QTest.mouseClick(process_community.button_next, Qt.LeftButton)
 
         self.lp.call_later(15, close_dialog)
-        asyncio.async(exec_test())
+        asyncio.ensure_future(exec_test())
         self.lp.run_until_complete(process_community.async_exec())
         mock.delete_mock()
 

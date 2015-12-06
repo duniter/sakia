@@ -46,9 +46,8 @@ class TestIdentity(unittest.TestCase, QuamashTest):
         identity = Identity("john", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ", 1441130831,
                             LocalState.COMPLETED, BlockchainState.VALIDATED)
 
-        @asyncio.coroutine
-        def exec_test():
-            certified = yield from identity.certifiers_of(self.identities_registry, self.community)
+        async     def exec_test():
+            certified = await identity.certifiers_of(self.identities_registry, self.community)
             self.assertEqual(len(certified), 1)
             self.assertEqual(certified[0]['identity'].uid, "doe")
 
@@ -63,9 +62,8 @@ class TestIdentity(unittest.TestCase, QuamashTest):
         identity = Identity("john", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ", 1441130831,
                             LocalState.COMPLETED, BlockchainState.VALIDATED)
 
-        @asyncio.coroutine
-        def exec_test():
-            ms = yield from identity.membership(self.community)
+        async     def exec_test():
+            ms = await identity.membership(self.community)
             self.assertEqual(ms["blockNumber"], 0)
             self.assertEqual(ms["blockHash"], "DA39A3EE5E6B4B0D3255BFEF95601890AFD80709")
             self.assertEqual(ms["membership"], "IN")
@@ -82,10 +80,9 @@ class TestIdentity(unittest.TestCase, QuamashTest):
         identity = Identity("john", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ", 1441130831,
                             LocalState.COMPLETED, BlockchainState.VALIDATED)
 
-        @asyncio.coroutine
-        def exec_test():
+        async     def exec_test():
             with self.assertRaises(MembershipNotFoundError):
-                yield from identity.membership(self.community)
+                await identity.membership(self.community)
 
         self.lp.run_until_complete(exec_test())
         mock.delete_mock()

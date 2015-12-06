@@ -124,7 +124,7 @@ class Network(QObject):
         Start network nodes crawling
         :return:
         """
-        asyncio.async(self.discover_network())
+        asyncio.ensure_future(self.discover_network())
 
     def stop_coroutines(self):
         """
@@ -303,8 +303,7 @@ class Network(QObject):
         for node in self._nodes:
             node.refresh(manual=True)
 
-    @asyncio.coroutine
-    def discover_network(self):
+    async def discover_network(self):
         """
         Start crawling which never stops.
         To stop this crawling, call "stop_crawling" method.
@@ -314,7 +313,7 @@ class Network(QObject):
             for node in self.nodes:
                 if self.continue_crawling():
                     node.refresh()
-                    yield from asyncio.sleep(15)
+                    await asyncio.sleep(15)
         logging.debug("End of network discovery")
 
     @pyqtSlot(Peer, str)

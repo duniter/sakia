@@ -24,9 +24,8 @@ class Graph(object):
         # graph empty if None parameter
         self._graph = graph or (dict() and (graph is None))
 
-    @asyncio.coroutine
-    def refresh_signature_validity(self):
-        parameters = yield from self.community.parameters()
+    async def refresh_signature_validity(self):
+        parameters = await self.community.parameters()
         self.signature_validity = parameters['sigValidity']
         #  arc considered strong during 75% of signature validity time
         self.ARC_STATUS_STRONG_time = int(self.signature_validity * 0.75)
@@ -46,8 +45,7 @@ class Graph(object):
         """
         return self._graph
 
-    @asyncio.coroutine
-    def get_shortest_path_between_members(self, from_identity, to_identity):
+    async def get_shortest_path_between_members(self, from_identity, to_identity):
         """
         Return path list of nodes from from_identity to to_identity
         :param identity from_identity:
@@ -57,16 +55,16 @@ class Graph(object):
         path = list()
 
         # if from_identity has no certifications, we can not make a path
-        certifier_list = yield from from_identity.unique_valid_certifiers_of(self.app.identities_registry, self.community)
-        certified_list = yield from from_identity.unique_valid_certified_by(self.app.identities_registry, self.community)
+        certifier_list = await from_identity.unique_valid_certifiers_of(self.app.identities_registry, self.community)
+        certified_list = await from_identity.unique_valid_certified_by(self.app.identities_registry, self.community)
         print (certifier_list, certified_list)
         if not certifier_list and not certified_list:
             logging.debug('from_identity has no certifications : can not calculate wot path')
             return path
 
         # if to_identity has no certifications, we can not make a path
-        certifier_list = yield from to_identity.unique_valid_certifiers_of(self.app.identities_registry, self.community)
-        certified_list = yield from to_identity.unique_valid_certified_by(self.app.identities_registry, self.community)
+        certifier_list = await to_identity.unique_valid_certifiers_of(self.app.identities_registry, self.community)
+        certified_list = await to_identity.unique_valid_certified_by(self.app.identities_registry, self.community)
         if not certifier_list and not certified_list:
             logging.debug('to_identity has no certifications : can not calculate wot path')
             return path
@@ -74,20 +72,20 @@ class Graph(object):
         logging.debug("path between %s to %s..." % (from_identity.uid, to_identity.uid))
         if from_identity.pubkey not in self._graph.keys():
             self.add_identity(from_identity)
-            certifier_list = yield from from_identity.unique_valid_certifiers_of(self.app.identities_registry,
+            certifier_list = await from_identity.unique_valid_certifiers_of(self.app.identities_registry,
                                                                     self.community)
-            yield from self.add_certifier_list(certifier_list, from_identity, to_identity)
-            certified_list = yield from from_identity.unique_valid_certified_by(self.app.identities_registry,
+            await self.add_certifier_list(certifier_list, from_identity, to_identity)
+            certified_list = await from_identity.unique_valid_certified_by(self.app.identities_registry,
                                                                    self.community)
-            yield from self.add_certified_list(certified_list, from_identity, to_identity)
+            await self.add_certified_list(certified_list, from_identity, to_identity)
 
         if to_identity.pubkey not in self._graph.keys():
             # recursively feed graph searching for account node...
-            yield from self.explore_to_find_member(to_identity,
+            await self.explore_to_find_member(to_identity,
                                                    self._graph[from_identity.pubkey]['connected'], list())
         if len(self._graph[from_identity.pubkey]['connected']) > 0 and to_identity.pubkey in self._graph:
             # calculate path of nodes between identity and to_identity
-            path = yield from self.find_shortest_path(self._graph[from_identity.pubkey],
+            path = await self.find_shortest_path(self._graph[from_identity.pubkey],
                                                       self._graph[to_identity.pubkey])
 
         if path:
@@ -97,8 +95,7 @@ class Graph(object):
 
         return path
 
-    @asyncio.coroutine
-    def explore_to_find_member(self, identity, connected=None, done=None):
+    async def explore_to_find_member(self, identity, connected=None, done=None):
         """
         Scan graph recursively to find identity
         :param identity identity:   identity instance to find
@@ -119,21 +116,21 @@ class Graph(object):
             if node['id'] in tuple(done):
                 continue
             identity_selected = identity.from_handled_data(node['text'], node['id'], None, BlockchainState.VALIDATED)
-            certifier_list = yield from identity_selected.unique_valid_certifiers_of(self.app.identities_registry,
+            certifier_list = await identity_selected.unique_valid_certifiers_of(self.app.identities_registry,
                                                                                      self.community)
-            yield from self.add_certifier_list(certifier_list, identity_selected, identity)
+            await self.add_certifier_list(certifier_list, identity_selected, identity)
             if identity.pubkey in tuple(self._graph.keys()):
                 return True
-            certified_list = yield from identity_selected.unique_valid_certified_by(self.app.identities_registry,
+            certified_list = await identity_selected.unique_valid_certified_by(self.app.identities_registry,
                                                                                     self.community)
-            yield from self.add_certified_list(certified_list, identity_selected, identity)
+            await self.add_certified_list(certified_list, identity_selected, identity)
             if identity.pubkey in tuple(self._graph.keys()):
                 return True
             if node['id'] not in tuple(done):
                 done.append(node['id'])
             if len(done) >= len(self._graph):
                 return False
-            found = yield from self.explore_to_find_member(identity,
+            found = await self.explore_to_find_member(identity,
                                                             self._graph[identity_selected.pubkey]['connected'],
                                                             done)
             if found:
@@ -141,8 +138,7 @@ class Graph(object):
 
         return False
 
-    @asyncio.coroutine
-    def find_shortest_path(self, start, end, path=None):
+    async def find_shortest_path(self, start, end, path=None):
         """
         Find recursively the shortest path between two nodes
         :param dict start:  Start node
@@ -160,14 +156,13 @@ class Graph(object):
         for pubkey in tuple(self._graph[start['id']]['connected']):
             node = self._graph[pubkey]
             if node not in path:
-                newpath = yield from self.find_shortest_path(node, end, path)
+                newpath = await self.find_shortest_path(node, end, path)
                 if newpath:
                     if not shortest or len(newpath) < len(shortest):
                         shortest = newpath
         return shortest
 
-    @asyncio.coroutine
-    def add_certifier_list(self, certifier_list, identity, identity_account):
+    async def add_certifier_list(self, certifier_list, identity, identity_account):
         """
         Add list of certifiers to graph
         :param list certifier_list: List of certifiers from api
@@ -177,7 +172,7 @@ class Graph(object):
         """
         if self.community:
             try:
-                yield from self.refresh_signature_validity()
+                await self.refresh_signature_validity()
                 #  add certifiers of uid
                 for certifier in tuple(certifier_list):
                     # add only valid certification...
@@ -186,7 +181,7 @@ class Graph(object):
                     # new node
                     if certifier['identity'].pubkey not in self._graph.keys():
                         node_status = 0
-                        is_member = yield from certifier['identity'].is_member(self.community)
+                        is_member = await certifier['identity'].is_member(self.community)
                         if certifier['identity'].pubkey == identity_account.pubkey:
                             node_status += NODE_STATUS_HIGHLIGHTED
                         if is_member is False:
@@ -226,7 +221,7 @@ class Graph(object):
                         current_confirmations = current_block_number - certifier['block_number'] + 1
                     else:
                         current_confirmations = 0
-                    members_pubkeys = yield from self.community.members_pubkeys()
+                    members_pubkeys = await self.community.members_pubkeys()
                     max_confirmation = self.community.network.fork_window(members_pubkeys) + 1
 
                     # Current confirmation can be negative if self.community.network.current_blockid.number
@@ -250,8 +245,7 @@ class Graph(object):
             except NoPeerAvailable as e:
                 logging.debug(str(e))
 
-    @asyncio.coroutine
-    def add_certified_list(self, certified_list, identity, identity_account):
+    async def add_certified_list(self, certified_list, identity, identity_account):
         """
         Add list of certified from api to graph
         :param list certified_list: List of certified from api
@@ -262,7 +256,7 @@ class Graph(object):
 
         if self.community:
             try:
-                yield from self.refresh_signature_validity()
+                await self.refresh_signature_validity()
                 # add certified by uid
                 for certified in tuple(certified_list):
                     # add only valid certification...
@@ -270,7 +264,7 @@ class Graph(object):
                         continue
                     if certified['identity'].pubkey not in self._graph.keys():
                         node_status = 0
-                        is_member = yield from certified['identity'].is_member(self.community)
+                        is_member = await certified['identity'].is_member(self.community)
                         if certified['identity'].pubkey == identity_account.pubkey:
                             node_status += NODE_STATUS_HIGHLIGHTED
                         if is_member is False:
@@ -304,7 +298,7 @@ class Graph(object):
                         current_confirmations = current_block_number - certified['block_number'] + 1
                     else:
                         current_confirmations = 0
-                    members_pubkeys = yield from self.community.members_pubkeys()
+                    members_pubkeys = await self.community.members_pubkeys()
                     max_confirmations = self.community.network.fork_window(members_pubkeys) + 1
 
                     if max_confirmations > current_confirmations >= 0:

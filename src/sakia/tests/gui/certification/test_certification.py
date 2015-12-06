@@ -65,29 +65,27 @@ class TestCertificationDialog(unittest.TestCase, QuamashTest):
                                                    self.account,
                                                    self.password_asker)
 
-        @asyncio.coroutine
-        def open_dialog(certification_dialog):
-            result = yield from certification_dialog.async_exec()
+        async     def open_dialog(certification_dialog):
+            result = await certification_dialog.async_exec()
             self.assertEqual(result, QDialog.Accepted)
 
         def close_dialog():
             if certification_dialog.isVisible():
                 certification_dialog.close()
 
-        @asyncio.coroutine
-        def exec_test():
-            yield from asyncio.sleep(1)
+        async     def exec_test():
+            await asyncio.sleep(1)
             QTest.mouseClick(certification_dialog.radio_pubkey, Qt.LeftButton)
             QTest.keyClicks(certification_dialog.edit_pubkey, "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn")
             QTest.mouseClick(certification_dialog.button_box.button(QDialogButtonBox.Ok), Qt.LeftButton)
-            yield from asyncio.sleep(1)
+            await asyncio.sleep(1)
             topWidgets = QApplication.topLevelWidgets()
             for w in topWidgets:
                 if type(w) is QMessageBox:
                     QTest.keyClick(w, Qt.Key_Enter)
 
         self.lp.call_later(15, close_dialog)
-        asyncio.async(exec_test())
+        asyncio.ensure_future(exec_test())
         self.lp.run_until_complete(open_dialog(certification_dialog))
         mock.delete_mock()
 

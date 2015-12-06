@@ -50,45 +50,44 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
 
     @once_at_a_time
     @asyncify
-    @asyncio.coroutine
-    def refresh_labels(self):
+    async def refresh_labels(self):
         self.busy.show()
         #  try to request money parameters
         try:
-            params = yield from self.community.parameters()
+            params = await self.community.parameters()
         except NoPeerAvailable as e:
             logging.debug('community parameters error : ' + str(e))
             return False
 
         #  try to request money variables from last ud block
         try:
-            block_ud = yield from self.community.get_ud_block()
+            block_ud = await self.community.get_ud_block()
         except NoPeerAvailable as e:
             logging.debug('community get_ud_block error : ' + str(e))
             return False
         try:
-            block_ud_minus_1 = yield from self.community.get_ud_block(1)
+            block_ud_minus_1 = await self.community.get_ud_block(1)
         except NoPeerAvailable as e:
             logging.debug('community get_ud_block error : ' + str(e))
             return False
 
         if block_ud:
             # display float values
-            localized_ud = yield from self.account.current_ref(block_ud['dividend'], self.community, self.app).diff_localized()
+            localized_ud = await self.account.current_ref(block_ud['dividend'], self.community, self.app).diff_localized()
 
-            computed_dividend = yield from self.community.computed_dividend()
+            computed_dividend = await self.community.computed_dividend()
             # display float values
-            localized_ud_plus_1 = yield from self.account.current_ref(computed_dividend,
+            localized_ud_plus_1 = await self.account.current_ref(computed_dividend,
                                                     self.community, self.app).diff_localized()
 
-            localized_mass = yield from self.account.current_ref(block_ud['monetaryMass'],
+            localized_mass = await self.account.current_ref(block_ud['monetaryMass'],
                                                     self.community, self.app).diff_localized()
             if block_ud_minus_1:
                 mass_minus_1 = (float(0) if block_ud['membersCount'] == 0 else
                         block_ud_minus_1['monetaryMass'] / block_ud['membersCount'])
-                localized_mass_minus_1_per_member = yield from self.account.current_ref(mass_minus_1,
+                localized_mass_minus_1_per_member = await self.account.current_ref(mass_minus_1,
                                                                   self.community, self.app).diff_localized()
-                localized_mass_minus_1 = yield from self.account.current_ref(block_ud_minus_1['monetaryMass'],
+                localized_mass_minus_1 = await self.account.current_ref(block_ud_minus_1['monetaryMass'],
                                                                   self.community, self.app).diff_localized()
 
             else:

@@ -326,8 +326,7 @@ class Transfer(QObject):
         """
         self.run_state_transitions(())
 
-    @asyncio.coroutine
-    def send(self, txdoc, community):
+    async def send(self, txdoc, community):
         """
         Send a transaction and update the transfer state to AWAITING if accepted.
         If the transaction was refused (return code != 200), state becomes REFUSED
@@ -337,21 +336,21 @@ class Transfer(QObject):
         :param community: The community target of the transaction
         """
         self.sha_hash = txdoc.sha_hash
-        responses = yield from community.bma_access.broadcast(bma.tx.Process,
+        responses = await community.bma_access.broadcast(bma.tx.Process,
                 post_args={'transaction': txdoc.signed_raw()})
-        blockid = yield from community.blockid()
-        block = yield from community.bma_access.future_request(bma.blockchain.Block,
+        blockid = await community.blockid()
+        block = await community.bma_access.future_request(bma.blockchain.Block,
                                   req_args={'number': blockid.number})
         signed_raw = "{0}{1}\n".format(block['raw'], block['signature'])
         block_doc = Block.from_signed_raw(signed_raw)
         result = (False, "")
         for r in responses:
             if r.status == 200:
-                result = (True, (yield from r.json()))
+                result = (True, (await r.json()))
             elif not result[0]:
-                result = (False, (yield from r.text()))
+                result = (False, (await r.text()))
             else:
-                yield from r.text()
+                await r.text()
         self.run_state_transitions(([r.status for r in responses], block_doc))
         self.run_state_transitions(([r.status for r in responses]))
         return result

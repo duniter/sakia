@@ -214,8 +214,7 @@ class BmaAccess(QObject):
         else:
             return nodes
 
-    @asyncio.coroutine
-    def future_request(self, request, req_args={}, get_args={}):
+    async def future_request(self, request, req_args={}, get_args={}):
         """
         Start a request to the network and returns a future.
 
@@ -237,7 +236,7 @@ class BmaAccess(QObject):
                 conn_handler = node.endpoint.conn_handler()
                 req = request(conn_handler, **req_args)
                 try:
-                    json_data = yield from req.get(**get_args)
+                    json_data = await req.get(**get_args)
                     self._update_cache(request, req_args, get_args, json_data)
                     return json_data
                 except ValueError as e:
@@ -253,8 +252,7 @@ class BmaAccess(QObject):
             raise NoPeerAvailable("", len(nodes))
         return json_data
 
-    @asyncio.coroutine
-    def simple_request(self, request, req_args={}, get_args={}):
+    async def simple_request(self, request, req_args={}, get_args={}):
         """
         Start a request to the network but don't cache its result.
 
@@ -270,7 +268,7 @@ class BmaAccess(QObject):
             tries = 0
             while tries < 3:
                 try:
-                    json_data = yield from req.get(**get_args)
+                    json_data = await req.get(**get_args)
                     return json_data
                 except ValueError as e:
                     if '404' in str(e) or '400' in str(e):
@@ -284,8 +282,7 @@ class BmaAccess(QObject):
         else:
             raise NoPeerAvailable("", len(nodes))
 
-    @asyncio.coroutine
-    def broadcast(self, request, req_args={}, post_args={}):
+    async def broadcast(self, request, req_args={}, post_args={}):
         """
         Broadcast data to a network.
         Sends the data to all knew nodes.
@@ -307,7 +304,7 @@ class BmaAccess(QObject):
                 conn_handler = node.endpoint.conn_handler()
                 req = request(conn_handler, **req_args)
                 try:
-                    reply = yield from req.post(**post_args)
+                    reply = await req.post(**post_args)
                     replies.append(reply)
                 except ValueError as e:
                     if '404' in str(e) or '400' in str(e):

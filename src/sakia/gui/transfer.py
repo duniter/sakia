@@ -71,28 +71,25 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
 
 
     @classmethod
-    @asyncio.coroutine
-    def send_money_to_identity(cls, app, account, password_asker, community, identity):
+    async def send_money_to_identity(cls, app, account, password_asker, community, identity):
         dialog = cls(app, account, password_asker, community, None)
         dialog.edit_pubkey.setText(identity.pubkey)
         dialog.radio_pubkey.setChecked(True)
-        return (yield from dialog.async_exec())
+        return (await dialog.async_exec())
 
     @classmethod
-    @asyncio.coroutine
-    def send_transfer_again(cls, app, account, password_asker, community, transfer):
+    async def send_transfer_again(cls, app, account, password_asker, community, transfer):
         dialog = cls(app, account, password_asker, community, transfer)
-        dividend = yield from community.dividend()
+        dividend = await community.dividend()
         relative = transfer.metadata['amount'] / dividend
         dialog.spinbox_amount.setMaximum(transfer.metadata['amount'])
         dialog.spinbox_relative.setMaximum(relative)
         dialog.spinbox_amount.setValue(transfer.metadata['amount'])
 
-        return (yield from dialog.async_exec())
+        return (await dialog.async_exec())
 
     @asyncify
-    @asyncio.coroutine
-    def accept(self):
+    async def accept(self):
         comment = self.edit_message.text()
 
         if self.radio_contact.isChecked():
@@ -103,25 +100,25 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
         amount = self.spinbox_amount.value()
 
         if not amount:
-            yield from QAsyncMessageBox.critical(self, self.tr("Money transfer"),
+            await QAsyncMessageBox.critical(self, self.tr("Money transfer"),
                                  self.tr("No amount. Please give the transfert amount"),
                                  QMessageBox.Ok)
             return
 
-        password = yield from self.password_asker.async_exec()
+        password = await self.password_asker.async_exec()
         if self.password_asker.result() == QDialog.Rejected:
             return
 
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QApplication.processEvents()
-        result = yield from self.wallet.send_money(self.account.salt, password, self.community,
+        result = await self.wallet.send_money(self.account.salt, password, self.community,
                                    recipient, amount, comment)
         if result[0]:
             if self.app.preferences['notifications']:
                 toast.display(self.tr("Transfer"),
                           self.tr("Success sending money to {0}").format(recipient))
             else:
-                yield from QAsyncMessageBox.information(self, self.tr("Transfer"),
+                await QAsyncMessageBox.information(self, self.tr("Transfer"),
                           self.tr("Success sending money to {0}").format(recipient))
             QApplication.restoreOverrideCursor()
 
@@ -134,56 +131,52 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
             if self.app.preferences['notifications']:
                 toast.display(self.tr("Transfer"), "Error : {0}".format(result[1]))
             else:
-                yield from QAsyncMessageBox.critical(self, self.tr("Transfer"), result[1])
+                await QAsyncMessageBox.critical(self, self.tr("Transfer"), result[1])
 
             QApplication.restoreOverrideCursor()
 
     @asyncify
-    @asyncio.coroutine
-    def amount_changed(self, value):
-        dividend = yield from self.community.dividend()
+    async def amount_changed(self, value):
+        dividend = await self.community.dividend()
         relative = value / dividend
         self.spinbox_relative.blockSignals(True)
         self.spinbox_relative.setValue(relative)
         self.spinbox_relative.blockSignals(False)
 
     @asyncify
-    @asyncio.coroutine
-    def relative_amount_changed(self, value):
-        dividend = yield from self.community.dividend()
+    async def relative_amount_changed(self, value):
+        dividend = await self.community.dividend()
         amount = value * dividend
         self.spinbox_amount.blockSignals(True)
         self.spinbox_amount.setValue(amount)
         self.spinbox_amount.blockSignals(False)
 
     @asyncify
-    @asyncio.coroutine
-    def change_current_community(self, index):
+    async def change_current_community(self, index):
         self.community = self.account.communities[index]
-        amount = yield from self.wallet.value(self.community)
+        amount = await self.wallet.value(self.community)
 
-        ref_text = yield from self.account.current_ref(amount, self.community, self.app)\
+        ref_text = await self.account.current_ref(amount, self.community, self.app)\
             .diff_localized(units=True,
                             international_system=self.app.preferences['international_system_of_units'])
         self.label_total.setText("{0}".format(ref_text))
         self.spinbox_amount.setSuffix(" " + self.community.currency)
-        amount = yield from self.wallet.value(self.community)
-        dividend = yield from self.community.dividend()
+        amount = await self.wallet.value(self.community)
+        dividend = await self.community.dividend()
         relative = amount / dividend
         self.spinbox_amount.setMaximum(amount)
         self.spinbox_relative.setMaximum(relative)
 
     @asyncify
-    @asyncio.coroutine
-    def change_displayed_wallet(self, index):
+    async def change_displayed_wallet(self, index):
         self.wallet = self.account.wallets[index]
-        amount = yield from self.wallet.value(self.community)
-        ref_text = yield from self.account.current_ref(amount, self.community, self.app)\
+        amount = await self.wallet.value(self.community)
+        ref_text = await self.account.current_ref(amount, self.community, self.app)\
             .diff_localized(units=True,
                             international_system=self.app.preferences['international_system_of_units'])
         self.label_total.setText("{0}".format(ref_text))
-        amount = yield from self.wallet.value(self.community)
-        dividend = yield from self.community.dividend()
+        amount = await self.wallet.value(self.community)
+        dividend = await self.community.dividend()
         relative = amount / dividend
         self.spinbox_amount.setMaximum(amount)
         self.spinbox_relative.setMaximum(relative)

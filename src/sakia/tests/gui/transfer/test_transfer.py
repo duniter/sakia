@@ -68,31 +68,29 @@ class TestTransferDialog(unittest.TestCase, QuamashTest):
                                               None)
         self.account.wallets[0].init_cache(self.application, self.community)
 
-        @asyncio.coroutine
-        def open_dialog(certification_dialog):
-            result = yield from certification_dialog.async_exec()
+        async     def open_dialog(certification_dialog):
+            result = await certification_dialog.async_exec()
             self.assertEqual(result, QDialog.Accepted)
 
         def close_dialog():
             if transfer_dialog.isVisible():
                 transfer_dialog.close()
 
-        @asyncio.coroutine
-        def exec_test():
-            yield from asyncio.sleep(1)
-            self.account.wallets[0].caches[self.community.currency].available_sources = yield from self.wallet.sources(self.community)
+        async     def exec_test():
+            await asyncio.sleep(1)
+            self.account.wallets[0].caches[self.community.currency].available_sources = await self.wallet.sources(self.community)
             QTest.mouseClick(transfer_dialog.radio_pubkey, Qt.LeftButton)
             QTest.keyClicks(transfer_dialog.edit_pubkey, "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn")
             transfer_dialog.spinbox_amount.setValue(10)
             QTest.mouseClick(transfer_dialog.button_box.button(QDialogButtonBox.Ok), Qt.LeftButton)
-            yield from asyncio.sleep(1)
+            await asyncio.sleep(1)
             topWidgets = QApplication.topLevelWidgets()
             for w in topWidgets:
                 if type(w) is QMessageBox:
                     QTest.keyClick(w, Qt.Key_Enter)
 
         self.lp.call_later(15, close_dialog)
-        asyncio.async(exec_test())
+        asyncio.ensure_future(exec_test())
         self.lp.run_until_complete(open_dialog(transfer_dialog))
         mock.delete_mock()
 

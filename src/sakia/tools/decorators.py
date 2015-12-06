@@ -38,6 +38,6 @@ def once_at_a_time(fn):
 def asyncify(fn):
     @functools.wraps(fn)
     def wrapper(*args, **kwargs):
-        return asyncio.async(asyncio.coroutine(fn)(*args, **kwargs))
+        return asyncio.ensure_future(asyncio.coroutine(fn)(*args, **kwargs))
 
     return wrapper

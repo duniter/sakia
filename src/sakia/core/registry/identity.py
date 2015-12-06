@@ -90,8 +90,7 @@ class Identity(QObject):
 
         return cls(uid, pubkey, sigdate, local_state, blockchain_state)
 
-    @asyncio.coroutine
-    def selfcert(self, community):
+    async def selfcert(self, community):
         """
         Get the identity self certification.
         This request is not cached in the person object.
@@ -102,7 +101,7 @@ class Identity(QObject):
         """
         try:
             timestamp = 0
-            lookup_data = yield from community.bma_access.future_request(bma.wot.Lookup,
+            lookup_data = await community.bma_access.future_request(bma.wot.Lookup,
                                                                          req_args={'search': self.pubkey})
 
             for result in lookup_data['results']:
@@ -135,8 +134,7 @@ class Identity(QObject):
         except NoPeerAvailable:
             logging.debug("No peer available")
 
-    @asyncio.coroutine
-    def get_join_date(self, community):
+    async def get_join_date(self, community):
         """
         Get the person join date.
         This request is not cached in the person object.
@@ -145,11 +143,11 @@ class Identity(QObject):
         :return: A datetime object
         """
         try:
-            search = yield from community.bma_access.future_request(bma.blockchain.Membership,
+            search = await community.bma_access.future_request(bma.blockchain.Membership,
                                                                     {'search': self.pubkey})
             if len(search['memberships']) > 0:
                 membership_data = search['memberships'][0]
-                block = yield from community.bma_access.future_request(bma.blockchain.Block,
+                block = await community.bma_access.future_request(bma.blockchain.Block,
                                 req_args={'number': membership_data['blockNumber']})
                 return block['medianTime']
         except ValueError as e:
@@ -159,16 +157,15 @@ class Identity(QObject):
             logging.debug(str(e))
             raise MembershipNotFoundError(self.pubkey, community.name)
 
-    @asyncio.coroutine
-    def get_expiration_date(self, community):
+    async def get_expiration_date(self, community):
         try:
-            membership = yield from self.membership(community)
+            membership = await self.membership(community)
             join_block_number = membership['blockNumber']
             try:
-                join_block = yield from community.bma_access.future_request(bma.blockchain.Block,
+                join_block = await community.bma_access.future_request(bma.blockchain.Block,
                                 req_args={'number': join_block_number})
 
-                parameters = yield from community.bma_access.future_request(bma.blockchain.Parameters)
+                parameters = await community.bma_access.future_request(bma.blockchain.Parameters)
                 join_date = join_block['medianTime']
                 expiration_date = join_date + parameters['sigValidity']
             except NoPeerAvailable:
@@ -182,8 +179,7 @@ class Identity(QObject):
 
 
 #TODO: Manage 'OUT' memberships ? Maybe ?
-    @asyncio.coroutine
-    def membership(self, community):
+    async def membership(self, community):
         """
         Get the person last membership document.
 
@@ -192,7 +188,7 @@ class Identity(QObject):
         :rtype: dict
         """
         try:
-            search = yield from community.bma_access.future_request(bma.blockchain.Membership,
+            search = await community.bma_access.future_request(bma.blockchain.Membership,
                                            {'search': self.pubkey})
             block_number = -1
             membership_data = None
@@ -219,10 +215,9 @@ class Identity(QObject):
             logging.debug(str(e))
             raise MembershipNotFoundError(self.pubkey, community.name)
 
-    @asyncio.coroutine
-    def published_uid(self, community):
+    async def published_uid(self, community):
         try:
-            data = yield from community.bma_access.future_request(bma.wot.Lookup,
+            data = await community.bma_access.future_request(bma.wot.Lookup,
                                  req_args={'search': self.pubkey})
             timestamp = 0
 
@@ -243,20 +238,18 @@ class Identity(QObject):
             logging.debug(str(e))
         return False
 
-    @asyncio.coroutine
-    def uid_is_revokable(self, community):
-        published = yield from self.published_uid(community)
+    async def uid_is_revokable(self, community):
+        published = await self.published_uid(community)
         if published:
             try:
-                yield from community.bma_access.future_request(bma.wot.CertifiersOf,
+                await community.bma_access.future_request(bma.wot.CertifiersOf,
                                                                {'search': self.pubkey})
             except ValueError as e:
                 if '404' in str(e) or '400' in str(e):
                     return True
         return False
 
-    @asyncio.coroutine
-    def is_member(self, community):
+    async def is_member(self, community):
         """
         Check if the person is a member of a community
 
@@ -264,7 +257,7 @@ class Identity(QObject):
         :return: True if the person is a member of a community
         """
         try:
-            certifiers = yield from community.bma_access.future_request(bma.wot.CertifiersOf,
+            certifiers = await community.bma_access.future_request(bma.wot.CertifiersOf,
                                                                         {'search': self.pubkey})
             return certifiers['isMember']
         except ValueError as e:
@@ -276,8 +269,7 @@ class Identity(QObject):
             logging.debug(str(e))
         return False
 
-    @asyncio.coroutine
-    def certifiers_of(self, identities_registry, community):
+    async def certifiers_of(self, identities_registry, community):
         """
         Get the list of this person certifiers
 
@@ -288,7 +280,7 @@ class Identity(QObject):
         """
         certifiers = list()
         try:
-            data = yield from community.bma_access.future_request(bma.wot.CertifiersOf,
+            data = await community.bma_access.future_request(bma.wot.CertifiersOf,
                                                                   {'search': self.pubkey})
 
             for certifier_data in data['certifications']:
@@ -314,7 +306,7 @@ class Identity(QObject):
             logging.debug(str(e))
 
         try:
-            data = yield from community.bma_access.future_request(bma.wot.Lookup, {'search': self.pubkey})
+            data = await community.bma_access.future_request(bma.wot.Lookup, {'search': self.pubkey})
             for result in data['results']:
                 if result["pubkey"] == self.pubkey:
                     self._refresh_uid(result['uids'])
@@ -329,7 +321,7 @@ class Identity(QObject):
                                                       None,
                                                       BlockchainState.BUFFERED,
                                                       community)
-                                block = yield from community.bma_access.future_request(bma.blockchain.Block,
+                                block = await community.bma_access.future_request(bma.blockchain.Block,
                                                                      {'number': certifier_data['meta']['block_number']})
                                 certifier['cert_time'] = block['medianTime']
                                 certifier['block_number'] = None
@@ -341,8 +333,7 @@ class Identity(QObject):
             logging.debug(str(e))
         return certifiers
 
-    @asyncio.coroutine
-    def unique_valid_certifiers_of(self, identities_registry, community):
+    async def unique_valid_certifiers_of(self, identities_registry, community):
         """
         Get the certifications in the blockchain and in the pools
         Get only unique and last certification for each pubkey
@@ -351,13 +342,13 @@ class Identity(QObject):
         :return: The list of the certifiers of this community
         :rtype: list
         """
-        certifier_list = yield from self.certifiers_of(identities_registry, community)
+        certifier_list = await self.certifiers_of(identities_registry, community)
         unique_valid = []
         #  add certifiers of uid
         for certifier in tuple(certifier_list):
             # add only valid certification...
             try:
-                cert_expired = yield from community.certification_expired(certifier['cert_time'])
+                cert_expired = await community.certification_expired(certifier['cert_time'])
             except NoPeerAvailable:
                 logging.debug("No peer available")
                 cert_expired = True
@@ -373,8 +364,7 @@ class Identity(QObject):
                     unique_valid.append(certifier)
         return unique_valid
 
-    @asyncio.coroutine
-    def certified_by(self, identities_registry, community):
+    async def certified_by(self, identities_registry, community):
         """
         Get the list of persons certified by this person
         :param sakia.core.registry.IdentitiesRegistry identities_registry: The registry
@@ -386,7 +376,7 @@ class Identity(QObject):
         """
         certified_list = list()
         try:
-            data = yield from community.bma_access.future_request(bma.wot.CertifiedBy, {'search': self.pubkey})
+            data = await community.bma_access.future_request(bma.wot.CertifiedBy, {'search': self.pubkey})
             for certified_data in data['certifications']:
                 certified = {}
                 certified['identity'] = identities_registry.from_handled_data(certified_data['uid'],
@@ -407,7 +397,7 @@ class Identity(QObject):
             logging.debug(str(e))
 
         try:
-            data = yield from community.bma_access.future_request(bma.wot.Lookup, {'search': self.pubkey})
+            data = await community.bma_access.future_request(bma.wot.Lookup, {'search': self.pubkey})
             for result in data['results']:
                 if result["pubkey"] == self.pubkey:
                     self._refresh_uid(result['uids'])
@@ -428,15 +418,14 @@ class Identity(QObject):
             logging.debug(str(e))
         return certified_list
 
-    @asyncio.coroutine
-    def unique_valid_certified_by(self, identities_registry, community):
-        certified_list = yield from self.certified_by(identities_registry, community)
+    async def unique_valid_certified_by(self, identities_registry, community):
+        certified_list = await self.certified_by(identities_registry, community)
         unique_valid = []
         #  add certifiers of uid
         for certified in tuple(certified_list):
             # add only valid certification...
             try:
-                cert_expired = yield from community.certification_expired(certified['cert_time'])
+                cert_expired = await community.certification_expired(certified['cert_time'])
             except NoPeerAvailable:
                 logging.debug("No peer available")
                 cert_expired = True
@@ -452,13 +441,12 @@ class Identity(QObject):
                     unique_valid.append(certified)
         return unique_valid
 
-    @asyncio.coroutine
-    def membership_expiration_time(self, community):
-        membership = yield from self.membership(community)
+    async def membership_expiration_time(self, community):
+        membership = await self.membership(community)
         join_block = membership['blockNumber']
-        block = yield from community.get_block(join_block)
+        block = await community.get_block(join_block)
         join_date = block['medianTime']
-        parameters = yield from community.parameters()
+        parameters = await community.parameters()
         expiration_date = join_date + parameters['sigValidity']
         current_time = time.time()
         return expiration_date - current_time

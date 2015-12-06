@@ -23,23 +23,21 @@ class Relative():
     def diff_units(self, currency):
         return self.units(currency)
 
-    @asyncio.coroutine
-    def value(self):
+    async def value(self):
         """
         Return relative value of amount
         :param int amount:   Value
         :param sakia.core.community.Community community: Community instance
         :return: float
         """
-        dividend = yield from self.community.dividend()
+        dividend = await self.community.dividend()
         if dividend > 0:
             return self.amount / float(dividend)
         else:
             return self.amount
 
-    @asyncio.coroutine
-    def differential(self):
-        value = yield from self.value()
+    async def differential(self):
+        value = await self.value()
         return value
 
     def _to_si(self, value):
@@ -65,9 +63,8 @@ class Relative():
 
         return localized_value, prefix
 
-    @asyncio.coroutine
-    def localized(self, units=False, international_system=False):
-        value = yield from self.value()
+    async def localized(self, units=False, international_system=False):
+        value = await self.value()
         prefix = ""
         if international_system:
             localized_value, prefix = self._to_si(value)
@@ -82,9 +79,8 @@ class Relative():
         else:
             return localized_value
 
-    @asyncio.coroutine
-    def diff_localized(self, units=False, international_system=False):
-        value = yield from self.differential()
+    async def diff_localized(self, units=False, international_system=False):
+        value = await self.differential()
         prefix = ""
         if international_system and value != 0:
             localized_value, prefix = self._to_si(value)

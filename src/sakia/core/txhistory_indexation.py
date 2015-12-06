@@ -71,17 +71,15 @@ class TxHistory():
         self._stop_coroutines = True
 
     @staticmethod
-    @asyncio.coroutine
-    def _validation_state(community, block_number, current_block):
-        members_pubkeys = yield from community.members_pubkeys()
+    async def _validation_state(community, block_number, current_block):
+        members_pubkeys = await community.members_pubkeys()
         if block_number + community.network.fork_window(members_pubkeys) + 1 < current_block["number"]:
             state = Transfer.VALIDATED
         else:
             state = Transfer.VALIDATING
         return state
 
-    @asyncio.coroutine
-    def _parse_transaction(self, community, txdata, received_list, txid, current_block):
+    async def _parse_transaction(self, community, txdata, received_list, txid, current_block):
         tx_outputs = [OutputSource.from_inline(o) for o in txdata['outputs']]
         receivers = [o.pubkey for o in tx_outputs
                      if o.pubkey != txdata['issuers'][0]]
@@ -89,19 +87,19 @@ class TxHistory():
         block_number = txdata['block_number']
 
         mediantime = txdata['time']
-        state = yield from TxHistory._validation_state(community, block_number, current_block)
+        state = await TxHistory._validation_state(community, block_number, current_block)
 
         if len(receivers) == 0:
             receivers = [txdata['issuers'][0]]
 
         try:
-            issuer = yield from self.wallet._identities_registry.future_find(txdata['issuers'][0], community)
+            issuer = await self.wallet._identities_registry.future_find(txdata['issuers'][0], community)
             issuer_uid = issuer.uid
         except LookupFailureError:
             issuer_uid = ""
 
         try:
-            receiver = yield from self.wallet._identities_registry.future_find(receivers[0], community)
+            receiver = await self.wallet._identities_registry.future_find(receivers[0], community)
             receiver_uid = receiver.uid
         except LookupFailureError:
             receiver_uid = ""
@@ -158,17 +156,16 @@ class TxHistory():
             transfer.check_registered(txdata['hash'], current_block['number'], mediantime,
                                       community.network.fork_window(community.members_pubkeys()) + 1)
 
-    @asyncio.coroutine
-    def refresh(self, community, received_list):
+    async def refresh(self, community, received_list):
         """
         Refresh last transactions
 
         :param sakia.core.Community community: The community
         :param list received_list: List of transactions received
         """
-        current_block = yield from community.bma_access.future_request(bma.blockchain.Block,
+        current_block = await community.bma_access.future_request(bma.blockchain.Block,
                                 req_args={'number': community.network.current_blockid.number})
-        members_pubkeys = yield from community.members_pubkeys()
+        members_pubkeys = await community.members_pubkeys()
         # We look for the first block to parse, depending on awaiting and validating transfers and ud...
         blocks = [tx.metadata['block'] for tx in self._transfers
                   if tx.state in (Transfer.AWAITING, Transfer.VALIDATING)] +\
@@ -180,7 +177,7 @@ class TxHistory():
         dividends_data = bma.ud.History.null_value
         for i in range(0, 6):
             if dividends_data == bma.ud.History.null_value:
-                dividends_data = yield from community.bma_access.future_request(bma.ud.History,
+                dividends_data = await community.bma_access.future_request(bma.ud.History,
                                                 req_args={'pubkey': self.wallet.pubkey})
 
         dividends = dividends_data['history']['history']
@@ -196,7 +193,7 @@ class TxHistory():
         while parsed_block < current_block['number']:
             udid = 0
             for d in [ud for ud in dividends if ud['block_number'] in range(parsed_block, parsed_block+100)]:
-                state = yield from TxHistory._validation_state(community, d['block_number'], current_block)
+                state = await TxHistory._validation_state(community, d['block_number'], current_block)
 
                 if d['block_number'] not in [ud['block_number'] for ud in self._dividends]:
                     d['id'] = udid
@@ -211,7 +208,7 @@ class TxHistory():
             tx_history = bma.tx.history.Blocks.null_value
             for i in range(0, 6):
                 if tx_history == bma.tx.history.Blocks.null_value:
-                    tx_history = yield from community.bma_access.future_request(bma.tx.history.Blocks,
+                    tx_history = await community.bma_access.future_request(bma.tx.history.Blocks,
                                                           req_args={'pubkey': self.wallet.pubkey,
                                                                  'from_':str(parsed_block),
                                                                  'to_': str(parsed_block + 99)})
@@ -230,7 +227,7 @@ class TxHistory():
                                                                              parsed_block,
                                                                              current_block['number']))
                 else:
-                    transfer = yield from self._parse_transaction(community, txdata, received_list,
+                    transfer = await self._parse_transaction(community, txdata, received_list,
                                                                   udid + txid, current_block)
                     if transfer:
                         new_transfers.append(transfer)
@@ -239,7 +236,7 @@ class TxHistory():
             parsed_block += 100
 
         if current_block['number'] > self.latest_block:
-            self.available_sources = yield from self.wallet.sources(community)
+            self.available_sources = await self.wallet.sources(community)
             if self._stop_coroutines:
                 return
             self.latest_block = current_block['number']

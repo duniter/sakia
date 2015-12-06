@@ -113,8 +113,7 @@ class IdentitiesTableModel(QAbstractTableModel):
         """
         return [i[1] for i in self.identities_data]
 
-    @asyncio.coroutine
-    def identity_data(self, identity):
+    async def identity_data(self, identity):
         """
         Return the identity in the form a tuple to display
         :param sakia.core.registry.Identity identity: The identity to get data from
@@ -122,16 +121,15 @@ class IdentitiesTableModel(QAbstractTableModel):
         :rtype: tuple
         """
         try:
-            join_date = yield from identity.get_join_date(self.community)
-            expiration_date = yield from identity.get_expiration_date(self.community)
+            join_date = await identity.get_join_date(self.community)
+            expiration_date = await identity.get_expiration_date(self.community)
         except MembershipNotFoundError:
             join_date = None
             expiration_date = None
 
         return identity.uid, identity.pubkey, join_date, expiration_date, identity.sigdate
 
-    @asyncio.coroutine
-    def refresh_identities(self, identities):
+    async def refresh_identities(self, identities):
         """
         Change the identities to display
 
@@ -144,11 +142,11 @@ class IdentitiesTableModel(QAbstractTableModel):
         self.beginResetModel()
         identities_data = []
         for identity in identities:
-            data = yield from self.identity_data(identity)
+            data = await self.identity_data(identity)
             identities_data.append(data)
         if len(identities) > 0:
             try:
-                parameters = yield from self.community.parameters()
+                parameters = await self.community.parameters()
                 self._sig_validity = parameters['sigValidity']
             except NoPeerAvailable as e:
                 logging.debug(str(e))
