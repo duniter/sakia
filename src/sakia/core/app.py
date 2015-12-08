@@ -454,7 +454,7 @@ class Application(QObject):
                                     name, 'properties')
         json_data = open(account_path, 'r')
         data = json.load(json_data)
-        account = Account.load(data)
+        account = Account.load(data, self._identities_registry)
         account.name = name
         self.add_account(account)
         self.save(account)
