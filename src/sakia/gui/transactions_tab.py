@@ -121,25 +121,30 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
                 self.progressbar.show()
                 self.progressbar.setValue(value)
                 self.progressbar.setMaximum(maximum)
-        self.app.current_account.loading_progressed.connect(progressing)
-        self.app.current_account.loading_finished.connect(self.stop_progress)
+        self.account.loading_progressed.connect(progressing)
+        self.account.loading_finished.connect(self.stop_progress)
 
-    @pyqtSlot(list)
     def stop_progress(self, community, received_list):
         if community == self.community:
+            self.progressbar.hide()
+            self.table_history.model().sourceModel().refresh_transfers()
+            self.table_history.resizeColumnsToContents()
+            self.notification_reception(received_list)
+
+    @asyncify
+    @asyncio.coroutine
+    def notification_reception(self, received_list):
+        if len(received_list) > 0:
             amount = 0
             for r in received_list:
                 amount += r.metadata['amount']
-            self.progressbar.hide()
-            if len(received_list) > 0:
-                text = self.tr("Received {0} {1} from {2} transfers").format(amount,
-                                                                   self.community.currency,
-                                                                   len(received_list))
-                if self.app.preferences['notifications']:
-                    toast.display(self.tr("New transactions received"), text)
-
-            self.table_history.model().sourceModel().refresh_transfers()
-            self.table_history.resizeColumnsToContents()
+            localized_amount = yield from self.app.current_account.current_ref(amount, self.community, self.app)\
+                                            .localized(units=True,
+                                    international_system=self.app.preferences['international_system_of_units'])
+            text = self.tr("Received {amount} from {number} transfers").format(amount=localized_amount ,
+                                                                            number=len(received_list))
+            if self.app.preferences['notifications']:
+                toast.display(self.tr("New transactions received"), text)
 
     @once_at_a_time
     @asyncify
