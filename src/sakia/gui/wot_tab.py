@@ -16,8 +16,9 @@ from .certification import CertificationDialog
 from .transfer import TransferMoneyDialog
 from .contact import ConfigureContactDialog
 from ..gen_resources.wot_tab_uic import Ui_WotTabWidget
-from sakia.gui.views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_SELECTED, NODE_STATUS_OUT
-from sakia.gui.widgets.busy import Busy
+from .views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_SELECTED, NODE_STATUS_OUT
+from .widgets.busy import Busy
+from ..tools.exceptions import NoPeerAvailable
 
 
 class WotTabWidget(QWidget, Ui_WotTabWidget):
@@ -267,20 +268,23 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
 
         if len(text) < 2:
             return False
-        response = yield from self.community.bma_access.future_request(bma.wot.Lookup, {'search': text})
+        try:
+            response = yield from self.community.bma_access.future_request(bma.wot.Lookup, {'search': text})
 
-        nodes = {}
-        for identity in response['results']:
-            nodes[identity['pubkey']] = identity['uids'][0]['uid']
+            nodes = {}
+            for identity in response['results']:
+                nodes[identity['pubkey']] = identity['uids'][0]['uid']
 
-        if nodes:
-            self.nodes = list()
-            self.comboBoxSearch.clear()
-            self.comboBoxSearch.lineEdit().setText(text)
-            for pubkey, uid in nodes.items():
-                self.nodes.append({'pubkey': pubkey, 'uid': uid})
-                self.comboBoxSearch.addItem(uid)
-            self.comboBoxSearch.showPopup()
+            if nodes:
+                self.nodes = list()
+                self.comboBoxSearch.clear()
+                self.comboBoxSearch.lineEdit().setText(text)
+                for pubkey, uid in nodes.items():
+                    self.nodes.append({'pubkey': pubkey, 'uid': uid})
+                    self.comboBoxSearch.addItem(uid)
+                self.comboBoxSearch.showPopup()
+        except NoPeerAvailable:
+            pass
 
     def select_node(self, index):
         """
