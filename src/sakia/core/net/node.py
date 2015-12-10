@@ -463,14 +463,16 @@ class Node(QObject):
                     try:
                         leaf_data = yield from bma.network.peering.Peers(conn_handler).get(leaf=leaf_hash)
                         if "raw" in leaf_data['leaf']['value']:
-                            peer_doc = Peer.from_signed_raw("{0}{1}\n".format(leaf_data['leaf']['value']['raw'],
-                                                                        leaf_data['leaf']['value']['signature']))
+                            str_doc = "{0}{1}\n".format(leaf_data['leaf']['value']['raw'],
+                                                                        leaf_data['leaf']['value']['signature'])
+                            peer_doc = Peer.from_signed_raw(str_doc)
                             pubkey = leaf_data['leaf']['value']['pubkey']
                             self.neighbour_found.emit(peer_doc, pubkey)
                         else:
                             logging.debug("Incorrect leaf reply")
-                    except ValueError as e:
-                        logging.debug("Error in leaf reply")
+                    except (AttributeError, ValueError) as e:
+                        logging.debug("{pubkey} : Incorrect peer data in {leaf}".format(pubkey=self.pubkey[:5],
+                                                                                        leaf=leaf_hash))
                         self.state = Node.OFFLINE
                         self.changed.emit()
                     except (ClientError, gaierror, asyncio.TimeoutError, DisconnectedError) as e:
