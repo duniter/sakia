@@ -16,6 +16,7 @@ from PyQt5.QtGui import QIcon
 from .wot_tab import WotTabWidget
 from .identities_tab import IdentitiesTabWidget
 from .transactions_tab import TransactionsTabWidget
+from .certifications_tab import CertificationsTabWidget
 from .network_tab import NetworkTabWidget
 from .informations_tab import InformationsTabWidget
 from sakia.gui.widgets.dialogs import QAsyncMessageBox
@@ -54,6 +55,8 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
 
         self.tab_informations = InformationsTabWidget(self.app)
 
+        self.tab_certifications = CertificationsTabWidget(self.app)
+
         self.tab_network = NetworkTabWidget(self.app)
         self.tab_identities.view_in_wot.connect(self.tab_wot.draw_graph)
         self.tab_identities.view_in_wot.connect(lambda: self.tabs.setCurrentWidget(self.tab_wot))
@@ -79,21 +82,14 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                                  self.tr("Network"))
 
         action_showinfo = QAction(self.tr("Show informations"), self.toolbutton_menu)
-
-        def show_info():
-            if self.tabs.indexOf(self.tab_informations) == -1:
-                self.tabs.addTab(self.tab_informations,
-                                         QIcon(":/icons/informations_icon"),
-                                         self.tr("Informations"))
-                style = self.app.qapp.style()
-                icon = style.standardIcon(style.SP_DockWidgetCloseButton)
-                close_button = QPushButton(icon, '')
-                close_button.clicked.connect(lambda: self.tabs.removeTab(self.tabs.indexOf(self.tab_informations)))
-                close_button.setStyleSheet('border-style: inset;')
-                self.tabs.tabBar().setTabButton(4, QTabBar.RightSide, close_button)
-
-        action_showinfo.triggered.connect(show_info)
+        action_showinfo.triggered.connect(lambda : self.show_closable_tab(self.tab_informations,
+                                    QIcon(":/icons/informations_icon"), self.tr("Informations")))
         self.toolbutton_menu.addAction(action_showinfo)
+
+        action_showcerts = QAction(self.tr("Show certifications"), self.toolbutton_menu)
+        action_showcerts.triggered.connect(lambda: self.show_closable_tab(self.tab_certifications,
+                                         QIcon(":/icons/certifications_icon"), self.tr("Certifications")))
+        self.toolbutton_menu.addAction(action_showcerts)
 
         self.action_publish_uid = QAction(self.tr("Publish UID"), self.toolbutton_menu)
         self.action_publish_uid.triggered.connect(self.publish_uid)
@@ -104,6 +100,16 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.toolbutton_menu.addAction(self.action_revoke_uid)
 
         self.button_membership.clicked.connect(self.send_membership_demand)
+
+    def  show_closable_tab(self, tab, icon, title):
+        if self.tabs.indexOf(tab) == -1:
+            self.tabs.addTab(tab, icon, title)
+            style = self.app.qapp.style()
+            icon = style.standardIcon(style.SP_DockWidgetCloseButton)
+            close_button = QPushButton(icon, '')
+            close_button.clicked.connect(lambda: self.tabs.removeTab(self.tabs.indexOf(tab)))
+            close_button.setStyleSheet('border-style: inset;')
+            self.tabs.tabBar().setTabButton(self.tabs.indexOf(tab), QTabBar.RightSide, close_button)
 
     def cancel_once_tasks(self):
         cancel_once_task(self, self.refresh_block)
