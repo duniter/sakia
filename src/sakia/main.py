@@ -8,8 +8,6 @@ import sys
 import asyncio
 import logging
 import os
-import socket
-import random
 # To force cx_freeze import
 import PyQt5.QtSvg
 
@@ -43,15 +41,16 @@ def async_exception_handler(loop, context):
         log_lines.append('{}: {!r}'.format(key, context[key]))
 
     logging.error('\n'.join(log_lines), exc_info=exc_info)
-    if "Unclosed" not in message and \
-        "socket.gaierror" not in str(log_lines):
-        os._exit(1)
+    for line in log_lines:
+        for ignored in ("Unclosed", "socket.gaierror"):
+            if ignored in line:
+                return
+    os._exit(1)
 
 
 if __name__ == '__main__':
     # activate ctrl-c interrupt
     signal.signal(signal.SIGINT, signal.SIG_DFL)
-    real_addr = socket.getaddrinfo
     sakia = QApplication(sys.argv)
     loop = QEventLoop(sakia)
     loop.set_exception_handler(async_exception_handler)
