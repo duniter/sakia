@@ -73,6 +73,8 @@ class StepPageInit(Step):
             self.config_dialog.label_error.setText(str(e))
         except aiohttp.errors.ClientError as e:
             self.config_dialog.label_error.setText(str(e))
+        except ValueError as e:
+            self.config_dialog.label_error.setText(str(e))
 
     @asyncify
     async def check_connect(self, checked=False):
@@ -98,6 +100,8 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
         except aiohttp.errors.DisconnectedError as e:
             self.config_dialog.label_error.setText(str(e))
         except aiohttp.errors.ClientError as e:
+            self.config_dialog.label_error.setText(str(e))
+        except ValueError as e:
             self.config_dialog.label_error.setText(str(e))
 
     @asyncify
@@ -139,6 +143,8 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
         except aiohttp.errors.DisconnectedError as e:
             self.config_dialog.label_error.setText(str(e))
         except aiohttp.errors.ClientError as e:
+            self.config_dialog.label_error.setText(str(e))
+        except ValueError as e:
             self.config_dialog.label_error.setText(str(e))
 
     def is_valid(self):

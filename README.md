@@ -46,7 +46,7 @@ Python3 and PyQt5 Client for [uCoin](http://www.ucoin.io) project.
   * The executable is generated in "build" folder, named "sakia"
 
 ### Download latest release
-  * Go to [current release](https://github.com/ucoin-io/sakia/release)
+  * Go to [current release](https://github.com/ucoin-io/sakia/releases)
   * Download corresponding package to your operating system
   * Unzip and start "sakia" :)
   * Join our beta community by contacting us on [uCoin forum](http://forum.ucoin.io/)

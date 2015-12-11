@@ -12,15 +12,13 @@ import logging
 import time
 import asyncio
 
-from PyQt5.QtCore import QObject, pyqtSignal, QCoreApplication
-from PyQt5.QtNetwork import QNetworkReply
+from PyQt5.QtCore import QObject, pyqtSignal
 
 from . import money
 from .wallet import Wallet
 from .community import Community
 from .registry import LocalState
 from ..tools.exceptions import ContactAlreadyExists, NoPeerAvailable
-from ..tools.decorators import asyncify
 from ucoinpy.api import bma
 from ucoinpy.api.bma import PROTOCOL_VERSION
 from aiohttp.errors import ClientError

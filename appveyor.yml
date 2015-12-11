@@ -44,6 +44,7 @@ artifacts:
     name: sakia-win$(PYTHON_ARCH)
 # upload to releases
 deploy:
+  tag: $(APPVEYOR_REPO_TAG_NAME)
   release: sakia $(APPVEYOR_REPO_TAG_NAME)
   provider: GitHub
   auth_token:

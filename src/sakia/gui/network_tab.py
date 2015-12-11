@@ -108,6 +108,8 @@ class NetworkTabWidget(QWidget, Ui_NetworkTabWidget):
 
     def manual_nodes_refresh(self):
         self.community.network.refresh_once()
+        self.button_manual_refresh.setEnabled(False)
+        asyncio.get_event_loop().call_later(15, lambda: self.button_manual_refresh.setEnabled(True))
 
     def changeEvent(self, event):
         """

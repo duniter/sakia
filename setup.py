@@ -1,8 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
-# source d'inspiration: http://wiki.wxpython.org/cx_freeze
-
 import sys, os, subprocess, multiprocessing, site
 from cx_Freeze import setup, Executable
 from PyQt5 import QtCore
@@ -116,7 +111,7 @@ target = Executable(
 # creation du setup
 setup(
     name = "sakia",
-    version = "0.11.0",
+    version = "0.11.2",
     description = "UCoin client",
     author = "Inso",
     options = {"build_exe": options},

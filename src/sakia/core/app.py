@@ -278,19 +278,13 @@ class Application(QObject):
             if os.path.exists(network_path):
                 with open(network_path, 'r') as json_data:
                     data = json.load(json_data)
-                if 'version' in data and data['version'] == __version__:
                     logging.debug("Merging network : {0}".format(data))
                     community.network.merge_with_json(data['network'])
-                else:
-                    os.remove(network_path)
 
             if os.path.exists(bma_path):
                 with open(bma_path, 'r') as json_data:
                     data = json.load(json_data)
-                if 'version' in data and data['version'] == __version__:
                     community.bma_access.load_from_json(data['cache'])
-                else:
-                    os.remove(bma_path)
 
         for wallet in account.wallets:
             for c in account.communities:
@@ -300,10 +294,7 @@ class Application(QObject):
             if os.path.exists(wallet_path):
                 with open(wallet_path, 'r') as json_data:
                     data = json.load(json_data)
-                if 'version' in data and data['version'] == __version__:
                     wallet.load_caches(self, data)
-                else:
-                    os.remove(wallet_path)
 
     def load_preferences(self):
         """
@@ -454,7 +445,7 @@ class Application(QObject):
                                     name, 'properties')
         json_data = open(account_path, 'r')
         data = json.load(json_data)
-        account = Account.load(data)
+        account = Account.load(data, self._identities_registry)
         account.name = name
         self.add_account(account)
         self.save(account)
