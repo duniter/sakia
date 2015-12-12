@@ -45,7 +45,7 @@ class RelativeZSum:
         return relative_value - relative_median
 
     async def differential(self):
-        return Relative(self.amount, self.community, self.app).value()
+        return await Relative(self.amount, self.community, self.app).value()
 
     async def localized(self, units=False, international_system=False):
         value = await self.value()

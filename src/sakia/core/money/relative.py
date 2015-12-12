@@ -37,8 +37,7 @@ class Relative():
             return self.amount
 
     async def differential(self):
-        value = await self.value()
-        return value
+        return await self.value()
 
     def _to_si(self, value):
         prefixes = ['', 'd', 'c', 'm', 'µ', 'n', 'p', 'f', 'a', 'z', 'y']

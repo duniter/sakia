@@ -34,8 +34,7 @@ class Quantitative():
         return int(self.amount)
 
     async def differential(self):
-        value = await self.value()
-        return value
+        return await self.value()
 
     def _to_si(self, value):
         prefixes = ['', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y', 'z', 'y']

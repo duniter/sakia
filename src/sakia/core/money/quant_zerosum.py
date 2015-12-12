@@ -41,8 +41,7 @@ class QuantitativeZSum:
         return self.amount - average
 
     async def differential(self):
-        value = await Quantitative(self.amount, self.community, self.app).value()
-        return value
+        return await Quantitative(self.amount, self.community, self.app).value()
 
     async def localized(self, units=False, international_system=False):
         value = await self.value()
