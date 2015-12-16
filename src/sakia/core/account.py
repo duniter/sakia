@@ -346,7 +346,7 @@ class Account(QObject):
             else:
                 return False, self.pubkey, None
 
-        async     def execute_requests(parsers, search):
+        async def execute_requests(parsers, search):
             tries = 0
             request = bma.wot.CertifiersOf
             nonlocal registered
