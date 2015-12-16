@@ -1524,7 +1524,7 @@ Le processus pour rejoindre la communauté devrait être refait à zéro.</trans
     <message>
         <location filename="../../ui/mainwindow.ui" line="111"></location>
         <source>Send money</source>
-        <translation>Envoyer de l'argent</translation>
+        <translation>Envoyer de la monnaie</translation>
     </message>
     <message>
         <location filename="../../ui/mainwindow.ui" line="116"></location>
@@ -2871,7 +2871,7 @@ Revoking your UID can only success if it is not already validated by the network
     <message>
         <location filename="../../../src/cutecoin/gui/views/wot.py" line="304"></location>
         <source>Send money</source>
-        <translation>Envoyer de l'argent</translation>
+        <translation>Envoyer de la monnaie</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/views/wot.py" line="309"></location>
