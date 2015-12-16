@@ -86,11 +86,6 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                                     QIcon(":/icons/informations_icon"), self.tr("Informations")))
         self.toolbutton_menu.addAction(action_showinfo)
 
-        action_showcerts = QAction(self.tr("Show certifications"), self.toolbutton_menu)
-        action_showcerts.triggered.connect(lambda: self.show_closable_tab(self.tab_certifications,
-                                         QIcon(":/icons/certifications_icon"), self.tr("Certifications")))
-        self.toolbutton_menu.addAction(action_showcerts)
-
         self.action_publish_uid = QAction(self.tr("Publish UID"), self.toolbutton_menu)
         self.action_publish_uid.triggered.connect(self.publish_uid)
         self.toolbutton_menu.addAction(self.action_publish_uid)
