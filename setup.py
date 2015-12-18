@@ -53,8 +53,6 @@ if sys.platform == "win32":
             includefiles.append((os.path.join(path, "Scripts", "plugins", "iconengines", f), os.path.join("iconengines", f) ))
     includefiles.append(libEGL_path)
     includefiles.append(libsodium_path)
-elif sys.platform == "darwin":
-    pass
 else:
     libsodium_path = ""
     print(QtCore.QCoreApplication.libraryPaths())

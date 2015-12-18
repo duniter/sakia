@@ -1,6 +1,5 @@
 
 brew update
-brew install wget
 brew install libsodium
 ## Ensure your brew QT version is up to date. (brew install qt -> qt 4.8)
 brew install qt5
@@ -32,7 +31,7 @@ wget http://sourceforge.net/projects/pyqt/files/PyQt5/PyQt-5.5.1/PyQt-gpl-5.5.1.
 tar xzf PyQt-gpl-5.5.1.tar.gz
 cd PyQt-gpl-5.5.1/
 pyenv activate sakia-env
-python configure.py --verbose
+python configure.py --verbose --confirm-license
 make && make install
 pyenv rehash
 
