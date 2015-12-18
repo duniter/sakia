@@ -47,10 +47,10 @@ before_install:
   - conda info -a
 
 install:
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION cx_freeze pyqt5 libpng=1.5.13 libsodium=1.0.3
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION pyqt5 libpng=1.5.13 libsodium=1.0.3
   - source activate test-environment
   - ldd $HOME/miniconda/envs/test-environment/lib/qt5/plugins/platforms/*.so
-  - pip install coveralls
+  - pip install coveralls cx_Freeze
   - pip install -r requirements.txt
   - python gen_resources.py
   - python gen_translations.py
