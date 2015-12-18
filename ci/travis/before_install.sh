@@ -5,6 +5,11 @@ brew install libsodium
 ## Ensure your brew QT version is up to date. (brew install qt -> qt 4.8)
 brew install qt5
 brew link --force qt5
+brew install pyenv
+brew install pyenv-virtualenv
+
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"
 
 env PYTHON_CONFIGURE_OPTS="--enable-framework" pyenv install $TRAVIS_PYTHON_VERSION
 
