@@ -35,7 +35,7 @@ then
     tar xzf PyQt-gpl-5.5.1.tar.gz
     cd PyQt-gpl-5.5.1/
     pyenv activate sakia-env
-    python configure.py --verbose --confirm-license
+    python configure.py --confirm-license
     make -j 2 && make install
     pyenv rehash
 
