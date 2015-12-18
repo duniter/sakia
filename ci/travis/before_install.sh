@@ -10,7 +10,9 @@ eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
 
 pyenv activate sakia-env
-if [ ] then
+if [ $? -ne 0 ]
+then
+    echo "Installing pyenv"
     env PYTHON_CONFIGURE_OPTS="--enable-framework" pyenv install $PYENV_PYTHON_VERSION
 
     pyenv shell $PYENV_PYTHON_VERSION
