@@ -42,6 +42,7 @@ before_install:
   - conda config --set always_yes yes --set changeps1 no
   - conda config --add channels inso/channel/sakia
   - conda config --add channels pyzo
+  - conda config --add channels mmcaulife
   - conda update -q conda
   # Useful for debugging any issues with conda
   - conda info -a
