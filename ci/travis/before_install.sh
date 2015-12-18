@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 
 brew update
 brew install libsodium
@@ -12,7 +13,7 @@ eval "$(pyenv virtualenv-init -)"
 pyenv activate sakia-env
 if [ $? -ne 0 ]
 then
-    echo "Installing pyenv"
+    echo "Sakia env cache cleared, rebuilding it..."
     env PYTHON_CONFIGURE_OPTS="--enable-framework" pyenv install $PYENV_PYTHON_VERSION
 
     pyenv shell $PYENV_PYTHON_VERSION
@@ -35,7 +36,7 @@ then
     cd PyQt-gpl-5.5.1/
     pyenv activate sakia-env
     python configure.py --verbose --confirm-license
-    make && make install
+    make -j 2 && make install
     pyenv rehash
 
     cd $HOME/sakia

@@ -1,25 +1,26 @@
 os: osx
 env:
-  - PYENV_PYTHON_VERSION=3.5.0
-before_install:
-  # Install and configure pyenv
-  - ci/travis/before_install.sh
-
-install:
-  - pyenv activate sakia-env
-  - pip install coveralls cx_Freeze
-  - pip install -r requirements.txt
-  - python gen_resources.py
-  - python gen_translations.py
-  - python setup.py build
-
-script:
-  - coverage run --source=sakia.core,sakia.gui,sakia.models run_tests.py
-
-after_success:
-  - coverage -rm
-  - coveralls
-
+- PYENV_PYTHON_VERSION=3.5.0
 cache:
   directories:
-    - $HOME/.pyenv
+  - "$HOME/.pyenv"
+before_install:
+- alias enable_pyenv=eval "$(pyenv virtualenv-init -)"
+- ci/travis/before_install.sh
+install:
+- ci/travis/build.sh
+script:
+- ci/travis/test.sh
+after_success:
+- ci/travis/after_success.sh
+
+before_deploy: zip -r sakia-${TRAVIS_OS_NAME}.zip build/
+
+deploy:
+  provider: releases
+  api_key:
+    secure: MUdvTDBeCxO9d/EpzIhr+QYra/KxgYkXX6177SjqWCWDqw9xB3fwSUj8I9ht9DGtwVdadtveumtvLw3pbtVIR0GtIPC9pyvtNz4j6T4Ei3TSE6+StXdMK4NnInvPeTRlobGL+9sZt9MwheJwZ8YGewhBcR0F5UzVfxWeSSrxmyk=
+  file: sakia-${TRAVIS_OS_NAME}.zip
+  skip_cleanup: true
+  on:
+    tags: true
