@@ -1,9 +1,12 @@
 os: osx
+env:
+  - PYENV_PYTHON_VERSION=3.5.0
 before_install:
   # Install and configure pyenv
   - ci/travis/before_install.sh
 
 install:
+  - pyenv activate sakia-env
   - pip install coveralls cx_Freeze
   - pip install -r requirements.txt
   - python gen_resources.py
@@ -16,3 +19,7 @@ script:
 after_success:
   - coverage -rm
   - coveralls
+
+cache:
+  directories:
+    - $HOME/.pyenv
