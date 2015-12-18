@@ -7,7 +7,7 @@ Created on 2 févr. 2014
 import asyncio
 import logging
 
-from PyQt5.QtCore import Qt, pyqtSignal, QEvent
+from PyQt5.QtCore import Qt, pyqtSignal, QEvent, QT_TRANSLATE_NOOP
 from PyQt5.QtGui import QCursor
 from PyQt5.QtWidgets import QWidget, QAction, QMenu, QDialog, \
                             QAbstractItemView
@@ -33,6 +33,9 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
     view_in_wot = pyqtSignal(Identity)
     money_sent = pyqtSignal()
 
+    _members_action_text = QT_TRANSLATE_NOOP("IdentitiesTabWidget", "Members")
+    _direct_connections_text = QT_TRANSLATE_NOOP("IdentitiesTabWidget", "Direct connections")
+
     def __init__(self, app):
         """
         Init
@@ -47,9 +50,11 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         self.account = None
         self.password_asker = None
 
+        self.members_action = QAction(self.tr(IdentitiesTabWidget._members_action_text), self)
+        self.direct_connections = QAction(self.tr(IdentitiesTabWidget._direct_connections_text), self)
         self.setupUi(self)
 
-        identities_model = IdentitiesTableModel(self.community)
+        identities_model = IdentitiesTableModel()
         proxy = IdentitiesFilterProxyModel()
         proxy.setSourceModel(identities_model)
         self.table_identities.setModel(proxy)
@@ -60,12 +65,10 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         identities_model.modelAboutToBeReset.connect(lambda: self.table_identities.setEnabled(False))
         identities_model.modelReset.connect(lambda: self.table_identities.setEnabled(True))
 
-        members_action = QAction(self.tr("Members"), self)
-        members_action.triggered.connect(self._async_search_members)
-        self.button_search.addAction(members_action)
-        direct_connections = QAction(self.tr("Direct connections"), self)
-        direct_connections.triggered.connect(self._async_search_direct_connections)
-        self.button_search.addAction(direct_connections)
+        self.members_action.triggered.connect(self._async_search_members)
+        self.button_search.addAction(self.members_action)
+        self.direct_connections.triggered.connect(self._async_search_direct_connections)
+        self.button_search.addAction(self.direct_connections)
         self.button_search.clicked.connect(self._async_execute_search_text)
 
         self.busy = Busy(self.table_identities)
@@ -285,6 +288,10 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         """
         yield from self.table_identities.model().sourceModel().refresh_identities(identities)
         self.table_identities.resizeColumnsToContents()
+
+    def retranslateUi(self, widget):
+        self.members_action.setText(self.tr(IdentitiesTabWidget._members_action_text))
+        self.direct_connections.setText(self.tr(IdentitiesTabWidget._direct_connections_text))
 
     def resizeEvent(self, event):
         self.busy.resize(event.size())

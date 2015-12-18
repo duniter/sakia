@@ -204,15 +204,15 @@ class HistoryTableModel(QAbstractTableModel):
         )
 
         self.column_headers = (
-            self.tr('Date'),
-            self.tr('UID/Public key'),
-            self.tr('Payment'),
-            self.tr('Deposit'),
-            self.tr('Comment'),
-            'State',
-            'TXID',
-            'Pubkey',
-            'Block Number'
+            lambda: self.tr('Date'),
+            lambda: self.tr('UID/Public key'),
+            lambda: self.tr('Payment'),
+            lambda: self.tr('Deposit'),
+            lambda: self.tr('Comment'),
+            lambda: 'State',
+            lambda: 'TXID',
+            lambda: 'Pubkey',
+            lambda: 'Block Number'
         )
 
     def change_account(self, account):
@@ -337,11 +337,11 @@ class HistoryTableModel(QAbstractTableModel):
             if role == Qt.DisplayRole:
                 if self.columns_types[section] == 'payment' or self.columns_types[section] == 'deposit':
                     return '{:}\n({:})'.format(
-                        self.column_headers[section],
+                        self.column_headers[section](),
                         self.account.current_ref.diff_units(self.community.short_currency)
                     )
 
-                return self.column_headers[section]
+                return self.column_headers[section]()
 
     def data(self, index, role):
         row = index.row()

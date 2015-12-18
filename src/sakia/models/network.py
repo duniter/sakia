@@ -132,10 +132,10 @@ class NetworkTableModel(QAbstractTableModel):
             Node.CORRUPTED: QColor(Qt.lightGray)
         }
         self.node_states = {
-            Node.ONLINE: self.tr('Online'),
-            Node.OFFLINE: self.tr('Offline'),
-            Node.DESYNCED: self.tr('Unsynchronized'),
-            Node.CORRUPTED: self.tr('Corrupted')
+            Node.ONLINE: lambda: self.tr('Online'),
+            Node.OFFLINE: lambda: self.tr('Offline'),
+            Node.DESYNCED: lambda: self.tr('Unsynchronized'),
+            Node.CORRUPTED: lambda: self.tr('Corrupted')
         }
         self.nodes_data = []
 
@@ -214,7 +214,7 @@ class NetworkTableModel(QAbstractTableModel):
         if role == Qt.BackgroundColorRole:
             return self.node_colors[node[self.columns_types.index('state')]]
         if role == Qt.ToolTipRole:
-            return self.node_states[node[self.columns_types.index('state')]]
+            return self.node_states[node[self.columns_types.index('state')]]()
 
         return QVariant()
 

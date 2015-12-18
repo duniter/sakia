@@ -4,11 +4,9 @@ Created on 5 févr. 2014
 @author: inso
 """
 
-from ..core.net.api import bma as bma
 from ..tools.exceptions import NoPeerAvailable, MembershipNotFoundError
-from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from PyQt5.QtCore import QAbstractTableModel, QSortFilterProxyModel, Qt, \
-                        QDateTime, QModelIndex, QLocale
+                        QDateTime, QModelIndex, QLocale, QEvent
 from PyQt5.QtGui import QColor
 import logging
 import asyncio
@@ -87,12 +85,12 @@ class IdentitiesTableModel(QAbstractTableModel):
         """
         super().__init__(parent)
         self.community = None
-        self.columns_titles = {'uid': self.tr('UID'),
-                               'pubkey': self.tr('Pubkey'),
-                               'renewed': self.tr('Renewed'),
-                               'expiration': self.tr('Expiration'),
-                               'publication': self.tr('Publication'),
-                               'validation': self.tr('Validation'),}
+        self.columns_titles = {'uid': lambda: self.tr('UID'),
+                               'pubkey': lambda: self.tr('Pubkey'),
+                               'renewed': lambda: self.tr('Renewed'),
+                               'expiration': lambda: self.tr('Expiration'),
+                               'publication': lambda: self.tr('Publication'),
+                               'validation': lambda: self.tr('Validation'),}
         self.columns_ids = ('uid', 'pubkey', 'renewed', 'expiration', 'publication')
         self.identities_data = []
         self._sig_validity = 0
@@ -165,7 +163,7 @@ class IdentitiesTableModel(QAbstractTableModel):
     def headerData(self, section, orientation, role):
         if role == Qt.DisplayRole:
             col_id = self.columns_ids[section]
-            return self.columns_titles[col_id]
+            return self.columns_titles[col_id]()
 
     def data(self, index, role):
         if role == Qt.DisplayRole:

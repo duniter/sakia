@@ -34,7 +34,7 @@ class NetworkTabWidget(QWidget, Ui_NetworkTabWidget):
 
         self.setupUi(self)
         model = NetworkTableModel(self.community)
-        proxy = NetworkFilterProxyModel(self)
+        proxy = NetworkFilterProxyModel()
         proxy.setSourceModel(model)
         self.table_network.setModel(proxy)
         self.table_network.sortByColumn(2, Qt.DescendingOrder)
