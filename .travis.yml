@@ -4,6 +4,7 @@ env:
 cache:
   directories:
   - "$HOME/.pyenv"
+
 before_install:
 - ci/travis/before_install.sh
 install:
@@ -12,7 +13,8 @@ install:
 #- ci/travis/build.sh
 #script:
 #- ci/travis/test.sh
-#after_success:
+after_success:
+  - echo "Ok"
 #- ci/travis/after_success.sh
 script:
   - echo "Ok"
