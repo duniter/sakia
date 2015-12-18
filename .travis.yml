@@ -1,73 +1,24 @@
+os:
+ - osx
 sudo: false
 language: python
 python:
   # We don't actually use the Travis Python, but this keeps it organized.
   - "3.4"
-addons:
-  apt:
-    packages:
-    - libxcb1
-    - libxcb1-dev
-    - libx11-xcb1
-    - libx11-xcb-dev
-    - libxcb-keysyms1
-    - libxcb-keysyms1-dev
-    - libxcb-image0
-    - libxcb-image0-dev
-    - libxcb-shm0
-    - libxcb-shm0-dev
-    - libxcb-icccm4
-    - libxcb-icccm4-dev
-    - libxcb-sync0
-    - libxcb-sync0-dev
-    - libxcb-xfixes0-dev
-    - libxrender-dev
-    - libxcb-shape0-dev
-    - libxcb-randr0-dev
-    - libxcb-render-util0
-    - libxcb-render-util0-dev
-    - libxcb-glx0-dev
-    - libgl1-mesa-dri
-    - libegl1-mesa
-    - libpcre3-dev
-
 before_install:
   # Update
   - pwd
-  # Install and configure conda
-  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
-  - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
-  - hash -r
-  - conda config --set always_yes yes --set changeps1 no
-  - conda config --add channels inso/channel/sakia
-  - conda config --add channels pyzo
-  - conda update -q conda
-  # Useful for debugging any issues with conda
-  - conda info -a
+  # Install and configure pyenv
+  - ci/travis/before_install.sh
 
 install:
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION cx_freeze pyqt5 libpng=1.5.13 libsodium=1.0.3
-  - source activate test-environment
-  - ldd $HOME/miniconda/envs/test-environment/lib/qt5/plugins/platforms/*.so
-  - pip install coveralls
+  - pip install coveralls cx_Freeze
   - pip install -r requirements.txt
   - python gen_resources.py
   - python gen_translations.py
   - python setup.py build
 
-before_script:
- # screen must be 24bpp otherwise pyqt5 crashes
- # see: https://github.com/pytest-dev/pytest-qt/issues/35
-  - export XVFBARGS="-screen 0 1280x1024x24"
-  - export DISPLAY=:99.0
-  - sh -e /etc/init.d/xvfb start
-  - sleep 3
-
 script:
-  - export QT_QPA_PLATFORM_PLUGIN_PATH=$HOME/miniconda/envs/test-environment/lib/qt5/plugins/platforms;
-  - export QT_PLUGIN_PATH=$HOME/miniconda/envs/test-environment/lib/qt5/plugins
-  - export QT_XKB_CONFIG_ROOT=/usr/share/X11/xkb
   - coverage run --source=sakia.core,sakia.gui,sakia.models run_tests.py
 
 after_success:
