@@ -1,13 +1,10 @@
 os:
  - osx
-sudo: false
 language: python
 python:
   # We don't actually use the Travis Python, but this keeps it organized.
   - "3.4"
 before_install:
-  # Update
-  - pwd
   # Install and configure pyenv
   - ci/travis/before_install.sh
 
