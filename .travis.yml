@@ -6,12 +6,12 @@ cache:
   - "$HOME/.pyenv"
 before_install:
 - ci/travis/before_install.sh
-install:
-- ci/travis/build.sh
-script:
-- ci/travis/test.sh
-after_success:
-- ci/travis/after_success.sh
+#install:
+#- ci/travis/build.sh
+#script:
+#- ci/travis/test.sh
+#after_success:
+#- ci/travis/after_success.sh
 
 before_deploy: zip -r sakia-${TRAVIS_OS_NAME}.zip build/
 

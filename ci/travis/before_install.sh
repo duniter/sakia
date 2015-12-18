@@ -39,5 +39,4 @@ then
     make -j 2 && make install
     pyenv rehash
 
-    cd $HOME/sakia
 fi
