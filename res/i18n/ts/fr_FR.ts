@@ -92,7 +92,7 @@
     <message>
         <location filename="../../../src/cutecoin/core/account.py" line="509"></location>
         <source>Could not find user self certification.</source>
-        <translation>Impossible de trouver la certification personelle de l'utilisateur.</translation>
+        <translation>Impossible de trouver la certification personnelle de l'utilisateur.</translation>
     </message>
 </context>
 <context>
@@ -279,7 +279,7 @@
     <message>
         <location filename="../../ui/community_cfg.ui" line="46"></location>
         <source>Please enter the address of a node :</source>
-        <translation>Veuillez entrer l'adresse d'un noeud :</translation>
+        <translation>Veuillez entrer l'adresse d'un nœud :</translation>
     </message>
     <message>
         <location filename="../../ui/community_cfg.ui" line="61"></location>
@@ -1524,7 +1524,7 @@ Le processus pour rejoindre la communauté devrait être refait à zéro.</trans
     <message>
         <location filename="../../ui/mainwindow.ui" line="111"></location>
         <source>Send money</source>
-        <translation>Envoyer de l'argent</translation>
+        <translation>Envoyer de la monnaie</translation>
     </message>
     <message>
         <location filename="../../ui/mainwindow.ui" line="116"></location>
@@ -2038,7 +2038,7 @@ Le processus pour rejoindre la communauté devrait être refait à zéro.</trans
     <message>
         <location filename="../../ui/preferences.ui" line="201"></location>
         <source>Digits after commas </source>
-        <translation>Chiffres après la virgule</translation>
+        <translation>Chiffres après la virgule </translation>
     </message>
     <message>
         <location filename="../../ui/preferences.ui" line="249"></location>
@@ -2368,7 +2368,7 @@ Le votre : {0}, le réseau : {1}</translation>
     <message>
         <location filename="../../ui/toast.ui" line="14"></location>
         <source>MainWindow</source>
-        <translation></translation>
+        <translation>Écran principal</translation>
     </message>
 </context>
 <context>
@@ -2516,7 +2516,7 @@ Le transfert de monnaie sera annulé et non envoyé.</translation>
     <message>
         <location filename="../../ui/transfer.ui" line="148"></location>
         <source> UD</source>
-        <translation>DU</translation>
+        <translation> DU</translation>
     </message>
     <message>
         <location filename="../../ui/transfer.ui" line="166"></location>
@@ -2578,7 +2578,7 @@ Veuillez rééssayer plus tard</translation>
     <message>
         <location filename="../../ui/transfer.ui" line="125"></location>
         <source>Available money : </source>
-        <translation>Monnaie disponible</translation>
+        <translation>Monnaie disponible : </translation>
     </message>
     <message>
         <location filename="../../ui/transfer.ui" line="134"></location>
@@ -2871,7 +2871,7 @@ Revoking your UID can only success if it is not already validated by the network
     <message>
         <location filename="../../../src/cutecoin/gui/views/wot.py" line="304"></location>
         <source>Send money</source>
-        <translation>Envoyer de l'argent</translation>
+        <translation>Envoyer de la monnaie</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/views/wot.py" line="309"></location>
@@ -3009,7 +3009,7 @@ Revoking your UID can only success if it is not already validated by the network
     <message>
         <location filename="../../ui/transactions_tab.ui" line="63"></location>
         <source>dd/MM/yyyy</source>
-        <translation></translation>
+        <translation>jj/MM/aaaa</translation>
     </message>
     <message>
         <location filename="../../ui/transactions_tab.ui" line="100"></location>
