@@ -1,4 +1,9 @@
-os: osx
+matrix:
+  include:
+    - os: osx
+    - os: linux
+language:
+  - python
 env:
 - PYENV_PYTHON_VERSION=3.5.0
 cache:
@@ -14,7 +19,8 @@ script:
 after_success:
 - ci/travis/after_success.sh
 
-before_deploy: zip -r sakia-${TRAVIS_OS_NAME}.zip build/*.dmg
+before_deploy:
+- ci/travis/before_deploy.sh
 
 deploy:
   provider: releases
