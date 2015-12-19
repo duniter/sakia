@@ -54,8 +54,6 @@ if sys.platform == "win32":
     includefiles.append(libEGL_path)
     includefiles.append(libsodium_path)
 else:
-    libsodium_path = ""
-    print(QtCore.QCoreApplication.libraryPaths())
     schemas = os.path.join(site.getsitepackages()[0], "jsonschema", "schemas")
     onlyfiles = [ f for f in listdir(schemas) if isfile(join(schemas,f)) ]
     for f in onlyfiles:
