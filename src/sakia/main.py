@@ -10,6 +10,9 @@ import logging
 import os
 import traceback
 
+# To debug missing spec
+import jsonschema
+
 # To force cx_freeze import
 import PyQt5.QtSvg
 
