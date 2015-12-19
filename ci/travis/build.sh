@@ -9,4 +9,7 @@ pip install coveralls cx_Freeze
 pip install -r requirements.txt
 python gen_resources.py
 python gen_translations.py
-python setup.py bdist_dmg
+
+[ $TRAVIS_OS_NAME == "osx" ] && python setup.py bdist_dmg
+[ $TRAVIS_OS_NAME == "linux" ] && python setup.py build
+

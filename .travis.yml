@@ -1,8 +1,11 @@
+os: linux
 matrix:
   include:
     - os: osx
     - dist: trusty
       sudo: required
+  exclude:
+    - os: linux
 
 env:
 - PYENV_PYTHON_VERSION=3.5.0
