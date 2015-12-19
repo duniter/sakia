@@ -10,6 +10,7 @@ then
     brew install pyenv-virtualenv
 elif [ $TRAVIS_OS_NAME == "linux" ]
 then
+    sudo apt-get update
     sudo apt-get install libxcb1 libxcb1-dev libx11-xcb1 libx11-xcb-dev libxcb-keysyms1 libxcb-keysyms1-dev libxcb-image0 \
             libxcb-image0-dev libxcb-shm0 libxcb-shm0-dev libxcb-icccm4 libxcb-icccm4-dev libxcb-sync0 libxcb-sync0-dev \
             libxcb-xfixes0-dev libxrender-dev libxcb-shape0-dev libxcb-randr0-dev libxcb-render-util0 \
@@ -27,7 +28,8 @@ pyenv activate sakia-env
 if [ $? -ne 0 ]
 then
     echo "Sakia env cache cleared, rebuilding it..."
-    env PYTHON_CONFIGURE_OPTS="--enable-framework" pyenv install $PYENV_PYTHON_VERSION
+    [ $TRAVIS_OS_NAME == "osx" ] && env PYTHON_CONFIGURE_OPTS="--enable-framework" pyenv install $PYENV_PYTHON_VERSION
+    [ $TRAVIS_OS_NAME == "linux" ] && PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install $PYENV_PYTHON_VERSION
 
     pyenv shell $PYENV_PYTHON_VERSION
     pyenv virtualenv sakia-env
