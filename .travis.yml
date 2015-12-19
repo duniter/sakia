@@ -2,13 +2,10 @@ matrix:
   include:
     - os: osx
     - os: linux
-language:
-  - python
+      dist: trusty
+
 env:
 - PYENV_PYTHON_VERSION=3.5.0
-cache:
-  directories:
-  - "$HOME/.pyenv"
 
 before_install:
 - ci/travis/before_install.sh
@@ -18,7 +15,6 @@ script:
 - ci/travis/test.sh
 after_success:
 - ci/travis/after_success.sh
-
 before_deploy:
 - ci/travis/before_deploy.sh
 
