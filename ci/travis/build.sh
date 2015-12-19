@@ -10,6 +10,11 @@ pip install -r requirements.txt
 python gen_resources.py
 python gen_translations.py
 
-[ $TRAVIS_OS_NAME == "osx" ] && python setup.py bdist_dmg
-[ $TRAVIS_OS_NAME == "linux" ] && python setup.py build
+if [ $TRAVIS_OS_NAME == "osx" ]
+then
+    python setup.py bdist_dmg
+elif [ $TRAVIS_OS_NAME == "linux" ]
+then
+    python setup.py build
+fi
 

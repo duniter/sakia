@@ -28,8 +28,13 @@ pyenv activate sakia-env
 if [ $? -ne 0 ]
 then
     echo "Sakia env cache cleared, rebuilding it..."
-    [ $TRAVIS_OS_NAME == "osx" ] && env PYTHON_CONFIGURE_OPTS="--enable-framework" pyenv install $PYENV_PYTHON_VERSION
-    [ $TRAVIS_OS_NAME == "linux" ] && PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install $PYENV_PYTHON_VERSION
+    if [ $TRAVIS_OS_NAME == "osx" ]
+    then
+        env PYTHON_CONFIGURE_OPTS="--enable-framework" pyenv install $PYENV_PYTHON_VERSION
+    elif [ $TRAVIS_OS_NAME == "linux" ]
+    then
+        PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install $PYENV_PYTHON_VERSION
+    fi
 
     pyenv shell $PYENV_PYTHON_VERSION
     pyenv virtualenv sakia-env
@@ -50,8 +55,13 @@ then
     tar xzf PyQt-gpl-5.5.1.tar.gz
     cd PyQt-gpl-5.5.1/
     pyenv activate sakia-env
-    [ $TRAVIS_OS_NAME == "osx" ] && python configure.py --confirm-license
-    [ $TRAVIS_OS_NAME == "linux" ] && python configure.py --qmake "/usr/lib/x86_64-linux-gnu/qt5/bin/qmake" --confirm-license
+    if [ $TRAVIS_OS_NAME == "osx" ]
+    then
+        python configure.py --confirm-license
+    elif [ $TRAVIS_OS_NAME == "linux" ]
+    then
+        python configure.py --qmake "/usr/lib/x86_64-linux-gnu/qt5/bin/qmake" --confirm-license
+    fi
 
     make -j 2 && make install
     pyenv rehash
