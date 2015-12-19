@@ -1,9 +1,7 @@
-
 matrix:
   include:
     - os: osx
-    - os: linux
-      dist: trusty
+    - dist: trusty
 
 env:
 - PYENV_PYTHON_VERSION=3.5.0
