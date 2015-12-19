@@ -50,7 +50,9 @@ then
     tar xzf PyQt-gpl-5.5.1.tar.gz
     cd PyQt-gpl-5.5.1/
     pyenv activate sakia-env
-    python configure.py --confirm-license
+    [ $TRAVIS_OS_NAME == "osx" ] && python configure.py --confirm-license
+    [ $TRAVIS_OS_NAME == "linux" ] && python configure.py --qmake "/usr/lib/x86_64-linux-gnu/qt5/bin/qmake" --confirm-license
+
     make -j 2 && make install
     pyenv rehash
 

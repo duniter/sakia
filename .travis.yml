@@ -2,6 +2,7 @@ matrix:
   include:
     - os: osx
     - dist: trusty
+      sudo: required
 
 env:
 - PYENV_PYTHON_VERSION=3.5.0
