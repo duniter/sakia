@@ -14,7 +14,7 @@ print(os.environ)
 includes = ["sip", "re", "json", "logging",
             "hashlib", "os", "urllib",
             "ucoinpy", "pylibscrypt", "aiohttp", "asyncio",
-            "quamash", "jsonschema", "importlib.abc"]
+            "quamash", "jsonschema"]
 exclude = ['.git']
 packages = ["libnacl", "encodings", "jsonschema"]
 
