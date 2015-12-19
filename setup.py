@@ -16,7 +16,7 @@ includes = ["sip", "re", "json", "logging",
             "ucoinpy", "pylibscrypt", "aiohttp", "asyncio",
             "quamash", "jsonschema"]
 exclude = ['.git']
-packages = ["libnacl", "encodings", "jsonschema"]
+packages = ["libnacl", "encodings"]
 
 includefiles = []
 zipincludes = []
