@@ -14,7 +14,7 @@ script:
 after_success:
 - ci/travis/after_success.sh
 
-before_deploy: zip -r sakia-${TRAVIS_OS_NAME}.zip build/
+before_deploy: zip -r sakia-${TRAVIS_OS_NAME}.zip build/*.dmg
 
 deploy:
   provider: releases
