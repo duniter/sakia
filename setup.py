@@ -78,6 +78,7 @@ print("Zip files : ")
 print(zipincludes)
 print("Packages : ")
 print(packages)
+print("Sys.path : ")
 print(sys.path)
 
 options = {"path": sys.path,
@@ -87,6 +88,18 @@ options = {"path": sys.path,
            "packages": packages,
            "zip_includes": zipincludes
            }
+
+if sys.platform == "darwin":
+    libpath = str(QtCore.QLibraryInfo.location(
+                  QtCore.QLibraryInfo.LibrariesPath))
+    for subpath in ['QtGui.framework/Resources/qt_menu.nib',
+                    'Resources/qt_menu.nib']:
+        path = os.path.join(libpath, subpath)
+        if os.path.exists(path):
+            print("Qt menu nib : ")
+            print(path)
+            options["qt-menu-nib"] = path
+            break
 
 #############################################################################
 # preparation des cibles
