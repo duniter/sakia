@@ -187,11 +187,6 @@
 </context>
 <context>
     <name>CommuityWidget</name>
-    <message>
-        <location filename="../../../src/sakia/gui/community_view.py" line="36"/>
-        <source>Search Identities</source>
-        <translation type="unfinished"></translation>
-    </message>
 </context>
 <context>
     <name>CommunityConfigurationDialog</name>
@@ -550,6 +545,11 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
     <message>
         <location filename="../../../src/sakia/gui/community_view.py" line="395"/>
         <source>Your UID was revoked successfully.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/community_view.py" line="36"/>
+        <source>Search Identities</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

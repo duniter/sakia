@@ -33,7 +33,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
 
     _tab_history_label = QT_TRANSLATE_NOOP("CommunityWidget", "Transactions")
     _tab_wot_label = QT_TRANSLATE_NOOP("CommunityWidget", "Web of Trust")
-    _tab_identities_label = QT_TRANSLATE_NOOP("CommuityWidget", "Search Identities")
+    _tab_identities_label = QT_TRANSLATE_NOOP("CommunityWidget", "Search Identities")
     _tab_network_label = QT_TRANSLATE_NOOP("CommunityWidget", "Network")
     _tab_informations_label = QT_TRANSLATE_NOOP("CommunityWidget", "Informations")
     _action_showinfo_text = QT_TRANSLATE_NOOP("CommunityWidget", "Show informations")
