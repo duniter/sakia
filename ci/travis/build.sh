@@ -5,7 +5,8 @@ eval "$(pyenv virtualenv-init -)"
 
 cd $HOME/build/ucoin-io/sakia
 pyenv activate sakia-env
-pip install coveralls cx_Freeze
+pip install coveralls
+pip install hg+https://bitbucket.org/anthony_tuininga/cx_freeze@default
 pip install -r requirements.txt
 python gen_resources.py
 python gen_translations.py
