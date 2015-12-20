@@ -24,6 +24,7 @@ class ImportAccountDialog(QDialog, Ui_ImportAccountDialog):
         self.setupUi(self)
         self.app = app
         self.main_window = parent
+        self.selected_file = ""
         self.button_box.button(QDialogButtonBox.Ok).setEnabled(False)
 
     def accept(self):

@@ -16,7 +16,7 @@ includes = ["sip", "re", "json", "logging",
             "ucoinpy", "pylibscrypt", "aiohttp", "asyncio",
             "quamash", "jsonschema"]
 exclude = ['.git']
-packages = ["libnacl", "encodings", "jsonschema"]
+packages = ["libnacl", "encodings"]
 
 includefiles = []
 zipincludes = []
@@ -53,21 +53,24 @@ if sys.platform == "win32":
             includefiles.append((os.path.join(path, "Scripts", "plugins", "iconengines", f), os.path.join("iconengines", f) ))
     includefiles.append(libEGL_path)
     includefiles.append(libsodium_path)
-elif sys.platform == "darwin":
-    pass
 else:
-    libsodium_path = ""
-    print(QtCore.QCoreApplication.libraryPaths())
     schemas = os.path.join(site.getsitepackages()[0], "jsonschema", "schemas")
     onlyfiles = [ f for f in listdir(schemas) if isfile(join(schemas,f)) ]
     for f in onlyfiles:
         zipincludes.append((os.path.join(schemas, f), os.path.join("jsonschema", "schemas", f)))
 
-    # Check if we are in Conda env
-    if 'CONDA_ENV_PATH' in os.environ:
-        libsodium_path = os.path.join(os.environ['CONDA_ENV_PATH'], "lib",
-                                      "libsodium.so.13")
-        includefiles.append((libsodium_path, "libsodium.so.13"))
+if sys.platform == "darwin":
+    info = subprocess.check_output(["brew", "info", "libsodium"])
+    info = info.decode().splitlines(keepends=False)
+    if len(info) > 1:
+        library_path = info[3].split(" ")[0]
+        libsodium_path = os.path.join(library_path, "lib",
+                                      "libsodium.dylib")
+        includefiles.append(libsodium_path)
+        print(libsodium_path)
+    else:
+        print("Erreur : libsodium not found. Please install it with brew install libsodium.")
+
 
 
 print("Includes : ")
@@ -80,6 +83,7 @@ print("Zip files : ")
 print(zipincludes)
 print("Packages : ")
 print(packages)
+print("Sys.path : ")
 print(sys.path)
 
 options = {"path": sys.path,
