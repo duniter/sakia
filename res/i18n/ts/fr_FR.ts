@@ -3081,7 +3081,7 @@ Revoking your UID can only success if it is not already validated by the network
     <message>
         <location filename="../../ui/transactions_tab.ui" line="63"></location>
         <source>dd/MM/yyyy</source>
-        <translation>jj/MM/aaaa</translation>
+        <translation>dd/MM/yyyy</translation>
     </message>
     <message>
         <location filename="../../ui/transactions_tab.ui" line="100"></location>
