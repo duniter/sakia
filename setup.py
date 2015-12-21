@@ -71,7 +71,8 @@ if sys.platform == "darwin":
     else:
         print("Erreur : libsodium not found. Please install it with brew install libsodium.")
 
-
+    qtconf_path = os.path.join(os.path.dirname(__file__), "res/osx/qt.conf")
+    includefiles.append((qtconf_path, "qt.conf"))
 
 print("Includes : ")
 print(includes)
