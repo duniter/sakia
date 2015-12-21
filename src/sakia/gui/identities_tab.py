@@ -292,6 +292,7 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
     def retranslateUi(self, widget):
         self.members_action.setText(self.tr(IdentitiesTabWidget._members_action_text))
         self.direct_connections.setText(self.tr(IdentitiesTabWidget._direct_connections_text))
+        super().retranslateUi(self)
 
     def resizeEvent(self, event):
         self.busy.resize(event.size())
