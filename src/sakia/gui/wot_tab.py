@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
-
 import logging
 import asyncio
 
 from PyQt5.QtWidgets import QWidget, QComboBox, QDialog
-from PyQt5.QtCore import pyqtSlot, QEvent, QLocale, QDateTime, pyqtSignal
+from PyQt5.QtCore import pyqtSlot, QEvent, QLocale, QDateTime, pyqtSignal, QT_TRANSLATE_NOOP
 from ucoinpy.api import bma
 
 from ..tools.exceptions import MembershipNotFoundError
@@ -24,6 +22,7 @@ from ..tools.exceptions import NoPeerAvailable
 class WotTabWidget(QWidget, Ui_WotTabWidget):
 
     money_sent = pyqtSignal()
+    _search_placeholder = QT_TRANSLATE_NOOP("WotTabWidget", "Research a pubkey, an uid...")
 
     def __init__(self, app):
         """
@@ -34,7 +33,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         self.setupUi(self)
 
         # Default text when combo lineEdit is empty
-        self.comboBoxSearch.lineEdit().setPlaceholderText(self.tr('Research a pubkey, an uid...'))
+        self.comboBoxSearch.lineEdit().setPlaceholderText(self.tr(WotTabWidget._search_placeholder))
         #  add combobox events
         self.comboBoxSearch.lineEdit().returnPressed.connect(self.search)
         # To fix a recall of the same item with different case,
@@ -353,6 +352,13 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         result = dialog.exec_()
         if result == QDialog.Accepted:
             self.window().refresh_contacts()
+
+    def retranslateUi(self, widget):
+        """
+        Retranslate missing widgets from generated code
+        """
+        self.comboBoxSearch.lineEdit().setPlaceholderText(self.tr(WotTabWidget._search_placeholder))
+        super().retranslateUi(self)
 
     def resizeEvent(self, event):
         self.busy.resize(event.size())

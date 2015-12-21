@@ -9,7 +9,7 @@ import asyncio
 import time
 
 from PyQt5.QtWidgets import QWidget, QMessageBox, QDialog, QPushButton, QTabBar, QAction
-from PyQt5.QtCore import pyqtSlot, QDateTime, QLocale, QEvent
+from PyQt5.QtCore import pyqtSlot, QDateTime, QLocale, QEvent, QT_TRANSLATE_NOOP
 
 from PyQt5.QtGui import QIcon
 
@@ -32,6 +32,16 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
     classdocs
     """
 
+    _tab_history_label = QT_TRANSLATE_NOOP("CommunityWidget", "Transactions")
+    _tab_wot_label = QT_TRANSLATE_NOOP("CommunityWidget", "Web of Trust")
+    _tab_identities_label = QT_TRANSLATE_NOOP("CommunityWidget", "Search Identities")
+    _tab_network_label = QT_TRANSLATE_NOOP("CommunityWidget", "Network")
+    _tab_informations_label = QT_TRANSLATE_NOOP("CommunityWidget", "Informations")
+    _action_showinfo_text = QT_TRANSLATE_NOOP("CommunityWidget", "Show informations")
+    _action_publish_uid_text = QT_TRANSLATE_NOOP("CommunityWidget", "Publish UID")
+    _action_revoke_uid_text = QT_TRANSLATE_NOOP("CommunityWidget", "Revoke UID")
+
+
     def __init__(self, app, status_label):
         """
         Constructor
@@ -45,19 +55,19 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
 
         self.status_info = []
 
+        self.tab_wot = WotTabWidget(self.app)
+        self.tab_identities = IdentitiesTabWidget(self.app)
+        self.tab_history = TransactionsTabWidget(self.app)
+        self.tab_informations = InformationsTabWidget(self.app)
+        self.tab_certifications = CertificationsTabWidget(self.app)
+        self.tab_network = NetworkTabWidget(self.app)
+
+        self.action_publish_uid = QAction(self.tr(CommunityWidget._action_publish_uid_text), self)
+        self.action_revoke_uid = QAction(self.tr(CommunityWidget._action_revoke_uid_text), self)
+        self.action_showinfo = QAction(self.tr(CommunityWidget._action_showinfo_text), self)
+
         super().setupUi(self)
 
-        self.tab_wot = WotTabWidget(self.app)
-
-        self.tab_identities = IdentitiesTabWidget(self.app)
-
-        self.tab_history = TransactionsTabWidget(self.app)
-
-        self.tab_informations = InformationsTabWidget(self.app)
-
-        self.tab_certifications = CertificationsTabWidget(self.app)
-
-        self.tab_network = NetworkTabWidget(self.app)
         self.tab_identities.view_in_wot.connect(self.tab_wot.draw_graph)
         self.tab_identities.view_in_wot.connect(lambda: self.tabs.setCurrentWidget(self.tab_wot))
         self.tab_history.view_in_wot.connect(self.tab_wot.draw_graph)
@@ -67,15 +77,15 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
 
         self.tabs.addTab(self.tab_history,
                                  QIcon(':/icons/tx_icon'),
-                                self.tr("Transactions"))
+                                self.tr(CommunityWidget._tab_history_label))
 
         self.tabs.addTab(self.tab_wot,
                          QIcon(':/icons/wot_icon'),
-                         self.tr("Web of Trust"))
+                         self.tr(CommunityWidget._tab_wot_label))
 
         self.tabs.addTab(self.tab_identities,
                          QIcon(':/icons/members_icon'),
-                         self.tr("Search Identities"))
+                         self.tr(CommunityWidget._tab_identities_label))
 
         self.tabs.addTab(self.tab_network,
                                  QIcon(":/icons/network_icon"),
@@ -86,11 +96,9 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                                     QIcon(":/icons/informations_icon"), self.tr("Informations")))
         self.toolbutton_menu.addAction(action_showinfo)
 
-        self.action_publish_uid = QAction(self.tr("Publish UID"), self.toolbutton_menu)
         self.action_publish_uid.triggered.connect(self.publish_uid)
         self.toolbutton_menu.addAction(self.action_publish_uid)
 
-        self.action_revoke_uid = QAction(self.tr("Revoke UID"), self.toolbutton_menu)
         self.action_revoke_uid.triggered.connect(self.revoke_uid)
         self.toolbutton_menu.addAction(self.action_revoke_uid)
 
@@ -387,6 +395,22 @@ The process to join back the community later will have to be done again.""")
                 await QAsyncMessageBox.critical(self, self.tr("UID"),
                                                         result[1])
 
+    def retranslateUi(self, widget):
+        """
+        Method to complete translations missing from generated code
+        :param widget:
+        :return:
+        """
+        self.tabs.setTabText(self.tabs.indexOf(self.tab_wot), self.tr(CommunityWidget._tab_wot_label))
+        self.tabs.setTabText(self.tabs.indexOf(self.tab_network), self.tr(CommunityWidget._tab_network_label))
+        self.tabs.setTabText(self.tabs.indexOf(self.tab_informations), self.tr(CommunityWidget._tab_informations_label))
+        self.tabs.setTabText(self.tabs.indexOf(self.tab_history), self.tr(CommunityWidget._tab_history_label))
+        self.tabs.setTabText(self.tabs.indexOf(self.tab_identities), self.tr(CommunityWidget._tab_identities_label))
+        self.action_publish_uid.setText(self.tr(CommunityWidget._action_publish_uid_text))
+        self.action_revoke_uid.setText(self.tr(CommunityWidget._action_revoke_uid_text))
+        self.action_showinfo.setText(self.tr(CommunityWidget._action_showinfo_text))
+        super().retranslateUi(self)
+
     def showEvent(self, QShowEvent):
         """
 
@@ -394,6 +418,7 @@ The process to join back the community later will have to be done again.""")
         :return:
         """
         self.refresh_status()
+        super().showEvent(QShowEvent)
 
     def changeEvent(self, event):
         """

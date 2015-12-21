@@ -8,6 +8,11 @@ import sys
 import asyncio
 import logging
 import os
+import traceback
+
+# To debug missing spec
+import jsonschema
+
 # To force cx_freeze import
 import PyQt5.QtSvg
 
@@ -42,6 +47,10 @@ def async_exception_handler(loop, context):
 
     logging.error('\n'.join(log_lines), exc_info=exc_info)
     for line in log_lines:
+        for ignored in ("Unclosed", "socket.gaierror"):
+            if ignored in line:
+                return
+    for line in traceback.format_exception(*exc_info):
         for ignored in ("Unclosed", "socket.gaierror"):
             if ignored in line:
                 return
