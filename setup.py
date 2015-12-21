@@ -66,7 +66,7 @@ if sys.platform == "darwin":
         library_path = info[3].split(" ")[0]
         libsodium_path = os.path.join(library_path, "lib",
                                       "libsodium.dylib")
-        includefiles.append(libsodium_path)
+        includefiles.append((libsodium_path, "lib/libsodium.dylib"))
         print(libsodium_path)
     else:
         print("Erreur : libsodium not found. Please install it with brew install libsodium.")
