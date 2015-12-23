@@ -11,6 +11,6 @@ pyrcc5 -version
 
 lrelease -version
 
-python run_tests.py
+run_tests.py -a
 
 if %errorlevel% neq 0 exit /b 1

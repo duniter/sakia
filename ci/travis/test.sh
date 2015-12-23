@@ -14,5 +14,5 @@ then
     sleep 3
 fi
 
-coverage run --source=sakia.core,sakia.gui,sakia.models run_tests.py
+PYTHONPATH=$HOME/build/ucoin-io/sakia/src coverage run --source=sakia.core,sakia.gui,sakia.models run_tests.py -a
 
