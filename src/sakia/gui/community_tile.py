@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QFrame, QLabel, QVBoxLayout, QLayout
 from PyQt5.QtCore import QSize, pyqtSignal
 from ucoinpy.documents.block import Block
 
-from ..tools.decorators import asyncify
+from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from ..tools.exceptions import NoPeerAvailable
 from sakia.gui.widgets.busy import Busy
 
@@ -55,6 +55,10 @@ class CommunityTile(QFrame):
         if state != self._state:
             self.refresh()
 
+    def cancel_refresh(self):
+        cancel_once_task(self, self.refresh)
+
+    @once_at_a_time
     @asyncify
     @asyncio.coroutine
     def refresh(self):
