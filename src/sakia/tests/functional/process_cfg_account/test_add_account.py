@@ -38,7 +38,7 @@ class ProcessAddCommunity(unittest.TestCase, QuamashTest):
         process_account = ProcessConfigureAccount(self.application,
                                                     None)
 
-        async     def open_dialog(process_account):
+        async def open_dialog(process_account):
             result = await process_account.async_exec()
             self.assertEqual(result, QDialog.Accepted)
 
@@ -46,7 +46,7 @@ class ProcessAddCommunity(unittest.TestCase, QuamashTest):
             if process_account.isVisible():
                 process_account.close()
 
-        async     def exec_test():
+        async def exec_test():
             QTest.keyClicks(process_account.edit_account_name, "test")
             self.assertEqual(process_account.stacked_pages.currentWidget(),
                              process_account.page_init,

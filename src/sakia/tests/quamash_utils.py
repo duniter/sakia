@@ -1,5 +1,7 @@
 import asyncio
 import quamash
+import socket
+from aiohttp import web, log
 
 _application_ = []
 
@@ -11,12 +13,14 @@ class QuamashTest:
         asyncio.set_event_loop(self.lp)
         self.lp.set_exception_handler(lambda l, c: unitttest_exception_handler(self, l, c))
         self.exceptions = []
+        self.handler = None
 
     def tearDownQuamash(self):
         try:
             self.lp.close()
         finally:
             asyncio.set_event_loop(None)
+
         for exc in self.exceptions:
             raise exc
 
@@ -28,7 +32,10 @@ def unitttest_exception_handler(test, loop, context):
     :param loop: the asyncio loop
     :param context: the exception context
     """
-    exception = context['exception']
+    if 'exception' in context:
+        exception = context['exception']
+    else:
+        exception = BaseException(context['message'])
     test.exceptions.append(exception)
 
 

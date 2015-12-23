@@ -1,20 +1,4 @@
-import json
-import time
-from pretenders.client.http import HTTPMock
-from pretenders.common.constants import FOREVER
-
-bma_peering = {
-    "version": 1,
-    "currency": "test_currency",
-    "endpoints": [
-        "BASIC_MERKLED_API localhost 127.0.0.1 50000"
-    ],
-    "status": "UP",
-    "block": "30152-00003E7F9234E7542FCF669B69B0F84FF79CCCD3",
-    "signature": "cXuqZuDfyHvxYAEUkPH1TQ1M+8YNDpj8kiHGYi3LIaMqEdVqwVc4yQYGivjxFMYyngRfxXkyvqBKZA6rKOulCA==",
-    "raw": "Version: 1\nType: Peer\nCurrency: meta_brouzouf\nPublicKey: HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk\nBlock: 30152-00003E7F9234E7542FCF669B69B0F84FF79CCCD3\nEndpoints:\nBASIC_MERKLED_API localhost 127.0.0.1 50000\n",
-    "pubkey": "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk"
-}
+from ..server import MockServer
 
 bma_lookup_john = {
     "partial": False,
@@ -356,120 +340,45 @@ bma_with_ud = {
 }
 
 
-def get_mock():
-    mock = HTTPMock('127.0.0.1', 50000)
+def get_mock(loop):
+    mock = MockServer(loop)
 
-    mock.when('GET /network/peering') \
-        .reply(body=bytes(json.dumps(bma_peering), "utf-8"),
-               times=FOREVER,
-               headers={'Content-Type': 'application/json'})
+    mock.add_route('GET', '/blockchain/parameters', bma_parameters, 200)
 
-    mock.when('GET /blockchain/parameters') \
-        .reply(body=bytes(json.dumps(bma_parameters), "utf-8"),
-               status=200,
-               times=FOREVER,
-               headers={'Content-Type': 'application/json'})
+    mock.add_route('GET', '/blockchain/with/[UD|ud]', bma_with_ud, 200)
 
-    mock.when('GET /blockchain/with/[UD|ud]') \
-        .reply(body=bytes(json.dumps(bma_with_ud), "utf-8"),
-               status=200,
-               times=FOREVER,
-               headers={'Content-Type': 'application/json'})
+    mock.add_route('GET', '/blockchain/current', bma_blockchain_current, 200)
 
-    mock.when('GET /blockchain/current') \
-        .reply(body=bytes(json.dumps(bma_blockchain_current), "utf-8"),
-               status=200,
-               times=FOREVER,
-               headers={'Content-Type': 'application/json'})
+    mock.add_route('GET', '/blockchain/block/0', bma_blockchain_0, 200)
 
-    mock.when('GET /blockchain/block/0') \
-        .reply(body=bytes(json.dumps(bma_blockchain_0), "utf-8"),
-               status=200,
-               times=FOREVER,
-               headers={'Content-Type': 'application/json'})
+    mock.add_route('GET', '/blockchain/block/15', bma_blockchain_current, 200)
 
-    mock.when('GET /blockchain/block/15') \
-        .reply(body=bytes(json.dumps(bma_blockchain_current), "utf-8"),
-               status=200,
-               times=FOREVER,
-               headers={'Content-Type': 'application/json'})
+    mock.add_route('GET', '/tx/history/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ/blocks/0/99', bma_txhistory_john, 200)
 
-    mock.when('GET /tx/history/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ/blocks/0/99') \
-        .reply(body=bytes(json.dumps(bma_txhistory_john), "utf-8"),
-               status=200,
-               times=FOREVER,
-               headers={'Content-Type': 'application/json'})
+    mock.add_route('GET', '/tx/sources/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ', bma_txsources_john, 200)
 
-    mock.when('GET /tx/sources/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ') \
-        .reply(body=bytes(json.dumps(bma_txsources_john), "utf-8"),
-               status=200,
-               times=FOREVER,
-               headers={'Content-Type': 'application/json'})
+    mock.add_route('GET', '/ud/history/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ', bma_udhistory_john, 200)
 
-    mock.when('GET /ud/history/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ') \
-        .reply(body=bytes(json.dumps(bma_udhistory_john), "utf-8"),
-               status=200,
-               times=FOREVER,
-               headers={'Content-Type': 'application/json'})
+    mock.add_route('GET', '/wot/certifiers-of/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ', bma_certifiers_of_john, 200)
 
-    mock.when('GET /wot/certifiers-of/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ') \
-        .reply(body=bytes(json.dumps(bma_certifiers_of_john), "utf-8"),
-               status=200,
-               times=FOREVER,
-               headers={'Content-Type': 'application/json'})
+    mock.add_route('GET', '/wot/certified-by/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ', bma_certified_by_john, 200)
 
-    mock.when('GET /wot/certified-by/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ') \
-        .reply(body=bytes(json.dumps(bma_certified_by_john), "utf-8"),
-               status=200,
-               times=FOREVER,
-               headers={'Content-Type': 'application/json'})
+    mock.add_route('GET', '/wot/lookup/john', bma_lookup_john, 200)
 
-    mock.when('GET /wot/lookup/john') \
-        .reply(body=bytes(json.dumps(bma_lookup_john), "utf-8"),
-               status=200,
-               times=FOREVER,
-               headers={'Content-Type': 'application/json'})
+    mock.add_route('GET', '/wot/lookup/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ', bma_lookup_john, 200)
 
-    mock.when('GET /wot/lookup/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ') \
-        .reply(body=bytes(json.dumps(bma_lookup_john), "utf-8"),
-               status=200,
-               times=FOREVER,
-               headers={'Content-Type': 'application/json'})
+    mock.add_route('GET', '/wot/lookup/doe', bma_lookup_doe, 200)
 
-    mock.when('GET /wot/lookup/doe') \
-        .reply(body=bytes(json.dumps(bma_lookup_doe), "utf-8"),
-               status=200,
-               times=1,
-               headers={'Content-Type': 'application/json'})
+    mock.add_route('GET', '/wot/lookup/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn',bma_lookup_doe,200)
 
-    mock.when('GET /wot/lookup/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn') \
-        .reply(body=bytes(json.dumps(bma_lookup_doe), "utf-8"),
-               status=200,
-               times=FOREVER,
-               headers={'Content-Type': 'application/json'})
+    mock.add_route('GET', '/blockchain/memberships/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ',bma_membership_john,200)
 
-    mock.when('GET /blockchain/memberships/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ') \
-        .reply(body=bytes(json.dumps(bma_membership_john), "utf-8"),
-               status=200,
-               times=FOREVER,
-               headers={'Content-Type': 'application/json'})
+    mock.add_route('GET', '/wot/certifiers-of/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn',
+                   {'error':"No member matching this pubkey or uid"},404)
 
-    mock.when('GET /wot/certifiers-of/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn') \
-        .reply(body=b"No member matching this pubkey or uid",
-               status=404,
-               times=FOREVER,
-               headers={'Content-Type': 'application/json'})
+    mock.add_route('GET', '/blockchain/memberships/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn',
+                   {'error':"No member matching this pubkey or uid"}, 404)
 
-    mock.when('GET /blockchain/memberships/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn') \
-        .reply(body=b"No member matching this pubkey or uid",
-               status=404,
-               times=FOREVER,
-               headers={'Content-Type': 'application/json'})
-
-    mock.when('POST /tx/process') \
-        .reply(body=b"",
-               status=200,
-               times=FOREVER,
-               headers={'Content-Type': 'application/json'})
+    mock.add_route('POST', '/tx/process', {},200,)
 
     return mock

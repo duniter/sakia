@@ -4,25 +4,25 @@ import asyncio
 import quamash
 import logging
 import time
-from ucoinpy.documents.peer import BMAEndpoint
 from PyQt5.QtWidgets import QDialog
-from PyQt5.QtCore import QLocale, Qt
+from PyQt5.QtCore import QLocale, Qt, QPoint
 from PyQt5.QtTest import QTest
 from ucoinpy.api import bma
 from ucoinpy.api.bma import API
-from sakia.tests.mocks.monkeypatch import pretender_reversed
+
 from sakia.tests.mocks.bma import nice_blockchain
 from sakia.core.registry.identities import IdentitiesRegistry
-from sakia.gui.wot_tab import WotTabWidget
+from sakia.gui.identities_tab import IdentitiesTabWidget
 from sakia.gui.password_asker import PasswordAskerDialog
 from sakia.core.app import Application
 from sakia.core import Account, Community, Wallet
 from sakia.core.net import Network, Node
+from ucoinpy.documents.peer import BMAEndpoint
 from sakia.core.net.api.bma.access import BmaAccess
 from sakia.tests import QuamashTest
 
 
-class TestWotTab(unittest.TestCase, QuamashTest):
+class TestIdentitiesTable(unittest.TestCase, QuamashTest):
     def setUp(self):
         self.setUpQuamash()
         QLocale.setDefault(QLocale("en_GB"))
@@ -31,7 +31,7 @@ class TestWotTab(unittest.TestCase, QuamashTest):
         self.application = Application(self.qapplication, self.lp, self.identities_registry)
         self.application.preferences['notifications'] = False
 
-        self.endpoint = BMAEndpoint("", "127.0.0.1", "", 50000)
+        self.endpoint = BMAEndpoint("", "127.0.0.1", "", 50002)
         self.node = Node("test_currency", [self.endpoint],
                          "", "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk",
                          None, Node.ONLINE,
@@ -55,35 +55,57 @@ class TestWotTab(unittest.TestCase, QuamashTest):
     def tearDown(self):
         self.tearDownQuamash()
 
-    def test_empty_wot_tab(self):
-        mock = nice_blockchain.get_mock()
+    def test_search_identity_found(self):
+        mock = nice_blockchain.get_mock(self.lp)
         time.sleep(2)
-        logging.debug(mock.pretend_url)
-        API.reverse_url = pretender_reversed(mock.pretend_url)
-        wot_tab = WotTabWidget(self.application)
+        identities_tab = IdentitiesTabWidget(self.application)
         future = asyncio.Future()
 
         def open_widget():
-            wot_tab.show()
+            identities_tab.show()
             return future
 
-        async     def async_open_widget():
-            await open_widget()
-
         def close_dialog():
-            if wot_tab.isVisible():
-                wot_tab.close()
+            if identities_tab.isVisible():
+                identities_tab.close()
             future.set_result(True)
 
-        async     def exec_test():
+        async def exec_test():
+            srv, port, url = await mock.create_server()
+            self.endpoint.port = port
+
+            identities_tab.change_account(self.account, self.password_asker)
+            identities_tab.change_community(self.community)
             await asyncio.sleep(1)
-            self.assertTrue(wot_tab.isVisible())
+            urls = [mock.get_request(i).url for i in range(0, 7)]
+            self.assertTrue('/wot/certifiers-of/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ' in urls,
+                            msg="Not found in {0}".format(urls))
+            self.assertTrue('/wot/lookup/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ' in urls,
+                            msg="Not found in {0}".format(urls))
+            self.assertTrue('/wot/certified-by/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ' in urls,
+                            msg="Not found in {0}".format(urls))
+
+
+            # requests 1 to 3 are for getting certifiers-of and certified-by
+            # on john, + a lookup
+
+            QTest.keyClicks(identities_tab.edit_textsearch, "doe")
+            QTest.mouseClick(identities_tab.button_search, Qt.LeftButton)
+            await asyncio.sleep(2)
+            req = 8
+
+            self.assertEqual(mock.get_request(req).method, 'GET')
+            self.assertEqual(mock.get_request(req).url,
+                             '/blockchain/memberships/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn')
+            req += 1
+
+            self.assertEqual(identities_tab.table_identities.model().rowCount(), 1)
+            await asyncio.sleep(2)
             self.lp.call_soon(close_dialog)
 
         asyncio.ensure_future(exec_test())
         self.lp.call_later(15, close_dialog)
-        self.lp.run_until_complete(async_open_widget())
-        mock.delete_mock()
+        self.lp.run_until_complete(open_widget())
 
 if __name__ == '__main__':
     logging.basicConfig( stream=sys.stderr )

@@ -13,7 +13,7 @@ from PyQt5.QtCore import Qt
 from ..gen_resources.certification_uic import Ui_CertificationDialog
 from sakia.gui.widgets import toast
 from sakia.gui.widgets.dialogs import QAsyncMessageBox
-from ..tools.decorators import asyncify
+from ..tools.decorators import asyncify, once_at_a_time
 from ..tools.exceptions import NoPeerAvailable
 
 
@@ -84,8 +84,10 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
 
     def change_current_community(self, index):
         self.community = self.account.communities[index]
-        self.refresh()
+        if self.isVisible():
+            self.refresh()
 
+    @once_at_a_time
     @asyncify
     async def refresh(self):
         account_identity = await self.account.identity(self.community)
@@ -114,4 +116,5 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
         future = asyncio.Future()
         self.finished.connect(lambda r: future.set_result(r))
         self.open()
+        self.refresh()
         return future

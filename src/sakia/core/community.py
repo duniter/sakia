@@ -173,7 +173,7 @@ class Community(QObject):
             else:
                 return None
         except ValueError as e:
-            if '404' in e:
+            if '404' in str(e):
                 logging.debug(str(e))
                 return None
         except NoPeerAvailable as e:

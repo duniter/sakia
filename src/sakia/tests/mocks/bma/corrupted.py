@@ -1,7 +1,5 @@
 import json
-import time
-from pretenders.client.http import HTTPMock
-from pretenders.common.constants import FOREVER
+from ..server import MockServer
 
 bma_memberships_empty_array = {
     "pubkey": "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
@@ -23,12 +21,9 @@ bma_null_data = {
   ]
 }
 
-def get_mock():
-    mock = HTTPMock('127.0.0.1', 50000)
+def get_mock(loop):
+    mock = MockServer(loop)
 
-    mock.when('GET /blockchain/memberships/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ')\
-        .reply(body=bytes(json.dumps(bma_memberships_empty_array), "utf-8"),
-                times=FOREVER,
-                headers={'Content-Type': 'application/json'})
+    mock.add_route('GET', '/blockchain/memberships/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ', bma_memberships_empty_array)
 
     return mock

@@ -5,29 +5,34 @@ import unittest
 import subprocess
 import time
 import shlex
+from optparse import OptionParser
 
-cmd = 'python -m pretenders.server.server --host 127.0.0.1 --port 50000'
+parser = OptionParser()
 
-p = subprocess.Popen(shlex.split(cmd))
-time.sleep(2)
-# Force saves to be done in temp directory
-os.environ["XDG_CONFIG_HOME"] = os.path.join(os.path.dirname(__file__), 'temp')
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'lib')))
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
-try:
-    print("Run")
-    runner = unittest.TextTestRunner().run(unittest.defaultTestLoader.discover(start_dir='sakia.tests', pattern='test_*'))
-finally:
-    print("Terminate")
-    os.kill(p.pid, signal.SIGINT)
-    time.sleep(2)
-    try:
+parser.add_option("-u", "--unit",
+                  action="store_true", dest="unit", default=False,
+                  help="Run unit tests")
 
-        if sys.platform == "linux":
-            os.kill(p.pid, signal.SIGKILL)
-        p.kill()
-        print("Hard killed")
-    except OSError:
-        print("Terminated gracefully")
+parser.add_option("-f", "--functional",
+                  action="store_true", dest="functional", default=False,
+                  help="Run functional tests")
+
+parser.add_option("-a", "--all",
+                  action="store_true", dest="all", default=False,
+                  help="Run all tests")
+options, args = parser.parse_args(sys.argv)
+
+if options.unit:
+    runner = unittest.TextTestRunner().run(unittest.defaultTestLoader.discover(start_dir='sakia.tests.unit',
+                                                                               pattern='test_*'))
+elif options.functional:
+    runner = unittest.TextTestRunner().run(unittest.defaultTestLoader.discover(start_dir='sakia.tests.functional',
+                                                                               pattern='test_*'))
+elif options.all:
+    runner = unittest.TextTestRunner().run(unittest.defaultTestLoader.discover(start_dir='sakia.tests',
+                                                                               pattern='test_*'))
+else:
+    parser.print_help()
+    sys.exit(1)
 
 sys.exit(not runner.wasSuccessful())

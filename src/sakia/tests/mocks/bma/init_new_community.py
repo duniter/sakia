@@ -1,21 +1,9 @@
-from pretenders.client.http import HTTPMock
-from pretenders.common.constants import FOREVER
 
-bma_peering = b"""{
-  "version": 1,
-  "currency": "test_currency",
-  "endpoints": [
-    "BASIC_MERKLED_API localhost 127.0.0.1 50000"
-  ],
-  "status": "UP",
-  "block": "30152-00003E7F9234E7542FCF669B69B0F84FF79CCCD3",
-  "signature": "cXuqZuDfyHvxYAEUkPH1TQ1M+8YNDpj8kiHGYi3LIaMqEdVqwVc4yQYGivjxFMYyngRfxXkyvqBKZA6rKOulCA==",
-  "raw": "Version: 1\\nType: Peer\\nCurrency: meta_brouzouf\\nPublicKey: HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk\\nBlock: 30152-00003E7F9234E7542FCF669B69B0F84FF79CCCD3\\nEndpoints:\\nBASIC_MERKLED_API localhost 127.0.0.1 50000\\n",
-  "pubkey": "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk"
-}"""
+from ..server import MockServer
 
-bma_lookup_test_john = b"""{
-  "partial": false,
+
+bma_lookup_test_john = {
+  "partial": False,
   "results": [
     {
       "pubkey": "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
@@ -32,10 +20,10 @@ bma_lookup_test_john = b"""{
       "signed": []
     }
   ]
-}"""
+}
 
-bma_lookup_test_doe = b"""{
-  "partial": false,
+bma_lookup_test_doe = {
+  "partial": False,
   "results": [
     {
       "pubkey": "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
@@ -52,10 +40,10 @@ bma_lookup_test_doe = b"""{
       "signed": []
     }
   ]
-}"""
+}
 
-bma_lookup_test_patrick = b"""{
-  "partial": false,
+bma_lookup_test_patrick = {
+  "partial": False,
   "results": [
     {
       "pubkey": "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
@@ -72,75 +60,31 @@ bma_lookup_test_patrick = b"""{
       "signed": []
     }
   ]
-}"""
+}
 
 
-def get_mock():
-    mock = HTTPMock('127.0.0.1', 50000)
+def get_mock(loop):
+    mock = MockServer(loop)
 
-    mock.when('GET /network/peering')\
-        .reply(body=bma_peering,
-                times=FOREVER,
-                headers={'Content-Type': 'application/json'})
+    mock.add_route('GET', '/blockchain/block/0', {"message": "Block not found"}, 404)
 
-    mock.when('GET /blockchain/block/0')\
-        .reply(body=b"Block not found",
-               status=404,
-               times=FOREVER,
-                headers={'Content-Type': 'application/json'})
+    mock.add_route('GET', '/blockchain/current', {'message': "Block not found"}, 404)
 
-    mock.when('GET /blockchain/current')\
-        .reply(body=b"Block not found",
-               status=404,
-               times=FOREVER,
-                headers={'Content-Type': 'application/json'})
+    mock.add_route('GET', '/wot/certifiers-of/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ',
+                   {'message': "No member matching this pubkey or uid"}, 404)
 
-    mock.when('GET /wot/certifiers-of/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ')\
-            .reply(body=b"No member matching this pubkey or uid",
-                status=404,
-                times=1,
-                headers={'Content-Type': 'application/json'})
+    mock.add_route('GET', '/wot/lookup/john', bma_lookup_test_john, 200)
 
-    mock.when('GET /wot/lookup/john')\
-            .reply(body=bma_lookup_test_john,
-                status=200,
-                times=1,
-                headers={'Content-Type': 'application/json'})
+    mock.add_route('GET', '/wot/lookup/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ', bma_lookup_test_john, 200)
 
-    mock.when('GET /wot/lookup/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ')\
-            .reply(body=bma_lookup_test_john,
-                status=200,
-                times=1,
-                headers={'Content-Type': 'application/json'})
+    mock.add_route('GET', '/wot/lookup/doe', bma_lookup_test_doe, 200)
 
-    mock.when('GET /wot/lookup/doe')\
-            .reply(body=bma_lookup_test_doe,
-                status=200,
-                times=1,
-                headers={'Content-Type': 'application/json'})
+    mock.add_route('GET', '/wot/lookup/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn', bma_lookup_test_doe, 200)
 
-    mock.when('GET /wot/lookup/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn')\
-            .reply(body=bma_lookup_test_doe,
-                status=200,
-                times=1,
-                headers={'Content-Type': 'application/json'})
+    mock.add_route('GET', '/wot/lookup/patrick', bma_lookup_test_patrick, 200)
 
-    mock.when('GET /wot/lookup/patrick')\
-            .reply(body=bma_lookup_test_patrick,
-                status=200,
-                times=1,
-                headers={'Content-Type': 'application/json'})
+    mock.add_route('GET', '/wot/lookup/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn', bma_lookup_test_patrick, 200)
 
-    mock.when('GET /wot/lookup/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn')\
-            .reply(body=bma_lookup_test_patrick,
-                status=200,
-                times=1,
-                headers={'Content-Type': 'application/json'})
-
-    mock.when('POST /wot/add.*')\
-        .reply(body=b"{}",
-               status=200,
-               times=FOREVER,
-               headers={'Content-Type': 'application/json'})
+    mock.add_route('POST', '/wot/add', {}, 200)
 
     return mock

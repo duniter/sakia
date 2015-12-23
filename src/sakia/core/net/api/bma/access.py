@@ -243,7 +243,7 @@ class BmaAccess(QObject):
                     if '404' in str(e) or '400' in str(e):
                         raise
                     tries += 1
-                except (ClientError, gaierror, asyncio.TimeoutError):
+                except (ClientError, gaierror, asyncio.TimeoutError) as e:
                     tries += 1
                 except jsonschema.ValidationError as e:
                     logging.debug(str(e))
@@ -274,7 +274,7 @@ class BmaAccess(QObject):
                     if '404' in str(e) or '400' in str(e):
                         raise
                     tries += 1
-                except (ClientError, gaierror, asyncio.TimeoutError):
+                except (ClientError, gaierror, asyncio.TimeoutError) as e:
                     tries += 1
                 except jsonschema.ValidationError as e:
                     logging.debug(str(e))

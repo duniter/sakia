@@ -1,1 +1,1 @@
-from .quamash_test import QuamashTest
+from .quamash_utils import QuamashTest

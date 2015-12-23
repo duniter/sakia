@@ -6,7 +6,7 @@ import logging
 import time
 from PyQt5.QtCore import QLocale
 from sakia.core.registry.identities import Identity, IdentitiesRegistry, LocalState, BlockchainState
-from sakia.tests.mocks.monkeypatch import pretender_reversed
+
 from sakia.tests.mocks.bma import nice_blockchain, corrupted
 from sakia.tests import QuamashTest
 from sakia.core import Application, Community
@@ -26,7 +26,7 @@ class TestBmaAccess(unittest.TestCase, QuamashTest):
         self.application = Application(self.qapplication, self.lp, self.identities_registry)
         self.application.preferences['notifications'] = False
 
-        self.endpoint = BMAEndpoint("", "127.0.0.1", "", 50000)
+        self.endpoint = BMAEndpoint("", "127.0.0.1", "", 50004)
         self.node = Node("test_currency", [self.endpoint],
                          "", "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk",
                          None, Node.ONLINE,
