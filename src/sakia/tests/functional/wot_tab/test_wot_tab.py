@@ -1,25 +1,21 @@
-import sys
-import unittest
 import asyncio
-import quamash
 import logging
+import sys
 import time
-from ucoinpy.documents.peer import BMAEndpoint
-from PyQt5.QtWidgets import QDialog
-from PyQt5.QtCore import QLocale, Qt
-from PyQt5.QtTest import QTest
-from ucoinpy.api import bma
-from ucoinpy.api.bma import API
+import unittest
 
-from sakia.tests.mocks.bma import nice_blockchain
-from sakia.core.registry.identities import IdentitiesRegistry
-from sakia.gui.wot_tab import WotTabWidget
-from sakia.gui.password_asker import PasswordAskerDialog
-from sakia.core.app import Application
+from PyQt5.QtCore import QLocale
+from ucoinpy.documents.peer import BMAEndpoint
+
 from sakia.core import Account, Community, Wallet
+from sakia.core.app import Application
 from sakia.core.net import Network, Node
 from sakia.core.net.api.bma.access import BmaAccess
+from sakia.core.registry.identities import IdentitiesRegistry
+from sakia.gui.graphs.wot_tab import WotTabWidget
+from sakia.gui.password_asker import PasswordAskerDialog
 from sakia.tests import QuamashTest
+from sakia.tests.mocks.bma import nice_blockchain
 
 
 class TestWotTab(unittest.TestCase, QuamashTest):

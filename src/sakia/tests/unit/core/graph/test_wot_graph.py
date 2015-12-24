@@ -139,3 +139,20 @@ class TestWotGraph(unittest.TestCase, QuamashTest):
             self.assertEqual(path[2], self.idC.pubkey)
 
         self.lp.run_until_complete(exec_test())
+
+    @patch('sakia.core.Application')
+    @patch('sakia.core.Community')
+    @patch('time.time', Mock(return_value=50000))
+    def test_initialize(self, app, community):
+        community.parameters = CoroutineMock(return_value = {'sigValidity': 1000})
+        community.network.confirmations = Mock(side_effect=lambda n: 4 if 996 else None)
+        app.preferences = {'expert_mode': True}
+
+        wot_graph = WoTGraph(app, community)
+
+        async def exec_test():
+            await wot_graph.initialize(self.account_identity, self.account_identity)
+            self.assertEqual(len(wot_graph.nx_graph.nodes()), 2)
+            self.assertEqual(len(wot_graph.nx_graph.edges()), 1)
+
+        self.lp.run_until_complete(exec_test())

@@ -5,25 +5,23 @@ Created on 2 févr. 2014
 """
 
 import logging
-import asyncio
 import time
 
-from PyQt5.QtWidgets import QWidget, QMessageBox, QDialog, QPushButton, QTabBar, QAction
 from PyQt5.QtCore import pyqtSlot, QDateTime, QLocale, QEvent, QT_TRANSLATE_NOOP
-
 from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QWidget, QMessageBox, QDialog, QPushButton, QTabBar, QAction
 
-from .wot_tab import WotTabWidget
-from .identities_tab import IdentitiesTabWidget
-from .transactions_tab import TransactionsTabWidget
-from .certifications_tab import CertificationsTabWidget
-from .network_tab import NetworkTabWidget
-from .informations_tab import InformationsTabWidget
-from sakia.gui.widgets.dialogs import QAsyncMessageBox
+from sakia.gui.graphs.wot_tab import WotTabWidget
 from sakia.gui.widgets import toast
-from ..tools.exceptions import MembershipNotFoundError, LookupFailureError, NoPeerAvailable
-from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
+from sakia.gui.widgets.dialogs import QAsyncMessageBox
+from .certifications_tab import CertificationsTabWidget
+from .identities_tab import IdentitiesTabWidget
+from .informations_tab import InformationsTabWidget
+from .network_tab import NetworkTabWidget
+from .transactions_tab import TransactionsTabWidget
 from ..gen_resources.community_view_uic import Ui_CommunityWidget
+from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
+from ..tools.exceptions import MembershipNotFoundError, LookupFailureError, NoPeerAvailable
 
 
 class CommunityWidget(QWidget, Ui_CommunityWidget):

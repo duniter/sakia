@@ -3,7 +3,7 @@ import asyncio
 
 from PyQt5.QtWidgets import QDialog
 
-from ..core.graph import Graph
+from ..core.graph import WoTGraph
 from ..tools.decorators import asyncify
 from ..gen_resources.member_uic import Ui_DialogMember
 from ..tools.exceptions import MembershipNotFoundError
@@ -47,14 +47,14 @@ class MemberDialog(QDialog, Ui_DialogMember):
             join_date = datetime.datetime.fromtimestamp(join_date).strftime("%d/%m/%Y %I:%M")
 
         # calculate path to account member
-        graph = Graph(self.app, self.community)
+        graph = WoTGraph(self.app, self.community)
         path = None
         # if selected member is not the account member...
         if self.identity.pubkey != self.account.pubkey:
             # add path from selected member to account member
             account_identity = await self.account.identity(self.community)
-            path = await graph.get_shortest_path_between_members(self.identity,
-                                                                      account_identity)
+            path = await graph.get_shortest_path_to_identity(self.identity,
+                                                            account_identity)
 
         text = self.tr("""
             <table cellpadding="5">

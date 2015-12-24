@@ -5,18 +5,17 @@ from PyQt5.QtWidgets import QWidget, QComboBox, QDialog
 from PyQt5.QtCore import pyqtSlot, QEvent, QLocale, QDateTime, pyqtSignal, QT_TRANSLATE_NOOP
 from ucoinpy.api import bma
 
-from ..tools.exceptions import MembershipNotFoundError
-from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
-from ..core.graph import Graph
-from ..core.registry import BlockchainState
-from .member import MemberDialog
-from .certification import CertificationDialog
-from .transfer import TransferMoneyDialog
-from .contact import ConfigureContactDialog
-from ..gen_resources.wot_tab_uic import Ui_WotTabWidget
-from .views.wot import NODE_STATUS_HIGHLIGHTED, NODE_STATUS_SELECTED, NODE_STATUS_OUT
-from .widgets.busy import Busy
-from ..tools.exceptions import NoPeerAvailable
+from sakia.tools.exceptions import MembershipNotFoundError
+from sakia.tools.decorators import asyncify, once_at_a_time, cancel_once_task
+from sakia.core.graph import WoTGraph
+from sakia.core.registry import BlockchainState
+from sakia.gui.member import MemberDialog
+from sakia.gui.certification import CertificationDialog
+from sakia.gui.transfer import TransferMoneyDialog
+from sakia.gui.contact import ConfigureContactDialog
+from sakia.gen_resources.wot_tab_uic import Ui_WotTabWidget
+from sakia.gui.widgets.busy import Busy
+from sakia.tools.exceptions import NoPeerAvailable
 
 
 class WotTabWidget(QWidget, Ui_WotTabWidget):
@@ -196,41 +195,16 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         if self.community:
             identity_account = await self.account.identity(self.community)
 
-            #Connect new identity
-            if self._current_identity != identity:
-                self._current_identity = identity
-
-            # create Identity from node metadata
-            certifier_list = await identity.unique_valid_certifiers_of(self.app.identities_registry,
-                                                                            self.community)
-            certified_list = await identity.unique_valid_certified_by(self.app.identities_registry,
-                                                                           self.community)
-
             # create empty graph instance
-            graph = Graph(self.app, self.community)
-
-            # add wallet node
-            node_status = 0
-            if identity == identity_account:
-                node_status += NODE_STATUS_HIGHLIGHTED
-            is_member = await identity.is_member(self.community)
-            if is_member is False:
-                node_status += NODE_STATUS_OUT
-            node_status += NODE_STATUS_SELECTED
-            graph.add_identity(identity, node_status)
-
-            # populate graph with certifiers-of
-            await graph.add_certifier_list(certifier_list, identity, identity_account)
-            # populate graph with certified-by
-            await graph.add_certified_list(certified_list, identity, identity_account)
-
+            graph = WoTGraph(self.app, self.community)
+            await graph.initialize(identity_account, identity_account)
             # draw graph in qt scene
-            self.graphicsView.scene().update_wot(graph.get())
+            self.graphicsView.scene().update_wot(graph.nx_graph, identity)
 
             # if selected member is not the account member...
             if identity.pubkey != identity_account.pubkey:
                 # add path from selected member to account member
-                path = await graph.get_shortest_path_between_members(identity, identity_account)
+                path = await graph.get_shortest_path_to_identity(identity_account, identity)
                 if path:
                     self.graphicsView.scene().update_path(path)
         self.busy.hide()

@@ -1,21 +1,10 @@
-# -*- coding: utf-8 -*-
+import networkx
+from PyQt5.QtGui import QPainter, QWheelEvent
+from PyQt5.QtCore import Qt, QPoint,  pyqtSignal
+from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene
 
-import math
-from PyQt5.QtGui import QPainter, QBrush, QPen, QPolygonF, QColor, QRadialGradient, \
-    QPainterPath, QMouseEvent, QWheelEvent, QTransform, QCursor
-from PyQt5.QtCore import Qt, QRectF, QLineF, QPoint, QPointF, QSizeF, \
-                        qFuzzyCompare, pyqtSignal, QT_TRANSLATE_NOOP, \
-                        QCoreApplication, QLocale
-from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsEllipseItem, \
-    QGraphicsSimpleTextItem, QGraphicsLineItem, QMenu, QAction, QGraphicsSceneHoverEvent, \
-    QGraphicsSceneContextMenuEvent
-
-NODE_STATUS_HIGHLIGHTED = 1
-NODE_STATUS_SELECTED = 2
-NODE_STATUS_OUT = 4
-ARC_STATUS_STRONG = 1
-ARC_STATUS_WEAK = 2
-
+from .node import Node
+from .arc import Arc
 
 class WotView(QGraphicsView):
     def __init__(self, parent=None):
@@ -50,20 +39,20 @@ class WotView(QGraphicsView):
             self.scale(sc, sc)
             self.centerOn(self.mapToScene(event.pos()))
             event.accept()
-        #  act normally on scrollbar
+        #  act normally on scrollbar
         else:
-            # transmit event to parent class wheelevent
+            # transmit event to parent class wheelevent
             super(QGraphicsView, self).wheelEvent(event)
 
 
 class Scene(QGraphicsScene):
     # This defines signals taking string arguments
-    node_clicked = pyqtSignal(dict, name='nodeClicked')
-    node_signed = pyqtSignal(dict, name='nodeSigned')
-    node_transaction = pyqtSignal(dict, name='nodeTransaction')
-    node_contact = pyqtSignal(dict, name='nodeContact')
-    node_member = pyqtSignal(dict, name='nodeMember')
-    node_copy_pubkey = pyqtSignal(dict, name='nodeCopyPubkey')
+    node_clicked = pyqtSignal(str, dict, name='nodeClicked')
+    node_signed = pyqtSignal(str, dict, name='nodeSigned')
+    node_transaction = pyqtSignal(str, dict, name='nodeTransaction')
+    node_contact = pyqtSignal(str, dict, name='nodeContact')
+    node_member = pyqtSignal(str, dict, name='nodeMember')
+    node_copy_pubkey = pyqtSignal(str, name='nodeCopyPubkey')
 
     def __init__(self, parent=None):
         """
@@ -78,415 +67,146 @@ class Scene(QGraphicsScene):
 
         # list of nodes in scene
         self.nodes = dict()
-        #  axis of the scene for debug purpose
+        #  axis of the scene for debug purpose
         # self.addLine(-100, 0, 100, 0)
         # self.addLine(0, -100, 0, 100)
 
-    def add_node(self, metadata, pos):
+    def certified_partial_layout(self, nx_graph, center, scale=1):
         """
-        Add a node item in the graph
-
-        :param dict metadata: Node metadata
-        :param tuple pos: Position (x,y) of the node
-
-        :return: Node
+        Method to generate a partial wot with certifiers layout
+        :param networkx.MultiDiGraph nx_graph: graph of the wot
+        :param center: the centered node
+        :param scale: a scale
+        :return: the positions of the nodes
         """
-        node = Node(metadata, pos)
-        self.addItem(node)
-        self.nodes[node.id] = node
-        return node
+        certifier_edge = [edge[0] for edge in nx_graph.in_edges() if edge[1] == center]
+        certified_edge = [edge[1] for edge in nx_graph.out_edges() if edge[0] == center]
 
-    def add_arc(self, source_node, destination_node, metadata):
+        certified = [n for n in nx_graph.nodes(data=True) if n[0] in certified_edge]
+
+        pos = {center: (0, max(len(certified_edge),
+                            len(certifier_edge))/2*0.12*scale)}
+
+        y = 0
+        x = 1 * scale
+        # sort by text
+        sort_certified = sorted(certified, key=lambda node_: node_[1]['text'].lower())
+        # add nodes and arcs
+        for n in sort_certified:
+            y += 0.25 * scale
+            pos[n[0]] = (x, y)
+        return pos
+
+    def certifiers_partial_layout(self, nx_graph, center, scale=1):
         """
-        Add an arc between two nodes
-
-        :param Node source_node: Source node of the arc
-        :param Node destination_node: Destination node of the arc
-        :param dict arc: Arc data
-
-        :return: Arc
+        Method to generate a partial wot with certifiers layout
+        :param networkx.MultiDiGraph nx_graph: graph of the wot
+        :param center: the centered node
+        :param scale: a scale
+        :return: the positions of the nodes
         """
-        arc = Arc(source_node, destination_node, metadata)
-        self.addItem(arc)
-        return arc
+        certifier_edge = [edge[0] for edge in nx_graph.in_edges() if edge[1] == center]
+        certified_edge = [edge[1] for edge in nx_graph.out_edges() if edge[0] == center]
 
-    def update_wot(self, graph):
+        certifier = [n for n in nx_graph.nodes(data=True) if n[0] in certifier_edge]
+
+        pos = {center: (0, max(len(certified_edge),
+                                    len(certifier_edge))/2*0.12*scale)}
+
+        y = 0
+        x = -1 * scale
+        # sort by text
+        sort_certifier = sorted(certifier, key=lambda node_: node_[1]['text'].lower())
+        # add nodes and arcs
+        for n in sort_certifier:
+            y += 0.25 * scale
+            pos[n[0]] = (x, y)
+
+        return pos
+
+    def certified_partial_layout(self, nx_graph, center, scale=1):
+        """
+        Method to generate a partial wot with certifiers layout
+        :param networkx.MultiDiGraph nx_graph: graph of the wot
+        :param center: the centered node
+        :param scale: a scale
+        :return: the positions of the nodes
+        """
+        certifier_edge = [edge[0] for edge in nx_graph.in_edges() if edge[1] == center]
+        certified_edge = [edge[1] for edge in nx_graph.out_edges() if edge[0] == center]
+
+        certified = [n for n in nx_graph.nodes(data=True) if n[0] in certified_edge]
+
+        pos = {center: (0, max(len(certified_edge),
+                            len(certifier_edge))/2*0.12*scale)}
+
+        y = 0
+        x = 1 * scale
+        # sort by text
+        sort_certified = sorted(certified, key=lambda node_: node_[1]['text'].lower())
+        # add nodes and arcs
+        for n in sort_certified:
+            y += 0.25 * scale
+            pos[n[0]] = (x, y)
+        return pos
+
+    def path_partial_layout(self, nx_graph, path, scale=1):
+        """
+
+        :param networkx.Graph nx_graph: The graph to show
+        :param list path:
+        :param int scale:
+        :return:
+        """
+        destination = path[-1]
+        certifier_edge = [edge[0] for edge in nx_graph.in_edges() if edge[1] == destination]
+        certified_edge = [edge[1] for edge in nx_graph.out_edges() if edge[0] == destination]
+
+        x = 0
+        y = max(len(certified_edge), len(certifier_edge))/2*0.12*scale
+        pos = {destination: (x, y)}
+
+        for node in reversed(path[:-1]):
+            y -= 100
+            pos[node] = (x, y)
+        return pos
+
+    def update_wot(self, nx_graph, identity):
         """
         draw community graph
 
-        :param dict graph: graph to draw
+        :param networkx.Graph nx_graph: graph to draw
+        :param sakia.core.registry.Identity identity: the wot of the identity
         """
-        #  clear scene
+        #  clear scene
         self.clear()
+        certifiers_graph_pos = self.certifiers_partial_layout(nx_graph, identity.pubkey, scale=200)
+        certified_graph_pos = self.certified_partial_layout(nx_graph, identity.pubkey, scale=200)
 
-        # capture selected node (to draw it in the center)
-        for _id, node in graph.items():
-            if node['status'] & NODE_STATUS_SELECTED:
-                selected_id = _id
-                selected_node = node
+        # create networkx graph
+        for node in nx_graph.nodes(data=True):
+            if node[0] in certifiers_graph_pos:
+                v = Node(node, certifiers_graph_pos)
+                self.addItem(v)
+            if node[0] in certified_graph_pos:
+                v = Node(node, certified_graph_pos)
+                self.addItem(v)
 
-        root_node = self.add_node(selected_node, (0, 0))
-
-        # add certified by selected node
-        y = 0
-        x = 200
-        # capture nodes for sorting by text
-        nodes = list()
-        for arc in selected_node['arcs']:
-            nodes.append({'node': graph[arc['id']], 'arc': arc})
-        # sort by text
-        nodes = sorted(nodes, key=lambda _node: _node['node']['text'].lower())
-        # add nodes and arcs
-        for _node in nodes:
-            node = self.add_node(_node['node'], (x, y))
-            self.add_arc(root_node, node, _node['arc'])
-            node.setToolTip(self.tr("Certification expires at {0}").format(_node['arc']['tooltip']))
-            y += 50
-
-        # add certifiers of selected node
-        y = 0
-        x = -200
-        # sort by text
-        nodes = ((k, v) for (k, v) in sorted(graph.items(), key=lambda kv: kv[1]['text'].lower()) if
-                 selected_id in (arc['id'] for arc in v['arcs']))
-        # add nodes and arcs
-        for _id, certifier_node in nodes:
-            node = self.add_node(certifier_node, (x, y))
-            for arc in certifier_node['arcs']:
-                if arc['id'] == selected_id:
-                    self.add_arc(node, root_node, arc)
-                    node.setToolTip(self.tr("Certification expires at {0}").format(arc['tooltip']))
-            y += 50
+        for edge in nx_graph.edges(data=True):
+            if edge[0] in certifiers_graph_pos and edge[1] == identity.pubkey:
+                self.addItem(Arc(edge[0], edge[1], edge[2], certifiers_graph_pos))
+            if edge[0] == identity.pubkey and edge[1] in certified_graph_pos:
+                self.addItem(Arc(edge[0], edge[1], edge[2], certified_graph_pos))
 
         self.update()
 
-    def update_path(self, path):
-        x = 0
-        y = 0
-        for json_node in path:
-            if json_node['status'] & NODE_STATUS_SELECTED:
-                previous_node = json_node
-                y -= 100
-                continue
-            node = self.add_node(json_node, (x, y))
-            skip_reverse_arc = False
-            for arc in json_node['arcs']:
-                if arc['id'] == previous_node['id']:
-                    #print("arc from %s to %s" % (node.id, previous_node['id']))
-                    self.add_arc(node, self.nodes[previous_node['id']], arc)
-                    skip_reverse_arc = True
-                    break
-            if not skip_reverse_arc:
-                for arc in previous_node['arcs']:
-                    if arc['id'] == json_node['id']:
-                        #print("arc from %s to %s" % (previous_node['id'], node.id))
-                        self.add_arc(self.nodes[previous_node['id']], node, arc)
+    def update_path(self, nx_graph, path):
+        path_graph_pos = self.path_partial_layout(nx_graph, path, scale=200)
+        nodes_path = [n for n in nx_graph.nodes(data=True) if n[0] in path[:-1]]
+        for node in nodes_path:
+            v = Node(node, path_graph_pos)
+            self.addItem(v)
 
-            previous_node = json_node
-            y -= 100
-
-
-class Node(QGraphicsEllipseItem):
-    def __init__(self, metadata, x_y):
-        """
-        Create node in the graph scene
-
-        :param dict metadata: Node metadata
-        :param x_y: Position of the node
-        """
-        # unpack tuple
-        x, y = x_y
-
-        super(Node, self).__init__()
-
-        self.metadata = metadata
-        self.id = metadata['id']
-        self.status_wallet = self.metadata['status'] & NODE_STATUS_HIGHLIGHTED
-        self.status_member = not self.metadata['status'] & NODE_STATUS_OUT
-        self.text = self.metadata['text']
-        try:
-            self.setToolTip(self.metadata['tooltip'])
-        except TypeError:
-            raise
-        self.arcs = []
-        self.menu = None
-        self.action_sign = None
-        self.action_transaction = None
-        self.action_contact = None
-        self.action_show_member = None
-
-        # color around ellipse
-        outline_color = QColor('grey')
-        outline_style = Qt.SolidLine
-        outline_width = 1
-        if self.status_wallet:
-            outline_color = QColor('black')
-            outline_width = 2
-        if not self.status_member:
-            outline_color = QColor('red')
-            outline_style = Qt.SolidLine
-        self.setPen(QPen(outline_color, outline_width, outline_style))
-
-        # text inside ellipse
-        self.text_item = QGraphicsSimpleTextItem(self)
-        self.text_item.setText(self.text)
-        text_color = QColor('grey')
-        if self.status_wallet == NODE_STATUS_HIGHLIGHTED:
-            text_color = QColor('black')
-        self.text_item.setBrush(QBrush(text_color))
-        # center ellipse around text
-        self.setRect(
-            0,
-            0,
-            self.text_item.boundingRect().width() * 2,
-            self.text_item.boundingRect().height() * 2
-        )
-
-        #  set anchor to the center
-        self.setTransform(
-            QTransform().translate(-self.boundingRect().width() / 2.0, -self.boundingRect().height() / 2.0))
-        self.setPos(x, y)
-        # center text in ellipse
-        self.text_item.setPos(self.boundingRect().width() / 4.0, self.boundingRect().height() / 4.0)
-
-        # create gradient inside the ellipse
-        gradient = QRadialGradient(QPointF(0, self.boundingRect().height() / 4), self.boundingRect().width())
-        gradient.setColorAt(0, QColor('white'))
-        gradient.setColorAt(1, QColor('darkgrey'))
-        self.setBrush(QBrush(gradient))
-
-        # cursor change on hover
-        self.setAcceptHoverEvents(True)
-        self.setZValue(1)
-
-    def mousePressEvent(self, event: QMouseEvent):
-        """
-        Click on mouse button
-
-        :param event: mouse event
-        """
-        if event.button() == Qt.LeftButton:
-            # trigger scene signal
-            self.scene().node_clicked.emit(self.metadata)
-
-    def hoverEnterEvent(self, event: QGraphicsSceneHoverEvent):
-        """
-        Mouse enter on node zone
-
-        :param event: scene hover event
-        """
-        self.setCursor(Qt.ArrowCursor)
-
-    def contextMenuEvent(self, event: QGraphicsSceneContextMenuEvent):
-        """
-        Right click on node to show node menu
-        Except on wallet node
-
-        :param event: scene context menu event
-        """
-        #  no menu on the wallet node
-        if self.status_wallet:
-            return None
-        # create node context menus
-        self.menu = QMenu()
-        # action show member
-        QT_TRANSLATE_NOOP('WoT.Node', 'Informations')
-        self.action_show_member = QAction(QCoreApplication.translate('WoT.Node', 'Informations'), self.scene())
-        self.menu.addAction(self.action_show_member)
-        self.action_show_member.triggered.connect(self.member_action)
-        # action add identity as contact
-        QT_TRANSLATE_NOOP('WoT.Node', 'Add as contact')
-        self.action_contact = QAction(QCoreApplication.translate('WoT.Node', 'Add as contact'), self.scene())
-        self.menu.addAction(self.action_contact)
-        self.action_contact.triggered.connect(self.contact_action)
-        # action transaction toward identity
-        QT_TRANSLATE_NOOP('WoT.Node', 'Send money')
-        self.action_transaction = QAction(QCoreApplication.translate('WoT.Node', 'Send money'), self.scene())
-        self.menu.addAction(self.action_transaction)
-        self.action_transaction.triggered.connect(self.transaction_action)
-        # action sign identity
-        QT_TRANSLATE_NOOP('WoT.Node', 'Certify identity')
-        self.action_sign = QAction(QCoreApplication.translate('WoT.Node', 'Certify identity'), self.scene())
-        self.menu.addAction(self.action_sign)
-        self.action_sign.triggered.connect(self.sign_action)
-        # action copy identity pubkey
-        QT_TRANSLATE_NOOP('WoT.Node', 'Copy pubkey')
-        self.action_copy = QAction(QCoreApplication.translate('WoT.Node', 'Copy pubkey'), self.scene())
-        self.menu.addAction(self.action_copy)
-        self.action_copy.triggered.connect(self.copy_action)
-
-        # run menu
-        self.menu.exec(event.screenPos())
-
-    def add_arc(self, arc):
-        """
-        Add arc to the arc list
-
-        :param arc: Arc
-        """
-        self.arcs.append(arc)
-
-    def member_action(self):
-        """
-        Transaction action to identity node
-        """
-        # trigger scene signal
-        self.scene().node_member.emit(self.metadata)
-
-    def contact_action(self):
-        """
-        Transaction action to identity node
-        """
-        # trigger scene signal
-        self.scene().node_contact.emit(self.metadata)
-
-    def sign_action(self):
-        """
-        Sign identity node
-        """
-        # trigger scene signal
-        self.scene().node_signed.emit(self.metadata)
-
-    def copy_action(self):
-        """
-        Copy identity node pubkey
-        """
-        # trigger scene signal
-        self.scene().node_copy_pubkey.emit(self.metadata)
-
-    def transaction_action(self):
-        """
-        Transaction action to identity node
-        """
-        # trigger scene signal
-        self.scene().node_transaction.emit(self.metadata)
-
-
-class Arc(QGraphicsLineItem):
-    def __init__(self, source_node, destination_node, metadata):
-        """
-        Create an arc between two nodes
-
-        :param Node source_node: Source node of the arc
-        :param Node destination_node: Destination node of the arc
-        :param dict metadata: Arc metadata
-        """
-        super(Arc, self).__init__()
-
-        self.metadata = metadata
-        self.source = source_node
-        self.destination = destination_node
-        self.source.add_arc(self)
-
-        self.status = self.metadata['status']
-
-        self.source_point = None
-        self.destination_point = None
-        self.arrow_size = 5.0
-
-        self.setAcceptedMouseButtons(Qt.NoButton)
-
-        #  cursor change on hover
-        self.setAcceptHoverEvents(True)
-        self.adjust()
-        self.setZValue(0)
-
-    def adjust(self):
-        """
-        Draw the arc line
-        """
-        if not self.source or not self.destination:
-            return
-        line = QLineF(
-            self.mapFromItem(
-                self.source,
-                self.source.boundingRect().width() - (self.source.boundingRect().width() / 2.0),
-                self.source.boundingRect().height() / 2.0
-            ),
-            self.mapFromItem(
-                self.destination,
-                self.destination.boundingRect().width() / 2.0,
-                self.destination.boundingRect().height() / 2.0
-            )
-        )
-        self.prepareGeometryChange()
-        self.source_point = line.p1()
-        self.destination_point = line.p2()
-
-        # mouse over on line only
-        self.setLine(line)
-
-    # virtual function require subclassing
-    def boundingRect(self):
-        """
-        Return the bounding rectangle size
-
-        :return: QRectF
-        """
-        if not self.source or not self.destination:
-            return QRectF()
-        pen_width = 1.0
-        extra = (pen_width + self.arrow_size) / 2.0
-
-        return QRectF(
-            self.source_point, QSizeF(
-                self.destination_point.x() - self.source_point.x(),
-                self.destination_point.y() - self.source_point.y()
-            )
-        ).normalized().adjusted(
-            -extra,
-            -extra,
-            extra,
-            extra
-        )
-
-    def paint(self, painter, option, widget):
-        """
-        Customize line adding an arrow head
-
-        :param QPainter painter: Painter instance of the item
-        :param option:  Painter option of the item
-        :param widget:  Widget instance
-        """
-        if not self.source or not self.destination:
-            return
-        line = QLineF(self.source_point, self.destination_point)
-        if qFuzzyCompare(line.length(), 0):
-            return
-
-        # Draw the line itself
-        color = QColor()
-        style = Qt.SolidLine
-        if self.status == ARC_STATUS_STRONG:
-            color.setNamedColor('blue')
-        if self.status == ARC_STATUS_WEAK:
-            color.setNamedColor('salmon')
-            style = Qt.DashLine
-
-        painter.setPen(QPen(color, 1, style, Qt.RoundCap, Qt.RoundJoin))
-        painter.drawLine(line)
-        painter.setPen(QPen(color, 1, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
-
-        # Draw the arrows
-        angle = math.acos(line.dx() / line.length())
-        if line.dy() >= 0:
-            angle = (2.0 * math.pi) - angle
-
-        #  arrow in the middle of the arc
-        hpx = line.p1().x() + (line.dx() / 2.0)
-        hpy = line.p1().y() + (line.dy() / 2.0)
-        head_point = QPointF(hpx, hpy)
-
-        painter.setPen(QPen(color, 1, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
-        destination_arrow_p1 = head_point + QPointF(
-            math.sin(angle - math.pi / 3) * self.arrow_size,
-            math.cos(angle - math.pi / 3) * self.arrow_size)
-        destination_arrow_p2 = head_point + QPointF(
-            math.sin(angle - math.pi + math.pi / 3) * self.arrow_size,
-            math.cos(angle - math.pi + math.pi / 3) * self.arrow_size)
-
-        painter.setBrush(color)
-        painter.drawPolygon(QPolygonF([head_point, destination_arrow_p1, destination_arrow_p2]))
-
-        if self.metadata["confirmation_text"]:
-            painter.drawText(head_point, self.metadata["confirmation_text"])
+        for edge in nx_graph.edges(data=True):
+            if edge[0] in path_graph_pos and edge[1] in path_graph_pos:
+                self.addItem(Arc(edge[0], edge[1], edge[2], path_graph_pos))

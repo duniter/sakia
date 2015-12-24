@@ -15,6 +15,22 @@ class WoTGraph(BaseGraph):
         """
         super().__init__(app, community, nx_graph)
 
+    async def initialize(self, center_identity, account_identity):
+        node_status = await self.node_status(center_identity, account_identity)
+
+        self.add_identity(center_identity, node_status)
+
+        # create Identity from node metadata
+        certifier_list = await center_identity.unique_valid_certifiers_of(self.app.identities_registry,
+                                                                        self.community)
+        certified_list = await center_identity.unique_valid_certified_by(self.app.identities_registry,
+                                                                       self.community)
+
+        # populate graph with certifiers-of
+        await self.add_certifier_list(certifier_list, center_identity, account_identity)
+        # populate graph with certified-by
+        await self.add_certified_list(certified_list, center_identity, account_identity)
+
     async def get_shortest_path_to_identity(self, account_identity, to_identity):
         """
         Return path list of nodes from from_identity to to_identity
