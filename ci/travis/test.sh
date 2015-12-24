@@ -14,6 +14,5 @@ then
     sleep 3
 fi
 
-PYTHONPATH=$HOME/build/ucoin-io/sakia/src coverage run --source=sakia.core,sakia.gui,sakia.models \
-    python -m unittest discover --start-directory src/sakia/tests
+coverage run --source=sakia.core,sakia.gui,sakia.models setup.py test
 
