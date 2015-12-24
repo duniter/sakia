@@ -68,10 +68,12 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
         cancel_once_task(self, self.reset)
 
     def change_account(self, account, password_asker):
+        self.cancel_once_tasks()
         self.account = account
         self.password_asker = password_asker
 
     def change_community(self, community):
+        self.cancel_once_tasks()
         self._auto_refresh(community)
         self.community = community
         self.reset()
