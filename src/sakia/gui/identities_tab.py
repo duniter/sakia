@@ -100,7 +100,7 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
     def identity_context_menu(self, point):
         index = self.table_identities.indexAt(point)
         model = self.table_identities.model()
-        if index.row() < model.rowCount():
+        if index.isValid() and index.row() < model.rowCount():
             source_index = model.mapToSource(index)
             pubkey_col = model.sourceModel().columns_ids.index('pubkey')
             pubkey_index = model.sourceModel().index(source_index.row(),
