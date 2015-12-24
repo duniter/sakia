@@ -136,13 +136,11 @@ class TestBaseGraph(unittest.TestCase, QuamashTest):
             arc_from_first = [e for e in edges if e[0] == self.first_identity.pubkey][0]
             self.assertEqual(arc_from_first[1], self.account_identity.pubkey)
             self.assertEqual(arc_from_first[2]['status'], ArcStatus.WEAK)
-            self.assertEqual(arc_from_first[2]['tooltip'], '12/01/1970')
             self.assertEqual(arc_from_first[2]['cert_time'], certifications[0]['cert_time'])
 
             arc_from_second = [e for e in edges if e[0] == self.second_identity.pubkey][0]
             self.assertEqual(arc_from_second[1], self.account_identity.pubkey)
             self.assertEqual(arc_from_second[2]['status'], ArcStatus.STRONG)
-            self.assertEqual(arc_from_second[2]['tooltip'], '12/01/1970')
             self.assertEqual(arc_from_second[2]['cert_time'], certifications[1]['cert_time'])
 
         self.lp.run_until_complete(exec_test())
