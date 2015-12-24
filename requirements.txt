@@ -1,2 +1,3 @@
 ucoinpy>=0.13
 git+https://github.com/Insoleet/quamash.git
+asynctest
