@@ -14,5 +14,5 @@ then
     sleep 3
 fi
 
-coverage run --source=sakia.core,sakia.gui,sakia.models python setup.py test
+coverage run --source=sakia.core,sakia.gui,sakia.models setup.py test
 
