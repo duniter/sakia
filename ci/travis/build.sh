@@ -23,6 +23,6 @@ then
 elif [ $TRAVIS_OS_NAME == "linux" ]
 then
     python setup.py build
-    cp ~/.pyenv/versions/$PYENV_PYTHON_VERSION/lib/libpython3.*m.so.1.0 build/exe.linux-x86_64-3.4/
+    cp $HOME/.pyenv/versions/$PYENV_PYTHON_VERSION/lib/libpython3.*m.so.1.0 build/exe.linux-x86_64-3.*/
 fi
 

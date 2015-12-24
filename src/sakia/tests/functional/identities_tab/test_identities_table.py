@@ -72,6 +72,7 @@ class TestIdentitiesTable(unittest.TestCase, QuamashTest):
 
         async def exec_test():
             srv, port, url = await mock.create_server()
+            self.addCleanup(srv.close)
             self.endpoint.port = port
 
             identities_tab.change_account(self.account, self.password_asker)

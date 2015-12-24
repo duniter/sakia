@@ -67,6 +67,7 @@ class TestWotTab(unittest.TestCase, QuamashTest):
 
         async def async_open_widget():
             srv, port, url = await mock.create_server()
+            self.addCleanup(srv.close)
             self.endpoint.port = port
             await open_widget()
 

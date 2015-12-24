@@ -63,6 +63,7 @@ class TestCertificationDialog(unittest.TestCase, QuamashTest):
 
         async def open_dialog(certification_dialog):
             srv, port, url = await mock.create_server()
+            self.addCleanup(srv.close)
             self.endpoint.port = port
 
             result = await certification_dialog.async_exec()

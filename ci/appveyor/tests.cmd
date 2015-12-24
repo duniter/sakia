@@ -11,6 +11,6 @@ pyrcc5 -version
 
 lrelease -version
 
-run_tests.py -a
+python -m unittest discover --start-directory src/sakia/tests
 
 if %errorlevel% neq 0 exit /b 1
