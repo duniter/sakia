@@ -14,5 +14,5 @@ then
     sleep 3
 fi
 
-coverage run --source=sakia.core,sakia.gui,sakia.models python -m unittest discover --start-directory src/sakia/tests -t src
+coverage run --source=sakia.core,sakia.gui,sakia.models python setup.py test
 
