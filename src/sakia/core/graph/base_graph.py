@@ -20,7 +20,7 @@ class BaseGraph(QObject):
         self.app = app
         self.community = community
         # graph empty if None parameter
-        self.nx_graph = nx_graph if nx_graph else networkx.MultiDiGraph()
+        self.nx_graph = nx_graph if nx_graph else networkx.DiGraph()
 
     async def arc_status(self, cert_time):
         """
