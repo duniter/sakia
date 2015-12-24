@@ -14,6 +14,8 @@ from ucoinpy.documents.block import Block, BlockId
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
 from collections import Counter
 
+MAX_CONFIRMATIONS = 6
+
 
 class Network(QObject):
     """
@@ -259,6 +261,17 @@ class Network(QObject):
             return int(statistics.median(fork_windows))
         else:
             return 0
+
+    def confirmations(self, block_number):
+        """
+        Get the number of confirmations of a data
+        :param int block_number: The block number of the data
+        :return: the number of confirmations of a data
+        :rtype: int
+        """
+        if block_number > self.current_blockid.number:
+            raise ValueError("Could not compute confirmations : data block number is after current block")
+        return self.current_blockid.number - block_number + 1
 
     def add_node(self, node):
         """

@@ -1,2 +1,2 @@
 ucoinpy>=0.13
-quamash
+git+https://github.com/Insoleet/quamash.git
