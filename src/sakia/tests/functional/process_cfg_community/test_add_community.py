@@ -63,7 +63,7 @@ class ProcessAddCommunity(unittest.TestCase, QuamashTest):
             await asyncio.sleep(1)
             self.assertEqual(mock.get_request(0).method, 'GET')
             self.assertEqual(mock.get_request(0).url, '/network/peering')
-            self.assertEqual(process_community.community.network.nodes[0]._endpoints[0].port, port)
+            self.assertEqual(process_community._step_init.node._endpoints[0].port, port)
             self.assertEqual(mock.get_request(1).method, 'GET')
             self.assertEqual(mock.get_request(1).url,
                              '/wot/certifiers-of/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ')

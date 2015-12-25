@@ -213,17 +213,17 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         self.nodes = []
 
         self.community_added.connect(self.add_community_and_close)
-        step_init = StepPageInit(self)
+        self._step_init = StepPageInit(self)
         step_add_peers = StepPageAddpeers(self)
 
-        step_init.next_step = step_add_peers
+        self._step_init.next_step = step_add_peers
 
         if self.community is not None:
             self.stacked_pages.removeWidget(self.page_node)
             self.step = step_add_peers
             self.setWindowTitle(self.tr("Configure community {0}").format(self.community.currency))
         else:
-            self.step = step_init
+            self.step = self._step_init
             self.setWindowTitle(self.tr("Add a community"))
 
         self.step.display_page()
