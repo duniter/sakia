@@ -71,6 +71,7 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
     def change_account(self, account, password_asker):
         self.account = account
         self.password_asker = password_asker
+        self.account.certification_accepted.connect(self.refresh)
 
     def change_community(self, community):
         self._auto_refresh(community)
