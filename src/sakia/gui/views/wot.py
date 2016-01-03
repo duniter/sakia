@@ -53,6 +53,7 @@ class Scene(QGraphicsScene):
     node_contact = pyqtSignal(str, dict, name='nodeContact')
     node_member = pyqtSignal(str, dict, name='nodeMember')
     node_copy_pubkey = pyqtSignal(str, name='nodeCopyPubkey')
+    node_hovered = pyqtSignal(str, name='nodeHovered')
 
     def __init__(self, parent=None):
         """
