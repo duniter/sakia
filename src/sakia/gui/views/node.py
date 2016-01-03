@@ -99,6 +99,7 @@ class Node(QGraphicsEllipseItem):
         :param event: scene hover event
         """
         self.setCursor(Qt.ArrowCursor)
+        self.scene().node_hovered.emit(self.id)
 
     def contextMenuEvent(self, event: QGraphicsSceneContextMenuEvent):
         """

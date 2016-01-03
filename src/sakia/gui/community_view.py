@@ -11,14 +11,15 @@ from PyQt5.QtCore import pyqtSlot, QDateTime, QLocale, QEvent, QT_TRANSLATE_NOOP
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QMessageBox, QDialog, QPushButton, QTabBar, QAction
 
-from sakia.gui.graphs.wot_tab import WotTabWidget
-from sakia.gui.widgets import toast
-from sakia.gui.widgets.dialogs import QAsyncMessageBox
+from .graphs.wot_tab import WotTabWidget
+from .widgets import toast
+from .widgets.dialogs import QAsyncMessageBox
 from .certifications_tab import CertificationsTabWidget
 from .identities_tab import IdentitiesTabWidget
 from .informations_tab import InformationsTabWidget
 from .network_tab import NetworkTabWidget
 from .transactions_tab import TransactionsTabWidget
+from .graphs.explorer_tab import ExplorerTabWidget
 from ..gen_resources.community_view_uic import Ui_CommunityWidget
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from ..tools.exceptions import MembershipNotFoundError, LookupFailureError, NoPeerAvailable
@@ -36,6 +37,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
     _tab_network_label = QT_TRANSLATE_NOOP("CommunityWidget", "Network")
     _tab_informations_label = QT_TRANSLATE_NOOP("CommunityWidget", "Informations")
     _action_showinfo_text = QT_TRANSLATE_NOOP("CommunityWidget", "Show informations")
+    _action_explore_text = QT_TRANSLATE_NOOP("CommunityWidget", "Explore the Web of Trust")
     _action_publish_uid_text = QT_TRANSLATE_NOOP("CommunityWidget", "Publish UID")
     _action_revoke_uid_text = QT_TRANSLATE_NOOP("CommunityWidget", "Revoke UID")
 
@@ -59,10 +61,12 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.tab_informations = InformationsTabWidget(self.app)
         self.tab_certifications = CertificationsTabWidget(self.app)
         self.tab_network = NetworkTabWidget(self.app)
+        self.tab_explorer = ExplorerTabWidget(self.app)
 
         self.action_publish_uid = QAction(self.tr(CommunityWidget._action_publish_uid_text), self)
         self.action_revoke_uid = QAction(self.tr(CommunityWidget._action_revoke_uid_text), self)
         self.action_showinfo = QAction(self.tr(CommunityWidget._action_showinfo_text), self)
+        self.action_explorer = QAction(self.tr(CommunityWidget._action_explore_text), self)
 
         super().setupUi(self)
 
@@ -93,6 +97,11 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         action_showinfo.triggered.connect(lambda : self.show_closable_tab(self.tab_informations,
                                     QIcon(":/icons/informations_icon"), self.tr("Informations")))
         self.toolbutton_menu.addAction(action_showinfo)
+
+        action_showexplorer = QAction(self.tr("Show explorer"), self.toolbutton_menu)
+        action_showexplorer.triggered.connect(lambda : self.show_closable_tab(self.tab_explorer,
+                                    QIcon(":/icons/explorer_icon"), self.tr("Explorer")))
+        self.toolbutton_menu.addAction(action_showexplorer)
 
         self.action_publish_uid.triggered.connect(self.publish_uid)
         self.toolbutton_menu.addAction(self.action_publish_uid)
@@ -127,6 +136,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.tab_identities.change_account(account, self.password_asker)
         self.tab_history.change_account(account, self.password_asker)
         self.tab_informations.change_account(account)
+        self.tab_explorer.change_account(account, self.password_asker)
 
     def change_community(self, community):
         self.cancel_once_tasks()
@@ -136,6 +146,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.tab_history.change_community(community)
         self.tab_identities.change_community(community)
         self.tab_informations.change_community(community)
+        self.tab_explorer.change_community(community)
 
         if self.community:
             self.community.network.new_block_mined.disconnect(self.refresh_block)

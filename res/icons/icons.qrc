@@ -28,6 +28,7 @@
     <file alias="settings_display_icon">noun_38960_cc.svg</file>
     <file alias="settings_app_icon">noun_42425_cc.svg</file>
     <file alias="settings_network_icon">noun_62146_cc.svg</file>
+    <file alias="explorer_icon">noun_101791_cc.svg</file>
     <file alias="connected">connected.svg</file>
     <file alias="weak_connect">weak_connect.svg</file>
     <file alias="disconnected">disconnected.svg</file>

@@ -29,6 +29,8 @@ class Arc(QGraphicsLineItem):
 
         self.setAcceptedMouseButtons(Qt.NoButton)
 
+        self.paint_pen = self.pen_from_status()
+
         #  cursor change on hover
         self.setAcceptHoverEvents(True)
         self.setZValue(0)
@@ -57,6 +59,21 @@ class Arc(QGraphicsLineItem):
             extra
         )
 
+    def pen_from_status(self):
+        """
+        Get a pen from current status
+        :return:
+        """
+        # Draw the line itself
+        color = QColor()
+        style = Qt.SolidLine
+        if self.status == ArcStatus.STRONG:
+            color.setNamedColor('blue')
+        if self.status == ArcStatus.WEAK:
+            color.setNamedColor('salmon')
+            style = Qt.DashLine
+        return QPen(color, 1, style, Qt.RoundCap, Qt.RoundJoin)
+
     def paint(self, painter, option, widget):
         """
         Customize line adding an arrow head
@@ -71,18 +88,9 @@ class Arc(QGraphicsLineItem):
         if qFuzzyCompare(line.length(), 0):
             return
 
-        # Draw the line itself
-        color = QColor()
-        style = Qt.SolidLine
-        if self.status == ArcStatus.STRONG:
-            color.setNamedColor('blue')
-        if self.status == ArcStatus.WEAK:
-            color.setNamedColor('salmon')
-            style = Qt.DashLine
-
-        painter.setPen(QPen(color, 1, style, Qt.RoundCap, Qt.RoundJoin))
+        painter.setPen(self.paint_pen)
         painter.drawLine(line)
-        painter.setPen(QPen(color, 1, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+        painter.setPen(QPen(self.paint_pen.color(), 1, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
 
         # Draw the arrows
         angle = math.acos(line.dx() / line.length())
@@ -94,7 +102,7 @@ class Arc(QGraphicsLineItem):
         hpy = line.p1().y() + (line.dy() / 2.0)
         head_point = QPointF(hpx, hpy)
 
-        painter.setPen(QPen(color, 1, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+        painter.setPen(QPen(self.paint_pen.color(), 1, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
         destination_arrow_p1 = head_point + QPointF(
             math.sin(angle - math.pi / 3) * self.arrow_size,
             math.cos(angle - math.pi / 3) * self.arrow_size)
@@ -102,7 +110,7 @@ class Arc(QGraphicsLineItem):
             math.sin(angle - math.pi + math.pi / 3) * self.arrow_size,
             math.cos(angle - math.pi + math.pi / 3) * self.arrow_size)
 
-        painter.setBrush(color)
+        painter.setBrush(self.paint_pen.color())
         painter.drawPolygon(QPolygonF([head_point, destination_arrow_p1, destination_arrow_p2]))
 
         if self.metadata["confirmation_text"]:
