@@ -1,4 +1,4 @@
 ucoinpy>=0.13
-git+https://github.com/Insoleet/quamash.git@fix_remove_after_closing
+quamash
 asynctest
 networkx
