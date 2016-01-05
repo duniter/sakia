@@ -29,6 +29,7 @@ class FrameCommunities(QFrame):
 
     def refresh(self, app):
         for t in self.tiles:
+            t.cancel_refresh()
             t.setParent(None)
         self.tiles = []
         if app.current_account:

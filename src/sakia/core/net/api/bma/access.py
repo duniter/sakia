@@ -279,8 +279,9 @@ class BmaAccess(QObject):
                 except jsonschema.ValidationError as e:
                     logging.debug(str(e))
                     tries += 1
-        else:
+        if len(nodes) == 0 or json_data is None:
             raise NoPeerAvailable("", len(nodes))
+        return json_data
 
     async def broadcast(self, request, req_args={}, post_args={}):
         """
