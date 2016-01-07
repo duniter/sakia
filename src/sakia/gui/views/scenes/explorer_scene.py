@@ -208,13 +208,6 @@ class ExplorerScene(BaseScene):
         self.edges.clear()
         self.identity = identity
         self.nx_graph = nx_graph
-        # Programs available : neato, twopi, circo, fdp,
-        # Nice programs : twopi
-        #try:
-        #    graph_pos = networkx.pygraphviz_layout(nx_graph, prog="twopi")
-        #except OSError:
-        #    logging.debug("Twopi not found, fallback mode...")
-        #    graph_pos = networkx.spring_layout(nx_graph, scale=len(nx_graph.nodes())*12)
 
         graph_pos = ExplorerScene.twopi_layout(nx_graph, dist_max)
         if len(nx_graph.nodes()) > 0:
