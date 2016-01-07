@@ -28,8 +28,3 @@ class TestAccount(unittest.TestCase, QuamashTest):
         self.assertEqual(account.pubkey, account_from_json.pubkey)
         self.assertEqual(len(account.communities), len(account_from_json.communities))
         self.assertEqual(len(account.wallets), len(account.wallets))
-
-if __name__ == '__main__':
-    logging.basicConfig(stream=sys.stderr)
-    logging.getLogger().setLevel(logging.DEBUG)
-    unittest.main()

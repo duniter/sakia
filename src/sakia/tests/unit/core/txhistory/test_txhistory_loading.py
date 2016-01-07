@@ -61,8 +61,3 @@ class TestTxHistory(unittest.TestCase, QuamashTest):
         dividends_value = sum([ud['amount'] for ud in self.wallet.dividends(self.community)])
         self.assertEqual(dividends_value, 15)
         mock.delete_mock()
-
-if __name__ == '__main__':
-    logging.basicConfig(stream=sys.stderr)
-    logging.getLogger().setLevel(logging.DEBUG)
-    unittest.main()

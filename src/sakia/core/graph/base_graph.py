@@ -4,7 +4,7 @@ import networkx
 from PyQt5.QtCore import QLocale, QDateTime, QObject
 from sakia.tools.exceptions import NoPeerAvailable
 from sakia.core.net.network import MAX_CONFIRMATIONS
-from .constants import ArcStatus, NodeStatus
+from .constants import EdgeStatus, NodeStatus
 
 
 class BaseGraph(QObject):
@@ -35,9 +35,9 @@ class BaseGraph(QObject):
         # display validity status
         ts = time.time()
         if (time.time() - cert_time) > arc_strong:
-            return ArcStatus.WEAK
+            return EdgeStatus.WEAK
         else:
-            return ArcStatus.STRONG
+            return EdgeStatus.STRONG
 
     async def node_status(self, node_identity, account_identity):
         """
@@ -159,7 +159,7 @@ class BaseGraph(QObject):
         Add identity as a new node in graph
         :param identity identity: identity instance
         :param int status:  Optional, default=None, Node status (see sakia.gui.views.wot)
-        :param list arcs:  Optional, default=None, List of arcs (certified by identity)
+        :param list edges:  Optional, default=None, List of edges (certified by identity)
         :param list connected:  Optional, default=None, Public key list of the connected nodes around the identity
         :return:
         """

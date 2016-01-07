@@ -44,8 +44,3 @@ class TestBmaAccess(unittest.TestCase, QuamashTest):
 
     def test_filter_nodes(self):
         pass#TODO
-
-if __name__ == '__main__':
-    logging.basicConfig(stream=sys.stderr)
-    logging.getLogger().setLevel(logging.DEBUG)
-    unittest.main()

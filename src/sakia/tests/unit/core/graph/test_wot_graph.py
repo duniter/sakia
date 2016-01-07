@@ -5,7 +5,7 @@ from asynctest.mock import Mock, CoroutineMock, patch
 from PyQt5.QtCore import QLocale
 from sakia.tests import QuamashTest
 from sakia.core.graph import WoTGraph
-from sakia.core.graph.constants import ArcStatus, NodeStatus
+from sakia.core.graph.constants import EdgeStatus, NodeStatus
 
 
 class TestWotGraph(unittest.TestCase, QuamashTest):

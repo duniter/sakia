@@ -25,9 +25,3 @@ class TestCommunity(unittest.TestCase, QuamashTest):
         community_from_json = Community.load(json_data)
         self.assertEqual(community.name, community_from_json.name)
         self.assertEqual(len(community.network._nodes), len(community_from_json.network._nodes))
-
-
-if __name__ == '__main__':
-    logging.basicConfig(stream=sys.stderr)
-    logging.getLogger().setLevel(logging.DEBUG)
-    unittest.main()

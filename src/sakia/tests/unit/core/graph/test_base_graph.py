@@ -5,7 +5,7 @@ from asynctest.mock import Mock, CoroutineMock, patch
 from PyQt5.QtCore import QLocale
 from sakia.tests import QuamashTest
 from sakia.core.graph import BaseGraph
-from sakia.core.graph.constants import ArcStatus, NodeStatus
+from sakia.core.graph.constants import EdgeStatus, NodeStatus
 
 
 class TestBaseGraph(unittest.TestCase, QuamashTest):
@@ -40,9 +40,9 @@ class TestBaseGraph(unittest.TestCase, QuamashTest):
         base_graph = BaseGraph(app, community)
 
         async def exec_test():
-            self.assertEquals((await base_graph.arc_status(48000)), ArcStatus.WEAK)
-            self.assertEquals((await base_graph.arc_status(49500)), ArcStatus.STRONG)
-            self.assertEquals((await base_graph.arc_status(49200)), ArcStatus.WEAK)
+            self.assertEquals((await base_graph.arc_status(48000)), EdgeStatus.WEAK)
+            self.assertEquals((await base_graph.arc_status(49500)), EdgeStatus.STRONG)
+            self.assertEquals((await base_graph.arc_status(49200)), EdgeStatus.WEAK)
 
         self.lp.run_until_complete(exec_test())
 
@@ -135,12 +135,12 @@ class TestBaseGraph(unittest.TestCase, QuamashTest):
 
             arc_from_first = [e for e in edges if e[0] == self.first_identity.pubkey][0]
             self.assertEqual(arc_from_first[1], self.account_identity.pubkey)
-            self.assertEqual(arc_from_first[2]['status'], ArcStatus.WEAK)
+            self.assertEqual(arc_from_first[2]['status'], EdgeStatus.WEAK)
             self.assertEqual(arc_from_first[2]['cert_time'], certifications[0]['cert_time'])
 
             arc_from_second = [e for e in edges if e[0] == self.second_identity.pubkey][0]
             self.assertEqual(arc_from_second[1], self.account_identity.pubkey)
-            self.assertEqual(arc_from_second[2]['status'], ArcStatus.STRONG)
+            self.assertEqual(arc_from_second[2]['status'], EdgeStatus.STRONG)
             self.assertEqual(arc_from_second[2]['cert_time'], certifications[1]['cert_time'])
 
         self.lp.run_until_complete(exec_test())
@@ -200,8 +200,3 @@ class TestBaseGraph(unittest.TestCase, QuamashTest):
         self.assertEqual(account_node[1]['status'], NodeStatus.HIGHLIGHTED)
         self.assertEqual(account_node[1]['text'], self.account_identity.uid)
         self.assertEqual(account_node[1]['tooltip'], self.account_identity.pubkey)
-
-if __name__ == '__main__':
-    logging.basicConfig(stream=sys.stderr)
-    logging.getLogger().setLevel(logging.DEBUG)
-    unittest.main()

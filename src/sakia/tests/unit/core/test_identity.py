@@ -88,8 +88,3 @@ class TestIdentity(unittest.TestCase, QuamashTest):
 
         self.lp.run_until_complete(exec_test())
 
-
-if __name__ == '__main__':
-    logging.basicConfig(stream=sys.stderr)
-    logging.getLogger().setLevel(logging.DEBUG)
-    unittest.main()
