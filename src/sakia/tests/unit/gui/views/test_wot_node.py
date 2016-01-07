@@ -74,7 +74,7 @@ class TestWotNode(unittest.TestCase, QuamashTest):
             bounding_rect = node.boundingRect()
             self.assertAlmostEqual(bounding_rect.x(), -0.5)
             self.assertAlmostEqual(bounding_rect.y(), -0.5)
-            self.assertAlmostEqual(bounding_rect.width(), 19.59375)
+            self.assertAlmostEqual(bounding_rect.width(), 19.59375, delta=5)
             self.assertAlmostEqual(bounding_rect.height(), 37.0)
 
         self.lp.run_until_complete(exec_test())
