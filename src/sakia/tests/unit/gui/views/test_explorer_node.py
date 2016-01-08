@@ -75,6 +75,6 @@ class TestExplorerNode(unittest.TestCase, QuamashTest):
             self.assertAlmostEqual(bounding_rect.x(), -0.5, delta=1)
             self.assertAlmostEqual(bounding_rect.y(), -0.5, delta=1)
             self.assertAlmostEqual(bounding_rect.width(), 19.59375, delta=5)
-            self.assertAlmostEqual(bounding_rect.height())
+            self.assertAlmostEqual(bounding_rect.height(), 37.0, delta=5)
 
         self.lp.run_until_complete(exec_test())
