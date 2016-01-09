@@ -1,9 +1,10 @@
 from PyQt5.QtWidgets import QGraphicsSimpleTextItem
-from PyQt5.QtCore import Qt, QPointF, QTimeLine, pyqtSignal, QObject
+from PyQt5.QtCore import Qt, QPointF, QTimeLine, QTimer
 from PyQt5.QtGui import QTransform, QColor, QPen, QBrush, QRadialGradient
 from ....core.graph.constants import NodeStatus
 from .base_node import BaseNode
 import logging
+import math
 
 
 class ExplorerNode(BaseNode):
@@ -46,6 +47,9 @@ class ExplorerNode(BaseNode):
 
         # animation and moves
         self.timeline = None
+        self.loading_timer = QTimer()
+        self.loading_timer.timeout.connect(self.next_tick)
+        self.loading_counter = 0
         self._refresh_colors()
         self.setPos(center_pos)
         self.move_to(nx_pos)
@@ -83,6 +87,7 @@ class ExplorerNode(BaseNode):
                      60 + 170 / self.steps_max * self.steps)
         if self.highlighted:
             color = color.darker(200)
+        color = color.lighter(math.fabs(math.sin(self.loading_counter / 100 * math.pi) * 100) + 100)
         gradient.setColorAt(0, color)
         gradient.setColorAt(1, color.darker(150))
         self.setBrush(QBrush(gradient))
@@ -133,3 +138,30 @@ class ExplorerNode(BaseNode):
         self.highlighted = False
         self._refresh_colors()
         self.update(self.boundingRect())
+
+    def start_loading_animation(self):
+        """
+        Neutralize the edge in the scene
+        """
+        if not self.loading_timer.isActive():
+            self.loading_timer.start(10)
+
+    def stop_loading_animation(self):
+        """
+        Neutralize the edge in the scene
+        """
+        self.loading_timer.stop()
+        self.loading_counter = 100
+        self._refresh_colors()
+        self.update(self.boundingRect())
+
+    def next_tick(self):
+        """
+        Next tick
+        :return:
+        """
+        self.loading_counter += 1
+        self.loading_counter %= 100
+        self._refresh_colors()
+        self.update(self.boundingRect())
+

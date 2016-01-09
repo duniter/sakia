@@ -51,6 +51,7 @@ class ExplorerTabWidget(GraphTabWidget, Ui_ExplorerTabWidget):
             self.graph.stop_exploration()
         self.graph = ExplorerGraph(self.app, self.community)
         self.graph.graph_changed.connect(self.refresh)
+        self.graph.current_identity_changed.connect(self.graphicsView.scene().update_current_identity)
         self.reset()
 
     def go_clicked(self):

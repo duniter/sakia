@@ -9,6 +9,7 @@ from sakia.core.graph.constants import EdgeStatus, NodeStatus
 class ExplorerGraph(BaseGraph):
 
     graph_changed = pyqtSignal()
+    current_identity_changed = pyqtSignal(str)
 
     def __init__(self, app, community, nx_graph=None):
         """
@@ -70,6 +71,7 @@ class ExplorerGraph(BaseGraph):
             while len(explorable[step]) > 0:
                 # for each pubkey connected...
                 if current_identity not in explored:
+                    self.current_identity_changed.emit(current_identity.pubkey)
                     self.add_identity(current_identity, NodeStatus.NEUTRAL)
                     logging.debug("New identity explored : {pubkey}".format(pubkey=current_identity.pubkey[:5]))
                     self.graph_changed.emit()
@@ -94,3 +96,4 @@ class ExplorerGraph(BaseGraph):
                     logging.debug("New identity explored : {pubkey}".format(pubkey=current_identity.pubkey[:5]))
                     self.graph_changed.emit()
                 current_identity = explorable[step].pop()
+        self.current_identity_changed.emit("")

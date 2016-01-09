@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import QGraphicsScene
 
 from ..edges import ExplorerEdge
 from ..nodes import ExplorerNode
+from ..busy import Busy
 
 from .base_scene import BaseScene
 
@@ -35,6 +36,7 @@ class ExplorerScene(BaseScene):
         # list of nodes in scene
         self.nodes = dict()
         self.edges = dict()
+        self.busy = None
         self.nx_graph = None
         self.identity = None
         #  axis of the scene for debug purpose
@@ -109,7 +111,6 @@ class ExplorerScene(BaseScene):
         :param networkx.MultiGraph nx_graph: the graph
         :param dict data:
         """
-        logging.debug("Subtree size")
         for node in nx_graph.nodes():
             if data[node]['nchild'] > 0:
                 continue
@@ -127,7 +128,6 @@ class ExplorerScene(BaseScene):
         :param dict data: the data of the layout
         :param str current: the current node which we compute the subtree
         """
-        logging.debug("Subtree span of {0}".format(current))
         ratio = data[current]['span'] / data[current]['stsize']
         for edge in nx_graph.edges(current):
             next_node = edge[0] if edge[0] != current else edge[1]
@@ -148,7 +148,6 @@ class ExplorerScene(BaseScene):
         :param dict data: the data of the layout
         :param str current: the current node which we compute the subtree
         """
-        logging.debug("Positions of {0}".format(current))
         if not data[current]['sparent']:
             theta = 0
         else:
@@ -212,6 +211,18 @@ class ExplorerScene(BaseScene):
         self.nodes.clear()
         self.edges.clear()
         super().clear()
+
+    def update_current_identity(self, identity_pubkey):
+        """
+        Update the current identity loaded
+
+        :param str identity_pubkey:
+        """
+        for node in self.nodes.values():
+            node.stop_loading_animation()
+
+        if identity_pubkey in self.nodes:
+            self.nodes[identity_pubkey].start_loading_animation()
 
     def update_wot(self, nx_graph, identity, dist_max):
         """
