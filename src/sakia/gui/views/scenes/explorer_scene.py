@@ -42,7 +42,7 @@ class ExplorerScene(BaseScene):
     def _init_layout(nx_graph):
         """
         Init the data of the layout
-        :param MultiDiGraph nx_graph:
+        :param MultiGraph nx_graph:
         """
         data = {}
         INF = len(nx_graph.nodes()) * len(nx_graph.nodes())
@@ -62,7 +62,7 @@ class ExplorerScene(BaseScene):
     def _set_nstep_to_center(nx_graph, data, current):
         """
         Set the number of steps to the center
-        :param networkx.MultiDiGraph nx_graph: the graph
+        :param networkx.MultiGraph nx_graph: the graph
         :param dict data: the data of the layout
         """
         queue = [current]
@@ -83,7 +83,7 @@ class ExplorerScene(BaseScene):
     def _set_parent_nodes(nx_graph, data, center):
         """
         Set the parent of each node
-        :param networkx.MultiDiGraph nx_graph: the graph
+        :param networkx.MultiGraph nx_graph: the graph
         :param dict data: the data of the layout
         :param str center: the id of the node at the center
         """
@@ -101,8 +101,9 @@ class ExplorerScene(BaseScene):
     @staticmethod
     def _set_subtree_size(nx_graph, data):
         """
-        Compute the subtree size of each node
-        :param networkx.MultiDiGraph nx_graph: the graph
+        Compute the subtree size of each node, which is the
+        number of leaves in subtree rooted to the node
+        :param networkx.MultiGraph nx_graph: the graph
         :param dict data:
         """
         logging.debug("Subtree size")
@@ -119,7 +120,7 @@ class ExplorerScene(BaseScene):
     def _set_subtree_spans(nx_graph, data, current):
         """
         Compute the subtree spans of each node
-        :param networkx.MultiDiGraph nx_graph: the graph
+        :param networkx.MultiGraph nx_graph: the graph
         :param dict data: the data of the layout
         :param str current: the current node which we compute the subtree
         """
@@ -163,11 +164,13 @@ class ExplorerScene(BaseScene):
                 ExplorerScene._set_positions(nx_graph, data, next_node)
 
     @staticmethod
-    def twopi_layout(nx_graph, dist_max):
+    def twopi_layout(nx_graph, center=None):
         """
+        Render the twopi layout. Ported from C code available at
+        https://github.com/ellson/graphviz/blob/master/lib/twopigen/circle.c
 
-        :param networkx.MultiDiGraph nx_graph:
-        :param center:
+        :param networkx.MultiDiGraph nx_graph: the networkx graph
+        :param str center: the centered node
         :return:
         """
         if len(nx_graph.nodes()) == 0:
@@ -178,7 +181,8 @@ class ExplorerScene(BaseScene):
         nx_graph = nx_graph.to_undirected()
 
         data = ExplorerScene._init_layout(nx_graph)
-        center = networkx.center(nx_graph.to_undirected())[0]
+        if not center:
+            center = networkx.center(nx_graph)[0]
         ExplorerScene._set_parent_nodes(nx_graph, data, center)
         ExplorerScene._set_subtree_size(nx_graph, data)
         data[center]['span'] = 2 * math.pi
@@ -188,10 +192,10 @@ class ExplorerScene(BaseScene):
 
         distances = networkx.shortest_path_length(nx_graph, center)
         nx_pos = {}
-        for node in nx_graph.nodes(data=True):
-            hyp = distances[node[0]] + 1
-            theta = data[node[0]]['theta']
-            nx_pos[node[0]] = (hyp * math.cos(theta) * 50, hyp * math.sin(theta) * 50)
+        for node in nx_graph.nodes():
+            hyp = distances[node] + 1
+            theta = data[node]['theta']
+            nx_pos[node] = (hyp * math.cos(theta) * 50, hyp * math.sin(theta) * 50)
         return nx_pos
 
     def update_wot(self, nx_graph, identity, dist_max):
@@ -209,17 +213,17 @@ class ExplorerScene(BaseScene):
         self.identity = identity
         self.nx_graph = nx_graph
 
-        graph_pos = ExplorerScene.twopi_layout(nx_graph, dist_max)
+        graph_pos = ExplorerScene.twopi_layout(nx_graph, center=identity.pubkey)
         if len(nx_graph.nodes()) > 0:
             distances = networkx.shortest_path_length(nx_graph.to_undirected(), identity.pubkey)
         else:
             distances = {}
 
         # create networkx graph
-        for node in nx_graph.nodes(data=True):
-            v = ExplorerNode(node, graph_pos, distances[node[0]], dist_max)
+        for nx_node in nx_graph.nodes(data=True):
+            v = ExplorerNode(nx_node, graph_pos, distances[nx_node[0]], dist_max)
             self.addItem(v)
-            self.nodes[node[0]] = v
+            self.nodes[nx_node[0]] = v
 
         for edge in nx_graph.edges(data=True):
             edge[2]["confirmation_text"] = ""
