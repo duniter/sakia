@@ -42,8 +42,14 @@ class Relative():
         value = yield from self.value()
         return value
 
-    def _to_si(self, value):
+    @staticmethod
+    def to_si(value, digits):
         prefixes = ['', 'd', 'c', 'm', 'µ', 'n', 'p', 'f', 'a', 'z', 'y']
+        if value < 0:
+            value = -value
+            multiplier = -1
+        else:
+            multiplier = 1
         scientific_value = value
         prefix_index = 0
         prefix = ""
@@ -57,11 +63,9 @@ class Relative():
 
         if prefix_index < len(prefixes):
             prefix = prefixes[prefix_index]
-            localized_value = QLocale().toString(float(scientific_value), 'f',
-                                                 self.app.preferences['digits_after_comma'])
+            localized_value = QLocale().toString(float(scientific_value * multiplier), 'f', digits)
         else:
-            localized_value = QLocale().toString(float(value), 'f',
-                                                 self.app.preferences['digits_after_comma'])
+            localized_value = QLocale().toString(float(value * multiplier), 'f', digits)
 
         return localized_value, prefix
 
@@ -70,7 +74,7 @@ class Relative():
         value = yield from self.value()
         prefix = ""
         if international_system:
-            localized_value, prefix = self._to_si(value)
+            localized_value, prefix = Relative.to_si(value, self.app.preferences['digits_after_comma'])
         else:
             localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
 
@@ -87,7 +91,7 @@ class Relative():
         value = yield from self.differential()
         prefix = ""
         if international_system and value != 0:
-            localized_value, prefix = self._to_si(value)
+            localized_value, prefix = Relative.to_si(value, self.app.preferences['digits_after_comma'])
         else:
             localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
 

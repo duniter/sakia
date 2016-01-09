@@ -33,13 +33,13 @@ class QuantitativeZSum:
         :param sakia.core.community.Community community: Community instance
         :return: int
         """
-        ud_block = yield from self.community.get_ud_block()
-        if ud_block and ud_block['membersCount'] > 0:
+        current = yield from self.community.get_block()
+        if current and current['membersCount'] > 0:
             monetary_mass = yield from self.community.monetary_mass()
-            average = monetary_mass / ud_block['membersCount']
+            average = monetary_mass / current['membersCount']
         else:
             average = 0
-        return self.amount - average
+        return self.amount - monetary_mass
 
     @asyncio.coroutine
     def differential(self):
@@ -50,7 +50,11 @@ class QuantitativeZSum:
     def localized(self, units=False, international_system=False):
         value = yield from self.value()
 
-        localized_value = QLocale().toString(float(value), 'f', 0)
+        prefix = ""
+        if international_system:
+            localized_value, prefix = Quantitative.to_si(value, self.app.preferences['digits_after_comma'])
+        else:
+            localized_value = QLocale().toString(float(value), 'f', 0)
 
         if units:
             return QCoreApplication.translate("QuantitativeZSum",
