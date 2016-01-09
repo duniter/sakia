@@ -74,6 +74,7 @@ class ExplorerTabWidget(GraphTabWidget, Ui_ExplorerTabWidget):
             self.graph.start_exploration(identity, self.steps_slider.value())
 
             # draw graph in qt scene
+            self.graphicsView.scene().clear()
             self.graphicsView.scene().update_wot(self.graph.nx_graph, identity, self.steps_slider.maximum())
 
     def refresh(self):

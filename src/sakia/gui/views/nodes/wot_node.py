@@ -45,7 +45,6 @@ class WotNode(BaseNode):
         #  set anchor to the center
         self.setTransform(
             QTransform().translate(-self.boundingRect().width() / 2.0, -self.boundingRect().height() / 2.0))
-        self.setPos(self.x, self.y)
         # center text in ellipse
         self.text_item.setPos(self.boundingRect().width() / 4.0, self.boundingRect().height() / 4.0)
 

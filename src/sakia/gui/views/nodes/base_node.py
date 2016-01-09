@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QGraphicsEllipseItem, \
     QMenu, QAction, QGraphicsSceneHoverEvent, \
     QGraphicsSceneContextMenuEvent
-from PyQt5.QtCore import Qt, QCoreApplication, QT_TRANSLATE_NOOP
+from PyQt5.QtCore import Qt, QCoreApplication, QT_TRANSLATE_NOOP, pyqtSignal
 from PyQt5.QtGui import QMouseEvent
 from sakia.core.graph.constants import NodeStatus
 
@@ -20,7 +20,8 @@ class BaseNode(QGraphicsEllipseItem):
         self.metadata = nx_node[1]
         self.id = nx_node[0]
         # unpack tuple
-        self.x, self.y = pos[nx_node[0]]
+        x, y = pos[nx_node[0]]
+        self.setPos(x, y)
         self.status_wallet = self.metadata['status'] & NodeStatus.HIGHLIGHTED
         self.status_member = not self.metadata['status'] & NodeStatus.OUT
         self.text = self.metadata['text']

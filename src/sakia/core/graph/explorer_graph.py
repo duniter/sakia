@@ -34,6 +34,7 @@ class ExplorerGraph(BaseGraph):
                 self.exploration_task.cancel()
             else:
                 return
+        self.nx_graph.clear()
         self.explored_identity = identity
         self.steps = steps
         self.exploration_task = asyncio.ensure_future(self._explore(identity, steps))

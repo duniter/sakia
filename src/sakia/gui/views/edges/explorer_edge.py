@@ -1,5 +1,5 @@
 from PyQt5.QtCore import Qt, QRectF, QLineF, QPointF, QSizeF, \
-                        qFuzzyCompare
+                        qFuzzyCompare, QTimeLine
 from PyQt5.QtGui import QColor, QPen, QPolygonF
 import math
 from .base_edge import BaseEdge
@@ -20,6 +20,7 @@ class ExplorerEdge(BaseEdge):
         """
         super().__init__(source_node, destination_node, metadata, nx_pos)
 
+        self.source_point = self.destination_point
         self.steps = steps
         self.steps_max = steps_max
         self.highlighted = False
@@ -32,6 +33,7 @@ class ExplorerEdge(BaseEdge):
             EdgeStatus.STRONG: Qt.SolidLine,
             EdgeStatus.WEAK: Qt.DashLine
         }
+        self.timeline = None
 
     @property
     def line_style(self):
@@ -112,6 +114,30 @@ class ExplorerEdge(BaseEdge):
 
         if self.metadata["confirmation_text"]:
             painter.drawText(head_point, self.metadata["confirmation_text"])
+
+    def move_source_point(self, node_id, x, y):
+        """
+        Move to corresponding position
+        :param str node_id: the node id
+        :param float x: x coordinates
+        :param float y: y coordinates
+        :return:
+        """
+        if node_id == self.source:
+            self.source_point = QPointF(x, y)
+            self.update(self.boundingRect())
+
+    def move_destination_point(self, node_id, x, y):
+        """
+        Move to corresponding position
+        :param str node_id: the node id
+        :param float x: x coordinates
+        :param float y: y coordinates
+        :return:
+        """
+        if node_id == self.destination:
+            self.destination_point = QPointF(x, y)
+            self.update(self.boundingRect())
 
     def highlight(self):
         """

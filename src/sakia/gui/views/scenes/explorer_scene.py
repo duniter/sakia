@@ -11,6 +11,9 @@ from .base_scene import BaseScene
 
 
 class ExplorerScene(BaseScene):
+
+    node_moved = pyqtSignal(str, float, float)
+
     def __init__(self, parent=None):
         """
         Create scene of the graph
@@ -198,6 +201,18 @@ class ExplorerScene(BaseScene):
             nx_pos[node] = (hyp * math.cos(theta) * 100, hyp * math.sin(theta) * 100)
         return nx_pos
 
+    def clear(self):
+        """
+        clear the scene
+        """
+        for node in self.nodes.values():
+            if node.timeline:
+                node.timeline.stop()
+
+        self.nodes.clear()
+        self.edges.clear()
+        super().clear()
+
     def update_wot(self, nx_graph, identity, dist_max):
         """
         draw community graph
@@ -207,11 +222,8 @@ class ExplorerScene(BaseScene):
         :param dist_max: the dist_max to display
         """
         #  clear scene
-        self.clear()
-        self.nodes.clear()
-        self.edges.clear()
         self.identity = identity
-        self.nx_graph = nx_graph
+        self.nx_graph = nx_graph.copy()
 
         graph_pos = ExplorerScene.twopi_layout(nx_graph, center=identity.pubkey)
         if len(nx_graph.nodes()) > 0:
@@ -221,35 +233,58 @@ class ExplorerScene(BaseScene):
 
         # create networkx graph
         for nx_node in nx_graph.nodes(data=True):
-            v = ExplorerNode(nx_node, graph_pos, distances[nx_node[0]], dist_max)
-            self.addItem(v)
-            self.nodes[nx_node[0]] = v
+            if nx_node[0] in self.nodes:
+                v = self.nodes[nx_node[0]]
+                v.move_to(graph_pos)
+            else:
+                center_pos = None
+                if len(nx_graph.edges(nx_node[0])) > 0:
+                    for edge in nx_graph.edges(nx_node[0]):
+                        neighbour = edge[0] if edge[0] != nx_node[0] else edge[1]
+                        if neighbour in self.nodes:
+                            center_pos = self.nodes[neighbour].pos()
+                            break
+                if not center_pos:
+                    if identity.pubkey in self.nodes:
+                        center_pos = self.nodes[identity.pubkey].pos()
+                    else:
+                        center_pos = QPoint(0, 0)
+
+                v = ExplorerNode(nx_node, center_pos, graph_pos, distances[nx_node[0]], dist_max)
+                self.addItem(v)
+                self.nodes[nx_node[0]] = v
 
         for edge in nx_graph.edges(data=True):
             edge[2]["confirmation_text"] = ""
-            distance = max(self.nodes[edge[0]].steps, self.nodes[edge[1]].steps)
-            explorer_edge = ExplorerEdge(edge[0], edge[1], edge[2], graph_pos, distance, dist_max)
-            self.addItem(explorer_edge)
-            self.edges[(edge[0], edge[1])] = explorer_edge
+            if (edge[0], edge[1]) not in self.edges and (edge[1], edge[0]) not in self.edges:
+                distance = max(self.nodes[edge[0]].steps, self.nodes[edge[1]].steps)
+                explorer_edge = ExplorerEdge(edge[0], edge[1], edge[2], graph_pos, distance, dist_max)
+                self.node_moved.connect(explorer_edge.move_source_point)
+                self.node_moved.connect(explorer_edge.move_destination_point)
+                self.addItem(explorer_edge)
+                self.edges[(edge[0], edge[1])] = explorer_edge
 
         self.update()
 
     def display_path_to(self, node_id):
         if node_id != self.identity.pubkey:
-            path = networkx.shortest_path(self.nx_graph.to_undirected(), self.identity.pubkey, node_id)
             for edge in self.edges.values():
                 edge.neutralize()
 
             for node in self.nodes.values():
                 node.neutralize()
+            try:
+                path = networkx.shortest_path(self.nx_graph.to_undirected(), self.identity.pubkey, node_id)
 
-            for node, next_node in zip(path[:-1], path[1:]):
-                if (node, next_node) in self.edges:
-                    edge = self.edges[(node, next_node)]
-                elif (next_node, node) in self.edges:
-                    edge = self.edges[(next_node, node)]
-                if edge:
-                    edge.highlight()
-                    self.nodes[node].highlight()
-                    self.nodes[next_node].highlight()
-                    logging.debug("Update edge between {0} and {1}".format(node, next_node))
+                for node, next_node in zip(path[:-1], path[1:]):
+                    if (node, next_node) in self.edges:
+                        edge = self.edges[(node, next_node)]
+                    elif (next_node, node) in self.edges:
+                        edge = self.edges[(next_node, node)]
+                    if edge:
+                        edge.highlight()
+                        self.nodes[node].highlight()
+                        self.nodes[next_node].highlight()
+                        logging.debug("Update edge between {0} and {1}".format(node, next_node))
+            except (networkx.exception.NetworkXError, networkx.exception.NetworkXNoPath) as e:
+                logging.debug(str(e))
