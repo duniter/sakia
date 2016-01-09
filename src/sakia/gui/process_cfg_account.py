@@ -13,6 +13,8 @@ from ..models.communities import CommunitiesListModel
 from ..tools.exceptions import KeyAlreadyUsed, Error, NoPeerAvailable
 
 from PyQt5.QtWidgets import QDialog, QMessageBox
+from PyQt5.QtCore import QRegExp
+from PyQt5.QtGui import QRegExpValidator
 
 
 class Step():
@@ -144,6 +146,9 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         # Set up the user interface from Designer.
         super().__init__()
         self.setupUi(self)
+        regexp = QRegExp('^([ a-zA-Z0-9-_:/;*?\[\]\(\)\\\?!^+=@&~#{}|<>%.]{0,255})$')
+        validator = QRegExpValidator(regexp)
+        self.edit_account_name.setValidator(validator)
         self.account = account
         self.password_asker = None
         self.app = app
