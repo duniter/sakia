@@ -68,9 +68,9 @@ class TestWotEdge(unittest.TestCase, QuamashTest):
         async def exec_test():
             edge = WotEdge("A", "B", metadata, nx_pos)
             bounding_rect = edge.boundingRect()
-            self.assertAlmostEqual(bounding_rect.x(), -3.0)
-            self.assertAlmostEqual(bounding_rect.y(), 2.0)
-            self.assertAlmostEqual(bounding_rect.width(), 16.0)
-            self.assertAlmostEqual(bounding_rect.height(), 21.0)
+            self.assertAlmostEqual(bounding_rect.x(), -3.0, delta=5)
+            self.assertAlmostEqual(bounding_rect.y(), 2.0, delta=5)
+            self.assertAlmostEqual(bounding_rect.width(), 16.0, delta=5)
+            self.assertAlmostEqual(bounding_rect.height(), 21.0, delta=5)
 
         self.lp.run_until_complete(exec_test())

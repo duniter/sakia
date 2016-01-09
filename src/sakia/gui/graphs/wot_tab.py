@@ -1,22 +1,17 @@
 import logging
 import asyncio
 
-from PyQt5.QtWidgets import QComboBox
 from PyQt5.QtCore import QEvent, pyqtSignal, QT_TRANSLATE_NOOP
-from ucoinpy.api import bma
-
 from ...tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from ...core.graph import WoTGraph
 from ...gen_resources.wot_tab_uic import Ui_WotTabWidget
 from ...gui.widgets.busy import Busy
-from ...tools.exceptions import NoPeerAvailable
 from .graph_tab import GraphTabWidget
 
 
 class WotTabWidget(GraphTabWidget, Ui_WotTabWidget):
 
     money_sent = pyqtSignal()
-    _search_placeholder = QT_TRANSLATE_NOOP("WotTabWidget", "Research a pubkey, an uid...")
 
     def __init__(self, app):
         """
@@ -25,15 +20,7 @@ class WotTabWidget(GraphTabWidget, Ui_WotTabWidget):
         super().__init__(app)
         # construct from qtDesigner
         self.setupUi(self)
-
-        # Default text when combo lineEdit is empty
-        self.comboBoxSearch.lineEdit().setPlaceholderText(self.tr(WotTabWidget._search_placeholder))
-        #  add combobox events
-        self.comboBoxSearch.lineEdit().returnPressed.connect(self.search)
-        # To fix a recall of the same item with different case,
-        # the edited text is not added in the item list
-        self.comboBoxSearch.setInsertPolicy(QComboBox.NoInsert)
-
+        self.search_user_widget.init(app)
         self.busy = Busy(self.graphicsView)
         self.busy.hide()
 
@@ -45,8 +32,8 @@ class WotTabWidget(GraphTabWidget, Ui_WotTabWidget):
         self.app = app
         self.draw_task = None
 
-        # nodes list for menu from search
-        self.nodes = list()
+        self.search_user_widget.identity_selected.connect(self.draw_graph)
+        self.search_user_widget.reset.connect(self.reset)
 
         # create node metadata from account
         self._current_identity = None
@@ -58,11 +45,13 @@ class WotTabWidget(GraphTabWidget, Ui_WotTabWidget):
 
     def change_account(self, account, password_asker):
         self.cancel_once_tasks()
+        self.search_user_widget.change_account(account)
         self.account = account
         self.password_asker = password_asker
 
     def change_community(self, community):
         self.cancel_once_tasks()
+        self.search_user_widget.change_community(community)
         self._auto_refresh(community)
         self.community = community
         self.reset()
@@ -126,40 +115,6 @@ class WotTabWidget(GraphTabWidget, Ui_WotTabWidget):
             self.draw_graph(self._current_identity)
         else:
             self.reset()
-
-    @asyncify
-    async def search(self):
-        """
-        Search nodes when return is pressed in combobox lineEdit
-        """
-        text = self.comboBoxSearch.lineEdit().text()
-
-        if len(text) < 2:
-            return False
-        try:
-            response = await self.community.bma_access.future_request(bma.wot.Lookup, {'search': text})
-
-            nodes = {}
-            for identity in response['results']:
-                nodes[identity['pubkey']] = identity['uids'][0]['uid']
-
-            if nodes:
-                self.nodes = list()
-                self.comboBoxSearch.clear()
-                self.comboBoxSearch.lineEdit().setText(text)
-                for pubkey, uid in nodes.items():
-                    self.nodes.append({'pubkey': pubkey, 'uid': uid})
-                    self.comboBoxSearch.addItem(uid)
-                self.comboBoxSearch.showPopup()
-        except NoPeerAvailable:
-            pass
-
-    def retranslateUi(self, widget):
-        """
-        Retranslate missing widgets from generated code
-        """
-        self.comboBoxSearch.lineEdit().setPlaceholderText(self.tr(WotTabWidget._search_placeholder))
-        super().retranslateUi(self)
 
     def resizeEvent(self, event):
         self.busy.resize(event.size())

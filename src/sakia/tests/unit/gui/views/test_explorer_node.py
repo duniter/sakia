@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch
-from PyQt5.QtCore import QLocale
+from PyQt5.QtCore import QLocale, QPointF
 from PyQt5.QtGui import QPainter
 from PyQt5.QtWidgets import QStyleOptionGraphicsItem, QWidget
 from sakia.tests import QuamashTest
@@ -27,11 +27,11 @@ class TestExplorerNode(unittest.TestCase, QuamashTest):
             "B": (10, 20)
         }
         async def exec_test():
-            node = ExplorerNode(("A", metadata), nx_pos, 0, 1)
+            node = ExplorerNode(("A", metadata), QPointF(0, 0), nx_pos, 0, 1)
             self.assertEqual(node.id, "A")
             self.assertEqual(node.metadata['status'], NodeStatus.NEUTRAL)
-            self.assertEqual(node.x, 0)
-            self.assertEqual(node.y, 5)
+            self.assertEqual(node.x(), 0)
+            self.assertEqual(node.y(), 0)
             self.assertEqual(node.status_wallet, False)
             self.assertEqual(node.status_member, True)
             self.assertEqual(node.text, "UserA")
@@ -52,7 +52,7 @@ class TestExplorerNode(unittest.TestCase, QuamashTest):
             "B": (10, 20)
         }
         async def exec_test():
-            node = ExplorerNode(("A", metadata), nx_pos, 0, 1)
+            node = ExplorerNode(("A", metadata), QPointF(0, 0), nx_pos, 0, 1)
             node.paint(painter, QStyleOptionGraphicsItem(), widget)
 
         self.lp.run_until_complete(exec_test())
@@ -70,10 +70,10 @@ class TestExplorerNode(unittest.TestCase, QuamashTest):
             "B": (10, 20)
         }
         async def exec_test():
-            node = ExplorerNode(("A", metadata), nx_pos, 0, 1)
+            node = ExplorerNode(("A", metadata), QPointF(0, 0), nx_pos, 0, 1)
             bounding_rect = node.boundingRect()
-            self.assertAlmostEqual(bounding_rect.x(), -0.5, delta=1)
-            self.assertAlmostEqual(bounding_rect.y(), -0.5, delta=1)
+            self.assertAlmostEqual(bounding_rect.x(), -0.5, delta=5)
+            self.assertAlmostEqual(bounding_rect.y(), -0.5, delta=5)
             self.assertAlmostEqual(bounding_rect.width(), 19.59375, delta=5)
             self.assertAlmostEqual(bounding_rect.height(), 37.0, delta=5)
 

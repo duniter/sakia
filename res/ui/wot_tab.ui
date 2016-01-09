@@ -14,39 +14,15 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
-    <widget class="QComboBox" name="comboBoxSearch">
-     <property name="editable">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="1">
-    <widget class="QPushButton" name="pushButtonReset">
-     <property name="maximumSize">
-      <size>
-       <width>85</width>
-       <height>27</height>
-      </size>
-     </property>
-     <property name="toolTip">
-      <string>Center the view on me</string>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="icon">
-      <iconset resource="../icons/icons.qrc">
-       <normaloff>:/icons/home_icon</normaloff>:/icons/home_icon</iconset>
-     </property>
-    </widget>
-   </item>
    <item row="1" column="0" colspan="2">
     <widget class="WotView" name="graphicsView">
      <property name="viewportUpdateMode">
       <enum>QGraphicsView::BoundingRectViewportUpdate</enum>
      </property>
     </widget>
+   </item>
+   <item row="0" column="0" colspan="2">
+    <widget class="SearchUserWidget" name="search_user_widget" native="true"/>
    </item>
   </layout>
  </widget>
@@ -56,44 +32,17 @@
    <extends>QGraphicsView</extends>
    <header>sakia.gui.views.wot</header>
   </customwidget>
+  <customwidget>
+   <class>SearchUserWidget</class>
+   <extends>QWidget</extends>
+   <header>sakia.gui.widgets.search_user</header>
+   <container>1</container>
+  </customwidget>
  </customwidgets>
  <resources>
   <include location="../icons/icons.qrc"/>
  </resources>
- <connections>
-  <connection>
-   <sender>pushButtonReset</sender>
-   <signal>clicked()</signal>
-   <receiver>WotTabWidget</receiver>
-   <slot>reset()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>516</x>
-     <y>23</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>284</x>
-     <y>198</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>comboBoxSearch</sender>
-   <signal>currentIndexChanged(int)</signal>
-   <receiver>WotTabWidget</receiver>
-   <slot>select_node()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>215</x>
-     <y>22</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>260</x>
-     <y>220</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
  <slots>
   <slot>reset()</slot>
   <slot>search()</slot>

@@ -27,10 +27,10 @@ class TestExplorerEdge(unittest.TestCase, QuamashTest):
             edge = ExplorerEdge("A", "B", metadata, nx_pos, 0, 0)
             self.assertEqual(edge.source, "A")
             self.assertEqual(edge.destination, "B")
-            self.assertAlmostEqual(edge.destination_point.x(), 10.0)
-            self.assertAlmostEqual(edge.destination_point.y(), 20.0)
-            self.assertAlmostEqual(edge.source_point.x(), 0.0)
-            self.assertAlmostEqual(edge.source_point.y(), 5.0)
+            self.assertAlmostEqual(edge.destination_point.x(), 10.0, delta=5)
+            self.assertAlmostEqual(edge.destination_point.y(), 20.0, delta=5)
+            self.assertAlmostEqual(edge.source_point.x(), 10.0, delta=5)
+            self.assertAlmostEqual(edge.source_point.y(), 20.0, delta=5)
             self.assertEqual(edge.status, EdgeStatus.STRONG)
 
         self.lp.run_until_complete(exec_test())
@@ -68,9 +68,9 @@ class TestExplorerEdge(unittest.TestCase, QuamashTest):
         async def exec_test():
             edge = ExplorerEdge("A", "B", metadata, nx_pos, 0, 0)
             bounding_rect = edge.boundingRect()
-            self.assertAlmostEqual(bounding_rect.x(), -3.0)
-            self.assertAlmostEqual(bounding_rect.y(), 2.0)
-            self.assertAlmostEqual(bounding_rect.width(), 16.0)
-            self.assertAlmostEqual(bounding_rect.height(), 21.0)
+            self.assertAlmostEqual(bounding_rect.x(), 7.0, delta=5)
+            self.assertAlmostEqual(bounding_rect.y(), 17.0, delta=5)
+            self.assertAlmostEqual(bounding_rect.width(), 6.0, delta=5)
+            self.assertAlmostEqual(bounding_rect.height(), 6.0, delta=5)
 
         self.lp.run_until_complete(exec_test())

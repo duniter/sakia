@@ -147,24 +147,6 @@ class GraphTabWidget(QWidget):
         """
         pass
 
-    def select_node(self, index):
-        """
-        Select node in graph when item is selected in combobox
-        """
-        if index < 0 or index >= len(self.nodes):
-            return False
-        node = self.nodes[index]
-        metadata = {'id': node['pubkey'], 'text': node['uid']}
-        self.draw_graph(
-            self.app.identities_registry.from_handled_data(
-                metadata['text'],
-                metadata['id'],
-                None,
-                BlockchainState.VALIDATED,
-                self.community
-            )
-        )
-
     def identity_informations(self, pubkey, metadata):
         identity = self.app.identities_registry.from_handled_data(
             metadata['text'],

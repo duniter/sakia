@@ -33,8 +33,8 @@ class ExplorerGraph(BaseGraph):
         if self.exploration_task:
             if self.explored_identity is not identity or steps != self.steps:
                 self.exploration_task.cancel()
-            #else:
-            #    return
+            else:
+                return
         self.nx_graph.clear()
         self.explored_identity = identity
         self.steps = steps

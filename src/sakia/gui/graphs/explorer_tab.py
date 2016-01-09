@@ -2,7 +2,10 @@ import logging
 
 from PyQt5.QtCore import QEvent, pyqtSignal, QT_TRANSLATE_NOOP
 
+from ucoinpy.api import bma
+
 from ...tools.decorators import asyncify, once_at_a_time, cancel_once_task
+from ...tools.exceptions import NoPeerAvailable
 from ...core.graph import ExplorerGraph
 from .graph_tab import GraphTabWidget
 from ...gen_resources.explorer_tab_uic import Ui_ExplorerTabWidget
@@ -12,8 +15,6 @@ class ExplorerTabWidget(GraphTabWidget, Ui_ExplorerTabWidget):
 
     money_sent = pyqtSignal()
 
-    _search_placeholder = QT_TRANSLATE_NOOP("ExplorerTabWidget", "Research a pubkey, an uid...")
-
     def __init__(self, app):
         """
         :param sakia.core.app.Application app: Application instance
@@ -21,6 +22,8 @@ class ExplorerTabWidget(GraphTabWidget, Ui_ExplorerTabWidget):
         # construct from qtDesigner
         super().__init__(app)
         self.setupUi(self)
+        self.search_user_widget.init(app)
+
         self.set_scene(self.graphicsView.scene())
 
         self.account = None
@@ -36,12 +39,15 @@ class ExplorerTabWidget(GraphTabWidget, Ui_ExplorerTabWidget):
         # create node metadata from account
         self._current_identity = None
         self.button_go.clicked.connect(self.go_clicked)
+        self.search_user_widget.identity_selected.connect(self.draw_graph)
+        self.search_user_widget.reset.connect(self.reset)
 
     def cancel_once_tasks(self):
         cancel_once_task(self, self.refresh_informations_frame)
         cancel_once_task(self, self.reset)
 
     def change_account(self, account, password_asker):
+        self.search_user_widget.change_account(account)
         self.account = account
         self.password_asker = password_asker
 
@@ -51,6 +57,7 @@ class ExplorerTabWidget(GraphTabWidget, Ui_ExplorerTabWidget):
             self.graph.stop_exploration()
         self.graph = ExplorerGraph(self.app, self.community)
         self.graph.graph_changed.connect(self.refresh)
+        self.search_user_widget.change_community(community)
         self.graph.current_identity_changed.connect(self.graphicsView.scene().update_current_identity)
         self.reset()
 
