@@ -18,8 +18,6 @@ class ExplorerNode(BaseNode):
         """
         super().__init__(nx_node, pos)
 
-        self.x *= 2
-        self.y *= 2
         self.steps = steps
         self.steps_max = steps_max
         self.highlighted = False

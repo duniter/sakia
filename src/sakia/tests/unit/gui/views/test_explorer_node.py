@@ -31,7 +31,7 @@ class TestExplorerNode(unittest.TestCase, QuamashTest):
             self.assertEqual(node.id, "A")
             self.assertEqual(node.metadata['status'], NodeStatus.NEUTRAL)
             self.assertEqual(node.x, 0)
-            self.assertEqual(node.y, 10)
+            self.assertEqual(node.y, 5)
             self.assertEqual(node.status_wallet, False)
             self.assertEqual(node.status_member, True)
             self.assertEqual(node.text, "UserA")

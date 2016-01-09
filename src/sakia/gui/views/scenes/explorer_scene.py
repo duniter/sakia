@@ -195,7 +195,7 @@ class ExplorerScene(BaseScene):
         for node in nx_graph.nodes():
             hyp = distances[node] + 1
             theta = data[node]['theta']
-            nx_pos[node] = (hyp * math.cos(theta) * 50, hyp * math.sin(theta) * 50)
+            nx_pos[node] = (hyp * math.cos(theta) * 100, hyp * math.sin(theta) * 100)
         return nx_pos
 
     def update_wot(self, nx_graph, identity, dist_max):

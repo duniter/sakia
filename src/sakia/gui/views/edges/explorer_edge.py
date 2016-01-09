@@ -24,8 +24,6 @@ class ExplorerEdge(BaseEdge):
         self.steps_max = steps_max
         self.highlighted = False
 
-        self.source_point *= 2
-        self.destination_point *= 2
         self.arrow_size = 5
         #  cursor change on hover
         self.setAcceptHoverEvents(True)
