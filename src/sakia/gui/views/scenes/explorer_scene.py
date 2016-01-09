@@ -6,7 +6,6 @@ from PyQt5.QtWidgets import QGraphicsScene
 
 from ..edges import ExplorerEdge
 from ..nodes import ExplorerNode
-from ..busy import Busy
 
 from .base_scene import BaseScene
 
