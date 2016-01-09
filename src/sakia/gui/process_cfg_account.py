@@ -146,7 +146,7 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         # Set up the user interface from Designer.
         super().__init__()
         self.setupUi(self)
-        regexp = QRegExp('^([ a-zA-Z0-9-_:/;*?\[\]\(\)\\\?!^+=@&~#{}|<>%.]{0,255})$')
+        regexp = QRegExp('[A-Za-z0-9_-]*')
         validator = QRegExpValidator(regexp)
         self.edit_account_name.setValidator(validator)
         self.account = account
