@@ -33,8 +33,8 @@ class ExplorerGraph(BaseGraph):
         if self.exploration_task:
             if self.explored_identity is not identity or steps != self.steps:
                 self.exploration_task.cancel()
-            else:
-                return
+            #else:
+            #    return
         self.nx_graph.clear()
         self.explored_identity = identity
         self.steps = steps
@@ -69,6 +69,7 @@ class ExplorerGraph(BaseGraph):
 
         for step in range(0, steps):
             while len(explorable[step]) > 0:
+                current_identity = explorable[step].pop()
                 # for each pubkey connected...
                 if current_identity not in explored:
                     self.current_identity_changed.emit(current_identity.pubkey)
@@ -95,5 +96,4 @@ class ExplorerGraph(BaseGraph):
                     explored.append(current_identity)
                     logging.debug("New identity explored : {pubkey}".format(pubkey=current_identity.pubkey[:5]))
                     self.graph_changed.emit()
-                current_identity = explorable[step].pop()
         self.current_identity_changed.emit("")
