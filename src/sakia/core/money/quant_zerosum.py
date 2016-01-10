@@ -30,14 +30,21 @@ class QuantitativeZSum:
         """
         Return quantitative value of amount minus the average value
 
+        t = last UD block
+        t-1 = penultimate UD block
+        M = Monetary mass
+        N = Members count
+
+        zsum value = value - ( M(t-1) / N(t) )
+
         :param int amount:   Value
         :param sakia.core.community.Community community: Community instance
         :return: int
         """
         ud_block = yield from self.community.get_ud_block()
-        if ud_block and ud_block['membersCount'] > 0:
-            monetary_mass = yield from self.community.monetary_mass()
-            average = monetary_mass / ud_block['membersCount']
+        ud_block_minus_1 = yield from self.community.get_ud_block(1)
+        if ud_block_minus_1 and ud_block['membersCount'] > 0:
+            average = ud_block_minus_1['monetaryMass'] / ud_block['membersCount']
         else:
             average = 0
         return self.amount - average
