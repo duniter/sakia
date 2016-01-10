@@ -2,6 +2,7 @@ from PyQt5.QtCore import QCoreApplication, QT_TRANSLATE_NOOP, QLocale
 from . import Quantitative
 import asyncio
 
+
 class QuantitativeZSum:
     _NAME_STR_ = QT_TRANSLATE_NOOP('QuantitativeZSum', 'Quant Z-sum')
     _REF_STR_ = QT_TRANSLATE_NOOP('QuantitativeZSum', "{0} Q0 {1}")
@@ -22,7 +23,7 @@ class QuantitativeZSum:
 
     @classmethod
     def diff_units(cls, currency):
-        return QuantitativeZSum.units(currency)
+        return Quantitative.units(currency)
 
     @asyncio.coroutine
     def value(self):

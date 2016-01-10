@@ -22,7 +22,7 @@ class RelativeZSum:
 
     @classmethod
     def diff_units(cls, currency):
-        return RelativeZSum.units(currency)
+        return Relative.units(currency)
 
     @asyncio.coroutine
     def value(self):
