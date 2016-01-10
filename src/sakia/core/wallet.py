@@ -235,8 +235,6 @@ class Wallet(QObject):
 
         time = block['medianTime']
         txid = len(block['transactions'])
-        key = None
-        logging.debug("Key : {0} : {1}".format(salt, password))
         if self.walletid == 0:
             key = SigningKey(salt, password)
         else:

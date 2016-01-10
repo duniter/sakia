@@ -36,8 +36,8 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
         for community in self.account.communities:
             self.combo_community.addItem(community.currency)
 
-        for contact in certifier.contacts:
-            self.combo_contact.addItem(contact['name'])
+        for contact_name in sorted([c['name'] for c in certifier.contacts], key=str.lower):
+            self.combo_contact.addItem(contact_name)
         if len(certifier.contacts) == 0:
             self.radio_pubkey.setChecked(True)
             self.radio_contact.setEnabled(False)
@@ -55,8 +55,10 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
     @asyncio.coroutine
     def accept(self):
         if self.radio_contact.isChecked():
-            index = self.combo_contact.currentIndex()
-            pubkey = self.account.contacts[index]['pubkey']
+            for contact in self.account.contacts:
+                if contact['name'] == self.combo_contact.currentText():
+                    pubkey = contact['pubkey']
+                    break
         else:
             pubkey = self.edit_pubkey.text()
 

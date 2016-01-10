@@ -58,7 +58,11 @@ class QuantitativeZSum:
     def localized(self, units=False, international_system=False):
         value = yield from self.value()
 
-        localized_value = QLocale().toString(float(value), 'f', 0)
+        prefix = ""
+        if international_system:
+            localized_value, prefix = Quantitative.to_si(value, self.app.preferences['digits_after_comma'])
+        else:
+            localized_value = QLocale().toString(float(value), 'f', 0)
 
         if units:
             return QCoreApplication.translate("QuantitativeZSum",

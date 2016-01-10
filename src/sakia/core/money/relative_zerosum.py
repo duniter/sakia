@@ -2,6 +2,7 @@ from PyQt5.QtCore import QCoreApplication, QT_TRANSLATE_NOOP, QLocale
 from .relative import Relative
 import asyncio
 
+
 class RelativeZSum:
     _NAME_STR_ = QT_TRANSLATE_NOOP('RelativeZSum', 'Relat Z-sum')
     _REF_STR_ = QT_TRANSLATE_NOOP('RelativeZSum', "{0} R0 {1}")
@@ -59,7 +60,11 @@ class RelativeZSum:
     def localized(self, units=False, international_system=False):
         value = yield from self.value()
 
-        localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
+        prefix = ""
+        if international_system:
+            localized_value, prefix = Relative.to_si(value, self.app.preferences['digits_after_comma'])
+        else:
+            localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
 
         if units:
             return QCoreApplication.translate("RelativeZSum", RelativeZSum._REF_STR_)\
@@ -71,7 +76,11 @@ class RelativeZSum:
     def diff_localized(self, units=False, international_system=False):
         value = yield from self.differential()
 
-        localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
+        prefix = ""
+        if international_system and value != 0:
+            localized_value, prefix = Relative.to_si(value, self.app.preferences['digits_after_comma'])
+        else:
+            localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
 
         if units:
             return QCoreApplication.translate("RelativeZSum", RelativeZSum._REF_STR_)\
