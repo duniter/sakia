@@ -88,6 +88,7 @@ class ProcessAddCommunity(unittest.TestCase, QuamashTest):
             self.assertEqual(self.application.current_account.name, "test")
             self.assertEqual(self.application.preferences['account'], "test")
             self.assertEqual(len(self.application.current_account.wallets), 1)
+            yield from asyncio.sleep(0)
 
         self.lp.call_later(10, close_dialog)
         asyncio.async(exec_test())

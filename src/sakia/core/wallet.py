@@ -231,7 +231,7 @@ class Wallet(QObject):
                                       req_args={'number': blockid.number})
         except ValueError as e:
             if '404' in str(e):
-                return (False, "Could not send transfer with null blockchain")
+                return False, "Could not send transfer with null blockchain"
 
         time = block['medianTime']
         txid = len(block['transactions'])
@@ -275,7 +275,7 @@ class Wallet(QObject):
             return False, str(e)
         logging.debug("Inputs : {0}".format(inputs))
 
-        outputs =  self.tx_outputs(recipient, amount, inputs)
+        outputs = self.tx_outputs(recipient, amount, inputs)
         logging.debug("Outputs : {0}".format(outputs))
         tx = Transaction(PROTOCOL_VERSION, community.currency,
                          [self.pubkey], inputs,
