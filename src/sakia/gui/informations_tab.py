@@ -78,22 +78,29 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
 
         if block_ud:
             # display float values
-            localized_ud = yield from self.account.current_ref(block_ud['dividend'], self.community, self.app).diff_localized()
+            localized_ud = yield from self.account.current_ref(block_ud['dividend'],
+                                                               self.community,
+                                                               self.app)\
+                .diff_localized(True, self.app.preferences['international_system_of_units'])
 
             computed_dividend = yield from self.community.computed_dividend()
             # display float values
             localized_ud_plus_1 = yield from self.account.current_ref(computed_dividend,
-                                                    self.community, self.app).diff_localized()
+                                                    self.community, self.app)\
+                .diff_localized(True, self.app.preferences['international_system_of_units'])
 
             localized_mass = yield from self.account.current_ref(block_ud['monetaryMass'],
-                                                    self.community, self.app).diff_localized()
+                                                    self.community, self.app)\
+                .diff_localized(True, self.app.preferences['international_system_of_units'])
             if block_ud_minus_1:
                 mass_minus_1 = (float(0) if block_ud['membersCount'] == 0 else
                         block_ud_minus_1['monetaryMass'] / block_ud['membersCount'])
                 localized_mass_minus_1_per_member = yield from self.account.current_ref(mass_minus_1,
-                                                                  self.community, self.app).diff_localized()
+                                                                  self.community, self.app)\
+                    .diff_localized(True, self.app.preferences['international_system_of_units'])
                 localized_mass_minus_1 = yield from self.account.current_ref(block_ud_minus_1['monetaryMass'],
-                                                                  self.community, self.app).diff_localized()
+                                                                  self.community, self.app)\
+                    .diff_localized(True, self.app.preferences['international_system_of_units'])
 
             else:
                 localized_mass_minus_1_per_member = QLocale().toString(
