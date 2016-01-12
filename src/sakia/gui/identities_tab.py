@@ -33,8 +33,8 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
     view_in_wot = pyqtSignal(Identity)
     money_sent = pyqtSignal()
 
-    _members_action_text = QT_TRANSLATE_NOOP("IdentitiesTabWidget", "Members")
-    _direct_connections_text = QT_TRANSLATE_NOOP("IdentitiesTabWidget", "Direct connections")
+    _direct_connections_text = QT_TRANSLATE_NOOP("IdentitiesTabWidget", "Search direct certifications")
+    _search_placeholder = QT_TRANSLATE_NOOP("IdentitiesTabWidget", "Research a pubkey, an uid...")
 
     def __init__(self, app):
         """
@@ -50,9 +50,9 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         self.account = None
         self.password_asker = None
 
-        self.members_action = QAction(self.tr(IdentitiesTabWidget._members_action_text), self)
         self.direct_connections = QAction(self.tr(IdentitiesTabWidget._direct_connections_text), self)
         self.setupUi(self)
+        self.edit_textsearch.setPlaceholderText(self.tr(IdentitiesTabWidget._search_placeholder))
 
         identities_model = IdentitiesTableModel()
         proxy = IdentitiesFilterProxyModel()
@@ -213,6 +213,7 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
                     identities.append(identity)
 
             self.edit_textsearch.clear()
+            self.edit_textsearch.setPlaceholderText(text)
             await self.refresh_identities(identities)
         except ValueError as e:
             logging.debug(str(e))
@@ -229,6 +230,7 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
 
         if self.account and self.community:
             try:
+                self.edit_textsearch.setPlaceholderText(self.tr(IdentitiesTabWidget._search_placeholder))
                 await self.refresh_identities([])
                 self.busy.show()
                 self_identity = await self.account.identity(self.community)
@@ -257,7 +259,6 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         self.table_identities.resizeColumnsToContents()
 
     def retranslateUi(self, widget):
-        self.members_action.setText(self.tr(IdentitiesTabWidget._members_action_text))
         self.direct_connections.setText(self.tr(IdentitiesTabWidget._direct_connections_text))
         super().retranslateUi(self)
 
