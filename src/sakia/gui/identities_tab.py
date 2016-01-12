@@ -65,8 +65,6 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
         identities_model.modelAboutToBeReset.connect(lambda: self.table_identities.setEnabled(False))
         identities_model.modelReset.connect(lambda: self.table_identities.setEnabled(True))
 
-        self.members_action.triggered.connect(self._async_search_members)
-        self.button_search.addAction(self.members_action)
         self.direct_connections.triggered.connect(self._async_search_direct_connections)
         self.button_search.addAction(self.direct_connections)
         self.button_search.clicked.connect(self._async_execute_search_text)
@@ -77,7 +75,6 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
     def cancel_once_tasks(self):
         cancel_once_task(self, self.identity_context_menu)
         cancel_once_task(self, self._async_execute_search_text)
-        cancel_once_task(self, self._async_search_members)
         cancel_once_task(self, self._async_search_direct_connections)
         cancel_once_task(self, self.refresh_identities)
 
@@ -198,7 +195,6 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
     @once_at_a_time
     @asyncify
     async def _async_execute_search_text(self, checked):
-        cancel_once_task(self, self._async_search_members)
         cancel_once_task(self, self._async_search_direct_connections)
 
         self.busy.show()
@@ -225,32 +221,10 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
 
     @once_at_a_time
     @asyncify
-    async def _async_search_members(self, checked=False):
-        """
-        Search members of community and display found members
-        """
-        cancel_once_task(self, self._async_execute_search_text)
-        cancel_once_task(self, self._async_search_direct_connections)
-
-        if self.community:
-            self.busy.show()
-            pubkeys = await self.community.members_pubkeys()
-            identities = []
-            for p in pubkeys:
-                identity = await self.app.identities_registry.future_find(p, self.community)
-                identities.append(identity)
-
-            self.edit_textsearch.clear()
-            await self.refresh_identities(identities)
-            self.busy.hide()
-
-    @once_at_a_time
-    @asyncify
     async def _async_search_direct_connections(self, checked=False):
         """
         Search members of community and display found members
         """
-        cancel_once_task(self, self._async_search_members)
         cancel_once_task(self, self._async_execute_search_text)
 
         if self.account and self.community:
