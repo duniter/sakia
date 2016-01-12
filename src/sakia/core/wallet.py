@@ -267,9 +267,12 @@ class Wallet(QObject):
 
         self.caches[community.currency]._transfers.append(transfer)
 
-        result = self.tx_inputs(int(amount), community)
-        inputs = result[0]
-        self.caches[community.currency].available_sources = result[1][1:]
+        try:
+            result = self.tx_inputs(int(amount), community)
+            inputs = result[0]
+            self.caches[community.currency].available_sources = result[1][1:]
+        except NotEnoughMoneyError as e:
+            return False, str(e)
         logging.debug("Inputs : {0}".format(inputs))
 
         outputs =  self.tx_outputs(recipient, amount, inputs)
