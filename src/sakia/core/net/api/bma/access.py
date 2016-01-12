@@ -266,6 +266,7 @@ class BmaAccess(QObject):
             node = random.choice(nodes)
             req = request(node.endpoint.conn_handler(), **req_args)
             tries = 0
+            json_data = None
             while tries < 3:
                 try:
                     json_data = await req.get(**get_args)
@@ -279,7 +280,7 @@ class BmaAccess(QObject):
                 except jsonschema.ValidationError as e:
                     logging.debug(str(e))
                     tries += 1
-        if len(nodes) == 0 or json_data is None:
+        if len(nodes) == 0 or not json_data:
             raise NoPeerAvailable("", len(nodes))
         return json_data
 

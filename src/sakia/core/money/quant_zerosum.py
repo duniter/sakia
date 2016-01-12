@@ -2,6 +2,7 @@ from PyQt5.QtCore import QCoreApplication, QT_TRANSLATE_NOOP, QLocale
 from . import Quantitative
 import asyncio
 
+
 class QuantitativeZSum:
     _NAME_STR_ = QT_TRANSLATE_NOOP('QuantitativeZSum', 'Quant Z-sum')
     _REF_STR_ = QT_TRANSLATE_NOOP('QuantitativeZSum', "{0} Q0 {1}")
@@ -22,11 +23,18 @@ class QuantitativeZSum:
 
     @classmethod
     def diff_units(cls, currency):
-        return QuantitativeZSum.units(currency)
+        return Quantitative.units(currency)
 
     async def value(self):
         """
         Return quantitative value of amount minus the average value
+
+        t = last UD block
+        t-1 = penultimate UD block
+        M = Monetary mass
+        N = Members count
+
+        zsum value = value - ( M(t-1) / N(t) )
 
         :param int amount:   Value
         :param sakia.core.community.Community community: Community instance
@@ -46,7 +54,11 @@ class QuantitativeZSum:
     async def localized(self, units=False, international_system=False):
         value = await self.value()
 
-        localized_value = QLocale().toString(float(value), 'f', 0)
+        prefix = ""
+        if international_system:
+            localized_value, prefix = Quantitative.to_si(value, self.app.preferences['digits_after_comma'])
+        else:
+            localized_value = QLocale().toString(float(value), 'f', 0)
 
         if units:
             return QCoreApplication.translate("QuantitativeZSum",

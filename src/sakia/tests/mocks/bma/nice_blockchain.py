@@ -41,7 +41,7 @@ bma_membership_john = {
         [
             {
 
-                "version": "1",
+                "version": 1,
                 "currency": "test_currency",
                 "membership": "IN",
                 "blockNumber": 0,

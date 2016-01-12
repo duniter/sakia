@@ -5,17 +5,17 @@ from PyQt5.QtWidgets import QWidget, QComboBox, QDialog
 from PyQt5.QtCore import pyqtSlot, QEvent, QLocale, QDateTime, pyqtSignal, QT_TRANSLATE_NOOP
 from ucoinpy.api import bma
 
-from sakia.tools.exceptions import MembershipNotFoundError
-from sakia.tools.decorators import asyncify, once_at_a_time, cancel_once_task
-from sakia.core.graph import WoTGraph
-from sakia.core.registry import BlockchainState
-from sakia.gui.member import MemberDialog
-from sakia.gui.certification import CertificationDialog
-from sakia.gui.transfer import TransferMoneyDialog
-from sakia.gui.contact import ConfigureContactDialog
-from sakia.gen_resources.wot_tab_uic import Ui_WotTabWidget
-from sakia.gui.widgets.busy import Busy
-from sakia.tools.exceptions import NoPeerAvailable
+from ...tools.exceptions import MembershipNotFoundError
+from ...tools.decorators import asyncify, once_at_a_time, cancel_once_task
+from ...core.graph import WoTGraph
+from ...core.registry import BlockchainState
+from ..member import MemberDialog
+from ..certification import CertificationDialog
+from ..transfer import TransferMoneyDialog
+from ..contact import ConfigureContactDialog
+from ...gen_resources.wot_tab_uic import Ui_WotTabWidget
+from ..widgets.busy import Busy
+from ...tools.exceptions import NoPeerAvailable
 
 
 class WotTabWidget(QWidget, Ui_WotTabWidget):
@@ -69,8 +69,12 @@ class WotTabWidget(QWidget, Ui_WotTabWidget):
 
     def change_account(self, account, password_asker):
         self.cancel_once_tasks()
+        if self.account is not None:
+            self.account.certification_accepted.disconnect(self.refresh)
         self.account = account
         self.password_asker = password_asker
+        if self.account is not None:
+            self.account.certification_accepted.connect(self.refresh)
 
     def change_community(self, community):
         self.cancel_once_tasks()

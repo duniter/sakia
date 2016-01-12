@@ -168,7 +168,7 @@ class TransactionsTabWidget(QWidget, Ui_transactionsTabWidget):
     async def history_context_menu(self, point):
         index = self.table_history.indexAt(point)
         model = self.table_history.model()
-        if index.row() < model.rowCount(QModelIndex()):
+        if index.isValid() and index.row() < model.rowCount(QModelIndex()):
             menu = QMenu(self.tr("Actions"), self)
             source_index = model.mapToSource(index)
             state_col = model.sourceModel().columns_types.index('state')

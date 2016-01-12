@@ -1,6 +1,7 @@
 from PyQt5.QtCore import QCoreApplication, QT_TRANSLATE_NOOP, QObject, QLocale
 import asyncio
 
+
 class Quantitative():
     _NAME_STR_ = QT_TRANSLATE_NOOP('Quantitative', 'Units')
     _REF_STR_ = QT_TRANSLATE_NOOP('Quantitative', "{0} {1}{2}")
@@ -36,8 +37,15 @@ class Quantitative():
     async def differential(self):
         return await self.value()
 
-    def _to_si(self, value):
+    @staticmethod
+    def to_si(value, digits):
         prefixes = ['', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y', 'z', 'y']
+        if value < 0:
+            value = -value
+            multiplier = -1
+        else:
+            multiplier = 1
+
         scientific_value = value
         prefix_index = 0
         prefix = ""
@@ -48,10 +56,9 @@ class Quantitative():
 
         if prefix_index < len(prefixes):
             prefix = prefixes[prefix_index]
-            localized_value = QLocale().toString(float(scientific_value), 'f',
-                                                 self.app.preferences['digits_after_comma'])
+            localized_value = QLocale().toString(float(scientific_value * multiplier), 'f', digits)
         else:
-            localized_value = QLocale().toString(float(value), 'f', 0)
+            localized_value = QLocale().toString(float(value * multiplier), 'f', 0)
 
         return localized_value, prefix
 
@@ -59,7 +66,7 @@ class Quantitative():
         value = await self.value()
         prefix = ""
         if international_system:
-            localized_value, prefix = self._to_si(value)
+            localized_value, prefix = Quantitative.to_si(value, self.app.preferences['digits_after_comma'])
         else:
             localized_value = QLocale().toString(float(value), 'f', 0)
 
@@ -76,7 +83,7 @@ class Quantitative():
         value = await self.differential()
         prefix = ""
         if international_system:
-            localized_value, prefix = self._to_si(value)
+            localized_value, prefix = Quantitative.to_si(value, self.app.preferences['digits_after_comma'])
         else:
             localized_value = QLocale().toString(float(value), 'f', 0)
 

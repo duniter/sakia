@@ -33,6 +33,7 @@ class Account(QObject):
     loading_progressed = pyqtSignal(Community, int, int)
     loading_finished = pyqtSignal(Community, list)
     wallets_changed = pyqtSignal()
+    certification_accepted = pyqtSignal()
 
     def __init__(self, salt, pubkey, name, communities, wallets, contacts, identities_registry):
         """
@@ -488,6 +489,8 @@ class Account(QObject):
             for r in responses:
                 if r.status == 200:
                     result = (True, (await r.json()))
+                    # signal certification to all listeners
+                    self.certification_accepted.emit()
                 elif not result[0]:
                     result = (False, (await r.text()))
                 else:

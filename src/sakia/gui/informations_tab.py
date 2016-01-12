@@ -6,13 +6,13 @@ Created on 31 janv. 2015
 
 import logging
 import asyncio
-import math
 from PyQt5.QtCore import QLocale, QDateTime, QEvent
 from PyQt5.QtWidgets import QWidget
 from ..gen_resources.informations_tab_uic import Ui_InformationsTabWidget
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from ..tools.exceptions import NoPeerAvailable
 from .widgets import Busy
+
 
 class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
     """
@@ -23,8 +23,8 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
         """
         Constructor of the InformationsTabWidget
 
-        :param app: sakia.core.Application
-        :param community: sakia.core.Community
+        :param sakia.core.app.Application app: Application instance
+
         :return:
         """
         super().__init__()
@@ -36,6 +36,10 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
         self.busy.hide()
 
     def change_account(self, account):
+        """
+
+        :param sakia.core.app.Account account: Account instance selected
+        """
         cancel_once_task(self, self.refresh_labels)
         self.account = account
 
@@ -73,22 +77,29 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
 
         if block_ud:
             # display float values
-            localized_ud = await self.account.current_ref(block_ud['dividend'], self.community, self.app).diff_localized()
+            localized_ud = await self.account.current_ref(block_ud['dividend'],
+                                                               self.community,
+                                                               self.app)\
+                .diff_localized(True, self.app.preferences['international_system_of_units'])
 
             computed_dividend = await self.community.computed_dividend()
             # display float values
             localized_ud_plus_1 = await self.account.current_ref(computed_dividend,
-                                                    self.community, self.app).diff_localized()
+                                                    self.community, self.app)\
+                .diff_localized(True, self.app.preferences['international_system_of_units'])
 
             localized_mass = await self.account.current_ref(block_ud['monetaryMass'],
-                                                    self.community, self.app).diff_localized()
+                                                    self.community, self.app)\
+                .diff_localized(True, self.app.preferences['international_system_of_units'])
             if block_ud_minus_1:
                 mass_minus_1 = (float(0) if block_ud['membersCount'] == 0 else
                         block_ud_minus_1['monetaryMass'] / block_ud['membersCount'])
                 localized_mass_minus_1_per_member = await self.account.current_ref(mass_minus_1,
-                                                                  self.community, self.app).diff_localized()
+                                                                  self.community, self.app)\
+                    .diff_localized(True, self.app.preferences['international_system_of_units'])
                 localized_mass_minus_1 = await self.account.current_ref(block_ud_minus_1['monetaryMass'],
-                                                                  self.community, self.app).diff_localized()
+                                                                  self.community, self.app)\
+                    .diff_localized(True, self.app.preferences['international_system_of_units'])
 
             else:
                 localized_mass_minus_1_per_member = QLocale().toString(
@@ -109,6 +120,7 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 <tr><td align="right"><b>{:2.2%} / {:} days</b></td><td>{:}</td></tr>
                 <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
                 <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
                 </table>
                 """).format(
                     localized_ud,
@@ -127,6 +139,12 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
 
                     params['dt'] / 86400,
                     self.tr('Actual growth c = UD(t)/[M(t-1)/N(t)]'),
+                    QLocale.toString(
+                        QLocale(),
+                        QDateTime.fromTime_t(block_ud_minus_1['medianTime']),
+                        QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
+                    ),
+                    self.tr('Penultimate UD date and time (t-1)'),
                     QLocale.toString(
                         QLocale(),
                         QDateTime.fromTime_t(block_ud['medianTime']),
