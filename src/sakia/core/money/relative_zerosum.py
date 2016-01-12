@@ -23,26 +23,34 @@ class RelativeZSum:
 
     @classmethod
     def diff_units(cls, currency):
-        return RelativeZSum.units(currency)
+        return Relative.units(currency)
 
     @asyncio.coroutine
     def value(self):
         """
         Return relative value of amount minus the average value
 
+        t = last UD block
+        t-1 = penultimate UD block
+        M = Monetary mass
+        N = Members count
+
+        zsum value = (value / UD(t)) - (( M(t-1) / N(t) ) / UD(t))
+
         :param int amount:   Value
         :param sakia.core.community.Community community: Community instance
         :return: float
         """
-        current = yield from self.community.get_block()
-        if current and current['membersCount'] > 0:
-            monetary_mass = yield from self.community.monetary_mass()
-            dividend = yield from self.community.dividend()
-            average = monetary_mass / current['membersCount']
-            rz_value = (self.amount - average) / float(dividend)
+        ud_block = yield from self.community.get_ud_block()
+        ud_block_minus_1 = yield from self.community.get_ud_block(1)
+        if ud_block_minus_1 and ud_block['membersCount'] > 0:
+            median = ud_block_minus_1['monetaryMass'] / ud_block['membersCount']
+            relative_value = self.amount / float(ud_block['dividend'])
+            relative_median = median / ud_block['dividend']
         else:
-            rz_value = self.amount
-        return rz_value
+            relative_value = self.amount
+            relative_median = 0
+        return relative_value - relative_median
 
     @asyncio.coroutine
     def differential(self):

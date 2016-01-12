@@ -2,6 +2,7 @@ from PyQt5.QtCore import QCoreApplication, QT_TRANSLATE_NOOP, QLocale
 from . import Quantitative
 import asyncio
 
+
 class QuantitativeZSum:
     _NAME_STR_ = QT_TRANSLATE_NOOP('QuantitativeZSum', 'Quant Z-sum')
     _REF_STR_ = QT_TRANSLATE_NOOP('QuantitativeZSum', "{0} Q0 {1}")
@@ -22,24 +23,31 @@ class QuantitativeZSum:
 
     @classmethod
     def diff_units(cls, currency):
-        return QuantitativeZSum.units(currency)
+        return Quantitative.units(currency)
 
     @asyncio.coroutine
     def value(self):
         """
         Return quantitative value of amount minus the average value
 
+        t = last UD block
+        t-1 = penultimate UD block
+        M = Monetary mass
+        N = Members count
+
+        zsum value = value - ( M(t-1) / N(t) )
+
         :param int amount:   Value
         :param sakia.core.community.Community community: Community instance
         :return: int
         """
-        current = yield from self.community.get_block()
-        if current and current['membersCount'] > 0:
-            monetary_mass = yield from self.community.monetary_mass()
-            average = monetary_mass / current['membersCount']
+        ud_block = yield from self.community.get_ud_block()
+        ud_block_minus_1 = yield from self.community.get_ud_block(1)
+        if ud_block_minus_1 and ud_block['membersCount'] > 0:
+            average = ud_block_minus_1['monetaryMass'] / ud_block['membersCount']
         else:
             average = 0
-        return self.amount - monetary_mass
+        return self.amount - average
 
     @asyncio.coroutine
     def differential(self):

@@ -1,7 +1,8 @@
 from PyQt5.QtCore import QObject, QCoreApplication, QT_TRANSLATE_NOOP, QLocale
 import asyncio
 
-class Relative():
+
+class Relative:
     _NAME_STR_ = QT_TRANSLATE_NOOP('Relative', 'UD')
     _REF_STR_ = QT_TRANSLATE_NOOP('Relative',  "{0} {1}UD {2}")
     _UNITS_STR_ = QT_TRANSLATE_NOOP('Relative',  "UD {0}")

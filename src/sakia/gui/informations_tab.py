@@ -6,13 +6,13 @@ Created on 31 janv. 2015
 
 import logging
 import asyncio
-import math
 from PyQt5.QtCore import QLocale, QDateTime, QEvent
 from PyQt5.QtWidgets import QWidget
 from ..gen_resources.informations_tab_uic import Ui_InformationsTabWidget
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from ..tools.exceptions import NoPeerAvailable
 from .widgets import Busy
+
 
 class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
     """
@@ -23,8 +23,8 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
         """
         Constructor of the InformationsTabWidget
 
-        :param app: sakia.core.Application
-        :param community: sakia.core.Community
+        :param sakia.core.app.Application app: Application instance
+
         :return:
         """
         super().__init__()
@@ -36,6 +36,10 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
         self.busy.hide()
 
     def change_account(self, account):
+        """
+
+        :param sakia.core.app.Account account: Account instance selected
+        """
         cancel_once_task(self, self.refresh_labels)
         self.account = account
 
@@ -110,6 +114,7 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 <tr><td align="right"><b>{:2.2%} / {:} days</b></td><td>{:}</td></tr>
                 <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
                 <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+                <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
                 </table>
                 """).format(
                     localized_ud,
@@ -128,6 +133,12 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
 
                     params['dt'] / 86400,
                     self.tr('Actual growth c = UD(t)/[M(t-1)/N(t)]'),
+                    QLocale.toString(
+                        QLocale(),
+                        QDateTime.fromTime_t(block_ud_minus_1['medianTime']),
+                        QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
+                    ),
+                    self.tr('Penultimate UD date and time (t-1)'),
                     QLocale.toString(
                         QLocale(),
                         QDateTime.fromTime_t(block_ud['medianTime']),
