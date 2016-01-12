@@ -120,8 +120,8 @@ class TestExplorerGraph(unittest.TestCase, QuamashTest):
     def tearDown(self):
         self.tearDownQuamash()
 
-    @patch('sakia.core.Application')
     @patch('sakia.core.Community')
+    @patch('sakia.core.Application')
     @patch('time.time', Mock(return_value=50000))
     def test_explore_full_from_center(self, app, community):
         community.parameters = CoroutineMock(return_value = {'sigValidity': 1000})
@@ -137,8 +137,8 @@ class TestExplorerGraph(unittest.TestCase, QuamashTest):
 
         self.lp.run_until_complete(exec_test())
 
-    @patch('sakia.core.Application')
     @patch('sakia.core.Community')
+    @patch('sakia.core.Application')
     @patch('time.time', Mock(return_value=50000))
     def test_explore_full_from_extremity(self, app, community):
         community.parameters = CoroutineMock(return_value = {'sigValidity': 1000})
@@ -154,8 +154,8 @@ class TestExplorerGraph(unittest.TestCase, QuamashTest):
 
         self.lp.run_until_complete(exec_test())
 
-    @patch('sakia.core.Application')
     @patch('sakia.core.Community')
+    @patch('sakia.core.Application')
     @patch('time.time', Mock(return_value=50000))
     def test_explore_partial(self, app, community):
         community.parameters = CoroutineMock(return_value = {'sigValidity': 1000})
@@ -171,8 +171,8 @@ class TestExplorerGraph(unittest.TestCase, QuamashTest):
 
         self.lp.run_until_complete(exec_test())
 
-    @patch('sakia.core.Application')
     @patch('sakia.core.Community')
+    @patch('sakia.core.Application')
     @patch('time.time', Mock(return_value=50000))
     def test_start_stop_exploration(self, app, community):
         async def explore_mock(id, steps):

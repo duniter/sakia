@@ -94,9 +94,9 @@ class TestBaseGraph(unittest.TestCase, QuamashTest):
 
         self.lp.run_until_complete(exec_test())
 
-    @patch('sakia.core.Application')
     @patch('sakia.core.Community')
-    @patch('time.time', Mock(return_value=950000))
+    @patch('sakia.core.Application')
+    @patch('time.time', Mock(return_value=50000))
     def test_add_identitiers(self, app, community):
         community.parameters = CoroutineMock(return_value = {'sigValidity': 1000})
         community.network.confirmations = Mock(side_effect=lambda n: 4 if 996 else None)
@@ -107,12 +107,12 @@ class TestBaseGraph(unittest.TestCase, QuamashTest):
         certifications = [
             {
                 'identity': self.first_identity,
-                'cert_time': 949100,
+                'cert_time': 49100,
                 'block_number': 900
             },
             {
                 'identity': self.second_identity,
-                'cert_time': 949800,
+                'cert_time': 49800,
                 'block_number': 996
             }
         ]
@@ -145,8 +145,8 @@ class TestBaseGraph(unittest.TestCase, QuamashTest):
 
         self.lp.run_until_complete(exec_test())
 
-    @patch('sakia.core.Application')
     @patch('sakia.core.Community')
+    @patch('sakia.core.Application')
     @patch('time.time', Mock(return_value=50000))
     def test_add_certified(self, app, community):
         community.parameters = CoroutineMock(return_value = {'sigValidity': 1000})
@@ -184,8 +184,8 @@ class TestBaseGraph(unittest.TestCase, QuamashTest):
 
         self.lp.run_until_complete(exec_test())
 
-    @patch('sakia.core.Application')
     @patch('sakia.core.Community')
+    @patch('sakia.core.Application')
     @patch('time.time', Mock(return_value=50000))
     def test_add_identity(self, app, community):
         app.preferences = {'expert_mode': True}
