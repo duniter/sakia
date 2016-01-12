@@ -299,7 +299,7 @@ class Identity(QObject):
                 certifiers.append(certifier)
         except ValueError as e:
             if '404' in str(e):
-                logging.debug('bma.wot.CertifiersOf request error: {0}'.format(str(e)))
+                logging.debug('bma.wot.CertifiersOf request error')
             else:
                 logging.debug(str(e))
         except NoPeerAvailable as e:
@@ -392,7 +392,7 @@ class Identity(QObject):
                 certified_list.append(certified)
         except ValueError as e:
             if '404' in str(e):
-                logging.debug('bma.wot.CertifiersOf request error')
+                logging.debug('bma.wot.CertifiedBy request error')
         except NoPeerAvailable as e:
             logging.debug(str(e))
 

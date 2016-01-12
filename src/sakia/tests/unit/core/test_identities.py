@@ -35,8 +35,3 @@ class TestIdentity(unittest.TestCase, QuamashTest):
                                                                    community)
         self.assertEqual(identity, identity_from_data)
 
-
-if __name__ == '__main__':
-    logging.basicConfig(stream=sys.stderr)
-    logging.getLogger().setLevel(logging.DEBUG)
-    unittest.main()

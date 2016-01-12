@@ -28,8 +28,3 @@ class TestWallet(unittest.TestCase, QuamashTest):
         self.assertEqual(wallet.pubkey, wallet_from_json.pubkey)
         self.assertEqual(wallet.name, wallet_from_json.name)
         self.assertEqual(wallet._identities_registry, wallet_from_json._identities_registry)
-
-if __name__ == '__main__':
-    logging.basicConfig(stream=sys.stderr)
-    logging.getLogger().setLevel(logging.DEBUG)
-    unittest.main()

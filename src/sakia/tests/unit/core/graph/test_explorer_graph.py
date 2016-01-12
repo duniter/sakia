@@ -72,7 +72,7 @@ class TestExplorerGraph(unittest.TestCase, QuamashTest):
                                                                }
                                                            ])
 
-        self.idC.unique_valid_certified_by = CoroutineMock(spec='core.registry.Identity.certifierd_by',
+        self.idC.unique_valid_certified_by = CoroutineMock(spec='core.registry.Identity.certified_by',
                                                            return_value=[
                                                                {
                                                                    'cert_time': 49100,
@@ -123,7 +123,7 @@ class TestExplorerGraph(unittest.TestCase, QuamashTest):
     @patch('sakia.core.Application')
     @patch('sakia.core.Community')
     @patch('time.time', Mock(return_value=50000))
-    def test_explore_full(self, app, community):
+    def test_explore_full_from_center(self, app, community):
         community.parameters = CoroutineMock(return_value = {'sigValidity': 1000})
         community.network.confirmations = Mock(side_effect=lambda n: 4 if 996 else None)
         app.preferences = {'expert_mode': True}
@@ -132,6 +132,23 @@ class TestExplorerGraph(unittest.TestCase, QuamashTest):
 
         async def exec_test():
             await explorer_graph._explore(self.idB, 5)
+            self.assertEqual(len(explorer_graph.nx_graph.nodes()), 5)
+            self.assertEqual(len(explorer_graph.nx_graph.edges()), 4)
+
+        self.lp.run_until_complete(exec_test())
+
+    @patch('sakia.core.Application')
+    @patch('sakia.core.Community')
+    @patch('time.time', Mock(return_value=50000))
+    def test_explore_full_from_extremity(self, app, community):
+        community.parameters = CoroutineMock(return_value = {'sigValidity': 1000})
+        community.network.confirmations = Mock(side_effect=lambda n: 4 if 996 else None)
+        app.preferences = {'expert_mode': True}
+
+        explorer_graph = ExplorerGraph(app, community)
+
+        async def exec_test():
+            await explorer_graph._explore(self.idA, 5)
             self.assertEqual(len(explorer_graph.nx_graph.nodes()), 5)
             self.assertEqual(len(explorer_graph.nx_graph.edges()), 4)
 
@@ -178,6 +195,10 @@ class TestExplorerGraph(unittest.TestCase, QuamashTest):
             self.assertTrue(task.cancelled())
             self.assertNotEqual(task, explorer_graph.exploration_task)
             task2 = explorer_graph.exploration_task
+            explorer_graph.start_exploration(self.idB, 2)
+            await asyncio.sleep(0)
+            self.assertTrue(task2.cancelled())
+            task3 = explorer_graph.exploration_task
             explorer_graph.stop_exploration()
             await asyncio.sleep(0)
             self.assertTrue(task2.cancelled())

@@ -3,12 +3,13 @@ import networkx
 import asyncio
 from PyQt5.QtCore import pyqtSignal
 from .base_graph import BaseGraph
-from sakia.core.graph.constants import ArcStatus, NodeStatus
+from sakia.core.graph.constants import EdgeStatus, NodeStatus
 
 
 class ExplorerGraph(BaseGraph):
 
     graph_changed = pyqtSignal()
+    current_identity_changed = pyqtSignal(str)
 
     def __init__(self, app, community, nx_graph=None):
         """
@@ -21,6 +22,7 @@ class ExplorerGraph(BaseGraph):
         super().__init__(app, community, nx_graph)
         self.exploration_task = None
         self.explored_identity = None
+        self.steps = 0
 
     def start_exploration(self, identity, steps):
         """
@@ -29,11 +31,13 @@ class ExplorerGraph(BaseGraph):
         :param int steps: The number of steps from identity to explore
         """
         if self.exploration_task:
-            if self.explored_identity is not identity:
+            if self.explored_identity is not identity or steps != self.steps:
                 self.exploration_task.cancel()
             else:
                 return
+        self.nx_graph.clear()
         self.explored_identity = identity
+        self.steps = steps
         self.exploration_task = asyncio.ensure_future(self._explore(identity, steps))
 
     def stop_exploration(self):
@@ -42,6 +46,7 @@ class ExplorerGraph(BaseGraph):
         """
         if self.exploration_task:
             self.exploration_task.cancel()
+            self.exploration_task = None
 
     async def _explore(self, identity, steps):
         """
@@ -56,13 +61,18 @@ class ExplorerGraph(BaseGraph):
         explored = []
         explorable = {0: [identity]}
         current_identity = identity
+        self.nx_graph.clear()
+        self.add_identity(current_identity, NodeStatus.HIGHLIGHTED)
+        self.graph_changed.emit()
         for step in range(1, steps + 1):
             explorable[step] = []
 
         for step in range(0, steps):
             while len(explorable[step]) > 0:
+                current_identity = explorable[step].pop()
                 # for each pubkey connected...
                 if current_identity not in explored:
+                    self.current_identity_changed.emit(current_identity.pubkey)
                     self.add_identity(current_identity, NodeStatus.NEUTRAL)
                     logging.debug("New identity explored : {pubkey}".format(pubkey=current_identity.pubkey[:5]))
                     self.graph_changed.emit()
@@ -86,4 +96,4 @@ class ExplorerGraph(BaseGraph):
                     explored.append(current_identity)
                     logging.debug("New identity explored : {pubkey}".format(pubkey=current_identity.pubkey[:5]))
                     self.graph_changed.emit()
-                current_identity = explorable[step].pop()
+        self.current_identity_changed.emit("")

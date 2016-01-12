@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class ArcStatus(Enum):
+class EdgeStatus(Enum):
     WEAK = 0
     STRONG = 1
 

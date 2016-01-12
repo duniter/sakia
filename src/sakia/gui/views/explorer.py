@@ -1,23 +1,23 @@
+import logging
+
 import networkx
-from PyQt5.QtCore import Qt, QPoint,  pyqtSignal
+from PyQt5.QtCore import Qt, QPoint, pyqtSignal
 from PyQt5.QtGui import QPainter, QWheelEvent
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene
 
-from .edges import WotEdge
-from .nodes import WotNode
-from .scenes import WotScene
+from .scenes import ExplorerScene
 
 
-class WotView(QGraphicsView):
+class ExplorerView(QGraphicsView):
     def __init__(self, parent=None):
         """
         Create View to display scene
 
         :param parent:  [Optional, default=None] Parent widget
         """
-        super(WotView, self).__init__(parent)
+        super().__init__(parent)
 
-        self.setScene(WotScene(self))
+        self.setScene(ExplorerScene(self))
 
         self.setCacheMode(QGraphicsView.CacheBackground)
         self.setViewportUpdateMode(QGraphicsView.BoundingRectViewportUpdate)
@@ -44,4 +44,4 @@ class WotView(QGraphicsView):
         #  act normally on scrollbar
         else:
             # transmit event to parent class wheelevent
-            super().wheelEvent(event)
+            super(QGraphicsView, self).wheelEvent(event)

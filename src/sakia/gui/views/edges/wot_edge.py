@@ -1,13 +1,13 @@
-from PyQt5.QtWidgets import QGraphicsLineItem
 from PyQt5.QtCore import Qt, QRectF, QLineF, QPointF, QSizeF, \
                         qFuzzyCompare
 from PyQt5.QtGui import QColor, QPen, QPolygonF
 import math
-from ...core.graph.constants import ArcStatus
+from .base_edge import BaseEdge
+from ....core.graph.constants import EdgeStatus
 
 
-class Arc(QGraphicsLineItem):
-    def __init__(self, source_node, destination_node, metadata, pos, scale=1):
+class WotEdge(BaseEdge):
+    def __init__(self, source_node, destination_node, metadata, pos):
         """
         Create an arc between two nodes
 
@@ -15,23 +15,28 @@ class Arc(QGraphicsLineItem):
         :param Node destination_node: Destination node of the arc
         :param dict metadata: Arc metadata
         """
-        super(Arc, self).__init__()
+        super().__init__(source_node, destination_node, metadata, pos)
 
-        self.metadata = metadata
-        self.source = source_node
-        self.destination = destination_node
-
-        self.status = self.metadata['status']
-
-        self.source_point = QPointF(pos[self.source][0], pos[self.source][1])*scale
-        self.destination_point = QPointF(pos[self.destination][0], pos[self.destination][1])*scale
-        self.arrow_size = 5.0
-
-        self.setAcceptedMouseButtons(Qt.NoButton)
-
+        self.arrow_size = 5
         #  cursor change on hover
         self.setAcceptHoverEvents(True)
         self.setZValue(0)
+        self._colors = {
+            EdgeStatus.STRONG: 'blue',
+            EdgeStatus.WEAK: 'salmon'
+        }
+        self._line_styles = {
+            EdgeStatus.STRONG: Qt.SolidLine,
+            EdgeStatus.WEAK: Qt.DashLine
+        }
+
+    @property
+    def color_name(self):
+        return self._colors[self.status]
+
+    @property
+    def line_style(self):
+        return self._line_styles[self.status]
 
     # virtual function require subclassing
     def boundingRect(self):
@@ -73,12 +78,8 @@ class Arc(QGraphicsLineItem):
 
         # Draw the line itself
         color = QColor()
-        style = Qt.SolidLine
-        if self.status == ArcStatus.STRONG:
-            color.setNamedColor('blue')
-        if self.status == ArcStatus.WEAK:
-            color.setNamedColor('salmon')
-            style = Qt.DashLine
+        color.setNamedColor(self.color_name)
+        style = self.line_style
 
         painter.setPen(QPen(color, 1, style, Qt.RoundCap, Qt.RoundJoin))
         painter.drawLine(line)
