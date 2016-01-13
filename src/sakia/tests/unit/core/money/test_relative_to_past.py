@@ -61,8 +61,8 @@ class TestRelativeToPast(unittest.TestCase, QuamashTest):
             value = await referential.localized(units=True)
             self.assertEqual(value, "0.101000 UD({0}) TC".format(QLocale.toString(
                             QLocale(),
-                            QDateTime.fromTime_t(1452663088792),
-                            QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
+                            QDateTime.fromTime_t(1452663088792).date(),
+                            QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
                         )))
         self.lp.run_until_complete(exec_test())
 
@@ -80,8 +80,8 @@ class TestRelativeToPast(unittest.TestCase, QuamashTest):
             value = await referential.localized(units=True, international_system=True)
             self.assertEqual(value, "1.011000 dUD({0}) TC".format(QLocale.toString(
                             QLocale(),
-                            QDateTime.fromTime_t(1452663088792),
-                            QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
+                            QDateTime.fromTime_t(1452663088792).date(),
+                            QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
                         )))
         self.lp.run_until_complete(exec_test())
 
@@ -114,8 +114,8 @@ class TestRelativeToPast(unittest.TestCase, QuamashTest):
             value = await referential.localized(units=False, international_system=True)
             self.assertEqual(value, "1.011000 dUD({0}) ".format(QLocale.toString(
                             QLocale(),
-                            QDateTime.fromTime_t(1452663088792),
-                            QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
+                            QDateTime.fromTime_t(1452663088792).date(),
+                            QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
                         )))
         self.lp.run_until_complete(exec_test())
 
@@ -133,8 +133,8 @@ class TestRelativeToPast(unittest.TestCase, QuamashTest):
             value = await referential.diff_localized(units=True)
             self.assertEqual(value, "0.101100 UD({0}) TC".format(QLocale.toString(
                             QLocale(),
-                            QDateTime.fromTime_t(1452663088792),
-                            QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
+                            QDateTime.fromTime_t(1452663088792).date(),
+                            QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
                         )))
         self.lp.run_until_complete(exec_test())
 
@@ -152,8 +152,8 @@ class TestRelativeToPast(unittest.TestCase, QuamashTest):
             value = await referential.diff_localized(units=True, international_system=True)
             self.assertEqual(value, "1.011000 dUD({0}) TC".format(QLocale.toString(
                             QLocale(),
-                            QDateTime.fromTime_t(1452663088792),
-                            QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
+                            QDateTime.fromTime_t(1452663088792).date(),
+                            QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
                         )))
         self.lp.run_until_complete(exec_test())
 
@@ -186,7 +186,7 @@ class TestRelativeToPast(unittest.TestCase, QuamashTest):
             value = await referential.diff_localized(units=False, international_system=True)
             self.assertEqual(value, "1.011000 dUD({0}) ".format(QLocale.toString(
                             QLocale(),
-                            QDateTime.fromTime_t(1452663088792),
-                            QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
+                            QDateTime.fromTime_t(1452663088792).date(),
+                            QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
                         )))
         self.lp.run_until_complete(exec_test())

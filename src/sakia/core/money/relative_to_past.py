@@ -61,8 +61,8 @@ class RelativeToPast(BaseReferential):
                         prefix,
                         QLocale.toString(
                             QLocale(),
-                            QDateTime.fromTime_t(block['medianTime']),
-                            QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
+                            QDateTime.fromTime_t(block['medianTime']).date(),
+                            QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
                         ),
                         self.community.short_currency if units else "")
         else:
@@ -83,8 +83,8 @@ class RelativeToPast(BaseReferential):
                     prefix,
                     QLocale.toString(
                         QLocale(),
-                        QDateTime.fromTime_t(block['medianTime']),
-                        QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
+                        QDateTime.fromTime_t(block['medianTime']).date(),
+                        QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
                     ),
                     self.community.short_currency if units else "")
         else:
