@@ -334,7 +334,7 @@ class HistoryTableModel(QAbstractTableModel):
                 if self.columns_types[section] == 'payment' or self.columns_types[section] == 'deposit':
                     return '{:}\n({:})'.format(
                         self.column_headers[section](),
-                        self.account.current_ref.diff_units(self.community.short_currency)
+                        self.account.current_ref(0, self.community, self.app, None).diff_units
                     )
 
                 return self.column_headers[section]()
