@@ -6,30 +6,48 @@ environment:
     CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\ci\\appveyor\\run_with_env.cmd"
 
   matrix:
-    - PYTHON: "C:\\Python34_64"
+    - PYTHON: "C:\\Python35_64"
       PYTHON_VERSION: "3.5"
       PYTHON_ARCH: "64"
-      CONDA_PY: "34"
+      CONDA_PY: "35"
       CONDA_NPY: "18"
+      QTDIR: "C:\\Qt\\5.6\\5.6\\msvc2015_64"
+      QDOWNLOAD: "http://download.qt.io/development_releases/qt/5.6/5.6.0-beta/qt-opensource-windows-x86-msvc2015_64-5.6.0-beta.exe"
+      QINSTALLER: "qt-opensource-windows-x86-msvc2015_64-5.6.0-beta.exe"
       platform: x64
 
-    - PYTHON: "C:\\Python34_32"
+    - PYTHON: "C:\\Python35_32"
       PYTHON_VERSION: "3.5"
       PYTHON_ARCH: "32"
-      CONDA_PY: "34"
+      CONDA_PY: "35"
       CONDA_NPY: "18"
+      QTDIR: "C:\\Qt\\5.6\\5.6\\msvc2015"
+      QDOWNLOAD: "http://download.qt.io/development_releases/qt/5.6/5.6.0-beta/qt-opensource-windows-x86-msvc2015-5.6.0-beta.exe"
+      QINSTALLER: "qt-opensource-windows-x86-msvc2015-5.6.0-beta.exe"
       platform: x86
 
 install:
   # this installs the appropriate Miniconda (Py2/Py3, 32/64 bit),
   # as well as pip, conda-build, and the binstar CLI
   - powershell .\\ci\\appveyor\\install.ps1
+
+  - IF NOT EXIST C:\Qt\5.6\5.6 curl -kLO %QDOWNLOAD%
+  - IF NOT EXIST C:\Qt\5.6\5.6 %QINSTALLER% --script ci\appveyor\qt-installer-noninteractive.qs
+  # - dir /b /s /ad c:\Qt
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
-  - "SET QT_QPA_PLATFORM_PLUGIN_PATH=%PYTHON%\\envs\\test-environment\\Scripts\\plugins"
+  - "IF EXIST %QTDIR%\\include\\QtNfc MOVE %QTDIR%\\include\\QtNfc %QTDIR%\\include\\QtNfc-disable"
+  # Add qt to path
+  - "set PATH=%QTDIR%\\bin;%PATH%"
+
+  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+  - "SET QT_QPA_PLATFORM_PLUGIN_PATH=C:\\Qt\\5.6\\5.6\\msvc_2015\\plugins\\platforms"
   - choco install -y vcredist2015
   - "%CMD_IN_ENV% conda config --set always_yes yes --set changeps1 no"
   - "%CMD_IN_ENV% conda config --add channels inso/channel/sakia"
   - "%CMD_IN_ENV% conda create -q -n test-environment python=%PYTHON_VERSION% pyqt5 libsodium=1.0.3"
+
+cache:
+  - C:\Qt\5.6\5.6
 
 build_script:
   - ".\\ci\\appveyor\\build.cmd"
