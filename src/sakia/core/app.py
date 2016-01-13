@@ -522,5 +522,5 @@ class Application(QObject):
                     logging.debug("Current version : {0}".format(__version__))
                     self.available_version = version
                 self.version_requested.emit()
-        except aiohttp.errors.ClientError as e:
+        except (aiohttp.errors.ClientError, aiohttp.errors.TimeoutError) as e:
             logging.debug("Could not connect to github : {0}".format(str(e)))
