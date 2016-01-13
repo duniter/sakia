@@ -59,7 +59,11 @@ class TestRelativeToPast(unittest.TestCase, QuamashTest):
         referential = RelativeToPast(101, community, app, 100)
         async def exec_test():
             value = await referential.localized(units=True)
-            self.assertEqual(value, "0.101000 UD(21/07/2000 03:25) TC")
+            self.assertEqual(value, "0.101000 UD({0}) TC".format(QLocale.toString(
+                            QLocale(),
+                            QDateTime.fromTime_t(1452663088792),
+                            QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
+                        )))
         self.lp.run_until_complete(exec_test())
 
     @patch('sakia.core.Community')
