@@ -209,6 +209,5 @@ class GraphTabWidget(QWidget):
         """
         if event.type() == QEvent.LanguageChange:
             self.retranslateUi(self)
-            self._auto_refresh(None)
             self.refresh()
         return super().changeEvent(event)
