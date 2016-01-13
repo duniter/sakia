@@ -26,11 +26,10 @@ install:
   - powershell .\\ci\\appveyor\\install.ps1
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
   - "SET QT_QPA_PLATFORM_PLUGIN_PATH=%PYTHON%\\envs\\test-environment\\Scripts\\plugins"
-  - choco install -y vcredist2013
+  - choco install -y vcredist2015
   - "%CMD_IN_ENV% conda config --set always_yes yes --set changeps1 no"
   - "%CMD_IN_ENV% conda config --add channels inso/channel/sakia"
-  - "%CMD_IN_ENV% conda config --add channels pyzo"
-  - "%CMD_IN_ENV% conda create -q -n test-environment python=%PYTHON_VERSION% cx_freeze pyqt5 libsodium=1.0.3"
+  - "%CMD_IN_ENV% conda create -q -n test-environment python=%PYTHON_VERSION% pyqt5 libsodium=1.0.3"
 
 build_script:
   - ".\\ci\\appveyor\\build.cmd"

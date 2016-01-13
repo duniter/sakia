@@ -19,5 +19,5 @@ if %errorlevel% neq 0 exit /b 1s
 python gen_translations.py
 if %errorlevel% neq 0 exit /b 1
 
-python setup.py build
-if %errorlevel% neq 0 exit /b 1
+@REM python setup.py build
+@REM if %errorlevel% neq 0 exit /b 1
