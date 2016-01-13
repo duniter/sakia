@@ -1,5 +1,4 @@
 import sys, os, subprocess, multiprocessing, site
-from cx_Freeze import setup, Executable
 from PyQt5 import QtCore
 from os import listdir
 from os.path import isfile, join
@@ -13,6 +12,7 @@ if "test" in sys.argv:
 
     sys.exit(not runner.wasSuccessful())
 else:
+    from cx_Freeze import setup, Executable
     print(sys.path)
     print("Environnement:")
     print(os.environ)
