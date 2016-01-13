@@ -1,9 +1,6 @@
 import unittest
-import asyncio
-import quamash
 from PyQt5.QtWidgets import QDialog, QFileDialog
 from PyQt5.QtCore import QLocale, QTimer
-from PyQt5.QtNetwork import QNetworkAccessManager
 from sakia.gui.mainwindow import MainWindow
 from sakia.core.app import Application
 from sakia.tests import QuamashTest
