@@ -31,13 +31,10 @@ class ProcessAddCommunity(unittest.TestCase, QuamashTest):
         self.password_asker = PasswordAskerDialog(self.account)
         self.password_asker.password = "testsakia"
         self.password_asker.remember = True
-        super().setUp()
 
     def tearDown(self):
-        super().tearDown()
         self.tearDownQuamash()
 
-    @unittest.skipIf(sys.platform== "darwin", "Test not working on OSX, but feature is OK")
     def test_register_community_empty_blockchain(self):
         mock = new_blockchain.get_mock(self.lp)
         time.sleep(2)
@@ -98,7 +95,6 @@ class ProcessAddCommunity(unittest.TestCase, QuamashTest):
         self.lp.run_until_complete(process_community.async_exec())
         self.assertEqual(process_community.result(), QDialog.Accepted)
 
-    @unittest.skipIf(sys.platform== "darwin", "Test not working on OSX, but feature is OK")
     def test_connect_community_empty_blockchain(self):
         mock = new_blockchain.get_mock(self.lp)
         time.sleep(2)
@@ -145,7 +141,6 @@ class ProcessAddCommunity(unittest.TestCase, QuamashTest):
         asyncio.ensure_future(exec_test())
         self.lp.run_until_complete(process_community.async_exec())
 
-    @unittest.skipIf(sys.platform== "darwin", "Test not working on OSX, but feature is OK")
     def test_connect_community_wrong_pubkey(self):
         mock = nice_blockchain.get_mock(self.lp)
         time.sleep(2)
@@ -187,7 +182,6 @@ Yours : wrong_pubkey, the network : 7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ
         self.lp.run_until_complete(process_community.async_exec())
         self.assertEqual(process_community.result(), QDialog.Rejected)
 
-    @unittest.skipIf(sys.platform== "darwin", "Test not working on OSX, but feature is OK")
     def test_connect_community_wrong_uid(self):
         mock = nice_blockchain.get_mock(self.lp)
         time.sleep(2)
@@ -229,7 +223,6 @@ Yours : wrong_uid, the network : john""")
         self.lp.run_until_complete(process_community.async_exec())
         self.assertEqual(process_community.result(), QDialog.Rejected)
 
-    @unittest.skipIf(sys.platform== "darwin", "Test not working on OSX, but feature is OK")
     def test_connect_community_success(self):
         mock = nice_blockchain.get_mock(self.lp)
         time.sleep(2)
