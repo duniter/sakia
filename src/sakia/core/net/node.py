@@ -10,11 +10,13 @@ from ...tools.decorators import asyncify
 from ucoinpy.api import bma as bma
 from ucoinpy.api.bma import ConnectionHandler
 
-import asyncio
-from aiohttp.errors import ClientError, DisconnectedError
+from aiohttp.errors import ClientError, DisconnectedError, TimeoutError, \
+    WSClientDisconnectedError, WSServerHandshakeError, ClientResponseError
 import logging
 import time
 import jsonschema
+import asyncio
+import aiohttp
 from socket import gaierror
 
 from PyQt5.QtCore import QObject, pyqtSignal
@@ -281,7 +283,7 @@ class Node(QObject):
         Refresh all data of this node
         :param bool manual: True if the refresh was manually initiated
         """
-        self.refresh_block()
+        asyncio.ensure_future(self.connect_current_block())
         self.refresh_peers()
 
         if self._refresh_counter % 20 == 0 or manual:
@@ -291,6 +293,25 @@ class Node(QObject):
             self._refresh_counter = self._refresh_counter if manual else 1
         else:
             self._refresh_counter += 1
+
+    async def connect_current_block(self):
+        try:
+            conn_handler = self.endpoint.conn_handler()
+            async with bma.websocket.Block(conn_handler).connect() as ws:
+                async for msg in ws:
+                    if msg.tp == aiohttp.MsgType.text:
+                        pass
+                    elif msg.tp == aiohttp.MsgType.closed:
+                        break
+                    elif msg.tp == aiohttp.MsgType.error:
+                        break
+                    else:
+                        pass
+        except (WSServerHandshakeError, WSClientDisconnectedError) as e:
+            logging.debug("Websocket error : {0}".format(str(e)))
+        except ClientResponseError as e:
+            logging.debug("Client response error : {0}".format(str(e)))
+
 
     @asyncify
     async def refresh_block(self):
@@ -318,7 +339,7 @@ class Node(QObject):
                     logging.debug("Error in previous block reply :  {0}".format(self.pubkey))
                     logging.debug(str(e))
                     self.changed.emit()
-                except (ClientError, gaierror, asyncio.TimeoutError, DisconnectedError) as e:
+                except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
                     logging.debug("{0} : {1}".format(str(e), self.pubkey))
                     self.state = Node.OFFLINE
                 except jsonschema.ValidationError:
@@ -338,7 +359,7 @@ class Node(QObject):
             logging.debug("Error in block reply :  {0}".format(self.pubkey))
             logging.debug(str(e))
             self.changed.emit()
-        except (ClientError, gaierror, asyncio.TimeoutError, DisconnectedError) as e:
+        except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
             logging.debug("{0} : {1}".format(str(e), self.pubkey))
             self.state = Node.OFFLINE
         except jsonschema.ValidationError:
@@ -371,7 +392,7 @@ class Node(QObject):
             logging.debug("Error in peering reply : {0}".format(str(e)))
             self.state = Node.OFFLINE
             self.changed.emit()
-        except (ClientError, gaierror, asyncio.TimeoutError, DisconnectedError) as e:
+        except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
             logging.debug("{0} : {1}".format(str(e), self.pubkey))
             self.state = Node.OFFLINE
         except jsonschema.ValidationError:
@@ -398,7 +419,7 @@ class Node(QObject):
             logging.debug("Error in summary : {0}".format(e))
             self.state = Node.OFFLINE
             self.changed.emit()
-        except (ClientError, gaierror, asyncio.TimeoutError, DisconnectedError) as e:
+        except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
             logging.debug("{0} : {1}".format(str(e), self.pubkey))
             self.state = Node.OFFLINE
         except jsonschema.ValidationError:
@@ -433,7 +454,7 @@ class Node(QObject):
                 logging.debug("error in uid reply : {0}".format(self.pubkey))
                 self.state = Node.OFFLINE
                 self.identity_changed.emit()
-        except (ClientError, gaierror, asyncio.TimeoutError, DisconnectedError) as e:
+        except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
             logging.debug("{0} : {1}".format(str(e), self.pubkey))
             self.state = Node.OFFLINE
         except jsonschema.ValidationError:
@@ -469,7 +490,7 @@ class Node(QObject):
                                                                                         leaf=leaf_hash))
                         self.state = Node.OFFLINE
                         self.changed.emit()
-                    except (ClientError, gaierror, asyncio.TimeoutError, DisconnectedError) as e:
+                    except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
                         logging.debug("{0} : {1}".format(str(e), self.pubkey))
                         self.state = Node.OFFLINE
                     except jsonschema.ValidationError:
@@ -481,7 +502,7 @@ class Node(QObject):
             logging.debug("Error in peers reply")
             self.state = Node.OFFLINE
             self.changed.emit()
-        except (ClientError, gaierror, asyncio.TimeoutError, DisconnectedError) as e:
+        except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
             logging.debug("{0} : {1}".format(str(e), self.pubkey))
             self.state = Node.OFFLINE
         except jsonschema.ValidationError:
