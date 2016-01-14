@@ -8,12 +8,12 @@ def bma_peering_generator(port):
           "version": 1,
           "currency": "test_currency",
           "endpoints": [
-            "BASIC_MERKLED_API localhost 127.0.0.1 {port}".format(port=port)
+            "BASIC_MERKLED_API 127.0.0.1 {port}".format(port=port)
           ],
           "status": "UP",
           "block": "30152-00003E7F9234E7542FCF669B69B0F84FF79CCCD3",
           "signature": "cXuqZuDfyHvxYAEUkPH1TQ1M+8YNDpj8kiHGYi3LIaMqEdVqwVc4yQYGivjxFMYyngRfxXkyvqBKZA6rKOulCA==",
-          "raw": "Version: 1\nType: Peer\nCurrency: meta_brouzouf\nPublicKey: HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk\nBlock: 30152-00003E7F9234E7542FCF669B69B0F84FF79CCCD3\nEndpoints:\nBASIC_MERKLED_API localhost 127.0.0.1 {port}\n".format(port=port),
+          "raw": "Version: 1\nType: Peer\nCurrency: meta_brouzouf\nPublicKey: HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk\nBlock: 30152-00003E7F9234E7542FCF669B69B0F84FF79CCCD3\nEndpoints:\nBASIC_MERKLED_API 127.0.0.1 {port}\n".format(port=port),
           "pubkey": "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk"
         }
 
