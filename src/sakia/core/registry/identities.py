@@ -1,4 +1,3 @@
-from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
 from ucoinpy.api import bma
 from .identity import Identity, LocalState, BlockchainState
 
