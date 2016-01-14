@@ -31,8 +31,10 @@ class ProcessAddCommunity(unittest.TestCase, QuamashTest):
         self.password_asker = PasswordAskerDialog(self.account)
         self.password_asker.password = "testsakia"
         self.password_asker.remember = True
+        super().setUp()
 
     def tearDown(self):
+        super().tearDown()
         self.tearDownQuamash()
 
     @unittest.skipIf(sys.platform== "darwin", "Test not working on OSX, but feature is OK")

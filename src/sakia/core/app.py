@@ -524,3 +524,5 @@ class Application(QObject):
                 self.version_requested.emit()
         except (aiohttp.errors.ClientError, aiohttp.errors.TimeoutError) as e:
             logging.debug("Could not connect to github : {0}".format(str(e)))
+        except Exception as e:
+            pass
