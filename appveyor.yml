@@ -40,7 +40,7 @@ install:
   - "set PATH=%QTDIR%\\bin;%PATH%"
 
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
-  - "SET QT_QPA_PLATFORM_PLUGIN_PATH=C:\\Qt\\5.6\\5.6\\msvc_2015\\plugins\\platforms"
+  - "SET QT_PLUGIN_PATH=C:\\Qt\\5.6\\5.6\\msvc_2015\\plugins"
   - choco install -y vcredist2015
   - "%CMD_IN_ENV% conda config --set always_yes yes --set changeps1 no"
   - "%CMD_IN_ENV% conda config --add channels inso/channel/sakia"
