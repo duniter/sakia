@@ -1,4 +1,4 @@
 ucoinpy>=0.13
-https://github.com/Insoleet/quamash.git@qeventloop
+git+https://github.com/Insoleet/quamash.git@qeventloop
 asynctest
 networkx
