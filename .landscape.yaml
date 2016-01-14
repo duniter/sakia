@@ -4,3 +4,4 @@ ignore-paths:
   - lib
   - build
   - res
+doc-warnings: true
