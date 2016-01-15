@@ -12,6 +12,7 @@ pyrcc5 -version
 lrelease -version
 
 pip install -r requirements.txt
+pip install pyinstaller
 
 python gen_resources.py
 if %errorlevel% neq 0 exit /b 1s
@@ -19,5 +20,5 @@ if %errorlevel% neq 0 exit /b 1s
 python gen_translations.py
 if %errorlevel% neq 0 exit /b 1
 
-@REM python setup.py build
-@REM if %errorlevel% neq 0 exit /b 1
+pyinstaller src/sakia/main.py --additional-hooks-dir hooks
+if %errorlevel% neq 0 exit /b 1
