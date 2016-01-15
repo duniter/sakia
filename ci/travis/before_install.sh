@@ -61,14 +61,16 @@ then
             --enable QtCore \
             --enable QtWidgets \
             --enable QtGui \
-            --enable QtSvg
+            --enable QtSvg\
+            --enable QtTest
     elif [ $TRAVIS_OS_NAME == "linux" ]
     then
         python configure.py --qmake "/usr/lib/x86_64-linux-gnu/qt5/bin/qmake" --confirm-license  \
             --enable QtCore \
             --enable QtWidgets \
             --enable QtGui \
-            --enable QtSvg
+            --enable QtSvg\
+            --enable QtTest
     fi
 
     make -j 2 && make install

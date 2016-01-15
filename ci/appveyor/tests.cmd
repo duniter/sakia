@@ -11,7 +11,7 @@ pyrcc5 -version
 
 lrelease -version
 
-echo %CWS%
+echo "%CWD%"
 
 python setup.py test
 
