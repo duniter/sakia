@@ -2,10 +2,19 @@ from PyQt5.QtCore import QCoreApplication, QT_TRANSLATE_NOOP, QObject, QLocale
 import asyncio
 
 
-class Quantitative():
+class Quantitative:
     _NAME_STR_ = QT_TRANSLATE_NOOP('Quantitative', 'Units')
     _REF_STR_ = QT_TRANSLATE_NOOP('Quantitative', "{0} {1}{2}")
     _UNITS_STR_ = QT_TRANSLATE_NOOP('Quantitative', "{0}")
+    _FORMULA_STR_ = QT_TRANSLATE_NOOP('Quantitative',
+                                      """Q = Q
+                                        <br >
+                                        <table>
+                                        <tr><td>Q</td><td>Quantitative value</td></tr>
+                                        </table>
+                                      """
+                                      )
+    _DESCRIPTION_STR_ = QT_TRANSLATE_NOOP('Quantitative', "Base referential of the money. Units values are used here.")
 
     def __init__(self, amount, community, app):
         self.amount = amount
@@ -19,6 +28,14 @@ class Quantitative():
     @classmethod
     def units(cls, currency):
         return QCoreApplication.translate("Quantitative", Quantitative._UNITS_STR_).format(currency)
+
+    @classmethod
+    def formula(cls):
+        return QCoreApplication.translate('Quantitative', Quantitative._FORMULA_STR_)
+
+    @classmethod
+    def description(cls):
+        return QCoreApplication.translate("Quantitative", Quantitative._DESCRIPTION_STR_)
 
     @classmethod
     def diff_units(cls, currency):

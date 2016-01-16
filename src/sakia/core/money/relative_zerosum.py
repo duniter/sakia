@@ -7,6 +7,23 @@ class RelativeZSum:
     _NAME_STR_ = QT_TRANSLATE_NOOP('RelativeZSum', 'Relat Z-sum')
     _REF_STR_ = QT_TRANSLATE_NOOP('RelativeZSum', "{0} R0 {1}")
     _UNITS_STR_ = QT_TRANSLATE_NOOP('RelativeZSum', "R0 {0}")
+    _FORMULA_STR_ = QT_TRANSLATE_NOOP('RelativeZSum',
+                                      """R0 = (R / UD(t)) - (( M(t-1) / N(t) ) / UD(t))
+                                        <br >
+                                        <table>
+                                        <tr><td>R0</td><td>Relative value at zero sum</td></tr>
+                                        <tr><td>R</td><td>Relative value</td></tr>
+                                        <tr><td>M</td><td>Monetary mass</td></tr>
+                                        <tr><td>N</td><td>Members count</td></tr>
+                                        <tr><td>t</td><td>Last UD time</td></tr>
+                                        <tr><td>t-1</td><td>Penultimate UD time</td></tr>
+                                        </table>""")
+    _DESCRIPTION_STR_ = QT_TRANSLATE_NOOP('RelativeZSum',
+                                          """Relative at zero sum is used to display the difference between
+                                            the relative value and the average relative value.
+                                            If it is positive, the value is above the average value, and if it is negative,
+                                            the value is under the average value.
+                                           """.replace('\n', '<br >'))
 
     def __init__(self, amount, community, app):
         self.amount = amount
@@ -20,6 +37,14 @@ class RelativeZSum:
     @classmethod
     def units(cls, currency):
         return QCoreApplication.translate("RelativeZSum", RelativeZSum._UNITS_STR_).format(currency)
+
+    @classmethod
+    def formula(cls):
+        return QCoreApplication.translate('RelativeZSum', RelativeZSum._FORMULA_STR_)
+
+    @classmethod
+    def description(cls):
+        return QCoreApplication.translate("RelativeZSum", RelativeZSum._DESCRIPTION_STR_)
 
     @classmethod
     def diff_units(cls, currency):
@@ -67,7 +92,7 @@ class RelativeZSum:
             localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
 
         if units:
-            return QCoreApplication.translate("RelativeZSum", RelativeZSum._REF_STR_)\
+            return QCoreApplication.translate("RelativeZSum", RelativeZSum._REF_STR_) \
                 .format(localized_value,
                         self.community.short_currency if units else "")
         else:
@@ -83,7 +108,7 @@ class RelativeZSum:
             localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
 
         if units:
-            return QCoreApplication.translate("RelativeZSum", RelativeZSum._REF_STR_)\
+            return QCoreApplication.translate("RelativeZSum", RelativeZSum._REF_STR_) \
                 .format(localized_value, self.community.short_currency if units else "")
         else:
             return localized_value

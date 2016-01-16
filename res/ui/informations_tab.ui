@@ -38,8 +38,8 @@ QGroupBox::title {
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>522</width>
-        <height>721</height>
+        <width>518</width>
+        <height>717</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -84,6 +84,22 @@ QGroupBox::title {
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="group_referentials">
+         <property name="title">
+          <string>Referentials</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_2">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_referentials">
+            <property name="text">
+             <string/>
             </property>
            </widget>
           </item>
