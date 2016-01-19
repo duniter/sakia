@@ -64,7 +64,7 @@ class TestRelative(unittest.TestCase, QuamashTest):
     @patch('sakia.core.Community')
     @patch('sakia.core.Application')
     def test_localized_with_si(self, app, community):
-        community.dividend = CoroutineMock(return_value=10000)
+        community.dividend = CoroutineMock(return_value=1000000)
         type(community).short_currency = PropertyMock(return_value="TC")
         app.preferences = {
             'digits_after_comma': 6
@@ -72,7 +72,7 @@ class TestRelative(unittest.TestCase, QuamashTest):
         referential = Relative(1011, community, app, None)
         async def exec_test():
             value = await referential.localized(units=True, international_system=True)
-            self.assertEqual(value, "1.011000 dUD TC")
+            self.assertEqual(value, "1.011000 mUD TC")
         self.lp.run_until_complete(exec_test())
 
     @patch('sakia.core.Community')
@@ -92,7 +92,7 @@ class TestRelative(unittest.TestCase, QuamashTest):
     @patch('sakia.core.Community')
     @patch('sakia.core.Application')
     def test_localized_no_units_with_si(self, app, community):
-        community.dividend = CoroutineMock(return_value=10000)
+        community.dividend = CoroutineMock(return_value=1000000)
         type(community).short_currency = PropertyMock(return_value="TC")
         app.preferences = {
             'digits_after_comma': 6
@@ -100,7 +100,7 @@ class TestRelative(unittest.TestCase, QuamashTest):
         referential = Relative(1011, community, app, None)
         async def exec_test():
             value = await referential.localized(units=False, international_system=True)
-            self.assertEqual(value, "1.011000 dUD ")
+            self.assertEqual(value, "1.011000 mUD ")
         self.lp.run_until_complete(exec_test())
 
     @patch('sakia.core.Community')
@@ -120,7 +120,7 @@ class TestRelative(unittest.TestCase, QuamashTest):
     @patch('sakia.core.Community')
     @patch('sakia.core.Application')
     def test_diff_localized_with_si(self, app, community):
-        community.dividend = CoroutineMock(return_value=10000)
+        community.dividend = CoroutineMock(return_value=1000000)
         type(community).short_currency = PropertyMock(return_value="TC")
         app.preferences = {
             'digits_after_comma': 6
@@ -128,13 +128,13 @@ class TestRelative(unittest.TestCase, QuamashTest):
         referential = Relative(1011, community, app, None)
         async def exec_test():
             value = await referential.diff_localized(units=True, international_system=True)
-            self.assertEqual(value, "1.011000 dUD TC")
+            self.assertEqual(value, "1.011000 mUD TC")
         self.lp.run_until_complete(exec_test())
 
     @patch('sakia.core.Community')
     @patch('sakia.core.Application')
     def test_diff_localized_no_units_no_si(self, app, community):
-        community.dividend = CoroutineMock(return_value=10000)
+        community.dividend = CoroutineMock(return_value=1000000)
         type(community).short_currency = PropertyMock(return_value="TC")
         app.preferences = {
             'digits_after_comma': 6
@@ -142,13 +142,13 @@ class TestRelative(unittest.TestCase, QuamashTest):
         referential = Relative(1011, community, app, None)
         async def exec_test():
             value = await referential.diff_localized(units=False, international_system=False)
-            self.assertEqual(value, "0.101100")
+            self.assertEqual(value, "0.001011")
         self.lp.run_until_complete(exec_test())
 
     @patch('sakia.core.Community')
     @patch('sakia.core.Application')
     def test_diff_localized_no_units_with_si(self, app, community):
-        community.dividend = CoroutineMock(return_value=10000)
+        community.dividend = CoroutineMock(return_value=1000000)
         type(community).short_currency = PropertyMock(return_value="TC")
         app.preferences = {
             'digits_after_comma': 6
@@ -156,5 +156,5 @@ class TestRelative(unittest.TestCase, QuamashTest):
         referential = Relative(1011, community, app, None)
         async def exec_test():
             value = await referential.diff_localized(units=False, international_system=True)
-            self.assertEqual(value, "1.011000 dUD ")
+            self.assertEqual(value, "1.011000 mUD ")
         self.lp.run_until_complete(exec_test())

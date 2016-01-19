@@ -69,7 +69,7 @@ class TestRelativeToPast(unittest.TestCase, QuamashTest):
     @patch('sakia.core.Community')
     @patch('sakia.core.Application')
     def test_localized_with_si(self, app, community):
-        community.dividend = CoroutineMock(return_value=10000)
+        community.dividend = CoroutineMock(return_value=1000000)
         community.get_block = CoroutineMock(return_value={'medianTime': 1452663088792})
         type(community).short_currency = PropertyMock(return_value="TC")
         app.preferences = {
@@ -78,7 +78,7 @@ class TestRelativeToPast(unittest.TestCase, QuamashTest):
         referential = RelativeToPast(1011, community, app, 100)
         async def exec_test():
             value = await referential.localized(units=True, international_system=True)
-            self.assertEqual(value, "1.011000 dUD({0}) TC".format(QLocale.toString(
+            self.assertEqual(value, "1.011000 mUD({0}) TC".format(QLocale.toString(
                             QLocale(),
                             QDateTime.fromTime_t(1452663088792).date(),
                             QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
@@ -103,7 +103,7 @@ class TestRelativeToPast(unittest.TestCase, QuamashTest):
     @patch('sakia.core.Community')
     @patch('sakia.core.Application')
     def test_localized_no_units_with_si(self, app, community):
-        community.dividend = CoroutineMock(return_value=10000)
+        community.dividend = CoroutineMock(return_value=1000000)
         community.get_block = CoroutineMock(return_value={'medianTime': 1452663088792})
         type(community).short_currency = PropertyMock(return_value="TC")
         app.preferences = {
@@ -112,7 +112,7 @@ class TestRelativeToPast(unittest.TestCase, QuamashTest):
         referential = RelativeToPast(1011, community, app, 100)
         async def exec_test():
             value = await referential.localized(units=False, international_system=True)
-            self.assertEqual(value, "1.011000 dUD({0}) ".format(QLocale.toString(
+            self.assertEqual(value, "1.011000 mUD({0}) ".format(QLocale.toString(
                             QLocale(),
                             QDateTime.fromTime_t(1452663088792).date(),
                             QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
@@ -141,7 +141,7 @@ class TestRelativeToPast(unittest.TestCase, QuamashTest):
     @patch('sakia.core.Community')
     @patch('sakia.core.Application')
     def test_diff_localized_with_si(self, app, community):
-        community.dividend = CoroutineMock(return_value=10000)
+        community.dividend = CoroutineMock(return_value=1000000)
         community.get_block = CoroutineMock(return_value={'medianTime': 1452663088792})
         type(community).short_currency = PropertyMock(return_value="TC")
         app.preferences = {
@@ -150,7 +150,7 @@ class TestRelativeToPast(unittest.TestCase, QuamashTest):
         referential = RelativeToPast(1011, community, app, 100)
         async def exec_test():
             value = await referential.diff_localized(units=True, international_system=True)
-            self.assertEqual(value, "1.011000 dUD({0}) TC".format(QLocale.toString(
+            self.assertEqual(value, "1.011000 mUD({0}) TC".format(QLocale.toString(
                             QLocale(),
                             QDateTime.fromTime_t(1452663088792).date(),
                             QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
@@ -175,7 +175,7 @@ class TestRelativeToPast(unittest.TestCase, QuamashTest):
     @patch('sakia.core.Community')
     @patch('sakia.core.Application')
     def test_diff_localized_no_units_with_si(self, app, community):
-        community.dividend = CoroutineMock(return_value=10000)
+        community.dividend = CoroutineMock(return_value=1000000)
         community.get_block = CoroutineMock(return_value={'medianTime': 1452663088792})
         type(community).short_currency = PropertyMock(return_value="TC")
         app.preferences = {
@@ -184,7 +184,7 @@ class TestRelativeToPast(unittest.TestCase, QuamashTest):
         referential = RelativeToPast(1011, community, app, 100)
         async def exec_test():
             value = await referential.diff_localized(units=False, international_system=True)
-            self.assertEqual(value, "1.011000 dUD({0}) ".format(QLocale.toString(
+            self.assertEqual(value, "1.011000 mUD({0}) ".format(QLocale.toString(
                             QLocale(),
                             QDateTime.fromTime_t(1452663088792).date(),
                             QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
