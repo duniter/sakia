@@ -12,9 +12,11 @@ from ucoinpy.api.bma import ConnectionHandler
 
 import asyncio
 from aiohttp.errors import ClientError, DisconnectedError
+from asyncio import TimeoutError
 import logging
 import time
 import jsonschema
+import aiohttp
 from socket import gaierror
 
 from PyQt5.QtCore import QObject, pyqtSignal
@@ -259,8 +261,6 @@ class Node(QObject):
         #                                                               self.state, new_state))
 
         if self._state != new_state:
-            if self.pubkey[:5] in ("6YfbK", "J78bP"):
-                pass
             self.last_change = time.time()
             self._state = new_state
             self.changed.emit()
@@ -320,8 +320,8 @@ class Node(QObject):
                     logging.debug("Error in previous block reply :  {0}".format(self.pubkey))
                     logging.debug(str(e))
                     self.changed.emit()
-                except (ClientError, gaierror, asyncio.TimeoutError, DisconnectedError) as e:
-                    logging.debug("{0} : {1}".format(str(e), self.pubkey))
+                except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
+                    logging.debug("{0} : {1}".format(type(e).__name__, self.pubkey))
                     self.state = Node.OFFLINE
                 except jsonschema.ValidationError:
                     logging.debug("Validation error : {0}".format(self.pubkey))
@@ -340,8 +340,8 @@ class Node(QObject):
             logging.debug("Error in block reply :  {0}".format(self.pubkey))
             logging.debug(str(e))
             self.changed.emit()
-        except (ClientError, gaierror, asyncio.TimeoutError, DisconnectedError) as e:
-            logging.debug("{0} : {1}".format(str(e), self.pubkey))
+        except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
+            logging.debug("{0} : {1}".format(type(e).__name__, self.pubkey))
             self.state = Node.OFFLINE
         except jsonschema.ValidationError:
             logging.debug("Validation error : {0}".format(self.pubkey))
@@ -374,8 +374,8 @@ class Node(QObject):
             logging.debug("Error in peering reply : {0}".format(str(e)))
             self.state = Node.OFFLINE
             self.changed.emit()
-        except (ClientError, gaierror, asyncio.TimeoutError, DisconnectedError) as e:
-            logging.debug("{0} : {1}".format(str(e), self.pubkey))
+        except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
+            logging.debug("{0} : {1}".format(type(e).__name__, self.pubkey))
             self.state = Node.OFFLINE
         except jsonschema.ValidationError:
             logging.debug("Validation error : {0}".format(self.pubkey))
@@ -402,8 +402,8 @@ class Node(QObject):
             logging.debug("Error in summary : {0}".format(e))
             self.state = Node.OFFLINE
             self.changed.emit()
-        except (ClientError, gaierror, asyncio.TimeoutError, DisconnectedError) as e:
-            logging.debug("{0} : {1}".format(str(e), self.pubkey))
+        except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
+            logging.debug("{0} : {1}".format(type(e).__name__, self.pubkey))
             self.state = Node.OFFLINE
         except jsonschema.ValidationError:
             logging.debug("Validation error : {0}".format(self.pubkey))
@@ -438,8 +438,8 @@ class Node(QObject):
                 logging.debug("error in uid reply : {0}".format(self.pubkey))
                 self.state = Node.OFFLINE
                 self.identity_changed.emit()
-        except (ClientError, gaierror, asyncio.TimeoutError, DisconnectedError) as e:
-            logging.debug("{0} : {1}".format(str(e), self.pubkey))
+        except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
+            logging.debug("{0} : {1}".format(type(e).__name__, self.pubkey))
             self.state = Node.OFFLINE
         except jsonschema.ValidationError:
             logging.debug("Validation error : {0}".format(self.pubkey))
@@ -475,8 +475,8 @@ class Node(QObject):
                                                                                         leaf=leaf_hash))
                         self.state = Node.OFFLINE
                         self.changed.emit()
-                    except (ClientError, gaierror, asyncio.TimeoutError, DisconnectedError) as e:
-                        logging.debug("{0} : {1}".format(str(e), self.pubkey))
+                    except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
+                        logging.debug("{0} : {1}".format(type(e).__name__, self.pubkey))
                         self.state = Node.OFFLINE
                     except jsonschema.ValidationError:
                         logging.debug("Validation error : {0}".format(self.pubkey))
@@ -487,8 +487,8 @@ class Node(QObject):
             logging.debug("Error in peers reply")
             self.state = Node.OFFLINE
             self.changed.emit()
-        except (ClientError, gaierror, asyncio.TimeoutError, DisconnectedError) as e:
-            logging.debug("{0} : {1}".format(str(e), self.pubkey))
+        except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
+            logging.debug("{0} : {1}".format(type(e).__name__, self.pubkey))
             self.state = Node.OFFLINE
         except jsonschema.ValidationError:
             logging.debug("Validation error : {0}".format(self.pubkey))
