@@ -19,9 +19,9 @@ python gen_translations.py
 
 if [ $TRAVIS_OS_NAME == "osx" ]
 then
-    pyinstaller src/sakia/main.py --additional-hooks-dir hooks
+    pyinstaller src/sakia/main.py --debug --additional-hooks-dir hooks
 elif [ $TRAVIS_OS_NAME == "linux" ]
 then
-    pyinstaller src/sakia/main.py --additional-hooks-dir hooks
+    pyinstaller src/sakia/main.py --debug --additional-hooks-dir hooks
 fi
 
