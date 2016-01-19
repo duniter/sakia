@@ -231,7 +231,8 @@ class HistoryTableModel(QAbstractTableModel):
 
     async def data_received(self, transfer):
         amount = transfer.metadata['amount']
-        deposit = await self.account.current_ref(transfer.metadata['amount'], self.community, self.app)\
+        deposit = await self.account.current_ref(transfer.metadata['amount'], self.community,
+                                                 self.app, transfer.blockid.number)\
             .diff_localized(international_system=self.app.preferences['international_system_of_units'])
         comment = ""
         if transfer.metadata['comment'] != "":
@@ -254,7 +255,8 @@ class HistoryTableModel(QAbstractTableModel):
 
     async def data_sent(self, transfer):
         amount = transfer.metadata['amount']
-        paiment = await self.account.current_ref(transfer.metadata['amount'], self.community, self.app)\
+        paiment = await self.account.current_ref(transfer.metadata['amount'], self.community,
+                                                 self.app, transfer.blockid.number)\
             .diff_localized(international_system=self.app.preferences['international_system_of_units'])
         comment = ""
         if transfer.metadata['comment'] != "":
@@ -277,7 +279,7 @@ class HistoryTableModel(QAbstractTableModel):
 
     async def data_dividend(self, dividend):
         amount = dividend['amount']
-        deposit = await self.account.current_ref(dividend['amount'], self.community, self.app)\
+        deposit = await self.account.current_ref(dividend['amount'], self.community, self.app, dividend['block_number'])\
             .diff_localized(international_system=self.app.preferences['international_system_of_units'])
         comment = ""
         receiver = self.account.name
@@ -334,7 +336,7 @@ class HistoryTableModel(QAbstractTableModel):
                 if self.columns_types[section] == 'payment' or self.columns_types[section] == 'deposit':
                     return '{:}\n({:})'.format(
                         self.column_headers[section](),
-                        self.account.current_ref.diff_units(self.community.short_currency)
+                        self.account.current_ref(0, self.community, self.app, None).diff_units
                     )
 
                 return self.column_headers[section]()
