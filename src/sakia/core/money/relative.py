@@ -40,7 +40,7 @@ class Relative(BaseReferential):
 
     @staticmethod
     def to_si(value, digits):
-        prefixes = ['', 'd', 'c', 'm', 'µ', 'n', 'p', 'f', 'a', 'z', 'y']
+        prefixes = ['', 'm', 'µ', 'n', 'p', 'f', 'a', 'z', 'y']
         if value < 0:
             value = -value
             multiplier = -1
@@ -51,10 +51,7 @@ class Relative(BaseReferential):
         prefix = ""
 
         while int(scientific_value) == 0 and scientific_value > 0.0:
-            if prefix_index > 3:
-                scientific_value *= 1000
-            else:
-                scientific_value *= 10
+            scientific_value *= 1000
             prefix_index += 1
 
         if prefix_index < len(prefixes):

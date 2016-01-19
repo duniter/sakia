@@ -52,6 +52,7 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
 
     @asyncify
     async def accept(self):
+        self.button_box.setEnabled(False)
         if self.radio_contact.isChecked():
             for contact in self.account.contacts:
                 if contact['name'] == self.combo_contact.currentText():
@@ -62,6 +63,7 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
 
         password = await self.password_asker.async_exec()
         if password == "":
+            self.button_box.setEnabled(True)
             return
         QApplication.setOverrideCursor(Qt.WaitCursor)
         result = await self.account.certify(password, self.community, pubkey)
@@ -83,6 +85,7 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
                                           self.tr("Could not broadcast certification : {0}"
                                                                 .format(result[1])))
             QApplication.restoreOverrideCursor()
+            self.button_box.setEnabled(True)
 
     def change_current_community(self, index):
         self.community = self.account.communities[index]

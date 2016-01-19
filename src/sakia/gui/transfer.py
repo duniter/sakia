@@ -90,6 +90,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
 
     @asyncify
     async def accept(self):
+        self.button_box.setEnabled(False)
         comment = self.edit_message.text()
 
         if self.radio_contact.isChecked():
@@ -105,6 +106,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
             await QAsyncMessageBox.critical(self, self.tr("Money transfer"),
                                  self.tr("No amount. Please give the transfert amount"),
                                  QMessageBox.Ok)
+            self.button_box.setEnabled(True)
             return
 
         password = await self.password_asker.async_exec()
@@ -136,6 +138,7 @@ class TransferMoneyDialog(QDialog, Ui_TransferMoneyDialog):
                 await QAsyncMessageBox.critical(self, self.tr("Transfer"), result[1])
 
             QApplication.restoreOverrideCursor()
+            self.button_box.setEnabled(True)
 
     @asyncify
     async def amount_changed(self, value):
