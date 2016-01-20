@@ -112,7 +112,7 @@ class WalletsTableModel(QAbstractTableModel):
             if self.columns_types[section] == 'amount':
                 return '{:}\n({:})'.format(
                     self.columns_headers[section],
-                    self.account.current_ref.units(self.community.short_currency)
+                    self.account.current_ref(0, self.community, self.app, None).units
                 )
             return self.columns_headers[section]
 

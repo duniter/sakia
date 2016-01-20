@@ -124,7 +124,7 @@ else:
 
     setup(
         name = "sakia",
-        version = "0.11.4",
+        version = "0.12.0",
         description = "UCoin client",
         author = "Inso",
         options = {"build_exe": options},

@@ -1,28 +1,26 @@
-from PyQt5.QtCore import QCoreApplication, QT_TRANSLATE_NOOP, QObject, QLocale
-import asyncio
+from PyQt5.QtCore import QCoreApplication, QT_TRANSLATE_NOOP, QLocale
+from .base_referential import BaseReferential
 
 
-class Quantitative():
+class Quantitative(BaseReferential):
     _NAME_STR_ = QT_TRANSLATE_NOOP('Quantitative', 'Units')
     _REF_STR_ = QT_TRANSLATE_NOOP('Quantitative', "{0} {1}{2}")
     _UNITS_STR_ = QT_TRANSLATE_NOOP('Quantitative', "{0}")
 
-    def __init__(self, amount, community, app):
-        self.amount = amount
-        self.community = community
-        self.app = app
+    def __init__(self, amount, community, app, block_number=None):
+        super().__init__(amount, community, app, block_number)
 
     @classmethod
     def translated_name(cls):
         return QCoreApplication.translate('Quantitative', Quantitative._NAME_STR_)
 
-    @classmethod
-    def units(cls, currency):
-        return QCoreApplication.translate("Quantitative", Quantitative._UNITS_STR_).format(currency)
+    @property
+    def units(self):
+        return QCoreApplication.translate("Quantitative", Quantitative._UNITS_STR_).format(self.community.short_currency)
 
-    @classmethod
-    def diff_units(cls, currency):
-        return Quantitative.units(currency)
+    @property
+    def diff_units(self):
+        return self.units
 
     async def value(self):
         """
