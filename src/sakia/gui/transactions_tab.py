@@ -1,25 +1,16 @@
 import logging
 import asyncio
 
-from PyQt5.QtWidgets import QWidget, QAbstractItemView, QHeaderView, QDialog, \
-    QMenu, QAction, QApplication, QMessageBox
+from PyQt5.QtWidgets import QWidget, QAbstractItemView, QHeaderView
 from PyQt5.QtCore import Qt, QObject, QDateTime, QTime, QModelIndex, pyqtSignal, pyqtSlot, QEvent
 from PyQt5.QtGui import QCursor
-from ucoinpy.documents import Block
 
 from ..gen_resources.transactions_tab_uic import Ui_transactionsTabWidget
 from ..models.txhistory import HistoryTableModel, TxFilterProxyModel
-from ..core.transfer import Transfer, TransferState
-from .contact import ConfigureContactDialog
-from .member import MemberDialog
-from .certification import CertificationDialog
-from ..core.wallet import Wallet
-from ..core.registry import Identity
 from ..tools.exceptions import NoPeerAvailable
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
-from .transfer import TransferMoneyDialog
+from .widgets import ContextMenu
 from sakia.gui.widgets import toast
-from sakia.gui.widgets.busy import Busy
 
 
 class TransactionsTabWidget(QObject):
@@ -28,12 +19,17 @@ class TransactionsTabWidget(QObject):
     """
     view_in_wot = pyqtSignal(object)
 
-    def __init__(self, app, widget=QWidget, view=Ui_transactionsTabWidget):
+    def __init__(self, app, account=None, community=None, password_asker=None,
+                 widget=QWidget, view=Ui_transactionsTabWidget):
         """
         Init
 
         :param sakia.core.app.Application app: Application instance
-        :return:
+        :param sakia.core.Account account: The account displayed in the widget
+        :param sakia.core.Community community: The community displayed in the widget
+        :param sakia.gui.Password_Asker: password_asker: The widget to ask for passwords
+        :param class widget: The class of the PyQt5 widget used for this tab
+        :param class view: The class of the UI View for this tab
         """
 
         super().__init__()
@@ -41,9 +37,9 @@ class TransactionsTabWidget(QObject):
         self.ui = view()
         self.ui.setupUi(self.widget)
         self.app = app
-        self.account = None
-        self.community = None
-        self.password_asker = None
+        self.account = account
+        self.community = community
+        self.password_asker = password_asker
         self.ui.busy_balance.hide()
 
         ts_from = self.ui.date_from.dateTime().toTime_t()
@@ -174,128 +170,21 @@ class TransactionsTabWidget(QObject):
         index = self.ui.table_history.indexAt(point)
         model = self.ui.table_history.model()
         if index.isValid() and index.row() < model.rowCount(QModelIndex()):
-            menu = QMenu(self.tr("Actions"), self.widget)
             source_index = model.mapToSource(index)
-            state_col = model.sourceModel().columns_types.index('state')
-            state_index = model.sourceModel().index(source_index.row(),
-                                                   state_col)
-            state_data = model.sourceModel().data(state_index, Qt.DisplayRole)
 
             pubkey_col = model.sourceModel().columns_types.index('pubkey')
             pubkey_index = model.sourceModel().index(source_index.row(),
                                                     pubkey_col)
             pubkey = model.sourceModel().data(pubkey_index, Qt.DisplayRole)
 
-            block_number_col = model.sourceModel().columns_types.index('block_number')
-            block_number_index = model.sourceModel().index(source_index.row(),
-                                                    block_number_col)
-            block_number = model.sourceModel().data(block_number_index, Qt.DisplayRole)
-
             identity = await self.app.identities_registry.future_find(pubkey, self.community)
 
             transfer = model.sourceModel().transfers()[source_index.row()]
-            if state_data == TransferState.REFUSED or state_data == TransferState.TO_SEND:
-                send_back = QAction(self.tr("Send again"), self.widget)
-                send_back.triggered.connect(lambda checked, tr=transfer: self.send_again(checked, tr))
-                menu.addAction(send_back)
-
-                cancel = QAction(self.tr("Cancel"), self.widget)
-                cancel.triggered.connect(lambda checked, tr=transfer: self.cancel_transfer(tr))
-                menu.addAction(cancel)
-            else:
-                if isinstance(identity, Identity):
-                    informations = QAction(self.tr("Informations"), self.widget)
-                    informations.triggered.connect(lambda checked, i=identity: self.menu_informations(i))
-                    menu.addAction(informations)
-
-                    add_as_contact = QAction(self.tr("Add as contact"), self.widget)
-                    add_as_contact.triggered.connect(lambda checked,i=identity: self.menu_add_as_contact(i))
-                    menu.addAction(add_as_contact)
-
-                send_money = QAction(self.tr("Send money"), self.widget)
-                send_money.triggered.connect(lambda checked, i=identity: self.menu_send_money(identity))
-                menu.addAction(send_money)
-
-                if isinstance(identity, Identity):
-                    view_wot = QAction(self.tr("View in Web of Trust"), self.widget)
-                    view_wot.triggered.connect(lambda checked, i=identity: self.view_wot(i))
-                    menu.addAction(view_wot)
-
-            copy_pubkey = QAction(self.tr("Copy pubkey to clipboard"), self.widget)
-            copy_pubkey.triggered.connect(lambda checked, i=identity: self.copy_pubkey_to_clipboard(i))
-            menu.addAction(copy_pubkey)
-
-            if self.app.preferences['expert_mode']:
-                if type(transfer) is Transfer:
-                    copy_doc = QAction(self.tr("Copy raw transaction to clipboard"), self.widget)
-                    copy_doc.triggered.connect(lambda checked, tx=transfer: self.copy_transaction_to_clipboard(tx))
-                    menu.addAction(copy_doc)
-
-                copy_doc = QAction(self.tr("Copy block to clipboard"), self.widget)
-                copy_doc.triggered.connect(lambda checked, number=block_number: self.copy_block_to_clipboard(number))
-                menu.addAction(copy_doc)
+            menu = ContextMenu.from_data(self.widget, self.app, self.account, self.community, self.password_asker,
+                                         (identity, transfer))
 
             # Show the context menu.
             menu.popup(QCursor.pos())
-
-    def copy_pubkey_to_clipboard(self, identity):
-        clipboard = QApplication.clipboard()
-        clipboard.setText(identity.pubkey)
-
-    @asyncify
-    async def copy_transaction_to_clipboard(self, tx):
-        clipboard = QApplication.clipboard()
-        raw_doc = await tx.get_raw_document(self.community)
-        clipboard.setText(raw_doc.signed_raw())
-
-    @asyncify
-    async def copy_block_to_clipboard(self, number):
-        clipboard = QApplication.clipboard()
-        block = await self.community.get_block(number)
-        if block:
-            block_doc = Block.from_signed_raw("{0}{1}\n".format(block['raw'], block['signature']))
-            clipboard.setText(block_doc.signed_raw())
-
-    def menu_informations(self, identity):
-        dialog = MemberDialog(self.app, self.account, self.community, identity)
-        dialog.exec_()
-
-    def menu_add_as_contact(self, identity):
-        dialog = ConfigureContactDialog(self.account, self.window(), identity)
-        result = dialog.exec_()
-        if result == QDialog.Accepted:
-            self.window().refresh_contacts()
-
-    @asyncify
-    async def menu_send_money(self, identity):
-        self.send_money_to_identity(identity)
-        await TransferMoneyDialog.send_money_to_identity(self.app, self.account, self.password_asker,
-                                                            self.community, identity)
-        self.ui.table_history.model().sourceModel().refresh_transfers()
-
-    @asyncify
-    async def certify_identity(self, identity):
-        await CertificationDialog.certify_identity(self.app, self.account, self.password_asker,
-                                             self.community, identity)
-
-    def view_wot(self, identity):
-        self.view_in_wot.emit(identity)
-
-    @asyncify
-    async def send_again(self, checked=False, transfer=None):
-        result = await TransferMoneyDialog.send_transfer_again(self.app, self.app.current_account,
-                                     self.password_asker, self.community, transfer)
-        self.ui.table_history.model().sourceModel().refresh_transfers()
-
-    def cancel_transfer(self):
-        reply = QMessageBox.warning(self, self.tr("Warning"),
-                             self.tr("""Are you sure ?
-This money transfer will be removed and not sent."""),
-QMessageBox.Ok | QMessageBox.Cancel)
-        if reply == QMessageBox.Ok:
-            transfer = self.sender().data()
-            transfer.cancel()
-            self.ui.table_history.model().sourceModel().refresh_transfers()
 
     def dates_changed(self):
         logging.debug("Changed dates")

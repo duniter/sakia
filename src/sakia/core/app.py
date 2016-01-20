@@ -10,17 +10,14 @@ import tarfile
 import shutil
 import json
 import datetime
-import asyncio
 import aiohttp
-import time
 
-from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, \
-QUrl, QTranslator, QCoreApplication, QLocale
+from PyQt5.QtCore import QObject, pyqtSignal, QTranslator, QCoreApplication, QLocale
 from ucoinpy.api.bma import API
 from aiohttp.connector import ProxyConnector
 from . import config
 from .account import Account
-from .registry.identities import IdentitiesRegistry
+from .registry import IdentitiesRegistry, Identity
 from .. import __version__
 from ..tools.exceptions import NameAlreadyExists, BadAccountFile
 from ..tools.decorators import asyncify
@@ -36,6 +33,7 @@ class Application(QObject):
     """
 
     version_requested = pyqtSignal()
+    view_identity_in_wot = pyqtSignal(Identity)
 
     def __init__(self, qapp, loop, identities_registry):
         """
