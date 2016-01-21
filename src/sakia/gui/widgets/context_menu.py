@@ -34,7 +34,7 @@ class ContextMenu(QObject):
         :param ContextMenu menu: the qmenu to add actions to
         :param Identity identity: the identity
         """
-        menu.qmenu.addSeparator().setText(menu.qmenu.tr("Identity"))
+        menu.qmenu.addSeparator().setText(identity.uid)
 
         informations = QAction(menu.qmenu.tr("Informations"), menu.qmenu.parent())
         informations.triggered.connect(lambda checked, i=identity: menu.informations(i))
