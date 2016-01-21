@@ -14,11 +14,10 @@ from ucoinpy.api import bma
 
 from ..models.identities import IdentitiesFilterProxyModel, IdentitiesTableModel
 from ..gen_resources.identities_tab_uic import Ui_IdentitiesTab
-from sakia.gui.widgets.busy import Busy
 from ..core.registry import Identity, BlockchainState
 from ..tools.exceptions import NoPeerAvailable
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
-from .widgets import ContextMenu
+from .widgets.context_menu import ContextMenu
 
 
 class IdentitiesTabWidget(QObject):

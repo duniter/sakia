@@ -62,12 +62,12 @@ class TestIdentitiesTable(unittest.TestCase, QuamashTest):
         future = asyncio.Future()
 
         def open_widget():
-            identities_tab.show()
+            identities_tab.widget.show()
             return future
 
         def close_dialog():
-            if identities_tab.isVisible():
-                identities_tab.close()
+            if identities_tab.widget.isVisible():
+                identities_tab.widget.close()
             future.set_result(True)
 
         async def exec_test():

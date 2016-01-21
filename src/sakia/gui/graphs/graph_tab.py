@@ -5,7 +5,7 @@ from PyQt5.QtGui import QCursor
 from ...tools.exceptions import MembershipNotFoundError
 from ...tools.decorators import asyncify, once_at_a_time
 from ...core.registry import BlockchainState
-from ..widgets import ContextMenu
+from ..widgets.context_menu import ContextMenu
 
 
 class GraphTabWidget(QObject):

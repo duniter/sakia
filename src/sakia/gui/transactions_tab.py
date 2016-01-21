@@ -9,7 +9,7 @@ from ..gen_resources.transactions_tab_uic import Ui_transactionsTabWidget
 from ..models.txhistory import HistoryTableModel, TxFilterProxyModel
 from ..tools.exceptions import NoPeerAvailable
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
-from .widgets import ContextMenu
+from .widgets.context_menu import ContextMenu
 from sakia.gui.widgets import toast
 
 

@@ -1,9 +1,7 @@
-import networkx
-from PyQt5.QtCore import Qt, QPoint,  pyqtSignal
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter, QWheelEvent
-from PyQt5.QtWidgets import QGraphicsView, QGraphicsSceneContextMenuEvent
+from PyQt5.QtWidgets import QGraphicsView
 from .scenes import WotScene
-from ..widgets import ContextMenu
 
 
 class WotView(QGraphicsView):
