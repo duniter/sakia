@@ -1,4 +1,5 @@
 from PyQt5.QtWidgets import QMenu, QAction, QApplication, QMessageBox
+from PyQt5.QtCore import QObject, pyqtSignal
 from ucoinpy.documents import Block
 from ..member import MemberDialog
 from ..contact import ConfigureContactDialog
@@ -9,16 +10,19 @@ from ...core.transfer import Transfer, TransferState
 from ...core.registry import Identity
 
 
-class ContextMenu(QMenu):
-    def __init__(self, parent, app, account, community, password_asker):
+class ContextMenu(QObject):
+    view_identity_in_wot = pyqtSignal(object)
+
+    def __init__(self, qmenu, app, account, community, password_asker):
         """
-        :param PyQt5.QtWidgets.QWidget: the parent widget
+        :param PyQt5.QtWidgets.QMenu: the qmenu widget
         :param sakia.core.Application app: Application instance
         :param sakia.core.Account account: The current account instance
         :param sakia.core.Community community: The community instance
         :param sakia.gui.PasswordAsker password_asker: The password dialog
         """
-        super().__init__(parent)
+        super().__init__()
+        self.qmenu = qmenu
         self._app = app
         self._community = community
         self._account = account
@@ -30,27 +34,31 @@ class ContextMenu(QMenu):
         :param ContextMenu menu: the qmenu to add actions to
         :param Identity identity: the identity
         """
-        menu.addSeparator().setText(menu.tr("Identity"))
+        menu.qmenu.addSeparator().setText(menu.qmenu.tr("Identity"))
 
-        informations = QAction(menu.tr("Informations"), menu.parent())
+        informations = QAction(menu.qmenu.tr("Informations"), menu.qmenu.parent())
         informations.triggered.connect(lambda checked, i=identity: menu.informations(i))
-        menu.addAction(informations)
+        menu.qmenu.addAction(informations)
 
-        add_as_contact = QAction(menu.tr("Add as contact"), menu.parent())
+        add_as_contact = QAction(menu.qmenu.tr("Add as contact"), menu.qmenu.parent())
         add_as_contact.triggered.connect(lambda checked,i=identity: menu.add_as_contact(i))
-        menu.addAction(add_as_contact)
+        menu.qmenu.addAction(add_as_contact)
 
-        send_money = QAction(menu.tr("Send money"), menu.parent())
+        send_money = QAction(menu.qmenu.tr("Send money"), menu.qmenu.parent())
         send_money.triggered.connect(lambda checked, i=identity: menu.send_money(i))
-        menu.addAction(send_money)
+        menu.qmenu.addAction(send_money)
 
-        view_wot = QAction(menu.tr("View in Web of Trust"), menu.parent())
+        certify = QAction(menu.tr("Certify identity"), menu.qmenu.parent())
+        certify.triggered.connect(lambda checked, i=identity: menu.certify_identity(i))
+        menu.qmenu.addAction(certify)
+
+        view_wot = QAction(menu.qmenu.tr("View in Web of Trust"), menu.qmenu.parent())
         view_wot.triggered.connect(lambda checked, i=identity: menu.view_wot(i))
-        menu.addAction(view_wot)
+        menu.qmenu.addAction(view_wot)
 
-        copy_pubkey = QAction(menu.tr("Copy pubkey to clipboard"), menu.parent())
+        copy_pubkey = QAction(menu.qmenu.tr("Copy pubkey to clipboard"), menu.qmenu.parent())
         copy_pubkey.triggered.connect(lambda checked, i=identity: ContextMenu.copy_pubkey_to_clipboard(i))
-        menu.addAction(copy_pubkey)
+        menu.qmenu.addAction(copy_pubkey)
 
     @staticmethod
     def _add_transfers_actions(menu, transfer):
@@ -58,25 +66,25 @@ class ContextMenu(QMenu):
         :param ContextMenu menu: the qmenu to add actions to
         :param Transfer transfer: the transfer
         """
-        menu.addSeparator().setText(menu.tr("Transfer"))
+        menu.qmenu.addSeparator().setText(menu.qmenu.tr("Transfer"))
         if transfer.state in (TransferState.REFUSED, TransferState.TO_SEND):
-            send_back = QAction(menu.tr("Send again"), menu.parent())
+            send_back = QAction(menu.qmenu.tr("Send again"), menu.qmenu.parent())
             send_back.triggered.connect(lambda checked, tr=transfer: menu.send_again(tr))
-            menu.addAction(send_back)
+            menu.qmenu.addAction(send_back)
 
-            cancel = QAction(menu.tr("Cancel"), menu.parent())
+            cancel = QAction(menu.qmenu.tr("Cancel"), menu.qmenu.parent())
             cancel.triggered.connect(lambda checked, tr=transfer: menu.cancel_transfer(tr))
-            menu.addAction(cancel)
+            menu.qmenu.addAction(cancel)
 
         if menu._app.preferences['expert_mode']:
-            copy_doc = QAction(menu.tr("Copy raw transaction to clipboard"), menu.parent())
+            copy_doc = QAction(menu.qmenu.tr("Copy raw transaction to clipboard"), menu.qmenu.parent())
             copy_doc.triggered.connect(lambda checked, tx=transfer: menu.copy_transaction_to_clipboard(tx))
-            menu.addAction(copy_doc)
+            menu.qmenu.addAction(copy_doc)
 
-            copy_doc = QAction(menu.tr("Copy transaction block to clipboard"), menu.parent())
+            copy_doc = QAction(menu.qmenu.tr("Copy transaction block to clipboard"), menu.qmenu.parent())
             copy_doc.triggered.connect(lambda checked, number=transfer.blockid.number:
                                        menu.copy_block_to_clipboard(number))
-            menu.addAction(copy_doc)
+            menu.qmenu.addAction(copy_doc)
 
 
     @classmethod
@@ -94,7 +102,7 @@ class ContextMenu(QMenu):
         :param tuple data: a tuple of data to add to the menu
         :rtype: ContextMenu
         """
-        menu = cls(parent, app, account, community, password_asker)
+        menu = cls(QMenu(parent), app, account, community, password_asker)
         build_actions = {
             Identity: ContextMenu._add_identity_actions,
             Transfer: ContextMenu._add_transfers_actions,
@@ -129,7 +137,7 @@ class ContextMenu(QMenu):
         #self.ui.table_history.model().sourceModel().refresh_transfers()
 
     def view_wot(self, identity):
-        self._app.view_identity_in_wot.emit(identity)
+        self.view_identity_in_wot.emit(identity)
 
     @asyncify
     async def certify_identity(self, identity):

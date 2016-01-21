@@ -85,7 +85,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                          QIcon(':/icons/wot_icon'),
                          self.tr(CommunityWidget._tab_wot_label))
 
-        self.tabs.addTab(self.tab_identities,
+        self.tabs.addTab(self.tab_identities.widget,
                          QIcon(':/icons/members_icon'),
                          self.tr(CommunityWidget._tab_identities_label))
 
@@ -414,7 +414,7 @@ The process to join back the community later will have to be done again.""")
         self.tabs.setTabText(self.tabs.indexOf(self.tab_network), self.tr(CommunityWidget._tab_network_label))
         self.tabs.setTabText(self.tabs.indexOf(self.tab_informations), self.tr(CommunityWidget._tab_informations_label))
         self.tabs.setTabText(self.tabs.indexOf(self.tab_history.widget), self.tr(CommunityWidget._tab_history_label))
-        self.tabs.setTabText(self.tabs.indexOf(self.tab_identities), self.tr(CommunityWidget._tab_identities_label))
+        self.tabs.setTabText(self.tabs.indexOf(self.tab_identities.widget), self.tr(CommunityWidget._tab_identities_label))
         self.action_publish_uid.setText(self.tr(CommunityWidget._action_publish_uid_text))
         self.action_revoke_uid.setText(self.tr(CommunityWidget._action_revoke_uid_text))
         self.action_showinfo.setText(self.tr(CommunityWidget._action_showinfo_text))

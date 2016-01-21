@@ -184,7 +184,7 @@ class TransactionsTabWidget(QObject):
                                          (identity, transfer))
 
             # Show the context menu.
-            menu.popup(QCursor.pos())
+            menu.qmenu.popup(QCursor.pos())
 
     def dates_changed(self):
         logging.debug("Changed dates")
