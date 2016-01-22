@@ -18,7 +18,6 @@ from sakia.core import Account, Community, Wallet
 from sakia.core.net import Network, Node
 from sakia.core.net.api.bma.access import BmaAccess
 from sakia.tests import QuamashTest
-from ucoinpy.api import bma
 
 
 class TestCertificationDialog(unittest.TestCase, QuamashTest):

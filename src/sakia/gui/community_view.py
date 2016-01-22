@@ -71,21 +71,21 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         super().setupUi(self)
 
         self.tab_identities.view_in_wot.connect(self.tab_wot.draw_graph)
-        self.tab_identities.view_in_wot.connect(lambda: self.tabs.setCurrentWidget(self.tab_wot))
+        self.tab_identities.view_in_wot.connect(lambda: self.tabs.setCurrentWidget(self.tab_wot.widget))
         self.tab_history.view_in_wot.connect(self.tab_wot.draw_graph)
-        self.tab_history.view_in_wot.connect(lambda: self.tabs.setCurrentWidget(self.tab_wot))
-        self.tab_identities.money_sent.connect(lambda: self.tab_history.table_history.model().sourceModel().refresh_transfers())
-        self.tab_wot.money_sent.connect(lambda: self.tab_history.table_history.model().sourceModel().refresh_transfers())
+        self.tab_history.view_in_wot.connect(lambda: self.tabs.setCurrentWidget(self.tab_wot.widget))
+        self.tab_identities.money_sent.connect(lambda: self.tab_history.widget.table_history.model().sourceModel().refresh_transfers())
+        self.tab_wot.money_sent.connect(lambda: self.tab_history.widget.table_history.model().sourceModel().refresh_transfers())
 
-        self.tabs.addTab(self.tab_history,
+        self.tabs.addTab(self.tab_history.widget,
                                  QIcon(':/icons/tx_icon'),
                                 self.tr(CommunityWidget._tab_history_label))
 
-        self.tabs.addTab(self.tab_wot,
+        self.tabs.addTab(self.tab_wot.widget,
                          QIcon(':/icons/wot_icon'),
                          self.tr(CommunityWidget._tab_wot_label))
 
-        self.tabs.addTab(self.tab_identities,
+        self.tabs.addTab(self.tab_identities.widget,
                          QIcon(':/icons/members_icon'),
                          self.tr(CommunityWidget._tab_identities_label))
 
@@ -99,7 +99,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.toolbutton_menu.addAction(action_showinfo)
 
         action_showexplorer = QAction(self.tr("Show explorer"), self.toolbutton_menu)
-        action_showexplorer.triggered.connect(lambda : self.show_closable_tab(self.tab_explorer,
+        action_showexplorer.triggered.connect(lambda : self.show_closable_tab(self.tab_explorer.widget,
                                     QIcon(":/icons/explorer_icon"), self.tr("Explorer")))
         self.toolbutton_menu.addAction(action_showexplorer)
 
@@ -410,11 +410,11 @@ The process to join back the community later will have to be done again.""")
         :param widget:
         :return:
         """
-        self.tabs.setTabText(self.tabs.indexOf(self.tab_wot), self.tr(CommunityWidget._tab_wot_label))
+        self.tabs.setTabText(self.tabs.indexOf(self.tab_wot.widget), self.tr(CommunityWidget._tab_wot_label))
         self.tabs.setTabText(self.tabs.indexOf(self.tab_network), self.tr(CommunityWidget._tab_network_label))
         self.tabs.setTabText(self.tabs.indexOf(self.tab_informations), self.tr(CommunityWidget._tab_informations_label))
-        self.tabs.setTabText(self.tabs.indexOf(self.tab_history), self.tr(CommunityWidget._tab_history_label))
-        self.tabs.setTabText(self.tabs.indexOf(self.tab_identities), self.tr(CommunityWidget._tab_identities_label))
+        self.tabs.setTabText(self.tabs.indexOf(self.tab_history.widget), self.tr(CommunityWidget._tab_history_label))
+        self.tabs.setTabText(self.tabs.indexOf(self.tab_identities.widget), self.tr(CommunityWidget._tab_identities_label))
         self.action_publish_uid.setText(self.tr(CommunityWidget._action_publish_uid_text))
         self.action_revoke_uid.setText(self.tr(CommunityWidget._action_revoke_uid_text))
         self.action_showinfo.setText(self.tr(CommunityWidget._action_showinfo_text))

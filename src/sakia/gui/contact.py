@@ -37,6 +37,14 @@ class ConfigureContactDialog(QDialog, Ui_ConfigureContactDialog):
             self.edit_name.setText(self.contact['name'])
             self.edit_pubkey.setText(self.contact['pubkey'])
 
+    @classmethod
+    def from_identity(cls, parent, account, identity):
+        contact = {
+            'name': identity.uid,
+            'pubkey': identity.pubkey
+        }
+        return ConfigureContactDialog(account, parent, contact)
+
     def accept(self):
         name = self.edit_name.text()
         pubkey = self.edit_pubkey.text()

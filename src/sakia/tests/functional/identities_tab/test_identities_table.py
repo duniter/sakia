@@ -62,12 +62,12 @@ class TestIdentitiesTable(unittest.TestCase, QuamashTest):
         future = asyncio.Future()
 
         def open_widget():
-            identities_tab.show()
+            identities_tab.widget.show()
             return future
 
         def close_dialog():
-            if identities_tab.isVisible():
-                identities_tab.close()
+            if identities_tab.widget.isVisible():
+                identities_tab.widget.close()
             future.set_result(True)
 
         async def exec_test():
@@ -90,8 +90,8 @@ class TestIdentitiesTable(unittest.TestCase, QuamashTest):
             # requests 1 to 3 are for getting certifiers-of and certified-by
             # on john, + a lookup
 
-            QTest.keyClicks(identities_tab.edit_textsearch, "doe")
-            QTest.mouseClick(identities_tab.button_search, Qt.LeftButton)
+            QTest.keyClicks(identities_tab.ui.edit_textsearch, "doe")
+            QTest.mouseClick(identities_tab.ui.button_search, Qt.LeftButton)
             await asyncio.sleep(2)
             req = 8
 
@@ -100,7 +100,7 @@ class TestIdentitiesTable(unittest.TestCase, QuamashTest):
                              '/blockchain/memberships/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn')
             req += 1
 
-            self.assertEqual(identities_tab.table_identities.model().rowCount(), 1)
+            self.assertEqual(identities_tab.ui.table_identities.model().rowCount(), 1)
             await asyncio.sleep(2)
             self.lp.call_soon(close_dialog)
 

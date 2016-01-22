@@ -58,7 +58,7 @@ class TestWotTab(unittest.TestCase, QuamashTest):
         future = asyncio.Future()
 
         def open_widget():
-            wot_tab.show()
+            wot_tab.widget.show()
             return future
 
         async def async_open_widget():
@@ -68,13 +68,13 @@ class TestWotTab(unittest.TestCase, QuamashTest):
             await open_widget()
 
         def close_dialog():
-            if wot_tab.isVisible():
-                wot_tab.close()
+            if wot_tab.widget.isVisible():
+                wot_tab.widget.close()
             future.set_result(True)
 
         async def exec_test():
             await asyncio.sleep(1)
-            self.assertTrue(wot_tab.isVisible())
+            self.assertTrue(wot_tab.widget.isVisible())
             self.lp.call_soon(close_dialog)
 
         asyncio.ensure_future(exec_test())

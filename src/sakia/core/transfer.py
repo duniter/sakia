@@ -352,5 +352,16 @@ class Transfer(QObject):
             else:
                 await r.text()
         self.run_state_transitions(([r.status for r in responses], block_doc))
-        self.run_state_transitions(([r.status for r in responses]))
+        self.run_state_transitions(([r.status for r in responses], ))
         return result
+
+    async def get_raw_document(self, community):
+        """
+        Get the raw documents of this transfer
+        """
+        block = await community.get_block(self.blockid.number)
+        if block:
+            block_doc = Block.from_signed_raw("{0}{1}\n".format(block['raw'], block['signature']))
+            for tx in block_doc.transactions:
+                if tx.sha_hash == self.sha_hash:
+                    return tx

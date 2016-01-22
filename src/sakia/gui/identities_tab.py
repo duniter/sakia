@@ -4,10 +4,9 @@ Created on 2 févr. 2014
 @author: inso
 """
 
-import asyncio
 import logging
 
-from PyQt5.QtCore import Qt, pyqtSignal, QEvent, QT_TRANSLATE_NOOP
+from PyQt5.QtCore import Qt, pyqtSignal, QEvent, QT_TRANSLATE_NOOP, QObject
 from PyQt5.QtGui import QCursor
 from PyQt5.QtWidgets import QWidget, QAction, QMenu, QDialog, \
                             QAbstractItemView
@@ -15,62 +14,62 @@ from ucoinpy.api import bma
 
 from ..models.identities import IdentitiesFilterProxyModel, IdentitiesTableModel
 from ..gen_resources.identities_tab_uic import Ui_IdentitiesTab
-from .contact import ConfigureContactDialog
-from .member import MemberDialog
-from .transfer import TransferMoneyDialog
-from sakia.gui.widgets.busy import Busy
-from .certification import CertificationDialog
 from ..core.registry import Identity, BlockchainState
 from ..tools.exceptions import NoPeerAvailable
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
+from .widgets.context_menu import ContextMenu
 
 
-class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
+class IdentitiesTabWidget(QObject):
 
     """
     classdocs
     """
-    view_in_wot = pyqtSignal(Identity)
+    view_in_wot = pyqtSignal(object)
     money_sent = pyqtSignal()
 
     _direct_connections_text = QT_TRANSLATE_NOOP("IdentitiesTabWidget", "Search direct certifications")
     _search_placeholder = QT_TRANSLATE_NOOP("IdentitiesTabWidget", "Research a pubkey, an uid...")
 
-    def __init__(self, app):
+    def __init__(self, app, account=None, community=None, password_asker=None,
+                 widget=QWidget, view=Ui_IdentitiesTab):
         """
         Init
-        :param sakia.core.account.Account account: Account instance
-        :param sakia.core.community.Community community: Community instance
-        :param sakia.gui.password_asker.PasswordAskerDialog password_asker: Password asker dialog
-        :return:
+
+        :param sakia.core.app.Application app: Application instance
+        :param sakia.core.Account account: The account displayed in the widget
+        :param sakia.core.Community community: The community displayed in the widget
+        :param sakia.gui.Password_Asker: password_asker: The widget to ask for passwords
+        :param class widget: The class of the PyQt5 widget used for this tab
+        :param class view: The class of the UI View for this tab
         """
         super().__init__()
+        self.widget = widget()
+        self.ui = view()
+        self.ui.setupUi(self.widget)
+
         self.app = app
-        self.community = None
-        self.account = None
-        self.password_asker = None
+        self.community = community
+        self.account = account
+        self.password_asker = password_asker
 
         self.direct_connections = QAction(self.tr(IdentitiesTabWidget._direct_connections_text), self)
-        self.setupUi(self)
-        self.edit_textsearch.setPlaceholderText(self.tr(IdentitiesTabWidget._search_placeholder))
+        self.ui.edit_textsearch.setPlaceholderText(self.tr(IdentitiesTabWidget._search_placeholder))
 
         identities_model = IdentitiesTableModel()
         proxy = IdentitiesFilterProxyModel()
         proxy.setSourceModel(identities_model)
-        self.table_identities.setModel(proxy)
-        self.table_identities.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.table_identities.customContextMenuRequested.connect(self.identity_context_menu)
-        self.table_identities.sortByColumn(0, Qt.AscendingOrder)
-        self.table_identities.resizeColumnsToContents()
-        identities_model.modelAboutToBeReset.connect(lambda: self.table_identities.setEnabled(False))
-        identities_model.modelReset.connect(lambda: self.table_identities.setEnabled(True))
+        self.ui.table_identities.setModel(proxy)
+        self.ui.table_identities.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.ui.table_identities.customContextMenuRequested.connect(self.identity_context_menu)
+        self.ui.table_identities.sortByColumn(0, Qt.AscendingOrder)
+        self.ui.table_identities.resizeColumnsToContents()
+        identities_model.modelAboutToBeReset.connect(lambda: self.ui.table_identities.setEnabled(False))
+        identities_model.modelReset.connect(lambda: self.ui.table_identities.setEnabled(True))
 
         self.direct_connections.triggered.connect(self._async_search_direct_connections)
-        self.button_search.addAction(self.direct_connections)
-        self.button_search.clicked.connect(self._async_execute_search_text)
-
-        self.busy = Busy(self.table_identities)
-        self.busy.hide()
+        self.ui.button_search.addAction(self.direct_connections)
+        self.ui.button_search.clicked.connect(self._async_execute_search_text)
 
     def cancel_once_tasks(self):
         cancel_once_task(self, self.identity_context_menu)
@@ -88,14 +87,14 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
     def change_community(self, community):
         self.cancel_once_tasks()
         self.community = community
-        self.table_identities.model().change_community(community)
+        self.ui.table_identities.model().change_community(community)
         self._async_search_direct_connections()
 
     @once_at_a_time
     @asyncify
     async def identity_context_menu(self, point):
-        index = self.table_identities.indexAt(point)
-        model = self.table_identities.model()
+        index = self.ui.table_identities.indexAt(point)
+        model = self.ui.table_identities.model()
         if index.isValid() and index.row() < model.rowCount():
             source_index = model.mapToSource(index)
             pubkey_col = model.sourceModel().columns_ids.index('pubkey')
@@ -103,102 +102,20 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
                                                    pubkey_col)
             pubkey = model.sourceModel().data(pubkey_index, Qt.DisplayRole)
             identity = await self.app.identities_registry.future_find(pubkey, self.community)
-            menu = QMenu(self)
-
-            informations = QAction(self.tr("Informations"), self)
-            informations.triggered.connect(self.menu_informations)
-            informations.setData(identity)
-            add_contact = QAction(self.tr("Add as contact"), self)
-            add_contact.triggered.connect(self.menu_add_as_contact)
-            add_contact.setData(identity)
-
-            send_money = QAction(self.tr("Send money"), self)
-            send_money.triggered.connect(self.menu_send_money)
-            send_money.setData(identity)
-
-            certify = QAction(self.tr("Certify identity"), self)
-            certify.triggered.connect(self.menu_certify_member)
-            certify.setData(identity)
-
-            view_wot = QAction(self.tr("View in Web of Trust"), self)
-            view_wot.triggered.connect(self.view_wot)
-            view_wot.setData(identity)
-
-            copy_pubkey = QAction(self.tr("Copy pubkey"), self)
-            copy_pubkey.triggered.connect(self.copy_identity_pubkey)
-            copy_pubkey.setData(identity)
-
-            menu.addAction(informations)
-            menu.addAction(add_contact)
-            menu.addAction(send_money)
-            menu.addAction(certify)
-            menu.addAction(view_wot)
-            menu.addAction(copy_pubkey)
+            menu = ContextMenu.from_data(self.widget, self.app, self.account, self.community, self.password_asker,
+                                         (identity,))
+            menu.view_identity_in_wot.connect(self.view_in_wot)
 
             # Show the context menu.
-            menu.popup(QCursor.pos())
-
-    def menu_informations(self):
-        person = self.sender().data()
-        self.identity_informations(person)
-
-    def menu_add_as_contact(self):
-        person = self.sender().data()
-        self.add_identity_as_contact({'name': person.uid,
-                                    'pubkey': person.pubkey})
-
-    def menu_send_money(self):
-        person = self.sender().data()
-        self.send_money_to_identity(person)
-
-    def menu_certify_member(self):
-        person = self.sender().data()
-        self.certify_identity(person)
-
-    def identity_informations(self, person):
-        dialog = MemberDialog(self.app, self.account, self.community, person)
-        dialog.exec_()
-
-    def add_identity_as_contact(self, person):
-        dialog = ConfigureContactDialog(self.account, self.window(), person)
-        result = dialog.exec_()
-        if result == QDialog.Accepted:
-            self.window().refresh_contacts()
-
-    @asyncify
-    async def send_money_to_identity(self, identity):
-        result = await TransferMoneyDialog.send_money_to_identity(self.app, self.account, self.password_asker,
-                                                            self.community, identity)
-        if result == QDialog.Accepted:
-            self.money_sent.emit()
-
-    @asyncify
-    async def certify_identity(self, identity):
-        await CertificationDialog.certify_identity(self.app, self.account, self.password_asker,
-                                             self.community, identity)
-
-    def copy_identity_pubkey(self):
-        """
-        Copy the identity pubkey to the clipboard
-
-        :param sakia.core.registry.Identity identity: The identity
-        """
-        identity = self.sender().data()
-        cb = self.app.qapp.clipboard()
-        cb.clear(mode=cb.Clipboard)
-        cb.setText(identity.pubkey, mode=cb.Clipboard)
-
-    def view_wot(self):
-        identity = self.sender().data()
-        self.view_in_wot.emit(identity)
+            menu.qmenu.popup(QCursor.pos())
 
     @once_at_a_time
     @asyncify
     async def _async_execute_search_text(self, checked):
         cancel_once_task(self, self._async_search_direct_connections)
 
-        self.busy.show()
-        text = self.edit_textsearch.text()
+        self.ui.busy.show()
+        text = self.ui.edit_textsearch.text()
         if len(text) < 2:
             return
         try:
@@ -212,13 +129,13 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
                                                          BlockchainState.BUFFERED)
                     identities.append(identity)
 
-            self.edit_textsearch.clear()
-            self.edit_textsearch.setPlaceholderText(text)
+            self.ui.edit_textsearch.clear()
+            self.ui.edit_textsearch.setPlaceholderText(text)
             await self.refresh_identities(identities)
         except ValueError as e:
             logging.debug(str(e))
         finally:
-            self.busy.hide()
+            self.ui.busy.hide()
 
     @once_at_a_time
     @asyncify
@@ -230,9 +147,9 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
 
         if self.account and self.community:
             try:
-                self.edit_textsearch.setPlaceholderText(self.tr(IdentitiesTabWidget._search_placeholder))
+                self.ui.edit_textsearch.setPlaceholderText(self.tr(IdentitiesTabWidget._search_placeholder))
                 await self.refresh_identities([])
-                self.busy.show()
+                self.ui.busy.show()
                 self_identity = await self.account.identity(self.community)
                 account_connections = []
                 certs_of = await self_identity.unique_valid_certifiers_of(self.app.identities_registry, self.community)
@@ -245,25 +162,25 @@ class IdentitiesTabWidget(QWidget, Ui_IdentitiesTab):
                 certified_by = [p for p in account_connections
                           if p.pubkey not in [i.pubkey for i in certifiers_of]]
                 identities = certifiers_of + certified_by
-                self.busy.hide()
+                self.ui.busy.hide()
                 await self.refresh_identities(identities)
             except NoPeerAvailable:
-                self.busy.hide()
+                self.ui.busy.hide()
 
     async def refresh_identities(self, identities):
         """
         Refresh the table with specified identities.
         If no identities is passed, use the account connections.
         """
-        await self.table_identities.model().sourceModel().refresh_identities(identities)
-        self.table_identities.resizeColumnsToContents()
+        await self.ui.table_identities.model().sourceModel().refresh_identities(identities)
+        self.ui.table_identities.resizeColumnsToContents()
 
     def retranslateUi(self, widget):
         self.direct_connections.setText(self.tr(IdentitiesTabWidget._direct_connections_text))
         super().retranslateUi(self)
 
     def resizeEvent(self, event):
-        self.busy.resize(event.size())
+        self.ui.busy.resize(event.size())
         super().resizeEvent(event)
 
     def changeEvent(self, event):

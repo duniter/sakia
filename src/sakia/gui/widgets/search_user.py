@@ -77,6 +77,15 @@ class SearchUserWidget(QWidget, Ui_SearchUserWidget):
                     self.combobox_search.addItem(uid)
                 self.blockSignals(False)
                 self.combobox_search.showPopup()
+        except ValueError as e:
+            if '404' in str(e):
+                self.nodes = list()
+                self.blockSignals(True)
+                self.combobox_search.clear()
+                self.blockSignals(False)
+                self.combobox_search.showPopup()
+            else:
+                pass
         except NoPeerAvailable:
             pass
 

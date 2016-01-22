@@ -1,35 +1,44 @@
-from PyQt5.QtWidgets import QWidget, QDialog
-from PyQt5.QtCore import pyqtSlot, QEvent, QLocale, QDateTime, pyqtSignal
+from PyQt5.QtWidgets import QWidget
+from PyQt5.QtCore import pyqtSlot, QEvent, QLocale, QDateTime, pyqtSignal, QObject
+from PyQt5.QtGui import QCursor
 
 from ...tools.exceptions import MembershipNotFoundError
 from ...tools.decorators import asyncify, once_at_a_time
 from ...core.registry import BlockchainState
-from ...gui.member import MemberDialog
-from ...gui.certification import CertificationDialog
-from ...gui.transfer import TransferMoneyDialog
-from ...gui.contact import ConfigureContactDialog
+from ..widgets.context_menu import ContextMenu
 
 
-class GraphTabWidget(QWidget):
+class GraphTabWidget(QObject):
 
     money_sent = pyqtSignal()
-    def __init__(self, app):
+
+    def __init__(self, app, account=None, community=None, password_asker=None, widget=QWidget):
         """
         :param sakia.core.app.Application app: Application instance
+        :param sakia.core.app.Application app: Application instance
+        :param sakia.core.Account account: The account displayed in the widget
+        :param sakia.core.Community community: The community displayed in the widget
+        :param sakia.gui.Password_Asker: password_asker: The widget to ask for passwords
+        :param class widget: The class of the graph tab
         """
         super().__init__()
 
-        self.password_asker = None
+        self.widget = widget()
+        self.account = account
+        self.community = community
+        self.password_asker = password_asker
+
         self.app = app
 
     def set_scene(self, scene):
+        """
+        Set the scene and connects the signals
+        :param sakia.gui.views.scenes.base_scene.BaseScene scene: the scene
+        :return:
+        """
         # add scene events
+        scene.node_context_menu_requested.connect(self.node_context_menu)
         scene.node_clicked.connect(self.handle_node_click)
-        scene.node_signed.connect(self.sign_node)
-        scene.node_transaction.connect(self.send_money_to_node)
-        scene.node_contact.connect(self.add_node_as_contact)
-        scene.node_member.connect(self.identity_informations)
-        scene.node_copy_pubkey.connect(self.copy_node_pubkey)
 
     @once_at_a_time
     @asyncify
@@ -147,59 +156,19 @@ class GraphTabWidget(QWidget):
         """
         pass
 
-    def identity_informations(self, pubkey, metadata):
-        identity = self.app.identities_registry.from_handled_data(
-            metadata['text'],
-            pubkey,
-            None,
-            BlockchainState.VALIDATED,
-            self.community
-        )
-        dialog = MemberDialog(self.app, self.account, self.community, identity)
-        dialog.exec_()
-
     @asyncify
-    async def sign_node(self, pubkey, metadata):
-        identity = self.app.identities_registry.from_handled_data(
-            metadata['text'],
-            pubkey,
-            None,
-            BlockchainState.VALIDATED,
-            self.community
-        )
-        await CertificationDialog.certify_identity(self.app, self.account, self.password_asker,
-                                             self.community, identity)
+    async def node_context_menu(self, pubkey):
+        """
+        Open the node context menu
+        :param str pubkey: the pubkey of the node to open
+        """
+        identity = await self.app.identities_registry.future_find(pubkey, self.community)
+        menu = ContextMenu.from_data(self.widget, self.app, self.account, self.community, self.password_asker,
+                                     (identity,))
+        menu.view_identity_in_wot.connect(self.draw_graph)
 
-    @asyncify
-    async def send_money_to_node(self, pubkey, metadata):
-        identity = self.app.identities_registry.from_handled_data(
-            metadata['text'],
-            pubkey,
-            None,
-            BlockchainState.VALIDATED,
-            self.community
-        )
-        result = await TransferMoneyDialog.send_money_to_identity(self.app, self.account, self.password_asker,
-                                                            self.community, identity)
-        if result == QDialog.Accepted:
-            self.money_sent.emit()
-
-    def copy_node_pubkey(self, pubkey):
-        cb = self.app.qapp.clipboard()
-        cb.clear(mode=cb.Clipboard)
-        cb.setText(pubkey, mode=cb.Clipboard)
-
-    def add_node_as_contact(self, pubkey, metadata):
-        # check if contact already exists...
-        if pubkey == self.account.pubkey \
-                or pubkey in [contact['pubkey'] for contact in self.account.contacts]:
-            return False
-        dialog = ConfigureContactDialog(self.account, self.window(), {'name': metadata['text'],
-                                                                      'pubkey': pubkey,
-                                                                      })
-        result = dialog.exec_()
-        if result == QDialog.Accepted:
-            self.window().refresh_contacts()
+        # Show the context menu.
+        menu.qmenu.popup(QCursor.pos())
 
     def changeEvent(self, event):
         """
