@@ -6,7 +6,7 @@ Created on 24 dec. 2014
 import asyncio
 import logging
 
-from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QApplication
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QApplication, QMessageBox
 
 from PyQt5.QtCore import Qt
 
@@ -38,17 +38,27 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
 
         for contact_name in sorted([c['name'] for c in certifier.contacts], key=str.lower):
             self.combo_contact.addItem(contact_name)
+
         if len(certifier.contacts) == 0:
             self.radio_pubkey.setChecked(True)
             self.radio_contact.setEnabled(False)
 
     @classmethod
     async def certify_identity(cls, app, account, password_asker, community, identity):
+        """
+        Certify and identity
+        :param sakia.core.Application app: the application
+        :param sakia.core.Account account: the account certifying the identity
+        :param sakia.gui.password_asker.PasswordAsker password_asker: the password asker
+        :param sakia.core.Community community: the community
+        :param sakia.core.registry.Identity identity: the identity certified
+        :return:
+        """
         dialog = cls(app, account, password_asker)
         dialog.combo_community.setCurrentText(community.name)
         dialog.edit_pubkey.setText(identity.pubkey)
         dialog.radio_pubkey.setChecked(True)
-        return (await dialog.async_exec())
+        return await dialog.async_exec()
 
     @asyncify
     async def accept(self):
@@ -112,6 +122,19 @@ class CertificationDialog(QDialog, Ui_CertificationDialog):
         else:
             self.button_box.button(QDialogButtonBox.Ok).setEnabled(False)
             self.button_box.button(QDialogButtonBox.Ok).setText(self.tr("Not a member"))
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        self.first_certification_check()
+
+    def first_certification_check(self):
+        if self.account.notifications['warning_certifying_first_time']:
+            self.account.notifications['warning_certifying_first_time'] = False
+            QMessageBox.warning(self, "Certifying individuals", """Please follow the following guidelines :
+1.) Don't certify an account if you believe the issuers identity might be faked.
+2.) Don't certify an account if you believe the issuer already has another certified account.
+3.) Don't certify an account if you believe the issuer purposely or carelessly violates rule 1 or 2 (the issuer certifies faked or double accounts
+""")
 
     def recipient_mode_changed(self, pubkey_toggled):
         self.edit_pubkey.setEnabled(pubkey_toggled)

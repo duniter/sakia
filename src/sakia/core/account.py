@@ -61,6 +61,19 @@ class Account(QObject):
         self._identities_registry = identities_registry
         self._current_ref = 0
 
+        self.notifications = {'membership_expire_soon':
+                                  [
+                                      self.tr("Warning : Your membership is expiring soon."),
+                                      0
+                                   ],
+                            'warning_certifications':
+                                    [
+                                        self.tr("Warning : Your could miss certifications soon."),
+                                        0
+                                    ],
+                            'warning_certifying_first_time': True,
+                            }
+
     @classmethod
     def create(cls, name, identities_registry):
         """

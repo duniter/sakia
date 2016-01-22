@@ -71,18 +71,6 @@ class Application(QObject):
                             'auto_refresh': False
                             }
 
-        self.notifications = {'membership_expire_soon':
-                                  [
-                                      self.tr("Warning : Your membership is expiring soon."),
-                                      0
-                                   ],
-                            'warning_certifications':
-                                    [
-                                        self.tr("Warning : Your could miss certifications soon."),
-                                        0
-                                    ]
-                            }
-
     @classmethod
     def startup(cls, argv, qapp, loop):
         config.parse_arguments(argv)
@@ -204,6 +192,7 @@ class Application(QObject):
         and stop the coroutines
         """
         self.save_cache(self.current_account)
+        self.save_notifications(self.current_account)
         self.current_account.stop_coroutines()
 
     def load(self):
@@ -260,6 +249,17 @@ class Application(QObject):
                 community.network.blockchain_rollback.connect(lambda b, co=community:
                                                               account.rollback_transaction(self, co))
                 community.network.root_nodes_changed.connect(lambda acc=account: self.save(acc))
+
+        account_notifications_path = os.path.join(config.parameters['home'],
+                                    account_name, '__notifications__')
+
+        try:
+            with open(account_notifications_path, 'r') as json_data:
+                data = json.load(json_data)
+                account.notifications = data
+        except FileNotFoundError:
+            logging.debug("Could not find notifications file")
+            pass
 
     def load_cache(self, account):
         """
@@ -349,6 +349,18 @@ class Application(QObject):
         else:
             account_path = os.path.join(config.parameters['home'], account.name)
             shutil.rmtree(account_path)
+
+    def save_notifications(self, account):
+        """
+        Save an account notifications
+
+        :param account: The account object to save
+        """
+        account_path = os.path.join(config.parameters['home'],
+                                account.name)
+        notifications_path = os.path.join(account_path, '__notifications__')
+        with open(notifications_path, 'w') as outfile:
+            json.dump(account.notifications, outfile, indent=4, sort_keys=True)
 
     def save_registries(self):
         """
