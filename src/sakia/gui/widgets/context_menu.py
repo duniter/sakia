@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QMenu, QAction, QApplication, QMessageBox
 from PyQt5.QtCore import QObject, pyqtSignal
-from ucoinpy.documents import Block
+from ucoinpy.documents import Block, Membership
 from ..member import MemberDialog
 from ..contact import ConfigureContactDialog
 from ..transfer import TransferMoneyDialog
@@ -59,6 +59,15 @@ class ContextMenu(QObject):
         copy_pubkey = QAction(menu.qmenu.tr("Copy pubkey to clipboard"), menu.qmenu.parent())
         copy_pubkey.triggered.connect(lambda checked, i=identity: ContextMenu.copy_pubkey_to_clipboard(i))
         menu.qmenu.addAction(copy_pubkey)
+
+        if menu._app.preferences['expert_mode']:
+            copy_membership = QAction(menu.qmenu.tr("Copy membership document to clipboard"), menu.qmenu.parent())
+            copy_membership.triggered.connect(lambda checked, i=identity: menu.copy_membership_to_clipboard(i))
+            menu.qmenu.addAction(copy_membership)
+
+            copy_selfcert = QAction(menu.qmenu.tr("Copy self-certification document to clipboard"), menu.qmenu.parent())
+            copy_selfcert.triggered.connect(lambda checked, i=identity: menu.copy_selfcert_to_clipboard(i))
+            menu.qmenu.addAction(copy_selfcert)
 
     @staticmethod
     def _add_transfers_actions(menu, transfer):
@@ -174,3 +183,31 @@ QMessageBox.Ok | QMessageBox.Cancel)
         if block:
             block_doc = Block.from_signed_raw("{0}{1}\n".format(block['raw'], block['signature']))
             clipboard.setText(block_doc.signed_raw())
+
+    @asyncify
+    async def copy_membership_to_clipboard(self, identity):
+        """
+
+        :param sakia.core.registry.Identity identity:
+        :return:
+        """
+        clipboard = QApplication.clipboard()
+        membership = await identity.membership(self._community)
+        if membership:
+            block_number = membership['blockNumber']
+            block = await self._community.get_block(block_number)
+            block_doc = Block.from_signed_raw("{0}{1}\n".format(block['raw'], block['signature']))
+            for ms_doc in block_doc.joiners:
+                if ms_doc.issuer == identity.pubkey:
+                    clipboard.setText(ms_doc.signed_raw())
+
+    @asyncify
+    async def copy_selfcert_to_clipboard(self, identity):
+        """
+
+        :param sakia.core.registry.Identity identity:
+        :return:
+        """
+        clipboard = QApplication.clipboard()
+        selfcert = await identity.selfcert(self._community)
+        clipboard.setText(selfcert.signed_raw())
