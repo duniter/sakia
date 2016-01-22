@@ -68,7 +68,7 @@ class TestWotTab(unittest.TestCase, QuamashTest):
             await open_widget()
 
         def close_dialog():
-            if wot_tab.wiget.isVisible():
+            if wot_tab.widget.isVisible():
                 wot_tab.widget.close()
             future.set_result(True)
 
