@@ -31,8 +31,14 @@ class GraphTabWidget(QObject):
         self.app = app
 
     def set_scene(self, scene):
+        """
+        Set the scene and connects the signals
+        :param sakia.gui.views.scenes.base_scene.BaseScene scene: the scene
+        :return:
+        """
         # add scene events
         scene.node_context_menu_requested.connect(self.node_context_menu)
+        scene.node_clicked.connect(self.handle_node_click)
 
     @once_at_a_time
     @asyncify
@@ -159,6 +165,7 @@ class GraphTabWidget(QObject):
         identity = await self.app.identities_registry.future_find(pubkey, self.community)
         menu = ContextMenu.from_data(self.widget, self.app, self.account, self.community, self.password_asker,
                                      (identity,))
+        menu.view_identity_in_wot.connect(self.draw_graph)
 
         # Show the context menu.
         menu.qmenu.popup(QCursor.pos())

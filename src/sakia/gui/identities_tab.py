@@ -25,7 +25,7 @@ class IdentitiesTabWidget(QObject):
     """
     classdocs
     """
-    view_in_wot = pyqtSignal(Identity)
+    view_in_wot = pyqtSignal(object)
     money_sent = pyqtSignal()
 
     _direct_connections_text = QT_TRANSLATE_NOOP("IdentitiesTabWidget", "Search direct certifications")
@@ -104,6 +104,7 @@ class IdentitiesTabWidget(QObject):
             identity = await self.app.identities_registry.future_find(pubkey, self.community)
             menu = ContextMenu.from_data(self.widget, self.app, self.account, self.community, self.password_asker,
                                          (identity,))
+            menu.view_identity_in_wot.connect(self.view_in_wot)
 
             # Show the context menu.
             menu.qmenu.popup(QCursor.pos())

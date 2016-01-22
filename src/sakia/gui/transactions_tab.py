@@ -182,6 +182,7 @@ class TransactionsTabWidget(QObject):
             transfer = model.sourceModel().transfers()[source_index.row()]
             menu = ContextMenu.from_data(self.widget, self.app, self.account, self.community, self.password_asker,
                                          (identity, transfer))
+            menu.view_identity_in_wot.connect(self.view_in_wot)
 
             # Show the context menu.
             menu.qmenu.popup(QCursor.pos())

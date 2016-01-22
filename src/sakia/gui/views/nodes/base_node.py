@@ -1,7 +1,6 @@
-from PyQt5.QtWidgets import QGraphicsEllipseItem, \
-    QMenu, QAction, QGraphicsSceneHoverEvent, \
+from PyQt5.QtWidgets import QGraphicsEllipseItem, QGraphicsSceneHoverEvent, \
     QGraphicsSceneContextMenuEvent
-from PyQt5.QtCore import Qt, QCoreApplication, QT_TRANSLATE_NOOP, pyqtSignal
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QMouseEvent
 from ....core.graph.constants import NodeStatus
 
