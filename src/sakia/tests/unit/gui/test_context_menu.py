@@ -1,11 +1,10 @@
 import unittest
 from unittest.mock import patch, MagicMock, Mock
 from asynctest.mock import CoroutineMock
-from asynctest.mock import MagicMock as AsyncMagicMock
-from PyQt5.QtCore import QLocale, pyqtSignal
+from PyQt5.QtCore import QLocale
 from sakia.tests import QuamashTest
 from sakia.tests.mocks.bma import nice_blockchain
-from sakia.gui.widgets import ContextMenu
+from sakia.gui.widgets.context_menu import ContextMenu
 
 
 class TestContextMenu(unittest.TestCase, QuamashTest):
