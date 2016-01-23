@@ -35,5 +35,10 @@
     <file alias="member">noun_213188_cc.svg</file>
     <file alias="not_member">noun_213192_cc.svg</file>
     <file alias="member_warning">noun_213886_cc.svg</file>
+    <file alias="forked">noun_60040_cc.svg</file>
+    <file alias="offline">noun_87601_cc.svg</file>
+    <file alias="synchronized">noun_274635_cc.svg</file>
+    <file alias="corrupted">noun_198591_cc.svg</file>
+
   </qresource>
 </RCC>

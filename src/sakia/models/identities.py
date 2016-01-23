@@ -67,16 +67,18 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
             if role == Qt.ForegroundRole:
                 if expiration_data:
                     if will_expire_soon:
-                        return QColor(Qt.red)
+                        return QColor("darkorange").darker(120)
                 else:
                     return QColor(Qt.blue)
 
-            if role == Qt.DecorationRole:
+            if role == Qt.DecorationRole and source_index.column() == self.sourceModel().columns_ids.index('uid'):
                 if expiration_data:
                     if will_expire_soon:
                         return QIcon(":/icons/member_warning")
-                else:
+                    else:
                         return QIcon(":/icons/member")
+                else:
+                    return QIcon(":/icons/not_member")
 
             return source_data
 

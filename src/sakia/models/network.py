@@ -8,7 +8,7 @@ import logging
 import asyncio
 
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel
-from PyQt5.QtGui import QColor, QFont
+from PyQt5.QtGui import QColor, QFont, QIcon
 
 from ..tools.exceptions import NoPeerAvailable
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
@@ -131,6 +131,12 @@ class NetworkTableModel(QAbstractTableModel):
             Node.DESYNCED: QColor('#ffbd81'),
             Node.CORRUPTED: QColor(Qt.lightGray)
         }
+        self.node_icons = {
+            Node.ONLINE: ":/icons/synchronized",
+            Node.OFFLINE: ":/icons/offline",
+            Node.DESYNCED: ":/icons/forked",
+            Node.CORRUPTED: ":/icons/corrupted"
+        }
         self.node_states = {
             Node.ONLINE: lambda: self.tr('Online'),
             Node.OFFLINE: lambda: self.tr('Offline'),
@@ -213,6 +219,9 @@ class NetworkTableModel(QAbstractTableModel):
             return self.node_colors[node[self.columns_types.index('state')]]
         if role == Qt.ToolTipRole:
             return self.node_states[node[self.columns_types.index('state')]]()
+
+        if role == Qt.DecorationRole and index.column() == 0:
+            return QIcon(self.node_icons[node[self.columns_types.index('state')]])
 
         return QVariant()
 
