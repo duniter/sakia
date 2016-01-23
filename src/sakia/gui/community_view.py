@@ -7,8 +7,8 @@ Created on 2 févr. 2014
 import logging
 import time
 
-from PyQt5.QtCore import pyqtSlot, QDateTime, QLocale, QEvent, QT_TRANSLATE_NOOP
-from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import pyqtSlot, QDateTime, QLocale, QEvent, QT_TRANSLATE_NOOP, Qt
+from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import QWidget, QMessageBox, QDialog, QPushButton, QTabBar, QAction
 
 from .graphs.wot_tab import WotTabWidget
@@ -41,8 +41,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
     _action_publish_uid_text = QT_TRANSLATE_NOOP("CommunityWidget", "Publish UID")
     _action_revoke_uid_text = QT_TRANSLATE_NOOP("CommunityWidget", "Revoke UID")
 
-
-    def __init__(self, app, status_label):
+    def __init__(self, app, status_label, label_icon):
         """
         Constructor
         """
@@ -52,6 +51,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.community = None
         self.password_asker = None
         self.status_label = status_label
+        self.label_icon = label_icon
 
         self.status_info = []
 
@@ -257,14 +257,14 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                 self.button_send_money.setEnabled(True)
 
             if self.community.network.quality > 0.66:
-                icon = '<img src=":/icons/connected" width="12" height="12"/>'
+                icon = ':/icons/connected'
             elif self.community.network.quality > 0.33:
-                icon = '<img src=":/icons/weak_connect" width="12" height="12"/>'
+                icon = ':/icons/weak_connect'
             else:
-                icon = '<img src=":/icons/disconnected" width="12" height="12"/>'
+                icon = ':/icons/disconnected'
 
             status_infotext = " - ".join([self.app.notifications[info][0] for info in self.status_info])
-            label_text = "{0}{1}".format(icon, text)
+            label_text = text
             if status_infotext != "":
                 label_text += " - {0}".format(status_infotext)
 
@@ -279,6 +279,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                         .format("#")
 
             self.status_label.setText(label_text)
+            self.label_icon.setPixmap(QPixmap(icon).scaled(24, 24, Qt.KeepAspectRatio, Qt.SmoothTransformation))
 
     @once_at_a_time
     @asyncify
