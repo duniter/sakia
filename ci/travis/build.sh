@@ -6,7 +6,7 @@ eval "$(pyenv virtualenv-init -)"
 cd $HOME/build/ucoin-io/sakia
 pyenv activate sakia-env
 pip install coveralls
-pip install pyinstaller
+pip install https://github.com/pyinstaller/pyinstaller/archive/develop.zip
 pip install -r requirements.txt
 if [ $TRAVIS_OS_NAME == "linux" ]
 then
