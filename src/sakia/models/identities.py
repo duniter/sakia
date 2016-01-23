@@ -7,7 +7,7 @@ Created on 5 févr. 2014
 from ..tools.exceptions import NoPeerAvailable, MembershipNotFoundError
 from PyQt5.QtCore import QAbstractTableModel, QSortFilterProxyModel, Qt, \
                         QDateTime, QModelIndex, QLocale, QEvent
-from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QColor, QIcon
 import logging
 import asyncio
 
@@ -70,6 +70,14 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
                         return QColor(Qt.red)
                 else:
                     return QColor(Qt.blue)
+
+            if role == Qt.DecorationRole:
+                if expiration_data:
+                    if will_expire_soon:
+                        return QIcon(":/icons/member_warning")
+                else:
+                        return QIcon(":/icons/member")
+
             return source_data
 
 

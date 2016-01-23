@@ -32,5 +32,8 @@
     <file alias="connected">connected.svg</file>
     <file alias="weak_connect">weak_connect.svg</file>
     <file alias="disconnected">disconnected.svg</file>
+    <file alias="member">noun_213188_cc.svg</file>
+    <file alias="not_member">noun_213192_cc.svg</file>
+    <file alias="member_warning">noun_213886_cc.svg</file>
   </qresource>
 </RCC>
