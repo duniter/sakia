@@ -180,7 +180,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog = CertificationDialog(self.app,
                                      self.app.current_account,
                                      self.password_asker)
-        dialog.exec_()
+        dialog.exec()
 
     def open_add_contact_dialog(self):
         dialog = ConfigureContactDialog(self.app.current_account, self)
