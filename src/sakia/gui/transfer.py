@@ -61,7 +61,7 @@ class TransferMoneyDialog(QObject):
         self.ui.search_user.init(self.app)
         self.ui.search_user.change_account(self.account)
         self.ui.search_user.change_community(self.community)
-        
+
         regexp = QRegExp('^([ a-zA-Z0-9-_:/;*?\[\]\(\)\\\?!^+=@&~#{}|<>%.]{0,255})$')
         validator = QRegExpValidator(regexp)
         self.ui.edit_message.setValidator(validator)
@@ -147,7 +147,7 @@ class TransferMoneyDialog(QObject):
                 toast.display(self.tr("Transfer"),
                           self.tr("Success sending money to {0}").format(recipient))
             else:
-                await QAsyncMessageBox.information(self, self.tr("Transfer"),
+                await QAsyncMessageBox.information(self.widget, self.tr("Transfer"),
                           self.tr("Success sending money to {0}").format(recipient))
             QApplication.restoreOverrideCursor()
 
@@ -160,7 +160,7 @@ class TransferMoneyDialog(QObject):
             if self.app.preferences['notifications']:
                 toast.display(self.tr("Transfer"), "Error : {0}".format(result[1]))
             else:
-                await QAsyncMessageBox.critical(self, self.tr("Transfer"), result[1])
+                await QAsyncMessageBox.critical(self.widget, self.tr("Transfer"), result[1])
 
             QApplication.restoreOverrideCursor()
             self.ui.button_box.setEnabled(True)
@@ -218,8 +218,8 @@ class TransferMoneyDialog(QObject):
 
     def async_exec(self):
         future = asyncio.Future()
-        self.finished.connect(lambda r: future.set_result(r))
-        self.open()
+        self.widget.finished.connect(lambda r: future.set_result(r))
+        self.widget.open()
         return future
 
     def exec(self):

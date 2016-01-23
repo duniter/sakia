@@ -80,10 +80,10 @@ class TestTransferDialog(unittest.TestCase, QuamashTest):
         async def exec_test():
             await asyncio.sleep(1)
             self.account.wallets[0].caches[self.community.currency].available_sources = await self.wallet.sources(self.community)
-            QTest.mouseClick(transfer_dialog.radio_pubkey, Qt.LeftButton)
-            QTest.keyClicks(transfer_dialog.edit_pubkey, "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn")
-            transfer_dialog.spinbox_amount.setValue(10)
-            QTest.mouseClick(transfer_dialog.button_box.button(QDialogButtonBox.Ok), Qt.LeftButton)
+            QTest.mouseClick(transfer_dialog.ui.radio_pubkey, Qt.LeftButton)
+            QTest.keyClicks(transfer_dialog.ui.edit_pubkey, "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn")
+            transfer_dialog.ui.spinbox_amount.setValue(10)
+            QTest.mouseClick(transfer_dialog.ui.button_box.button(QDialogButtonBox.Ok), Qt.LeftButton)
             await asyncio.sleep(1)
             topWidgets = QApplication.topLevelWidgets()
             for w in topWidgets:

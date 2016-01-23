@@ -74,9 +74,9 @@ class TestCertificationDialog(unittest.TestCase, QuamashTest):
 
         async def exec_test():
             await asyncio.sleep(1)
-            QTest.mouseClick(certification_dialog.radio_pubkey, Qt.LeftButton)
-            QTest.keyClicks(certification_dialog.edit_pubkey, "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn")
-            QTest.mouseClick(certification_dialog.button_box.button(QDialogButtonBox.Ok), Qt.LeftButton)
+            QTest.mouseClick(certification_dialog.ui.radio_pubkey, Qt.LeftButton)
+            QTest.keyClicks(certification_dialog.ui.edit_pubkey, "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn")
+            QTest.mouseClick(certification_dialog.ui.button_box.button(QDialogButtonBox.Ok), Qt.LeftButton)
             await asyncio.sleep(1)
             topWidgets = QApplication.topLevelWidgets()
             for w in topWidgets:

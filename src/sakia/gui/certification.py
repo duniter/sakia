@@ -42,6 +42,12 @@ class CertificationDialog(QObject):
         self.password_asker = password_asker
         self.community = self.account.communities[0]
 
+        self.ui.radio_contact.toggled.connect(lambda c, radio="contact": self.recipient_mode_changed(radio))
+        self.ui.radio_pubkey.toggled.connect(lambda c, radio="pubkey": self.recipient_mode_changed(radio))
+        self.ui.radio_search.toggled.connect(lambda c, radio="search": self.recipient_mode_changed(radio))
+        self.ui.button_box.accepted.connect(self.accept)
+        self.ui.button_box.rejected.connect(self.widget.reject)
+
         for community in self.account.communities:
             self.ui.combo_community.addItem(community.currency)
 
@@ -52,11 +58,6 @@ class CertificationDialog(QObject):
             self.ui.radio_pubkey.setChecked(True)
             self.ui.radio_contact.setEnabled(False)
 
-        self.ui.radio_contact.toggled.connect(lambda c, radio="contact": self.recipient_mode_changed(radio))
-        self.ui.radio_pubkey.toggled.connect(lambda c, radio="pubkey": self.recipient_mode_changed(radio))
-        self.ui.radio_search.toggled.connect(lambda c, radio="search": self.recipient_mode_changed(radio))
-        self.ui.button_box.accepted.connect(self.accept)
-        self.ui.button_box.rejected.connect(self.widget.reject)
         self.ui.search_user.button_reset.hide()
         self.ui.search_user.init(self.app)
         self.ui.search_user.change_account(self.account)
@@ -107,7 +108,7 @@ class CertificationDialog(QObject):
                 toast.display(self.tr("Certification"),
                               self.tr("Success sending certification"))
             else:
-                await QAsyncMessageBox.information(self, self.tr("Certification"),
+                await QAsyncMessageBox.information(self.widget, self.tr("Certification"),
                                              self.tr("Success sending certification"))
             QApplication.restoreOverrideCursor()
             self.widget.accept()
@@ -116,7 +117,7 @@ class CertificationDialog(QObject):
                 toast.display(self.tr("Certification"), self.tr("Could not broadcast certification : {0}"
                                                                 .format(result[1])))
             else:
-                await QAsyncMessageBox.critical(self, self.tr("Certification"),
+                await QAsyncMessageBox.critical(self.widget, self.tr("Certification"),
                                           self.tr("Could not broadcast certification : {0}"
                                                                 .format(result[1])))
             QApplication.restoreOverrideCursor()
@@ -172,7 +173,7 @@ class CertificationDialog(QObject):
 
     def async_exec(self):
         future = asyncio.Future()
-        self.finished.connect(lambda r: future.set_result(r))
+        self.widget.finished.connect(lambda r: future.set_result(r))
         self.widget.open()
         self.refresh()
         return future
