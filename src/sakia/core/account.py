@@ -20,6 +20,7 @@ from .wallet import Wallet
 from .community import Community
 from .registry import LocalState
 from ..tools.exceptions import ContactAlreadyExists
+from .. import __version__
 from ucoinpy.api import bma
 from ucoinpy.api.bma import PROTOCOL_VERSION
 from aiohttp.errors import ClientError
@@ -103,10 +104,10 @@ class Account(QObject):
         """
         salt = json_data['salt']
         pubkey = json_data['pubkey']
-        if 'version' in json_data:
-            version = StrictVersion(json_data['version'])
+        if 'file_version' in json_data:
+            file_version = StrictVersion(json_data['file_version'])
         else:
-            version = StrictVersion('0.11.5')
+            file_version = StrictVersion('0.11.5')
 
         name = json_data['name']
         contacts = []
@@ -120,7 +121,7 @@ class Account(QObject):
 
         communities = []
         for data in json_data['communities']:
-            community = Community.load(data, version)
+            community = Community.load(data, file_version)
             communities.append(community)
 
         account = cls(salt, pubkey, name, communities, wallets,
@@ -582,5 +583,6 @@ class Account(QObject):
                 'pubkey': self.pubkey,
                 'communities': data_communities,
                 'wallets': data_wallets,
-                'contacts': self.contacts}
+                'contacts': self.contacts,
+                'file_version': __version__}
         return data

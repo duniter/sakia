@@ -88,17 +88,17 @@ class Network(QObject):
                     other_node.state = node.state
 
     @classmethod
-    def from_json(cls, currency, json_data, version):
+    def from_json(cls, currency, json_data, file_version):
         """
         Load a network from a configured community
 
         :param str currency: The currency name of a community
         :param dict json_data: A json_data view of a network
-        :param distutils.version.StrictVersion version: the version of the json file
+        :param distutils.version.StrictVersion file_version: the version of the json file
         """
         nodes = []
         for data in json_data:
-            node = Node.from_json(currency, data, version)
+            node = Node.from_json(currency, data, file_version)
             nodes.append(node)
         network = cls(currency, nodes)
         return network
@@ -345,6 +345,8 @@ class Network(QObject):
                 logging.debug(str(e))
         else:
             node = [n for n in self.nodes if n.pubkey == pubkey][0]
+            if BlockId.from_str(node.peer.blockid).number < BlockId.from_str(peer.blockid).number:
+                node.peer = peer
 
     @pyqtSlot()
     def handle_identity_change(self):

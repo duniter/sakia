@@ -5,7 +5,7 @@ Created on 21 févr. 2015
 """
 
 from ucoinpy.documents.peer import Peer, Endpoint, BMAEndpoint
-from ucoinpy.documents import Block
+from ucoinpy.documents import Block, BlockId
 from ...tools.exceptions import InvalidNodeCurrency
 from ...tools.decorators import asyncify
 from ucoinpy.api import bma as bma
@@ -163,7 +163,7 @@ class Node(QObject):
             if currency in data:
                 currency = data['currency']
 
-            peer = Peer("1", currency, pubkey, "0-{0}".format(Block.Empty_Hash), endpoints, "SOMEFAKESIGNATURE")
+            peer = Peer("1", currency, pubkey, BlockId(0, Block.Empty_Hash), endpoints, "SOMEFAKESIGNATURE")
         else:
             if 'peer' in data:
                 peer = Peer.from_signed_raw(data['peer'])
@@ -180,7 +180,6 @@ class Node(QObject):
         logging.debug("Saving root node : {:}".format(str(self)))
         data = {'pubkey': self._pubkey,
                 'uid': self._uid,
-                'currency': self._currency,
                 'peer': self._peer.signed_raw()}
         return data
 
@@ -240,6 +239,12 @@ class Node(QObject):
     @property
     def peer(self):
         return self._peer
+
+    @peer.setter
+    def peer(self, new_peer):
+        if self._peer != new_peer:
+            self._peer = new_peer
+            self.changed.emit()
 
     @software.setter
     def software(self, new_soft):
