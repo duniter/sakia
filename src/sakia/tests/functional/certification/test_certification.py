@@ -45,7 +45,7 @@ class TestCertificationDialog(unittest.TestCase, QuamashTest):
         # Pubkey : 7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ
         self.account = Account("testsakia", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
                                "john", [self.community], [self.wallet], [], self.identities_registry)
-
+        self.account.notifications['warning_certifying_first_time'] = False
         self.password_asker = PasswordAskerDialog(self.account)
         self.password_asker.password = "testsakia"
         self.password_asker.remember = True
