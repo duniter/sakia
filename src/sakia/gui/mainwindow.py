@@ -173,7 +173,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                      self.password_asker,
                                      self.community_view.community,
                                      None)
-        if dialog.exec_() == QDialog.Accepted:
+        if dialog.exec() == QDialog.Accepted:
             self.community_view.tab_history.table_history.model().sourceModel().refresh_transfers()
 
     def open_certification_dialog(self):
