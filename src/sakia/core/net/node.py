@@ -372,6 +372,11 @@ class Node(QObject):
             node_currency = peering_data["currency"]
             self.state = Node.ONLINE
 
+            if peering_data['raw'] != self.peer.raw():
+                peer = Peer.from_signed_raw("{0}{1}\n".format(peering_data['raw'], peering_data['signature']))
+                if peer.blockid.number > self.peer.blockid.number:
+                    self.peer = Peer.from_signed_raw("{0}{1}\n".format(peering_data['raw'], peering_data['signature']))
+
             if node_pubkey != self.pubkey:
                 self._pubkey = node_pubkey
                 self.identity_changed.emit()
