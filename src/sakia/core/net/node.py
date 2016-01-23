@@ -5,18 +5,18 @@ Created on 21 févr. 2015
 """
 
 from ucoinpy.documents.peer import Peer, Endpoint, BMAEndpoint
+from ucoinpy.documents import Block
 from ...tools.exceptions import InvalidNodeCurrency
 from ...tools.decorators import asyncify
 from ucoinpy.api import bma as bma
 from ucoinpy.api.bma import ConnectionHandler
 
-import asyncio
 from aiohttp.errors import ClientError, DisconnectedError
 from asyncio import TimeoutError
 import logging
 import time
 import jsonschema
-import aiohttp
+from distutils.version import StrictVersion
 from socket import gaierror
 
 from PyQt5.QtCore import QObject, pyqtSignal
@@ -42,20 +42,19 @@ class Node(QObject):
     identity_changed = pyqtSignal()
     neighbour_found = pyqtSignal(Peer, str)
 
-    def __init__(self, currency, endpoints, uid, pubkey, block,
+    def __init__(self, peer, uid, pubkey, block,
                  state, last_change, last_merkle, software, version, fork_window):
         """
         Constructor
         """
         super().__init__()
-        self._endpoints = endpoints
+        self._peer = peer
         self._uid = uid
         self._pubkey = pubkey
         self._block = block
         self.main_chain_previous_block = None
         self._state = state
         self._neighbours = []
-        self._currency = currency
         self._last_change = last_change
         self._last_merkle = last_merkle
         self._software = software
@@ -84,8 +83,7 @@ class Node(QObject):
             if peer.currency != currency:
                 raise InvalidNodeCurrency(peer.currency, currency)
 
-        node = cls(peer.currency,
-                   [Endpoint.from_inline(e.inline()) for e in peer.endpoints],
+        node = cls(peer,
                    "", peer.pubkey, None, Node.ONLINE, time.time(),
                    {'root': "", 'leaves': []}, "", "", 0)
         logging.debug("Node from address : {:}".format(str(node)))
@@ -106,8 +104,7 @@ class Node(QObject):
             if peer.currency != currency:
                 raise InvalidNodeCurrency(peer.currency, currency)
 
-        node = cls(peer.currency, peer.endpoints,
-                   "", pubkey, None,
+        node = cls(peer, "", pubkey, None,
                    Node.OFFLINE, time.time(),
                    {'root': "", 'leaves': []},
                    "", "", 0)
@@ -115,7 +112,16 @@ class Node(QObject):
         return node
 
     @classmethod
-    def from_json(cls, currency, data):
+    def from_json(cls, currency, data, file_version):
+        """
+        Loads a node from json data
+
+        :param str currency: the currency of the community
+        :param dict data: the json data of the node
+        :param StrictVersion file_version: the version of the file
+        :return: A new node
+        :rtype: Node
+        """
         endpoints = []
         uid = ""
         pubkey = ""
@@ -126,12 +132,6 @@ class Node(QObject):
         last_change = time.time()
         state = Node.OFFLINE
         logging.debug(data)
-        for endpoint_data in data['endpoints']:
-            endpoints.append(Endpoint.from_inline(endpoint_data))
-
-        if currency in data:
-            currency = data['currency']
-
         if 'uid' in data:
             uid = data['uid']
 
@@ -156,11 +156,23 @@ class Node(QObject):
         if 'fork_window' in data:
             fork_window = data['fork_window']
 
-        node = cls(currency, endpoints,
-                   uid, pubkey, block,
+        if file_version < StrictVersion("0.12"):
+            for endpoint_data in data['endpoints']:
+                endpoints.append(Endpoint.from_inline(endpoint_data))
+
+            if currency in data:
+                currency = data['currency']
+
+            peer = Peer("1", currency, pubkey, "0-{0}".format(Block.Empty_Hash), endpoints, "SOMEFAKESIGNATURE")
+        else:
+            if 'peer' in data:
+                peer = Peer.from_signed_raw(data['peer'])
+
+        node = cls(peer, uid, pubkey, block,
                    state, last_change,
                    {'root': "", 'leaves': []},
                    software, version, fork_window)
+
         logging.debug("Node from json : {:}".format(str(node)))
         return node
 
@@ -168,18 +180,15 @@ class Node(QObject):
         logging.debug("Saving root node : {:}".format(str(self)))
         data = {'pubkey': self._pubkey,
                 'uid': self._uid,
-                'currency': self._currency}
-        endpoints = []
-        for e in self._endpoints:
-            endpoints.append(e.inline())
-        data['endpoints'] = endpoints
+                'currency': self._currency,
+                'peer': self._peer.signed_raw()}
         return data
 
     def jsonify(self):
         logging.debug("Saving node : {:}".format(str(self)))
         data = {'pubkey': self._pubkey,
                 'uid': self._uid,
-                'currency': self._currency,
+                'peer': self._peer.signed_raw(),
                 'state': self._state,
                 'last_change': self._last_change,
                 'block': self.block,
@@ -187,10 +196,6 @@ class Node(QObject):
                 'version': self._version,
                 'fork_window': self._fork_window
                 }
-        endpoints = []
-        for e in self._endpoints:
-            endpoints.append(e.inline())
-        data['endpoints'] = endpoints
         return data
 
     @property
@@ -199,7 +204,7 @@ class Node(QObject):
 
     @property
     def endpoint(self) -> BMAEndpoint:
-        return next((e for e in self._endpoints if type(e) is BMAEndpoint))
+        return next((e for e in self._peer.endpoints if type(e) is BMAEndpoint))
 
     @property
     def block(self):
@@ -214,7 +219,7 @@ class Node(QObject):
 
     @property
     def currency(self):
-        return self._currency
+        return self._peer.currency
 
     @property
     def neighbours(self):
@@ -231,6 +236,10 @@ class Node(QObject):
     @property
     def software(self):
         return self._software
+
+    @property
+    def peer(self):
+        return self._peer
 
     @software.setter
     def software(self, new_soft):

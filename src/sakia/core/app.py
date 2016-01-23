@@ -11,6 +11,7 @@ import shutil
 import json
 import datetime
 import aiohttp
+from distutils.version import StrictVersion
 
 from PyQt5.QtCore import QObject, pyqtSignal, QTranslator, QCoreApplication, QLocale
 from ucoinpy.api.bma import API
@@ -278,7 +279,7 @@ class Application(QObject):
                 with open(network_path, 'r') as json_data:
                     data = json.load(json_data)
                     logging.debug("Merging network : {0}".format(data))
-                    community.network.merge_with_json(data['network'])
+                    community.network.merge_with_json(data['network'], StrictVersion(data['version']))
 
             if os.path.exists(bma_path):
                 with open(bma_path, 'r') as json_data:

@@ -57,15 +57,16 @@ class Network(QObject):
         network = cls(node.currency, nodes)
         return network
 
-    def merge_with_json(self, json_data):
+    def merge_with_json(self, json_data, file_version):
         """
         We merge with knew nodes when we
         last stopped sakia
 
         :param dict json_data: Nodes in json format
+        :param distutils.version.StrictVersion file_version: The node version
         """
         for data in json_data:
-            node = Node.from_json(self.currency, data)
+            node = Node.from_json(self.currency, data, file_version)
             if node.pubkey not in [n.pubkey for n in self.nodes]:
                 self.add_node(node)
                 logging.debug("Loading : {:}".format(data['pubkey']))
@@ -74,6 +75,7 @@ class Network(QObject):
                 other_node._uid = node.uid
                 other_node._version = node.version
                 other_node._software = node.software
+                other_node._peer = node.peer
                 switch = False
                 if other_node.block and node.block:
                     if other_node.block['hash'] != node.block['hash']:
@@ -86,16 +88,17 @@ class Network(QObject):
                     other_node.state = node.state
 
     @classmethod
-    def from_json(cls, currency, json_data):
+    def from_json(cls, currency, json_data, version):
         """
         Load a network from a configured community
 
         :param str currency: The currency name of a community
         :param dict json_data: A json_data view of a network
+        :param distutils.version.StrictVersion version: the version of the json file
         """
         nodes = []
         for data in json_data:
-            node = Node.from_json(currency, data)
+            node = Node.from_json(currency, data, version)
             nodes.append(node)
         network = cls(currency, nodes)
         return network
@@ -340,6 +343,8 @@ class Network(QObject):
                 self.nodes_changed.emit()
             except InvalidNodeCurrency as e:
                 logging.debug(str(e))
+        else:
+            node = [n for n in self.nodes if n.pubkey == pubkey][0]
 
     @pyqtSlot()
     def handle_identity_change(self):

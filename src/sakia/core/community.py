@@ -57,27 +57,18 @@ class Community(QObject):
         return community
 
     @classmethod
-    def load(cls, json_data):
+    def load(cls, json_data, version):
         """
         Load a community from json
 
         :param dict json_data: The community as a dict in json format
+        :param distutils.version.StrictVersion version: the file sakia version
         """
         currency = json_data['currency']
-        network = Network.from_json(currency, json_data['peers'])
+        network = Network.from_json(currency, json_data['peers'], version)
         bma_access = BmaAccess.create(network)
         community = cls(currency, network, bma_access)
         return community
-
-    def load_cache(self, bma_access_cache, network_cache):
-        """
-        Load the community cache.
-
-        :param dict bma_access_cache: The BmaAccess cache in json
-        :param dict network_cache: The network cache in json
-        """
-        self._bma_access.load_from_json(bma_access_cache)
-        self._network.merge_with_json(network_cache)
 
     @property
     def name(self):

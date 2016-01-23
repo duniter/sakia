@@ -11,6 +11,7 @@ from ucoinpy.key import SigningKey
 import logging
 import time
 import asyncio
+from distutils.version import StrictVersion
 
 from PyQt5.QtCore import QObject, pyqtSignal
 
@@ -18,7 +19,7 @@ from . import money
 from .wallet import Wallet
 from .community import Community
 from .registry import LocalState
-from ..tools.exceptions import ContactAlreadyExists, NoPeerAvailable
+from ..tools.exceptions import ContactAlreadyExists
 from ucoinpy.api import bma
 from ucoinpy.api.bma import PROTOCOL_VERSION
 from aiohttp.errors import ClientError
@@ -102,6 +103,10 @@ class Account(QObject):
         """
         salt = json_data['salt']
         pubkey = json_data['pubkey']
+        if 'version' in json_data:
+            version = StrictVersion(json_data['version'])
+        else:
+            version = StrictVersion('0.11.5')
 
         name = json_data['name']
         contacts = []
@@ -115,7 +120,7 @@ class Account(QObject):
 
         communities = []
         for data in json_data['communities']:
-            community = Community.load(data)
+            community = Community.load(data, version)
             communities.append(community)
 
         account = cls(salt, pubkey, name, communities, wallets,
