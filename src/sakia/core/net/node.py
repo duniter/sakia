@@ -374,7 +374,7 @@ class Node(QObject):
 
             if peering_data['raw'] != self.peer.raw():
                 peer = Peer.from_signed_raw("{0}{1}\n".format(peering_data['raw'], peering_data['signature']))
-                if peer.blockid.number > self.peer.blockid.number:
+                if BlockId.from_str(peer.blockid).number > BlockId.from_str(self.peer.blockid).number:
                     self.peer = Peer.from_signed_raw("{0}{1}\n".format(peering_data['raw'], peering_data['signature']))
 
             if node_pubkey != self.pubkey:
