@@ -31,8 +31,8 @@ class TestTransferDialog(unittest.TestCase, QuamashTest):
         self.application = Application(self.qapplication, self.lp, self.identities_registry)
         self.application.preferences['notifications'] = False
 
-        self.endpoint = BMAEndpoint("", "127.0.0.1", "", 50002)
-        self.node = Node("test_currency", [self.endpoint],
+        self.mock_nice_blockchain = nice_blockchain.get_mock(self.lp)
+        self.node = Node(self.mock_nice_blockchain.peer(),
                          "", "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk",
                          None, Node.ONLINE,
                          time.time(), {}, "ucoin", "0.14.0", 0)
@@ -56,8 +56,6 @@ class TestTransferDialog(unittest.TestCase, QuamashTest):
         self.tearDownQuamash()
 
     def test_transfer_nice_community(self):
-        mock = nice_blockchain.get_mock(self.lp)
-        time.sleep(2)
         transfer_dialog = TransferMoneyDialog(self.application,
                                               self.account,
                                               self.password_asker,
@@ -66,9 +64,8 @@ class TestTransferDialog(unittest.TestCase, QuamashTest):
         self.account.wallets[0].init_cache(self.application, self.community)
 
         async def open_dialog(transfer_dialog):
-            srv, port, url = await mock.create_server()
+            srv, port, url = await self.mock_nice_blockchain.create_server()
             self.addCleanup(srv.close)
-            self.endpoint.port = port
 
             result = await transfer_dialog.async_exec()
             self.assertEqual(result, QDialog.Accepted)

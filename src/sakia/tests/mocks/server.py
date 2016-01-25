@@ -1,6 +1,7 @@
 from aiohttp import web, log
 import json
 import socket
+from ucoinpy.documents import Peer
 
 
 def bma_peering_generator(port):
@@ -16,6 +17,18 @@ def bma_peering_generator(port):
           "raw": "Version: 1\nType: Peer\nCurrency: meta_brouzouf\nPublicKey: HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk\nBlock: 30152-00003E7F9234E7542FCF669B69B0F84FF79CCCD3\nEndpoints:\nBASIC_MERKLED_API 127.0.0.1 {port}\n".format(port=port),
           "pubkey": "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk"
         }
+
+
+def peer_document_generator(port):
+    return Peer.from_signed_raw("""Version: 1
+Type: Peer
+Currency: meta_brouzouf
+PublicKey: HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk
+Block: 30152-00003E7F9234E7542FCF669B69B0F84FF79CCCD3
+Endpoints:
+BASIC_MERKLED_API 127.0.0.1 {port}
+cXuqZuDfyHvxYAEUkPH1TQ1M+8YNDpj8kiHGYi3LIaMqEdVqwVc4yQYGivjxFMYyngRfxXkyvqBKZA6rKOulCA==
+""".format(port=port))
 
 
 class Request():
@@ -34,6 +47,8 @@ class MockServer():
         self.handler = self.app.make_handler(
             keep_alive_on=False,
             access_log=log.access_logger)
+
+        self.port = self.find_unused_port()
 
     def get_request(self, i):
         return self.requests[i]
@@ -56,12 +71,14 @@ class MockServer():
         s.close()
         return port
 
+    def peer(self):
+        return peer_document_generator(self.port)
+
     async def create_server(self, ssl_ctx=None):
-        port = self.find_unused_port()
-        srv = await self.lp.create_server(self.handler, '127.0.0.1', port)
+        srv = await self.lp.create_server(self.handler, '127.0.0.1', self.port)
         protocol = "https" if ssl_ctx else "http"
-        url = "{}://127.0.0.1:{}".format(protocol, port)
+        url = "{}://127.0.0.1:{}".format(protocol, self.port)
 
-        self.add_route('GET', '/network/peering', bma_peering_generator(port))
+        self.add_route('GET', '/network/peering', bma_peering_generator(self.port))
 
-        return srv, port, url
+        return srv, self.port, url

@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QMessageBox, QApplication
 from PyQt5.QtCore import QLocale, Qt
 from PyQt5.QtTest import QTest
 from ucoinpy.api.bma import API
+from ucoinpy.documents import Peer
 from sakia.tests.mocks.bma import init_new_community
 from sakia.core.registry.identities import IdentitiesRegistry
 from sakia.gui.certification import CertificationDialog
@@ -29,8 +30,10 @@ class TestCertificationDialog(unittest.TestCase, QuamashTest):
         self.application = Application(self.qapplication, self.lp, self.identities_registry)
         self.application.preferences['notifications'] = False
 
+        self.mock_new_community = init_new_community.get_mock(self.lp)
+
         self.endpoint = BMAEndpoint("", "127.0.0.1", "", 50010)
-        self.node = Node("test_currency", [self.endpoint],
+        self.node = Node(self.mock_new_community.peer(),
                          "", "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk",
                          None, Node.ONLINE,
                          time.time(), {}, "ucoin", "0.14.0", 0)
@@ -50,21 +53,15 @@ class TestCertificationDialog(unittest.TestCase, QuamashTest):
         self.password_asker.password = "testsakia"
         self.password_asker.remember = True
 
-    def tearDown(self):
-        self.tearDownQuamash()
-
     def test_certification_init_community(self):
-        mock = init_new_community.get_mock(self.lp)
         time.sleep(2)
         certification_dialog = CertificationDialog(self.application,
                                                    self.account,
                                                    self.password_asker)
 
         async def open_dialog(certification_dialog):
-            srv, port, url = await mock.create_server()
+            srv, port, url = await self.mock_new_community.create_server()
             self.addCleanup(srv.close)
-            self.endpoint.port = port
-
             result = await certification_dialog.async_exec()
             self.assertEqual(result, QDialog.Accepted)
 
