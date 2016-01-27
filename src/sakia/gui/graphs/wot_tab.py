@@ -30,6 +30,7 @@ class WotTabWidget(GraphTabWidget):
         self.ui.setupUi(self.widget)
 
         self.ui.search_user_widget.init(app)
+        self.widget.installEventFilter(self)
         self.busy = Busy(self.ui.graphicsView)
         self.busy.hide()
 
@@ -125,9 +126,11 @@ class WotTabWidget(GraphTabWidget):
         else:
             self.reset()
 
-    def resizeEvent(self, event):
-        self.busy.resize(event.size())
-        super().resizeEvent(event)
+    def eventFilter(self, source, event):
+        if event.type() == QEvent.Resize:
+            self.busy.resize(event.size())
+            self.widget.resizeEvent(event)
+        return self.widget.eventFilter(source, event)
 
     def changeEvent(self, event):
         """

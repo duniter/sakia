@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>DialogMember</class>
- <widget class="QDialog" name="DialogMember">
+ <class>MemberView</class>
+ <widget class="QWidget" name="MemberView">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>501</width>
-    <height>288</height>
+    <width>392</width>
+    <height>251</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Informations</string>
+   <string>Form</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -34,8 +34,14 @@ QGroupBox::title {
       <string>Member</string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
-      <item row="0" column="0">
+      <item row="0" column="1">
        <widget class="QLabel" name="label_icon">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="maximumSize">
          <size>
           <width>81</width>
@@ -53,7 +59,17 @@ QGroupBox::title {
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
+      <item row="2" column="1" colspan="2">
+       <widget class="QLabel" name="label_properties">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
        <widget class="QLabel" name="label_uid">
         <property name="maximumSize">
          <size>
@@ -62,17 +78,7 @@ QGroupBox::title {
          </size>
         </property>
         <property name="text">
-         <string>uid</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0" colspan="2">
-       <widget class="QLabel" name="label_properties">
-        <property name="text">
-         <string>properties</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+         <string/>
         </property>
        </widget>
       </item>
@@ -82,7 +88,6 @@ QGroupBox::title {
   </layout>
  </widget>
  <resources>
-  <include location="../icons/icons.qrc"/>
   <include location="../icons/icons.qrc"/>
  </resources>
  <connections/>

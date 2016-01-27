@@ -180,10 +180,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.community_view.tab_history.table_history.model().sourceModel().refresh_transfers()
 
     def open_certification_dialog(self):
-        dialog = CertificationDialog(self.app,
+        CertificationDialog.open_dialog(self.app,
                                      self.app.current_account,
                                      self.password_asker)
-        dialog.exec()
 
     def open_add_contact_dialog(self):
         dialog = ConfigureContactDialog(self.app.current_account, self)
