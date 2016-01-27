@@ -63,7 +63,8 @@ class ContextMenu(QObject):
         if menu._app.preferences['expert_mode']:
             copy_membership = QAction(menu.qmenu.tr("Copy membership document to clipboard"), menu.qmenu.parent())
             copy_membership.triggered.connect(lambda checked, i=identity: menu.copy_membership_to_clipboard(i))
-            menu.qmenu.addAction(copy_membership)
+            # TODO: Copy membership when written field is available
+            #menu.qmenu.addAction(copy_membership)
 
             copy_selfcert = QAction(menu.qmenu.tr("Copy self-certification document to clipboard"), menu.qmenu.parent())
             copy_selfcert.triggered.connect(lambda checked, i=identity: menu.copy_selfcert_to_clipboard(i))
