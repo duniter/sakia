@@ -1,7 +1,8 @@
 import datetime
 import asyncio
 
-from PyQt5.QtWidgets import QDialog
+from PyQt5.QtCore import QObject
+from PyQt5.QtWidgets import QDialog, QWidget
 
 from ..core.graph import WoTGraph
 from ..tools.decorators import asyncify
@@ -9,12 +10,12 @@ from ..gen_resources.member_uic import Ui_DialogMember
 from ..tools.exceptions import MembershipNotFoundError
 
 
-class MemberDialog(QDialog, Ui_DialogMember):
+class MemberDialog(QObject):
     """
-    classdocs
+    A widget showing informations about a member
     """
 
-    def __init__(self, app, account, community, identity):
+    def __init__(self, app, account, community, identity, widget, ui):
         """
         Init MemberDialog
 
@@ -22,20 +23,31 @@ class MemberDialog(QDialog, Ui_DialogMember):
         :param sakia.core.account.Account account:   Account instance
         :param sakia.core.community.Community community: Community instance
         :param sakia.core.registry.identity.Identity identity: Identity instance
+        :param PyQt5.QtWidget widget: The class of the widget
+        :param sakia.gen_resources.member_uic.Ui_DialogMember ui: the class of the ui applyed to the widget
         :return:
         """
         super().__init__()
-        self.setupUi(self)
+        self.widget = widget
+        self.ui = ui
+        self.ui.setupUi(self.widget)
         self.app = app
         self.community = community
         self.account = account
         self.identity = identity
-        self.label_uid.setText(identity.uid)
+        self.ui.label_uid.setText(identity.uid)
         self.refresh()
+
+    @classmethod
+    def open_dialog(cls, app, account, community, identity):
+        return cls(app, account, community, identity, QDialog(), Ui_DialogMember()).exec()
+
+    @classmethod
+    def as_widget(cls, app, account, community, identity):
+        return cls(app, account, community, identity, QWidget(), Ui_DialogMember())
 
     @asyncify
     async def refresh(self):
-
         try:
             join_date = await self.identity.get_join_date(self.community)
         except MembershipNotFoundError:
@@ -90,4 +102,7 @@ class MemberDialog(QDialog, Ui_DialogMember):
         text += "</table>"
 
         # set text in label
-        self.label_properties.setText(text)
+        self.ui.label_properties.setText(text)
+
+    def exec(self):
+        self.widget.exec()

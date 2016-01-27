@@ -119,8 +119,7 @@ class ContextMenu(QObject):
         clipboard.setText(identity.pubkey)
 
     def informations(self, identity):
-        dialog = MemberDialog(self._app, self._account, self._community, identity)
-        dialog.exec_()
+        MemberDialog.open_dialog(self._app, self._account, self._community, identity)
 
     def add_as_contact(self, identity):
         dialog = ConfigureContactDialog.from_identity( self.parent(), self._account, identity)

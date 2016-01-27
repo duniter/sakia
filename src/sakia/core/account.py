@@ -516,7 +516,7 @@ class Account(QObject):
                     await r.release()
             return result
         else:
-            return (False, self.tr("Could not find user self certification."))
+            return False, self.tr("Could not find user self certification.")
 
     async def revoke(self, password, community):
         """
