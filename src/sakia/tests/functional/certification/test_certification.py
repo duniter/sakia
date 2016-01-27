@@ -65,8 +65,8 @@ class TestCertificationDialog(unittest.TestCase, QuamashTest):
             self.assertEqual(result, QDialog.Accepted)
 
         def close_dialog():
-            if certification_dialog.isVisible():
-                certification_dialog.close()
+            if certification_dialog.widget.isVisible():
+                certification_dialog.widget.close()
 
         async def exec_test():
             await asyncio.sleep(1)
