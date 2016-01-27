@@ -1,18 +1,15 @@
 import sys
 import unittest
 import asyncio
-import quamash
 import time
 import logging
 from ucoinpy.documents.peer import BMAEndpoint
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QMessageBox, QApplication
 from PyQt5.QtCore import QLocale, Qt
 from PyQt5.QtTest import QTest
-from ucoinpy.api.bma import API
-from ucoinpy.documents import Peer
 from sakia.tests.mocks.bma import init_new_community
 from sakia.core.registry.identities import IdentitiesRegistry
-from sakia.gui.certification import CertificationDialog
+from sakia.gui.certification import CertificationDialog, Ui_CertificationDialog
 from sakia.gui.password_asker import PasswordAskerDialog
 from sakia.core.app import Application
 from sakia.core import Account, Community, Wallet
@@ -57,7 +54,9 @@ class TestCertificationDialog(unittest.TestCase, QuamashTest):
         time.sleep(2)
         certification_dialog = CertificationDialog(self.application,
                                                    self.account,
-                                                   self.password_asker)
+                                                   self.password_asker,
+                                                   QDialog(),
+                                                    Ui_CertificationDialog())
 
         async def open_dialog(certification_dialog):
             srv, port, url = await self.mock_new_community.create_server()
@@ -74,7 +73,7 @@ class TestCertificationDialog(unittest.TestCase, QuamashTest):
             QTest.mouseClick(certification_dialog.ui.radio_pubkey, Qt.LeftButton)
             QTest.keyClicks(certification_dialog.ui.edit_pubkey, "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn")
             QTest.mouseClick(certification_dialog.ui.button_box.button(QDialogButtonBox.Ok), Qt.LeftButton)
-            await asyncio.sleep(1)
+            await asyncio.sleep(2)
             topWidgets = QApplication.topLevelWidgets()
             for w in topWidgets:
                 if type(w) is QMessageBox:
