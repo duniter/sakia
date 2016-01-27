@@ -163,7 +163,7 @@ class Node(QObject):
             if currency in data:
                 currency = data['currency']
 
-            peer = Peer("1", currency, pubkey, BlockId(0, Block.Empty_Hash), endpoints, "SOMEFAKESIGNATURE")
+            peer = Peer("1", currency, pubkey, str(BlockId(0, Block.Empty_Hash)), endpoints, "SOMEFAKESIGNATURE")
         else:
             if 'peer' in data:
                 peer = Peer.from_signed_raw(data['peer'])
