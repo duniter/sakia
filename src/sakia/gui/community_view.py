@@ -14,7 +14,6 @@ from PyQt5.QtWidgets import QWidget, QMessageBox, QDialog, QPushButton, QTabBar,
 from .graphs.wot_tab import WotTabWidget
 from .widgets import toast
 from .widgets.dialogs import QAsyncMessageBox
-from .certifications_tab import CertificationsTabWidget
 from .identities_tab import IdentitiesTabWidget
 from .informations_tab import InformationsTabWidget
 from .network_tab import NetworkTabWidget
@@ -59,7 +58,6 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.tab_identities = IdentitiesTabWidget(self.app)
         self.tab_history = TransactionsTabWidget(self.app)
         self.tab_informations = InformationsTabWidget(self.app)
-        self.tab_certifications = CertificationsTabWidget(self.app)
         self.tab_network = NetworkTabWidget(self.app)
         self.tab_explorer = ExplorerTabWidget(self.app)
 
