@@ -13,7 +13,7 @@ from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, \
     QDateTime, QLocale, QModelIndex
 
-from PyQt5.QtGui import QFont, QColor
+from PyQt5.QtGui import QFont, QColor, QIcon
 
 
 class TxFilterProxyModel(QSortFilterProxyModel):
@@ -169,7 +169,6 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                     return self.tr("Confirming... {0} %").format(QLocale().toString(float(confirmation), 'f', 0))
 
             return None
-
         return source_data
 
 
@@ -353,6 +352,15 @@ class HistoryTableModel(QAbstractTableModel):
 
         if role == Qt.ToolTipRole:
             return self.transfers_data[row][col]
+
+        if role == Qt.DecorationRole and index.column() == 0:
+            transfer = self.transfers_data[row]
+            if transfer[self.columns_types.index('payment')] != "":
+                return QIcon(":/icons/sent")
+            elif transfer[self.columns_types.index('uid')] == self.account.name:
+                return QIcon(":/icons/dividend")
+            else:
+                return QIcon(":/icons/received")
 
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled
