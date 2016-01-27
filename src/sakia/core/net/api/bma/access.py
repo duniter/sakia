@@ -297,10 +297,10 @@ class BmaAccess(QObject):
         .. note:: If one node accept the requests (returns 200),
         the broadcast should be considered accepted by the network.
         """
-        nodes = self._network.online_nodes
+        nodes = self._network.synced_nodes
         replies = []
         if len(nodes) > 0:
-            for node in nodes:
+            for node in random.sample(nodes, 6):
                 logging.debug("Trying to connect to : " + node.pubkey)
                 conn_handler = node.endpoint.conn_handler()
                 req = request(conn_handler, **req_args)

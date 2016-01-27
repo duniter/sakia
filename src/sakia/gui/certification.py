@@ -149,7 +149,6 @@ class CertificationDialog(QObject):
         :rtype: str
         """
         pubkey = None
-        self.ui.button_box.setEnabled(False)
         if self.ui.radio_contact.isChecked():
             for contact in self.account.contacts:
                 if contact['name'] == self.ui.combo_contact.currentText():
