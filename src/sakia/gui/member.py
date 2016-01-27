@@ -1,6 +1,6 @@
 import datetime
 
-from PyQt5.QtCore import QObject, QEvent
+from PyQt5.QtCore import QObject, QEvent, QLocale, QDateTime
 from PyQt5.QtWidgets import QDialog, QWidget
 
 from ..core.graph import WoTGraph
@@ -37,11 +37,13 @@ class MemberDialog(QObject):
         self.community = community
         self.account = account
         self.identity = identity
-        self.refresh()
 
     @classmethod
     def open_dialog(cls, app, account, community, identity):
-        return cls(app, account, community, identity, QDialog(), Ui_MemberView()).exec()
+        dialog = cls(app, account, community, identity, QDialog(), Ui_MemberView())
+        dialog.refresh()
+        dialog.refresh_path()
+        dialog.exec()
 
     @classmethod
     def as_widget(cls, parent_widget, app, account, community, identity):
@@ -52,6 +54,7 @@ class MemberDialog(QObject):
         if self.identity:
             self.ui.busy.show()
             self.ui.label_uid.setText(self.identity.uid)
+            self.ui.label_properties.setText("")
             try:
                 join_date = await self.identity.get_join_date(self.community)
             except MembershipNotFoundError:
@@ -62,55 +65,71 @@ class MemberDialog(QObject):
             else:
                 join_date = datetime.datetime.fromtimestamp(join_date).strftime("%d/%m/%Y %I:%M")
 
-            # calculate path to account member
-            graph = WoTGraph(self.app, self.community)
-            path = None
-            # if selected member is not the account member...
-            if self.identity.pubkey != self.account.pubkey:
-                # add path from selected member to account member
-                account_identity = await self.account.identity(self.community)
-                path = await graph.get_shortest_path_to_identity(self.identity,
-                                                                account_identity)
+
+            identity_selfcert = await self.identity.selfcert(self.community)
+            uid_publish_date = QLocale.toString(
+                    QLocale(),
+                    QDateTime.fromTime_t(identity_selfcert.timestamp),
+                    QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
+                )
 
             text = self.tr("""
                 <table cellpadding="5">
                 <tr><td align="right"><b>{:}</b></div></td><td>{:}</td></tr>
                 <tr><td align="right"><b>{:}</b></div></td><td>{:}</td></tr>
+                <tr><td align="right"><b>{:}</b></div></td><td>{:}</td></tr>
                 """).format(
                 self.tr('Public key'),
                 self.identity.pubkey,
+                self.tr('UID Published on'),
+                uid_publish_date,
                 self.tr('Join date'),
                 join_date
             )
-
-            if path:
-                distance = len(path) - 1
-                text += self.tr(
-                    """<tr><td align="right"><b>{:}</b></div></td><td>{:}</td></tr>"""
-                        .format(self.tr('Distance'), distance))
-                if distance > 1:
-                    index = 0
-                    for node in path:
-                        if index == 0:
-                            text += self.tr("""<tr><td align="right"><b>{:}</b></div></td><td>{:}</td></tr>""")\
-                                .format(
-                                self.tr('Path'), node['text'])
-                        else:
-                            text += self.tr("""<tr><td align="right"><b>{:}</b></div></td><td>{:}</td></tr>""")\
-                                .format('',
-                                       node[
-                                           'text'])
-                        if index == distance and node['id'] != self.account.pubkey:
-                            text += self.tr("""<tr><td align="right"><b>{:}</b></div></td><td>{:}</td></tr>""")\
-                                .format('',
-                                       self.account.name)
-                        index += 1
             # close html text
             text += "</table>"
 
             # set text in label
             self.ui.label_properties.setText(text)
             self.ui.busy.hide()
+
+    @asyncify
+    async def refresh_path(self):
+        text = ""
+        self.ui.label_path.setText("")
+        # calculate path to account member
+        graph = WoTGraph(self.app, self.community)
+        path = None
+        # if selected member is not the account member...
+        if self.identity.pubkey != self.account.pubkey:
+            # add path from selected member to account member
+            account_identity = await self.account.identity(self.community)
+            path = await graph.get_shortest_path_to_identity(self.identity,
+                                                            account_identity)
+
+        if path:
+            distance = len(path) - 1
+            text += self.tr(
+                """<tr><td align="right"><b>{:}</b></div></td><td>{:}</td></tr>"""
+                    .format(self.tr('Distance'), distance))
+            if distance > 1:
+                index = 0
+                for node in path:
+                    if index == 0:
+                        text += self.tr("""<tr><td align="right"><b>{:}</b></div></td><td>{:}</td></tr>""")\
+                            .format(
+                            self.tr('Path'), node['text'])
+                    else:
+                        text += self.tr("""<tr><td align="right"><b>{:}</b></div></td><td>{:}</td></tr>""")\
+                            .format('',
+                                   node[
+                                       'text'])
+                    if index == distance and node['id'] != self.account.pubkey:
+                        text += self.tr("""<tr><td align="right"><b>{:}</b></div></td><td>{:}</td></tr>""")\
+                            .format('',
+                                   self.account.name)
+                    index += 1
+        self.ui.label_path.setText(text)
 
     def eventFilter(self, source, event):
         if event.type() == QEvent.Resize:
