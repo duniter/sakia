@@ -70,7 +70,7 @@ BASIC_MERKLED_API ucoin.inso.ovh 80
         self.assertEqual(node.last_change, 1448199706.6561477)
         self.assertEqual(node.currency, "meta_brouzouf")
         self.assertEqual(node.peer.pubkey, "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk")
-        self.assertEqual(BlockId.from_str(node.peer.blockid).number, 0)
+        self.assertEqual(node.peer.blockid.number, 0)
 
     def test_from_json_to_json(self):
         json_data = {"version": "0.12.0", "state": 1, "fork_window": 0, "uid": "inso",
@@ -97,8 +97,8 @@ BASIC_MERKLED_API ucoin.inso.ovh 80
         self.assertEqual(node.last_change, 1448199706.6561477)
         self.assertEqual(node.currency, "meta_brouzouf")
         self.assertEqual(node.peer.pubkey, "8Fi1VSTbjkXguwThF4v2ZxC5whK7pwG2vcGTkPUPjPGU")
-        self.assertEqual(BlockId.from_str(node.peer.blockid).number, 48698)
-        self.assertEqual(BlockId.from_str(node.peer.blockid).sha_hash, "000005E0F228038E4DDD4F6CA4ACB01EC88FBAF8")
+        self.assertEqual(node.peer.blockid.number, 48698)
+        self.assertEqual(node.peer.blockid.sha_hash, "000005E0F228038E4DDD4F6CA4ACB01EC88FBAF8")
 
         result = node.jsonify()
         for key in result:
