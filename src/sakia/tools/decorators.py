@@ -17,7 +17,8 @@ def once_at_a_time(fn):
             try:
                 args[0].__tasks.pop(fn.__name__)
             except KeyError:
-                logging.debug("Task already removed")
+                pass
+                #logging.debug("Task already removed")
 
         if getattr(args[0], "__tasks", None) is None:
             setattr(args[0], "__tasks", {})

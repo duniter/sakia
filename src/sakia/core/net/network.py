@@ -136,6 +136,8 @@ class Network(QObject):
         Stop network nodes crawling.
         """
         self._must_crawl = False
+        for node in self.nodes:
+            node.close_ws()
 
     def continue_crawling(self):
         return self._must_crawl
@@ -325,11 +327,15 @@ class Network(QObject):
         To stop this crawling, call "stop_crawling" method.
         """
         self._must_crawl = True
+        first_loop = True
         while self.continue_crawling():
             for node in self.nodes:
                 if self.continue_crawling():
                     node.refresh()
-                    await asyncio.sleep(15)
+                    if not first_loop:
+                        await asyncio.sleep(15)
+            first_loop = False
+
         logging.debug("End of network discovery")
 
     @pyqtSlot(Peer, str)
