@@ -491,8 +491,7 @@ class Account(QObject):
         selfcert = await identity.selfcert(community)
         if selfcert:
             certification = Certification(PROTOCOL_VERSION, community.currency,
-                                          self.pubkey, pubkey,
-                                          blockid.number, blockid.sha_hash, None)
+                                          self.pubkey, pubkey, blockid, None)
 
             key = SigningKey(self.salt, password)
             certification.sign(selfcert, [key])
