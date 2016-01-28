@@ -11,6 +11,7 @@ from ...tools.decorators import asyncify
 from ucoinpy.api import bma as bma
 from ucoinpy.api.bma import ConnectionHandler
 
+import json
 from aiohttp.errors import ClientError, DisconnectedError, TimeoutError, \
     WSClientDisconnectedError, WSServerHandshakeError, ClientResponseError
 from aiohttp.errors import ClientError, DisconnectedError
@@ -137,7 +138,6 @@ class Node(QObject):
         block = None
         last_change = time.time()
         state = Node.OFFLINE
-        logging.debug(data)
         if 'uid' in data:
             uid = data['uid']
 
@@ -169,7 +169,7 @@ class Node(QObject):
             if currency in data:
                 currency = data['currency']
 
-            peer = Peer("1", currency, pubkey, str(BlockId(0, Block.Empty_Hash)), endpoints, "SOMEFAKESIGNATURE")
+            peer = Peer("1", currency, pubkey, BlockId(0, Block.Empty_Hash), endpoints, "SOMEFAKESIGNATURE")
         else:
             if 'peer' in data:
                 peer = Peer.from_signed_raw(data['peer'])
@@ -326,15 +326,14 @@ class Node(QObject):
         if not self._ws_connection['block']:
             try:
                 conn_handler = self.endpoint.conn_handler()
-                block_websocket = bma.websocket.Block(conn_handler)
+                block_websocket = bma.ws.Block(conn_handler)
                 self._ws_connection['block'] = block_websocket.connect()
-                await self.request_current_block()
-                async with self._ws_connection['block']:
+                async with self._ws_connection['block'] as ws:
                     logging.debug("Connected successfully to block ws : {0}".format(self.pubkey[:5]))
-                    async for msg in self._ws_connection['block']:
+                    async for msg in ws:
                         if msg.tp == aiohttp.MsgType.text:
                             logging.debug("Received a block : {0}".format(self.pubkey[:5]))
-                            block_data = block_websocket.parse(msg.data)
+                            block_data = block_websocket.parse_text(msg.data)
                             await self.refresh_block(block_data)
                         elif msg.tp == aiohttp.MsgType.closed:
                             break
@@ -428,7 +427,7 @@ class Node(QObject):
 
             if peering_data['raw'] != self.peer.raw():
                 peer = Peer.from_signed_raw("{0}{1}\n".format(peering_data['raw'], peering_data['signature']))
-                if BlockId.from_str(peer.blockid).number > BlockId.from_str(self.peer.blockid).number:
+                if peer.blockid.number > peer.blockid.number:
                     self.peer = Peer.from_signed_raw("{0}{1}\n".format(peering_data['raw'], peering_data['signature']))
 
             if node_pubkey != self.pubkey:
@@ -522,15 +521,14 @@ class Node(QObject):
         if not self._ws_connection['peer']:
             try:
                 conn_handler = self.endpoint.conn_handler()
-                peer_websocket = bma.websocket.Peer(conn_handler)
+                peer_websocket = bma.ws.Peer(conn_handler)
                 self._ws_connection['peer'] = peer_websocket.connect()
-                async with self._ws_connection['peer']:
+                async with self._ws_connection['peer'] as ws:
                     logging.debug("Connected successfully to peer ws : {0}".format(self.pubkey[:5]))
-                    async for msg in self._ws_connection['peer']:
+                    async for msg in ws:
                         if msg.tp == aiohttp.MsgType.text:
                             logging.debug("Received a peer : {0}".format(self.pubkey[:5]))
-                            peer_data = peer_websocket.parse(msg.data)
-                            await self.refresh_peer_data(peer_data)
+                            peer_data = peer_websocket.parse_text(msg.data)
                         elif msg.tp == aiohttp.MsgType.closed:
                             break
                         elif msg.tp == aiohttp.MsgType.error:

@@ -351,7 +351,7 @@ class Network(QObject):
                 logging.debug(str(e))
         else:
             node = [n for n in self.nodes if n.pubkey == pubkey][0]
-            if BlockId.from_str(node.peer.blockid).number < BlockId.from_str(peer.blockid).number:
+            if node.peer.blockid.number < peer.blockid.number:
                 node.peer = peer
 
     @pyqtSlot()

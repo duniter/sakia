@@ -278,7 +278,6 @@ class Application(QObject):
             if os.path.exists(network_path):
                 with open(network_path, 'r') as json_data:
                     data = json.load(json_data)
-                    logging.debug("Merging network : {0}".format(data))
                     community.network.merge_with_json(data['network'], StrictVersion(data['version']))
 
             if os.path.exists(bma_path):
