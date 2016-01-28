@@ -261,7 +261,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
             else:
                 icon = ':/icons/disconnected'
 
-            status_infotext = " - ".join([self.app.notifications[info][0] for info in self.status_info])
+            status_infotext = " - ".join([self.account.notifications[info][0] for info in self.status_info])
             label_text = text
             if status_infotext != "":
                 label_text += " - {0}".format(status_infotext)
