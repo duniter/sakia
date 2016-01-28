@@ -91,6 +91,7 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
             localized_mass = await self.account.current_ref(block_ud['monetaryMass'],
                                                     self.community, self.app)\
                 .diff_localized(True, self.app.preferences['international_system_of_units'])
+
             if block_ud_minus_1:
                 mass_minus_1 = (float(0) if block_ud['membersCount'] == 0 else
                         block_ud_minus_1['monetaryMass'] / block_ud['membersCount'])
@@ -100,7 +101,11 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 localized_mass_minus_1 = await self.account.current_ref(block_ud_minus_1['monetaryMass'],
                                                                   self.community, self.app)\
                     .diff_localized(True, self.app.preferences['international_system_of_units'])
-
+                # avoid divide by zero !
+                if block_ud['membersCount'] == 0 or block_ud_minus_1['monetaryMass'] == 0:
+                    actual_growth = float(0)
+                else:
+                    actual_growth = block_ud['dividend'] / (block_ud_minus_1['monetaryMass'] / block_ud['membersCount'])
             else:
                 localized_mass_minus_1_per_member = QLocale().toString(
                     float(0), 'f', self.app.preferences['digits_after_comma']
@@ -108,6 +113,7 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 localized_mass_minus_1 = QLocale().toString(
                     float(0), 'f', self.app.preferences['digits_after_comma']
                 )
+                actual_growth = float(0)
 
             # set infos in label
             self.label_general.setText(
@@ -134,9 +140,7 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                     localized_mass_minus_1_per_member,
                     self.tr('Monetary Mass per member M(t-1)/N(t) in'),
                     self.account.current_ref(0, self.community, self.app, None).diff_units,
-                    float(0) if block_ud['membersCount'] == 0 or block_ud_minus_1['monetaryMass'] == 0 else
-                    block_ud['dividend'] / (block_ud_minus_1['monetaryMass'] / block_ud['membersCount']),
-
+                    actual_growth,
                     params['dt'] / 86400,
                     self.tr('Actual growth c = UD(t)/[M(t-1)/N(t)]'),
                     QLocale.toString(
