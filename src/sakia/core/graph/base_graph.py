@@ -56,7 +56,7 @@ class BaseGraph(QObject):
             node_status += NodeStatus.OUT
         return node_status
 
-    async def confirmation_text(self, block_number):
+    def confirmation_text(self, block_number):
         """
         Build confirmation text of an arc
         :param int block_number: the block number of the certification
@@ -107,7 +107,7 @@ class BaseGraph(QObject):
                             QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
                         ),
                         'cert_time': certifier['cert_time'],
-                        'confirmation_text': (await self.confirmation_text(certifier['cert_time']))
+                        'confirmation_text': self.confirmation_text(certifier['block_number'])
                     }
 
                     self.nx_graph.add_edge(certifier['identity'].pubkey, identity.pubkey, attr_dict=arc, weight=len(certifier_list))
@@ -145,7 +145,7 @@ class BaseGraph(QObject):
                             QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
                         ),
                         'cert_time': certified['cert_time'],
-                        'confirmation_text': (await self.confirmation_text(certified['cert_time']))
+                        'confirmation_text': self.confirmation_text(certified['block_number'])
                     }
 
                     self.nx_graph.add_edge(identity.pubkey, certified['identity'].pubkey, attr_dict=arc,

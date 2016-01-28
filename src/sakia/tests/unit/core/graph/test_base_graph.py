@@ -76,10 +76,7 @@ class TestBaseGraph(unittest.TestCase, QuamashTest):
 
         base_graph = BaseGraph(app, community)
 
-        async def exec_test():
-            self.assertEquals((await base_graph.confirmation_text(200)), "2/6")
-
-        self.lp.run_until_complete(exec_test())
+        self.assertEquals(base_graph.confirmation_text(200), "2/6")
 
     @patch('sakia.core.Application')
     @patch('sakia.core.Community')
@@ -89,10 +86,7 @@ class TestBaseGraph(unittest.TestCase, QuamashTest):
 
         base_graph = BaseGraph(app, community)
 
-        async def exec_test():
-            self.assertEquals((await base_graph.confirmation_text(200)), "33 %")
-
-        self.lp.run_until_complete(exec_test())
+        self.assertEquals(base_graph.confirmation_text(200), "33 %")
 
     @patch('sakia.core.Community')
     @patch('sakia.core.Application')

@@ -274,9 +274,12 @@ class Network(QObject):
         :return: the number of confirmations of a data
         :rtype: int
         """
-        if block_number > self.current_blockid.number:
-            raise ValueError("Could not compute confirmations : data block number is after current block")
-        return self.current_blockid.number - block_number + 1
+        if block_number:
+            if block_number > self.current_blockid.number:
+                raise ValueError("Could not compute confirmations : data block number is after current block")
+            return self.current_blockid.number - block_number + 1
+        else:
+            return 0
 
     def add_node(self, node):
         """
