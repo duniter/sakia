@@ -103,7 +103,7 @@ class NetworkTabWidget(QWidget, Ui_NetworkTabWidget):
     def open_node_in_browser(self):
         node = self.sender().data()
         peering = bma.network.Peering(node.endpoint.conn_handler())
-        url = QUrl(peering.reverse_url("/peering"))
+        url = QUrl(peering.reverse_url("http", "/peering"))
         QDesktopServices.openUrl(url)
 
     def manual_nodes_refresh(self):
