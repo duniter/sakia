@@ -93,8 +93,8 @@ class TransferMoneyDialog(QObject):
     @classmethod
     async def send_money_to_identity(cls, app, account, password_asker, community, identity):
         dialog = cls(app, account, password_asker, community, None)
-        dialog.edit_pubkey.setText(identity.pubkey)
-        dialog.radio_pubkey.setChecked(True)
+        dialog.ui.edit_pubkey.setText(identity.pubkey)
+        dialog.ui.radio_pubkey.setChecked(True)
         return await dialog.async_exec()
 
     @classmethod
@@ -102,9 +102,9 @@ class TransferMoneyDialog(QObject):
         dialog = cls(app, account, password_asker, community, transfer)
         dividend = await community.dividend()
         relative = transfer.metadata['amount'] / dividend
-        dialog.spinbox_amount.setMaximum(transfer.metadata['amount'])
-        dialog.spinbox_relative.setMaximum(relative)
-        dialog.spinbox_amount.setValue(transfer.metadata['amount'])
+        dialog.ui.spinbox_amount.setMaximum(transfer.metadata['amount'])
+        dialog.ui.spinbox_relative.setMaximum(relative)
+        dialog.ui.spinbox_amount.setValue(transfer.metadata['amount'])
 
         return await dialog.async_exec()
 
