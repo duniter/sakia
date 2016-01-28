@@ -1,6 +1,6 @@
 import logging
 
-from PyQt5.QtCore import QEvent, pyqtSignal, QT_TRANSLATE_NOOP
+from PyQt5.QtCore import QEvent, pyqtSignal, QT_TRANSLATE_NOOP, Qt
 from PyQt5.QtWidgets import QComboBox, QWidget
 
 from ucoinpy.api import bma
@@ -37,6 +37,10 @@ class SearchUserWidget(QWidget, Ui_SearchUserWidget):
         self.community = None
         self.account = None
         self.app = None
+        self._current_identity = None
+
+    def current_identity(self):
+        return self._current_identity
 
     def init(self, app):
         """
@@ -77,6 +81,15 @@ class SearchUserWidget(QWidget, Ui_SearchUserWidget):
                     self.combobox_search.addItem(uid)
                 self.blockSignals(False)
                 self.combobox_search.showPopup()
+        except ValueError as e:
+            if '404' in str(e):
+                self.nodes = list()
+                self.blockSignals(True)
+                self.combobox_search.clear()
+                self.blockSignals(False)
+                self.combobox_search.showPopup()
+            else:
+                pass
         except NoPeerAvailable:
             pass
 
@@ -85,17 +98,19 @@ class SearchUserWidget(QWidget, Ui_SearchUserWidget):
         Select node in graph when item is selected in combobox
         """
         if index < 0 or index >= len(self.nodes):
+            self._current_identity = None
             return False
         node = self.nodes[index]
         metadata = {'id': node['pubkey'], 'text': node['uid']}
-        self.identity_selected.emit(
-            self.app.identities_registry.from_handled_data(
+        self._current_identity = self.app.identities_registry.from_handled_data(
                 metadata['text'],
                 metadata['id'],
                 None,
                 BlockchainState.VALIDATED,
                 self.community
             )
+        self.identity_selected.emit(
+            self._current_identity
         )
 
     def retranslateUi(self, widget):
@@ -104,3 +119,9 @@ class SearchUserWidget(QWidget, Ui_SearchUserWidget):
         """
         self.combobox_search.lineEdit().setPlaceholderText(self.tr(SearchUserWidget._search_placeholder))
         super().retranslateUi(self)
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Return:
+            return
+
+        super().keyPressEvent(event)

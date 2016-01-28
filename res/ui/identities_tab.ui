@@ -63,8 +63,19 @@
      </attribute>
     </widget>
    </item>
+   <item>
+    <widget class="Busy" name="busy" native="true"/>
+   </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>Busy</class>
+   <extends>QWidget</extends>
+   <header>sakia.gui.widgets.busy</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

@@ -31,8 +31,8 @@ class TestTransferDialog(unittest.TestCase, QuamashTest):
         self.application = Application(self.qapplication, self.lp, self.identities_registry)
         self.application.preferences['notifications'] = False
 
-        self.endpoint = BMAEndpoint("", "127.0.0.1", "", 50002)
-        self.node = Node("test_currency", [self.endpoint],
+        self.mock_nice_blockchain = nice_blockchain.get_mock(self.lp)
+        self.node = Node(self.mock_nice_blockchain.peer(),
                          "", "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk",
                          None, Node.ONLINE,
                          time.time(), {}, "ucoin", "0.14.0", 0)
@@ -56,8 +56,6 @@ class TestTransferDialog(unittest.TestCase, QuamashTest):
         self.tearDownQuamash()
 
     def test_transfer_nice_community(self):
-        mock = nice_blockchain.get_mock(self.lp)
-        time.sleep(2)
         transfer_dialog = TransferMoneyDialog(self.application,
                                               self.account,
                                               self.password_asker,
@@ -66,9 +64,8 @@ class TestTransferDialog(unittest.TestCase, QuamashTest):
         self.account.wallets[0].init_cache(self.application, self.community)
 
         async def open_dialog(transfer_dialog):
-            srv, port, url = await mock.create_server()
+            srv, port, url = await self.mock_nice_blockchain.create_server()
             self.addCleanup(srv.close)
-            self.endpoint.port = port
 
             result = await transfer_dialog.async_exec()
             self.assertEqual(result, QDialog.Accepted)
@@ -80,10 +77,10 @@ class TestTransferDialog(unittest.TestCase, QuamashTest):
         async def exec_test():
             await asyncio.sleep(1)
             self.account.wallets[0].caches[self.community.currency].available_sources = await self.wallet.sources(self.community)
-            QTest.mouseClick(transfer_dialog.radio_pubkey, Qt.LeftButton)
-            QTest.keyClicks(transfer_dialog.edit_pubkey, "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn")
-            transfer_dialog.spinbox_amount.setValue(10)
-            QTest.mouseClick(transfer_dialog.button_box.button(QDialogButtonBox.Ok), Qt.LeftButton)
+            QTest.mouseClick(transfer_dialog.ui.radio_pubkey, Qt.LeftButton)
+            QTest.keyClicks(transfer_dialog.ui.edit_pubkey, "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn")
+            transfer_dialog.ui.spinbox_amount.setValue(10)
+            QTest.mouseClick(transfer_dialog.ui.button_box.button(QDialogButtonBox.Ok), Qt.LeftButton)
             await asyncio.sleep(1)
             topWidgets = QApplication.topLevelWidgets()
             for w in topWidgets:

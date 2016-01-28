@@ -10,17 +10,15 @@ import tarfile
 import shutil
 import json
 import datetime
-import asyncio
 import aiohttp
-import time
+from distutils.version import StrictVersion
 
-from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, \
-QUrl, QTranslator, QCoreApplication, QLocale
+from PyQt5.QtCore import QObject, pyqtSignal, QTranslator, QCoreApplication, QLocale
 from ucoinpy.api.bma import API
 from aiohttp.connector import ProxyConnector
 from . import config
 from .account import Account
-from .registry.identities import IdentitiesRegistry
+from .registry import IdentitiesRegistry, Identity
 from .. import __version__
 from ..tools.exceptions import NameAlreadyExists, BadAccountFile
 from ..tools.decorators import asyncify
@@ -36,6 +34,7 @@ class Application(QObject):
     """
 
     version_requested = pyqtSignal()
+    view_identity_in_wot = pyqtSignal(Identity)
 
     def __init__(self, qapp, loop, identities_registry):
         """
@@ -69,18 +68,6 @@ class Application(QObject):
                             'proxy_port': 8080,
                             'international_system_of_units': True,
                             'auto_refresh': False
-                            }
-
-        self.notifications = {'membership_expire_soon':
-                                  [
-                                      self.tr("Warning : Your membership is expiring soon."),
-                                      0
-                                   ],
-                            'warning_certifications':
-                                    [
-                                        self.tr("Warning : Your could miss certifications soon."),
-                                        0
-                                    ]
                             }
 
     @classmethod
@@ -204,6 +191,7 @@ class Application(QObject):
         and stop the coroutines
         """
         self.save_cache(self.current_account)
+        self.save_notifications(self.current_account)
         self.current_account.stop_coroutines()
 
     def load(self):
@@ -261,6 +249,17 @@ class Application(QObject):
                                                               account.rollback_transaction(self, co))
                 community.network.root_nodes_changed.connect(lambda acc=account: self.save(acc))
 
+        account_notifications_path = os.path.join(config.parameters['home'],
+                                    account_name, '__notifications__')
+
+        try:
+            with open(account_notifications_path, 'r') as json_data:
+                data = json.load(json_data)
+                account.notifications = data
+        except FileNotFoundError:
+            logging.debug("Could not find notifications file")
+            pass
+
     def load_cache(self, account):
         """
         Load an account cache
@@ -280,7 +279,7 @@ class Application(QObject):
                 with open(network_path, 'r') as json_data:
                     data = json.load(json_data)
                     logging.debug("Merging network : {0}".format(data))
-                    community.network.merge_with_json(data['network'])
+                    community.network.merge_with_json(data['network'], StrictVersion(data['version']))
 
             if os.path.exists(bma_path):
                 with open(bma_path, 'r') as json_data:
@@ -349,6 +348,18 @@ class Application(QObject):
         else:
             account_path = os.path.join(config.parameters['home'], account.name)
             shutil.rmtree(account_path)
+
+    def save_notifications(self, account):
+        """
+        Save an account notifications
+
+        :param account: The account object to save
+        """
+        account_path = os.path.join(config.parameters['home'],
+                                account.name)
+        notifications_path = os.path.join(account_path, '__notifications__')
+        with open(notifications_path, 'w') as outfile:
+            json.dump(account.notifications, outfile, indent=4, sort_keys=True)
 
     def save_registries(self):
         """
@@ -524,3 +535,5 @@ class Application(QObject):
                 self.version_requested.emit()
         except (aiohttp.errors.ClientError, aiohttp.errors.TimeoutError) as e:
             logging.debug("Could not connect to github : {0}".format(str(e)))
+        except Exception as e:
+            pass

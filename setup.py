@@ -1,5 +1,4 @@
 import sys, os, subprocess, multiprocessing, site
-from cx_Freeze import setup, Executable
 from PyQt5 import QtCore
 from os import listdir
 from os.path import isfile, join
@@ -8,11 +7,19 @@ import unittest
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 
 if "test" in sys.argv:
+    print(sys.path)
+    if "XDG_CONFIG_HOME" in os.environ:
+        os.environ["XDG_CONFIG_HOME"] = os.path.abspath(os.path.join(os.path.dirname(__file__), 'tmp'))
+    elif "HOME" in os.environ:
+        os.environ["HOME"] = os.path.abspath(os.path.join(os.path.dirname(__file__), 'tmp'))
+    elif "APPDATA" in os.environ:
+        os.environ["APPDATA"] = os.path.abspath(os.path.join(os.path.dirname(__file__), 'tmp'))
     runner = unittest.TextTestRunner().run(unittest.defaultTestLoader.discover(start_dir='sakia.tests',
                                                                                pattern='test_*'))
 
     sys.exit(not runner.wasSuccessful())
 else:
+    from cx_Freeze import setup, Executable
     print(sys.path)
     print("Environnement:")
     print(os.environ)
@@ -117,7 +124,7 @@ else:
 
     setup(
         name = "sakia",
-        version = "0.11.4",
+        version = "0.12.0",
         description = "UCoin client",
         author = "Inso",
         options = {"build_exe": options},

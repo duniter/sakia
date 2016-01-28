@@ -57,27 +57,18 @@ class Community(QObject):
         return community
 
     @classmethod
-    def load(cls, json_data):
+    def load(cls, json_data, file_version):
         """
         Load a community from json
 
         :param dict json_data: The community as a dict in json format
+        :param distutils.version.StrictVersion file_version: the file sakia version
         """
         currency = json_data['currency']
-        network = Network.from_json(currency, json_data['peers'])
+        network = Network.from_json(currency, json_data['peers'], file_version)
         bma_access = BmaAccess.create(network)
         community = cls(currency, network, bma_access)
         return community
-
-    def load_cache(self, bma_access_cache, network_cache):
-        """
-        Load the community cache.
-
-        :param dict bma_access_cache: The BmaAccess cache in json
-        :param dict network_cache: The network cache in json
-        """
-        self._bma_access.load_from_json(bma_access_cache)
-        self._network.merge_with_json(network_cache)
 
     @property
     def name(self):
@@ -116,13 +107,16 @@ class Community(QObject):
         u = ord('\u24B6') + ord(letter) - ord('A')
         return chr(u)
 
-    async def dividend(self):
+    async def dividend(self, block_number=None):
         """
-        Get the last generated community universal dividend.
+        Get the last generated community universal dividend before block_number.
+        If block_number is None, returns the last block_number.
+
+        :param int block_number: The block at which we get the latest dividend
 
         :return: The last UD or 1 if no UD was generated.
         """
-        block = await self.get_ud_block()
+        block = await self.get_ud_block(block_number=block_number)
         if block:
             return block['dividend']
         else:
@@ -152,18 +146,24 @@ class Community(QObject):
         else:
             return 1
 
-    async def get_ud_block(self, x=0):
+    async def get_ud_block(self, x=0, block_number=None):
         """
         Get a block with universal dividend
+        If x and block_number are passed to the result,
+        it returns the 'x' older block with UD in it BEFORE block_number
 
         :param int x: Get the 'x' older block with UD in it
+        :param int block_number: Get the latest dividend before this block number
         :return: The last block with universal dividend.
+        :rtype: dict
         """
         try:
             udblocks = await self.bma_access.future_request(bma.blockchain.UD)
             blocks = udblocks['result']['blocks']
+            if block_number:
+                blocks = [b for b in blocks if b <= block_number]
             if len(blocks) > 0:
-                index = len(blocks)-(1+x)
+                index = len(blocks) - (1+x)
                 if index < 0:
                     index = 0
                 block_number = blocks[index]

@@ -72,9 +72,9 @@ class TestExplorerNode(unittest.TestCase, QuamashTest):
         async def exec_test():
             node = ExplorerNode(("A", metadata), QPointF(0, 0), nx_pos, 0, 1)
             bounding_rect = node.boundingRect()
-            self.assertAlmostEqual(bounding_rect.x(), -0.5, delta=5)
-            self.assertAlmostEqual(bounding_rect.y(), -0.5, delta=5)
-            self.assertAlmostEqual(bounding_rect.width(), 19.59375, delta=5)
-            self.assertAlmostEqual(bounding_rect.height(), 37.0, delta=5)
+            self.assertAlmostEqual(bounding_rect.x(), -0.5, delta=15)
+            self.assertAlmostEqual(bounding_rect.y(), -0.5, delta=15)
+            self.assertAlmostEqual(bounding_rect.width(), 19.59375, delta=15)
+            self.assertAlmostEqual(bounding_rect.height(), 37.0, delta=15)
 
         self.lp.run_until_complete(exec_test())

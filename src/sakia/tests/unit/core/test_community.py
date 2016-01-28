@@ -1,6 +1,6 @@
 import sys
 import unittest
-import logging
+from distutils.version import StrictVersion
 from PyQt5.QtCore import QLocale
 from sakia.core.net.api.bma.access import BmaAccess
 from sakia.core.net.network import Network
@@ -22,6 +22,6 @@ class TestCommunity(unittest.TestCase, QuamashTest):
         community = Community("test_currency", network, bma_access)
 
         json_data = community.jsonify()
-        community_from_json = Community.load(json_data)
+        community_from_json = Community.load(json_data, StrictVersion('0.12.0'))
         self.assertEqual(community.name, community_from_json.name)
         self.assertEqual(len(community.network._nodes), len(community_from_json.network._nodes))

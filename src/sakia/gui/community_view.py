@@ -7,14 +7,13 @@ Created on 2 févr. 2014
 import logging
 import time
 
-from PyQt5.QtCore import pyqtSlot, QDateTime, QLocale, QEvent, QT_TRANSLATE_NOOP
-from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import pyqtSlot, QDateTime, QLocale, QEvent, QT_TRANSLATE_NOOP, Qt
+from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import QWidget, QMessageBox, QDialog, QPushButton, QTabBar, QAction
 
 from .graphs.wot_tab import WotTabWidget
 from .widgets import toast
 from .widgets.dialogs import QAsyncMessageBox
-from .certifications_tab import CertificationsTabWidget
 from .identities_tab import IdentitiesTabWidget
 from .informations_tab import InformationsTabWidget
 from .network_tab import NetworkTabWidget
@@ -41,8 +40,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
     _action_publish_uid_text = QT_TRANSLATE_NOOP("CommunityWidget", "Publish UID")
     _action_revoke_uid_text = QT_TRANSLATE_NOOP("CommunityWidget", "Revoke UID")
 
-
-    def __init__(self, app, status_label):
+    def __init__(self, app, status_label, label_icon):
         """
         Constructor
         """
@@ -52,6 +50,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.community = None
         self.password_asker = None
         self.status_label = status_label
+        self.label_icon = label_icon
 
         self.status_info = []
 
@@ -59,7 +58,6 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.tab_identities = IdentitiesTabWidget(self.app)
         self.tab_history = TransactionsTabWidget(self.app)
         self.tab_informations = InformationsTabWidget(self.app)
-        self.tab_certifications = CertificationsTabWidget(self.app)
         self.tab_network = NetworkTabWidget(self.app)
         self.tab_explorer = ExplorerTabWidget(self.app)
 
@@ -71,21 +69,21 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         super().setupUi(self)
 
         self.tab_identities.view_in_wot.connect(self.tab_wot.draw_graph)
-        self.tab_identities.view_in_wot.connect(lambda: self.tabs.setCurrentWidget(self.tab_wot))
+        self.tab_identities.view_in_wot.connect(lambda: self.tabs.setCurrentWidget(self.tab_wot.widget))
         self.tab_history.view_in_wot.connect(self.tab_wot.draw_graph)
-        self.tab_history.view_in_wot.connect(lambda: self.tabs.setCurrentWidget(self.tab_wot))
-        self.tab_identities.money_sent.connect(lambda: self.tab_history.table_history.model().sourceModel().refresh_transfers())
-        self.tab_wot.money_sent.connect(lambda: self.tab_history.table_history.model().sourceModel().refresh_transfers())
+        self.tab_history.view_in_wot.connect(lambda: self.tabs.setCurrentWidget(self.tab_wot.widget))
+        self.tab_identities.money_sent.connect(lambda: self.tab_history.widget.table_history.model().sourceModel().refresh_transfers())
+        self.tab_wot.money_sent.connect(lambda: self.tab_history.widget.table_history.model().sourceModel().refresh_transfers())
 
-        self.tabs.addTab(self.tab_history,
+        self.tabs.addTab(self.tab_history.widget,
                                  QIcon(':/icons/tx_icon'),
                                 self.tr(CommunityWidget._tab_history_label))
 
-        self.tabs.addTab(self.tab_wot,
+        self.tabs.addTab(self.tab_wot.widget,
                          QIcon(':/icons/wot_icon'),
                          self.tr(CommunityWidget._tab_wot_label))
 
-        self.tabs.addTab(self.tab_identities,
+        self.tabs.addTab(self.tab_identities.widget,
                          QIcon(':/icons/members_icon'),
                          self.tr(CommunityWidget._tab_identities_label))
 
@@ -99,7 +97,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.toolbutton_menu.addAction(action_showinfo)
 
         action_showexplorer = QAction(self.tr("Show explorer"), self.toolbutton_menu)
-        action_showexplorer.triggered.connect(lambda : self.show_closable_tab(self.tab_explorer,
+        action_showexplorer.triggered.connect(lambda : self.show_closable_tab(self.tab_explorer.widget,
                                     QIcon(":/icons/explorer_icon"), self.tr("Explorer")))
         self.toolbutton_menu.addAction(action_showexplorer)
 
@@ -190,10 +188,10 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                         self.status_info.append('membership_expire_soon')
 
                     if self.app.preferences['notifications'] and\
-                            self.app.notifications['membership_expire_soon'][1]+24*3600 < time.time():
+                            self.account.notifications['membership_expire_soon'][1]+24*3600 < time.time():
                         toast.display(self.tr("Membership expiration"),
                                   self.tr("<b>Warning : Membership expiration in {0} days</b>").format(days))
-                        self.app.notifications['membership_expire_soon'][1] = time.time()
+                        self.account.notifications['membership_expire_soon'][1] = time.time()
 
             certifiers_of = await person.unique_valid_certifiers_of(self.app.identities_registry,
                                                                          self.community)
@@ -201,12 +199,12 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                 if 'warning_certifications' not in self.status_info:
                     self.status_info.append('warning_certifications')
                 if self.app.preferences['notifications'] and\
-                        self.app.notifications['warning_certifications'][1]+24*3600 < time.time():
+                        self.account.notifications['warning_certifications'][1]+24*3600 < time.time():
                     toast.display(self.tr("Certifications number"),
                               self.tr("<b>Warning : You are certified by only {0} persons, need {1}</b>")
                               .format(len(certifiers_of),
                                      parameters['sigQty']))
-                    self.app.notifications['warning_certifications'][1] = time.time()
+                    self.account.notifications['warning_certifications'][1] = time.time()
 
         except MembershipNotFoundError as e:
             pass
@@ -257,14 +255,14 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                 self.button_send_money.setEnabled(True)
 
             if self.community.network.quality > 0.66:
-                icon = '<img src=":/icons/connected" width="12" height="12"/>'
+                icon = ':/icons/connected'
             elif self.community.network.quality > 0.33:
-                icon = '<img src=":/icons/weak_connect" width="12" height="12"/>'
+                icon = ':/icons/weak_connect'
             else:
-                icon = '<img src=":/icons/disconnected" width="12" height="12"/>'
+                icon = ':/icons/disconnected'
 
             status_infotext = " - ".join([self.app.notifications[info][0] for info in self.status_info])
-            label_text = "{0}{1}".format(icon, text)
+            label_text = text
             if status_infotext != "":
                 label_text += " - {0}".format(status_infotext)
 
@@ -279,6 +277,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                         .format("#")
 
             self.status_label.setText(label_text)
+            self.label_icon.setPixmap(QPixmap(icon).scaled(24, 24, Qt.KeepAspectRatio, Qt.SmoothTransformation))
 
     @once_at_a_time
     @asyncify
@@ -410,11 +409,11 @@ The process to join back the community later will have to be done again.""")
         :param widget:
         :return:
         """
-        self.tabs.setTabText(self.tabs.indexOf(self.tab_wot), self.tr(CommunityWidget._tab_wot_label))
+        self.tabs.setTabText(self.tabs.indexOf(self.tab_wot.widget), self.tr(CommunityWidget._tab_wot_label))
         self.tabs.setTabText(self.tabs.indexOf(self.tab_network), self.tr(CommunityWidget._tab_network_label))
         self.tabs.setTabText(self.tabs.indexOf(self.tab_informations), self.tr(CommunityWidget._tab_informations_label))
-        self.tabs.setTabText(self.tabs.indexOf(self.tab_history), self.tr(CommunityWidget._tab_history_label))
-        self.tabs.setTabText(self.tabs.indexOf(self.tab_identities), self.tr(CommunityWidget._tab_identities_label))
+        self.tabs.setTabText(self.tabs.indexOf(self.tab_history.widget), self.tr(CommunityWidget._tab_history_label))
+        self.tabs.setTabText(self.tabs.indexOf(self.tab_identities.widget), self.tr(CommunityWidget._tab_identities_label))
         self.action_publish_uid.setText(self.tr(CommunityWidget._action_publish_uid_text))
         self.action_revoke_uid.setText(self.tr(CommunityWidget._action_revoke_uid_text))
         self.action_showinfo.setText(self.tr(CommunityWidget._action_showinfo_text))

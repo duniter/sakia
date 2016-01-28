@@ -3,7 +3,7 @@
 call activate test-environment
 
 echo "%PATH%"
-echo "%QT_QPA_PLATFORM_PLUGIN_PATH%"
+echo "%QT_PLUGIN_PATH%"
 python -V
 call pyuic5 --version
 
@@ -19,5 +19,5 @@ if %errorlevel% neq 0 exit /b 1s
 python gen_translations.py
 if %errorlevel% neq 0 exit /b 1
 
-python setup.py build
-if %errorlevel% neq 0 exit /b 1
+@REM python setup.py build
+@REM if %errorlevel% neq 0 exit /b 1

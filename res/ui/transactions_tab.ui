@@ -37,6 +37,9 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="Busy" name="busy_balance" native="true"/>
+      </item>
      </layout>
     </widget>
    </item>
@@ -105,61 +108,16 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>Busy</class>
+   <extends>QWidget</extends>
+   <header>sakia.gui.widgets</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../icons/icons.qrc"/>
  </resources>
- <connections>
-  <connection>
-   <sender>table_history</sender>
-   <signal>customContextMenuRequested(QPoint)</signal>
-   <receiver>transactionsTabWidget</receiver>
-   <slot>history_context_menu()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>273</x>
-     <y>183</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>830</x>
-     <y>802</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>date_from</sender>
-   <signal>dateChanged(QDate)</signal>
-   <receiver>transactionsTabWidget</receiver>
-   <slot>dates_changed()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>102</x>
-     <y>28</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>149</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>date_to</sender>
-   <signal>dateChanged(QDate)</signal>
-   <receiver>transactionsTabWidget</receiver>
-   <slot>dates_changed()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>297</x>
-     <y>28</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>149</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
- <slots>
-  <slot>history_context_menu()</slot>
-  <slot>dates_changed()</slot>
- </slots>
+ <connections/>
 </ui>

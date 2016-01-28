@@ -54,9 +54,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.app.version_requested.connect(self.latest_version_requested)
 
+        self.label_icon = QLabel("", self)
+        self.statusbar.addPermanentWidget(self.label_icon, 1)
+
         self.status_label = QLabel("", self)
         self.status_label.setTextFormat(Qt.RichText)
-        self.statusbar.addPermanentWidget(self.status_label, 1)
+        self.statusbar.addPermanentWidget(self.status_label, 2)
 
         self.label_time = QLabel("", self)
         self.statusbar.addPermanentWidget(self.label_time)
@@ -76,7 +79,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.centralWidget().layout().addWidget(self.homescreen)
         self.homescreen.toolbutton_connect.setMenu(self.menu_change_account)
 
-        self.community_view = CommunityWidget(self.app, self.status_label)
+        self.community_view = CommunityWidget(self.app, self.status_label, self.label_icon)
         self.community_view.button_home.clicked.connect(lambda: self.change_community(None))
         self.community_view.button_certification.clicked.connect(self.open_certification_dialog)
         self.community_view.button_send_money.clicked.connect(self.open_transfer_money_dialog)
@@ -173,14 +176,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                      self.password_asker,
                                      self.community_view.community,
                                      None)
-        if dialog.exec_() == QDialog.Accepted:
+        if dialog.exec() == QDialog.Accepted:
             self.community_view.tab_history.table_history.model().sourceModel().refresh_transfers()
 
     def open_certification_dialog(self):
-        dialog = CertificationDialog(self.app,
+        CertificationDialog.open_dialog(self.app,
                                      self.app.current_account,
                                      self.password_asker)
-        dialog.exec_()
 
     def open_add_contact_dialog(self):
         dialog = ConfigureContactDialog(self.app.current_account, self)

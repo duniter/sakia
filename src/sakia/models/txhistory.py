@@ -13,7 +13,7 @@ from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, \
     QDateTime, QLocale, QModelIndex
 
-from PyQt5.QtGui import QFont, QColor
+from PyQt5.QtGui import QFont, QColor, QIcon
 
 
 class TxFilterProxyModel(QSortFilterProxyModel):
@@ -169,7 +169,6 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                     return self.tr("Confirming... {0} %").format(QLocale().toString(float(confirmation), 'f', 0))
 
             return None
-
         return source_data
 
 
@@ -231,7 +230,8 @@ class HistoryTableModel(QAbstractTableModel):
 
     async def data_received(self, transfer):
         amount = transfer.metadata['amount']
-        deposit = await self.account.current_ref(transfer.metadata['amount'], self.community, self.app)\
+        deposit = await self.account.current_ref(transfer.metadata['amount'], self.community,
+                                                 self.app, transfer.blockid.number)\
             .diff_localized(international_system=self.app.preferences['international_system_of_units'])
         comment = ""
         if transfer.metadata['comment'] != "":
@@ -254,7 +254,8 @@ class HistoryTableModel(QAbstractTableModel):
 
     async def data_sent(self, transfer):
         amount = transfer.metadata['amount']
-        paiment = await self.account.current_ref(transfer.metadata['amount'], self.community, self.app)\
+        paiment = await self.account.current_ref(transfer.metadata['amount'], self.community,
+                                                 self.app, transfer.blockid.number)\
             .diff_localized(international_system=self.app.preferences['international_system_of_units'])
         comment = ""
         if transfer.metadata['comment'] != "":
@@ -277,7 +278,7 @@ class HistoryTableModel(QAbstractTableModel):
 
     async def data_dividend(self, dividend):
         amount = dividend['amount']
-        deposit = await self.account.current_ref(dividend['amount'], self.community, self.app)\
+        deposit = await self.account.current_ref(dividend['amount'], self.community, self.app, dividend['block_number'])\
             .diff_localized(international_system=self.app.preferences['international_system_of_units'])
         comment = ""
         receiver = self.account.name
@@ -334,7 +335,7 @@ class HistoryTableModel(QAbstractTableModel):
                 if self.columns_types[section] == 'payment' or self.columns_types[section] == 'deposit':
                     return '{:}\n({:})'.format(
                         self.column_headers[section](),
-                        self.account.current_ref.diff_units(self.community.short_currency)
+                        self.account.current_ref(0, self.community, self.app, None).diff_units
                     )
 
                 return self.column_headers[section]()
@@ -351,6 +352,15 @@ class HistoryTableModel(QAbstractTableModel):
 
         if role == Qt.ToolTipRole:
             return self.transfers_data[row][col]
+
+        if role == Qt.DecorationRole and index.column() == 0:
+            transfer = self.transfers_data[row]
+            if transfer[self.columns_types.index('payment')] != "":
+                return QIcon(":/icons/sent")
+            elif transfer[self.columns_types.index('uid')] == self.account.name:
+                return QIcon(":/icons/dividend")
+            else:
+                return QIcon(":/icons/received")
 
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled

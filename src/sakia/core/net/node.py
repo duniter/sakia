@@ -5,6 +5,7 @@ Created on 21 févr. 2015
 """
 
 from ucoinpy.documents.peer import Peer, Endpoint, BMAEndpoint
+from ucoinpy.documents import Block, BlockId
 from ...tools.exceptions import InvalidNodeCurrency
 from ...tools.decorators import asyncify
 from ucoinpy.api import bma as bma
@@ -12,11 +13,14 @@ from ucoinpy.api.bma import ConnectionHandler
 
 from aiohttp.errors import ClientError, DisconnectedError, TimeoutError, \
     WSClientDisconnectedError, WSServerHandshakeError, ClientResponseError
+from aiohttp.errors import ClientError, DisconnectedError
+from asyncio import TimeoutError
 import logging
 import time
 import jsonschema
 import asyncio
 import aiohttp
+from distutils.version import StrictVersion
 from socket import gaierror
 
 from PyQt5.QtCore import QObject, pyqtSignal
@@ -42,26 +46,27 @@ class Node(QObject):
     identity_changed = pyqtSignal()
     neighbour_found = pyqtSignal(Peer, str)
 
-    def __init__(self, currency, endpoints, uid, pubkey, block,
+    def __init__(self, peer, uid, pubkey, block,
                  state, last_change, last_merkle, software, version, fork_window):
         """
         Constructor
         """
         super().__init__()
-        self._endpoints = endpoints
+        self._peer = peer
         self._uid = uid
         self._pubkey = pubkey
         self._block = block
         self.main_chain_previous_block = None
         self._state = state
         self._neighbours = []
-        self._currency = currency
         self._last_change = last_change
         self._last_merkle = last_merkle
         self._software = software
         self._version = version
         self._fork_window = fork_window
         self._refresh_counter = 0
+        self._ws_opened = {'block': False,
+                           'peer': False}
 
     @classmethod
     async def from_address(cls, currency, address, port):
@@ -84,8 +89,7 @@ class Node(QObject):
             if peer.currency != currency:
                 raise InvalidNodeCurrency(peer.currency, currency)
 
-        node = cls(peer.currency,
-                   [Endpoint.from_inline(e.inline()) for e in peer.endpoints],
+        node = cls(peer,
                    "", peer.pubkey, None, Node.ONLINE, time.time(),
                    {'root': "", 'leaves': []}, "", "", 0)
         logging.debug("Node from address : {:}".format(str(node)))
@@ -106,8 +110,7 @@ class Node(QObject):
             if peer.currency != currency:
                 raise InvalidNodeCurrency(peer.currency, currency)
 
-        node = cls(peer.currency, peer.endpoints,
-                   "", pubkey, None,
+        node = cls(peer, "", pubkey, None,
                    Node.OFFLINE, time.time(),
                    {'root': "", 'leaves': []},
                    "", "", 0)
@@ -115,7 +118,16 @@ class Node(QObject):
         return node
 
     @classmethod
-    def from_json(cls, currency, data):
+    def from_json(cls, currency, data, file_version):
+        """
+        Loads a node from json data
+
+        :param str currency: the currency of the community
+        :param dict data: the json data of the node
+        :param StrictVersion file_version: the version of the file
+        :return: A new node
+        :rtype: Node
+        """
         endpoints = []
         uid = ""
         pubkey = ""
@@ -126,12 +138,6 @@ class Node(QObject):
         last_change = time.time()
         state = Node.OFFLINE
         logging.debug(data)
-        for endpoint_data in data['endpoints']:
-            endpoints.append(Endpoint.from_inline(endpoint_data))
-
-        if currency in data:
-            currency = data['currency']
-
         if 'uid' in data:
             uid = data['uid']
 
@@ -156,11 +162,23 @@ class Node(QObject):
         if 'fork_window' in data:
             fork_window = data['fork_window']
 
-        node = cls(currency, endpoints,
-                   uid, pubkey, block,
+        if file_version < StrictVersion("0.12"):
+            for endpoint_data in data['endpoints']:
+                endpoints.append(Endpoint.from_inline(endpoint_data))
+
+            if currency in data:
+                currency = data['currency']
+
+            peer = Peer("1", currency, pubkey, str(BlockId(0, Block.Empty_Hash)), endpoints, "SOMEFAKESIGNATURE")
+        else:
+            if 'peer' in data:
+                peer = Peer.from_signed_raw(data['peer'])
+
+        node = cls(peer, uid, pubkey, block,
                    state, last_change,
                    {'root': "", 'leaves': []},
                    software, version, fork_window)
+
         logging.debug("Node from json : {:}".format(str(node)))
         return node
 
@@ -168,18 +186,14 @@ class Node(QObject):
         logging.debug("Saving root node : {:}".format(str(self)))
         data = {'pubkey': self._pubkey,
                 'uid': self._uid,
-                'currency': self._currency}
-        endpoints = []
-        for e in self._endpoints:
-            endpoints.append(e.inline())
-        data['endpoints'] = endpoints
+                'peer': self._peer.signed_raw()}
         return data
 
     def jsonify(self):
         logging.debug("Saving node : {:}".format(str(self)))
         data = {'pubkey': self._pubkey,
                 'uid': self._uid,
-                'currency': self._currency,
+                'peer': self._peer.signed_raw(),
                 'state': self._state,
                 'last_change': self._last_change,
                 'block': self.block,
@@ -187,10 +201,6 @@ class Node(QObject):
                 'version': self._version,
                 'fork_window': self._fork_window
                 }
-        endpoints = []
-        for e in self._endpoints:
-            endpoints.append(e.inline())
-        data['endpoints'] = endpoints
         return data
 
     @property
@@ -199,7 +209,7 @@ class Node(QObject):
 
     @property
     def endpoint(self) -> BMAEndpoint:
-        return next((e for e in self._endpoints if type(e) is BMAEndpoint))
+        return next((e for e in self._peer.endpoints if type(e) is BMAEndpoint))
 
     @property
     def block(self):
@@ -214,7 +224,7 @@ class Node(QObject):
 
     @property
     def currency(self):
-        return self._currency
+        return self._peer.currency
 
     @property
     def neighbours(self):
@@ -231,6 +241,16 @@ class Node(QObject):
     @property
     def software(self):
         return self._software
+
+    @property
+    def peer(self):
+        return self._peer
+
+    @peer.setter
+    def peer(self, new_peer):
+        if self._peer != new_peer:
+            self._peer = new_peer
+            self.changed.emit()
 
     @software.setter
     def software(self, new_soft):
@@ -260,8 +280,6 @@ class Node(QObject):
         #                                                               self.state, new_state))
 
         if self._state != new_state:
-            if self.pubkey[:5] in ("6YfbK", "J78bP"):
-                pass
             self.last_change = time.time()
             self._state = new_state
             self.changed.emit()
@@ -283,7 +301,7 @@ class Node(QObject):
         Refresh all data of this node
         :param bool manual: True if the refresh was manually initiated
         """
-        asyncio.ensure_future(self.connect_current_block())
+        self.connect_current_block()
         self.refresh_peers()
 
         if self._refresh_counter % 20 == 0 or manual:
@@ -294,62 +312,41 @@ class Node(QObject):
         else:
             self._refresh_counter += 1
 
+    @asyncify
     async def connect_current_block(self):
+        """
+        Connects to the websocket entry point of the node
+        If the connection fails, it tries the fallback mode on HTTP GET
+        """
+        if not self._ws_opened['block']:
+            try:
+                conn_handler = self.endpoint.conn_handler()
+                self._ws_opened['block'] = True
+                block_websocket = bma.websocket.Block(conn_handler)
+                async with block_websocket.connect() as ws:
+                    async for msg in ws:
+                        if msg.tp == aiohttp.MsgType.text:
+                            block_data = block_websocket.parse(msg.data)
+                            await self.refresh_block(block_data)
+                        elif msg.tp == aiohttp.MsgType.closed:
+                            break
+                        elif msg.tp == aiohttp.MsgType.error:
+                            break
+            except (WSServerHandshakeError, WSClientDisconnectedError, ClientResponseError) as e:
+                logging.debug("Websocket error : {0}".format(str(e)))
+                self.request_current_block()
+            finally:
+                self._ws_opened['block'] = False
+
+    async def request_current_block(self):
+        """
+        Request a node on the HTTP GET interface
+        If an error occurs, the node is considered offline
+        """
         try:
             conn_handler = self.endpoint.conn_handler()
-            async with bma.websocket.Block(conn_handler).connect() as ws:
-                async for msg in ws:
-                    if msg.tp == aiohttp.MsgType.text:
-                        pass
-                    elif msg.tp == aiohttp.MsgType.closed:
-                        break
-                    elif msg.tp == aiohttp.MsgType.error:
-                        break
-                    else:
-                        pass
-        except (WSServerHandshakeError, WSClientDisconnectedError) as e:
-            logging.debug("Websocket error : {0}".format(str(e)))
-        except ClientResponseError as e:
-            logging.debug("Client response error : {0}".format(str(e)))
-
-
-    @asyncify
-    async def refresh_block(self):
-        """
-        Refresh the blocks of this node
-        """
-        conn_handler = self.endpoint.conn_handler()
-
-        logging.debug("Requesting {0}".format(conn_handler))
-        try:
             block_data = await bma.blockchain.Current(conn_handler).get()
-            block_hash = block_data['hash']
-            self.state = Node.ONLINE
-
-            if not self.block or block_hash != self.block['hash']:
-                try:
-                    if self.block:
-                        self.main_chain_previous_block = await bma.blockchain.Block(conn_handler,
-                                                                                     self.block['number']).get()
-                except ValueError as e:
-                    if '404' in str(e):
-                        self.main_chain_previous_block = None
-                    else:
-                        self.state = Node.OFFLINE
-                    logging.debug("Error in previous block reply :  {0}".format(self.pubkey))
-                    logging.debug(str(e))
-                    self.changed.emit()
-                except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
-                    logging.debug("{0} : {1}".format(str(e), self.pubkey))
-                    self.state = Node.OFFLINE
-                except jsonschema.ValidationError:
-                    logging.debug("Validation error : {0}".format(self.pubkey))
-                    self.state = Node.CORRUPTED
-                finally:
-                    self.set_block(block_data)
-                    logging.debug("Changed block {0} -> {1}".format(self.block['number'],
-                                                                    block_data['number']))
-                    self.changed.emit()
+            await self.refresh_block(block_data)
         except ValueError as e:
             if '404' in str(e):
                 self.main_chain_previous_block = None
@@ -366,6 +363,42 @@ class Node(QObject):
             logging.debug("Validation error : {0}".format(self.pubkey))
             self.state = Node.CORRUPTED
 
+    async def refresh_block(self, block_data):
+        """
+        Refresh the blocks of this node
+        :param dict block_data: The block data in json format
+        """
+        conn_handler = self.endpoint.conn_handler()
+
+        logging.debug("Requesting {0}".format(conn_handler))
+        block_hash = block_data['hash']
+        self.state = Node.ONLINE
+
+        if not self.block or block_hash != self.block['hash']:
+            try:
+                if self.block:
+                    self.main_chain_previous_block = await bma.blockchain.Block(conn_handler,
+                                                                                 self.block['number']).get()
+            except ValueError as e:
+                if '404' in str(e):
+                    self.main_chain_previous_block = None
+                else:
+                    self.state = Node.OFFLINE
+                logging.debug("Error in previous block reply :  {0}".format(self.pubkey))
+                logging.debug(str(e))
+                self.changed.emit()
+            except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
+                logging.debug("{0} : {1}".format(str(e), self.pubkey))
+                self.state = Node.OFFLINE
+            except jsonschema.ValidationError:
+                logging.debug("Validation error : {0}".format(self.pubkey))
+                self.state = Node.CORRUPTED
+            finally:
+                self.set_block(block_data)
+                logging.debug("Changed block {0} -> {1}".format(self.block['number'],
+                                                                block_data['number']))
+                self.changed.emit()
+
     @asyncify
     async def refresh_informations(self):
         """
@@ -378,6 +411,11 @@ class Node(QObject):
             node_pubkey = peering_data["pubkey"]
             node_currency = peering_data["currency"]
             self.state = Node.ONLINE
+
+            if peering_data['raw'] != self.peer.raw():
+                peer = Peer.from_signed_raw("{0}{1}\n".format(peering_data['raw'], peering_data['signature']))
+                if BlockId.from_str(peer.blockid).number > BlockId.from_str(self.peer.blockid).number:
+                    self.peer = Peer.from_signed_raw("{0}{1}\n".format(peering_data['raw'], peering_data['signature']))
 
             if node_pubkey != self.pubkey:
                 self._pubkey = node_pubkey
@@ -393,7 +431,7 @@ class Node(QObject):
             self.state = Node.OFFLINE
             self.changed.emit()
         except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
-            logging.debug("{0} : {1}".format(str(e), self.pubkey))
+            logging.debug("{0} : {1}".format(type(e).__name__, self.pubkey))
             self.state = Node.OFFLINE
         except jsonschema.ValidationError:
             logging.debug("Validation error : {0}".format(self.pubkey))
@@ -420,7 +458,7 @@ class Node(QObject):
             self.state = Node.OFFLINE
             self.changed.emit()
         except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
-            logging.debug("{0} : {1}".format(str(e), self.pubkey))
+            logging.debug("{0} : {1}".format(type(e).__name__, self.pubkey))
             self.state = Node.OFFLINE
         except jsonschema.ValidationError:
             logging.debug("Validation error : {0}".format(self.pubkey))
@@ -455,7 +493,7 @@ class Node(QObject):
                 self.state = Node.OFFLINE
                 self.identity_changed.emit()
         except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
-            logging.debug("{0} : {1}".format(str(e), self.pubkey))
+            logging.debug("{0} : {1}".format(type(e).__name__, self.pubkey))
             self.state = Node.OFFLINE
         except jsonschema.ValidationError:
             logging.debug("Validation error : {0}".format(self.pubkey))
@@ -491,7 +529,7 @@ class Node(QObject):
                         self.state = Node.OFFLINE
                         self.changed.emit()
                     except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
-                        logging.debug("{0} : {1}".format(str(e), self.pubkey))
+                        logging.debug("{0} : {1}".format(type(e).__name__, self.pubkey))
                         self.state = Node.OFFLINE
                     except jsonschema.ValidationError:
                         logging.debug("Validation error : {0}".format(self.pubkey))
@@ -503,7 +541,7 @@ class Node(QObject):
             self.state = Node.OFFLINE
             self.changed.emit()
         except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
-            logging.debug("{0} : {1}".format(str(e), self.pubkey))
+            logging.debug("{0} : {1}".format(type(e).__name__, self.pubkey))
             self.state = Node.OFFLINE
         except jsonschema.ValidationError:
             logging.debug("Validation error : {0}".format(self.pubkey))

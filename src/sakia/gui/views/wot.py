@@ -1,10 +1,6 @@
-import networkx
-from PyQt5.QtCore import Qt, QPoint,  pyqtSignal
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter, QWheelEvent
-from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene
-
-from .edges import WotEdge
-from .nodes import WotNode
+from PyQt5.QtWidgets import QGraphicsView
 from .scenes import WotScene
 
 
@@ -15,7 +11,7 @@ class WotView(QGraphicsView):
 
         :param parent:  [Optional, default=None] Parent widget
         """
-        super(WotView, self).__init__(parent)
+        super().__init__(parent)
 
         self.setScene(WotScene(self))
 

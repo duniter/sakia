@@ -31,8 +31,8 @@ class TestIdentitiesTable(unittest.TestCase, QuamashTest):
         self.application = Application(self.qapplication, self.lp, self.identities_registry)
         self.application.preferences['notifications'] = False
 
-        self.endpoint = BMAEndpoint("", "127.0.0.1", "", 50002)
-        self.node = Node("test_currency", [self.endpoint],
+        self.mock_nice_blockchain = nice_blockchain.get_mock(self.lp)
+        self.node = Node(self.mock_nice_blockchain.peer(),
                          "", "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk",
                          None, Node.ONLINE,
                          time.time(), {}, "ucoin", "0.14.0", 0)
@@ -56,29 +56,27 @@ class TestIdentitiesTable(unittest.TestCase, QuamashTest):
         self.tearDownQuamash()
 
     def test_search_identity_found(self):
-        mock = nice_blockchain.get_mock(self.lp)
         time.sleep(2)
         identities_tab = IdentitiesTabWidget(self.application)
         future = asyncio.Future()
 
         def open_widget():
-            identities_tab.show()
+            identities_tab.widget.show()
             return future
 
         def close_dialog():
-            if identities_tab.isVisible():
-                identities_tab.close()
+            if identities_tab.widget.isVisible():
+                identities_tab.widget.close()
             future.set_result(True)
 
         async def exec_test():
-            srv, port, url = await mock.create_server()
+            srv, port, url = await self.mock_nice_blockchain.create_server()
             self.addCleanup(srv.close)
-            self.endpoint.port = port
 
             identities_tab.change_account(self.account, self.password_asker)
             identities_tab.change_community(self.community)
             await asyncio.sleep(1)
-            urls = [mock.get_request(i).url for i in range(0, 7)]
+            urls = [self.mock_nice_blockchain.get_request(i).url for i in range(0, 7)]
             self.assertTrue('/wot/certifiers-of/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ' in urls,
                             msg="Not found in {0}".format(urls))
             self.assertTrue('/wot/lookup/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ' in urls,
@@ -90,17 +88,17 @@ class TestIdentitiesTable(unittest.TestCase, QuamashTest):
             # requests 1 to 3 are for getting certifiers-of and certified-by
             # on john, + a lookup
 
-            QTest.keyClicks(identities_tab.edit_textsearch, "doe")
-            QTest.mouseClick(identities_tab.button_search, Qt.LeftButton)
+            QTest.keyClicks(identities_tab.ui.edit_textsearch, "doe")
+            QTest.mouseClick(identities_tab.ui.button_search, Qt.LeftButton)
             await asyncio.sleep(2)
             req = 8
 
-            self.assertEqual(mock.get_request(req).method, 'GET')
-            self.assertEqual(mock.get_request(req).url,
+            self.assertEqual(self.mock_nice_blockchain.get_request(req).method, 'GET')
+            self.assertEqual(self.mock_nice_blockchain.get_request(req).url,
                              '/blockchain/memberships/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn')
             req += 1
 
-            self.assertEqual(identities_tab.table_identities.model().rowCount(), 1)
+            self.assertEqual(identities_tab.ui.table_identities.model().rowCount(), 1)
             await asyncio.sleep(2)
             self.lp.call_soon(close_dialog)
 

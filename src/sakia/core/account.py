@@ -11,6 +11,7 @@ from ucoinpy.key import SigningKey
 import logging
 import time
 import asyncio
+from distutils.version import StrictVersion
 
 from PyQt5.QtCore import QObject, pyqtSignal
 
@@ -18,7 +19,8 @@ from . import money
 from .wallet import Wallet
 from .community import Community
 from .registry import LocalState
-from ..tools.exceptions import ContactAlreadyExists, NoPeerAvailable
+from ..tools.exceptions import ContactAlreadyExists
+from .. import __version__
 from ucoinpy.api import bma
 from ucoinpy.api.bma import PROTOCOL_VERSION
 from aiohttp.errors import ClientError
@@ -61,6 +63,19 @@ class Account(QObject):
         self._identities_registry = identities_registry
         self._current_ref = 0
 
+        self.notifications = {'membership_expire_soon':
+                                  [
+                                      self.tr("Warning : Your membership is expiring soon."),
+                                      0
+                                   ],
+                            'warning_certifications':
+                                    [
+                                        self.tr("Warning : Your could miss certifications soon."),
+                                        0
+                                    ],
+                            'warning_certifying_first_time': True,
+                            }
+
     @classmethod
     def create(cls, name, identities_registry):
         """
@@ -89,6 +104,10 @@ class Account(QObject):
         """
         salt = json_data['salt']
         pubkey = json_data['pubkey']
+        if 'file_version' in json_data:
+            file_version = StrictVersion(json_data['file_version'])
+        else:
+            file_version = StrictVersion('0.11.5')
 
         name = json_data['name']
         contacts = []
@@ -102,7 +121,7 @@ class Account(QObject):
 
         communities = []
         for data in json_data['communities']:
-            community = Community.load(data)
+            community = Community.load(data, file_version)
             communities.append(community)
 
         account = cls(salt, pubkey, name, communities, wallets,
@@ -497,7 +516,7 @@ class Account(QObject):
                     await r.release()
             return result
         else:
-            return (False, self.tr("Could not find user self certification."))
+            return False, self.tr("Could not find user self certification.")
 
     async def revoke(self, password, community):
         """
@@ -564,5 +583,6 @@ class Account(QObject):
                 'pubkey': self.pubkey,
                 'communities': data_communities,
                 'wallets': data_wallets,
-                'contacts': self.contacts}
+                'contacts': self.contacts,
+                'file_version': __version__}
         return data

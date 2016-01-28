@@ -27,8 +27,8 @@ class TestWotTab(unittest.TestCase, QuamashTest):
         self.application = Application(self.qapplication, self.lp, self.identities_registry)
         self.application.preferences['notifications'] = False
 
-        self.endpoint = BMAEndpoint("", "127.0.0.1", "", 50003)
-        self.node = Node("test_currency", [self.endpoint],
+        self.mock_nice_blockchain = nice_blockchain.get_mock(self.lp)
+        self.node = Node(self.mock_nice_blockchain.peer(),
                          "", "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk",
                          None, Node.ONLINE,
                          time.time(), {}, "ucoin", "0.14.0", 0)
@@ -52,29 +52,26 @@ class TestWotTab(unittest.TestCase, QuamashTest):
         self.tearDownQuamash()
 
     def test_empty_wot_tab(self):
-        mock = nice_blockchain.get_mock(self.lp)
-        time.sleep(2)
         wot_tab = WotTabWidget(self.application)
         future = asyncio.Future()
 
         def open_widget():
-            wot_tab.show()
+            wot_tab.widget.show()
             return future
 
         async def async_open_widget():
-            srv, port, url = await mock.create_server()
+            srv, port, url = await self.mock_nice_blockchain.create_server()
             self.addCleanup(srv.close)
-            self.endpoint.port = port
             await open_widget()
 
         def close_dialog():
-            if wot_tab.isVisible():
-                wot_tab.close()
+            if wot_tab.widget.isVisible():
+                wot_tab.widget.close()
             future.set_result(True)
 
         async def exec_test():
             await asyncio.sleep(1)
-            self.assertTrue(wot_tab.isVisible())
+            self.assertTrue(wot_tab.widget.isVisible())
             self.lp.call_soon(close_dialog)
 
         asyncio.ensure_future(exec_test())

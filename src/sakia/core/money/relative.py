@@ -1,28 +1,26 @@
 from PyQt5.QtCore import QObject, QCoreApplication, QT_TRANSLATE_NOOP, QLocale
-import asyncio
+from .base_referential import BaseReferential
 
 
-class Relative:
+class Relative(BaseReferential):
     _NAME_STR_ = QT_TRANSLATE_NOOP('Relative', 'UD')
     _REF_STR_ = QT_TRANSLATE_NOOP('Relative',  "{0} {1}UD {2}")
     _UNITS_STR_ = QT_TRANSLATE_NOOP('Relative',  "UD {0}")
 
-    def __init__(self, amount, community, app):
-        self.amount = amount
-        self.community = community
-        self.app = app
+    def __init__(self, amount, community, app, block_number=None):
+        super().__init__(amount, community, app, block_number)
 
     @classmethod
     def translated_name(cls):
         return QCoreApplication.translate('Relative', Relative._NAME_STR_)
 
-    @classmethod
-    def units(self, currency):
-        return QCoreApplication.translate("Relative", Relative._UNITS_STR_).format(currency)
+    @property
+    def units(self):
+        return QCoreApplication.translate("Relative", Relative._UNITS_STR_).format(self.community.short_currency)
 
-    @classmethod
-    def diff_units(self, currency):
-        return self.units(currency)
+    @property
+    def diff_units(self):
+        return self.units
 
     async def value(self):
         """
@@ -42,7 +40,7 @@ class Relative:
 
     @staticmethod
     def to_si(value, digits):
-        prefixes = ['', 'd', 'c', 'm', 'µ', 'n', 'p', 'f', 'a', 'z', 'y']
+        prefixes = ['', 'm', 'µ', 'n', 'p', 'f', 'a', 'z', 'y']
         if value < 0:
             value = -value
             multiplier = -1
@@ -53,10 +51,7 @@ class Relative:
         prefix = ""
 
         while int(scientific_value) == 0 and scientific_value > 0.0:
-            if prefix_index > 3:
-                scientific_value *= 1000
-            else:
-                scientific_value *= 10
+            scientific_value *= 1000
             prefix_index += 1
 
         if prefix_index < len(prefixes):

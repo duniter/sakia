@@ -1,5 +1,4 @@
 from PyQt5.QtCore import QObject, pyqtSlot
-from PyQt5.QtNetwork import QNetworkReply
 from ucoinpy.api import bma
 from .....tools.exceptions import NoPeerAvailable
 from ..... import __version__
@@ -259,7 +258,7 @@ class BmaAccess(QObject):
         :param class request: A bma request class calling for data
         :param dict req_args: Arguments to pass to the request constructor
         :param dict get_args: Arguments to pass to the request __get__ method
-        :return: The returned data if cached = True else return the QNetworkReply
+        :return: The returned data
         """
         nodes = self.filter_nodes(request, self._network.synced_nodes)
         if len(nodes) > 0:
@@ -293,12 +292,14 @@ class BmaAccess(QObject):
         :param req_args: Arguments to pass to the request constructor
         :param post_args: Arguments to pass to the request __post__ method
         :return: All nodes replies
-        :rtype: tuple of QNetworkReply
+        :rtype: tuple of aiohttp replies
 
         .. note:: If one node accept the requests (returns 200),
         the broadcast should be considered accepted by the network.
         """
-        nodes = self._network.online_nodes
+        nodes = random.sample(self._network.synced_nodes, 6) \
+            if len(self._network.synced_nodes) > 6 \
+            else self._network.synced_nodes
         replies = []
         if len(nodes) > 0:
             for node in nodes:

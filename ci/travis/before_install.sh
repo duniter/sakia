@@ -57,10 +57,20 @@ then
     pyenv activate sakia-env
     if [ $TRAVIS_OS_NAME == "osx" ]
     then
-        python configure.py --confirm-license
+        python configure.py --confirm-license \
+            --enable QtCore \
+            --enable QtWidgets \
+            --enable QtGui \
+            --enable QtSvg\
+            --enable QtTest
     elif [ $TRAVIS_OS_NAME == "linux" ]
     then
-        python configure.py --qmake "/usr/lib/x86_64-linux-gnu/qt5/bin/qmake" --confirm-license
+        python configure.py --qmake "/usr/lib/x86_64-linux-gnu/qt5/bin/qmake" --confirm-license  \
+            --enable QtCore \
+            --enable QtWidgets \
+            --enable QtGui \
+            --enable QtSvg\
+            --enable QtTest
     fi
 
     make -j 2 && make install
