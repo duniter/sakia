@@ -529,6 +529,7 @@ class Node(QObject):
                         if msg.tp == aiohttp.MsgType.text:
                             logging.debug("Received a peer : {0}".format(self.pubkey[:5]))
                             peer_data = peer_websocket.parse_text(msg.data)
+                            self.refresh_peer_data(peer_data)
                         elif msg.tp == aiohttp.MsgType.closed:
                             break
                         elif msg.tp == aiohttp.MsgType.error:
