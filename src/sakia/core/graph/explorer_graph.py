@@ -85,12 +85,16 @@ class ExplorerGraph(BaseGraph):
 
                     certifier_list, certified_list = await asyncio.gather(certifier_coro, certified_coro)
 
-                    await self.add_certifier_list(certifier_list, current_identity, identity)
+                    certifier_coro = asyncio.ensure_future(self.add_certifier_list(certifier_list,
+                                                                                   current_identity, identity))
                     logging.debug("New identity certifiers : {pubkey}".format(pubkey=current_identity.pubkey[:5]))
-                    self.graph_changed.emit()
-                    await self.add_certified_list(certified_list, current_identity, identity)
+                    certified_coro = asyncio.ensure_future(self.add_certified_list(certified_list,
+                                                                                   current_identity, identity))
+                    certifier_coro.add_done_callback(lambda f: self.graph_changed.emit())
+                    certified_coro.add_done_callback(lambda f: self.graph_changed.emit())
+                    await asyncio.gather(certifier_coro, certified_coro)
+
                     logging.debug("New identity certified : {pubkey}".format(pubkey=current_identity.pubkey[:5]))
-                    self.graph_changed.emit()
 
                     for cert in certified_list + certifier_list:
                         if cert['identity'] not in explorable[step + 1]:

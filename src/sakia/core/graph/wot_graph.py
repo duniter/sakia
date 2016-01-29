@@ -22,15 +22,21 @@ class WoTGraph(BaseGraph):
         self.add_identity(center_identity, node_status)
 
         # create Identity from node metadata
-        certifier_list = await center_identity.unique_valid_certifiers_of(self.app.identities_registry,
-                                                                        self.community)
-        certified_list = await center_identity.unique_valid_certified_by(self.app.identities_registry,
-                                                                       self.community)
+        certifier_coro = asyncio.ensure_future(center_identity.unique_valid_certifiers_of(self.app.identities_registry,
+                                                                        self.community))
+        certified_coro = asyncio.ensure_future(center_identity.unique_valid_certified_by(self.app.identities_registry,
+                                                                       self.community))
+
+        certifier_list, certified_list = await asyncio.gather(certifier_coro, certified_coro)
 
         # populate graph with certifiers-of
-        await self.add_certifier_list(certifier_list, center_identity, account_identity)
+        certifier_coro = asyncio.ensure_future(self.add_certifier_list(certifier_list,
+                                                                       center_identity, account_identity))
         # populate graph with certified-by
-        await self.add_certified_list(certified_list, center_identity, account_identity)
+        certified_coro = asyncio.ensure_future(self.add_certified_list(certified_list,
+                                                                       center_identity, account_identity))
+
+        await asyncio.gather(certifier_coro, certified_coro)
 
     async def get_shortest_path_to_identity(self, account_identity, to_identity):
         """
