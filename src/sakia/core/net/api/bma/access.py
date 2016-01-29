@@ -307,17 +307,19 @@ class BmaAccess(QObject):
                 logging.debug("Trying to connect to : " + node.pubkey)
                 conn_handler = node.endpoint.conn_handler()
                 req = request(conn_handler, **req_args)
-                try:
-                    reply = await req.post(**post_args)
-                    replies.append(reply)
-                except ValueError as e:
-                    if '404' in str(e) or '400' in str(e):
-                        raise
-                except (ClientError, gaierror):
-                    pass
-                except asyncio.TimeoutError:
-                    pass
+                reply = asyncio.ensure_future(req.post(**post_args))
+                replies.append(reply)
             self._invalidate_cache(request)
         else:
             raise NoPeerAvailable("", len(nodes))
-        return tuple(replies)
+
+        try:
+            result = await asyncio.gather(*replies)
+        except ValueError as e:
+            if '404' in str(e) or '400' in str(e):
+                raise
+        except (ClientError, gaierror):
+            pass
+        except asyncio.TimeoutError:
+            pass
+        return tuple(result)
