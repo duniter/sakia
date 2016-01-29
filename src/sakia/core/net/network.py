@@ -255,18 +255,6 @@ class Network(QObject):
 
         self._nodes = unique_nodes
 
-    def fork_window(self, members_pubkeys):
-        """
-        Get the medium of the fork window of the nodes members of a community
-        :return: the medium fork window of knew network
-        """
-        fork_windows = [n.fork_window for n in self.online_nodes if n.software != ""
-                        and n.pubkey in members_pubkeys]
-        if len(fork_windows) > 0:
-            return int(statistics.median(fork_windows))
-        else:
-            return 0
-
     def confirmations(self, block_number):
         """
         Get the number of confirmations of a data

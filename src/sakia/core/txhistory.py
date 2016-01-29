@@ -1,11 +1,12 @@
 import asyncio
 import logging
 import hashlib
-from .transfer import Transfer, TransferState
-from ucoinpy.documents.transaction import InputSource, OutputSource
+from ucoinpy.documents.transaction import InputSource
 from ucoinpy.documents.block import Block
-from ..tools.exceptions import LookupFailureError, NoPeerAvailable
 from ucoinpy.api import  bma
+from .transfer import Transfer, TransferState
+from .net.network import MAX_CONFIRMATIONS
+from ..tools.exceptions import LookupFailureError, NoPeerAvailable
 
 
 class TxHistory():
@@ -241,13 +242,11 @@ class TxHistory():
             logging.debug("Refresh from : {0} to {1}".format(block_number_from, block_to['number']))
             dividends = await self.request_dividends(community, block_number_from)
             with_tx_data = await community.bma_access.future_request(bma.blockchain.TX)
-            members_pubkeys = await community.members_pubkeys()
-            fork_window = community.network.fork_window(members_pubkeys)
             blocks_with_tx = with_tx_data['result']['blocks']
             while block_number_from <= block_to['number']:
                 udid = 0
                 for d in [ud for ud in dividends if ud['block_number'] == block_number_from]:
-                    state = TransferState.VALIDATED if block_number_from + fork_window <= block_to['number'] \
+                    state = TransferState.VALIDATED if block_number_from + MAX_CONFIRMATIONS <= block_to['number'] \
                         else TransferState.VALIDATING
 
                     if d['block_number'] not in [ud['block_number'] for ud in self._dividends]:
@@ -275,7 +274,7 @@ class TxHistory():
                                        block_to['signature'])
             block_to = Block.from_signed_raw(signed_raw)
             for transfer in [t for t in self._transfers + new_transfers if t.state == TransferState.VALIDATING]:
-                transfer.run_state_transitions((False, block_to, fork_window))
+                transfer.run_state_transitions((False, block_to, MAX_CONFIRMATIONS))
 
             # We check if latest parsed block_number is a new high number
             if block_number_from > self.latest_block:
@@ -337,11 +336,10 @@ class TxHistory():
 
             current_block = await self._get_block_doc(community, community.network.current_blockid.number)
             members_pubkeys = await community.members_pubkeys()
-            fork_window = community.network.fork_window(members_pubkeys)
             # We check if transactions VALIDATED are in the fork window now
             for transfer in [t for t in self._transfers
                              if t.state == TransferState.VALIDATED]:
-                transfer.run_state_transitions((True, current_block, fork_window))
+                transfer.run_state_transitions((True, current_block, MAX_CONFIRMATIONS))
         except NoPeerAvailable:
             logging.debug("No peer available")
 

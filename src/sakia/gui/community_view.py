@@ -266,16 +266,6 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
             if status_infotext != "":
                 label_text += " - {0}".format(status_infotext)
 
-            if self.app.preferences['expert_mode']:
-                try:
-                    members_pubkeys = await self.community.members_pubkeys()
-                    label_text += self.tr(" - Median fork window : {0}")\
-                        .format(self.community.network.fork_window(members_pubkeys))
-                except NoPeerAvailable as e:
-                    logging.debug(str(e))
-                    label_text += self.tr(" - Median fork window : {0}")\
-                        .format("#")
-
             self.status_label.setText(label_text)
             self.label_icon.setPixmap(QPixmap(icon).scaled(24, 24, Qt.KeepAspectRatio, Qt.SmoothTransformation))
 

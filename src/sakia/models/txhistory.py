@@ -8,6 +8,7 @@ import datetime
 import logging
 import asyncio
 from ..core.transfer import Transfer, TransferState
+from ..core.net.network import MAX_CONFIRMATIONS
 from ..tools.exceptions import NoPeerAvailable
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, \
@@ -187,7 +188,6 @@ class HistoryTableModel(QAbstractTableModel):
         self.community = community
         self.transfers_data = []
         self.refresh_transfers()
-        self._max_confirmations = 0
 
         self.columns_types = (
             'date',
@@ -311,17 +311,11 @@ class HistoryTableModel(QAbstractTableModel):
                     data = await self.data_dividend(transfer)
                 if data:
                     transfers_data.append(data)
-                try:
-                    members_pubkeys = await self.community.members_pubkeys()
-                    self._max_confirmations = self.community.network.fork_window(members_pubkeys) + 1
-                except NoPeerAvailable as e:
-                    logging.debug(str(e))
-                    self._max_confirmations = 0
         self.transfers_data = transfers_data
         self.endResetModel()
 
     def max_confirmations(self):
-        return self._max_confirmations
+        return MAX_CONFIRMATIONS
 
     def rowCount(self, parent):
         return len(self.transfers_data)
