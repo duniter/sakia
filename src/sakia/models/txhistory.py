@@ -300,17 +300,22 @@ class HistoryTableModel(QAbstractTableModel):
         self.beginResetModel()
         transfers_data = []
         if self.community:
+            requests_coro = []
             for transfer in self.transfers():
-                data = None
+                coro = None
                 if type(transfer) is Transfer:
                     if transfer.metadata['issuer'] == self.account.pubkey:
-                        data = await self.data_sent(transfer)
+                        coro = asyncio.ensure_future(self.data_sent(transfer))
                     else:
-                        data = await self.data_received(transfer)
+                        coro = asyncio.ensure_future(self.data_received(transfer))
                 elif type(transfer) is dict:
-                    data = await self.data_dividend(transfer)
-                if data:
-                    transfers_data.append(data)
+                    coro = asyncio.ensure_future(self.data_dividend(transfer))
+                if coro:
+                    requests_coro.append(coro)
+
+            data_list = await asyncio.gather(*requests_coro)
+            for data in data_list:
+                transfers_data.append(data)
         self.transfers_data = transfers_data
         self.endResetModel()
 

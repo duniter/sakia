@@ -149,9 +149,13 @@ class IdentitiesTableModel(QAbstractTableModel):
         self.endResetModel()
         self.beginResetModel()
         identities_data = []
+        requests_coro = []
         for identity in identities:
-            data = await self.identity_data(identity)
-            identities_data.append(data)
+            coro = asyncio.ensure_future(self.identity_data(identity))
+            requests_coro.append(coro)
+
+        identities_data = await asyncio.gather(*requests_coro)
+
         if len(identities) > 0:
             try:
                 parameters = await self.community.parameters()
