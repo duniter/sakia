@@ -1,6 +1,8 @@
 from PyQt5.QtWidgets import QMenu, QAction, QApplication, QMessageBox
 from PyQt5.QtCore import QObject, pyqtSignal
 from ucoinpy.documents import Block, Membership
+import logging
+
 from ..member import MemberDialog
 from ..contact import ConfigureContactDialog
 from ..transfer import TransferMoneyDialog
@@ -8,6 +10,7 @@ from ..certification import CertificationDialog
 from ...tools.decorators import asyncify
 from ...core.transfer import Transfer, TransferState
 from ...core.registry import Identity
+from ...tools.exceptions import MembershipNotFoundError
 
 
 class ContextMenu(QObject):
@@ -63,8 +66,7 @@ class ContextMenu(QObject):
         if menu._app.preferences['expert_mode']:
             copy_membership = QAction(menu.qmenu.tr("Copy membership document to clipboard"), menu.qmenu.parent())
             copy_membership.triggered.connect(lambda checked, i=identity: menu.copy_membership_to_clipboard(i))
-            # TODO: Copy membership when written field is available
-            #menu.qmenu.addAction(copy_membership)
+            menu.qmenu.addAction(copy_membership)
 
             copy_selfcert = QAction(menu.qmenu.tr("Copy self-certification document to clipboard"), menu.qmenu.parent())
             copy_selfcert.triggered.connect(lambda checked, i=identity: menu.copy_selfcert_to_clipboard(i))
@@ -192,14 +194,17 @@ QMessageBox.Ok | QMessageBox.Cancel)
         :return:
         """
         clipboard = QApplication.clipboard()
-        membership = await identity.membership(self._community)
-        if membership:
-            block_number = membership['blockNumber']
-            block = await self._community.get_block(block_number)
-            block_doc = Block.from_signed_raw("{0}{1}\n".format(block['raw'], block['signature']))
-            for ms_doc in block_doc.joiners:
-                if ms_doc.issuer == identity.pubkey:
-                    clipboard.setText(ms_doc.signed_raw())
+        try:
+            membership = await identity.membership(self._community)
+            if membership:
+                block_number = membership['written']
+                block = await self._community.get_block(block_number)
+                block_doc = Block.from_signed_raw("{0}{1}\n".format(block['raw'], block['signature']))
+                for ms_doc in block_doc.joiners:
+                    if ms_doc.issuer == identity.pubkey:
+                        clipboard.setText(ms_doc.signed_raw())
+        except MembershipNotFoundError:
+            logging.debug("Could not find membership")
 
     @asyncify
     async def copy_selfcert_to_clipboard(self, identity):

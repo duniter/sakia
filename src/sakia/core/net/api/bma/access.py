@@ -199,7 +199,7 @@ class BmaAccess(QObject):
         def compare_versions(node, version):
             if node.version and node.version != '':
                 try:
-                    return parse_version(node.version) > parse_version(version)
+                    return parse_version(node.version) >= parse_version(version)
                 except TypeError:
                     return False
             else:
