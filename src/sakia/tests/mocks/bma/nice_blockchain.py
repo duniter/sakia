@@ -40,12 +40,12 @@ bma_membership_john = {
     "memberships":
         [
             {
-
                 "version": 1,
                 "currency": "test_currency",
                 "membership": "IN",
                 "blockNumber": 0,
-                "blockHash": "DA39A3EE5E6B4B0D3255BFEF95601890AFD80709"
+                "blockHash": "DA39A3EE5E6B4B0D3255BFEF95601890AFD80709",
+                "written": 10000
             }
         ]
 }
