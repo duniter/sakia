@@ -8,7 +8,7 @@ import asyncio
 import random
 from socket import gaierror
 import jsonschema
-from distutils.version import StrictVersion
+from pkg_resources import parse_version
 
 
 class BmaAccess(QObject):
@@ -199,14 +199,15 @@ class BmaAccess(QObject):
         def compare_versions(node, version):
             if node.version and node.version != '':
                 try:
-                    return StrictVersion(node.version) > StrictVersion(version)
+                    return parse_version(node.version) > parse_version(version)
                 except TypeError:
                     return False
             else:
                 return False
         filters = {
             bma.ud.History: lambda n: compare_versions(n, "0.11.0"),
-            bma.tx.History: lambda n: compare_versions(n, "0.11.0")
+            bma.tx.History: lambda n: compare_versions(n, "0.11.0"),
+            bma.blockchain.Membership: lambda n: compare_versions(n, "0.14")
         }
         if request in filters:
             return [n for n in nodes if filters[request](n)]
