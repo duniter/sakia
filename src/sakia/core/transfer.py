@@ -4,11 +4,10 @@ Created on 31 janv. 2015
 @author: inso
 """
 import logging
-import asyncio
+import time
 from ucoinpy.api import bma
 from ucoinpy.documents import Block, BlockId
 from PyQt5.QtCore import pyqtSignal, QObject
-import hashlib
 from enum import Enum
 
 
@@ -264,7 +263,7 @@ class Transfer(QObject):
         :param ucoinpy.documents.Block current_block: Current block of the main blockchain
         """
         self.blockid = current_block.blockid
-        self._metadata['time'] = current_block.mediantime
+        self._metadata['time'] = int(time.time())
 
     def _be_validating(self, block):
         """

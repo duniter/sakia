@@ -175,7 +175,6 @@ class Wallet(QObject):
         inputs = []
         cache = self.caches[community.currency]
 
-        logging.debug("Available inputs : {0}".format(cache.available_sources))
         buf_inputs = list(cache.available_sources)
         for s in cache.available_sources:
             value += s.amount
