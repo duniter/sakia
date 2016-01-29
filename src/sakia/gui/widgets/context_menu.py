@@ -144,8 +144,7 @@ class ContextMenu(QObject):
     async def send_money(self, identity):
         await TransferMoneyDialog.send_money_to_identity(self._app, self._account, self._password_asker,
                                                             self._community, identity)
-        #TODO: Send signal from account to refresh transfers
-        #self.ui.table_history.model().sourceModel().refresh_transfers()
+        self._app.refresh_transfers.emit()
 
     def view_wot(self, identity):
         self.view_identity_in_wot.emit(identity)
@@ -159,18 +158,16 @@ class ContextMenu(QObject):
     async def send_again(self, transfer):
         await TransferMoneyDialog.send_transfer_again(self._app, self._app.current_account,
                                      self._password_asker, self._community, transfer)
-        #TODO: Send signal from account to refresh transfers
-        #self.ui.table_history.model().sourceModel().refresh_transfers()
+        self._app.refresh_transfers.emit()
 
     def cancel_transfer(self, transfer):
-        reply = QMessageBox.warning(self, self.tr("Warning"),
+        reply = QMessageBox.warning(self.qmenu, self.tr("Warning"),
                              self.tr("""Are you sure ?
 This money transfer will be removed and not sent."""),
 QMessageBox.Ok | QMessageBox.Cancel)
         if reply == QMessageBox.Ok:
             transfer.cancel()
-        #TODO: Send signal from transfer to refresh transfers
-        #self.ui.table_history.model().sourceModel().refresh_transfers()
+        self._app.refresh_transfers.emit()
 
     @asyncify
     async def copy_transaction_to_clipboard(self, tx):

@@ -35,6 +35,7 @@ class Application(QObject):
 
     version_requested = pyqtSignal()
     view_identity_in_wot = pyqtSignal(Identity)
+    refresh_transfers = pyqtSignal()
 
     def __init__(self, qapp, loop, identities_registry):
         """

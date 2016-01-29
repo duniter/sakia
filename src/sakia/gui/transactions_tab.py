@@ -62,6 +62,7 @@ class TransactionsTabWidget(QObject):
 
         model.modelAboutToBeReset.connect(lambda: self.ui.table_history.setEnabled(False))
         model.modelReset.connect(lambda: self.ui.table_history.setEnabled(True))
+        self.app.refresh_transfers.connect(self.refresh)
 
         self.ui.progressbar.hide()
         self.refresh()
