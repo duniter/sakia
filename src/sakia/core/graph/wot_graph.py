@@ -1,4 +1,5 @@
 import logging
+import asyncio
 import networkx
 from .base_graph import BaseGraph
 from .constants import NodeStatus
@@ -65,14 +66,17 @@ class WoTGraph(BaseGraph):
 
         while len(explorable) > 0:
             current = explorable.pop()
-            certifier_list = await current.unique_valid_certifiers_of(self.app.identities_registry,
-                                                                                     self.community)
+            certifier_coro = asyncio.ensure_future(current.unique_valid_certifiers_of(self.app.identities_registry,
+                                                                                     self.community))
+            certified_coro = asyncio.ensure_future(current.unique_valid_certified_by(self.app.identities_registry,
+                                                                                    self.community))
+
+            certifier_list, certified_list = await asyncio.gather(certifier_coro, certified_coro)
+
             await self.add_certifier_list(certifier_list, current, account_identity)
             if to_identity.pubkey in [data['identity'].pubkey for data in certifier_list]:
                 return True
 
-            certified_list = await current.unique_valid_certified_by(self.app.identities_registry,
-                                                                                    self.community)
             await self.add_certified_list(certified_list, current, account_identity)
             if to_identity.pubkey in [data['identity'].pubkey for data in certified_list]:
                 return True
@@ -81,4 +85,5 @@ class WoTGraph(BaseGraph):
             for entry in certifier_list + certified_list:
                 if entry['identity'] not in explored + explorable:
                     explorable.append(entry['identity'])
+
         return False
