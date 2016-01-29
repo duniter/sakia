@@ -134,11 +134,8 @@ class ContextMenu(QObject):
         MemberDialog.open_dialog(self._app, self._account, self._community, identity)
 
     def add_as_contact(self, identity):
-        dialog = ConfigureContactDialog.from_identity( self.parent(), self._account, identity)
+        dialog = ConfigureContactDialog.from_identity(self._app, self.parent(), self._account, identity)
         dialog.exec_()
-        #TODO: Send signal from account to refresh contacts
-        # if result == QDialog.Accepted:
-        #    self.parent().window().refresh_contacts()
 
     @asyncify
     async def send_money(self, identity):

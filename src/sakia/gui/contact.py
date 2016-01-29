@@ -18,14 +18,14 @@ class ConfigureContactDialog(QDialog, Ui_ConfigureContactDialog):
     classdocs
     """
 
-    def __init__(self, account, parent=None, contact=None, index_edit=None):
+    def __init__(self, app, account, parent=None, contact=None, index_edit=None):
         """
         Constructor
         """
-        super().__init__()
+        super().__init__(parent)
         self.setupUi(self)
+        self.app = app
         self.account = account
-        self.main_window = parent
         self.index_edit = index_edit
         self.contact = contact
 
@@ -38,19 +38,19 @@ class ConfigureContactDialog(QDialog, Ui_ConfigureContactDialog):
             self.edit_pubkey.setText(self.contact['pubkey'])
 
     @classmethod
-    def from_identity(cls, parent, account, identity):
+    def from_identity(cls, app, parent, account, identity):
         contact = {
             'name': identity.uid,
             'pubkey': identity.pubkey
         }
-        return ConfigureContactDialog(account, parent, contact)
+        return ConfigureContactDialog(app, account, parent, contact)
 
     def accept(self):
         name = self.edit_name.text()
         pubkey = self.edit_pubkey.text()
         if self.index_edit is not None:
-            self.account.contacts[self.index_edit] = {'name': name,
-                          'pubkey': pubkey}
+            self.account.edit_contact(self.index_edit, {'name': name,
+                          'pubkey': pubkey})
             logging.debug(self.contact)
         else:
             try:
@@ -60,7 +60,7 @@ class ConfigureContactDialog(QDialog, Ui_ConfigureContactDialog):
                 QMessageBox.critical(self, self.tr("Contact already exists"),
                             str(e),
                             QMessageBox.Ok)
-        self.main_window.app.save(self.account)
+        self.app.save(self.account)
         super().accept()
 
     def name_edited(self, new_name):

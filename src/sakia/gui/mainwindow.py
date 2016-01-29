@@ -95,6 +95,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.app.current_account:
             self.password_asker = PasswordAskerDialog(self.app.current_account)
             self.community_view.change_account(self.app.current_account, self.password_asker)
+            self.app.current_account.contacts_changed.connect(self.refresh_contacts)
         self.refresh()
 
     @asyncify
@@ -143,21 +144,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     @pyqtSlot()
     def delete_contact(self):
         contact = self.sender().data()
-        self.app.current_account.contacts.remove(contact)
-        self.refresh_contacts()
+        self.app.current_account.remove_contacts(contact)
 
     @pyqtSlot()
     def edit_contact(self):
         index = self.sender().data()
-        dialog = ConfigureContactDialog(self.app.current_account, self, None, index)
-        result = dialog.exec_()
-        if result == QDialog.Accepted:
-            self.window().refresh_contacts()
+        dialog = ConfigureContactDialog(self.app, self.app.current_account, self, None, index)
+        dialog.exec_()
 
     def action_change_account(self, account_name):
+        self.app.accounts.contacts_changed.disconnect(self.refresh_contacts)
         self.app.change_current_account(self.app.get_account(account_name))
         self.password_asker = PasswordAskerDialog(self.app.current_account)
         self.community_view.change_account(self.app.current_account, self.password_asker)
+        self.app.accounts.contacts_changed.connect(self.refresh_contacts)
         self.refresh()
 
     @pyqtSlot()
@@ -185,14 +185,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                      self.password_asker)
 
     def open_add_contact_dialog(self):
-        dialog = ConfigureContactDialog(self.app.current_account, self)
-        result = dialog.exec_()
-        if result == QDialog.Accepted:
-            self.window().refresh_contacts()
+        dialog = ConfigureContactDialog(self.app, self.app.current_account, self)
+        dialog.exec_()
 
     def open_preferences_dialog(self):
         dialog = PreferencesDialog(self.app)
-        result = dialog.exec_()
+        dialog.exec_()
 
     def open_about_popup(self):
         """

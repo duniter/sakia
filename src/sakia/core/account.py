@@ -36,6 +36,7 @@ class Account(QObject):
     loading_finished = pyqtSignal(Community, list)
     wallets_changed = pyqtSignal()
     certification_accepted = pyqtSignal()
+    contacts_changed = pyqtSignal()
 
     def __init__(self, salt, pubkey, name, communities, wallets, contacts, identities_registry):
         """
@@ -155,6 +156,15 @@ class Account(QObject):
         if len(same_contact) > 0:
             raise ContactAlreadyExists(new_contact['name'], same_contact[0]['name'])
         self.contacts.append(new_contact)
+        self.contacts_changed.emit()
+
+    def edit_contact(self, index, new_data):
+        self.contacts[index] = new_data
+        self.contacts_changed.emit()
+
+    def remove_contact(self, contact):
+        self.contacts.remove(contact)
+        self.contacts_changed.emit()
 
     def add_community(self, community):
         """
