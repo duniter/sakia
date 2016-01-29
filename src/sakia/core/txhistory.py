@@ -336,7 +336,6 @@ class TxHistory():
 
             current_block = await self._get_block_doc(community, community.network.current_blockid.number)
             members_pubkeys = await community.members_pubkeys()
-            # We check if transactions VALIDATED are in the fork window now
             for transfer in [t for t in self._transfers
                              if t.state == TransferState.VALIDATED]:
                 transfer.run_state_transitions((True, current_block, MAX_CONFIRMATIONS))
@@ -358,7 +357,7 @@ class TxHistory():
                 ud_blocks = [ud['block_number'] for ud in self._dividends
                           if ud['state'] in (TransferState.AWAITING, TransferState.VALIDATING)]
                 blocks = tx_blocks + ud_blocks + \
-                         [max(0, self.latest_block - community.network.fork_window(members_pubkeys))]
+                         [max(0, self.latest_block - MAX_CONFIRMATIONS)]
                 block_from = min(set(blocks))
 
                 await self._wait_for_previous_refresh()
