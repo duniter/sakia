@@ -8,9 +8,10 @@ import logging
 import asyncio
 import aiohttp
 
-from PyQt5.QtWidgets import QDialog, QMenu, QMessageBox, QApplication
+from ucoinpy.documents import MalformedDocumentError
+from PyQt5.QtWidgets import QDialog, QMenu, QApplication
 from PyQt5.QtGui import QCursor
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
+from PyQt5.QtCore import pyqtSignal, QObject
 
 from ..gen_resources.community_cfg_uic import Ui_CommunityConfigurationDialog
 from ..models.peering import PeeringTreeModel
@@ -73,7 +74,7 @@ class StepPageInit(Step):
             self.config_dialog.label_error.setText(str(e))
         except aiohttp.errors.ClientError as e:
             self.config_dialog.label_error.setText(str(e))
-        except ValueError as e:
+        except (MalformedDocumentError, ValueError) as e:
             self.config_dialog.label_error.setText(str(e))
 
     @asyncify
@@ -101,7 +102,7 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
             self.config_dialog.label_error.setText(str(e))
         except aiohttp.errors.ClientError as e:
             self.config_dialog.label_error.setText(str(e))
-        except ValueError as e:
+        except (MalformedDocumentError, ValueError) as e:
             self.config_dialog.label_error.setText(str(e))
 
     @asyncify
@@ -144,7 +145,7 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
             self.config_dialog.label_error.setText(str(e))
         except aiohttp.errors.ClientError as e:
             self.config_dialog.label_error.setText(str(e))
-        except ValueError as e:
+        except (MalformedDocumentError, ValueError) as e:
             self.config_dialog.label_error.setText(str(e))
 
     def is_valid(self):

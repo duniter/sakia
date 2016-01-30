@@ -5,15 +5,13 @@ Created on 21 févr. 2015
 """
 
 from ucoinpy.documents.peer import Peer, Endpoint, BMAEndpoint
-from ucoinpy.documents import Block, BlockId
+from ucoinpy.documents import Block, BlockId, MalformedDocumentError
 from ...tools.exceptions import InvalidNodeCurrency
 from ...tools.decorators import asyncify
 from ucoinpy.api import bma as bma
 from ucoinpy.api.bma import ConnectionHandler
 
-import json
-from aiohttp.errors import ClientError, DisconnectedError, TimeoutError, \
-    WSClientDisconnectedError, WSServerHandshakeError, ClientResponseError
+from aiohttp.errors import WSClientDisconnectedError, WSServerHandshakeError, ClientResponseError
 from aiohttp.errors import ClientError, DisconnectedError
 from asyncio import TimeoutError
 import logging
@@ -588,11 +586,14 @@ class Node(QObject):
 
     def refresh_peer_data(self, peer_data):
         if "raw" in peer_data:
-            str_doc = "{0}{1}\n".format(peer_data['raw'],
-                                        peer_data['signature'])
-            peer_doc = Peer.from_signed_raw(str_doc)
-            pubkey = peer_data['pubkey']
-            self.neighbour_found.emit(peer_doc, pubkey)
+            try:
+                str_doc = "{0}{1}\n".format(peer_data['raw'],
+                                            peer_data['signature'])
+                peer_doc = Peer.from_signed_raw(str_doc)
+                pubkey = peer_data['pubkey']
+                self.neighbour_found.emit(peer_doc, pubkey)
+            except MalformedDocumentError as e:
+                logging.debug(str(e))
         else:
             logging.debug("Incorrect leaf reply")
 
