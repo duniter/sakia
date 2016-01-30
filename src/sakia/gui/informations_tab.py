@@ -12,6 +12,7 @@ from ..gen_resources.informations_tab_uic import Ui_InformationsTabWidget
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from ..tools.exceptions import NoPeerAvailable
 from .widgets import Busy
+from ..core.money import Referentials
 
 
 class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
@@ -79,7 +80,7 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
             # display float values
             localized_ud = await self.account.current_ref(block_ud['dividend'],
                                                                self.community,
-                                                               self.app)\
+                                                               self.app) \
                 .diff_localized(True, self.app.preferences['international_system_of_units'])
 
             computed_dividend = await self.community.computed_dividend()
@@ -108,16 +109,16 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                     actual_growth = block_ud['dividend'] / (block_ud_minus_1['monetaryMass'] / block_ud['membersCount'])
             else:
                 localized_mass_minus_1_per_member = QLocale().toString(
-                    float(0), 'f', self.app.preferences['digits_after_comma']
+                        float(0), 'f', self.app.preferences['digits_after_comma']
                 )
                 localized_mass_minus_1 = QLocale().toString(
-                    float(0), 'f', self.app.preferences['digits_after_comma']
+                        float(0), 'f', self.app.preferences['digits_after_comma']
                 )
                 actual_growth = float(0)
 
             # set infos in label
             self.label_general.setText(
-                self.tr("""
+                    self.tr("""
                 <table cellpadding="5">
                 <tr><td align="right"><b>{:}</b></div></td><td>{:} {:}</td></tr>
                 <tr><td align="right"><b>{:}</b></td><td>{:} {:}</td></tr>
@@ -169,7 +170,7 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
         if block_ud:
             # set infos in label
             self.label_rules.setText(
-                self.tr("""
+                    self.tr("""
                 <table cellpadding="5">
                 <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
                 <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
@@ -196,8 +197,28 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
             self.label_rules.setText(self.tr('No Universal Dividend created yet.'))
 
         # set infos in label
+        ref_template = """
+        <table cellpadding="5">
+        <tr><th>{:}</th><td>{:}</td></tr>
+        <tr><th>{:}</th><td>{:}</td></tr>
+        <tr><th>{:}</th><td>{:}</td></tr>
+        <tr><th>{:}</th><td>{:}</td></tr>
+        </table>
+        """
+        templates = []
+        for ref in Referentials:
+            templates.append(ref_template.format(self.tr('Name'), ref.translated_name(),
+                                        self.tr('Units'), ref.units(self.community.currency),
+                                        self.tr('Formula'), ref.formula(),
+                                        self.tr('Description'), ref.description()
+                                        )
+                             )
+
+        self.label_referentials.setText('<hr>'.join(templates))
+
+        # set infos in label
         self.label_money.setText(
-            self.tr("""
+                self.tr("""
             <table cellpadding="5">
             <tr><td align="right"><b>{:2.0%} / {:} days</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:} {:}</td></tr>
@@ -209,30 +230,30 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
             <tr><td align="right"><b>{:2.0%}</b></td><td>{:}</td></tr>
             </table>
             """).format(
-                params['c'],
-                params['dt'] / 86400,
-                self.tr('Fundamental growth (c)'),
-                params['ud0'],
-                self.tr('Initial Universal Dividend UD(0) in'),
-                self.community.short_currency,
-                params['dt'] / 86400,
-                self.tr('Time period (dt) in days (86400 seconds) between two UD'),
-                params['medianTimeBlocks'],
-                self.tr('Number of blocks used for calculating median time'),
-                params['avgGenTime'],
-                self.tr('The average time in seconds for writing 1 block (wished time)'),
-                params['dtDiffEval'],
-                self.tr('The number of blocks required to evaluate again PoWMin value'),
-                params['blocksRot'],
-                self.tr('The number of previous blocks to check for personalized difficulty'),
-                params['percentRot'],
-                self.tr('The percent of previous issuers to reach for personalized difficulty')
-            )
+                        params['c'],
+                        params['dt'] / 86400,
+                        self.tr('Fundamental growth (c)'),
+                        params['ud0'],
+                        self.tr('Initial Universal Dividend UD(0) in'),
+                        self.community.short_currency,
+                        params['dt'] / 86400,
+                        self.tr('Time period (dt) in days (86400 seconds) between two UD'),
+                        params['medianTimeBlocks'],
+                        self.tr('Number of blocks used for calculating median time'),
+                        params['avgGenTime'],
+                        self.tr('The average time in seconds for writing 1 block (wished time)'),
+                        params['dtDiffEval'],
+                        self.tr('The number of blocks required to evaluate again PoWMin value'),
+                        params['blocksRot'],
+                        self.tr('The number of previous blocks to check for personalized difficulty'),
+                        params['percentRot'],
+                        self.tr('The percent of previous issuers to reach for personalized difficulty')
+                )
         )
 
         # set infos in label
         self.label_wot.setText(
-            self.tr("""
+                self.tr("""
             <table cellpadding="5">
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
@@ -242,19 +263,20 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             </table>
             """).format(
-                params['sigDelay'] / 86400,
-                self.tr('Minimum delay between 2 identical certifications (in days)'),
-                params['sigValidity'] / 86400,
-                self.tr('Maximum age of a valid signature (in days)'),
-                params['sigQty'],
-                self.tr('Minimum quantity of signatures to be part of the WoT'),
-                params['sigWoT'],
-                self.tr('Minimum quantity of valid made certifications to be part of the WoT for distance rule'),
-                params['msValidity'] / 86400,
-                self.tr('Maximum age of a valid membership (in days)'),
-                params['stepMax'],
-                self.tr('Maximum distance between each WoT member and a newcomer'),
-            )
+                        params['sigDelay'] / 86400,
+                        self.tr('Minimum delay between 2 identical certifications (in days)'),
+                        params['sigValidity'] / 86400,
+                        self.tr('Maximum age of a valid signature (in days)'),
+                        params['sigQty'],
+                        self.tr('Minimum quantity of signatures to be part of the WoT'),
+                        params['sigWoT'],
+                        self.tr(
+                            'Minimum quantity of valid made certifications to be part of the WoT for distance rule'),
+                        params['msValidity'] / 86400,
+                        self.tr('Maximum age of a valid membership (in days)'),
+                        params['stepMax'],
+                        self.tr('Maximum distance between each WoT member and a newcomer'),
+                )
         )
         self.busy.hide()
 

@@ -7,6 +7,23 @@ class RelativeZSum(BaseReferential):
     _NAME_STR_ = QT_TRANSLATE_NOOP('RelativeZSum', 'Relat Z-sum')
     _REF_STR_ = QT_TRANSLATE_NOOP('RelativeZSum', "{0} {1}R0 {2}")
     _UNITS_STR_ = QT_TRANSLATE_NOOP('RelativeZSum', "R0 {0}")
+    _FORMULA_STR_ = QT_TRANSLATE_NOOP('RelativeZSum',
+                                      """R0 = (R / UD(t)) - (( M(t-1) / N(t) ) / UD(t))
+                                        <br >
+                                        <table>
+                                        <tr><td>R0</td><td>Relative value at zero sum</td></tr>
+                                        <tr><td>R</td><td>Relative value</td></tr>
+                                        <tr><td>M</td><td>Monetary mass</td></tr>
+                                        <tr><td>N</td><td>Members count</td></tr>
+                                        <tr><td>t</td><td>Last UD time</td></tr>
+                                        <tr><td>t-1</td><td>Penultimate UD time</td></tr>
+                                        </table>""")
+    _DESCRIPTION_STR_ = QT_TRANSLATE_NOOP('RelativeZSum',
+                                          """Relative at zero sum is used to display the difference between
+                                            the relative value and the average relative value.
+                                            If it is positive, the value is above the average value, and if it is negative,
+                                            the value is under the average value.
+                                           """.replace('\n', '<br >'))
 
     def __init__(self, amount, community, app, block_number=None):
         super().__init__(amount, community, app, block_number)
@@ -19,9 +36,17 @@ class RelativeZSum(BaseReferential):
     def units(self):
         return QCoreApplication.translate("RelativeZSum", RelativeZSum._UNITS_STR_).format(self.community.short_currency)
 
+    @classmethod
+    def formula(cls):
+        return QCoreApplication.translate('RelativeZSum', RelativeZSum._FORMULA_STR_)
+
+    @classmethod
+    def description(cls):
+        return QCoreApplication.translate("RelativeZSum", RelativeZSum._DESCRIPTION_STR_)
+
     @property
     def diff_units(self):
-        return self.units
+        return Relative.units
 
     async def value(self):
         """

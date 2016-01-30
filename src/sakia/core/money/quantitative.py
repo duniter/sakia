@@ -6,6 +6,15 @@ class Quantitative(BaseReferential):
     _NAME_STR_ = QT_TRANSLATE_NOOP('Quantitative', 'Units')
     _REF_STR_ = QT_TRANSLATE_NOOP('Quantitative', "{0} {1}{2}")
     _UNITS_STR_ = QT_TRANSLATE_NOOP('Quantitative', "{0}")
+    _FORMULA_STR_ = QT_TRANSLATE_NOOP('Quantitative',
+                                      """Q = Q
+                                        <br >
+                                        <table>
+                                        <tr><td>Q</td><td>Quantitative value</td></tr>
+                                        </table>
+                                      """
+                                      )
+    _DESCRIPTION_STR_ = QT_TRANSLATE_NOOP('Quantitative', "Base referential of the money. Units values are used here.")
 
     def __init__(self, amount, community, app, block_number=None):
         super().__init__(amount, community, app, block_number)
@@ -18,9 +27,17 @@ class Quantitative(BaseReferential):
     def units(self):
         return QCoreApplication.translate("Quantitative", Quantitative._UNITS_STR_).format(self.community.short_currency)
 
+    @classmethod
+    def formula(cls):
+        return QCoreApplication.translate('Quantitative', Quantitative._FORMULA_STR_)
+
+    @classmethod
+    def description(cls):
+        return QCoreApplication.translate("Quantitative", Quantitative._DESCRIPTION_STR_)
+
     @property
     def diff_units(self):
-        return self.units
+        return Quantitative.units
 
     async def value(self):
         """

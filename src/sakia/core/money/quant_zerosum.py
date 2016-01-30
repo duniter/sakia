@@ -7,6 +7,24 @@ class QuantitativeZSum(BaseReferential):
     _NAME_STR_ = QT_TRANSLATE_NOOP('QuantitativeZSum', 'Quant Z-sum')
     _REF_STR_ = QT_TRANSLATE_NOOP('QuantitativeZSum', "{0} {1}Q0 {2}")
     _UNITS_STR_ = QT_TRANSLATE_NOOP('QuantitativeZSum', "Q0 {0}")
+    _FORMULA_STR_ = QT_TRANSLATE_NOOP('QuantitativeZSum',
+                                      """Z0 = Q - ( M(t-1) / N(t) )
+                                        <br >
+                                        <table>
+                                        <tr><td>Z0</td><td>Quantitative value at zero sum</td></tr>
+                                        <tr><td>Q</td><td>Quantitative value</td></tr>
+                                        <tr><td>M</td><td>Monetary mass</td></tr>
+                                        <tr><td>N</td><td>Members count</td></tr>
+                                        <tr><td>t</td><td>Last UD time</td></tr>
+                                        <tr><td>t-1</td><td>Penultimate UD time</td></tr>
+                                        </table>"""
+                                      )
+    _DESCRIPTION_STR_ = QT_TRANSLATE_NOOP('QuantitativeZSum',
+                                          """Quantitative at zero sum is used to display the difference between
+                                            the quantitative value and the average quantitative value.
+                                            If it is positive, the value is above the average value, and if it is negative,
+                                            the value is under the average value.
+                                           """.replace('\n', '<br >'))
 
     def __init__(self, amount, community, app, block_number=None):
         super().__init__(amount, community, app, block_number)
@@ -19,6 +37,14 @@ class QuantitativeZSum(BaseReferential):
     def units(self):
         return QCoreApplication.translate("QuantitativeZSum", QuantitativeZSum._UNITS_STR_).format(self.community.short_currency)
 
+    @classmethod
+    def formula(cls):
+        return QCoreApplication.translate('QuantitativeZSum', QuantitativeZSum._FORMULA_STR_)
+
+    @classmethod
+    def description(cls):
+        return QCoreApplication.translate("QuantitativeZSum", QuantitativeZSum._DESCRIPTION_STR_)
+
     @property
     def diff_units(self):
         return self.units
@@ -27,12 +53,14 @@ class QuantitativeZSum(BaseReferential):
         """
         Return quantitative value of amount minus the average value
 
-        t = last UD block
-        t-1 = penultimate UD block
+        Z0 = Q - ( M(t-1) / N(t) )
+
+        Z0 = Quantitative value at zero sum
+        Q = Quantitative value
+        t = last UD block time
+        t-1 = penultimate UD block time
         M = Monetary mass
         N = Members count
-
-        zsum value = value - ( M(t-1) / N(t) )
 
         :param int amount:   Value
         :param sakia.core.community.Community community: Community instance

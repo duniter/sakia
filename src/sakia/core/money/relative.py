@@ -1,11 +1,31 @@
 from PyQt5.QtCore import QObject, QCoreApplication, QT_TRANSLATE_NOOP, QLocale
 from .base_referential import BaseReferential
 
+from PyQt5.QtCore import QCoreApplication, QT_TRANSLATE_NOOP, QLocale
+
 
 class Relative(BaseReferential):
     _NAME_STR_ = QT_TRANSLATE_NOOP('Relative', 'UD')
-    _REF_STR_ = QT_TRANSLATE_NOOP('Relative',  "{0} {1}UD {2}")
-    _UNITS_STR_ = QT_TRANSLATE_NOOP('Relative',  "UD {0}")
+    _REF_STR_ = QT_TRANSLATE_NOOP('Relative', "{0} {1}UD {2}")
+    _UNITS_STR_ = QT_TRANSLATE_NOOP('Relative', "UD {0}")
+    _FORMULA_STR_ = QT_TRANSLATE_NOOP('Relative',
+                                      """R = Q / UD(t)
+                                        <br >
+                                        <table>
+                                        <tr><td>R</td><td>Relative value</td></tr>
+                                        <tr><td>Q</td><td>Quantitative value</td></tr>
+                                        <tr><td>UD</td><td>Universal Dividend</td></tr>
+                                        <tr><td>t</td><td>Last UD time</td></tr>
+                                        </table>"""
+                                      )
+    _DESCRIPTION_STR_ = QT_TRANSLATE_NOOP('Relative',
+                                          """Relative referential of the money.
+                                          Relative value R is calculated by dividing the quantitative value Q by the last
+                                           Universal Dividend UD.
+                                          This referential is the most practical one to display prices and accounts.
+                                          No money creation or destruction is apparent here and every account tend to
+                                           the average.
+                                          """.replace('\n', '<br >'))
 
     def __init__(self, amount, community, app, block_number=None):
         super().__init__(amount, community, app, block_number)
@@ -18,6 +38,14 @@ class Relative(BaseReferential):
     def units(self):
         return QCoreApplication.translate("Relative", Relative._UNITS_STR_).format(self.community.short_currency)
 
+    @classmethod
+    def formula(cls):
+        return QCoreApplication.translate('Relative', Relative._FORMULA_STR_)
+
+    @classmethod
+    def description(cls):
+        return QCoreApplication.translate("Relative", Relative._DESCRIPTION_STR_)
+
     @property
     def diff_units(self):
         return self.units
@@ -25,6 +53,9 @@ class Relative(BaseReferential):
     async def value(self):
         """
         Return relative value of amount
+
+        value = amount / UD(t)
+
         :param int amount:   Value
         :param sakia.core.community.Community community: Community instance
         :return: float
@@ -87,9 +118,9 @@ class Relative(BaseReferential):
             localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
 
         if units or international_system:
-            return QCoreApplication.translate("Relative", Relative._REF_STR_)\
+            return QCoreApplication.translate("Relative", Relative._REF_STR_) \
                 .format(localized_value,
-                    prefix,
-                    self.community.short_currency if units else "")
+                        prefix,
+                        self.community.short_currency if units else "")
         else:
             return localized_value
