@@ -230,9 +230,12 @@ class HistoryTableModel(QAbstractTableModel):
 
     async def data_received(self, transfer):
         amount = transfer.metadata['amount']
-        deposit = await self.account.current_ref(transfer.metadata['amount'], self.community,
-                                                 self.app, transfer.blockid.number)\
-            .diff_localized(international_system=self.app.preferences['international_system_of_units'])
+        try:
+            deposit = await self.account.current_ref(transfer.metadata['amount'], self.community,
+                                                     self.app, transfer.blockid.number)\
+                .diff_localized(international_system=self.app.preferences['international_system_of_units'])
+        except NoPeerAvailable:
+            deposit = "Could not compute"
         comment = ""
         if transfer.metadata['comment'] != "":
             comment = transfer.metadata['comment']
@@ -254,9 +257,12 @@ class HistoryTableModel(QAbstractTableModel):
 
     async def data_sent(self, transfer):
         amount = transfer.metadata['amount']
-        paiment = await self.account.current_ref(transfer.metadata['amount'], self.community,
-                                                 self.app, transfer.blockid.number)\
-            .diff_localized(international_system=self.app.preferences['international_system_of_units'])
+        try:
+            paiment = await self.account.current_ref(transfer.metadata['amount'], self.community,
+                                                     self.app, transfer.blockid.number)\
+                .diff_localized(international_system=self.app.preferences['international_system_of_units'])
+        except NoPeerAvailable:
+            paiment = "Could not compute"
         comment = ""
         if transfer.metadata['comment'] != "":
             comment = transfer.metadata['comment']
@@ -278,8 +284,11 @@ class HistoryTableModel(QAbstractTableModel):
 
     async def data_dividend(self, dividend):
         amount = dividend['amount']
-        deposit = await self.account.current_ref(dividend['amount'], self.community, self.app, dividend['block_number'])\
-            .diff_localized(international_system=self.app.preferences['international_system_of_units'])
+        try:
+            deposit = await self.account.current_ref(dividend['amount'], self.community, self.app, dividend['block_number'])\
+                .diff_localized(international_system=self.app.preferences['international_system_of_units'])
+        except NoPeerAvailable:
+            deposit = "Could not compute"
         comment = ""
         receiver = self.account.name
         date_ts = dividend['time']
@@ -301,8 +310,11 @@ class HistoryTableModel(QAbstractTableModel):
         transfers_data = []
         if self.community:
             requests_coro = []
+            data_list = []
+            count = 0
             for transfer in self.transfers():
                 coro = None
+                count += 1
                 if type(transfer) is Transfer:
                     if transfer.metadata['issuer'] == self.account.pubkey:
                         coro = asyncio.ensure_future(self.data_sent(transfer))
@@ -312,8 +324,11 @@ class HistoryTableModel(QAbstractTableModel):
                     coro = asyncio.ensure_future(self.data_dividend(transfer))
                 if coro:
                     requests_coro.append(coro)
+                if count % 25 == 0:
+                    gathered_list = await asyncio.gather(*requests_coro)
+                    requests_coro = []
+                    data_list.extend(gathered_list)
 
-            data_list = await asyncio.gather(*requests_coro)
             for data in data_list:
                 transfers_data.append(data)
         self.transfers_data = transfers_data
