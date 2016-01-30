@@ -72,8 +72,8 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.tab_identities.view_in_wot.connect(lambda: self.tabs.setCurrentWidget(self.tab_wot.widget))
         self.tab_history.view_in_wot.connect(self.tab_wot.draw_graph)
         self.tab_history.view_in_wot.connect(lambda: self.tabs.setCurrentWidget(self.tab_wot.widget))
-        self.tab_identities.money_sent.connect(lambda: self.tab_history.widget.table_history.model().sourceModel().refresh_transfers())
-        self.tab_wot.money_sent.connect(lambda: self.tab_history.widget.table_history.model().sourceModel().refresh_transfers())
+        self.tab_identities.money_sent.connect(lambda: self.tab_history.ui.table_history.model().sourceModel().refresh_transfers())
+        self.tab_wot.money_sent.connect(lambda: self.tab_history.ui.table_history.model().sourceModel().refresh_transfers())
 
         self.tabs.addTab(self.tab_history.widget,
                                  QIcon(':/icons/tx_icon'),
@@ -306,8 +306,8 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.refresh_status()
 
     def referential_changed(self):
-        if self.community and self.tab_history.table_history.model():
-            self.tab_history.table_history.model().sourceModel().refresh_transfers()
+        if self.community and self.tab_history.ui.table_history.model():
+            self.tab_history.ui.table_history.model().sourceModel().refresh_transfers()
             self.tab_history.refresh_balance()
             self.tab_informations.refresh()
 
