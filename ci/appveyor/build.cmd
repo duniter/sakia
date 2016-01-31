@@ -12,7 +12,7 @@ pyrcc5 -version
 lrelease -version
 
 pip install -r requirements.txt
-pip install pyinstaller
+pip install https://github.com/pyinstaller/pyinstaller/archive/develop.zip
 
 python gen_resources.py
 if %errorlevel% neq 0 exit /b 1s
