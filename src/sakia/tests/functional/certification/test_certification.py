@@ -73,7 +73,7 @@ class TestCertificationDialog(unittest.TestCase, QuamashTest):
             QTest.mouseClick(certification_dialog.ui.radio_pubkey, Qt.LeftButton)
             QTest.keyClicks(certification_dialog.ui.edit_pubkey, "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn")
             QTest.mouseClick(certification_dialog.ui.button_box.button(QDialogButtonBox.Ok), Qt.LeftButton)
-            await asyncio.sleep(2)
+            await asyncio.sleep(3)
             topWidgets = QApplication.topLevelWidgets()
             for w in topWidgets:
                 if type(w) is QMessageBox:
