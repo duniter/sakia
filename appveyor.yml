@@ -57,7 +57,7 @@ build_script:
   - echo %errorlevel%
 
 artifacts:
-  - path: build
+  - path: dist
     name: sakia-win$(PYTHON_ARCH)
 # upload to releases
 deploy:
