@@ -5,7 +5,7 @@ from PyQt5.QtCore import QLocale
 from sakia.core.net import Node
 from sakia.tests import QuamashTest
 from sakia.tests.mocks.bma import nice_blockchain
-from distutils.version import StrictVersion
+from pkg_resources import parse_version
 
 
 class TestNode(unittest.TestCase, QuamashTest):
@@ -59,7 +59,7 @@ BASIC_MERKLED_API ucoin.inso.ovh 80
                       "endpoints": ["BASIC_MERKLED_API metab.ucoin.io 88.174.120.187 9201"],
                       "pubkey": "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk",
                       "last_change": 1448199706.6561477, "currency": "meta_brouzouf", "sofware": "ucoin"}
-        node = Node.from_json("meta_brouzouf", json_data, StrictVersion('0.11.5'))
+        node = Node.from_json("meta_brouzouf", json_data, parse_version('0.11.5'))
         self.assertEqual(node.version, "0.12.0")
         self.assertEqual(node.state, 1)
         self.assertEqual(node.fork_window, 0)
@@ -86,7 +86,7 @@ BASIC_MERKLED_API ucoin.inso.ovh 80
 """,
                       "pubkey": "8Fi1VSTbjkXguwThF4v2ZxC5whK7pwG2vcGTkPUPjPGU",
                       "last_change": 1448199706.6561477, "software": "ucoin"}
-        node = Node.from_json("meta_brouzouf", json_data, StrictVersion('0.12.0'))
+        node = Node.from_json("meta_brouzouf", json_data, parse_version('0.12.0'))
         self.assertEqual(node.version, "0.12.0")
         self.assertEqual(node.state, 1)
         self.assertEqual(node.fork_window, 0)
