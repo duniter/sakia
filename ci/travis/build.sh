@@ -19,7 +19,8 @@ python gen_translations.py
 
 if [ $TRAVIS_OS_NAME == "osx" ]
 then
-    pyinstaller src/sakia/main.py --debug --additional-hooks-dir hooks
+    pyi-makespec src/sakia/main.py --debug --additional-hooks-dir hooks
+    cat main.spec
 elif [ $TRAVIS_OS_NAME == "linux" ]
 then
     pyinstaller src/sakia/main.py --debug --additional-hooks-dir hooks
