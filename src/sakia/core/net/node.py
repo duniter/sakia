@@ -204,7 +204,7 @@ class Node(QObject):
     def close_ws(self):
         for ws in self._ws_connection.values():
             if ws:
-                asyncio.wait_for(ws.close(), timeout=15)
+                asyncio.as_completed(ws.close(), timeout=15)
 
     @property
     def pubkey(self):

@@ -50,10 +50,11 @@ def async_exception_handler(loop, context):
         for ignored in ("Unclosed", "socket.gaierror"):
             if ignored in line:
                 return
-    for line in traceback.format_exception(*exc_info):
-        for ignored in ("Unclosed", "socket.gaierror"):
-            if ignored in line:
-                return
+    if exc_info:
+        for line in traceback.format_exception(*exc_info):
+            for ignored in ("Unclosed", "socket.gaierror"):
+                if ignored in line:
+                    return
     os._exit(1)
 
 
