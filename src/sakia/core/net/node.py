@@ -19,7 +19,7 @@ import time
 import jsonschema
 import asyncio
 import aiohttp
-from distutils.version import StrictVersion
+from pkg_resources import parse_version
 from socket import gaierror
 
 from PyQt5.QtCore import QObject, pyqtSignal
@@ -123,7 +123,7 @@ class Node(QObject):
 
         :param str currency: the currency of the community
         :param dict data: the json data of the node
-        :param StrictVersion file_version: the version of the file
+        :param NormalizedVersion file_version: the version of the file
         :return: A new node
         :rtype: Node
         """
@@ -160,7 +160,7 @@ class Node(QObject):
         if 'fork_window' in data:
             fork_window = data['fork_window']
 
-        if file_version < StrictVersion("0.12"):
+        if file_version < parse_version("0.12"):
             for endpoint_data in data['endpoints']:
                 endpoints.append(Endpoint.from_inline(endpoint_data))
 

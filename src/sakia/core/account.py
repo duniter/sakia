@@ -11,7 +11,7 @@ from ucoinpy.key import SigningKey
 import logging
 import time
 import asyncio
-from distutils.version import StrictVersion
+from pkg_resources import parse_version
 
 from PyQt5.QtCore import QObject, pyqtSignal
 
@@ -106,9 +106,9 @@ class Account(QObject):
         salt = json_data['salt']
         pubkey = json_data['pubkey']
         if 'file_version' in json_data:
-            file_version = StrictVersion(json_data['file_version'])
+            file_version = parse_version(json_data['file_version'])
         else:
-            file_version = StrictVersion('0.11.5')
+            file_version = parse_version('0.11.5')
 
         name = json_data['name']
         contacts = []

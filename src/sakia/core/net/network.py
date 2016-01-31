@@ -63,7 +63,7 @@ class Network(QObject):
         last stopped sakia
 
         :param dict json_data: Nodes in json format
-        :param distutils.version.StrictVersion file_version: The node version
+        :param NormalizedVersion file_version: The node version
         """
         for data in json_data:
             node = Node.from_json(self.currency, data, file_version)
@@ -94,7 +94,7 @@ class Network(QObject):
 
         :param str currency: The currency name of a community
         :param dict json_data: A json_data view of a network
-        :param distutils.version.StrictVersion file_version: the version of the json file
+        :param NormalizedVersion file_version: the version of the json file
         """
         nodes = []
         for data in json_data:

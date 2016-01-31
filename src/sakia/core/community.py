@@ -62,7 +62,7 @@ class Community(QObject):
         Load a community from json
 
         :param dict json_data: The community as a dict in json format
-        :param distutils.version.StrictVersion file_version: the file sakia version
+        :param NormalizedVersion file_version: the file sakia version
         """
         currency = json_data['currency']
         network = Network.from_json(currency, json_data['peers'], file_version)
