@@ -206,11 +206,15 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
         </table>
         """
         templates = []
-        for ref in Referentials:
+        for ref_class in Referentials:
+            ref = ref_class(0, self.community, self.app, None)
+            # print(ref_class.__class__.__name__)
+            # if ref_class.__class__.__name__ == 'RelativeToPast':
+            #     continue
             templates.append(ref_template.format(self.tr('Name'), ref.translated_name(),
-                                        self.tr('Units'), ref.units(self.community.currency),
-                                        self.tr('Formula'), ref.formula(),
-                                        self.tr('Description'), ref.description()
+                                        self.tr('Units'), ref.units,
+                                        self.tr('Formula'), ref.formula,
+                                        self.tr('Description'), ref.description
                                         )
                              )
 

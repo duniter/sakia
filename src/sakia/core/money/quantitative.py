@@ -27,12 +27,12 @@ class Quantitative(BaseReferential):
     def units(self):
         return QCoreApplication.translate("Quantitative", Quantitative._UNITS_STR_).format(self.community.short_currency)
 
-    @classmethod
-    def formula(cls):
+    @property
+    def formula(self):
         return QCoreApplication.translate('Quantitative', Quantitative._FORMULA_STR_)
 
-    @classmethod
-    def description(cls):
+    @property
+    def description(self):
         return QCoreApplication.translate("Quantitative", Quantitative._DESCRIPTION_STR_)
 
     @property

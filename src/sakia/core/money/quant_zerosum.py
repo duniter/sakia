@@ -37,12 +37,12 @@ class QuantitativeZSum(BaseReferential):
     def units(self):
         return QCoreApplication.translate("QuantitativeZSum", QuantitativeZSum._UNITS_STR_).format(self.community.short_currency)
 
-    @classmethod
-    def formula(cls):
+    @property
+    def formula(self):
         return QCoreApplication.translate('QuantitativeZSum', QuantitativeZSum._FORMULA_STR_)
 
-    @classmethod
-    def description(cls):
+    @property
+    def description(self):
         return QCoreApplication.translate("QuantitativeZSum", QuantitativeZSum._DESCRIPTION_STR_)
 
     @property

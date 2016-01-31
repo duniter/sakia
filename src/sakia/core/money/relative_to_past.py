@@ -7,6 +7,23 @@ class RelativeToPast(BaseReferential):
     _NAME_STR_ = QT_TRANSLATE_NOOP('RelativeToPast', 'Past UD')
     _REF_STR_ = QT_TRANSLATE_NOOP('RelativeToPast', "{0} {1}UD({2}) {3}")
     _UNITS_STR_ = QT_TRANSLATE_NOOP('RelativeToPast', "UD({0}) {1}")
+    _FORMULA_STR_ = QT_TRANSLATE_NOOP('RelativeToPast',
+                                      """R = Q / UD(t)
+                                        <br >
+                                        <table>
+                                        <tr><td>R</td><td>Relative value</td></tr>
+                                        <tr><td>Q</td><td>Quantitative value</td></tr>
+                                        <tr><td>UD</td><td>Universal Dividend</td></tr>
+                                        <tr><td>t</td><td>Time when the value appeared</td></tr>
+                                        </table>"""
+                                      )
+    _DESCRIPTION_STR_ = QT_TRANSLATE_NOOP('RelativeToPast',
+                                          """Relative referential using UD at the Time when the value appeared.
+                                          Relative value R is calculated by dividing the quantitative value Q by the
+                                           Universal Dividend UD at the Time when the value appeared.
+                                          All past UD created are displayed with a value of 1 UD.
+                                          This referential is practical to remember what was the value at the Time.
+                                          """.replace('\n', '<br >'))
 
     def __init__(self, amount, community, app, block_number=None):
         super().__init__(amount, community, app, block_number)
@@ -19,6 +36,13 @@ class RelativeToPast(BaseReferential):
     def units(self):
         return QCoreApplication.translate("RelativeToPast", RelativeToPast._UNITS_STR_).format('t',
                                                                                                self.community.short_currency)
+    @property
+    def formula(self):
+        return QCoreApplication.translate('RelativeToPast', RelativeToPast._FORMULA_STR_)
+
+    @property
+    def description(self):
+        return QCoreApplication.translate("RelativeToPast", RelativeToPast._DESCRIPTION_STR_)
 
     @property
     def diff_units(self):
