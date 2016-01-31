@@ -20,5 +20,5 @@ if %errorlevel% neq 0 exit /b 1s
 python gen_translations.py
 if %errorlevel% neq 0 exit /b 1
 
-pyinstaller src/sakia/main.py --additional-hooks-dir hooks
+pyinstaller sakia.spec
 if %errorlevel% neq 0 exit /b 1
