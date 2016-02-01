@@ -1,7 +1,10 @@
 # -*- mode: python -*-
-from PyInstaller.compat import is_darwin
+from PyInstaller.compat import is_darwin, is_win
+import ctypes
 
 block_cipher = None
+
+
 
 a = Analysis(['src/sakia/main.py'],
              pathex=['.'],
@@ -19,6 +22,10 @@ if is_darwin:
     a.binaries = a.binaries - TOC([
      ('/usr/local/lib/libsodium.so', None, None),])
 
+if is_win:
+    a.binaries = a.binaries + TOC([('libsodium.dll',  ctypes.util.find_library('libsodium.dll'), 'BINARY')])
+    print(a.binaries)
+
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
 
@@ -26,10 +33,11 @@ exe = EXE(pyz,
           a.scripts,
           exclude_binaries=True,
           name='sakia',
-          debug=True,
+          debug=False,
           strip=False,
           upx=True,
-          console=True )
+          console=False,
+          icon='sakia.ico')
 
 coll = COLLECT(exe,
                a.binaries,
