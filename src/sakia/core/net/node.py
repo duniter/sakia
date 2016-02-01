@@ -63,7 +63,7 @@ class Node(QObject):
         self._software = software
         self._version = version
         self._fork_window = fork_window
-        self._refresh_counter = 1
+        self._refresh_counter = 19
         self._ws_connection = {'block': None,
                     'peer': None}
 
