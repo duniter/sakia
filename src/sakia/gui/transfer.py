@@ -11,8 +11,8 @@ from PyQt5.QtCore import QRegExp, Qt, QObject
 from PyQt5.QtGui import QRegExpValidator
 
 from ..gen_resources.transfer_uic import Ui_TransferMoneyDialog
-from sakia.gui.widgets import toast
-from sakia.gui.widgets.dialogs import QAsyncMessageBox, QMessageBox
+from .widgets import toast
+from .widgets.dialogs import QAsyncMessageBox, QMessageBox
 from ..tools.decorators import asyncify
 
 

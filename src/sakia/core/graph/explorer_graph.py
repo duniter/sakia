@@ -3,7 +3,7 @@ import networkx
 import asyncio
 from PyQt5.QtCore import pyqtSignal
 from .base_graph import BaseGraph
-from sakia.core.graph.constants import EdgeStatus, NodeStatus
+from ..graph.constants import EdgeStatus, NodeStatus
 
 
 class ExplorerGraph(BaseGraph):
@@ -77,24 +77,17 @@ class ExplorerGraph(BaseGraph):
                     logging.debug("New identity explored : {pubkey}".format(pubkey=current_identity.pubkey[:5]))
                     self.graph_changed.emit()
 
-                    certifier_coro = asyncio.ensure_future(current_identity.unique_valid_certifiers_of(self.app.identities_registry,
-                                                                                             self.community))
-
-                    certified_coro = asyncio.ensure_future(current_identity.unique_valid_certified_by(self.app.identities_registry,
-                                                                                            self.community))
-
-                    certifier_list, certified_list = await asyncio.gather(certifier_coro, certified_coro)
-
-                    certifier_coro = asyncio.ensure_future(self.add_certifier_list(certifier_list,
-                                                                                   current_identity, identity))
+                    certifier_list = await current_identity.unique_valid_certifiers_of(self.app.identities_registry,
+                                                                                             self.community)
+                    await self.add_certifier_list(certifier_list, current_identity, identity)
                     logging.debug("New identity certifiers : {pubkey}".format(pubkey=current_identity.pubkey[:5]))
-                    certified_coro = asyncio.ensure_future(self.add_certified_list(certified_list,
-                                                                                   current_identity, identity))
-                    certifier_coro.add_done_callback(lambda f: self.graph_changed.emit())
-                    certified_coro.add_done_callback(lambda f: self.graph_changed.emit())
-                    await asyncio.gather(certifier_coro, certified_coro)
+                    self.graph_changed.emit()
 
+                    certified_list = await current_identity.unique_valid_certified_by(self.app.identities_registry,
+                                                                                            self.community)
+                    await self.add_certified_list(certified_list, current_identity, identity)
                     logging.debug("New identity certified : {pubkey}".format(pubkey=current_identity.pubkey[:5]))
+                    self.graph_changed.emit()
 
                     for cert in certified_list + certifier_list:
                         if cert['identity'] not in explorable[step + 1]:

@@ -2,8 +2,8 @@ import networkx
 from PyQt5.QtCore import QPoint, pyqtSignal
 from PyQt5.QtWidgets import QGraphicsScene
 
-from sakia.gui.views.edges import WotEdge
-from sakia.gui.views.nodes import WotNode
+from ..edges import WotEdge
+from ..nodes import WotNode
 
 from .base_scene import BaseScene
 

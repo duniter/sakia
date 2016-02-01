@@ -6,8 +6,8 @@ Created on 22 mai 2014
 import re
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QMessageBox, QFileDialog
 
-from sakia.tools.exceptions import Error
-from sakia.gen_resources.import_account_uic import Ui_ImportAccountDialog
+from ..tools.exceptions import Error
+from ..gen_resources.import_account_uic import Ui_ImportAccountDialog
 
 
 class ImportAccountDialog(QDialog, Ui_ImportAccountDialog):

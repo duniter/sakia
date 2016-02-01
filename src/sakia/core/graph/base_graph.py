@@ -2,8 +2,8 @@ import logging
 import time
 import networkx
 from PyQt5.QtCore import QLocale, QDateTime, QObject
-from sakia.tools.exceptions import NoPeerAvailable
-from sakia.core.net.network import MAX_CONFIRMATIONS
+from ...tools.exceptions import NoPeerAvailable
+from ..net.network import MAX_CONFIRMATIONS
 from .constants import EdgeStatus, NodeStatus
 
 
@@ -107,7 +107,6 @@ class BaseGraph(QObject):
                             QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
                         ),
                         'cert_time': certifier['cert_time'],
-                        'confirmation_text': self.confirmation_text(certifier['block_number'])
                     }
 
                     self.nx_graph.add_edge(certifier['identity'].pubkey, identity.pubkey, attr_dict=arc, weight=len(certifier_list))
@@ -145,7 +144,7 @@ class BaseGraph(QObject):
                             QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
                         ),
                         'cert_time': certified['cert_time'],
-                        'confirmation_text': self.confirmation_text(certified['block_number'])
+                        'confirmation_text': self.confirmation_text(certified['cert_time'])
                     }
 
                     self.nx_graph.add_edge(identity.pubkey, certified['identity'].pubkey, attr_dict=arc,

@@ -11,7 +11,7 @@ from ucoinpy.documents.block import Block
 
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from ..tools.exceptions import NoPeerAvailable
-from sakia.gui.widgets.busy import Busy
+from .widgets.busy import Busy
 
 
 @enum.unique

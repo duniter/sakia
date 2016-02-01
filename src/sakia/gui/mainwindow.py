@@ -27,7 +27,7 @@ from ..core import money
 from ..core.community import Community
 from ..tools.decorators import asyncify
 from ..__init__ import __version__
-from sakia.gui.widgets import toast
+from .widgets import toast
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):

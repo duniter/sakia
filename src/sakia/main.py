@@ -18,8 +18,8 @@ import PyQt5.QtSvg
 
 from quamash import QSelectorEventLoop
 from PyQt5.QtWidgets import QApplication
-from sakia.gui.mainwindow import MainWindow
-from sakia.core.app import Application
+from .gui.mainwindow import MainWindow
+from .core.app import Application
 
 
 def async_exception_handler(loop, context):

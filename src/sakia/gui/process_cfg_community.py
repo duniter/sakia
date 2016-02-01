@@ -17,7 +17,7 @@ from ..gen_resources.community_cfg_uic import Ui_CommunityConfigurationDialog
 from ..models.peering import PeeringTreeModel
 from ..core import Community
 from ..core.net import Node
-from sakia.gui.widgets import toast
+from .widgets import toast
 from .widgets.dialogs import QAsyncMessageBox
 from ..tools.decorators import asyncify
 

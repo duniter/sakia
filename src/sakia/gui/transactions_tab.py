@@ -10,7 +10,7 @@ from ..models.txhistory import HistoryTableModel, TxFilterProxyModel
 from ..tools.exceptions import NoPeerAvailable
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from .widgets.context_menu import ContextMenu
-from sakia.gui.widgets import toast
+from .widgets import toast
 
 
 class TransactionsTabWidget(QObject):
