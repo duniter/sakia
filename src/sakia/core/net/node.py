@@ -160,7 +160,7 @@ class Node(QObject):
         if 'fork_window' in data:
             fork_window = data['fork_window']
 
-        if file_version < parse_version("0.12"):
+        if parse_version("0.11") >= file_version:
             for endpoint_data in data['endpoints']:
                 endpoints.append(Endpoint.from_inline(endpoint_data))
 
