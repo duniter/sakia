@@ -61,6 +61,9 @@ if is_darwin:
     app = BUNDLE(exe,
          name='sakia.app',
          icon='sakia.ico',
-         bundle_identifier=None)
+         bundle_identifier=None,
+         info_plist={
+        'NSHighResolutionCapable': 'True'
+        },)
 
 
