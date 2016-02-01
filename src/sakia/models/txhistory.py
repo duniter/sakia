@@ -312,7 +312,8 @@ class HistoryTableModel(QAbstractTableModel):
             requests_coro = []
             data_list = []
             count = 0
-            for transfer in self.transfers():
+            transfers = self.transfers()
+            for transfer in transfers:
                 coro = None
                 count += 1
                 if type(transfer) is Transfer:
@@ -328,6 +329,9 @@ class HistoryTableModel(QAbstractTableModel):
                     gathered_list = await asyncio.gather(*requests_coro)
                     requests_coro = []
                     data_list.extend(gathered_list)
+            # One last gathering
+            gathered_list = await asyncio.gather(*requests_coro)
+            data_list.extend(gathered_list)
 
             for data in data_list:
                 transfers_data.append(data)
