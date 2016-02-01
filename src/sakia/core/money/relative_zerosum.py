@@ -46,7 +46,7 @@ class RelativeZSum(BaseReferential):
 
     @property
     def diff_units(self):
-        return Relative.units
+        return QCoreApplication.translate("Relative", Relative._UNITS_STR_).format(self.community.short_currency)
 
     async def value(self):
         """
@@ -104,7 +104,7 @@ class RelativeZSum(BaseReferential):
             localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
 
         if units or international_system:
-            return QCoreApplication.translate("RelativeZSum", RelativeZSum._REF_STR_)\
+            return QCoreApplication.translate("Relative", Relative._REF_STR_)\
                 .format(localized_value, prefix, self.community.short_currency if units else "")
         else:
             return localized_value

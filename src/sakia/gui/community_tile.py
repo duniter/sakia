@@ -72,7 +72,7 @@ class CommunityTile(QFrame):
                                             international_system=self.app.preferences['international_system_of_units'])
             if current_block['monetaryMass']:
                 localized_monetary_mass = await self.app.current_account.current_ref(current_block['monetaryMass'],
-                                                        self.community, self.app).localized(units=True,
+                                                        self.community, self.app).diff_localized(units=True,
                                             international_system=self.app.preferences['international_system_of_units'])
             else:
                 localized_monetary_mass = ""
