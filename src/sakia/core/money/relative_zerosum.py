@@ -46,7 +46,7 @@ class RelativeZSum(BaseReferential):
 
     @property
     def diff_units(self):
-        return Relative.units
+        return QCoreApplication.translate("Relative", Relative._UNITS_STR_).format(self.community.short_currency)
 
     async def value(self):
         """

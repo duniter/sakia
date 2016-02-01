@@ -47,7 +47,7 @@ class QuantitativeZSum(BaseReferential):
 
     @property
     def diff_units(self):
-        return self.units
+        return QCoreApplication.translate("Quantitative", Quantitative._UNITS_STR_).format(self.community.short_currency)
 
     async def value(self):
         """
