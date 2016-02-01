@@ -160,7 +160,7 @@ class Node(QObject):
         if 'fork_window' in data:
             fork_window = data['fork_window']
 
-        if parse_version("0.11") >= file_version:
+        if parse_version("0.11") <= file_version and parse_version("0.12a1") > file_version:
             for endpoint_data in data['endpoints']:
                 endpoints.append(Endpoint.from_inline(endpoint_data))
 
@@ -169,8 +169,7 @@ class Node(QObject):
 
             peer = Peer("1", currency, pubkey, BlockId(0, Block.Empty_Hash), endpoints, "SOMEFAKESIGNATURE")
         else:
-            if 'peer' in data:
-                peer = Peer.from_signed_raw(data['peer'])
+            peer = Peer.from_signed_raw(data['peer'])
 
         node = cls(peer, uid, pubkey, block,
                    state, last_change,
