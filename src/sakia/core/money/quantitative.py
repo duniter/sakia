@@ -37,7 +37,7 @@ class Quantitative(BaseReferential):
 
     @property
     def diff_units(self):
-        return Quantitative.units
+        return self.units
 
     async def value(self):
         """
