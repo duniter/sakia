@@ -129,7 +129,7 @@ class TestRelativeZSum(unittest.TestCase, QuamashTest):
         referential = RelativeZSum(90, community, app, None)
         async def exec_test():
             value = await referential.diff_localized(units=True)
-            self.assertEqual(value, "0.9 R0 TC")
+            self.assertEqual(value, "0.9 UD TC")
         self.lp.run_until_complete(exec_test())
 
     @patch('sakia.core.Community')
@@ -146,7 +146,7 @@ class TestRelativeZSum(unittest.TestCase, QuamashTest):
         referential = RelativeZSum(90, community, app, None)
         async def exec_test():
             value = await referential.diff_localized(units=True, international_system=True)
-            self.assertEqual(value, "900.000000 mR0 TC")
+            self.assertEqual(value, "900.000000 mUD TC")
         self.lp.run_until_complete(exec_test())
 
     @patch('sakia.core.Community')
@@ -180,5 +180,5 @@ class TestRelativeZSum(unittest.TestCase, QuamashTest):
         referential = RelativeZSum(90, community, app, None)
         async def exec_test():
             value = await referential.diff_localized(units=False, international_system=True)
-            self.assertEqual(value, "900.000000 mR0 ")
+            self.assertEqual(value, "900.000000 mUD ")
         self.lp.run_until_complete(exec_test())
