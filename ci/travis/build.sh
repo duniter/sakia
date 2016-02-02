@@ -20,6 +20,8 @@ python gen_translations.py
 if [ $TRAVIS_OS_NAME == "osx" ]
 then
     pyinstaller sakia.spec
+    cp -rv dist/sakia/* dist/sakia.app/Contents/MacOS
+    rm -rfv dist/sakia
 elif [ $TRAVIS_OS_NAME == "linux" ]
 then
     pyinstaller sakia.spec

@@ -63,7 +63,8 @@ if is_darwin:
          icon='sakia.ico',
          bundle_identifier=None,
          info_plist={
-        'NSHighResolutionCapable': 'True'
+        'NSHighResolutionCapable': 'True',
+        'LSBackgroundOnly': 'False'
         },)
 
 
