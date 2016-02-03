@@ -29,6 +29,11 @@ class PasswordAskerDialog(QDialog, Ui_PasswordAskerDialog):
         self.password = ""
         self.remember = False
 
+    def change_account(self, account):
+        self.remember = False
+        self.password = ""
+        self.account = account
+
     def async_exec(self):
         future = asyncio.Future()
         if not self.remember:

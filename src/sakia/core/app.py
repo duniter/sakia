@@ -36,6 +36,7 @@ class Application(QObject):
     version_requested = pyqtSignal()
     view_identity_in_wot = pyqtSignal(Identity)
     refresh_transfers = pyqtSignal()
+    account_imported = pyqtSignal(str)
 
     def __init__(self, qapp, loop, identities_registry):
         """
@@ -49,7 +50,7 @@ class Application(QObject):
         super().__init__()
         self.qapp = qapp
         self.accounts = {}
-        self.current_account = None
+        self._current_account = None
         self.loop = loop
         self.available_version = (True,
                                   __version__,
@@ -120,6 +121,10 @@ class Application(QObject):
             else:
                 logging.debug("Couldn't load translation")
 
+    @property
+    def current_account(self):
+        return self._current_account
+
     def get_account(self, name):
         """
         Load an account then return it
@@ -163,8 +168,8 @@ class Application(QObject):
         """
         account.stop_coroutines()
         self.accounts.pop(account.name)
-        if self.current_account == account:
-            self.current_account = None
+        if self._current_account == account:
+            self._current_account = None
         with open(config.parameters['data'], 'w') as outfile:
             json.dump(self.jsonify(), outfile, indent=4, sort_keys=True)
         if self.preferences['account'] == account.name:
@@ -179,21 +184,21 @@ class Application(QObject):
         .. note:: Emits the application pyqtSignal loading_progressed
         during cache refresh
         """
-        if self.current_account is not None:
+        if self._current_account is not None:
             self.stop_current_account()
 
-        self.current_account = account
-        if self.current_account is not None:
-            self.current_account.start_coroutines()
+        self._current_account = account
+        if self._current_account is not None:
+            self._current_account.start_coroutines()
 
     def stop_current_account(self):
         """
         Save the account to the cache
         and stop the coroutines
         """
-        self.save_cache(self.current_account)
-        self.save_notifications(self.current_account)
-        self.current_account.stop_coroutines()
+        self.save_cache(self._current_account)
+        self.save_notifications(self._current_account)
+        self._current_account.stop_coroutines()
 
     def load(self):
         """
@@ -461,7 +466,7 @@ class Application(QObject):
         account.name = name
         self.add_account(account)
         self.save(account)
-        self.change_current_account(account)
+        self.account_imported.emit(account.name)
 
     def export_account(self, file, account):
         """
@@ -498,7 +503,7 @@ class Application(QObject):
         return data
 
     def stop(self):
-        if self.current_account:
+        if self._current_account:
             self.stop_current_account()
 
         self.save_registries()

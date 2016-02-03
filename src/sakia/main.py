@@ -68,7 +68,6 @@ if __name__ == '__main__':
 
     with loop:
         app = Application.startup(sys.argv, sakia, loop)
-        window = MainWindow(app)
-        window.startup()
+        window = MainWindow.startup(app)
         loop.run_forever()
     sys.exit()
