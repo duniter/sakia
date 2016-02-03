@@ -342,7 +342,8 @@ class Node(QObject):
             except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
                 logging.debug("{0} : {1}".format(str(e), self.pubkey[:5]))
                 self.state = Node.OFFLINE
-            except jsonschema.ValidationError:
+            except jsonschema.ValidationError as e:
+                logging.debug(str(e))
                 logging.debug("Validation error : {0}".format(self.pubkey[:5]))
                 self.state = Node.CORRUPTED
             finally:
@@ -369,7 +370,8 @@ class Node(QObject):
         except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
             logging.debug("{0} : {1}".format(str(e), self.pubkey[:5]))
             self.state = Node.OFFLINE
-        except jsonschema.ValidationError:
+        except jsonschema.ValidationError as e:
+            logging.debug(str(e))
             logging.debug("Validation error : {0}".format(self.pubkey[:5]))
             self.state = Node.CORRUPTED
 
@@ -400,7 +402,8 @@ class Node(QObject):
             except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
                 logging.debug("{0} : {1}".format(str(e), self.pubkey[:5]))
                 self.state = Node.OFFLINE
-            except jsonschema.ValidationError:
+            except jsonschema.ValidationError as e:
+                logging.debug(str(e))
                 logging.debug("Validation error : {0}".format(self.pubkey[:5]))
                 self.state = Node.CORRUPTED
             finally:
@@ -443,7 +446,8 @@ class Node(QObject):
         except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
             logging.debug("{0} : {1}".format(type(e).__name__, self.pubkey[:5]))
             self.state = Node.OFFLINE
-        except jsonschema.ValidationError:
+        except jsonschema.ValidationError as e:
+            logging.debug(str(e))
             logging.debug("Validation error : {0}".format(self.pubkey[:5]))
             self.state = Node.CORRUPTED
 
@@ -470,7 +474,8 @@ class Node(QObject):
         except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
             logging.debug("{0} : {1}".format(type(e).__name__, self.pubkey[:5]))
             self.state = Node.OFFLINE
-        except jsonschema.ValidationError:
+        except jsonschema.ValidationError as e:
+            logging.debug(str(e))
             logging.debug("Validation error : {0}".format(self.pubkey[:5]))
             self.state = Node.CORRUPTED
 
@@ -505,7 +510,8 @@ class Node(QObject):
         except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
             logging.debug("{0} : {1}".format(type(e).__name__, self.pubkey[:5]))
             self.state = Node.OFFLINE
-        except jsonschema.ValidationError:
+        except jsonschema.ValidationError as e:
+            logging.debug(str(e))
             logging.debug("Validation error : {0}".format(self.pubkey[:5]))
             self.state = Node.CORRUPTED
 
@@ -537,7 +543,8 @@ class Node(QObject):
             except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
                 logging.debug("{0} : {1}".format(str(e), self.pubkey[:5]))
                 self.state = Node.OFFLINE
-            except jsonschema.ValidationError:
+            except jsonschema.ValidationError as e:
+                logging.debug(str(e))
                 logging.debug("Validation error : {0}".format(self.pubkey[:5]))
                 self.state = Node.CORRUPTED
             finally:
@@ -567,7 +574,8 @@ class Node(QObject):
                     except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
                         logging.debug("{0} : {1}".format(type(e).__name__, self.pubkey[:5]))
                         self.state = Node.OFFLINE
-                    except jsonschema.ValidationError:
+                    except jsonschema.ValidationError as e:
+                        logging.debug(str(e))
                         logging.debug("Validation error : {0}".format(self.pubkey[:5]))
                         self.state = Node.CORRUPTED
                 self._last_merkle = {'root' : peers_data['root'],
@@ -579,7 +587,8 @@ class Node(QObject):
         except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
             logging.debug("{0} : {1}".format(type(e).__name__, self.pubkey))
             self.state = Node.OFFLINE
-        except jsonschema.ValidationError:
+        except jsonschema.ValidationError as e:
+            logging.debug(str(e))
             logging.debug("Validation error : {0}".format(self.pubkey))
             self.state = Node.CORRUPTED
 
