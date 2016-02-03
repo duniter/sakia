@@ -230,9 +230,13 @@ class HistoryTableModel(QAbstractTableModel):
 
     async def data_received(self, transfer):
         amount = transfer.metadata['amount']
+        if transfer.blockid:
+            block_number = transfer.blockid.number
+        else:
+            block_number = None
         try:
             deposit = await self.account.current_ref(transfer.metadata['amount'], self.community,
-                                                     self.app, transfer.blockid.number)\
+                                                     self.app, block_number)\
                 .diff_localized(international_system=self.app.preferences['international_system_of_units'])
         except NoPeerAvailable:
             deposit = "Could not compute"
@@ -246,20 +250,21 @@ class HistoryTableModel(QAbstractTableModel):
 
         date_ts = transfer.metadata['time']
         txid = transfer.metadata['txid']
-        if transfer.blockid:
-            block_number = transfer.blockid.number
-        else:
-            block_number = None
 
         return (date_ts, sender, "", deposit,
                 comment, transfer.state, txid,
                 transfer.metadata['issuer'], block_number, amount)
 
     async def data_sent(self, transfer):
+        if transfer.blockid:
+            block_number = transfer.blockid.number
+        else:
+            block_number = None
+
         amount = transfer.metadata['amount']
         try:
             paiment = await self.account.current_ref(transfer.metadata['amount'], self.community,
-                                                     self.app, transfer.blockid.number)\
+                                                     self.app, block_number)\
                 .diff_localized(international_system=self.app.preferences['international_system_of_units'])
         except NoPeerAvailable:
             paiment = "Could not compute"
@@ -273,11 +278,6 @@ class HistoryTableModel(QAbstractTableModel):
 
         date_ts = transfer.metadata['time']
         txid = transfer.metadata['txid']
-        if transfer.blockid:
-            block_number = transfer.blockid.number
-        else:
-            block_number = None
-
         return (date_ts, receiver, paiment,
                 "", comment, transfer.state, txid,
                 transfer.metadata['receiver'], block_number, amount)
