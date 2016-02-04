@@ -469,8 +469,7 @@ class Account(QObject):
         selfcert = await self_identity.selfcert(community)
 
         membership = Membership(PROTOCOL_VERSION, community.currency,
-                                selfcert.pubkey, blockid.number,
-                                blockid.sha_hash, mstype, selfcert.uid,
+                                selfcert.pubkey, blockid, mstype, selfcert.uid,
                                 selfcert.timestamp, None)
         key = SigningKey(self.salt, password)
         membership.sign([key])
