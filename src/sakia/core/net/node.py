@@ -203,7 +203,7 @@ class Node(QObject):
     def close_ws(self):
         for ws in self._ws_connection.values():
             if ws:
-                asyncio.as_completed(ws.close(), timeout=15)
+                asyncio.as_completed(ws.close(), timeout=2)
 
     @property
     def pubkey(self):
@@ -324,8 +324,9 @@ class Node(QObject):
             try:
                 conn_handler = self.endpoint.conn_handler()
                 block_websocket = bma.ws.Block(conn_handler)
-                self._ws_connection['block'] = block_websocket.connect()
-                async with self._ws_connection['block'] as ws:
+                ws_connection = block_websocket.connect()
+                async with ws_connection as ws:
+                    self._ws_connection['block'] = ws
                     logging.debug("Connected successfully to block ws : {0}".format(self.pubkey[:5]))
                     async for msg in ws:
                         if msg.tp == aiohttp.MsgType.text:
@@ -525,8 +526,9 @@ class Node(QObject):
             try:
                 conn_handler = self.endpoint.conn_handler()
                 peer_websocket = bma.ws.Peer(conn_handler)
-                self._ws_connection['peer'] = peer_websocket.connect()
-                async with self._ws_connection['peer'] as ws:
+                ws_connection = peer_websocket.connect()
+                async with ws_connection as ws:
+                    self._ws_connection['peer'] = ws
                     logging.debug("Connected successfully to peer ws : {0}".format(self.pubkey[:5]))
                     async for msg in ws:
                         if msg.tp == aiohttp.MsgType.text:
