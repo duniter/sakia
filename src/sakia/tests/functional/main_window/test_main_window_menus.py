@@ -15,13 +15,13 @@ class MainWindowMenusTest(unittest.TestCase, QuamashTest):
         QLocale.setDefault(QLocale("en_GB"))
 
         self.application = Application(self.qapplication, self.lp, None)
-        self.main_window = MainWindow(self.application)
+        self.main_window = MainWindow.startup(self.application)
 
     def tearDown(self):
         self.tearDownQuamash()
 
     def test_menubar(self):
-        children = self.main_window.menubar.children()
+        children = self.main_window.ui.menubar.children()
         menus = []
         """:type: list[QMenu]"""
         for child in children:
@@ -33,7 +33,7 @@ class MainWindowMenusTest(unittest.TestCase, QuamashTest):
         self.assertEqual(menus[2].objectName(), 'menu_help')
 
     def test_menu_account(self):
-        actions = self.main_window.menu_account.actions()
+        actions = self.main_window.ui.menu_account.actions()
         """:type: list[QAction]"""
         self.assertEqual('action_configure_parameters', actions[1].objectName())
         self.assertEqual('action_add_account', actions[2].objectName())
@@ -43,7 +43,7 @@ class MainWindowMenusTest(unittest.TestCase, QuamashTest):
         self.assertEqual(9, len(actions))
 
     def test_menu_actions(self):
-        actions = self.main_window.menu_help.actions()
+        actions = self.main_window.ui.menu_help.actions()
         """:type: list[QAction]"""
         self.assertEqual(len(actions), 1)
         self.assertEqual(actions[0].objectName(), 'actionAbout')

@@ -153,6 +153,7 @@ class MainWindow(QObject):
             main_window.community_view.change_account(app.current_account, main_window.password_asker)
             main_window.app.current_account.contacts_changed.connect(main_window.refresh_contacts)
         main_window.refresh()
+        return main_window
 
     @asyncify
     async def open_add_account_dialog(self, checked=False):
@@ -254,7 +255,7 @@ class MainWindow(QObject):
         """
         Open about popup window
         """
-        aboutDialog = QDialog(self)
+        aboutDialog = QDialog(self.widget)
         aboutUi = Ui_AboutPopup()
         aboutUi.setupUi(aboutDialog)
 

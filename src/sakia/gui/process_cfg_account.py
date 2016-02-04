@@ -124,7 +124,7 @@ class StepPageCommunities(Step):
         if len(self.config_dialog.app.accounts) == 1:
             self.config_dialog.app.preferences['account'] = self.config_dialog.account.name
         self.config_dialog.app.save(self.config_dialog.account)
-        self.config_dialog.app.current_account = self.config_dialog.account
+        self.config_dialog.app.change_current_account(self.config_dialog.account)
 
     def display_page(self):
         logging.debug("Communities DISPLAY")

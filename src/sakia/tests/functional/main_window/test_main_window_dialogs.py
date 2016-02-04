@@ -15,14 +15,14 @@ class MainWindowDialogsTest(unittest.TestCase, QuamashTest):
         QLocale.setDefault(QLocale("en_GB"))
 
         self.application = Application(self.qapplication, self.lp, IdentitiesRegistry())
-        self.main_window = MainWindow(self.application)
+        self.main_window = MainWindow.startup(self.application)
 
     def tearDown(self):
         self.tearDownQuamash()
 
     def test_action_about(self):
         #select menu
-        self.main_window.actionAbout.trigger()
+        self.main_window.ui.actionAbout.trigger()
         widgets = self.qapplication.topLevelWidgets()
         for widget in widgets:
             if isinstance(widget, QDialog):
@@ -35,7 +35,7 @@ class MainWindowDialogsTest(unittest.TestCase, QuamashTest):
         #asynchronous test, cause dialog is waiting user response
         QTimer.singleShot(1, self._async_test_action_add_account)
         #select menu
-        self.main_window.action_add_account.trigger()
+        self.main_window.ui.action_add_account.trigger()
 
     def _async_test_action_add_account(self):
         widgets = self.qapplication.topLevelWidgets()
@@ -66,7 +66,7 @@ class MainWindowDialogsTest(unittest.TestCase, QuamashTest):
     #
     def test_action_export_account(self):
         #select menu
-        self.main_window.action_export.trigger()
+        self.main_window.ui.action_export.trigger()
 
         widgets = self.qapplication.topLevelWidgets()
         for widget in widgets:
