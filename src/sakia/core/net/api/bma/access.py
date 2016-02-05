@@ -3,7 +3,7 @@ from ucoinpy.api import bma
 from .....tools.exceptions import NoPeerAvailable
 from ..... import __version__
 import logging
-from aiohttp.errors import ClientError
+from aiohttp.errors import ClientError, ServerDisconnectedError
 import asyncio
 import random
 from socket import gaierror
@@ -243,7 +243,7 @@ class BmaAccess(QObject):
                     if '404' in str(e) or '400' in str(e):
                         raise
                     tries += 1
-                except (ClientError, gaierror, asyncio.TimeoutError) as e:
+                except (ClientError, ServerDisconnectedError, gaierror, asyncio.TimeoutError) as e:
                     tries += 1
                 except jsonschema.ValidationError as e:
                     logging.debug(str(e))
@@ -275,7 +275,7 @@ class BmaAccess(QObject):
                     if '404' in str(e) or '400' in str(e):
                         raise
                     tries += 1
-                except (ClientError, gaierror, asyncio.TimeoutError) as e:
+                except (ClientError, ServerDisconnectedError, gaierror, asyncio.TimeoutError) as e:
                     tries += 1
                 except jsonschema.ValidationError as e:
                     logging.debug(str(e))
@@ -318,8 +318,6 @@ class BmaAccess(QObject):
         except ValueError as e:
             if '404' in str(e) or '400' in str(e):
                 raise
-        except (ClientError, gaierror):
-            pass
-        except asyncio.TimeoutError:
+        except (ClientError, ServerDisconnectedError, gaierror, asyncio.TimeoutError) as e:
             pass
         return tuple(result)
