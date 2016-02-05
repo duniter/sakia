@@ -35,12 +35,13 @@ class MainWindow(QObject):
     classdocs
     """
 
-    def __init__(self, app, homescreen, community_view, widget, ui,
+    def __init__(self, app, account, homescreen, community_view, widget, ui,
                  label_icon, label_status, label_time, combo_referential,
                  password_asker):
         """
         Init
         :param sakia.core.app.Application app: application
+        :param sakia.core.Account account: the account
         :param HomeScreenWidgetcreen homescreen: the homescreen
         :param CommunityView community_view: the community view
         :param QMainWindow widget: the widget of the main window
@@ -55,6 +56,7 @@ class MainWindow(QObject):
         # Set up the user interface from Designer.
         super().__init__()
         self.app = app
+        self.account = account
         self.initialized = False
         self.password_asker = password_asker
         self.import_dialog = None
@@ -130,7 +132,7 @@ class MainWindow(QObject):
     @classmethod
     def startup(cls, app):
         qmainwindow = QMainWindow()
-        main_window = cls(app, HomeScreenWidget(app, None),
+        main_window = cls(app, None, HomeScreenWidget(app, None),
                           CommunityWidget(app, None, None),
                           qmainwindow, Ui_MainWindow(),
                           QLabel("", qmainwindow), QLabel("", qmainwindow),
@@ -138,12 +140,12 @@ class MainWindow(QObject):
                           PasswordAskerDialog(None))
         app.version_requested.connect(main_window.latest_version_requested)
         app.account_imported.connect(main_window.import_account_accepted)
+        app.account_changed.connect(main_window.change_account)
         main_window._init_ui()
         main_window._init_homescreen()
         main_window._init_community_view()
 
         main_window.update_time()
-        # FIXME : Need python 3.5 self.app.get_last_version()
         if app.preferences['maximized']:
             main_window.widget.showMaximized()
         else:
@@ -155,20 +157,30 @@ class MainWindow(QObject):
         main_window.refresh()
         return main_window
 
+    def change_account(self):
+        if self.account:
+            self.account.contacts_changed.disconnect(self.refresh_contacts)
+        self.account = self.app.current_account
+        self.password_asker.change_account(self.account)
+        self.community_view.change_account(self.account, self.password_asker)
+        if self.account:
+            self.account.contacts_changed.connect(self.refresh_contacts)
+        self.refresh()
+
     @asyncify
     async def open_add_account_dialog(self, checked=False):
         dialog = ProcessConfigureAccount(self.app, None)
         result = await dialog.async_exec()
         if result == QDialog.Accepted:
-            self.action_change_account(self.app.current_account.name)
+            self.action_change_account(self.account.name)
 
     @asyncify
     async def open_configure_account_dialog(self, checked=False):
-        dialog = ProcessConfigureAccount(self.app, self.app.current_account)
+        dialog = ProcessConfigureAccount(self.app, self.account)
         result = await dialog.async_exec()
         if result == QDialog.Accepted:
-            if self.app.current_account:
-                self.action_change_account(self.app.current_account.name)
+            if self.account:
+                self.action_change_account(self.account.name)
             else:
                 self.refresh()
 
@@ -180,8 +192,8 @@ class MainWindow(QObject):
 
     @pyqtSlot(str)
     def referential_changed(self, index):
-        if self.app.current_account:
-            self.app.current_account.set_display_referential(index)
+        if self.account:
+            self.account.set_display_referential(index)
             if self.community_view:
                 self.community_view.referential_changed()
                 self.homescreen.referential_changed()
@@ -201,37 +213,30 @@ class MainWindow(QObject):
     @pyqtSlot()
     def delete_contact(self):
         contact = self.sender().data()
-        self.app.current_account.remove_contacts(contact)
+        self.account.remove_contacts(contact)
 
     @pyqtSlot()
     def edit_contact(self):
         index = self.sender().data()
-        dialog = ConfigureContactDialog(self.app, self.app.current_account, self, None, index)
+        dialog = ConfigureContactDialog(self.app, self.account, self, None, index)
         dialog.exec_()
 
     def action_change_account(self, account_name):
-        if self.app.current_account:
-            self.app.current_account.contacts_changed.disconnect(self.refresh_contacts)
         self.app.change_current_account(self.app.get_account(account_name))
-        self.password_asker.change_account(self.app.current_account)
-        self.community_view.change_account(self.app.current_account, self.password_asker)
-        if self.app.current_account:
-            self.app.current_account.contacts_changed.connect(self.refresh_contacts)
-        self.refresh()
 
     @pyqtSlot()
     def action_open_add_community(self):
         dialog = ProcessConfigureCommunity(self.app,
-                                           self.app.current_account, None,
+                                           self.account, None,
                                            self.password_asker)
         if dialog.exec_() == QDialog.Accepted:
-            self.app.save(self.app.current_account)
+            self.app.save(self.account)
             dialog.community.start_coroutines()
             self.homescreen.refresh()
 
     def open_transfer_money_dialog(self):
         dialog = TransferMoneyDialog(self.app,
-                                     self.app.current_account,
+                                     self.account,
                                      self.password_asker,
                                      self.community_view.community,
                                      None)
@@ -240,11 +245,11 @@ class MainWindow(QObject):
 
     def open_certification_dialog(self):
         CertificationDialog.open_dialog(self.app,
-                                     self.app.current_account,
+                                     self.account,
                                      self.password_asker)
 
     def open_add_contact_dialog(self):
-        dialog = ConfigureContactDialog(self.app, self.app.current_account, self)
+        dialog = ConfigureContactDialog(self.app, self.account, self)
         dialog.exec_()
 
     def open_preferences_dialog(self):
@@ -331,8 +336,8 @@ class MainWindow(QObject):
 
     def refresh_contacts(self):
         self.ui.menu_contacts_list.clear()
-        if self.app.current_account:
-            for index, contact in enumerate(self.app.current_account.contacts):
+        if self.account:
+            for index, contact in enumerate(self.account.contacts):
                 contact_menu = self.ui.menu_contacts_list.addMenu(contact['name'])
                 edit_action = contact_menu.addAction(self.tr("Edit"))
                 edit_action.triggered.connect(self.edit_contact)
@@ -353,7 +358,7 @@ class MainWindow(QObject):
         self.homescreen.show()
         self.homescreen.refresh()
 
-        if self.app.current_account is None:
+        if self.account is None:
             self.widget.setWindowTitle(self.tr("sakia {0}").format(__version__))
             self.ui.action_add_a_contact.setEnabled(False)
             self.ui.actionCertification.setEnabled(False)
@@ -363,18 +368,15 @@ class MainWindow(QObject):
             self.ui.menu_contacts_list.setEnabled(False)
             self.combo_referential.setEnabled(False)
             self.status_label.setText(self.tr(""))
-            self.password_asker = None
         else:
-            self.password_asker = PasswordAskerDialog(self.app.current_account)
-
             self.combo_referential.blockSignals(True)
             self.combo_referential.clear()
             for ref in money.Referentials:
                 self.combo_referential.addItem(ref.translated_name())
+            logging.debug(self.app.preferences)
 
             self.combo_referential.setEnabled(True)
             self.combo_referential.blockSignals(False)
-            logging.debug(self.app.preferences)
             self.combo_referential.setCurrentIndex(self.app.preferences['ref'])
             self.ui.action_add_a_contact.setEnabled(True)
             self.ui.actionCertification.setEnabled(True)
@@ -382,7 +384,7 @@ class MainWindow(QObject):
             self.ui.menu_contacts_list.setEnabled(True)
             self.ui.action_configure_parameters.setEnabled(True)
             self.widget.setWindowTitle(self.tr("sakia {0} - Account : {1}").format(__version__,
-                                                                               self.app.current_account.name))
+                                                                               self.account.name))
 
         self.refresh_contacts()
 
@@ -413,7 +415,7 @@ class MainWindow(QObject):
                 path = selected_file[0]
             else:
                 path = selected_file[0] + ".acc"
-            self.app.export_account(path, self.app.current_account)
+            self.app.export_account(path, self.account)
 
     def eventFilter(self, target, event):
         """
@@ -423,8 +425,6 @@ class MainWindow(QObject):
         :return: bool
         """
         if target == self.widget:
-            if event.type() == QEvent.Close:
-                self.app.stop()
             if event.type() == QEvent.LanguageChange:
                 self.ui.retranslateUi(self)
                 self.refresh()

@@ -11,6 +11,7 @@ import shutil
 import json
 import datetime
 import aiohttp
+import asyncio
 from pkg_resources import parse_version
 
 from PyQt5.QtCore import QObject, pyqtSignal, QTranslator, QCoreApplication, QLocale
@@ -37,6 +38,7 @@ class Application(QObject):
     view_identity_in_wot = pyqtSignal(Identity)
     refresh_transfers = pyqtSignal()
     account_imported = pyqtSignal(str)
+    account_changed = pyqtSignal()
 
     def __init__(self, qapp, loop, identities_registry):
         """
@@ -161,12 +163,13 @@ class Application(QObject):
     def add_account(self, account):
         self.accounts[account.name] = account
 
-    def delete_account(self, account):
+    @asyncify
+    async def delete_account(self, account):
         """
         Delete an account.
         Current account changes to None if it is deleted.
         """
-        account.stop_coroutines()
+        await account.stop_coroutines()
         self.accounts.pop(account.name)
         if self._current_account == account:
             self._current_account = None
@@ -176,7 +179,8 @@ class Application(QObject):
             self.preferences['account'] = ""
             self.save_preferences(self.preferences)
 
-    def change_current_account(self, account):
+    @asyncify
+    async def change_current_account(self, account):
         """
         Change current account displayed and refresh its cache.
 
@@ -185,20 +189,21 @@ class Application(QObject):
         during cache refresh
         """
         if self._current_account is not None:
-            self.stop_current_account()
+            await self.stop_current_account()
 
         self._current_account = account
         if self._current_account is not None:
             self._current_account.start_coroutines()
+        self.account_changed.emit()
 
-    def stop_current_account(self):
+    async def stop_current_account(self):
         """
         Save the account to the cache
         and stop the coroutines
         """
         self.save_cache(self._current_account)
         self.save_notifications(self._current_account)
-        self._current_account.stop_coroutines()
+        await self._current_account.stop_coroutines()
 
     def load(self):
         """
@@ -502,10 +507,10 @@ class Application(QObject):
         data = {'local_accounts': self.jsonify_accounts()}
         return data
 
-    def stop(self):
+    async def stop(self):
         if self._current_account:
-            self.stop_current_account()
-
+            await self.stop_current_account()
+        await asyncio.sleep(0)
         self.save_registries()
 
     @asyncify

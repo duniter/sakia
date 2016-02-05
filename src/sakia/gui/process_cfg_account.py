@@ -9,10 +9,12 @@ from ucoinpy.key import SigningKey
 from ..gen_resources.account_cfg_uic import Ui_AccountConfigurationDialog
 from ..gui.process_cfg_community import ProcessConfigureCommunity
 from ..gui.password_asker import PasswordAskerDialog, detect_non_printable
+from ..gui.widgets.dialogs import QAsyncMessageBox
 from ..models.communities import CommunitiesListModel
 from ..tools.exceptions import KeyAlreadyUsed, Error, NoPeerAvailable
+from ..tools.decorators import asyncify
 
-from PyQt5.QtWidgets import QDialog, QMessageBox
+from PyQt5.QtWidgets import QDialog
 from PyQt5.QtCore import QRegExp
 from PyQt5.QtGui import QRegExpValidator
 
@@ -216,15 +218,16 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         dialog.accepted.connect(self.action_edit_community)
         dialog.exec_()
 
-    def action_delete_account(self):
-        reply = QMessageBox.question(self, self.tr("Warning"),
+    @asyncify
+    async def action_delete_account(self):
+        reply = await QAsyncMessageBox.question(self, self.tr("Warning"),
                                      self.tr("""This action will delete your account locally.
 Please note your key parameters (salt and password) if you wish to recover it later.
 Your account won't be removed from the networks it joined.
 Are you sure ?"""))
         if reply == QMessageBox.Yes:
             account = self.app.current_account
-            self.app.delete_account(account)
+            await self.app.delete_account(account)
             self.app.save(account)
             self.accept()
 

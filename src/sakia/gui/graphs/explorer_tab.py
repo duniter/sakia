@@ -3,6 +3,7 @@ import logging
 from PyQt5.QtCore import QEvent, pyqtSignal
 from PyQt5.QtWidgets import QWidget
 
+from ...tools.exceptions import NoPeerAvailable
 from ...tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from ...core.graph import ExplorerGraph
 from .graph_tab import GraphTabWidget
@@ -102,11 +103,14 @@ class ExplorerTabWidget(GraphTabWidget, Ui_ExplorerTabWidget):
         Reset graph scene to wallet identity
         """
         if self.account and self.community:
-            parameters = await self.community.parameters()
-            self.ui.steps_slider.setMaximum(parameters['stepMax'])
-            self.ui.steps_slider.setValue(int(0.33 * parameters['stepMax']))
-            identity = await self.account.identity(self.community)
-            self.draw_graph(identity)
+            try:
+                parameters = await self.community.parameters()
+                self.ui.steps_slider.setMaximum(parameters['stepMax'])
+                self.ui.steps_slider.setValue(int(0.33 * parameters['stepMax']))
+                identity = await self.account.identity(self.community)
+                self.draw_graph(identity)
+            except NoPeerAvailable:
+                logging.debug("No peer available")
 
     def changeEvent(self, event):
         """
