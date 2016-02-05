@@ -56,3 +56,24 @@ class TestMainWindow(unittest.TestCase, QuamashTest):
         self.account_joe.contacts_changed.disconnect.assert_called_once_with(mainwindow.refresh_contacts)
         self.account_doe.contacts_changed.connect.assert_called_once_with(mainwindow.refresh_contacts)
         mainwindow.refresh.assert_called_once_with()
+
+    def test_change_account_from_none(self):
+        widget = Mock(spec='PyQt5.QtWidgets.QMainWindow', create=True)
+        widget.installEventFilter = Mock()
+        ui = Mock(spec='sakia.gen_resources.mainwindow_uic.Ui_MainWindow', create=True)
+        ui.setupUi = Mock()
+        label_icon = Mock()
+        label_status = Mock()
+        label_time = Mock()
+        combo_referentials = Mock()
+        type(self.app).current_account = PropertyMock(return_value=None)
+        mainwindow = MainWindow(self.app, self.homescreen, self.community_view, widget, ui, label_icon,
+                                label_status, label_time, combo_referentials, self.password_asker)
+        mainwindow.refresh = Mock()
+        mainwindow.action_change_account("doe")
+
+        self.community_view.change_account.assert_called_once_with(self.account_doe, self.password_asker)
+        self.password_asker.change_account.assert_called_once_with(self.account_doe)
+        self.account_joe.contacts_changed.disconnect.assert_not_called()
+        self.account_doe.contacts_changed.connect.assert_called_once_with(mainwindow.refresh_contacts)
+        mainwindow.refresh.assert_called_once_with()
