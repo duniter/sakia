@@ -14,7 +14,7 @@ from ..models.communities import CommunitiesListModel
 from ..tools.exceptions import KeyAlreadyUsed, Error, NoPeerAvailable
 from ..tools.decorators import asyncify
 
-from PyQt5.QtWidgets import QDialog
+from PyQt5.QtWidgets import QDialog, QMessageBox
 from PyQt5.QtCore import QRegExp
 from PyQt5.QtGui import QRegExpValidator
 

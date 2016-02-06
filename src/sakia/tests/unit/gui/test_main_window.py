@@ -26,6 +26,7 @@ class TestMainWindow(unittest.TestCase, QuamashTest):
 
         def change_current_account(account_name):
             type(self.app).current_account = PropertyMock(return_value=self.account_doe)
+        self.app.get_account = Mock(side_effect=lambda name: self.app.accounts[name])
         self.app.change_current_account = Mock(side_effect=change_current_account)
         type(self.app).current_account = PropertyMock(return_value=self.account_joe)
         self.app.accounts = {'joe':self.account_joe,
@@ -46,10 +47,12 @@ class TestMainWindow(unittest.TestCase, QuamashTest):
         label_status = Mock()
         label_time = Mock()
         combo_referentials = Mock()
-        mainwindow = MainWindow(self.app, self.homescreen, self.community_view, widget, ui, label_icon,
+        mainwindow = MainWindow(self.app, self.account_joe, self.homescreen, self.community_view, widget, ui, label_icon,
                                 label_status, label_time, combo_referentials, self.password_asker)
         mainwindow.refresh = Mock()
         mainwindow.action_change_account("doe")
+        self.app.change_current_account.assert_called_once_with(self.account_doe)
+        mainwindow.change_account()
 
         self.community_view.change_account.assert_called_once_with(self.account_doe, self.password_asker)
         self.password_asker.change_account.assert_called_once_with(self.account_doe)
@@ -67,10 +70,12 @@ class TestMainWindow(unittest.TestCase, QuamashTest):
         label_time = Mock()
         combo_referentials = Mock()
         type(self.app).current_account = PropertyMock(return_value=None)
-        mainwindow = MainWindow(self.app, self.homescreen, self.community_view, widget, ui, label_icon,
+        mainwindow = MainWindow(self.app, None, self.homescreen, self.community_view, widget, ui, label_icon,
                                 label_status, label_time, combo_referentials, self.password_asker)
         mainwindow.refresh = Mock()
         mainwindow.action_change_account("doe")
+        self.app.change_current_account.assert_called_once_with(self.account_doe)
+        mainwindow.change_account()
 
         self.community_view.change_account.assert_called_once_with(self.account_doe, self.password_asker)
         self.password_asker.change_account.assert_called_once_with(self.account_doe)

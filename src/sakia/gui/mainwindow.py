@@ -389,7 +389,7 @@ class MainWindow(QObject):
         self.refresh_contacts()
 
     def import_account(self):
-        import_dialog = ImportAccountDialog(self.app, self)
+        import_dialog = ImportAccountDialog(self.app, self.widget)
         import_dialog.exec_()
 
     def import_account_accepted(self, account_name):
@@ -398,7 +398,7 @@ class MainWindow(QObject):
 
     def export_account(self):
         # Testable way of using a QFileDialog
-        export_dialog = QFileDialog(self)
+        export_dialog = QFileDialog(self.widget)
         export_dialog.setObjectName('ExportFileDialog')
         export_dialog.setWindowTitle(self.tr("Export an account"))
         export_dialog.setNameFilter(self.tr("All account files (*.acc)"))
