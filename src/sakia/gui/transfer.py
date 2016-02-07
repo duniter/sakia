@@ -154,7 +154,7 @@ class TransferMoneyDialog(QObject):
             # If we sent back a transaction we cancel the first one
             if self.transfer:
                 self.transfer.cancel()
-
+            self.app.refresh_transfers.emit()
             self.widget.accept()
         else:
             if self.app.preferences['notifications']:
