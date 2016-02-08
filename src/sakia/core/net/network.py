@@ -136,8 +136,12 @@ class Network(QObject):
         Stop network nodes crawling.
         """
         self._must_crawl = False
+        close_tasks = []
         for node in self.nodes:
-            await node.close_ws()
+            close_tasks.append(asyncio.ensure_future(node.close_ws()))
+        await asyncio.gather(*close_tasks)
+        logging.debug("Closed")
+
 
     def continue_crawling(self):
         return self._must_crawl

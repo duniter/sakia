@@ -46,7 +46,6 @@ def once_at_a_time(fn):
 def asyncify(fn):
     @functools.wraps(fn)
     def wrapper(*args, **kwargs):
-        logging.debug("Sheduling {0}".format(fn.__name__))
         return asyncio.ensure_future(asyncio.coroutine(fn)(*args, **kwargs))
 
     return wrapper

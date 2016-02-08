@@ -203,7 +203,8 @@ class Node(QObject):
     async def close_ws(self):
         for ws in self._ws_connection.values():
             if ws:
-                await ws.close()
+                ws.cancel()
+            await asyncio.sleep(0)
 
     @property
     def pubkey(self):
@@ -303,8 +304,8 @@ class Node(QObject):
         Refresh all data of this node
         :param bool manual: True if the refresh was manually initiated
         """
-        self.connect_current_block()
-        self.connect_peers()
+        self._ws_connection['block'] = asyncio.ensure_future(self.connect_current_block())
+        self._ws_connection['peer'] = asyncio.ensure_future(self.connect_peers())
 
         if self._refresh_counter % 20 == 0 or manual:
             self.refresh_informations()
@@ -314,7 +315,6 @@ class Node(QObject):
         else:
             self._refresh_counter += 1
 
-    @asyncify
     async def connect_current_block(self):
         """
         Connects to the websocket entry point of the node
@@ -326,7 +326,6 @@ class Node(QObject):
                 block_websocket = bma.ws.Block(conn_handler)
                 ws_connection = block_websocket.connect()
                 async with ws_connection as ws:
-                    self._ws_connection['block'] = ws
                     logging.debug("Connected successfully to block ws : {0}".format(self.pubkey[:5]))
                     async for msg in ws:
                         if msg.tp == aiohttp.MsgType.text:
@@ -516,7 +515,6 @@ class Node(QObject):
             logging.debug("Validation error : {0}".format(self.pubkey[:5]))
             self.state = Node.CORRUPTED
 
-    @asyncify
     async def connect_peers(self):
         """
         Connects to the peer websocket entry point
@@ -528,7 +526,6 @@ class Node(QObject):
                 peer_websocket = bma.ws.Peer(conn_handler)
                 ws_connection = peer_websocket.connect()
                 async with ws_connection as ws:
-                    self._ws_connection['peer'] = ws
                     logging.debug("Connected successfully to peer ws : {0}".format(self.pubkey[:5]))
                     async for msg in ws:
                         if msg.tp == aiohttp.MsgType.text:
