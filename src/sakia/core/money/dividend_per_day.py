@@ -1,5 +1,6 @@
 from PyQt5.QtCore import QObject, QCoreApplication, QT_TRANSLATE_NOOP, QLocale
 from .base_referential import BaseReferential
+from .udd_to_past import UDDToPast
 
 from PyQt5.QtCore import QCoreApplication, QT_TRANSLATE_NOOP, QLocale
 
@@ -27,6 +28,13 @@ class DividendPerDay(BaseReferential):
 
     def __init__(self, amount, community, app, block_number=None):
         super().__init__(amount, community, app, block_number)
+
+    @classmethod
+    def instance(cls, amount, community, app, block_number=None):
+        if app.preferences['forgetfulness']:
+            return UDDToPast(amount, community, app, block_number)
+        else:
+            return cls(amount, community, app, block_number)
 
     @classmethod
     def translated_name(cls):
@@ -70,30 +78,6 @@ class DividendPerDay(BaseReferential):
 
     async def differential(self):
         return await self.value()
-
-    @staticmethod
-    def to_si(value, digits):
-        prefixes = ['', 'm', 'µ', 'n', 'p', 'f', 'a', 'z', 'y']
-        if value < 0:
-            value = -value
-            multiplier = -1
-        else:
-            multiplier = 1
-        scientific_value = value
-        prefix_index = 0
-        prefix = ""
-
-        while int(scientific_value) == 0 and scientific_value > 0.0:
-            scientific_value *= 1000
-            prefix_index += 1
-
-        if prefix_index < len(prefixes):
-            prefix = prefixes[prefix_index]
-            localized_value = QLocale().toString(float(scientific_value * multiplier), 'f', digits)
-        else:
-            localized_value = QLocale().toString(float(value * multiplier), 'f', digits)
-
-        return localized_value, prefix
 
     async def localized(self, units=False, international_system=False):
         value = await self.value()
