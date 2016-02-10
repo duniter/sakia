@@ -1,6 +1,5 @@
 from PyQt5.QtCore import QObject, QCoreApplication, QT_TRANSLATE_NOOP, QLocale, QDateTime
 from .base_referential import BaseReferential
-from . import Relative
 
 
 class RelativeToPast(BaseReferential):
@@ -71,6 +70,7 @@ class RelativeToPast(BaseReferential):
             return self.amount
 
     async def localized(self, units=False, international_system=False):
+        from . import Relative
         value = await self.value()
         block = await self.community.get_block()
         prefix = ""
@@ -93,6 +93,7 @@ class RelativeToPast(BaseReferential):
             return localized_value
 
     async def diff_localized(self, units=False, international_system=False):
+        from . import Relative
         value = await self.differential()
         block = await self.community.get_block(self._block_number)
         prefix = ""

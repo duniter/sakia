@@ -71,7 +71,8 @@ class Application(QObject):
                             'proxy_address': "",
                             'proxy_port': 8080,
                             'international_system_of_units': True,
-                            'auto_refresh': False
+                            'auto_refresh': False,
+                            'forgetfulness':False
                             }
 
     @classmethod

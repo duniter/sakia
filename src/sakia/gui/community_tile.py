@@ -67,11 +67,11 @@ class CommunityTile(QFrame):
             current_block = await self.community.get_block()
             members_pubkeys = await self.community.members_pubkeys()
             amount = await self.app.current_account.amount(self.community)
-            localized_amount = await self.app.current_account.current_ref(amount,
+            localized_amount = await self.app.current_account.current_ref.instance(amount,
                                                         self.community, self.app).localized(units=True,
                                             international_system=self.app.preferences['international_system_of_units'])
             if current_block['monetaryMass']:
-                localized_monetary_mass = await self.app.current_account.current_ref(current_block['monetaryMass'],
+                localized_monetary_mass = await self.app.current_account.current_ref.instance(current_block['monetaryMass'],
                                                         self.community, self.app).diff_localized(units=True,
                                             international_system=self.app.preferences['international_system_of_units'])
             else:

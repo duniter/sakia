@@ -235,7 +235,7 @@ class HistoryTableModel(QAbstractTableModel):
         else:
             block_number = None
         try:
-            deposit = await self.account.current_ref(transfer.metadata['amount'], self.community,
+            deposit = await self.account.current_ref.instance(transfer.metadata['amount'], self.community,
                                                      self.app, block_number)\
                 .diff_localized(international_system=self.app.preferences['international_system_of_units'])
         except NoPeerAvailable:
@@ -263,7 +263,7 @@ class HistoryTableModel(QAbstractTableModel):
 
         amount = transfer.metadata['amount']
         try:
-            paiment = await self.account.current_ref(transfer.metadata['amount'], self.community,
+            paiment = await self.account.current_ref.instance(transfer.metadata['amount'], self.community,
                                                      self.app, block_number)\
                 .diff_localized(international_system=self.app.preferences['international_system_of_units'])
         except NoPeerAvailable:
@@ -285,7 +285,7 @@ class HistoryTableModel(QAbstractTableModel):
     async def data_dividend(self, dividend):
         amount = dividend['amount']
         try:
-            deposit = await self.account.current_ref(dividend['amount'], self.community, self.app, dividend['block_number'])\
+            deposit = await self.account.current_ref.instance(dividend['amount'], self.community, self.app, dividend['block_number'])\
                 .diff_localized(international_system=self.app.preferences['international_system_of_units'])
         except NoPeerAvailable:
             deposit = "Could not compute"
@@ -353,7 +353,7 @@ class HistoryTableModel(QAbstractTableModel):
                 if self.columns_types[section] == 'payment' or self.columns_types[section] == 'deposit':
                     return '{:}\n({:})'.format(
                         self.column_headers[section](),
-                        self.account.current_ref(0, self.community, self.app, None).diff_units
+                        self.account.current_ref.instance(0, self.community, self.app, None).diff_units
                     )
 
                 return self.column_headers[section]()

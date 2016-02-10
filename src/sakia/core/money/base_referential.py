@@ -13,6 +13,10 @@ class BaseReferential:
         self._block_number = block_number
 
     @classmethod
+    def instance(cls, amount, community, app, block_number=None):
+        return cls(amount, community, app, block_number)
+
+    @classmethod
     def translated_name(self):
         pass
 
