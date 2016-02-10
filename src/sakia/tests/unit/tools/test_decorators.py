@@ -105,7 +105,7 @@ class TestDecorators(unittest.TestCase, QuamashTest):
         self.lp.call_soon(lambda: task_runner.some_long_task("B", incrementer))
         self.lp.call_later(1.5, lambda: task_runner.cancel_long_task())
         self.lp.call_later(2, lambda: task_runner.some_long_task("C", incrementer))
-        self.lp.call_later(2, lambda: task_runner.some_long_task("D", incrementer))
+        self.lp.call_later(2.1, lambda: task_runner.some_long_task("D", incrementer))
         self.lp.call_later(3.5, lambda: task_runner.cancel_long_task())
         self.lp.run_until_complete(exec_test())
         self.assertEqual(calls["A"], 0)
