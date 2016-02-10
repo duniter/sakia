@@ -208,6 +208,16 @@ class Node(QObject):
             if ws:
                 ws.cancel()
                 await asyncio.sleep(0)
+        closed = False
+        while not closed:
+            for ws in self._ws_tasks.values():
+                if ws:
+                    closed = False
+                    break
+            else:
+                closed = True
+            await asyncio.sleep(0)
+        await asyncio.sleep(0)
 
     @property
     def pubkey(self):
@@ -307,8 +317,11 @@ class Node(QObject):
         Refresh all data of this node
         :param bool manual: True if the refresh was manually initiated
         """
-        self._ws_tasks['block'] = asyncio.ensure_future(self.connect_current_block())
-        self._ws_tasks['peer'] = asyncio.ensure_future(self.connect_peers())
+        if not self._ws_tasks['block']:
+            self._ws_tasks['block'] = asyncio.ensure_future(self.connect_current_block())
+
+        if not self._ws_tasks['peer']:
+            self._ws_tasks['peer'] = asyncio.ensure_future(self.connect_peers())
 
         if self._refresh_counter % 20 == 0 or manual:
             self.refresh_informations()
