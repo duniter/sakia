@@ -76,25 +76,27 @@ class CommunityTile(QFrame):
                                             international_system=self.app.preferences['international_system_of_units'])
             else:
                 localized_monetary_mass = ""
-            status = self.tr("Member") if self.app.current_account.pubkey in members_pubkeys \
-                else self.tr("Non-Member")
+            status = self.app.current_account.pubkey in members_pubkeys
+            status_value = self.tr("Member") if status else self.tr("Non-Member")
+            status_color = '#00AA00' if status else self.tr('#FF0000')
             description = """<html>
             <body>
             <p>
             <span style=" font-size:16pt; font-weight:600;">{currency}</span>
             </p>
             <p>{nb_members} {members_label}</p>
-            <p><span style=" font-weight:600;">{monetary_mass_label}</span> : {monetary_mass}</p>
-            <p><span style=" font-weight:600;">{status_label}</span> : {status}</p>
-            <p><span style=" font-weight:600;">{balance_label}</span> : {balance}</p>
+            <p><span style="font-weight:600;">{monetary_mass_label}</span> : {monetary_mass}</p>
+            <p><span style="font-weight:600;">{status_label}</span> : <span style="color:{status_color};">{status}</span></p>
+            <p><span style="font-weight:600;">{balance_label}</span> : {balance}</p>
             </body>
             </html>""".format(currency=self.community.currency,
                               nb_members=len(members_pubkeys),
                               members_label=self.tr("members"),
                               monetary_mass_label=self.tr("Monetary mass"),
                               monetary_mass=localized_monetary_mass,
+                              status_color=status_color,
                               status_label=self.tr("Status"),
-                              status=status,
+                              status=status_value,
                               balance_label=self.tr("Balance"),
                               balance=localized_amount)
             self.text_label.setText(description)
