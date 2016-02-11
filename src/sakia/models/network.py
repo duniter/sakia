@@ -24,8 +24,14 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
         return self.sourceModel().columnCount(None) - 2
 
     def change_community(self, community):
+        """
+        Change current community and returns refresh task
+        :param sakia.core.Community community:
+        :return: the refresh task
+        :rtype: asyncio.Task
+        """
         self.community = community
-        self.sourceModel().change_community(community)
+        return self.sourceModel().change_community(community)
 
     def setSourceModel(self, sourceModel):
         self.community = sourceModel.community
@@ -146,9 +152,15 @@ class NetworkTableModel(QAbstractTableModel):
         self.nodes_data = []
 
     def change_community(self, community):
+        """
+        Change current community displayed in network and refresh the nodes
+        :param sakia.core.Community community: the new community
+        :return: the refresh task
+        :rtype: asyncio.Task
+        """
         cancel_once_task(self, self.refresh_nodes)
         self.community = community
-        self.refresh_nodes()
+        return self.refresh_nodes()
 
     async def data_node(self, node: Node) -> tuple:
         """

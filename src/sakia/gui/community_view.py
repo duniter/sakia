@@ -231,14 +231,10 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         if self.community:
             text = ""
 
-            logging.debug("Here I am with {0}".format(self.community))
             current_block_number = self.community.network.current_blockid.number
             if current_block_number:
-                text += self.tr(" Block {0}").format(current_block_number)
                 try:
-                    logging.debug("Before get _block {0}".format(self.community))
                     block = await self.community.get_block(current_block_number)
-                    logging.debug("After get _block {0}".format(self.community))
                     text += " ({0})".format(QLocale.toString(
                                 QLocale(),
                                 QDateTime.fromTime_t(block['medianTime']),
@@ -250,7 +246,6 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                 except ValueError as e:
                     logging.debug(str(e))
 
-            logging.debug("I can crash now {0}".format(self.community))
             if len(self.community.network.synced_nodes) == 0:
                 self.button_membership.setEnabled(False)
                 self.button_certification.setEnabled(False)

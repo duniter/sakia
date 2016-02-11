@@ -44,6 +44,12 @@ def once_at_a_time(fn):
 
 
 def asyncify(fn):
+    """
+    Instanciates a coroutine in a task
+    :param fn: the coroutine to run
+    :return: the task
+    :rtype: asyncio.Task
+    """
     @functools.wraps(fn)
     def wrapper(*args, **kwargs):
         return asyncio.ensure_future(asyncio.coroutine(fn)(*args, **kwargs))

@@ -111,8 +111,8 @@ class TransactionsTabWidget(QObject):
 
     def refresh(self):
         if self.community:
-            self.ui.table_history.model().sourceModel().refresh_transfers()
-            self.ui.table_history.resizeColumnsToContents()
+            refresh_task = self.ui.table_history.model().sourceModel().refresh_transfers()
+            refresh_task.add_done_callback(lambda fut: self.ui.table_history.resizeColumnsToContents())
             self.refresh_minimum_maximum()
             self.refresh_balance()
 
