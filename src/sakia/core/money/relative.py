@@ -1,5 +1,6 @@
 from PyQt5.QtCore import QObject, QCoreApplication, QT_TRANSLATE_NOOP, QLocale
 from .base_referential import BaseReferential
+from .relative_to_past import RelativeToPast
 
 from PyQt5.QtCore import QCoreApplication, QT_TRANSLATE_NOOP, QLocale
 
@@ -31,20 +32,27 @@ class Relative(BaseReferential):
         super().__init__(amount, community, app, block_number)
 
     @classmethod
+    def instance(cls, amount, community, app, block_number=None):
+        if app.preferences['forgetfulness']:
+            return RelativeToPast(amount, community, app, block_number)
+        else:
+            return cls(amount, community, app, block_number)
+
+    @classmethod
     def translated_name(cls):
         return QCoreApplication.translate('Relative', Relative._NAME_STR_)
 
     @property
     def units(self):
-        return QCoreApplication.translate("Relative", Relative._UNITS_STR_).format(self.community.short_currency)
+            return QCoreApplication.translate("Relative", Relative._UNITS_STR_).format(self.community.short_currency)
 
     @property
     def formula(self):
-        return QCoreApplication.translate('Relative', Relative._FORMULA_STR_)
+            return QCoreApplication.translate('Relative', Relative._FORMULA_STR_)
 
     @property
     def description(self):
-        return QCoreApplication.translate("Relative", Relative._DESCRIPTION_STR_)
+            return QCoreApplication.translate("Relative", Relative._DESCRIPTION_STR_)
 
     @property
     def diff_units(self):

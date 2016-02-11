@@ -64,8 +64,15 @@ class Node(QObject):
         self._version = version
         self._fork_window = fork_window
         self._refresh_counter = 19
-        self._ws_connection = {'block': None,
+        self._ws_tasks = {'block': None,
                     'peer': None}
+        self._connected = {'block': False,
+                    'peer': False}
+
+    def __del__(self):
+        for ws in self._ws_tasks.values():
+            if ws:
+                ws.cancel()
 
     @classmethod
     async def from_address(cls, currency, address, port):
@@ -200,10 +207,21 @@ class Node(QObject):
                 }
         return data
 
-    def close_ws(self):
-        for ws in self._ws_connection.values():
+    async def close_ws(self):
+        for ws in self._ws_tasks.values():
             if ws:
-                asyncio.as_completed(ws.close(), timeout=15)
+                ws.cancel()
+                await asyncio.sleep(0)
+        closed = False
+        while not closed:
+            for ws in self._ws_tasks.values():
+                if ws:
+                    closed = False
+                    break
+            else:
+                closed = True
+            await asyncio.sleep(0)
+        await asyncio.sleep(0)
 
     @property
     def pubkey(self):
@@ -303,8 +321,11 @@ class Node(QObject):
         Refresh all data of this node
         :param bool manual: True if the refresh was manually initiated
         """
-        self.connect_current_block()
-        self.connect_peers()
+        if not self._ws_tasks['block']:
+            self._ws_tasks['block'] = asyncio.ensure_future(self.connect_current_block())
+
+        if not self._ws_tasks['peer']:
+            self._ws_tasks['peer'] = asyncio.ensure_future(self.connect_peers())
 
         if self._refresh_counter % 20 == 0 or manual:
             self.refresh_informations()
@@ -314,18 +335,18 @@ class Node(QObject):
         else:
             self._refresh_counter += 1
 
-    @asyncify
     async def connect_current_block(self):
         """
         Connects to the websocket entry point of the node
         If the connection fails, it tries the fallback mode on HTTP GET
         """
-        if not self._ws_connection['block']:
+        if not self._connected['block']:
             try:
                 conn_handler = self.endpoint.conn_handler()
                 block_websocket = bma.ws.Block(conn_handler)
-                self._ws_connection['block'] = block_websocket.connect()
-                async with self._ws_connection['block'] as ws:
+                ws_connection = block_websocket.connect()
+                async with ws_connection as ws:
+                    self._connected['block'] = True
                     logging.debug("Connected successfully to block ws : {0}".format(self.pubkey[:5]))
                     async for msg in ws:
                         if msg.tp == aiohttp.MsgType.text:
@@ -336,6 +357,9 @@ class Node(QObject):
                             break
                         elif msg.tp == aiohttp.MsgType.error:
                             break
+            except ValueError as e:
+                logging.debug("Websocket block {0} : {1} - {2}".format(type(e).__name__, str(e), self.pubkey[:5]))
+                await self.request_current_block()
             except (WSServerHandshakeError, WSClientDisconnectedError, ClientResponseError) as e:
                 logging.debug("Websocket block {0} : {1} - {2}".format(type(e).__name__, str(e), self.pubkey[:5]))
                 await self.request_current_block()
@@ -347,7 +371,8 @@ class Node(QObject):
                 logging.debug("Validation error : {0}".format(self.pubkey[:5]))
                 self.state = Node.CORRUPTED
             finally:
-                self._ws_connection['block'] = None
+                self._connected['block'] = False
+                self._ws_tasks['block'] = None
 
     async def request_current_block(self):
         """
@@ -515,18 +540,18 @@ class Node(QObject):
             logging.debug("Validation error : {0}".format(self.pubkey[:5]))
             self.state = Node.CORRUPTED
 
-    @asyncify
     async def connect_peers(self):
         """
         Connects to the peer websocket entry point
         If the connection fails, it tries the fallback mode on HTTP GET
         """
-        if not self._ws_connection['peer']:
+        if not self._connected['peer']:
             try:
                 conn_handler = self.endpoint.conn_handler()
                 peer_websocket = bma.ws.Peer(conn_handler)
-                self._ws_connection['peer'] = peer_websocket.connect()
-                async with self._ws_connection['peer'] as ws:
+                ws_connection = peer_websocket.connect()
+                async with ws_connection as ws:
+                    self._connected['peer'] = True
                     logging.debug("Connected successfully to peer ws : {0}".format(self.pubkey[:5]))
                     async for msg in ws:
                         if msg.tp == aiohttp.MsgType.text:
@@ -537,6 +562,9 @@ class Node(QObject):
                             break
                         elif msg.tp == aiohttp.MsgType.error:
                             break
+            except ValueError as e:
+                logging.debug("Websocket peer {0} : {1} - {2}".format(type(e).__name__, str(e), self.pubkey[:5]))
+                await self.request_peers()
             except (WSServerHandshakeError, WSClientDisconnectedError, ClientResponseError) as e:
                 logging.debug("Websocket peer {0} : {1} - {2}".format(type(e).__name__, str(e), self.pubkey[:5]))
                 await self.request_peers()
@@ -548,7 +576,8 @@ class Node(QObject):
                 logging.debug("Validation error : {0}".format(self.pubkey[:5]))
                 self.state = Node.CORRUPTED
             finally:
-                self._ws_connection['peer'] = None
+                self._connected['peer'] = False
+                self._ws_tasks['peer'] = None
 
     async def request_peers(self):
         """

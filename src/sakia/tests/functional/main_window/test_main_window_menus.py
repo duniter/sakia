@@ -18,6 +18,7 @@ class MainWindowMenusTest(unittest.TestCase, QuamashTest):
         self.main_window = MainWindow.startup(self.application)
 
     def tearDown(self):
+        self.main_window.widget.close()
         self.tearDownQuamash()
 
     def test_menubar(self):

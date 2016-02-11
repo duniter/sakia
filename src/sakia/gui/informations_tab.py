@@ -78,28 +78,28 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
 
         if block_ud:
             # display float values
-            localized_ud = await self.account.current_ref(block_ud['dividend'],
+            localized_ud = await self.account.current_ref.instance(block_ud['dividend'],
                                                                self.community,
                                                                self.app) \
                 .diff_localized(True, self.app.preferences['international_system_of_units'])
 
             computed_dividend = await self.community.computed_dividend()
             # display float values
-            localized_ud_plus_1 = await self.account.current_ref(computed_dividend,
+            localized_ud_plus_1 = await self.account.current_ref.instance(computed_dividend,
                                                     self.community, self.app)\
                 .diff_localized(True, self.app.preferences['international_system_of_units'])
 
-            localized_mass = await self.account.current_ref(block_ud['monetaryMass'],
+            localized_mass = await self.account.current_ref.instance(block_ud['monetaryMass'],
                                                     self.community, self.app)\
                 .diff_localized(True, self.app.preferences['international_system_of_units'])
 
             if block_ud_minus_1:
                 mass_minus_1 = (float(0) if block_ud['membersCount'] == 0 else
                         block_ud_minus_1['monetaryMass'] / block_ud['membersCount'])
-                localized_mass_minus_1_per_member = await self.account.current_ref(mass_minus_1,
+                localized_mass_minus_1_per_member = await self.account.current_ref.instance(mass_minus_1,
                                                                   self.community, self.app)\
                     .diff_localized(True, self.app.preferences['international_system_of_units'])
-                localized_mass_minus_1 = await self.account.current_ref(block_ud_minus_1['monetaryMass'],
+                localized_mass_minus_1 = await self.account.current_ref.instance(block_ud_minus_1['monetaryMass'],
                                                                   self.community, self.app)\
                     .diff_localized(True, self.app.preferences['international_system_of_units'])
                 # avoid divide by zero !
@@ -132,15 +132,15 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 """).format(
                     localized_ud,
                     self.tr('Universal Dividend UD(t) in'),
-                    self.account.current_ref(0, self.community, self.app, None).diff_units,
+                    self.account.current_ref.instance(0, self.community, self.app, None).diff_units,
                     localized_mass_minus_1,
                     self.tr('Monetary Mass M(t-1) in'),
-                    self.account.current_ref(0, self.community, self.app, None).units,
+                    self.account.current_ref.instance(0, self.community, self.app, None).units,
                     block_ud['membersCount'],
                     self.tr('Members N(t)'),
                     localized_mass_minus_1_per_member,
                     self.tr('Monetary Mass per member M(t-1)/N(t) in'),
-                    self.account.current_ref(0, self.community, self.app, None).diff_units,
+                    self.account.current_ref.instance(0, self.community, self.app, None).diff_units,
                     actual_growth,
                     params['dt'] / 86400,
                     self.tr('Actual growth c = UD(t)/[M(t-1)/N(t)]'),
@@ -184,10 +184,10 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                     self.tr('{:} = MAX {{ {:} {:} ; {:2.0%} &#215; {:} {:} / {:} }}').format(
                         localized_ud_plus_1,
                         localized_ud,
-                        self.account.current_ref(0, self.community, self.app, None).diff_units,
+                        self.account.current_ref.instance(0, self.community, self.app, None).diff_units,
                         params['c'],
                         localized_mass,
-                        self.account.current_ref(0, self.community, self.app, None).diff_units,
+                        self.account.current_ref.instance(0, self.community, self.app, None).diff_units,
                         block_ud['membersCount']
                     ),
                     self.tr('Universal Dividend (computed)')

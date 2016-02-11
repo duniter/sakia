@@ -42,7 +42,7 @@ class WalletsFilterProxyModel(QSortFilterProxyModel):
                 source_data = pubkey
                 return source_data
             if source_index.column() == self.sourceModel().columns_types.index('amount'):
-                return self.account.current_ref(source_data, self.community, self.app).localized()
+                return self.account.current_ref.instance(source_data, self.community, self.app).localized()
         if role == Qt.TextAlignmentRole:
             if source_index.column() == self.sourceModel().columns_types.index('amount'):
                 return Qt.AlignRight | Qt.AlignVCenter
@@ -112,7 +112,7 @@ class WalletsTableModel(QAbstractTableModel):
             if self.columns_types[section] == 'amount':
                 return '{:}\n({:})'.format(
                     self.columns_headers[section],
-                    self.account.current_ref(0, self.community, self.app, None).units
+                    self.account.current_ref.instance(0, self.community, self.app, None).units
                 )
             return self.columns_headers[section]
 

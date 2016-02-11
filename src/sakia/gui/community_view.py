@@ -109,7 +109,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
 
         self.button_membership.clicked.connect(self.send_membership_demand)
 
-    def  show_closable_tab(self, tab, icon, title):
+    def show_closable_tab(self, tab, icon, title):
         if self.tabs.indexOf(tab) == -1:
             self.tabs.addTab(tab, icon, title)
             style = self.app.qapp.style()
@@ -122,6 +122,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
     def cancel_once_tasks(self):
         cancel_once_task(self, self.refresh_block)
         cancel_once_task(self, self.refresh_status)
+        logging.debug("Cancelled status")
         cancel_once_task(self, self.refresh_quality_buttons)
 
     def change_account(self, account, password_asker):
@@ -153,6 +154,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
             community.network.new_block_mined.connect(self.refresh_block)
             community.network.nodes_changed.connect(self.refresh_status)
             self.label_currency.setText(community.currency)
+        logging.debug("Changed community to {0}".format(community))
         self.community = community
         self.refresh_status()
         self.refresh_quality_buttons()
@@ -231,7 +233,6 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
 
             current_block_number = self.community.network.current_blockid.number
             if current_block_number:
-                text += self.tr(" Block {0}").format(current_block_number)
                 try:
                     block = await self.community.get_block(current_block_number)
                     text += " ({0})".format(QLocale.toString(

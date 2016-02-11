@@ -565,9 +565,9 @@ class Account(QObject):
         for c in self.communities:
             c.start_coroutines()
 
-    def stop_coroutines(self):
+    async def stop_coroutines(self):
         for c in self.communities:
-            c.stop_coroutines()
+            await c.stop_coroutines()
 
         for w in self.wallets:
             w.stop_coroutines()

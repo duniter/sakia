@@ -131,13 +131,17 @@ class Network(QObject):
         """
         asyncio.ensure_future(self.discover_network())
 
-    def stop_coroutines(self):
+    async def stop_coroutines(self):
         """
         Stop network nodes crawling.
         """
         self._must_crawl = False
+        close_tasks = []
         for node in self.nodes:
-            node.close_ws()
+            close_tasks.append(asyncio.ensure_future(node.close_ws()))
+        await asyncio.wait(close_tasks, timeout=15)
+        logging.debug("Closed")
+
 
     def continue_crawling(self):
         return self._must_crawl

@@ -18,6 +18,7 @@ class MainWindowDialogsTest(unittest.TestCase, QuamashTest):
         self.main_window = MainWindow.startup(self.application)
 
     def tearDown(self):
+        self.main_window.widget.close()
         self.tearDownQuamash()
 
     def test_action_about(self):

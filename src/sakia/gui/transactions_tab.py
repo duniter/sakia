@@ -111,8 +111,8 @@ class TransactionsTabWidget(QObject):
 
     def refresh(self):
         if self.community:
-            self.ui.table_history.model().sourceModel().refresh_transfers()
-            self.ui.table_history.resizeColumnsToContents()
+            refresh_task = self.ui.table_history.model().sourceModel().refresh_transfers()
+            refresh_task.add_done_callback(lambda fut: self.ui.table_history.resizeColumnsToContents())
             self.refresh_minimum_maximum()
             self.refresh_balance()
 
@@ -133,13 +133,12 @@ class TransactionsTabWidget(QObject):
             self.notification_reception(received_list)
 
     @asyncify
-    @asyncio.coroutine
-    def notification_reception(self, received_list):
+    async def notification_reception(self, received_list):
         if len(received_list) > 0:
             amount = 0
             for r in received_list:
                 amount += r.metadata['amount']
-            localized_amount = yield from self.app.current_account.current_ref(amount, self.community, self.app)\
+            localized_amount = await self.app.current_account.current_ref.instance(amount, self.community, self.app)\
                                             .localized(units=True,
                                     international_system=self.app.preferences['international_system_of_units'])
             text = self.tr("Received {amount} from {number} transfers").format(amount=localized_amount ,
@@ -152,7 +151,7 @@ class TransactionsTabWidget(QObject):
     async def refresh_balance(self):
         self.ui.busy_balance.show()
         amount = await self.app.current_account.amount(self.community)
-        localized_amount = await self.app.current_account.current_ref(amount, self.community,
+        localized_amount = await self.app.current_account.current_ref.instance(amount, self.community,
                                                                            self.app).localized(units=True,
                                         international_system=self.app.preferences['international_system_of_units'])
 

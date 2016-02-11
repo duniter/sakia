@@ -24,7 +24,7 @@ from sakia.core.app import Application
 
 def async_exception_handler(loop, context):
     """
-    An exception handler which exists the program if the exception
+    An exception handler which exits the program if the exception
     was not catch
     :param loop: the asyncio loop
     :param context: the exception context
@@ -70,4 +70,8 @@ if __name__ == '__main__':
         app = Application.startup(sys.argv, sakia, loop)
         window = MainWindow.startup(app)
         loop.run_forever()
+        try:
+            loop.run_until_complete(app.stop())
+        except asyncio.CancelledError:
+            logging.info('CancelledError')
     sys.exit()

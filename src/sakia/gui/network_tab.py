@@ -49,12 +49,14 @@ class NetworkTabWidget(QWidget, Ui_NetworkTabWidget):
             community.network.nodes_changed.connect(self.refresh_nodes)
 
         self.community = community
-        self.table_network.model().change_community(community)
+        refresh_task = self.table_network.model().change_community(community)
+        refresh_task.add_done_callback(lambda fut: self.table_network.resizeColumnsToContents())
 
     @pyqtSlot()
     def refresh_nodes(self):
         logging.debug("Refresh nodes")
-        self.table_network.model().sourceModel().refresh_nodes()
+        refresh_task = self.table_network.model().sourceModel().refresh_nodes()
+        refresh_task.add_done_callback(lambda fut: self.table_network.resizeColumnsToContents())
 
     def node_context_menu(self, point):
         index = self.table_network.indexAt(point)

@@ -23,9 +23,25 @@ class CommunityState(enum.Enum):
 
 class CommunityTile(QFrame):
     clicked = pyqtSignal()
+    _hover_stylesheet = """QFrame#CommunityTile {
+border-radius: 5px;
+background-color: palette(midlight);
+}
+"""
+    _pressed_stylesheet = """QFrame#CommunityTile {
+border-radius: 5px;
+background-color: palette(dark);
+}
+"""
+    _standard_stylesheet = """QFrame#CommunityTile {
+border-radius: 5px;
+background-color: palette(base);
+}
+"""
 
     def __init__(self, parent, app, community):
         super().__init__(parent)
+        self.setObjectName("CommunityTile")
         self.app = app
         self.community = community
         self.community.network.nodes_changed.connect(self.handle_nodes_change)
@@ -35,6 +51,7 @@ class CommunityTile(QFrame):
         self.layout().addWidget(self.text_label)
         self.setFrameShape(QFrame.StyledPanel)
         self.setFrameShadow(QFrame.Raised)
+        self.setStyleSheet(CommunityTile._standard_stylesheet)
         self.busy = Busy(self)
         self.busy.hide()
         self._state = CommunityState.NOT_INIT
@@ -67,11 +84,11 @@ class CommunityTile(QFrame):
             current_block = await self.community.get_block()
             members_pubkeys = await self.community.members_pubkeys()
             amount = await self.app.current_account.amount(self.community)
-            localized_amount = await self.app.current_account.current_ref(amount,
+            localized_amount = await self.app.current_account.current_ref.instance(amount,
                                                         self.community, self.app).localized(units=True,
                                             international_system=self.app.preferences['international_system_of_units'])
             if current_block['monetaryMass']:
-                localized_monetary_mass = await self.app.current_account.current_ref(current_block['monetaryMass'],
+                localized_monetary_mass = await self.app.current_account.current_ref.instance(current_block['monetaryMass'],
                                                         self.community, self.app).diff_localized(units=True,
                                             international_system=self.app.preferences['international_system_of_units'])
             else:
@@ -132,17 +149,24 @@ class CommunityTile(QFrame):
         self.busy.hide()
 
     def mousePressEvent(self, event):
-        self.clicked.emit()
+        self.grabMouse()
+        self.setStyleSheet(CommunityTile._pressed_stylesheet)
         return super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        self.releaseMouse()
+        self.setStyleSheet(CommunityTile._hover_stylesheet)
+        self.clicked.emit()
+        return super().mouseReleaseEvent(event)
 
     def resizeEvent(self, event):
         self.busy.resize(event.size())
         super().resizeEvent(event)
 
     def enterEvent(self, event):
-        self.setStyleSheet("color: rgb(0, 115, 173);")
+        self.setStyleSheet(CommunityTile._hover_stylesheet)
         return super().enterEvent(event)
 
     def leaveEvent(self, event):
-        self.setStyleSheet("")
+        self.setStyleSheet(CommunityTile._standard_stylesheet)
         return super().leaveEvent(event)

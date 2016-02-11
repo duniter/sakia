@@ -154,7 +154,7 @@ class TransferMoneyDialog(QObject):
             # If we sent back a transaction we cancel the first one
             if self.transfer:
                 self.transfer.cancel()
-
+            self.app.refresh_transfers.emit()
             self.widget.accept()
         else:
             if self.app.preferences['notifications']:
@@ -186,7 +186,7 @@ class TransferMoneyDialog(QObject):
         self.community = self.account.communities[index]
         amount = await self.wallet.value(self.community)
 
-        ref_text = await self.account.current_ref(amount, self.community, self.app)\
+        ref_text = await self.account.current_ref.instance(amount, self.community, self.app)\
             .diff_localized(units=True,
                             international_system=self.app.preferences['international_system_of_units'])
         self.ui.label_total.setText("{0}".format(ref_text))
@@ -201,7 +201,7 @@ class TransferMoneyDialog(QObject):
     async def change_displayed_wallet(self, index):
         self.wallet = self.account.wallets[index]
         amount = await self.wallet.value(self.community)
-        ref_text = await self.account.current_ref(amount, self.community, self.app)\
+        ref_text = await self.account.current_ref.instance(amount, self.community, self.app)\
             .diff_localized(units=True,
                             international_system=self.app.preferences['international_system_of_units'])
         self.ui.label_total.setText("{0}".format(ref_text))
