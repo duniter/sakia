@@ -139,7 +139,7 @@ class Network(QObject):
         close_tasks = []
         for node in self.nodes:
             close_tasks.append(asyncio.ensure_future(node.close_ws()))
-        await asyncio.gather(*close_tasks)
+        await asyncio.wait(close_tasks, timeout=15)
         logging.debug("Closed")
 
 

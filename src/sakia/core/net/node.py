@@ -357,6 +357,9 @@ class Node(QObject):
                             break
                         elif msg.tp == aiohttp.MsgType.error:
                             break
+            except ValueError as e:
+                logging.debug("Websocket block {0} : {1} - {2}".format(type(e).__name__, str(e), self.pubkey[:5]))
+                await self.request_current_block()
             except (WSServerHandshakeError, WSClientDisconnectedError, ClientResponseError) as e:
                 logging.debug("Websocket block {0} : {1} - {2}".format(type(e).__name__, str(e), self.pubkey[:5]))
                 await self.request_current_block()
@@ -559,6 +562,9 @@ class Node(QObject):
                             break
                         elif msg.tp == aiohttp.MsgType.error:
                             break
+            except ValueError as e:
+                logging.debug("Websocket peer {0} : {1} - {2}".format(type(e).__name__, str(e), self.pubkey[:5]))
+                await self.request_peers()
             except (WSServerHandshakeError, WSClientDisconnectedError, ClientResponseError) as e:
                 logging.debug("Websocket peer {0} : {1} - {2}".format(type(e).__name__, str(e), self.pubkey[:5]))
                 await self.request_peers()
