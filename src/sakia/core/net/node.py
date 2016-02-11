@@ -69,6 +69,10 @@ class Node(QObject):
         self._connected = {'block': False,
                     'peer': False}
 
+    def __del__(self):
+        for ws in self._ws_tasks.values():
+            if ws:
+                ws.cancel()
 
     @classmethod
     async def from_address(cls, currency, address, port):
@@ -550,7 +554,7 @@ class Node(QObject):
                         if msg.tp == aiohttp.MsgType.text:
                             logging.debug("Received a peer : {0}".format(self.pubkey[:5]))
                             peer_data = peer_websocket.parse_text(msg.data)
-                            await self.refresh_peer_data(peer_data)
+                            self.refresh_peer_data(peer_data)
                         elif msg.tp == aiohttp.MsgType.closed:
                             break
                         elif msg.tp == aiohttp.MsgType.error:
