@@ -106,3 +106,42 @@ class TestAccount(unittest.TestCase, QuamashTest):
         self.lp.run_until_complete(exec_test())
 
 
+    def test_send_certification(self):
+        cert_signal_sent = False
+        def check_certification_accepted():
+            nonlocal cert_signal_sent
+            cert_signal_sent = True
+
+        account = Account("test_salt", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
+                          "test_account", [], [], [],
+                          self.identities_registry)
+        account.certification_accepted.connect(check_certification_accepted)
+        account_identity = MagicMock(autospec='sakia.core.registry.Identity')
+        account_identity.selfcert = CoroutineMock(return_value=SelfCertification(1, "meta_brouzouf",
+                                            "H8uYXvyF6GWeCr8cwFJ6V5B8tNprwRdjepFNJBqivrzr", "test_account", 1000000000, ""))
+
+        certified = MagicMock(autospec='sakia.core.registry.Identity')
+        certified.uid = "john"
+        certified.pubkey = "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ"
+        certified.sigdate = 1441130831
+        certified.selfcert = CoroutineMock(return_value=SelfCertification(1, "meta_brouzouf",
+                                            "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ", "john", 1441130831, ""))
+
+        community = MagicMock(autospec='sakia.core.Community')
+        community.blockid = CoroutineMock(return_value=BlockId(3102, "0000C5336F0B64BFB87FF4BC858AE25726B88175"))
+        self.identities_registry.future_find = CoroutineMock(side_effect=lambda pubkey, community :account_identity \
+                        if pubkey == "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ" else certified)
+        community.bma_access = MagicMock(autospec='sakia.core.net.api.bma.access.BmaAccess')
+        response = Mock()
+        response.json = CoroutineMock(return_value={})
+        response.status = 200
+        community.bma_access.broadcast = CoroutineMock(return_value=[response])
+        async def exec_test():
+            result = await account.certify("test_password", community, "")
+            self.assertTrue(result)
+
+        self.lp.run_until_complete(exec_test())
+        self.assertTrue(cert_signal_sent)
+
+
+
