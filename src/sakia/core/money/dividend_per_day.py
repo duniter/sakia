@@ -82,10 +82,7 @@ class DividendPerDay(BaseReferential):
     async def localized(self, units=False, international_system=False):
         value = await self.value()
         prefix = ""
-        if international_system:
-            localized_value, prefix = DividendPerDay.to_si(value, self.app.preferences['digits_after_comma'])
-        else:
-            localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
+        localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
 
         if units or international_system:
             return QCoreApplication.translate("Relative", DividendPerDay._REF_STR_) \
@@ -98,10 +95,7 @@ class DividendPerDay(BaseReferential):
     async def diff_localized(self, units=False, international_system=False):
         value = await self.differential()
         prefix = ""
-        if international_system and value != 0:
-            localized_value, prefix = DividendPerDay.to_si(value, self.app.preferences['digits_after_comma'])
-        else:
-            localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
+        localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
 
         if units or international_system:
             return QCoreApplication.translate("Relative", DividendPerDay._REF_STR_) \
