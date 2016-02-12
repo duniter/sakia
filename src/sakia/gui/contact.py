@@ -20,7 +20,13 @@ class ConfigureContactDialog(QDialog, Ui_ConfigureContactDialog):
 
     def __init__(self, app, account, parent=None, contact=None, index_edit=None):
         """
-        Constructor
+        Open the dialog to create a new contact
+        :param sakia.core.Application app: the application
+        :param sakia.core.Account account: the account
+        :param PyQt5.QtWidgets.QWidget parent: the parent widget
+        :param dict contact: the contact with a key 'name' and a key 'pubkey'
+        :param int index_edit: the index of the edited contact in the account contacts list
+        :return:
         """
         super().__init__(parent)
         self.setupUi(self)
@@ -44,6 +50,21 @@ class ConfigureContactDialog(QDialog, Ui_ConfigureContactDialog):
             'pubkey': identity.pubkey
         }
         return ConfigureContactDialog(app, account, parent, contact)
+
+    @classmethod
+    def new_contact(cls, app, account, parent):
+        """
+        Open the dialog to create a new contact
+        :param sakia.core.Application app: the application
+        :param sakia.core.Account account: the account
+        :param PyQt5.QtWidgets.QWidget parent: the parent widget
+        :return:
+        """
+        return ConfigureContactDialog(app, account, parent)
+
+    @classmethod
+    def edit_contact(cls, app, parent, account, index):
+        return ConfigureContactDialog(app, account, parent, None, index)
 
     def accept(self):
         name = self.edit_name.text()

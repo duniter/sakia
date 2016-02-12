@@ -213,12 +213,12 @@ class MainWindow(QObject):
     @pyqtSlot()
     def delete_contact(self):
         contact = self.sender().data()
-        self.account.remove_contacts(contact)
+        self.account.remove_contact(contact)
 
     @pyqtSlot()
     def edit_contact(self):
         index = self.sender().data()
-        dialog = ConfigureContactDialog(self.app, self.account, self, None, index)
+        dialog = ConfigureContactDialog.edit_contact(self.app, self.account, self.widget, index)
         dialog.exec_()
 
     def action_change_account(self, account_name):
@@ -249,7 +249,7 @@ class MainWindow(QObject):
                                      self.password_asker)
 
     def open_add_contact_dialog(self):
-        dialog = ConfigureContactDialog(self.app, self.account, self)
+        dialog = ConfigureContactDialog.new_contact(self.app, self.account, self.widget)
         dialog.exec_()
 
     def open_preferences_dialog(self):
