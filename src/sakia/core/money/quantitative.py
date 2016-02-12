@@ -54,7 +54,7 @@ class Quantitative(BaseReferential):
 
     @staticmethod
     def to_si(value, digits):
-        prefixes = ['', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y', 'z', 'y']
+        prefixes = ['', 'k', 'M', 'G', 'Tera', 'Peta', 'Exa', 'Zeta', 'Yotta']
         if value < 0:
             value = -value
             multiplier = -1
