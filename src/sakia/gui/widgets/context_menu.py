@@ -93,10 +93,11 @@ class ContextMenu(QObject):
             copy_doc.triggered.connect(lambda checked, tx=transfer: menu.copy_transaction_to_clipboard(tx))
             menu.qmenu.addAction(copy_doc)
 
-            copy_doc = QAction(menu.qmenu.tr("Copy transaction block to clipboard"), menu.qmenu.parent())
-            copy_doc.triggered.connect(lambda checked, number=transfer.blockid.number:
-                                       menu.copy_block_to_clipboard(number))
-            menu.qmenu.addAction(copy_doc)
+            if transfer.blockid:
+                copy_doc = QAction(menu.qmenu.tr("Copy transaction block to clipboard"), menu.qmenu.parent())
+                copy_doc.triggered.connect(lambda checked, number=transfer.blockid.number:
+                                           menu.copy_block_to_clipboard(number))
+                menu.qmenu.addAction(copy_doc)
 
 
     @classmethod
