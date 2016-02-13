@@ -42,13 +42,24 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
             source_data = self.sourceModel().data(source_index, role)
             expiration_col = self.sourceModel().columns_ids.index('expiration')
             expiration_index = self.sourceModel().index(source_index.row(), expiration_col)
+
+            STATUS_NOT_MEMBER = 0
+            STATUS_MEMBER = 1
+            STATUS_EXPIRE_SOON = 3
+            status = STATUS_NOT_MEMBER
             expiration_data = self.sourceModel().data(expiration_index, Qt.DisplayRole)
             current_time = QDateTime().currentDateTime().toMSecsSinceEpoch()
             sig_validity = self.sourceModel().sig_validity()
             warning_expiration_time = int(sig_validity / 3)
             #logging.debug("{0} > {1}".format(current_time, expiration_data))
+
             if expiration_data is not None:
-                will_expire_soon = (current_time > expiration_data*1000 - warning_expiration_time*1000)
+                status = STATUS_MEMBER
+                if current_time > (expiration_data*1000):
+                    status = STATUS_NOT_MEMBER
+                elif current_time > ((expiration_data*1000) - (warning_expiration_time*1000)):
+                    status = STATUS_EXPIRE_SOON
+
             if role == Qt.DisplayRole:
                 if source_index.column() in (self.sourceModel().columns_ids.index('renewed'),
                                              self.sourceModel().columns_ids.index('expiration'),
@@ -65,20 +76,19 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
                     return "pub:{0}".format(source_data[:5])
 
             if role == Qt.ForegroundRole:
-                if expiration_data:
-                    if will_expire_soon:
-                        return QColor("darkorange").darker(120)
+                if status == STATUS_EXPIRE_SOON:
+                    return QColor("darkorange").darker(120)
+                elif status == STATUS_NOT_MEMBER:
+                    return QColor(Qt.red)
                 else:
                     return QColor(Qt.blue)
-
             if role == Qt.DecorationRole and source_index.column() == self.sourceModel().columns_ids.index('uid'):
-                if expiration_data:
-                    if will_expire_soon:
-                        return QIcon(":/icons/member_warning")
-                    else:
-                        return QIcon(":/icons/member")
-                else:
+                if status == STATUS_NOT_MEMBER:
                     return QIcon(":/icons/not_member")
+                elif status == STATUS_MEMBER:
+                    return QIcon(":/icons/member")
+                elif status == STATUS_EXPIRE_SOON:
+                    return QIcon(":/icons/member_warning")
 
             return source_data
 
