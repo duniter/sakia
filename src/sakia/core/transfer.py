@@ -297,8 +297,13 @@ class Transfer(QObject):
                     return False
             for transition in self._table_states[transition_key]:
                 if transition[0](*inputs):
-                    logging.debug("{0} : {1} --> {2}".format(self.sha_hash[:5], self.state.name,
-                                                             transition[2].name))
+                    if self.sha_hash:
+                        logging.debug("{0} : {1} --> {2}".format(self.sha_hash[:5], self.state.name,
+                                                                 transition[2].name))
+                    else:
+                        logging.debug("Unsent transfer : {0} --> {1}".format(self.state.name,
+                                                                 transition[2].name))
+
                     # If the transition changes data, apply changes
                     if transition[1]:
                         transition[1](*inputs)
