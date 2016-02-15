@@ -61,7 +61,4 @@ class BaseNode(QGraphicsEllipseItem):
 
         :param event: scene context menu event
         """
-        #  no menu on the wallet node
-        if self.status_wallet:
-            return None
         self.scene().node_context_menu_requested.emit(self.id)
