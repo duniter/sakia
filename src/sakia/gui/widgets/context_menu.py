@@ -43,17 +43,20 @@ class ContextMenu(QObject):
         informations.triggered.connect(lambda checked, i=identity: menu.informations(i))
         menu.qmenu.addAction(informations)
 
-        add_as_contact = QAction(menu.qmenu.tr("Add as contact"), menu.qmenu.parent())
-        add_as_contact.triggered.connect(lambda checked,i=identity: menu.add_as_contact(i))
-        menu.qmenu.addAction(add_as_contact)
+        if menu._account.pubkey != identity.pubkey:
+            add_as_contact = QAction(menu.qmenu.tr("Add as contact"), menu.qmenu.parent())
+            add_as_contact.triggered.connect(lambda checked, i=identity: menu.add_as_contact(i))
+            menu.qmenu.addAction(add_as_contact)
 
-        send_money = QAction(menu.qmenu.tr("Send money"), menu.qmenu.parent())
-        send_money.triggered.connect(lambda checked, i=identity: menu.send_money(i))
-        menu.qmenu.addAction(send_money)
+        if menu._account.pubkey != identity.pubkey:
+            send_money = QAction(menu.qmenu.tr("Send money"), menu.qmenu.parent())
+            send_money.triggered.connect(lambda checked, i=identity: menu.send_money(i))
+            menu.qmenu.addAction(send_money)
 
-        certify = QAction(menu.tr("Certify identity"), menu.qmenu.parent())
-        certify.triggered.connect(lambda checked, i=identity: menu.certify_identity(i))
-        menu.qmenu.addAction(certify)
+        if menu._account.pubkey != identity.pubkey:
+            certify = QAction(menu.tr("Certify identity"), menu.qmenu.parent())
+            certify.triggered.connect(lambda checked, i=identity: menu.certify_identity(i))
+            menu.qmenu.addAction(certify)
 
         view_wot = QAction(menu.qmenu.tr("View in Web of Trust"), menu.qmenu.parent())
         view_wot.triggered.connect(lambda checked, i=identity: menu.view_wot(i))
