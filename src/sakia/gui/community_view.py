@@ -233,6 +233,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
 
             current_block_number = self.community.network.current_blockid.number
             if current_block_number:
+                text += self.tr("Block {0}").format(current_block_number)
                 try:
                     block = await self.community.get_block(current_block_number)
                     text += " ({0})".format(QLocale.toString(
