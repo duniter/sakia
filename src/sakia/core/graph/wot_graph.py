@@ -55,7 +55,7 @@ class WoTGraph(BaseGraph):
 
         # calculate path of nodes between identity and to_identity
         try:
-            path = networkx.shortest_path(self.nx_graph, account_identity.pubkey, to_identity.pubkey)
+            path = networkx.shortest_path(self.nx_graph.to_undirected(), account_identity.pubkey, to_identity.pubkey)
         except networkx.NetworkXNoPath as e:
             logging.debug(str(e))
 

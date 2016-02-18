@@ -106,6 +106,7 @@ class MemberDialog(QObject):
             account_identity = await self.account.identity(self.community)
             path = await graph.get_shortest_path_to_identity(self.identity,
                                                             account_identity)
+            nodes = graph.nx_graph.nodes(data=True)
 
         if path:
             distance = len(path) - 1
@@ -114,20 +115,17 @@ class MemberDialog(QObject):
                     .format(self.tr('Distance'), distance))
             if distance > 1:
                 index = 0
-                for node in path:
+                for node_id in path:
+                    node = [n for n in nodes if n[0] == node_id][0]
                     if index == 0:
                         text += self.tr("""<tr><td align="right"><b>{:}</b></div></td><td>{:}</td></tr>""")\
-                            .format(
-                            self.tr('Path'), node['text'])
+                            .format(self.tr('Path'), node[1]['text'])
                     else:
                         text += self.tr("""<tr><td align="right"><b>{:}</b></div></td><td>{:}</td></tr>""")\
-                            .format('',
-                                   node[
-                                       'text'])
-                    if index == distance and node['id'] != self.account.pubkey:
+                            .format('', node[1]['text'] )
+                    if index == distance and node_id != self.account.pubkey:
                         text += self.tr("""<tr><td align="right"><b>{:}</b></div></td><td>{:}</td></tr>""")\
-                            .format('',
-                                   self.account.name)
+                            .format('', self.account.name)
                     index += 1
         self.ui.label_path.setText(text)
 
