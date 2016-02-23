@@ -7,7 +7,7 @@ from ..core.graph import WoTGraph
 from .widgets.busy import Busy
 from ..tools.decorators import asyncify
 from ..gen_resources.member_uic import Ui_MemberView
-from ..tools.exceptions import MembershipNotFoundError
+from ..tools.exceptions import MembershipNotFoundError, LookupFailureError
 
 
 class MemberDialog(QObject):
@@ -65,13 +65,15 @@ class MemberDialog(QObject):
             else:
                 join_date = datetime.datetime.fromtimestamp(join_date).strftime("%d/%m/%Y %I:%M")
 
-
-            identity_selfcert = await self.identity.selfcert(self.community)
-            uid_publish_date = QLocale.toString(
-                    QLocale(),
-                    QDateTime.fromTime_t(identity_selfcert.timestamp),
-                    QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
-                )
+            try:
+                identity_selfcert = await self.identity.selfcert(self.community)
+                uid_publish_date = QLocale.toString(
+                        QLocale(),
+                        QDateTime.fromTime_t(identity_selfcert.timestamp),
+                        QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
+                    )
+            except LookupFailureError:
+                uid_publish_date = " ##/##/## "
 
             text = self.tr("""
                 <table cellpadding="5">
