@@ -1,4 +1,4 @@
-ucoinpy>=0.13
+ucoinpy>=0.20
 git+https://github.com/harvimt/quamash.git@gh45
 asynctest
 git+https://github.com/networkx/networkx.git@v1.11

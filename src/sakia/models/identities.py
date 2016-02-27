@@ -145,7 +145,12 @@ class IdentitiesTableModel(QAbstractTableModel):
             join_date = None
             expiration_date = None
 
-        return identity.uid, identity.pubkey, join_date, expiration_date, identity.sigdate
+        if identity.sigdate:
+            sigdate_ts = await self.community.time(identity.sigdate.number)
+        else:
+            sigdate_ts = None
+
+        return identity.uid, identity.pubkey, join_date, expiration_date, sigdate_ts
 
     async def refresh_identities(self, identities):
         """

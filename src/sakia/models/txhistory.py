@@ -154,9 +154,9 @@ class TxFilterProxyModel(QSortFilterProxyModel):
 
                 current_confirmations = 0
                 if state_data == TransferState.VALIDATING:
-                    current_blockid_number = self.community.network.current_blockid.number
-                    if current_blockid_number:
-                        current_confirmations = current_blockid_number - block_data
+                    current_blockUID_number = self.community.network.current_blockUID.number
+                    if current_blockUID_number:
+                        current_confirmations = current_blockUID_number - block_data
                 elif state_data == TransferState.AWAITING:
                     current_confirmations = 0
 
@@ -230,8 +230,8 @@ class HistoryTableModel(QAbstractTableModel):
 
     async def data_received(self, transfer):
         amount = transfer.metadata['amount']
-        if transfer.blockid:
-            block_number = transfer.blockid.number
+        if transfer.blockUID:
+            block_number = transfer.blockUID.number
         else:
             block_number = None
         try:
@@ -256,8 +256,8 @@ class HistoryTableModel(QAbstractTableModel):
                 transfer.metadata['issuer'], block_number, amount)
 
     async def data_sent(self, transfer):
-        if transfer.blockid:
-            block_number = transfer.blockid.number
+        if transfer.blockUID:
+            block_number = transfer.blockUID.number
         else:
             block_number = None
 

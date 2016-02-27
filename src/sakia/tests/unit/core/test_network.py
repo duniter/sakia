@@ -1,8 +1,8 @@
-import sys
+import aiohttp
 import unittest
 from unittest.mock import PropertyMock
 from asynctest import Mock, patch
-from ucoinpy.documents.block import BlockId
+from ucoinpy.documents.block import BlockUID
 from PyQt5.QtCore import QLocale
 from sakia.core.net import Network
 from sakia.tests import QuamashTest
@@ -17,8 +17,8 @@ class TestCommunity(unittest.TestCase, QuamashTest):
         self.tearDownQuamash()
 
     def test_confirmations(self):
-        network = Network("test_currency", [])
-        Network.current_blockid = PropertyMock(return_value=BlockId(1000, "fbf9271d0df23ee03044795aebca8be06dd7f998".upper()))
+        network = Network("test_currency", [], Mock("aiohttp.ClientSession"))
+        Network.current_blockUID = PropertyMock(return_value=BlockUID(1000, "fbf9271d0df23ee03044795aebca8be06dd7f998".upper()))
 
         self.assertEqual(network.confirmations(996), 5)
         self.assertEqual(network.confirmations(900), 101)

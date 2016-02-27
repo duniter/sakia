@@ -139,7 +139,6 @@ class TransferMoneyDialog(QObject):
             return
 
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QApplication.processEvents()
         result = await self.wallet.send_money(self.account.salt, password, self.community,
                                    recipient, amount, comment)
         if result[0]:

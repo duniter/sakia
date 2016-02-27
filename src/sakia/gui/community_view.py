@@ -231,7 +231,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         if self.community:
             text = ""
 
-            current_block_number = self.community.network.current_blockid.number
+            current_block_number = self.community.network.current_blockUID.number
             if current_block_number:
                 text += self.tr("Block {0}").format(current_block_number)
                 try:

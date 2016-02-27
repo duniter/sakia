@@ -1,5 +1,5 @@
-import sys
 import unittest
+from unittest.mock import Mock
 from pkg_resources import parse_version
 from PyQt5.QtCore import QLocale
 from sakia.core.net.api.bma.access import BmaAccess
@@ -17,7 +17,7 @@ class TestCommunity(unittest.TestCase, QuamashTest):
         self.tearDownQuamash()
 
     def test_load_save_community(self):
-        network = Network("test_currency", [])
+        network = Network("test_currency", [], Mock("aiohttp.ClientSession"))
         bma_access = BmaAccess([], network)
         community = Community("test_currency", network, bma_access)
 
@@ -25,3 +25,5 @@ class TestCommunity(unittest.TestCase, QuamashTest):
         community_from_json = Community.load(json_data, parse_version('0.12.0'))
         self.assertEqual(community.name, community_from_json.name)
         self.assertEqual(len(community.network._nodes), len(community_from_json.network._nodes))
+        community_from_json.network.session.close()
+

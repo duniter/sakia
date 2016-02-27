@@ -5,7 +5,7 @@ Created on 21 févr. 2015
 """
 
 from ucoinpy.documents.peer import Peer, Endpoint, BMAEndpoint
-from ucoinpy.documents import Block, BlockId, MalformedDocumentError
+from ucoinpy.documents import Block, BlockUID, MalformedDocumentError
 from ...tools.exceptions import InvalidNodeCurrency
 from ...tools.decorators import asyncify
 from ucoinpy.api import bma as bma
@@ -46,7 +46,9 @@ class Node(QObject):
     neighbour_found = pyqtSignal(Peer, str)
 
     def __init__(self, peer, uid, pubkey, block,
-                 state, last_change, last_merkle, software, version, fork_window):
+                 state, last_change, last_merkle,
+                 software, version, fork_window,
+                 session):
         """
         Constructor
         """
@@ -68,6 +70,7 @@ class Node(QObject):
                     'peer': None}
         self._connected = {'block': False,
                     'peer': False}
+        self._session = session
 
     def __del__(self):
         for ws in self._ws_tasks.values():
@@ -75,7 +78,7 @@ class Node(QObject):
                 ws.cancel()
 
     @classmethod
-    async def from_address(cls, currency, address, port):
+    async def from_address(cls, currency, address, port, session):
         """
         Factory method to get a node from a given address
 
@@ -86,7 +89,7 @@ class Node(QObject):
         :return: A new node
         :rtype: sakia.core.net.Node
         """
-        peer_data = await bma.network.Peering(ConnectionHandler(address, port)).get()
+        peer_data = await bma.network.Peering(ConnectionHandler(address, port)).get(session)
 
         peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],
                                                   peer_data['signature']))
@@ -97,12 +100,12 @@ class Node(QObject):
 
         node = cls(peer,
                    "", peer.pubkey, None, Node.ONLINE, time.time(),
-                   {'root': "", 'leaves': []}, "", "", 0)
+                   {'root': "", 'leaves': []}, "", "", 0, session)
         logging.debug("Node from address : {:}".format(str(node)))
         return node
 
     @classmethod
-    def from_peer(cls, currency, peer, pubkey):
+    def from_peer(cls, currency, peer, pubkey, session):
         """
         Factory method to get a node from a peer document.
 
@@ -119,12 +122,12 @@ class Node(QObject):
         node = cls(peer, "", pubkey, None,
                    Node.OFFLINE, time.time(),
                    {'root': "", 'leaves': []},
-                   "", "", 0)
+                   "", "", 0, session)
         logging.debug("Node from peer : {:}".format(str(node)))
         return node
 
     @classmethod
-    def from_json(cls, currency, data, file_version):
+    def from_json(cls, currency, data, file_version, session):
         """
         Loads a node from json data
 
@@ -174,14 +177,14 @@ class Node(QObject):
             if currency in data:
                 currency = data['currency']
 
-            peer = Peer("1", currency, pubkey, BlockId(0, Block.Empty_Hash), endpoints, "SOMEFAKESIGNATURE")
+            peer = Peer(2, currency, pubkey, BlockUID(0, Block.Empty_Hash), endpoints, "SOMEFAKESIGNATURE")
         else:
             peer = Peer.from_signed_raw(data['peer'])
 
         node = cls(peer, uid, pubkey, block,
                    state, last_change,
                    {'root': "", 'leaves': []},
-                   software, version, fork_window)
+                   software, version, fork_window, session)
 
         logging.debug("Node from json : {:}".format(str(node)))
         return node
@@ -222,6 +225,10 @@ class Node(QObject):
                 closed = True
             await asyncio.sleep(0)
         await asyncio.sleep(0)
+
+    @property
+    def session(self):
+        return self._session
 
     @property
     def pubkey(self):
@@ -344,7 +351,7 @@ class Node(QObject):
             try:
                 conn_handler = self.endpoint.conn_handler()
                 block_websocket = bma.ws.Block(conn_handler)
-                ws_connection = block_websocket.connect()
+                ws_connection = block_websocket.connect(self._session)
                 async with ws_connection as ws:
                     self._connected['block'] = True
                     logging.debug("Connected successfully to block ws : {0}".format(self.pubkey[:5]))
@@ -381,7 +388,7 @@ class Node(QObject):
         """
         try:
             conn_handler = self.endpoint.conn_handler()
-            block_data = await bma.blockchain.Current(conn_handler).get()
+            block_data = await bma.blockchain.Current(conn_handler).get(self._session)
             await self.refresh_block(block_data)
         except ValueError as e:
             if '404' in str(e):
@@ -415,7 +422,7 @@ class Node(QObject):
             try:
                 if self.block:
                     self.main_chain_previous_block = await bma.blockchain.Block(conn_handler,
-                                                                                 self.block['number']).get()
+                                                                                 self.block['number']).get(self._session)
             except ValueError as e:
                 if '404' in str(e):
                     self.main_chain_previous_block = None
@@ -445,14 +452,14 @@ class Node(QObject):
         conn_handler = self.endpoint.conn_handler()
 
         try:
-            peering_data = await bma.network.Peering(conn_handler).get()
+            peering_data = await bma.network.Peering(conn_handler).get(self._session)
             node_pubkey = peering_data["pubkey"]
             node_currency = peering_data["currency"]
             self.state = Node.ONLINE
 
             if peering_data['raw'] != self.peer.raw():
                 peer = Peer.from_signed_raw("{0}{1}\n".format(peering_data['raw'], peering_data['signature']))
-                if peer.blockid.number > peer.blockid.number:
+                if peer.blockUID.number > peer.blockUID.number:
                     self.peer = Peer.from_signed_raw("{0}{1}\n".format(peering_data['raw'], peering_data['signature']))
 
             if node_pubkey != self.pubkey:
@@ -484,7 +491,7 @@ class Node(QObject):
         conn_handler = self.endpoint.conn_handler()
 
         try:
-            summary_data = await bma.node.Summary(conn_handler).get()
+            summary_data = await bma.node.Summary(conn_handler).get(self._session)
             self.software = summary_data["ucoin"]["software"]
             self.version = summary_data["ucoin"]["version"]
             self.state = Node.ONLINE
@@ -511,7 +518,7 @@ class Node(QObject):
         """
         conn_handler = self.endpoint.conn_handler()
         try:
-            data = await bma.wot.Lookup(conn_handler, self.pubkey).get()
+            data = await bma.wot.Lookup(conn_handler, self.pubkey).get(self._session)
             self.state = Node.ONLINE
             timestamp = 0
             uid = ""
@@ -549,7 +556,7 @@ class Node(QObject):
             try:
                 conn_handler = self.endpoint.conn_handler()
                 peer_websocket = bma.ws.Peer(conn_handler)
-                ws_connection = peer_websocket.connect()
+                ws_connection = peer_websocket.connect(self._session)
                 async with ws_connection as ws:
                     self._connected['peer'] = True
                     logging.debug("Connected successfully to peer ws : {0}".format(self.pubkey[:5]))
@@ -586,14 +593,15 @@ class Node(QObject):
         conn_handler = self.endpoint.conn_handler()
 
         try:
-            peers_data = await bma.network.peering.Peers(conn_handler).get(leaves='true')
+            peers_data = await bma.network.peering.Peers(conn_handler).get(leaves='true', session=self._session)
             self.state = Node.ONLINE
             if peers_data['root'] != self._last_merkle['root']:
                 leaves = [leaf for leaf in peers_data['leaves']
                           if leaf not in self._last_merkle['leaves']]
                 for leaf_hash in leaves:
                     try:
-                        leaf_data = await bma.network.peering.Peers(conn_handler).get(leaf=leaf_hash)
+                        leaf_data = await bma.network.peering.Peers(conn_handler).get(leaf=leaf_hash,
+                                                                                      session=self._session)
                         self.refresh_peer_data(leaf_data['leaf']['value'])
                     except (AttributeError, ValueError) as e:
                         logging.debug("{pubkey} : Incorrect peer data in {leaf}".format(pubkey=self.pubkey[:5],

@@ -6,11 +6,11 @@ Created on 24 févr. 2015
 from .node import Node
 from ...tools.exceptions import InvalidNodeCurrency
 import logging
-import statistics
+import aiohttp
 import time
 import asyncio
 from ucoinpy.documents.peer import Peer
-from ucoinpy.documents.block import Block, BlockId
+from ucoinpy.documents.block import Block, BlockUID
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
 from collections import Counter
 
@@ -27,7 +27,7 @@ class Network(QObject):
     new_block_mined = pyqtSignal(int)
     blockchain_rollback = pyqtSignal(int)
 
-    def __init__(self, currency, nodes):
+    def __init__(self, currency, nodes, session):
         """
         Constructor of a network
 
@@ -41,8 +41,9 @@ class Network(QObject):
             self.add_node(n)
         self.currency = currency
         self._must_crawl = False
-        self._block_found = self.current_blockid
+        self._block_found = self.current_blockUID
         self._timer = QTimer()
+        self._client_session = session
 
     @classmethod
     def create(cls, node):
@@ -54,7 +55,7 @@ class Network(QObject):
         :param node: The first knew node of the network
         """
         nodes = [node]
-        network = cls(node.currency, nodes)
+        network = cls(node.currency, nodes, node.session)
         return network
 
     def merge_with_json(self, json_data, file_version):
@@ -96,11 +97,12 @@ class Network(QObject):
         :param dict json_data: A json_data view of a network
         :param NormalizedVersion file_version: the version of the json file
         """
+        session = aiohttp.ClientSession()
         nodes = []
         for data in json_data:
-            node = Node.from_json(currency, data, file_version)
+            node = Node.from_json(currency, data, file_version, session)
             nodes.append(node)
-        network = cls(currency, nodes)
+        network = cls(currency, nodes, session)
         return network
 
     def jsonify(self):
@@ -140,8 +142,12 @@ class Network(QObject):
         for node in self.nodes:
             close_tasks.append(asyncio.ensure_future(node.close_ws()))
         await asyncio.wait(close_tasks, timeout=15)
+        await self._client_session.close()
         logging.debug("Closed")
 
+    @property
+    def session(self):
+        return self._client_session
 
     def continue_crawling(self):
         return self._must_crawl
@@ -175,16 +181,16 @@ class Network(QObject):
         return self._root_nodes
 
     @property
-    def current_blockid(self):
+    def current_blockUID(self):
         """
         Get the latest block considered valid
         It is the most frequent last block of every known nodes
         """
         blocks = [n.block for n in self.synced_nodes if n.block]
         if len(blocks) > 0:
-            return BlockId(blocks[0]['number'], blocks[0]['hash'])
+            return BlockUID(blocks[0]['number'], blocks[0]['hash'])
         else:
-            return BlockId.empty()
+            return BlockUID.empty()
 
     def _check_nodes_sync(self):
         """
@@ -267,9 +273,9 @@ class Network(QObject):
         :rtype: int
         """
         if block_number:
-            if block_number > self.current_blockid.number:
+            if block_number > self.current_blockUID.number:
                 raise ValueError("Could not compute confirmations : data block number is after current block")
-            return self.current_blockid.number - block_number + 1
+            return self.current_blockUID.number - block_number + 1
         else:
             return 0
 
@@ -346,7 +352,7 @@ class Network(QObject):
                 logging.debug(str(e))
         else:
             node = [n for n in self.nodes if n.pubkey == pubkey][0]
-            if node.peer.blockid.number < peer.blockid.number:
+            if node.peer.blockUID.number < peer.blockUID.number:
                 node.peer = peer
 
     @pyqtSlot()
@@ -376,19 +382,19 @@ class Network(QObject):
         self.nodes_changed.emit()
 
         if node.state == Node.ONLINE:
-            logging.debug("{0} -> {1}".format(self._block_found.sha_hash[:10], self.current_blockid.sha_hash[:10]))
-            if self._block_found.sha_hash != self.current_blockid.sha_hash:
-                logging.debug("Latest block changed : {0}".format(self.current_blockid.number))
+            logging.debug("{0} -> {1}".format(self._block_found.sha_hash[:10], self.current_blockUID.sha_hash[:10]))
+            if self._block_found.sha_hash != self.current_blockUID.sha_hash:
+                logging.debug("Latest block changed : {0}".format(self.current_blockUID.number))
                 # If new latest block is lower than the previously found one
                 # or if the previously found block is different locally
                 # than in the main chain, we declare a rollback
                 if self._block_found.number and \
-                                self.current_blockid.number <= self._block_found.number \
+                                self.current_blockUID.number <= self._block_found.number \
                         or node.main_chain_previous_block and \
                                         node.main_chain_previous_block['hash'] != self._block_found.sha_hash:
 
-                    self._block_found = self.current_blockid
-                    self.blockchain_rollback.emit(self.current_blockid.number)
+                    self._block_found = self.current_blockUID
+                    self.blockchain_rollback.emit(self.current_blockUID.number)
                 else:
-                    self._block_found = self.current_blockid
-                    self.new_block_mined.emit(self.current_blockid.number)
+                    self._block_found = self.current_blockUID
+                    self.new_block_mined.emit(self.current_blockUID.number)

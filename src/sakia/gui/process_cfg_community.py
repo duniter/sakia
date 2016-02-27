@@ -64,7 +64,7 @@ class StepPageInit(Step):
         port = self.config_dialog.spinbox_port.value()
         logging.debug("Is valid ? ")
         try:
-            self.node = await Node.from_address(None, server, port)
+            self.node = await Node.from_address(None, server, port, session=aiohttp.ClientSession())
             community = Community.create(self.node)
             self.config_dialog.button_connect.setEnabled(False)
             self.config_dialog.button_register.setEnabled(False)
@@ -74,8 +74,8 @@ class StepPageInit(Step):
             self.config_dialog.label_error.setText(str(e))
         except aiohttp.errors.ClientError as e:
             self.config_dialog.label_error.setText(str(e))
-        except (MalformedDocumentError, ValueError) as e:
-            self.config_dialog.label_error.setText(str(e))
+        #except (MalformedDocumentError, ValueError) as e:
+        #    self.config_dialog.label_error.setText(str(e))
 
     @asyncify
     async def check_connect(self, checked=False):
@@ -83,7 +83,7 @@ class StepPageInit(Step):
         port = self.config_dialog.spinbox_port.value()
         logging.debug("Is valid ? ")
         try:
-            self.node = await Node.from_address(None, server, port)
+            self.node = await Node.from_address(None, server, port, session=aiohttp.ClientSession())
             community = Community.create(self.node)
             self.config_dialog.button_connect.setEnabled(False)
             self.config_dialog.button_register.setEnabled(False)
@@ -102,8 +102,8 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
             self.config_dialog.label_error.setText(str(e))
         except aiohttp.errors.ClientError as e:
             self.config_dialog.label_error.setText(str(e))
-        except (MalformedDocumentError, ValueError) as e:
-            self.config_dialog.label_error.setText(str(e))
+        #except (MalformedDocumentError, ValueError) as e:
+        #    self.config_dialog.label_error.setText(str(e))
 
     @asyncify
     async def check_register(self, checked=False):
@@ -111,7 +111,7 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
         port = self.config_dialog.spinbox_port.value()
         logging.debug("Is valid ? ")
         try:
-            self.node = await Node.from_address(None, server, port)
+            self.node = await Node.from_address(None, server, port, session=aiohttp.ClientSession())
             community = Community.create(self.node)
             self.config_dialog.button_connect.setEnabled(False)
             self.config_dialog.button_register.setEnabled(False)
@@ -145,8 +145,8 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
             self.config_dialog.label_error.setText(str(e))
         except aiohttp.errors.ClientError as e:
             self.config_dialog.label_error.setText(str(e))
-        except (MalformedDocumentError, ValueError) as e:
-            self.config_dialog.label_error.setText(str(e))
+        #except (MalformedDocumentError, ValueError) as e:
+        #    self.config_dialog.label_error.setText(str(e))
 
     def is_valid(self):
         return self.node is not None

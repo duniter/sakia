@@ -1,9 +1,8 @@
 from ucoinpy.api import bma
+from ucoinpy.documents import BlockUID
 from .identity import Identity, LocalState, BlockchainState
 
-import json
 import asyncio
-import logging
 from aiohttp.errors import ClientError
 from ...tools.exceptions import NoPeerAvailable
 
@@ -68,13 +67,13 @@ class IdentitiesRegistry:
             try:
                 data = await community.bma_access.simple_request(bma.wot.Lookup,
                                                             req_args={'search': pubkey})
-                timestamp = 0
+                timestamp = BlockUID.empty()
                 for result in data['results']:
                     if result["pubkey"] == identity.pubkey:
                         uids = result['uids']
                         for uid_data in uids:
-                            if uid_data["meta"]["timestamp"] > timestamp:
-                                identity.sigdate = uid_data["meta"]["timestamp"]
+                            if BlockUID.from_str(uid_data["meta"]["timestamp"]) >= timestamp:
+                                identity.sigdate = BlockUID.from_str(uid_data["meta"]["timestamp"])
                                 identity.uid = uid_data["uid"]
                                 identity.blockchain_state = BlockchainState.BUFFERED
                                 identity.local_state = LocalState.PARTIAL
@@ -109,7 +108,7 @@ class IdentitiesRegistry:
                     data = await community.bma_access.simple_request(bma.blockchain.Membership,
                                                                           req_args={'search': pubkey})
                     identity.uid = data['uid']
-                    identity.sigdate = data['sigDate']
+                    identity.sigdate = BlockUID.from_str(data['sigDate'])
                     identity.local_state = LocalState.PARTIAL
                     identity.blockchain_state = BlockchainState.VALIDATED
                 except ValueError as e:
@@ -134,7 +133,7 @@ class IdentitiesRegistry:
 
         :param str uid: The person uid, also known as its uid on the network
         :param str pubkey: The person pubkey
-        :param int sig_date: The date of signature of the self certification
+        :param BlockUID sig_date: The date of signature of the self certification
         :param LocalState local_state: The local status of the identity
         :param sakia.core.Community community: The community from which we found data
         :rtype: sakia.core.registry.Identity

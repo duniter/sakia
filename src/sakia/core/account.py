@@ -4,8 +4,7 @@ Created on 1 févr. 2014
 @author: inso
 """
 
-from ucoinpy.documents.certification import SelfCertification, Certification, Revocation
-from ucoinpy.documents.membership import Membership
+from ucoinpy.documents import Membership, SelfCertification, Certification, Revokation, BlockUID
 from ucoinpy.key import SigningKey
 
 import logging
@@ -345,13 +344,13 @@ class Account(QObject):
             return self.name == data['uid'], self.name, data['uid']
 
         def _parse_uid_lookup(data):
-            timestamp = 0
+            timestamp = BlockUID.empty()
             found_uid = ""
             for result in data['results']:
                 if result["pubkey"] == self.pubkey:
                     uids = result['uids']
                     for uid_data in uids:
-                        if uid_data["meta"]["timestamp"] > timestamp:
+                        if BlockUID.from_str(uid_data["meta"]["timestamp"]) >= timestamp:
                             timestamp = uid_data["meta"]["timestamp"]
                             found_uid = uid_data["uid"]
             return self.name == found_uid, self.name, found_uid
@@ -360,13 +359,13 @@ class Account(QObject):
             return self.pubkey == data['pubkey'], self.pubkey, data['pubkey']
 
         def _parse_pubkey_lookup(data):
-            timestamp = 0
+            timestamp = BlockUID.empty()
             found_uid = ""
             found_result = ["", ""]
             for result in data['results']:
                 uids = result['uids']
                 for uid_data in uids:
-                    if uid_data["meta"]["timestamp"] > timestamp:
+                    if BlockUID.from_str(uid_data["meta"]["timestamp"]) >= timestamp:
                         timestamp = uid_data["meta"]["timestamp"]
                         found_uid = uid_data["uid"]
                 if found_uid == self.name:
@@ -464,12 +463,12 @@ class Account(QObject):
         """
         logging.debug("Send membership")
 
-        blockid = await community.blockid()
+        blockUID = await community.blockUID()
         self_identity = await self._identities_registry.future_find(self.pubkey, community)
         selfcert = await self_identity.selfcert(community)
 
         membership = Membership(PROTOCOL_VERSION, community.currency,
-                                selfcert.pubkey, blockid, mstype, selfcert.uid,
+                                selfcert.pubkey, blockUID, mstype, selfcert.uid,
                                 selfcert.timestamp, None)
         key = SigningKey(self.salt, password)
         membership.sign([key])
@@ -495,12 +494,12 @@ class Account(QObject):
         :param str pubkey: The certified identity pubkey
         """
         logging.debug("Certdata")
-        blockid = await community.blockid()
+        blockUID = await community.blockUID()
         identity = await self._identities_registry.future_find(pubkey, community)
         selfcert = await identity.selfcert(community)
         if selfcert:
             certification = Certification(PROTOCOL_VERSION, community.currency,
-                                          self.pubkey, pubkey, blockid, None)
+                                          self.pubkey, pubkey, blockUID, None)
 
             key = SigningKey(self.salt, password)
             certification.sign(selfcert, [key])
@@ -531,23 +530,23 @@ class Account(QObject):
         Revoke self-identity on server, not in blockchain
 
         :param str password: The account SigningKey password
-        :param sakia.core.community.Community community: The community target of the revocation
+        :param sakia.core.community.Community community: The community target of the revokation
         """
         revoked = await self._identities_registry.future_find(self.pubkey, community)
 
-        revocation = Revocation(PROTOCOL_VERSION, community.currency, None)
+        revokation = Revokation(PROTOCOL_VERSION, community.currency, None)
         selfcert = await revoked.selfcert(community)
 
         key = SigningKey(self.salt, password)
-        revocation.sign(selfcert, [key])
+        revokation.sign(selfcert, [key])
 
-        logging.debug("Self-Revocation Document : \n{0}".format(revocation.raw(selfcert)))
-        logging.debug("Signature : \n{0}".format(revocation.signatures[0]))
+        logging.debug("Self-Revokation Document : \n{0}".format(revokation.raw(selfcert)))
+        logging.debug("Signature : \n{0}".format(revokation.signatures[0]))
 
         data = {
             'pubkey': revoked.pubkey,
             'self_': selfcert.signed_raw(),
-            'sig': revocation.signatures[0]
+            'sig': revokation.signatures[0]
         }
         logging.debug("Posted data : {0}".format(data))
         responses = await community.bma_access.broadcast(bma.wot.Revoke, {}, data)

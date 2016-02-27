@@ -6,10 +6,9 @@ Created on 11 févr. 2014
 
 import logging
 import time
-import asyncio
 from enum import Enum
 
-from ucoinpy.documents.certification import SelfCertification
+from ucoinpy.documents import BlockUID, SelfCertification, MalformedDocumentError
 from ucoinpy.api import bma as bma
 from ucoinpy.api.bma import PROTOCOL_VERSION
 
@@ -55,14 +54,16 @@ class Identity(QObject):
 
         :param str uid: The identity uid, also known as its uid on the network
         :param str pubkey: The identity pubkey
-        :parma int sig_date: The date of signature of the self certification
+        :parma BlockUID sig_date: The date of signature of the self certification
         :param LocalState local_state: The local status of the identity
         :param BlockchainState blockchain_state: The blockchain status of the identity
         """
+        if sigdate:
+            assert type(sigdate) is BlockUID
         super().__init__()
         self.uid = uid
         self.pubkey = pubkey
-        self.sigdate = sigdate
+        self._sigdate = sigdate
         self.local_state = local_state
         self.blockchain_state = blockchain_state
 
@@ -84,11 +85,20 @@ class Identity(QObject):
         """
         pubkey = json_data['pubkey']
         uid = json_data['uid']
-        sigdate = json_data['sigdate']
+        sigdate = BlockUID.from_str(json_data['sigdate'])
         local_state = LocalState[json_data['local_state']]
         blockchain_state = BlockchainState[json_data['blockchain_state']]
 
         return cls(uid, pubkey, sigdate, local_state, blockchain_state)
+
+    @property
+    def sigdate(self):
+        return self._sigdate
+
+    @sigdate.setter
+    def sigdate(self, sigdate):
+        assert type(sigdate) is BlockUID
+        self._sigdate = sigdate
 
     async def selfcert(self, community):
         """
@@ -100,7 +110,7 @@ class Identity(QObject):
         :rtype: ucoinpy.documents.certification.SelfCertification
         """
         try:
-            timestamp = 0
+            timestamp = BlockUID.empty()
             lookup_data = await community.bma_access.future_request(bma.wot.Lookup,
                                                                          req_args={'search': self.pubkey})
 
@@ -108,14 +118,14 @@ class Identity(QObject):
                 if result["pubkey"] == self.pubkey:
                     uids = result['uids']
                     for uid_data in uids:
-                        # If we sigDate was written in the blockchain
-                        if self.sigdate and uid_data["meta"]["timestamp"] == self.sigdate:
-                                timestamp = uid_data["meta"]["timestamp"]
-                                uid = uid_data["uid"]
-                                signature = uid_data["self"]
+                        # If the sigDate was written in the blockchain
+                        if self._sigdate and BlockUID.from_str(uid_data["meta"]["timestamp"]) == self._sigdate:
+                            timestamp = BlockUID.from_str(uid_data["meta"]["timestamp"])
+                            uid = uid_data["uid"]
+                            signature = uid_data["self"]
                         # Else we choose the latest one found
-                        elif uid_data["meta"]["timestamp"] > timestamp:
-                            timestamp = uid_data["meta"]["timestamp"]
+                        elif BlockUID.from_str(uid_data["meta"]["timestamp"]) >= timestamp:
+                            timestamp = BlockUID.from_str(uid_data["meta"]["timestamp"])
                             uid = uid_data["uid"]
                             signature = uid_data["self"]
 
@@ -125,12 +135,14 @@ class Identity(QObject):
                     return SelfCertification(PROTOCOL_VERSION,
                                              community.currency,
                                              self.pubkey,
-                                             timestamp,
                                              uid,
+                                             timestamp,
                                              signature)
         except ValueError as e:
             if '404' in str(e):
                 raise LookupFailureError(self.pubkey, community)
+        except MalformedDocumentError:
+            raise LookupFailureError(self.pubkey, community)
         except NoPeerAvailable:
             logging.debug("No peer available")
 
@@ -192,9 +204,7 @@ class Identity(QObject):
                                            {'search': self.pubkey})
             block_number = -1
             membership_data = None
-            #TODO: Should not be here, should be set when we look for the identity
-            #We do it because we do not have this info in certifiers-of yet...
-            self.sigdate = search['sigDate']
+
             for ms in search['memberships']:
                 if ms['blockNumber'] > block_number:
                     block_number = ms['blockNumber']
@@ -226,7 +236,7 @@ class Identity(QObject):
                     uids = result['uids']
                     person_uid = ""
                     for uid_data in uids:
-                        if uid_data["meta"]["timestamp"] > timestamp:
+                        if uid_data["meta"]["timestamp"] >= timestamp:
                             timestamp = uid_data["meta"]["timestamp"]
                             person_uid = uid_data["uid"]
                         if person_uid == self.uid:
@@ -456,11 +466,11 @@ class Identity(QObject):
         Refresh UID from uids list, got from a successful lookup request
         :param list uids: UIDs got from a lookup request
         """
-        timestamp = 0
+        timestamp = BlockUID.empty()
         if self.local_state == LocalState.NOT_FOUND:
             for uid_data in uids:
-                if uid_data["meta"]["timestamp"] > timestamp:
-                    timestamp = uid_data["meta"]["timestamp"]
+                if BlockUID.from_str(uid_data["meta"]["timestamp"]) >= timestamp:
+                    timestamp = BlockUID.from_str(uid_data["meta"]["timestamp"])
                     identity_uid = uid_data["uid"]
                     self.uid = identity_uid
                     self.blockchain_state = BlockchainState.BUFFERED
@@ -473,7 +483,7 @@ class Identity(QObject):
         """
         data = {'uid': self.uid,
                 'pubkey': self.pubkey,
-                'sigdate': self.sigdate,
+                'sigdate': self._sigdate,
                 'local_state': self.local_state.name,
                 'blockchain_state': self.blockchain_state.name}
         return data
@@ -481,6 +491,6 @@ class Identity(QObject):
     def __str__(self):
         return "{uid} - {pubkey} - {sigdate} - {local} - {blockchain}".format(uid=self.uid,
                                                                             pubkey=self.pubkey,
-                                                                            sigdate=self.sigdate,
+                                                                            sigdate=self._sigdate,
                                                                             local=self.local_state,
                                                                             blockchain=self.blockchain_state)

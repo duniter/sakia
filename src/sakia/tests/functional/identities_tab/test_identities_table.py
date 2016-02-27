@@ -1,14 +1,11 @@
 import sys
 import unittest
 import asyncio
-import quamash
+import aiohttp
 import logging
 import time
-from PyQt5.QtWidgets import QDialog
-from PyQt5.QtCore import QLocale, Qt, QPoint
+from PyQt5.QtCore import QLocale, Qt
 from PyQt5.QtTest import QTest
-from ucoinpy.api import bma
-from ucoinpy.api.bma import API
 
 from sakia.tests.mocks.bma import nice_blockchain
 from sakia.core.registry.identities import IdentitiesRegistry
@@ -17,7 +14,6 @@ from sakia.gui.password_asker import PasswordAskerDialog
 from sakia.core.app import Application
 from sakia.core import Account, Community, Wallet
 from sakia.core.net import Network, Node
-from ucoinpy.documents.peer import BMAEndpoint
 from sakia.core.net.api.bma.access import BmaAccess
 from sakia.tests import QuamashTest
 
@@ -35,7 +31,7 @@ class TestIdentitiesTable(unittest.TestCase, QuamashTest):
         self.node = Node(self.mock_nice_blockchain.peer(),
                          "", "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk",
                          None, Node.ONLINE,
-                         time.time(), {}, "ucoin", "0.14.0", 0)
+                         time.time(), {}, "ucoin", "0.14.0", 0, session=aiohttp.ClientSession())
         self.network = Network.create(self.node)
         self.bma_access = BmaAccess.create(self.network)
         self.community = Community("test_currency", self.network, self.bma_access)
@@ -105,8 +101,3 @@ class TestIdentitiesTable(unittest.TestCase, QuamashTest):
         asyncio.ensure_future(exec_test())
         self.lp.call_later(15, close_dialog)
         self.lp.run_until_complete(open_widget())
-
-if __name__ == '__main__':
-    logging.basicConfig( stream=sys.stderr )
-    logging.getLogger().setLevel( logging.DEBUG )
-    unittest.main()

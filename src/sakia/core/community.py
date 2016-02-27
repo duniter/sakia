@@ -16,7 +16,7 @@ from PyQt5.QtCore import QObject, pyqtSignal
 from ..tools.exceptions import NoPeerAvailable
 from .net.network import Network
 from ucoinpy.api import bma
-from ucoinpy.documents import Block, BlockId
+from ucoinpy.documents import Block, BlockUID
 from .net.api.bma.access import BmaAccess
 
 
@@ -187,7 +187,7 @@ class Community(QObject):
         :return: The monetary mass value
         """
         # Get cached block by block number
-        block_number = self.network.current_blockid.number
+        block_number = self.network.current_blockUID.number
         if block_number:
             block = await self.bma_access.future_request(bma.blockchain.Block,
                                  req_args={'number': block_number})
@@ -203,7 +203,7 @@ class Community(QObject):
         """
         try:
             # Get cached block by block number
-            block_number = self.network.current_blockid.number
+            block_number = self.network.current_blockUID.number
             block = await self.bma_access.future_request(bma.blockchain.Block,
                                  req_args={'number': block_number})
             return block['membersCount']
@@ -214,20 +214,22 @@ class Community(QObject):
             logging.debug(str(e))
             return 0
 
-    async def time(self):
+    async def time(self, block_number=None):
         """
         Get the blockchain time
+        :param block_number: The block number, None if current block
         :return: The community blockchain time
         :rtype: int
         """
         try:
             # Get cached block by block number
-            block_number = self.network.current_blockid.number
+            if block_number is None:
+                block_number = self.network.current_blockUID.number
             block = await self.bma_access.future_request(bma.blockchain.Block,
                                  req_args={'number': block_number})
             return block['medianTime']
         except ValueError as e:
-            if '404' in e:
+            if '404' in str(e):
                 return 0
         except NoPeerAvailable as e:
             logging.debug(str(e))
@@ -290,7 +292,7 @@ class Community(QObject):
         :param int number: The block number. If none, returns current block.
         """
         if number is None:
-            block_number = self.network.current_blockid.number
+            block_number = self.network.current_blockUID.number
             data = await self.bma_access.future_request(bma.blockchain.Block,
                                  req_args={'number': block_number})
         else:
@@ -299,22 +301,22 @@ class Community(QObject):
                                 req_args={'number': number})
         return data
 
-    async def blockid(self):
+    async def blockUID(self):
         """
         Get the block id.
 
         :return: The current block ID as [NUMBER-HASH] format.
         """
         try:
-            block_number = self.network.current_blockid.number
+            block_number = self.network.current_blockUID.number
             block = await self.bma_access.future_request(bma.blockchain.Block,
                                  req_args={'number': block_number})
             signed_raw = "{0}{1}\n".format(block['raw'], block['signature'])
         except ValueError as e:
             if '404' in str(e):
-                return BlockId.empty()
+                return BlockUID.empty()
 
-        return Block.from_signed_raw(signed_raw).blockid
+        return Block.from_signed_raw(signed_raw).blockUID
 
     async def members_pubkeys(self):
         """

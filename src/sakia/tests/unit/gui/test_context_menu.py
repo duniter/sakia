@@ -5,7 +5,7 @@ from PyQt5.QtCore import QLocale
 from sakia.tests import QuamashTest
 from sakia.tests.mocks.bma import nice_blockchain
 from sakia.gui.widgets.context_menu import ContextMenu
-from ucoinpy.documents import Membership, BlockId
+from ucoinpy.documents import Membership, BlockUID
 from sakia.tools.exceptions import MembershipNotFoundError
 
 
@@ -73,20 +73,20 @@ class TestContextMenu(unittest.TestCase, QuamashTest):
     @patch('PyQt5.QtWidgets.QMenu', create=True)
     def test_copy_membership_to_clipboard(self, qmenu):
         ms_data = {
-                    "version": 1,
+                    "version": 2,
                     "currency": "meta_brouzouf",
                     "membership": "IN",
                     "blockNumber": 49116,
-                    "blockHash": "000004CA4F77E36CE52C23A9F2A8F2A259773CE9",
+                    "blockHash": "7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67",
                     "written": 49119
                 }
         ms_document = Membership(ms_data["version"], ms_data["currency"], self.identity.pubkey,
-                                 BlockId(ms_data["blockNumber"], ms_data["blockHash"]),
-                                 ms_data["membership"], self.identity.uid, 1421787800,
+                                 BlockUID(ms_data["blockNumber"], ms_data["blockHash"]),
+                                 ms_data["membership"], self.identity.uid, "49116-7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67",
                                  "znWiWP7Sy9gg9pZq4YWKNpel8MM16VBM1lgBg2gWjSonnc+KVRCtQng5JB4JD0PgJJ0F8jdITuggFrRwqRfzAA==")
         self.identity.membership = CoroutineMock(return_value=ms_data)
         self.community.get_block = CoroutineMock(return_value={
-  "version": 1,
+  "version": 2,
   "nonce": 127424,
   "number": 49119,
   "powMin": 5,
@@ -97,21 +97,45 @@ class TestContextMenu(unittest.TestCase, QuamashTest):
   "currency": "meta_brouzouf",
   "issuer": "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk",
   "signature": "ZmjhoRubftJ/T2WYQ3gaDeTGGUJ3beUshtlWn1k/r5opk0vt48KG3w+9JU0T9YFR5uezllaek9efoNwAHRBLDw==",
-  "hash": "0000075129361571E74380B686DE6E1E29FF8400",
+  "hash": "49E2A1D1131F1496FAD6EDAE794A9ADBFA8844029675E3732D3B027ABB780243",
+  "innerhash": "273DE1845F8A63677D69DD427E00DAD73D9AEDBA80356A2E0D2152939D9DAF0C",
   "parameters": "",
   "previousHash": "000005C27A1636FE07AB01766FBA060565142D79",
   "previousIssuer": "HBSSmqZjT4UQKsCntTSmZbu7iRP14HYtifLE6mW1PsBD",
   "dividend": None,
   "identities": [],
   "joiners": [
-    "8Fi1VSTbjkXguwThF4v2ZxC5whK7pwG2vcGTkPUPjPGU:znWiWP7Sy9gg9pZq4YWKNpel8MM16VBM1lgBg2gWjSonnc+KVRCtQng5JB4JD0PgJJ0F8jdITuggFrRwqRfzAA==:49116:000004CA4F77E36CE52C23A9F2A8F2A259773CE9:1421787800:inso"
+    "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk:znWiWP7Sy9gg9pZq4YWKNpel8MM16VBM1lgBg2gWjSonnc+KVRCtQng5JB4JD0PgJJ0F8jdITuggFrRwqRfzAA==:49116-7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67:49116-7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67:A"
   ],
   "actives": [],
   "leavers": [],
   "excluded": [],
+  "revoked": [],
   "certifications": [],
   "transactions": [],
-  "raw": "Version: 1\nType: Block\nCurrency: meta_brouzouf\nNonce: 127424\nNumber: 49119\nPoWMin: 5\nTime: 1453921638\nMedianTime: 1453912797\nIssuer: HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk\nPreviousHash: 000005C27A1636FE07AB01766FBA060565142D79\nPreviousIssuer: HBSSmqZjT4UQKsCntTSmZbu7iRP14HYtifLE6mW1PsBD\nMembersCount: 18\nIdentities:\nJoiners:\nHnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk:znWiWP7Sy9gg9pZq4YWKNpel8MM16VBM1lgBg2gWjSonnc+KVRCtQng5JB4JD0PgJJ0F8jdITuggFrRwqRfzAA==:49116:000004CA4F77E36CE52C23A9F2A8F2A259773CE9:1421787800:A\nActives:\nLeavers:\nExcluded:\nCertifications:\nTransactions:\n"
+  "raw": """Version: 2
+Type: Block
+Currency: meta_brouzouf
+Number: 49119
+PoWMin: 5
+Time: 1453921638
+MedianTime: 1453912797
+Issuer: HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk
+PreviousHash: 000005C27A1636FE07AB01766FBA060565142D79
+PreviousIssuer: HBSSmqZjT4UQKsCntTSmZbu7iRP14HYtifLE6mW1PsBD
+MembersCount: 18
+Identities:
+Joiners:
+HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk:znWiWP7Sy9gg9pZq4YWKNpel8MM16VBM1lgBg2gWjSonnc+KVRCtQng5JB4JD0PgJJ0F8jdITuggFrRwqRfzAA==:49116-7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67:49116-7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67:A
+Actives:
+Leavers:
+Revoked:
+Excluded:
+Certifications:
+Transactions:
+InnerHash: 273DE1845F8A63677D69DD427E00DAD73D9AEDBA80356A2E0D2152939D9DAF0C
+Nonce: 127424
+"""
 })
         self.qapplication.clipboard().clear()
 

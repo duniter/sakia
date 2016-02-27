@@ -7,11 +7,13 @@ bma_wot_add = {
     {
       "uid": "test",
       "meta": {
-        "timestamp": 1409990782
+        "timestamp": "0-E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
       },
       "self": "J3G9oM5AKYZNLAB5Wx499w61NuUoS57JVccTShUbGpCMjCqj9yXXqNq7dyZpDWA6BxipsiaMZhujMeBfCznzyci",
       "others": [
-      ]
+      ],
+    "revocation_sig": "CTmlh3tO4B8f8IbL8iDy5ZEr3jZDcxkPmDmRPQY74C39MRLXi0CKUP+oFzTZPYmyUC7fZrUXrb3LwRKWw1jEBQ==",
+    "revoked": False,
     }
   ]
 }

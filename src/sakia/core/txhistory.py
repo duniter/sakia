@@ -103,13 +103,13 @@ class TxHistory():
                     tries += 1
         return block_doc
 
-    async def _parse_transaction(self, community, tx, blockid,
+    async def _parse_transaction(self, community, tx, blockUID,
                            mediantime, received_list, txid):
         """
         Parse a transaction
         :param sakia.core.Community community: The community
         :param ucoinpy.documents.Transaction tx: The tx json data
-        :param ucoinpy.documents.BlockId blockid: The block id where we found the tx
+        :param ucoinpy.documents.BlockUID blockUID: The block id where we found the tx
         :param int mediantime: Median time on the network
         :param list received_list: The list of received transactions
         :param int txid: The latest txid
@@ -160,7 +160,7 @@ class TxHistory():
                 amount += o.amount
             metadata['amount'] = amount
             transfer = Transfer.create_from_blockchain(tx_hash,
-                                                       blockid,
+                                                       blockUID,
                                                  metadata.copy())
             return transfer
         # If we are not in the issuers,
@@ -174,7 +174,7 @@ class TxHistory():
             metadata['amount'] = amount
 
             transfer = Transfer.create_from_blockchain(tx_hash,
-                                                       blockid,
+                                                       blockUID,
                                                  metadata.copy())
             received_list.append(transfer)
             return transfer
@@ -200,7 +200,7 @@ class TxHistory():
                       ]
 
             for (txid, tx) in enumerate(new_tx):
-                transfer = await self._parse_transaction(community, tx, block_doc.blockid,
+                transfer = await self._parse_transaction(community, tx, block_doc.blockUID,
                                         block_doc.mediantime, received_list, txid+txmax)
                 if transfer != None:
                     #logging.debug("Transfer amount : {0}".format(transfer.metadata['amount']))
@@ -308,8 +308,8 @@ class TxHistory():
         # We check if transactions are still present
         for transfer in [t for t in self._transfers
                          if t.state in (TransferState.VALIDATING, TransferState.VALIDATED) and
-                         t.blockid.number == block_number]:
-            if transfer.blockid.sha_hash == block_doc.blockid.sha_hash:
+                         t.blockUID.number == block_number]:
+            if transfer.blockUID.sha_hash == block_doc.blockUID.sha_hash:
                 return True
             transfer.run_state_transitions((True, block_doc))
         return False
@@ -325,16 +325,16 @@ class TxHistory():
             logging.debug("Rollback from : {0}".format(self.latest_block))
             # We look for the block goal to check for rollback,
             #  depending on validating and validated transfers...
-            tx_blocks = [tx.blockid.number for tx in self._transfers
+            tx_blocks = [tx.blockUID.number for tx in self._transfers
                           if tx.state in (TransferState.VALIDATED, TransferState.VALIDATING) and
-                          tx.blockid is not None]
+                          tx.blockUID is not None]
             tx_blocks.reverse()
             for i, block_number in enumerate(tx_blocks):
                 self.wallet.refresh_progressed.emit(i, len(tx_blocks), self.wallet.pubkey)
                 if (await self._check_block(community, block_number)):
                     break
 
-            current_block = await self._get_block_doc(community, community.network.current_blockid.number)
+            current_block = await self._get_block_doc(community, community.network.current_blockUID.number)
             members_pubkeys = await community.members_pubkeys()
             for transfer in [t for t in self._transfers
                              if t.state == TransferState.VALIDATED]:
@@ -345,15 +345,15 @@ class TxHistory():
     async def refresh(self, community, received_list):
         # We update the block goal
         try:
-            current_block_number = community.network.current_blockid.number
+            current_block_number = community.network.current_blockUID.number
             if current_block_number:
                 current_block = await community.bma_access.future_request(bma.blockchain.Block,
                                         req_args={'number': current_block_number})
                 members_pubkeys = await community.members_pubkeys()
                 # We look for the first block to parse, depending on awaiting and validating transfers and ud...
-                tx_blocks = [tx.blockid.number for tx in self._transfers
+                tx_blocks = [tx.blockUID.number for tx in self._transfers
                           if tx.state in (TransferState.AWAITING, TransferState.VALIDATING) \
-                         and tx.blockid is not None]
+                         and tx.blockUID is not None]
                 ud_blocks = [ud['block_number'] for ud in self._dividends
                           if ud['state'] in (TransferState.AWAITING, TransferState.VALIDATING)]
                 blocks = tx_blocks + ud_blocks + \

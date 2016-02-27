@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import Mock
 import time
 from PyQt5.QtCore import QLocale
 from sakia.core.registry.identities import Identity, IdentitiesRegistry, LocalState, BlockchainState
@@ -20,7 +21,7 @@ class TestBmaAccess(unittest.TestCase, QuamashTest):
         self.application = Application(self.qapplication, self.lp, self.identities_registry)
         self.application.preferences['notifications'] = False
 
-        self.peer = Peer.from_signed_raw("""Version: 1
+        self.peer = Peer.from_signed_raw("""Version: 2
 Type: Peer
 Currency: meta_brouzouf
 PublicKey: 8Fi1VSTbjkXguwThF4v2ZxC5whK7pwG2vcGTkPUPjPGU
@@ -32,7 +33,7 @@ BASIC_MERKLED_API ucoin.inso.ovh 80
         self.node = Node(self.peer,
                          "", "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk",
                          None, Node.ONLINE,
-                         time.time(), {}, "ucoin", "0.12.0", 0)
+                         time.time(), {}, "ucoin", "0.12.0", 0, Mock("aiohttp.ClientSession"))
         self.network = Network.create(self.node)
         self.bma_access = BmaAccess.create(self.network)
         self.community = Community("test_currency", self.network, self.bma_access)

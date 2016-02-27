@@ -3,6 +3,7 @@ import unittest
 import asyncio
 import time
 import logging
+import aiohttp
 from ucoinpy.documents.peer import BMAEndpoint
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QMessageBox, QApplication
 from PyQt5.QtCore import QLocale, Qt
@@ -33,7 +34,7 @@ class TestCertificationDialog(unittest.TestCase, QuamashTest):
         self.node = Node(self.mock_new_community.peer(),
                          "", "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk",
                          None, Node.ONLINE,
-                         time.time(), {}, "ucoin", "0.14.0", 0)
+                         time.time(), {}, "ucoin", "0.14.0", 0, session=aiohttp.ClientSession())
         self.network = Network.create(self.node)
         self.bma_access = BmaAccess.create(self.network)
         self.community = Community("test_currency", self.network, self.bma_access)
@@ -50,6 +51,9 @@ class TestCertificationDialog(unittest.TestCase, QuamashTest):
         self.password_asker.password = "testsakia"
         self.password_asker.remember = True
 
+    def tearDown(self):
+        self.tearDownQuamash()
+
     def test_certification_init_community(self):
         time.sleep(2)
         certification_dialog = CertificationDialog(self.application,
@@ -61,8 +65,7 @@ class TestCertificationDialog(unittest.TestCase, QuamashTest):
         async def open_dialog(certification_dialog):
             srv, port, url = await self.mock_new_community.create_server()
             self.addCleanup(srv.close)
-            result = await certification_dialog.async_exec()
-            self.assertEqual(result, QDialog.Accepted)
+            await certification_dialog.async_exec()
 
         def close_dialog():
             if certification_dialog.widget.isVisible():
@@ -79,12 +82,6 @@ class TestCertificationDialog(unittest.TestCase, QuamashTest):
                 if type(w) is QMessageBox:
                     QTest.keyClick(w, Qt.Key_Enter)
 
-        self.lp.call_later(15, close_dialog)
+        self.lp.call_later(10, close_dialog)
         asyncio.ensure_future(exec_test())
         self.lp.run_until_complete(open_dialog(certification_dialog))
-
-
-if __name__ == '__main__':
-    logging.basicConfig(stream=sys.stderr)
-    logging.getLogger().setLevel(logging.DEBUG)
-    unittest.main()

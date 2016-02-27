@@ -65,11 +65,11 @@ class MemberDialog(QObject):
             else:
                 join_date = datetime.datetime.fromtimestamp(join_date).strftime("%d/%m/%Y %I:%M")
 
-
             identity_selfcert = await self.identity.selfcert(self.community)
+            time = await self.community.time(identity_selfcert.timestamp.number)
             uid_publish_date = QLocale.toString(
                     QLocale(),
-                    QDateTime.fromTime_t(identity_selfcert.timestamp),
+                    QDateTime.fromTime_t(time),
                     QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
                 )
 

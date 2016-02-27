@@ -11,6 +11,7 @@ from PyQt5.QtGui import QCursor
 from PyQt5.QtWidgets import QWidget, QAction, QMenu, QDialog, \
                             QAbstractItemView
 from ucoinpy.api import bma
+from ucoinpy.documents import BlockUID
 
 from ..models.identities import IdentitiesFilterProxyModel, IdentitiesTableModel
 from ..gen_resources.identities_tab_uic import Ui_IdentitiesTab
@@ -125,7 +126,7 @@ class IdentitiesTabWidget(QObject):
                 for uid_data in identity_data['uids']:
                     identity = Identity.from_handled_data(uid_data['uid'],
                                                          identity_data['pubkey'],
-                                                         uid_data['meta']['timestamp'],
+                                                         BlockUID.from_str(uid_data['meta']['timestamp']),
                                                          BlockchainState.BUFFERED)
                     identities.append(identity)
 
