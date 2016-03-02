@@ -328,7 +328,7 @@ class Network(QObject):
                 if self.continue_crawling():
                     node.refresh()
                     if not first_loop:
-                        await asyncio.sleep(15)
+                        await asyncio.sleep(1)
             first_loop = False
 
         logging.debug("End of network discovery")

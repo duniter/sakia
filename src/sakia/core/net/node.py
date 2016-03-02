@@ -221,7 +221,6 @@ class Node(QObject):
             else:
                 closed = True
             await asyncio.sleep(0)
-        await asyncio.sleep(0)
 
     @property
     def pubkey(self):
@@ -327,10 +326,11 @@ class Node(QObject):
         if not self._ws_tasks['peer']:
             self._ws_tasks['peer'] = asyncio.ensure_future(self.connect_peers())
 
-        if self._refresh_counter % 20 == 0 or manual:
+        if self._refresh_counter % 300 == 0 or manual:
             self.refresh_informations()
             self.refresh_uid()
             self.refresh_summary()
+            asyncio.ensure_future(self.request_peers())
             self._refresh_counter = self._refresh_counter if manual else 1
         else:
             self._refresh_counter += 1
@@ -359,10 +359,10 @@ class Node(QObject):
                             break
             except ValueError as e:
                 logging.debug("Websocket block {0} : {1} - {2}".format(type(e).__name__, str(e), self.pubkey[:5]))
-                await self.request_current_block()
+                asyncio.ensure_future(self.request_current_block())
             except (WSServerHandshakeError, WSClientDisconnectedError, ClientResponseError) as e:
                 logging.debug("Websocket block {0} : {1} - {2}".format(type(e).__name__, str(e), self.pubkey[:5]))
-                await self.request_current_block()
+                asyncio.ensure_future(self.request_current_block())
             except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
                 logging.debug("{0} : {1}".format(str(e), self.pubkey[:5]))
                 self.state = Node.OFFLINE
