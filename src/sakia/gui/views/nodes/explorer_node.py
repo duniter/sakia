@@ -107,7 +107,8 @@ class ExplorerNode(BaseNode):
             x = origin_x + (final_x - origin_x) * value
             y = origin_y + (final_y - origin_y) * value
             self.setPos(x, y)
-            self.scene().node_moved.emit(self.id, x, y)
+            if self.scene():
+                self.scene().node_moved.emit(self.id, x, y)
 
         def timeline_ends():
             self.setPos(final_x, final_y)
