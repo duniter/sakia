@@ -284,7 +284,7 @@ class Identity(QObject):
         Get the list of this person certifiers
 
         :param sakia.core.registry.identities.IdentitiesRegistry identities_registry: The identities registry
-        :param sakia.core.community.Community community: The community target to request the join date
+        :param sakia.core.community.Community community: The community target
         :return: The list of the certifiers of this community
         :rtype: list
         """
@@ -301,10 +301,10 @@ class Identity(QObject):
                                                                               BlockchainState.VALIDATED,
                                                                               community)
                 certifier['cert_time'] = certifier_data['cert_time']['medianTime']
-                if 'written' in certifier_data and type(certifier_data['written']) is dict:
+                if certifier_data['written']:
                     certifier['block_number'] = certifier_data['written']['number']
                 else:
-                    certifier['block_number'] = certifier_data['cert_time']['block']
+                    certifier['block_number'] = None
 
                 certifiers.append(certifier)
         except ValueError as e:
@@ -348,7 +348,7 @@ class Identity(QObject):
         Get the certifications in the blockchain and in the pools
         Get only unique and last certification for each pubkey
         :param sakia.core.registry.identities.IdentitiesRegistry identities_registry: The identities registry
-        :param sakia.core.community.Community community: The community target to request the join date
+        :param sakia.core.community.Community community: The community target
         :return: The list of the certifiers of this community
         :rtype: list
         """
@@ -378,9 +378,7 @@ class Identity(QObject):
         """
         Get the list of persons certified by this person
         :param sakia.core.registry.IdentitiesRegistry identities_registry: The registry
-        :param sakia.core.Community community: The community
-
-        :param sakia.core.community.Community community: The community target to request the join date
+        :param sakia.core.community.Community community: The community target
         :return: The list of the certified persons of this community in BMA json format
         :rtype: list
         """
@@ -395,10 +393,10 @@ class Identity(QObject):
                                                                               BlockchainState.VALIDATED,
                                                                               community)
                 certified['cert_time'] = certified_data['cert_time']['medianTime']
-                if 'written' in certified_data and type(certified_data['written']) is dict:
+                if certified_data['written']:
                     certified['block_number'] = certified_data['written']['number']
                 else:
-                    certified['block_number'] = certified_data['cert_time']['block']
+                    certified['block_number'] = None
                 certified_list.append(certified)
         except ValueError as e:
             if '404' in str(e):
@@ -429,6 +427,14 @@ class Identity(QObject):
         return certified_list
 
     async def unique_valid_certified_by(self, identities_registry, community):
+        """
+        Get the list of persons certified by this person, filtered to get only unique
+        and valid certifications.
+        :param sakia.core.registry.IdentitiesRegistry identities_registry: The registry
+        :param sakia.core.community.Community community: The community target
+        :return: The list of the certified persons of this community in BMA json format
+        :rtype: list
+        """
         certified_list = await self.certified_by(identities_registry, community)
         unique_valid = []
         #  add certifiers of uid
@@ -452,6 +458,12 @@ class Identity(QObject):
         return unique_valid
 
     async def membership_expiration_time(self, community):
+        """
+        Get the remaining time before membership expiration
+        :param sakia.core.Community community: the community
+        :return: the remaining time
+        :rtype: int
+        """
         membership = await self.membership(community)
         join_block = membership['blockNumber']
         block = await community.get_block(join_block)
@@ -460,6 +472,23 @@ class Identity(QObject):
         expiration_date = join_date + parameters['sigValidity']
         current_time = time.time()
         return expiration_date - current_time
+
+    async def cert_issuance_delay(self, identities_registry, community):
+        """
+        Get the remaining time before being able to issue new certification.
+        :param sakia.core.Community community: the community
+        :return: the remaining time
+        :rtype: int
+        """
+        certified = await self.certified_by(identities_registry, community)
+        if len(certified) > 0:
+            latest_time = max([c['cert_time'] for c in certified])
+            parameters = await community.parameters()
+            if parameters:
+                current_time = time.time()
+                if current_time - latest_time < parameters['sigPeriod']:
+                    return parameters['sigPeriod'] - (current_time - latest_time)
+        return 0
 
     def _refresh_uid(self, uids):
         """

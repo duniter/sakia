@@ -69,7 +69,20 @@ bma_lookup_doe = {
                     "others": []
                 }
             ],
-            "signed": []
+            "signed": [
+                        {
+                            "pubkey": "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
+                            "meta": {
+                                "block_number": 38580
+                            },
+                            "uids": [
+                                "john"
+                            ],
+                            "isMember": True,
+                            "wasMember": True,
+                            "signature": "4ulycI2MtBu/8bZipy+OsXDCNm9EyUIdZ1HA7hbJ66phKRNvv70Oo2YOF/+VDRJb97z9TqWKgfIQ0NbXU15xDg=="
+                        },
+                    ]
         }
     ]
 }
@@ -86,7 +99,7 @@ bma_certifiers_of_john = {
             "wasMember": True,
             "cert_time": {
                 "block": 15,
-                "medianTime": 1447693329
+                "medianTime": 1500000000
             },
             "sigDate": "0-E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
             "written": {
@@ -107,12 +120,36 @@ bma_certified_by_john = {
     ]
 }
 
+bma_certified_by_doe = {
+    "pubkey": "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
+    "uid": "doe",
+    "isMember": True,
+    "certifications": [
+        {
+            "pubkey": "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
+            "uid": "john",
+            "isMember": True,
+            "wasMember": True,
+            "cert_time": {
+                "block": 15,
+                "medianTime": 1500000000
+            },
+            "sigDate": "0-E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+            "written": {
+                "number": 15,
+                "hash": "0000EC88BBBAA29D530D2B815DEE264DDC9F07F4"
+            },
+            "signature": "oliiPDhniZAGHrIFL66oHR+cqD4aTgXX+20VFLMfNHwdYPeik76hy334zxhoDC4cPODMb9df2nF/EDfCefrNBg=="
+        },
+    ]
+}
+
 bma_parameters = {
     "currency": "test_currency",
     "c": 0.1,
     "dt": 86400,
     "ud0": 100,
-    "sigDelay": 604800,
+    "sigPeriod": 600,
     "sigValidity": 2629800,
     "sigQty": 3,
     "sigWoT": 3,

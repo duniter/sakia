@@ -8,7 +8,7 @@ import logging
 
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QApplication, QMessageBox
 
-from PyQt5.QtCore import Qt, QObject
+from PyQt5.QtCore import Qt, QObject, QLocale, QDateTime
 
 from ..gen_resources.certification_uic import Ui_CertificationDialog
 from .widgets import toast
@@ -188,7 +188,23 @@ class CertificationDialog(QObject):
             logging.debug(str(e))
             block_0 = None
 
-        if is_member or not block_0:
+        params = await self.community.parameters()
+        nb_certifications = len(await account_identity.certified_by(self.app.identities_registry, self.community))
+        remaining_time = await account_identity.cert_issuance_delay(self.app.identities_registry, self.community)
+        cert_text = self.tr("Certifications sent : {nb_certifications}/{stock}").format(
+            nb_certifications=nb_certifications,
+            stock=params['sigStock'])
+        if remaining_time > 0:
+            cert_text += self.tr("Remaining time before next available certification : {0}").format(
+                QLocale.toString(
+                            QLocale(),
+                            QDateTime.fromTime_t(remaining_time),
+                            QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
+                        ),
+                )
+        self.ui.label_cert_stock.setText(cert_text)
+
+        if (is_member and remaining_time == 0 and nb_certifications < params['sigStock']) or not block_0:
             self.ui.button_box.button(QDialogButtonBox.Ok).setEnabled(True)
             self.ui.button_box.button(QDialogButtonBox.Ok).setText(self.tr("&Ok"))
         else:

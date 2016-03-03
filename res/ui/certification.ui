@@ -30,10 +30,19 @@
        <widget class="QComboBox" name="combo_community"/>
       </item>
       <item>
-       <widget class="QLabel" name="label_cert_stock">
-        <property name="text">
-         <string/>
+       <widget class="QGroupBox" name="groupBox_3">
+        <property name="title">
+         <string>Certifications stock</string>
         </property>
+        <layout class="QVBoxLayout" name="verticalLayout_4">
+         <item>
+          <widget class="QLabel" name="label_cert_stock">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
      </layout>

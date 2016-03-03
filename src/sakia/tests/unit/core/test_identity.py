@@ -1,5 +1,5 @@
 import unittest
-from asynctest import Mock, CoroutineMock
+from asynctest import Mock, CoroutineMock, patch
 from PyQt5.QtCore import QLocale
 from sakia.core.registry.identities import Identity, LocalState, BlockchainState
 
@@ -46,6 +46,32 @@ class TestIdentity(unittest.TestCase, QuamashTest):
             self.assertEqual(len(certifiers), 2)
             self.assertEqual(certifiers[0]['identity'].uid, "doe")
             self.assertEqual(certifiers[1]['identity'].uid, "doe")
+
+        self.lp.run_until_complete(exec_test())
+
+    @patch('time.time', Mock(return_value=1500000400))
+    def test_identity_cert_delay(self):
+        def bma_access(request, *args):
+            if request is bma.wot.CertifiedBy:
+                return nice_blockchain.bma_certified_by_doe
+            if request is bma.wot.Lookup:
+                return nice_blockchain.bma_lookup_doe
+            if request is bma.blockchain.Block:
+                return nice_blockchain.bma_blockchain_current
+
+        identity = Identity("john", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
+                            BlockUID(20, "7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67"),
+                            LocalState.COMPLETED, BlockchainState.VALIDATED)
+        id_doe = Identity("doe", "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
+                            BlockUID(101, "BAD49448A1AD73C978CEDCB8F137D20A5715EBAA739DAEF76B1E28EE67B2C00C"),
+                            LocalState.COMPLETED, BlockchainState.VALIDATED)
+
+        self.community.bma_access.future_request = CoroutineMock(side_effect=bma_access)
+        self.community.parameters = CoroutineMock(side_effect=lambda: nice_blockchain.bma_parameters)
+        self.identities_registry.from_handled_data = Mock(return_value=id_doe)
+        async def exec_test():
+            cert_delay = await identity.cert_issuance_delay(self.identities_registry, self.community)
+            self.assertEqual(cert_delay, 200)
 
         self.lp.run_until_complete(exec_test())
 

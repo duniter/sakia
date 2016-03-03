@@ -66,9 +66,30 @@ bma_lookup_test_patrick = {
     ]
 }
 
+bma_parameters = {
+    "currency": "test_currency",
+    "c": 0.1,
+    "dt": 86400,
+    "ud0": 100,
+    "sigPeriod": 600,
+    "sigValidity": 2629800,
+    "sigQty": 3,
+    "sigWoT": 3,
+    "sigStock": 10,
+    "sigWindow": 1000,
+    "msValidity": 2629800,
+    "stepMax": 3,
+    "medianTimeBlocks": 11,
+    "avgGenTime": 600,
+    "dtDiffEval": 20,
+    "blocksRot": 144,
+    "percentRot": 0.67
+}
 
 def get_mock(loop):
     mock = MockServer(loop)
+
+    mock.add_route('GET', '/blockchain/parameters', bma_parameters, 200)
 
     mock.add_route('GET', '/blockchain/block/0', {"message": "Block not found"}, 404)
 
