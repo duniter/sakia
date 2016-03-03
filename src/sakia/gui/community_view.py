@@ -104,9 +104,6 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.action_publish_uid.triggered.connect(self.publish_uid)
         self.toolbutton_menu.addAction(self.action_publish_uid)
 
-        self.action_revoke_uid.triggered.connect(self.revoke_uid)
-        self.toolbutton_menu.addAction(self.action_revoke_uid)
-
         self.button_membership.clicked.connect(self.send_membership_demand)
 
     def show_closable_tab(self, tab, icon, title):
@@ -372,25 +369,6 @@ The process to join back the community later will have to be done again.""")
         else:
             if self.app.preferences['notifications']:
                 toast.display(self.tr("UID"), result[1])
-            else:
-                await QAsyncMessageBox.critical(self, self.tr("UID"),
-                                                        result[1])
-
-    @asyncify
-    async def revoke_uid(self, checked=False):
-        password = await self.password_asker.async_exec()
-        if self.password_asker.result() == QDialog.Rejected:
-            return
-        result = await self.account.revoke(password, self.community)
-        if result[0]:
-            if self.app.preferences['notifications']:
-                toast.display(self.tr("Revoke UID"), self.tr("Your UID was revoked successfully."))
-            else:
-                await QAsyncMessageBox.information(self, self.tr("Membership"),
-                                                        self.tr("Your UID was revoked successfully."))
-        else:
-            if self.app.preferences['notifications']:
-                toast.display(self.tr("Revoke UID"), result[1])
             else:
                 await QAsyncMessageBox.critical(self, self.tr("UID"),
                                                         result[1])
