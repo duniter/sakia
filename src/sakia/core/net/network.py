@@ -9,8 +9,7 @@ import logging
 import aiohttp
 import time
 import asyncio
-from ucoinpy.documents.peer import Peer
-from ucoinpy.documents.block import Block, BlockUID
+from ucoinpy.documents import Peer,  Block, BlockUID, MalformedDocumentError
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
 from collections import Counter
 
@@ -67,26 +66,29 @@ class Network(QObject):
         :param NormalizedVersion file_version: The node version
         """
         for data in json_data:
-            node = Node.from_json(self.currency, data, file_version)
-            if node.pubkey not in [n.pubkey for n in self.nodes]:
-                self.add_node(node)
-                logging.debug("Loading : {:}".format(data['pubkey']))
-            else:
-                other_node = [n for n in self.nodes if n.pubkey == node.pubkey][0]
-                other_node._uid = node.uid
-                other_node._version = node.version
-                other_node._software = node.software
-                other_node._peer = node.peer
-                switch = False
-                if other_node.block and node.block:
-                    if other_node.block['hash'] != node.block['hash']:
-                        switch = True
+            try:
+                node = Node.from_json(self.currency, data, file_version, self.session)
+                if node.pubkey not in [n.pubkey for n in self.nodes]:
+                    self.add_node(node)
+                    logging.debug("Loading : {:}".format(data['pubkey']))
                 else:
-                    switch = True
-                if switch:
-                    other_node.set_block(node.block)
-                    other_node.last_change = node.last_change
-                    other_node.state = node.state
+                    other_node = [n for n in self.nodes if n.pubkey == node.pubkey][0]
+                    other_node._uid = node.uid
+                    other_node._version = node.version
+                    other_node._software = node.software
+                    other_node._peer = node.peer
+                    switch = False
+                    if other_node.block and node.block:
+                        if other_node.block['hash'] != node.block['hash']:
+                            switch = True
+                    else:
+                        switch = True
+                    if switch:
+                        other_node.set_block(node.block)
+                        other_node.last_change = node.last_change
+                        other_node.state = node.state
+            except MalformedDocumentError:
+                logging.debug("Could not load node {0}".format(data))
 
     @classmethod
     def from_json(cls, currency, json_data, file_version):
@@ -100,8 +102,11 @@ class Network(QObject):
         session = aiohttp.ClientSession()
         nodes = []
         for data in json_data:
-            node = Node.from_json(currency, data, file_version, session)
-            nodes.append(node)
+            try:
+                node = Node.from_json(currency, data, file_version, session)
+                nodes.append(node)
+            except MalformedDocumentError:
+                logging.debug("Could not load node {0}".format(data))
         network = cls(currency, nodes, session)
         return network
 
@@ -123,7 +128,10 @@ class Network(QObject):
         """
         synced = len(self.synced_nodes)
         total = len(self.nodes)
-        ratio_synced = synced / total
+        if total == 0:
+            ratio_synced = 0
+        else:
+            ratio_synced = synced / total
         return ratio_synced
 
     def start_coroutines(self):
@@ -141,7 +149,8 @@ class Network(QObject):
         close_tasks = []
         for node in self.nodes:
             close_tasks.append(asyncio.ensure_future(node.close_ws()))
-        await asyncio.wait(close_tasks, timeout=15)
+        if len(close_tasks) > 0:
+            await asyncio.wait(close_tasks, timeout=15)
         await self._client_session.close()
         logging.debug("Closed")
 
@@ -336,6 +345,7 @@ class Network(QObject):
                     if not first_loop:
                         await asyncio.sleep(15)
             first_loop = False
+            await asyncio.sleep(15)
 
         logging.debug("End of network discovery")
 

@@ -7,6 +7,7 @@ Created on 11 févr. 2014
 import logging
 import time
 from enum import Enum
+from pkg_resources import parse_version
 
 from ucoinpy.documents import BlockUID, SelfCertification, MalformedDocumentError
 from ucoinpy.api import bma as bma
@@ -76,7 +77,7 @@ class Identity(QObject):
         return cls(uid, pubkey, sigdate, LocalState.COMPLETED, blockchain_state)
 
     @classmethod
-    def from_json(cls, json_data):
+    def from_json(cls, json_data, version):
         """
         Create a person from json data
 
@@ -85,9 +86,12 @@ class Identity(QObject):
         """
         pubkey = json_data['pubkey']
         uid = json_data['uid']
-        sigdate = BlockUID.from_str(json_data['sigdate'])
         local_state = LocalState[json_data['local_state']]
         blockchain_state = BlockchainState[json_data['blockchain_state']]
+        if version < parse_version("0.20.0dev0"):
+            sigdate = BlockUID.empty()
+        else:
+            sigdate = BlockUID.from_str(json_data['sigdate'])
 
         return cls(uid, pubkey, sigdate, local_state, blockchain_state)
 
@@ -512,7 +516,7 @@ class Identity(QObject):
         """
         data = {'uid': self.uid,
                 'pubkey': self.pubkey,
-                'sigdate': self._sigdate,
+                'sigdate': str(self._sigdate),
                 'local_state': self.local_state.name,
                 'blockchain_state': self.blockchain_state.name}
         return data

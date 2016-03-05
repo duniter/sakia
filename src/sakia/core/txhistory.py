@@ -28,12 +28,19 @@ class TxHistory():
     def latest_block(self, value):
         self._latest_block = value
 
-    def load_from_json(self, data):
+    def load_from_json(self, data, version):
+        """
+        Load the tx history cache from json data
+
+        :param dict data: the data
+        :param version: the version parsed with pkg_resources.parse_version
+        :return:
+        """
         self._transfers = []
 
         data_sent = data['transfers']
         for s in data_sent:
-            self._transfers.append(Transfer.load(s))
+            self._transfers.append(Transfer.load(s, version))
 
         for s in data['sources']:
             self.available_sources.append(InputSource.from_inline(s['inline']))

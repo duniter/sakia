@@ -14,6 +14,7 @@ from ..tools.exceptions import NotEnoughMoneyError, NoPeerAvailable, LookupFailu
 from .transfer import Transfer
 from .txhistory import TxHistory
 
+from pkg_resources import parse_version
 from PyQt5.QtCore import QObject, pyqtSignal
 
 import logging
@@ -78,10 +79,12 @@ class Wallet(QObject):
 
         :param dict json_data: The caches as a dict in json format
         """
+        version = parse_version(json_data['version'])
         for currency in json_data:
             if currency != 'version':
                 self.caches[currency] = TxHistory(app, self)
-                self.caches[currency].load_from_json(json_data[currency])
+                if version >= parse_version("0.20.dev0"):
+                    self.caches[currency].load_from_json(json_data[currency], version)
 
     def jsonify_caches(self):
         """

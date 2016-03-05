@@ -1,7 +1,7 @@
 from ucoinpy.api import bma
 from ucoinpy.documents import BlockUID
 from .identity import Identity, LocalState, BlockchainState
-
+from pkg_resources import parse_version
 import asyncio
 from aiohttp.errors import ClientError
 from ...tools.exceptions import NoPeerAvailable
@@ -28,12 +28,13 @@ class IdentitiesRegistry:
         :param dict json_data: The identities in json format
         """
         instances = {}
+        version = parse_version(json_data['version'])
         for currency in json_data['registry']:
             instances[currency] = {}
             for person_data in json_data['registry'][currency]:
                 pubkey = person_data['pubkey']
                 if pubkey not in instances:
-                    person = Identity.from_json(person_data)
+                    person = Identity.from_json(person_data, version)
                     instances[currency][person.pubkey] = person
         self._instances = instances
 
