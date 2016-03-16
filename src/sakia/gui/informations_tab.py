@@ -5,7 +5,6 @@ Created on 31 janv. 2015
 """
 
 import logging
-import asyncio
 from PyQt5.QtCore import QLocale, QDateTime, QEvent
 from PyQt5.QtWidgets import QWidget
 from ..gen_resources.informations_tab_uic import Ui_InformationsTabWidget
@@ -265,17 +264,22 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             </table>
             """).format(
-                        params['sigDelay'] / 86400,
-                        self.tr('Minimum delay between 2 identical certifications (in days)'),
+                        params['sigPeriod'] / 86400,
+                        self.tr('Minimum delay between 2 certifications (in days)'),
                         params['sigValidity'] / 86400,
                         self.tr('Maximum age of a valid signature (in days)'),
                         params['sigQty'],
                         self.tr('Minimum quantity of signatures to be part of the WoT'),
-                        params['sigWoT'],
-                        self.tr(
-                            'Minimum quantity of valid made certifications to be part of the WoT for distance rule'),
+                        params['sigStock'],
+                        self.tr('Maximum quantity of active certifications made by member.'),
+                        params['sigWindow'],
+                        self.tr('Maximum delay a certification can wait before being expired for non-writing.'),
+                        params['xpercent'],
+                        self.tr('Minimum percent of sentries to reach to match the distance rule'),
                         params['msValidity'] / 86400,
                         self.tr('Maximum age of a valid membership (in days)'),
                         params['stepMax'],

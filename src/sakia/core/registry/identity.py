@@ -233,14 +233,14 @@ class Identity(QObject):
         try:
             data = await community.bma_access.future_request(bma.wot.Lookup,
                                  req_args={'search': self.pubkey})
-            timestamp = 0
+            timestamp = BlockUID.empty()
 
             for result in data['results']:
                 if result["pubkey"] == self.pubkey:
                     uids = result['uids']
                     person_uid = ""
                     for uid_data in uids:
-                        if uid_data["meta"]["timestamp"] >= timestamp:
+                        if BlockUID.from_str(uid_data["meta"]["timestamp"]) >= timestamp:
                             timestamp = uid_data["meta"]["timestamp"]
                             person_uid = uid_data["uid"]
                         if person_uid == self.uid:

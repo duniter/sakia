@@ -102,8 +102,8 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
             self.config_dialog.label_error.setText(str(e))
         except aiohttp.errors.ClientError as e:
             self.config_dialog.label_error.setText(str(e))
-        #except (MalformedDocumentError, ValueError) as e:
-        #    self.config_dialog.label_error.setText(str(e))
+        except (MalformedDocumentError, ValueError) as e:
+            self.config_dialog.label_error.setText(str(e))
 
     @asyncify
     async def check_register(self, checked=False):

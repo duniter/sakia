@@ -520,13 +520,13 @@ class Node(QObject):
         try:
             data = await bma.wot.Lookup(conn_handler, self.pubkey).get(self._session)
             self.state = Node.ONLINE
-            timestamp = 0
+            timestamp = BlockUID.empty()
             uid = ""
             for result in data['results']:
                 if result["pubkey"] == self.pubkey:
                     uids = result['uids']
                     for uid in uids:
-                        if uid["meta"]["timestamp"] > timestamp:
+                        if BlockUID.from_str(uid["meta"]["timestamp"]) > timestamp:
                             timestamp = uid["meta"]["timestamp"]
                             uid = uid["uid"]
             if self._uid != uid:
