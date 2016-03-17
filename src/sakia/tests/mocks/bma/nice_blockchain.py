@@ -152,7 +152,7 @@ bma_parameters = {
     "sigPeriod": 600,
     "sigValidity": 2629800,
     "sigQty": 3,
-    "sigWoT": 3,
+    "xpercent": 0.9,
     "sigStock": 10,
     "sigWindow": 1000,
     "msValidity": 2629800,
@@ -222,7 +222,7 @@ PoWMin: 3
 Time: 1421838980
 MedianTime: 1421838980
 Issuer: HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk
-Parameters: 0.1:86400:100:604800:15:604800:2629800:3:3:2629800:3:11:600:20:144:0.67
+Parameters: 0.1:86400:100:604800:15:604800:2629800:3:0.9:r  2629800:3:11:600:20:144:0.67
 MembersCount: 4
 Identities:
 8Fi1VSTbjkXguwThF4v2ZxC5whK7pwG2vcGTkPUPjPGU:Ot3zIp/nsHT3zgJy+2YcXPL6vaM5WFsD+F8w3qnJoBRuBG6lv761zoaExp2iyUnm8fDAyKPpMxRK2kf437QSCw==:0-E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855:inso
@@ -437,20 +437,18 @@ bma_txsources_john = {
     "sources":
         [
             {
-                "pubkey": "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
                 "type": "D",
                 "noffset": 2,
                 "identifier": "FCAD5A388AC8A811B45A9334A375585E77071AA9F6E5B6896582961A6C66F365",
-                "amount": 7,
-                "base": 1
+                "amount": 70,
+                "base": 0
             },
             {
-                "pubkey": "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
                 "type": "D",
                 "noffset": 4,
                 "identifier": "A0AC57E2E4B24D66F2D25E66D8501D8E881D9E6453D1789ED753D7D426537ED5",
-                "amount": 9,
-                "base": 1
+                "amount": 90,
+                "base": 0
             }
         ]}
 

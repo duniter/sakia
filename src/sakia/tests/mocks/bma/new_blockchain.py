@@ -26,7 +26,7 @@ bma_parameters = {
     "sigPeriod": 600,
     "sigValidity": 2629800,
     "sigQty": 3,
-    "sigWoT": 3,
+    "xpercent": 0.9,
     "sigStock": 10,
     "sigWindow": 1000,
     "msValidity": 2629800,
@@ -60,4 +60,6 @@ def get_mock(loop):
                    {'message': "No member matching this pubkey or uid"}, 404)
 
     mock.add_route('POST', '/wot/add', bma_wot_add, 200)
+
+    mock.add_route('POST', '/wot/certify', {}, 200)
     return mock

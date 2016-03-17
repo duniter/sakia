@@ -74,7 +74,7 @@ bma_parameters = {
     "sigPeriod": 600,
     "sigValidity": 2629800,
     "sigQty": 3,
-    "sigWoT": 3,
+    "xpercent": 0.9,
     "sigStock": 10,
     "sigWindow": 1000,
     "msValidity": 2629800,
@@ -111,5 +111,7 @@ def get_mock(loop):
     mock.add_route('GET', '/wot/lookup/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn', bma_lookup_test_patrick, 200)
 
     mock.add_route('POST', '/wot/add', {}, 200)
+
+    mock.add_route('POST', '/wot/certify', {}, 200)
 
     return mock
