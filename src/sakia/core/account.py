@@ -427,9 +427,13 @@ class Account(QObject):
         :param str password: The account SigningKey password
         :param community: The community target of the self certification
         """
-        block_data = await community.bma_access.simple_request(bma.blockchain.Current)
-        signed_raw = "{0}{1}\n".format(block_data['raw'], block_data['signature'])
-        block_uid = Block.from_signed_raw(signed_raw).blockUID
+        try:
+            block_data = await community.bma_access.simple_request(bma.blockchain.Current)
+            signed_raw = "{0}{1}\n".format(block_data['raw'], block_data['signature'])
+            block_uid = Block.from_signed_raw(signed_raw).blockUID
+        except ValueError as e:
+            if '404' in str(e):
+                block_uid = BlockUID.empty()
         selfcert = SelfCertification(PROTOCOL_VERSION,
                                      community.currency,
                                      self.pubkey,

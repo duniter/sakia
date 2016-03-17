@@ -80,8 +80,11 @@ class ProcessAddCommunity(unittest.TestCase, QuamashTest):
                 self.assertEqual(mock.get_request(i).url,
                                  '/wot/lookup/john')
 
-            self.assertEqual(mock.get_request(8).url[:8], '/wot/add')
-            self.assertEqual(mock.get_request(8).method, 'POST')
+            self.assertEqual(mock.get_request(8).url, '/blockchain/current')
+            self.assertEqual(mock.get_request(8).method, 'GET')
+
+            self.assertEqual(mock.get_request(9).url[:8], '/wot/add')
+            self.assertEqual(mock.get_request(9).method, 'POST')
             self.assertEqual(process_community.label_error.text(), "Broadcasting identity...")
             await asyncio.sleep(1)
 
