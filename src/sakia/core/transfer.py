@@ -342,7 +342,7 @@ class Transfer(QObject):
         self.sha_hash = txdoc.sha_hash
         responses = await community.bma_access.broadcast(bma.tx.Process,
                 post_args={'transaction': txdoc.signed_raw()})
-        blockUID = await community.blockUID()
+        blockUID = community.network.current_blockUID
         block = await community.bma_access.future_request(bma.blockchain.Block,
                                   req_args={'number': blockUID.number})
         signed_raw = "{0}{1}\n".format(block['raw'], block['signature'])
