@@ -13,6 +13,7 @@ from ucoinpy.api.bma import PROTOCOL_VERSION
 from ..tools.exceptions import NotEnoughMoneyError, NoPeerAvailable, LookupFailureError
 from .transfer import Transfer
 from .txhistory import TxHistory
+from .. import __version__
 
 from pkg_resources import parse_version
 from PyQt5.QtCore import QObject, pyqtSignal
@@ -175,19 +176,25 @@ class Wallet(QObject):
         :return: The list of inputs to use in the transaction document
         """
         value = 0
-        sources = []
-
+        amount, amount_base = reduce_base(amount, 0)
         cache = self.caches[community.currency]
+        current_base = amount_base
+        sources = []
         buf_sources = list(cache.available_sources)
-        for s in cache.available_sources:
-            value += s['amount'] * pow(10, s['base'])
-            sources.append(s)
-            buf_sources.remove(s)
-            if value >= amount:
-                return (sources, buf_sources)
+        while current_base >= 0:
+            for s in [src for src in cache.available_sources if src['base'] == current_base]:
+                value += s['amount'] * pow(10, s['base'])
+                sources.append(s)
+                buf_sources.remove(s)
+                if value >= amount:
+                    overhead = value - int(amount)
+                    overhead, overhead_max_base = reduce_base(overhead, 0)
+                    if overhead_max_base >= current_base:
+                        return (sources, buf_sources)
+            current_base -= 1
 
         raise NotEnoughMoneyError(value, community.currency,
-                                  len(sources), amount)
+                                  len(sources), amount * pow(10, amount_base))
 
     def tx_inputs(self, sources):
         """
@@ -230,11 +237,11 @@ class Wallet(QObject):
         for i in inputs:
             logging.debug(i)
             inputs_value += i['amount'] * pow(10, i['base'])
-
+        inputs_max_base = max([i['base'] for i in inputs])
         overhead = inputs_value - int(amount)
 
-        amount, amount_base = reduce_base(amount, 0)
-        overhead, overhead_base = reduce_base(overhead, 0)
+        amount, amount_base = int(amount / pow(10, inputs_max_base)), inputs_max_base
+        overhead, overhead_base = int(overhead / pow(10, inputs_max_base)), inputs_max_base
 
         outputs.append(OutputSource(amount, amount_base, output.Condition.token(output.SIG.token(pubkey))))
         if overhead != 0:
@@ -277,7 +284,7 @@ class Wallet(QObject):
         :param str message: The message to send with the transfer
         """
         try:
-            blockUID = await community.blockUID()
+            blockUID = community.network.current_blockUID
             block = await community.bma_access.future_request(bma.blockchain.Block,
                                       req_args={'number': blockUID.number})
         except ValueError as e:
@@ -376,4 +383,5 @@ class Wallet(QObject):
         """
         return {'walletid': self.walletid,
                 'pubkey': self.pubkey,
-                'name': self.name}
+                'name': self.name,
+                'version': __version__}
