@@ -43,7 +43,7 @@ class TxHistory():
             self._transfers.append(Transfer.load(s, version))
 
         for s in data['sources']:
-            self.available_sources.append(InputSource.from_inline(s['inline']))
+            self.available_sources.append(s.copy())
 
         for d in data['dividends']:
             d['state'] = TransferState[d['state']]
@@ -58,8 +58,7 @@ class TxHistory():
 
         data_sources = []
         for s in self.available_sources:
-            s.index = 0
-            data_sources.append({'inline': "{0}\n".format(s.inline())})
+            data_sources.append(s)
 
         data_dividends = []
         for d in self._dividends.copy():
