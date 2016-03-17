@@ -204,9 +204,13 @@ class CertificationDialog(QObject):
                 )
         self.ui.label_cert_stock.setText(cert_text)
 
-        if (is_member and remaining_time == 0 and nb_certifications < params['sigStock']) or not block_0:
-            self.ui.button_box.button(QDialogButtonBox.Ok).setEnabled(True)
-            self.ui.button_box.button(QDialogButtonBox.Ok).setText(self.tr("&Ok"))
+        if is_member or not block_0:
+            if remaining_time == 0 and (nb_certifications < params['sigStock'] or params['sigStock'] == 0):
+                self.ui.button_box.button(QDialogButtonBox.Ok).setEnabled(True)
+                self.ui.button_box.button(QDialogButtonBox.Ok).setText(self.tr("&Ok"))
+            else:
+                self.ui.button_box.button(QDialogButtonBox.Ok).setEnabled(False)
+                self.ui.button_box.button(QDialogButtonBox.Ok).setText(self.tr("No more certifications"))
         else:
             self.ui.button_box.button(QDialogButtonBox.Ok).setEnabled(False)
             self.ui.button_box.button(QDialogButtonBox.Ok).setText(self.tr("Not a member"))
