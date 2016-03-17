@@ -359,7 +359,7 @@ class Identity(QObject):
         certifier_list = await self.certifiers_of(identities_registry, community)
         unique_valid = []
         #  add certifiers of uid
-        for certifier in tuple(certifier_list):
+        for certifier in tuple([c for c in certifier_list if c['cert_time']]):
             # add only valid certification...
             try:
                 cert_expired = await community.certification_expired(certifier['cert_time'])
@@ -420,7 +420,7 @@ class Identity(QObject):
                                                                           None,
                                                                           BlockchainState.BUFFERED,
                                                                           community)
-                        certified['cert_time'] = certified_data['meta']['timestamp']
+                        certified['cert_time'] = None
                         certified['block_number'] = None
                         certified_list.append(certified)
         except ValueError as e:
@@ -442,7 +442,7 @@ class Identity(QObject):
         certified_list = await self.certified_by(identities_registry, community)
         unique_valid = []
         #  add certifiers of uid
-        for certified in tuple(certified_list):
+        for certified in tuple([c for c in certified_list if c['cert_time']]):
             # add only valid certification...
             try:
                 cert_expired = await community.certification_expired(certified['cert_time'])
