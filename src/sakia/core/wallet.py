@@ -175,18 +175,18 @@ class Wallet(QObject):
 
         :return: The list of inputs to use in the transaction document
         """
-        value = 0
         amount, amount_base = reduce_base(amount, 0)
         cache = self.caches[community.currency]
         current_base = amount_base
-        sources = []
-        buf_sources = list(cache.available_sources)
         while current_base >= 0:
+            value = 0
+            sources = []
+            buf_sources = list(cache.available_sources)
             for s in [src for src in cache.available_sources if src['base'] == current_base]:
                 value += s['amount'] * pow(10, s['base'])
                 sources.append(s)
                 buf_sources.remove(s)
-                if value >= amount:
+                if value >= amount * pow(10, amount_base):
                     overhead = value - int(amount)
                     overhead, overhead_max_base = reduce_base(overhead, 0)
                     if overhead_max_base >= current_base:

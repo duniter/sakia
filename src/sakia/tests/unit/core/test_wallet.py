@@ -72,8 +72,8 @@ class TestWallet(unittest.TestCase, QuamashTest):
         self.assertEqual(tx.inputs[1].source, "D")
         self.assertEqual(tx.inputs[1].index, 4)
         self.assertEqual(len(tx.outputs), 1)
-        self.assertEqual(tx.outputs[0].amount, 1)
-        self.assertEqual(tx.outputs[0].base, 2)
+        self.assertEqual(tx.outputs[0].amount, 100)
+        self.assertEqual(tx.outputs[0].base, 0)
         self.assertEqual(pypeg2.compose(tx.outputs[0].conditions, output.Condition),
                          "SIG(FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn)")
         self.assertEqual(len(tx.unlocks), 2)
@@ -94,5 +94,5 @@ Unlocks:
 0:SIG(0)
 1:SIG(0)
 Outputs:
-1:2:SIG(FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn)
+100:0:SIG(FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn)
 Comment:""" + " \n")
