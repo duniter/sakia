@@ -40,7 +40,7 @@ class TxHistory():
 
         data_sent = data['transfers']
         for s in data_sent:
-            self._transfers.append(Transfer.load(s, version))
+            self._transfers.append(Transfer.load(s))
 
         for s in data['sources']:
             self.available_sources.append(s.copy())
