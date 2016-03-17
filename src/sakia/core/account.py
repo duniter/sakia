@@ -4,14 +4,15 @@ Created on 1 févr. 2014
 @author: inso
 """
 
-from ucoinpy.documents import Membership, SelfCertification, Certification, Revokation, BlockUID
+from ucoinpy.documents import Membership, SelfCertification, Certification, Revokation, BlockUID, Block
 from ucoinpy.key import SigningKey
+from ucoinpy.api import bma
+from ucoinpy.api.bma import PROTOCOL_VERSION
 
 import logging
-import time
 import asyncio
 from pkg_resources import parse_version
-
+from aiohttp.errors import ClientError
 from PyQt5.QtCore import QObject, pyqtSignal
 
 from . import money
@@ -20,9 +21,6 @@ from .community import Community
 from .registry import LocalState
 from ..tools.exceptions import ContactAlreadyExists
 from .. import __version__
-from ucoinpy.api import bma
-from ucoinpy.api.bma import PROTOCOL_VERSION
-from aiohttp.errors import ClientError
 
 
 class Account(QObject):
@@ -429,19 +427,20 @@ class Account(QObject):
         :param str password: The account SigningKey password
         :param community: The community target of the self certification
         """
+        block_data = await community.bma_access.simple_request(bma.blockchain.Current)
+        signed_raw = "{0}{1}\n".format(block_data['raw'], block_data['signature'])
+        block_uid = Block.from_signed_raw(signed_raw).blockUID
         selfcert = SelfCertification(PROTOCOL_VERSION,
                                      community.currency,
                                      self.pubkey,
-                                     int(time.time()),
                                      self.name,
+                                     block_uid,
                                      None)
         key = SigningKey(self.salt, password)
         selfcert.sign([key])
         logging.debug("Key publish : {0}".format(selfcert.signed_raw()))
 
-        responses = await community.bma_access.broadcast(bma.wot.Add, {}, {'pubkey': self.pubkey,
-                                              'self_': selfcert.signed_raw(),
-                                              'other': {}})
+        responses = await community.bma_access.broadcast(bma.wot.Add, {}, {'identity': selfcert.signed_raw()})
         result = (False, "")
         for r in responses:
             if r.status == 200:
@@ -463,7 +462,7 @@ class Account(QObject):
         """
         logging.debug("Send membership")
 
-        blockUID = await community.blockUID()
+        blockUID = community.network.current_blockUID
         self_identity = await self._identities_registry.future_find(self.pubkey, community)
         selfcert = await self_identity.selfcert(community)
 
@@ -494,7 +493,7 @@ class Account(QObject):
         :param str pubkey: The certified identity pubkey
         """
         logging.debug("Certdata")
-        blockUID = await community.blockUID()
+        blockUID = community.network.current_blockUID
         identity = await self._identities_registry.future_find(pubkey, community)
         selfcert = await identity.selfcert(community)
         if selfcert:
@@ -506,11 +505,9 @@ class Account(QObject):
             signed_cert = certification.signed_raw(selfcert)
             logging.debug("Certification : {0}".format(signed_cert))
 
-            data = {'pubkey': pubkey,
-                    'self_': selfcert.signed_raw(),
-                    'other': "{0}\n".format(certification.inline())}
+            data = {'cert': certification.signed_raw(selfcert)}
             logging.debug("Posted data : {0}".format(data))
-            responses = await community.bma_access.broadcast(bma.wot.Add, {}, data)
+            responses = await community.bma_access.broadcast(bma.wot.Certify, {}, data)
             result = (False, "")
             for r in responses:
                 if r.status == 200:
