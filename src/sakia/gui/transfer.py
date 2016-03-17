@@ -128,7 +128,7 @@ class TransferMoneyDialog(QObject):
         amount = self.ui.spinbox_amount.value()
 
         if not amount:
-            await QAsyncMessageBox.critical(self, self.tr("Money transfer"),
+            await QAsyncMessageBox.critical(self.widget, self.tr("Money transfer"),
                                  self.tr("No amount. Please give the transfert amount"),
                                  QMessageBox.Ok)
             self.ui.button_box.setEnabled(True)
