@@ -241,7 +241,7 @@ class Community(QObject):
         Get the community network instance.
 
         :return: The community network instance.
-        :rtype: sakia.core.net.network.Network
+        :rtype: sakia.core.net.Network
         """
         return self._network
 
@@ -261,13 +261,15 @@ class Community(QObject):
         """
         return await self.bma_access.future_request(bma.blockchain.Parameters)
 
-    async def certification_expired(self, certtime):
+    async def certification_expired(self, cert_time):
         """
         Return True if the certificaton time is too old
+
+        :param int cert_time: the timestamp of the certification
         """
         parameters = await self.parameters()
         blockchain_time = await self.time()
-        return blockchain_time - certtime > parameters['sigValidity']
+        return blockchain_time - cert_time > parameters['sigValidity']
 
     def add_node(self, node):
         """
@@ -300,23 +302,6 @@ class Community(QObject):
             data = await self.bma_access.future_request(bma.blockchain.Block,
                                 req_args={'number': number})
         return data
-
-    async def blockUID(self):
-        """
-        Get the block id.
-
-        :return: The current block ID as [NUMBER-HASH] format.
-        """
-        try:
-            block_number = self.network.current_blockUID.number
-            block = await self.bma_access.future_request(bma.blockchain.Block,
-                                 req_args={'number': block_number})
-            signed_raw = "{0}{1}\n".format(block['raw'], block['signature'])
-        except ValueError as e:
-            if '404' in str(e):
-                return BlockUID.empty()
-
-        return Block.from_signed_raw(signed_raw).blockUID
 
     async def members_pubkeys(self):
         """
