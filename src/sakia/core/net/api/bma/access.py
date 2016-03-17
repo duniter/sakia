@@ -203,7 +203,7 @@ class BmaAccess(QObject):
                 except TypeError:
                     return False
             else:
-                return False
+                return True
         filters = {
             bma.ud.History: lambda n: compare_versions(n, "0.11.0"),
             bma.tx.History: lambda n: compare_versions(n, "0.11.0"),
@@ -315,9 +315,10 @@ class BmaAccess(QObject):
 
         try:
             result = await asyncio.gather(*replies)
+            return tuple(result)
         except ValueError as e:
             if '404' in str(e) or '400' in str(e):
                 raise
         except (ClientError, ServerDisconnectedError, gaierror, asyncio.TimeoutError) as e:
             pass
-        return tuple(result)
+        return ()
