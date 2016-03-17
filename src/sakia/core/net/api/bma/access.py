@@ -9,6 +9,7 @@ import random
 from socket import gaierror
 import jsonschema
 from pkg_resources import parse_version
+import copy
 
 
 class BmaAccess(QObject):
@@ -127,7 +128,7 @@ class BmaAccess(QObject):
             elif str(request) in BmaAccess.__saved_requests \
                 or cached_data['metadata']['block_hash'] == self._network.current_blockUID.sha_hash:
                 need_reload = False
-            ret_data = cached_data['value']
+            ret_data = copy.deepcopy(cached_data['value'])
         else:
             need_reload = True
             ret_data = None
@@ -172,7 +173,7 @@ class BmaAccess(QObject):
         self._data[cache_key]['metadata']['block_hash'] = self._network.current_blockUID.sha_hash
         self._data[cache_key]['metadata']['sakia_version'] = __version__
         if not self._compare_json(self._data[cache_key]['value'], data):
-            self._data[cache_key]['value'] = data
+            self._data[cache_key]['value'] = copy.deepcopy(data)
             return True
         return False
 
