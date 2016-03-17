@@ -255,7 +255,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         port = self.spinbox_add_port.value()
 
         try:
-            node = await Node.from_address(self.community.currency, server, port)
+            node = await Node.from_address(self.community.currency, server, port, session=self.community.network.session)
             self.community.add_node(node)
         except Exception as e:
             await QAsyncMessageBox.critical(self, self.tr("Error"),
