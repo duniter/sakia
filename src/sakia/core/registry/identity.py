@@ -88,10 +88,10 @@ class Identity(QObject):
         uid = json_data['uid']
         local_state = LocalState[json_data['local_state']]
         blockchain_state = BlockchainState[json_data['blockchain_state']]
-        if version < parse_version("0.20.0dev0"):
-            sigdate = BlockUID.empty()
-        else:
+        if version >= parse_version("0.20.0dev0") and json_data['sigdate']:
             sigdate = BlockUID.from_str(json_data['sigdate'])
+        else:
+            sigdate = BlockUID.empty()
 
         return cls(uid, pubkey, sigdate, local_state, blockchain_state)
 
@@ -516,7 +516,7 @@ class Identity(QObject):
         """
         data = {'uid': self.uid,
                 'pubkey': self.pubkey,
-                'sigdate': str(self._sigdate),
+                'sigdate': str(self._sigdate) if self._sigdate else None,
                 'local_state': self.local_state.name,
                 'blockchain_state': self.blockchain_state.name}
         return data
