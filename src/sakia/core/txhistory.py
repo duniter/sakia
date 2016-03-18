@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import hashlib
-from ucoinpy.documents.transaction import InputSource
+from ucoinpy.documents.transaction import SimpleTransaction
 from ucoinpy.documents.block import Block
 from ucoinpy.api import  bma
 from .transfer import Transfer, TransferState
@@ -121,8 +121,8 @@ class TxHistory():
         :param int txid: The latest txid
         :return: the found transaction
         """
-        receivers = [o.pubkey for o in tx.outputs
-                     if o.pubkey != tx.issuers[0]]
+        receivers = [o.conditions.left.pubkey for o in tx.outputs
+                     if o.conditions.left.pubkey != tx.issuers[0]]
 
         if len(receivers) == 0:
             receivers = [tx.issuers[0]]
@@ -152,7 +152,7 @@ class TxHistory():
         in_issuers = len([i for i in tx.issuers
                      if i == self.wallet.pubkey]) > 0
         in_outputs = len([o for o in tx.outputs
-                       if o.pubkey == self.wallet.pubkey]) > 0
+                       if o.conditions.left.pubkey == self.wallet.pubkey]) > 0
 
         # We check if the transaction correspond to one we sent
         # but not from this sakia Instance
@@ -160,7 +160,7 @@ class TxHistory():
         # If the wallet pubkey is in the issuers we sent this transaction
         if in_issuers:
             outputs = [o for o in tx.outputs
-                       if o.pubkey != self.wallet.pubkey]
+                       if o.conditions.left.pubkey != self.wallet.pubkey]
             amount = 0
             for o in outputs:
                 amount += o.amount
@@ -170,10 +170,10 @@ class TxHistory():
                                                  metadata.copy())
             return transfer
         # If we are not in the issuers,
-        # maybe it we are in the recipients of this transaction
+        # maybe we are in the recipients of this transaction
         elif in_outputs:
             outputs = [o for o in tx.outputs
-                       if o.pubkey == self.wallet.pubkey]
+                       if o.conditions.left.pubkey == self.wallet.pubkey]
             amount = 0
             for o in outputs:
                 amount += o.amount
@@ -203,7 +203,7 @@ class TxHistory():
 
             new_tx = [t for t in block_doc.transactions
                       if t.sha_hash not in [trans.sha_hash for trans in self._transfers]
-                      ]
+                       and SimpleTransaction.is_simple(t)]
 
             for (txid, tx) in enumerate(new_tx):
                 transfer = await self._parse_transaction(community, tx, block_doc.blockUID,
