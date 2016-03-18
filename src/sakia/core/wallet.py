@@ -323,13 +323,15 @@ class Wallet(QObject):
                     }
         transfer = Transfer.initiate(metadata)
         self.caches[community.currency]._transfers.append(transfer)
+        try:
+            tx = self.prepare_tx(recipient, amount, message, community)
+            logging.debug("TX : {0}".format(tx.raw()))
 
-        tx = self.prepare_tx(recipient, amount, message, community)
-        logging.debug("TX : {0}".format(tx.raw()))
-
-        tx.sign([key])
-        logging.debug("Transaction : {0}".format(tx.signed_raw()))
-        return await transfer.send(tx, community)
+            tx.sign([key])
+            logging.debug("Transaction : {0}".format(tx.signed_raw()))
+            return await transfer.send(tx, community)
+        except NotEnoughMoneyError as e:
+            return (False, str(e))
 
     async def sources(self, community):
         """
