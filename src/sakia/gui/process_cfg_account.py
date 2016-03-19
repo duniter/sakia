@@ -219,7 +219,7 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         dialog.exec_()
 
     @asyncify
-    async def action_delete_account(self):
+    async def action_delete_account(self, checked=False):
         reply = await QAsyncMessageBox.question(self, self.tr("Warning"),
                                      self.tr("""This action will delete your account locally.
 Please note your key parameters (salt and password) if you wish to recover it later.
