@@ -1,4 +1,4 @@
-from ucoinpy.api import bma
+from ucoinpy.api import bma, errors
 from ucoinpy.documents import BlockUID
 from .identity import Identity, LocalState, BlockchainState
 from pkg_resources import parse_version
@@ -80,8 +80,9 @@ class IdentitiesRegistry:
                                 identity.local_state = LocalState.PARTIAL
                                 timestamp = identity.sigdate
                 return identity
-            except ValueError:
-                lookup_tries += 1
+            except errors.UcoinError as e:
+                if e.ucode == errors.NO_MATCHING_IDENTITY:
+                    lookup_tries += 1
             except asyncio.TimeoutError:
                 lookup_tries += 1
             except ClientError:
@@ -112,8 +113,8 @@ class IdentitiesRegistry:
                     identity.sigdate = BlockUID.from_str(data['sigDate'])
                     identity.local_state = LocalState.PARTIAL
                     identity.blockchain_state = BlockchainState.VALIDATED
-                except ValueError as e:
-                    if '404' in str(e) or '400' in str(e):
+                except errors.UcoinError as e:
+                    if errors.NO_MEMBER_MATCHING_PUB_OR_UID:
                         identity = await self._find_by_lookup(pubkey, community)
                         return identity
                     else:

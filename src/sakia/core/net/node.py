@@ -8,7 +8,7 @@ from ucoinpy.documents.peer import Peer, Endpoint, BMAEndpoint
 from ucoinpy.documents import Block, BlockUID, MalformedDocumentError
 from ...tools.exceptions import InvalidNodeCurrency
 from ...tools.decorators import asyncify
-from ucoinpy.api import bma as bma
+from ucoinpy.api import bma, errors
 from ucoinpy.api.bma import ConnectionHandler
 
 from aiohttp.errors import WSClientDisconnectedError, WSServerHandshakeError, ClientResponseError
@@ -364,10 +364,7 @@ class Node(QObject):
                             break
                         elif msg.tp == aiohttp.MsgType.error:
                             break
-            except ValueError as e:
-                logging.debug("Websocket block {0} : {1} - {2}".format(type(e).__name__, str(e), self.pubkey[:5]))
-                await self.request_current_block()
-            except (WSServerHandshakeError, WSClientDisconnectedError, ClientResponseError) as e:
+            except (WSServerHandshakeError, WSClientDisconnectedError, ClientResponseError, ValueError) as e:
                 logging.debug("Websocket block {0} : {1} - {2}".format(type(e).__name__, str(e), self.pubkey[:5]))
                 await self.request_current_block()
             except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
@@ -390,8 +387,8 @@ class Node(QObject):
             conn_handler = self.endpoint.conn_handler()
             block_data = await bma.blockchain.Current(conn_handler).get(self._session)
             await self.refresh_block(block_data)
-        except ValueError as e:
-            if '404' in str(e):
+        except errors.UcoinError as e:
+            if e.ucode == errors.BLOCK_NOT_FOUND:
                 self.main_chain_previous_block = None
                 self.set_block(None)
             else:
@@ -399,7 +396,7 @@ class Node(QObject):
             logging.debug("Error in block reply :  {0}".format(self.pubkey[:5]))
             logging.debug(str(e))
             self.changed.emit()
-        except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
+        except (ClientError, gaierror, TimeoutError, DisconnectedError, ValueError) as e:
             logging.debug("{0} : {1}".format(str(e), self.pubkey[:5]))
             self.state = Node.OFFLINE
         except jsonschema.ValidationError as e:
@@ -423,15 +420,15 @@ class Node(QObject):
                 if self.block:
                     self.main_chain_previous_block = await bma.blockchain.Block(conn_handler,
                                                                                  self.block['number']).get(self._session)
-            except ValueError as e:
-                if '404' in str(e):
+            except errors.UcoinError as e:
+                if e.ucode == errors.BLOCK_NOT_FOUND:
                     self.main_chain_previous_block = None
                 else:
                     self.state = Node.OFFLINE
                 logging.debug("Error in previous block reply :  {0}".format(self.pubkey[:5]))
                 logging.debug(str(e))
                 self.changed.emit()
-            except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
+            except (ClientError, gaierror, TimeoutError, DisconnectedError, ValueError) as e:
                 logging.debug("{0} : {1}".format(str(e), self.pubkey[:5]))
                 self.state = Node.OFFLINE
             except jsonschema.ValidationError as e:
@@ -471,11 +468,12 @@ class Node(QObject):
                 logging.debug("Change : new state corrupted")
                 self.changed.emit()
 
-        except ValueError as e:
-            logging.debug("Error in peering reply : {0}".format(str(e)))
-            self.state = Node.OFFLINE
-            self.changed.emit()
-        except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
+        except errors.UcoinError as e:
+            if e.ucode == errors.PEER_NOT_FOUND:
+                logging.debug("Error in peering reply : {0}".format(str(e)))
+                self.state = Node.OFFLINE
+                self.changed.emit()
+        except (ClientError, gaierror, TimeoutError, DisconnectedError, ValueError) as e:
             logging.debug("{0} : {1}".format(type(e).__name__, self.pubkey[:5]))
             self.state = Node.OFFLINE
         except jsonschema.ValidationError as e:
@@ -499,11 +497,7 @@ class Node(QObject):
                 self.fork_window = summary_data["ucoin"]["forkWindowSize"]
             else:
                 self.fork_window = 0
-        except ValueError as e:
-            logging.debug("Error in summary : {0}".format(e))
-            self.state = Node.OFFLINE
-            self.changed.emit()
-        except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
+        except (ClientError, gaierror, TimeoutError, DisconnectedError, ValueError) as e:
             logging.debug("{0} : {1}".format(type(e).__name__, self.pubkey[:5]))
             self.state = Node.OFFLINE
         except jsonschema.ValidationError as e:
@@ -532,14 +526,14 @@ class Node(QObject):
             if self._uid != uid:
                 self._uid = uid
                 self.identity_changed.emit()
-        except ValueError as e:
-            if '404' in str(e):
+        except errors.UcoinError as e:
+            if e.ucode == errors.NO_MATCHING_IDENTITY:
                 logging.debug("UID not found : {0}".format(self.pubkey[:5]))
             else:
                 logging.debug("error in uid reply : {0}".format(self.pubkey[:5]))
                 self.state = Node.OFFLINE
                 self.identity_changed.emit()
-        except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
+        except (ClientError, gaierror, TimeoutError, DisconnectedError, ValueError) as e:
             logging.debug("{0} : {1}".format(type(e).__name__, self.pubkey[:5]))
             self.state = Node.OFFLINE
         except jsonschema.ValidationError as e:
@@ -569,10 +563,7 @@ class Node(QObject):
                             break
                         elif msg.tp == aiohttp.MsgType.error:
                             break
-            except ValueError as e:
-                logging.debug("Websocket peer {0} : {1} - {2}".format(type(e).__name__, str(e), self.pubkey[:5]))
-                await self.request_peers()
-            except (WSServerHandshakeError, WSClientDisconnectedError, ClientResponseError) as e:
+            except (WSServerHandshakeError, WSClientDisconnectedError, ClientResponseError, ValueError) as e:
                 logging.debug("Websocket peer {0} : {1} - {2}".format(type(e).__name__, str(e), self.pubkey[:5]))
                 await self.request_peers()
             except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
@@ -603,7 +594,7 @@ class Node(QObject):
                         leaf_data = await bma.network.peering.Peers(conn_handler).get(leaf=leaf_hash,
                                                                                       session=self._session)
                         self.refresh_peer_data(leaf_data['leaf']['value'])
-                    except (AttributeError, ValueError) as e:
+                    except (AttributeError, ValueError, errors.UcoinError) as e:
                         logging.debug("{pubkey} : Incorrect peer data in {leaf}".format(pubkey=self.pubkey[:5],
                                                                                         leaf=leaf_hash))
                         self.state = Node.OFFLINE
@@ -617,10 +608,11 @@ class Node(QObject):
                         self.state = Node.CORRUPTED
                 self._last_merkle = {'root' : peers_data['root'],
                                      'leaves': peers_data['leaves']}
-        except ValueError as e:
-            logging.debug("Error in peers reply")
-            self.state = Node.OFFLINE
-            self.changed.emit()
+        except errors.UcoinError as e:
+            if e.ucode == errors.PEER_NOT_FOUND:
+                logging.debug("Error in peers reply")
+                self.state = Node.OFFLINE
+                self.changed.emit()
         except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
             logging.debug("{0} : {1}".format(type(e).__name__, self.pubkey))
             self.state = Node.OFFLINE

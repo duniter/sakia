@@ -10,7 +10,7 @@ from enum import Enum
 from pkg_resources import parse_version
 
 from ucoinpy.documents import BlockUID, SelfCertification, MalformedDocumentError
-from ucoinpy.api import bma as bma
+from ucoinpy.api import bma, errors
 from ucoinpy.api.bma import PROTOCOL_VERSION
 
 from ...tools.exceptions import Error, NoPeerAvailable,\
@@ -142,8 +142,8 @@ class Identity(QObject):
                                              uid,
                                              timestamp,
                                              signature)
-        except ValueError as e:
-            if '404' in str(e):
+        except errors.UcoinError as e:
+            if e.ucode == errors.NO_MATCHING_IDENTITY:
                 raise LookupFailureError(self.pubkey, community)
         except MalformedDocumentError:
             raise LookupFailureError(self.pubkey, community)
@@ -166,8 +166,8 @@ class Identity(QObject):
                 block = await community.bma_access.future_request(bma.blockchain.Block,
                                 req_args={'number': membership_data['blockNumber']})
                 return block['medianTime']
-        except ValueError as e:
-            if '404' in str(e) or '400' in str(e):
+        except errors.UcoinError as e:
+            if e.ucode == errors.NO_MEMBER_MATCHING_PUB_OR_UID:
                 raise MembershipNotFoundError(self.pubkey, community.name)
         except NoPeerAvailable as e:
             logging.debug(str(e))
@@ -186,7 +186,7 @@ class Identity(QObject):
                 expiration_date = join_date + parameters['sigValidity']
             except NoPeerAvailable:
                 expiration_date = None
-            except ValueError as e:
+            except errors.UcoinError as e:
                 logging.debug("Expiration date not found")
                 expiration_date = None
         except MembershipNotFoundError:
@@ -222,8 +222,8 @@ class Identity(QObject):
             else:
                 raise MembershipNotFoundError(self.pubkey, community.name)
 
-        except ValueError as e:
-            if '404' in str(e) or '400' in str(e):
+        except errors.UcoinError as e:
+            if e.ucode == errors.NO_MEMBER_MATCHING_PUB_OR_UID:
                 raise MembershipNotFoundError(self.pubkey, community.name)
         except NoPeerAvailable as e:
             logging.debug(str(e))
@@ -245,9 +245,9 @@ class Identity(QObject):
                             person_uid = uid_data["uid"]
                         if person_uid == self.uid:
                             return True
-        except ValueError as e:
-            if '404' in str(e):
-                return False
+        except errors.UcoinError as e:
+            if e.ucode in (errors.NO_MATCHING_IDENTITY):
+                logging.debug("Lookup error : {0}".format(str(e)))
         except NoPeerAvailable as e:
             logging.debug(str(e))
         return False
@@ -258,9 +258,9 @@ class Identity(QObject):
             try:
                 await community.bma_access.future_request(bma.wot.CertifiersOf,
                                                                {'search': self.pubkey})
-            except ValueError as e:
-                if '404' in str(e) or '400' in str(e):
-                    return True
+            except errors.UcoinError as e:
+                if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
+                    logging.debug("Certifiers of error : {0}".format(str(e)))
         return False
 
     async def is_member(self, community):
@@ -274,8 +274,8 @@ class Identity(QObject):
             certifiers = await community.bma_access.future_request(bma.wot.CertifiersOf,
                                                                         {'search': self.pubkey})
             return certifiers['isMember']
-        except ValueError as e:
-            if '404' in str(e) or '400' in str(e):
+        except errors.UcoinError as e:
+            if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
                 pass
             else:
                 raise
@@ -311,9 +311,9 @@ class Identity(QObject):
                     certifier['block_number'] = None
 
                 certifiers.append(certifier)
-        except ValueError as e:
-            if '404' in str(e):
-                logging.debug('bma.wot.CertifiersOf request error')
+        except errors.UcoinError as e:
+            if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
+                logging.debug("Certifiers of error : {0}".format(str(e)))
             else:
                 logging.debug(str(e))
         except NoPeerAvailable as e:
@@ -341,8 +341,9 @@ class Identity(QObject):
                                 certifier['block_number'] = None
 
                                 certifiers.append(certifier)
-        except ValueError as e:
-            logging.debug("Lookup error : {0}".format(str(e)))
+        except errors.UcoinError as e:
+            if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
+                logging.debug("Lookup error : {0}".format(str(e)))
         except NoPeerAvailable as e:
             logging.debug(str(e))
         return certifiers
@@ -402,9 +403,9 @@ class Identity(QObject):
                 else:
                     certified['block_number'] = None
                 certified_list.append(certified)
-        except ValueError as e:
-            if '404' in str(e):
-                logging.debug('bma.wot.CertifiedBy request error')
+        except errors.UcoinError as e:
+            if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
+                logging.debug("Certified by error : {0}".format(str(e)))
         except NoPeerAvailable as e:
             logging.debug(str(e))
 
@@ -423,9 +424,9 @@ class Identity(QObject):
                         certified['cert_time'] = None
                         certified['block_number'] = None
                         certified_list.append(certified)
-        except ValueError as e:
-            if '404' in str(e):
-                logging.debug('bma.wot.Lookup request error')
+        except errors.UcoinError as e:
+            if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
+                logging.debug("Lookup error : {0}".format(str(e)))
         except NoPeerAvailable as e:
             logging.debug(str(e))
         return certified_list
@@ -488,7 +489,7 @@ class Identity(QObject):
         if len(certified) > 0:
             latest_time = max([c['cert_time'] for c in certified])
             parameters = await community.parameters()
-            if parameters:
+            if parameters and latest_time:
                 current_time = time.time()
                 if current_time - latest_time < parameters['sigPeriod']:
                     return parameters['sigPeriod'] - (current_time - latest_time)

@@ -1,5 +1,6 @@
 from PyQt5.QtCore import QObject, pyqtSlot
 from ucoinpy.api import bma
+from ucoinpy.api import errors
 from .....tools.exceptions import NoPeerAvailable
 from ..... import __version__
 import logging
@@ -240,11 +241,7 @@ class BmaAccess(QObject):
                     json_data = await req.get(**get_args, session=self._network.session)
                     self._update_cache(request, req_args, get_args, json_data)
                     return json_data
-                except ValueError as e:
-                    if '404' in str(e) or '400' in str(e):
-                        raise
-                    tries += 1
-                except (ClientError, ServerDisconnectedError, gaierror, asyncio.TimeoutError) as e:
+                except (ClientError, ServerDisconnectedError, gaierror, asyncio.TimeoutError, ValueError) as e:
                     tries += 1
                 #except jsonschema.ValidationError as e:
                 #    logging.debug(str(e))
@@ -272,11 +269,7 @@ class BmaAccess(QObject):
                 try:
                     json_data = await req.get(**get_args, session=self._network.session)
                     return json_data
-                except ValueError as e:
-                    if '404' in str(e) or '400' in str(e):
-                        raise
-                    tries += 1
-                except (ClientError, ServerDisconnectedError, gaierror, asyncio.TimeoutError) as e:
+                except (ClientError, ServerDisconnectedError, gaierror, asyncio.TimeoutError, ValueError) as e:
                     tries += 1
                 #except jsonschema.ValidationError as e:
                 #    logging.debug(str(e))
@@ -317,9 +310,6 @@ class BmaAccess(QObject):
         try:
             result = await asyncio.gather(*replies)
             return tuple(result)
-        except ValueError as e:
-            if '404' in str(e) or '400' in str(e):
-                raise
-        except (ClientError, ServerDisconnectedError, gaierror, asyncio.TimeoutError) as e:
+        except (ClientError, ServerDisconnectedError, gaierror, asyncio.TimeoutError, ValueError) as e:
             pass
         return ()

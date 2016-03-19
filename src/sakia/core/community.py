@@ -5,18 +5,14 @@ Created on 1 févr. 2014
 """
 
 import logging
-import hashlib
 import re
-import time
-import asyncio
 import math
 
-from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtCore import QObject
 
 from ..tools.exceptions import NoPeerAvailable
 from .net.network import Network
-from ucoinpy.api import bma
-from ucoinpy.documents import Block, BlockUID
+from ucoinpy.api import bma, errors
 from .net.api.bma.access import BmaAccess
 
 
@@ -172,8 +168,8 @@ class Community(QObject):
                 return block
             else:
                 return None
-        except ValueError as e:
-            if '404' in str(e):
+        except errors.UcoinError as e:
+            if e.ucode == errors.BLOCK_NOT_FOUND:
                 logging.debug(str(e))
                 return None
         except NoPeerAvailable as e:
@@ -207,8 +203,8 @@ class Community(QObject):
             block = await self.bma_access.future_request(bma.blockchain.Block,
                                  req_args={'number': block_number})
             return block['membersCount']
-        except ValueError as e:
-            if '404' in e:
+        except errors.UcoinError as e:
+            if e.ucode == errors.BLOCK_NOT_FOUND:
                 return 0
         except NoPeerAvailable as e:
             logging.debug(str(e))
@@ -228,8 +224,8 @@ class Community(QObject):
             block = await self.bma_access.future_request(bma.blockchain.Block,
                                  req_args={'number': block_number})
             return block['medianTime']
-        except ValueError as e:
-            if '404' in str(e):
+        except errors.UcoinError as e:
+            if e.ucode == errors.BLOCK_NOT_FOUND:
                 return 0
         except NoPeerAvailable as e:
             logging.debug(str(e))

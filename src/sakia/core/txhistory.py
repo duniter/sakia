@@ -3,7 +3,7 @@ import logging
 import hashlib
 from ucoinpy.documents.transaction import SimpleTransaction
 from ucoinpy.documents.block import Block
-from ucoinpy.api import  bma
+from ucoinpy.api import  bma, errors
 from .transfer import Transfer, TransferState
 from .net.network import MAX_CONFIRMATIONS
 from ..tools.exceptions import LookupFailureError, NoPeerAvailable
@@ -110,8 +110,8 @@ class TxHistory():
                     logging.debug("Error in {0}".format(number))
                     block = None
                     tries += 1
-            except ValueError as e:
-                if '404' in str(e):
+            except errors.UcoinError as e:
+                if e.ucode == errors.BLOCK_NOT_FOUND:
                     block = None
                     tries += 1
         return block_doc
@@ -237,8 +237,8 @@ class TxHistory():
                     if d['block_number'] < parsed_block:
                         dividends.remove(d)
                 return dividends
-            except ValueError as e:
-                if '404' in str(e):
+            except errors.UcoinError as e:
+                if e.ucode == errors.BLOCK_NOT_FOUND:
                     pass
         return {}
 
@@ -379,8 +379,9 @@ class TxHistory():
                     logging.debug("Starts a new refresh")
                     task = asyncio.ensure_future(self._refresh(community, block_from, current_block, received_list))
                     self._running_refresh.append(task)
-        except ValueError as e:
-            logging.debug("Block not found")
+        except errors.UcoinError as e:
+            if e.ucode == errors.BLOCK_NOT_FOUND:
+                logging.debug("Block not found")
         except NoPeerAvailable:
             logging.debug("No peer available")
 

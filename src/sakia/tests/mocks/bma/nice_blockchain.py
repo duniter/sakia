@@ -1,4 +1,5 @@
 from ..server import MockServer
+from ucoinpy.api import errors
 
 bma_lookup_john = {
     "partial": False,
@@ -480,6 +481,9 @@ def get_mock(loop):
 
     mock.add_route('GET', '/ud/history/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ', bma_udhistory_john, 200)
 
+    mock.add_route('GET', '/wot/certifiers-of/john', bma_certifiers_of_john,
+                   200)
+
     mock.add_route('GET', '/wot/certifiers-of/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ', bma_certifiers_of_john,
                    200)
 
@@ -496,11 +500,23 @@ def get_mock(loop):
     mock.add_route('GET', '/blockchain/memberships/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ', bma_membership_john,
                    200)
 
+    mock.add_route('GET', '/wot/lookup/wrong_pubkey',
+                   {'ucode': errors.NO_MATCHING_IDENTITY, 'message': "No member matching this pubkey or uid"}, 404)
+
+    mock.add_route('GET', '/wot/certifiers-of/wrong_pubkey',
+                   {'ucode': errors.NO_MEMBER_MATCHING_PUB_OR_UID, 'message': "No member matching this pubkey or uid"}, 404)
+
+    mock.add_route('GET', '/wot/lookup/wrong_uid',
+                   {'ucode': errors.NO_MATCHING_IDENTITY, 'message': "No member matching this pubkey or uid"}, 404)
+
+    mock.add_route('GET', '/wot/certifiers-of/wrong_uid',
+                   {'ucode': errors.NO_MEMBER_MATCHING_PUB_OR_UID, 'message': "No member matching this pubkey or uid"}, 404)
+
     mock.add_route('GET', '/wot/certifiers-of/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn',
-                   {'error': "No member matching this pubkey or uid"}, 404)
+                   {'ucode': errors.NO_MEMBER_MATCHING_PUB_OR_UID, 'message': "No member matching this pubkey or uid"}, 404)
 
     mock.add_route('GET', '/blockchain/memberships/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn',
-                   {'error': "No member matching this pubkey or uid"}, 404)
+                   {'ucode': errors.NO_MEMBER_MATCHING_PUB_OR_UID, 'message': "No member matching this pubkey or uid"}, 404)
 
     mock.add_route('POST', '/tx/process', {}, 200, )
 

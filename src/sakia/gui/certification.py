@@ -5,18 +5,16 @@ Created on 24 dec. 2014
 """
 import asyncio
 import logging
-
+from ucoinpy.api import errors
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QApplication, QMessageBox
-
 from PyQt5.QtCore import Qt, QObject, QLocale, QDateTime
 
-from ..gen_resources.certification_uic import Ui_CertificationDialog
 from .widgets import toast
 from .widgets.dialogs import QAsyncMessageBox
 from .member import MemberDialog
 from ..tools.decorators import asyncify, once_at_a_time
 from ..tools.exceptions import NoPeerAvailable
-
+from ..gen_resources.certification_uic import Ui_CertificationDialog
 
 class CertificationDialog(QObject):
     """
@@ -181,8 +179,8 @@ class CertificationDialog(QObject):
         is_member = await account_identity.is_member(self.community)
         try:
             block_0 = await self.community.get_block(0)
-        except ValueError as e:
-            if '404' in str(e) or '000' in str(e):
+        except errors.UcoinError as e:
+            if e.ucode == errors.BLOCK_NOT_FOUND:
                 block_0 = None
         except NoPeerAvailable as e:
             logging.debug(str(e))

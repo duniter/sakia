@@ -2,12 +2,12 @@
 @author: inso
 """
 
-import asyncio
 import enum
 
 from PyQt5.QtWidgets import QFrame, QLabel, QVBoxLayout, QLayout
 from PyQt5.QtCore import QSize, pyqtSignal
 from ucoinpy.documents.block import Block
+from ucoinpy.api import errors
 
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from ..tools.exceptions import NoPeerAvailable
@@ -130,8 +130,8 @@ background-color: palette(base);
                               message=self.tr("Not connected"))
             self.text_label.setText(description)
             self._state = CommunityState.OFFLINE
-        except ValueError as e:
-            if '404' in str(e):
+        except errors.UcoinError as e:
+            if e.ucode == errors.BLOCK_NOT_FOUND:
                 description = """<html>
                 <body>
                 <p>

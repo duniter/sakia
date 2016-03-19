@@ -1,6 +1,6 @@
 import logging
-import asyncio
 
+from ucoinpy.api import errors
 from PyQt5.QtWidgets import QWidget, QAbstractItemView, QHeaderView
 from PyQt5.QtCore import Qt, QObject, QDateTime, QTime, QModelIndex, pyqtSignal, pyqtSlot, QEvent
 from PyQt5.QtGui import QCursor
@@ -106,7 +106,7 @@ class TransactionsTabWidget(QObject):
             self.ui.date_to.setMaximumDateTime(tomorrow_datetime)
         except NoPeerAvailable as e:
             logging.debug(str(e))
-        except ValueError as e:
+        except errors.UcoinError as e:
             logging.debug(str(e))
 
     def refresh(self):

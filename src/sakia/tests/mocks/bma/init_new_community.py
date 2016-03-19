@@ -1,4 +1,5 @@
 from ..server import MockServer
+from ucoinpy.api import errors
 
 bma_lookup_test_john = {
     "partial": False,
@@ -91,12 +92,15 @@ def get_mock(loop):
 
     mock.add_route('GET', '/blockchain/parameters', bma_parameters, 200)
 
-    mock.add_route('GET', '/blockchain/block/0', {"message": "Block not found"}, 404)
+    mock.add_route('GET', '/blockchain/block/0', {'ucode': errors.BLOCK_NOT_FOUND,
+                                                  "message": "Block not found"}, 404)
 
-    mock.add_route('GET', '/blockchain/current', {'message': "Block not found"}, 404)
+    mock.add_route('GET', '/blockchain/current', {'ucode': errors.NO_CURRENT_BLOCK,
+                                                  'message': "Block not found"}, 404)
 
     mock.add_route('GET', '/wot/certifiers-of/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ',
-                   {'message': "No member matching this pubkey or uid"}, 404)
+                   {'ucode': errors.NO_MEMBER_MATCHING_PUB_OR_UID,
+                    'message': "No member matching this pubkey or uid"}, 404)
 
     mock.add_route('GET', '/wot/lookup/john', bma_lookup_test_john, 200)
 

@@ -15,12 +15,3 @@ class TestCommunity(unittest.TestCase, QuamashTest):
 
     def tearDown(self):
         self.tearDownQuamash()
-
-    def test_confirmations(self):
-        network = Network("test_currency", [], Mock("aiohttp.ClientSession"))
-        Network.current_blockUID = PropertyMock(return_value=BlockUID(1000, "fbf9271d0df23ee03044795aebca8be06dd7f998".upper()))
-
-        self.assertEqual(network.confirmations(996), 5)
-        self.assertEqual(network.confirmations(900), 101)
-        with self.assertRaises(ValueError):
-            network.confirmations(1002)

@@ -6,7 +6,7 @@ Created on 2 févr. 2014
 
 import logging
 import time
-
+from ucoinpy.api import errors
 from PyQt5.QtCore import pyqtSlot, QDateTime, QLocale, QEvent, QT_TRANSLATE_NOOP, Qt
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import QWidget, QMessageBox, QDialog, QPushButton, QTabBar, QAction
@@ -241,8 +241,9 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                 except NoPeerAvailable as e:
                     logging.debug(str(e))
                     text += " ( ### ) "
-                except ValueError as e:
-                    logging.debug(str(e))
+                except errors.UcoinError as e:
+                    if e.ucode == errors.BLOCK_NOT_FOUND:
+                        logging.debug(str(e))
 
             if len(self.community.network.synced_nodes) == 0:
                 self.button_membership.setEnabled(False)

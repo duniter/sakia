@@ -8,7 +8,7 @@ import logging
 import asyncio
 import aiohttp
 
-from ucoinpy.api.bma import UcoinError
+from ucoinpy.api import errors
 from ucoinpy.documents import MalformedDocumentError
 from PyQt5.QtWidgets import QDialog, QMenu, QApplication
 from PyQt5.QtGui import QCursor
@@ -106,6 +106,8 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
             self.config_dialog.label_error.setText(str(e))
         except (MalformedDocumentError, ValueError) as e:
             self.config_dialog.label_error.setText(str(e))
+        except NoPeerAvailable:
+            self.config_dialog.label_error.setText(self.tr("Could not connect. Check node peering entry"))
 
     @asyncify
     async def check_register(self, checked=False):
@@ -144,7 +146,7 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
 Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
             else:
                 self.config_dialog.label_error.setText(self.tr("Your account already exists on the network"))
-        except (MalformedDocumentError, ValueError, UcoinError,
+        except (MalformedDocumentError, ValueError, errors.UcoinError,
                 aiohttp.errors.ClientError, aiohttp.errors.DisconnectedError) as e:
             session.close()
             self.config_dialog.label_error.setText(str(e))
