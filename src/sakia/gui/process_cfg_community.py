@@ -8,6 +8,7 @@ import logging
 import asyncio
 import aiohttp
 
+from ucoinpy.api.bma import UcoinError
 from ucoinpy.documents import MalformedDocumentError
 from PyQt5.QtWidgets import QDialog, QMenu, QApplication
 from PyQt5.QtGui import QCursor
@@ -20,6 +21,7 @@ from ..core.net import Node
 from .widgets import toast
 from .widgets.dialogs import QAsyncMessageBox
 from ..tools.decorators import asyncify
+from ..tools.exceptions import NoPeerAvailable
 
 
 class Step(QObject):
@@ -111,7 +113,8 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
         port = self.config_dialog.spinbox_port.value()
         logging.debug("Is valid ? ")
         try:
-            self.node = await Node.from_address(None, server, port, session=aiohttp.ClientSession())
+            session = aiohttp.ClientSession()
+            self.node = await Node.from_address(None, server, port, session=session)
             community = Community.create(self.node)
             self.config_dialog.button_connect.setEnabled(False)
             self.config_dialog.button_register.setEnabled(False)
@@ -141,12 +144,12 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
 Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
             else:
                 self.config_dialog.label_error.setText(self.tr("Your account already exists on the network"))
-        except aiohttp.errors.DisconnectedError as e:
+        except (MalformedDocumentError, ValueError, UcoinError,
+                aiohttp.errors.ClientError, aiohttp.errors.DisconnectedError) as e:
+            session.close()
             self.config_dialog.label_error.setText(str(e))
-        except aiohttp.errors.ClientError as e:
-            self.config_dialog.label_error.setText(str(e))
-        #except (MalformedDocumentError, ValueError) as e:
-        #    self.config_dialog.label_error.setText(str(e))
+        except NoPeerAvailable:
+            self.config_dialog.label_error.setText(self.tr("Could not connect. Check node peering entry"))
 
     def is_valid(self):
         return self.node is not None

@@ -61,9 +61,16 @@ class TxHistory():
             data_sources.append(s)
 
         data_dividends = []
-        for d in self._dividends.copy():
-            d['state'] = d['state'].name
-            data_dividends.append(d)
+        for d in self._dividends:
+            dividend = {
+                'block_number': d['block_number'],
+                "consumed": d['consumed'],
+                'time': d['time'],
+                'amount': d['amount'],
+                'base': d['base'],
+                'state': d['state'].name
+            }
+            data_dividends.append(dividend)
 
         return {'latest_block': self.latest_block,
                 'transfers': data_transfer,
