@@ -66,6 +66,7 @@ class TxHistory():
                 'block_number': d['block_number'],
                 "consumed": d['consumed'],
                 'time': d['time'],
+                'id': d['id'],
                 'amount': d['amount'],
                 'base': d['base'],
                 'state': d['state'].name
