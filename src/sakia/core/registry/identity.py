@@ -487,7 +487,7 @@ class Identity(QObject):
         """
         certified = await self.certified_by(identities_registry, community)
         if len(certified) > 0:
-            latest_time = max([c['cert_time'] for c in certified])
+            latest_time = max([c['cert_time'] for c in certified if c['cert_time']])
             parameters = await community.parameters()
             if parameters and latest_time:
                 current_time = time.time()
