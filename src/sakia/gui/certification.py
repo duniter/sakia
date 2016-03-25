@@ -73,15 +73,17 @@ class CertificationDialog(QObject):
         self.ui.combo_community.currentIndexChanged.connect(self.change_current_community)
 
     @classmethod
-    def open_dialog(cls, app, account, password_asker):
+    def open_dialog(cls, app, account, community, password_asker):
         """
         Certify and identity
         :param sakia.core.Application app: the application
         :param sakia.core.Account account: the account certifying the identity
+        :param sakia.core.Community community: the community
         :param sakia.gui.password_asker.PasswordAsker password_asker: the password asker
         :return:
         """
         dialog = cls(app, account, password_asker, QDialog(), Ui_CertificationDialog())
+        dialog.ui.combo_community.setCurrentText(community.name)
         return dialog.exec()
 
     @classmethod
@@ -137,7 +139,8 @@ class CertificationDialog(QObject):
     def change_current_community(self, index):
         self.community = self.account.communities[index]
         self.ui.search_user.change_community(self.community)
-        if self.isVisible():
+        self.ui.member_widget.change_community(self.community)
+        if self.widget.isVisible():
             self.refresh()
 
     def selected_pubkey(self):

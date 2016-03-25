@@ -246,6 +246,7 @@ class MainWindow(QObject):
     def open_certification_dialog(self):
         CertificationDialog.open_dialog(self.app,
                                      self.account,
+                                     self.community_view.community,
                                      self.password_asker)
 
     def open_add_contact_dialog(self):
