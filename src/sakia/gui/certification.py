@@ -192,17 +192,18 @@ class CertificationDialog(QObject):
             block_0 = None
 
         params = await self.community.parameters()
-        nb_certifications = len(await account_identity.certified_by(self.app.identities_registry, self.community))
+        nb_certifications = len(await account_identity.unique_valid_certified_by(self.app.identities_registry, self.community))
         remaining_time = await account_identity.cert_issuance_delay(self.app.identities_registry, self.community)
         cert_text = self.tr("Certifications sent : {nb_certifications}/{stock}").format(
             nb_certifications=nb_certifications,
             stock=params['sigStock'])
         if remaining_time > 0:
+            cert_text += "\n"
             cert_text += self.tr("Remaining time before next available certification : {0}").format(
                 QLocale.toString(
                             QLocale(),
                             QDateTime.fromTime_t(remaining_time),
-                            QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
+                            QLocale.timeFormat(QLocale(), QLocale.ShortFormat)
                         ),
                 )
         self.ui.label_cert_stock.setText(cert_text)

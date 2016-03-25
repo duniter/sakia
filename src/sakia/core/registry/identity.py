@@ -490,7 +490,7 @@ class Identity(QObject):
             latest_time = max([c['cert_time'] for c in certified if c['cert_time']])
             parameters = await community.parameters()
             if parameters and latest_time:
-                current_time = time.time()
+                current_time = await community.time()
                 if current_time - latest_time < parameters['sigPeriod']:
                     return parameters['sigPeriod'] - (current_time - latest_time)
         return 0
