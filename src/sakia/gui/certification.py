@@ -84,6 +84,7 @@ class CertificationDialog(QObject):
         """
         dialog = cls(app, account, password_asker, QDialog(), Ui_CertificationDialog())
         dialog.ui.combo_community.setCurrentText(community.name)
+        dialog.refresh()
         return dialog.exec()
 
     @classmethod
@@ -101,6 +102,7 @@ class CertificationDialog(QObject):
         dialog.ui.combo_community.setCurrentText(community.name)
         dialog.ui.edit_pubkey.setText(identity.pubkey)
         dialog.ui.radio_pubkey.setChecked(True)
+        dialog.refresh()
         return await dialog.async_exec()
 
     @asyncify
