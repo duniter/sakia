@@ -335,9 +335,7 @@ class Identity(QObject):
                                                       None,
                                                       BlockchainState.BUFFERED,
                                                       community)
-                                block = await community.bma_access.future_request(bma.blockchain.Block,
-                                                                     {'number': certifier_data['meta']['block_number']})
-                                certifier['cert_time'] = block['medianTime']
+                                certifier['cert_time'] = await community.time(certifier_data['meta']['block_number'])
                                 certifier['block_number'] = None
 
                                 certifiers.append(certifier)
@@ -421,7 +419,8 @@ class Identity(QObject):
                                                                           None,
                                                                           BlockchainState.BUFFERED,
                                                                           community)
-                        certified['cert_time'] = None
+                        timestamp = BlockUID.from_str(certified_data['meta']['timestamp'])
+                        certified['cert_time'] = await community.time(timestamp.number)
                         certified['block_number'] = None
                         certified_list.append(certified)
         except errors.UcoinError as e:
