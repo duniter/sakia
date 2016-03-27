@@ -3,12 +3,12 @@ Created on 1 févr. 2014
 
 @author: inso
 """
-import asyncio
+import aiohttp
 import logging
 
 from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog, QMessageBox, QLabel, QComboBox, QDialog, QApplication
 from PyQt5.QtCore import QLocale, QEvent, \
-    pyqtSlot, QDateTime, QTimer, Qt, QObject
+    pyqtSlot, QDateTime, QTimer, Qt, QObject, QUrl
 from PyQt5.QtGui import QIcon
 
 from ..gen_resources.mainwindow_uic import Ui_MainWindow
@@ -23,6 +23,7 @@ from .password_asker import PasswordAskerDialog
 from .preferences import PreferencesDialog
 from .process_cfg_community import ProcessConfigureCommunity
 from .homescreen import HomeScreenWidget
+from .node_manager import NodeManager
 from ..core import money
 from ..core.community import Community
 from ..tools.decorators import asyncify
@@ -35,7 +36,8 @@ class MainWindow(QObject):
     classdocs
     """
 
-    def __init__(self, app, account, homescreen, community_view, widget, ui,
+    def __init__(self, app, account, homescreen, community_view, node_manager,
+                 widget, ui,
                  label_icon, label_status, label_time, combo_referential,
                  password_asker):
         """
@@ -44,6 +46,7 @@ class MainWindow(QObject):
         :param sakia.core.Account account: the account
         :param HomeScreenWidgetcreen homescreen: the homescreen
         :param CommunityView community_view: the community view
+        :param NodeManager node_manager: the local node manager dialog
         :param QMainWindow widget: the widget of the main window
         :param Ui_MainWindow ui: the ui of the widget
         :param QLabel label_icon: the label of the icon in the statusbar
@@ -82,6 +85,9 @@ class MainWindow(QObject):
 
         self.community_view = community_view
 
+        self.node_manager = node_manager
+
+
     def _init_ui(self):
         """
         Connects elements of the UI to the local slots
@@ -101,6 +107,8 @@ class MainWindow(QObject):
         self.ui.actionCertification.triggered.connect(self.open_certification_dialog)
         self.ui.actionPreferences.triggered.connect(self.open_preferences_dialog)
         self.ui.actionAbout.triggered.connect(self.open_about_popup)
+
+        self.ui.actionManage_local_node.triggered.connect(self.open_duniter_ui)
 
     def _init_homescreen(self):
         """
@@ -132,8 +140,10 @@ class MainWindow(QObject):
     @classmethod
     def startup(cls, app):
         qmainwindow = QMainWindow()
+
         main_window = cls(app, None, HomeScreenWidget(app, None),
                           CommunityWidget(app, None, None),
+                          NodeManager.create(qmainwindow),
                           qmainwindow, Ui_MainWindow(),
                           QLabel("", qmainwindow), QLabel("", qmainwindow),
                           QLabel("", qmainwindow), QComboBox(qmainwindow),
@@ -346,6 +356,11 @@ class MainWindow(QObject):
                 delete_action = contact_menu.addAction(self.tr("Delete"))
                 delete_action.setData(contact)
                 delete_action.triggered.connect(self.delete_contact)
+
+    @asyncify
+    async def open_duniter_ui(self, checked=False):
+        if not self.node_manager.widget.isVisible():
+            self.node_manager.open_home_page()
 
     def refresh(self):
         """
