@@ -72,6 +72,11 @@ class Account(QObject):
                                         self.tr("Warning : Your could miss certifications soon."),
                                         0
                                     ],
+                            'warning_revokation':
+                                    [
+                                        self.tr("Warning : If you don't renew soon, your identity will be considerd revoked."),
+                                        0
+                                    ],
                             'warning_certifying_first_time': True,
                             }
 

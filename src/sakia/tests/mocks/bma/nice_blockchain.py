@@ -102,7 +102,7 @@ bma_certifiers_of_john = {
                 "block": 15,
                 "medianTime": 1500000000
             },
-            "sigDate": "0-E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+            "sigDate": "101-BAD49448A1AD73C978CEDCB8F137D20A5715EBAA739DAEF76B1E28EE67B2C00C",
             "written": {
                 "number": 15,
                 "hash": "0000EC88BBBAA29D530D2B815DEE264DDC9F07F4"
@@ -135,7 +135,7 @@ bma_certified_by_doe = {
                 "block": 15,
                 "medianTime": 1500000000
             },
-            "sigDate": "0-E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+            "sigDate": "20-7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67",
             "written": {
                 "number": 15,
                 "hash": "0000EC88BBBAA29D530D2B815DEE264DDC9F07F4"

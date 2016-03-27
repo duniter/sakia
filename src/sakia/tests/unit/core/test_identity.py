@@ -31,6 +31,12 @@ class TestIdentity(unittest.TestCase, QuamashTest):
             if request is bma.blockchain.Block:
                 return nice_blockchain.bma_blockchain_current
 
+        def block_to_time(block_number=None):
+            if block_number == 15:
+                return 1200000200
+            else:
+                return 1500000400
+
         identity = Identity("john", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
                             BlockUID(20, "7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67"),
                             LocalState.COMPLETED, BlockchainState.VALIDATED)
@@ -40,6 +46,7 @@ class TestIdentity(unittest.TestCase, QuamashTest):
 
         self.community.bma_access.future_request = CoroutineMock(side_effect=bma_access)
         self.identities_registry.from_handled_data = Mock(return_value=id_doe)
+        self.community.time = CoroutineMock(side_effect=block_to_time)
         async def exec_test():
             certifiers = await identity.certifiers_of(self.identities_registry, self.community)
 
@@ -59,6 +66,12 @@ class TestIdentity(unittest.TestCase, QuamashTest):
             if request is bma.blockchain.Block:
                 return nice_blockchain.bma_blockchain_current
 
+        def block_to_time(block_number=None):
+            if block_number == 38580:
+                return 1500000200
+            else:
+                return 1500000400
+
         identity = Identity("john", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
                             BlockUID(20, "7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67"),
                             LocalState.COMPLETED, BlockchainState.VALIDATED)
@@ -68,6 +81,7 @@ class TestIdentity(unittest.TestCase, QuamashTest):
 
         self.community.bma_access.future_request = CoroutineMock(side_effect=bma_access)
         self.community.parameters = CoroutineMock(side_effect=lambda: nice_blockchain.bma_parameters)
+        self.community.time = CoroutineMock(side_effect=block_to_time)
         self.identities_registry.from_handled_data = Mock(return_value=id_doe)
         async def exec_test():
             cert_delay = await identity.cert_issuance_delay(self.identities_registry, self.community)
