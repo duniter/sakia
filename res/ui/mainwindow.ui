@@ -66,15 +66,15 @@
     </property>
     <addaction name="actionAbout"/>
    </widget>
-   <widget class="QMenu" name="menuDuniter">
+   <widget class="QMenu" name="menu_duniter">
     <property name="title">
-     <string>Dunit&amp;er</string>
+     <string>&amp;Duniter</string>
     </property>
     <addaction name="actionManage_local_node"/>
    </widget>
    <addaction name="menu_file"/>
    <addaction name="menu_account"/>
-   <addaction name="menuDuniter"/>
+   <addaction name="menu_duniter"/>
    <addaction name="menu_help"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -185,7 +185,7 @@
   </action>
   <action name="actionManage_local_node">
    <property name="text">
-    <string>Manage local node</string>
+    <string>&amp;Manage local node</string>
    </property>
   </action>
  </widget>

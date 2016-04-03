@@ -28,10 +28,11 @@ class MainWindowMenusTest(unittest.TestCase, QuamashTest):
         for child in children:
             if isinstance(child, QMenu):
                 menus.append(child)
-        self.assertEqual(len(menus), 3)
+        self.assertEqual(len(menus), 4)
         self.assertEqual(menus[0].objectName(), 'menu_file')
         self.assertEqual(menus[1].objectName(), 'menu_account')
         self.assertEqual(menus[2].objectName(), 'menu_help')
+        self.assertEqual(menus[3].objectName(), 'menu_duniter')
 
     def test_menu_account(self):
         actions = self.main_window.ui.menu_account.actions()

@@ -34,6 +34,7 @@ class TestMainWindow(unittest.TestCase, QuamashTest):
         self.homescreen = MagicMock(autospec='sakia.gui.homescreen.Homescreen')
         self.community_view = MagicMock(autospec='sakia.gui.community_view.CommunityView')
         self.password_asker = MagicMock(autospec='sakia.gui.password_asker.PasswordAsker')
+        self.node_manager = MagicMock(autospec='sakia.gui.node_manager.NodeManager')
 
     def tearDown(self):
         self.tearDownQuamash()
@@ -47,7 +48,9 @@ class TestMainWindow(unittest.TestCase, QuamashTest):
         label_status = Mock()
         label_time = Mock()
         combo_referentials = Mock()
-        mainwindow = MainWindow(self.app, self.account_joe, self.homescreen, self.community_view, widget, ui, label_icon,
+        mainwindow = MainWindow(self.app, self.account_joe,
+                                self.homescreen, self.community_view, self.node_manager,
+                                widget, ui, label_icon,
                                 label_status, label_time, combo_referentials, self.password_asker)
         mainwindow.refresh = Mock()
         mainwindow.action_change_account("doe")
@@ -70,7 +73,8 @@ class TestMainWindow(unittest.TestCase, QuamashTest):
         label_time = Mock()
         combo_referentials = Mock()
         type(self.app).current_account = PropertyMock(return_value=None)
-        mainwindow = MainWindow(self.app, None, self.homescreen, self.community_view, widget, ui, label_icon,
+        mainwindow = MainWindow(self.app, None, self.homescreen, self.community_view, self.node_manager,
+                                widget, ui, label_icon,
                                 label_status, label_time, combo_referentials, self.password_asker)
         mainwindow.refresh = Mock()
         mainwindow.action_change_account("doe")
