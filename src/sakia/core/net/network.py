@@ -355,7 +355,7 @@ class Network(QObject):
         if peer.pubkey not in pubkeys:
             logging.debug("New node found : {0}".format(peer.pubkey[:5]))
             try:
-                node = Node.from_peer(self.currency, peer, pubkey)
+                node = Node.from_peer(self.currency, peer, pubkey, self.session)
                 self.add_node(node)
                 self.nodes_changed.emit()
             except InvalidNodeCurrency as e:
