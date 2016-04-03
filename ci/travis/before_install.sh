@@ -1,5 +1,14 @@
 #!/usr/bin/env bash
 
+
+if [ $TRAVIS_OS_NAME == "linux" ]
+then
+    export XVFBARGS="-screen 0 1280x1024x24"
+    export DISPLAY=:99.0
+    sh -e /etc/init.d/xvfb start
+    sleep 3
+fi
+
 if [ $TRAVIS_OS_NAME == "osx" ]
 then
     brew tap homebrew/versions
@@ -69,6 +78,7 @@ then
             --enable QtWebKit \
             --enable QtWebKitWidgets \
             --enable QtNetwork \
+            --enable QtPrintSupport \
             --enable QtTest
     elif [ $TRAVIS_OS_NAME == "linux" ]
     then
@@ -80,6 +90,7 @@ then
             --enable QtWebKit \
             --enable QtWebKitWidgets \
             --enable QtNetwork \
+            --enable QtPrintSupport \
             --enable QtTest
     fi
 
