@@ -575,11 +575,14 @@ class Account(QObject):
             c.start_coroutines()
 
     async def stop_coroutines(self):
+        logging.debug("Stop communities coroutines")
         for c in self.communities:
             await c.stop_coroutines()
 
+        logging.debug("Stop wallets coroutines")
         for w in self.wallets:
             w.stop_coroutines()
+        logging.debug("Account coroutines stopped")
 
     def jsonify(self):
         """

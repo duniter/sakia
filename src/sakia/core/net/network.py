@@ -147,10 +147,12 @@ class Network(QObject):
         """
         self._must_crawl = False
         close_tasks = []
+        logging.debug("Start closing")
         for node in self.nodes:
             close_tasks.append(asyncio.ensure_future(node.close_ws()))
         if len(close_tasks) > 0:
             await asyncio.wait(close_tasks, timeout=15)
+        logging.debug("Closing client session")
         await self._client_session.close()
         logging.debug("Closed")
 

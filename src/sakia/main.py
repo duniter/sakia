@@ -72,6 +72,10 @@ if __name__ == '__main__':
         loop.run_forever()
         try:
             loop.run_until_complete(app.stop())
+            logging.debug("Application stopped")
         except asyncio.CancelledError:
             logging.info('CancelledError')
+    logging.debug("Exiting")
     sys.exit()
+    logging.debug("Application stopped")
+

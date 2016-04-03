@@ -49,6 +49,6 @@ def parse_arguments(argv):
             level=logging.INFO)
     else:
         logging.getLogger().propagate = False
-    logging.getLogger('quamash').setLevel(logging.INFO)
+    logging.getLogger('quamash').setLevel(logging.DEBUG)
     logfile = FileHandler(path.join(parameters['home'], 'sakia.log'))
     logging.getLogger().addHandler(logfile)

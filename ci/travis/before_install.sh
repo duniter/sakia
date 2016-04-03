@@ -61,7 +61,8 @@ then
             --enable QtCore \
             --enable QtWidgets \
             --enable QtGui \
-            --enable QtSvg\
+            --enable QtSvg \
+            --enable QtWebKitWidgets \
             --enable QtTest
     elif [ $TRAVIS_OS_NAME == "linux" ]
     then
@@ -70,6 +71,7 @@ then
             --enable QtWidgets \
             --enable QtGui \
             --enable QtSvg\
+            --enable QtWebKitWidgets \
             --enable QtTest
     fi
 
