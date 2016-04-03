@@ -2,11 +2,12 @@
 
 if [ $TRAVIS_OS_NAME == "osx" ]
 then
+    brew tap homebrew/versions
     brew update
     brew install libsodium
     ## Ensure your brew QT version is up to date. (brew install qt -> qt 4.8)
-    brew install qt5
-    brew link --force qt5
+    brew install qt55
+    brew link --force qt55
     brew install pyenv-virtualenv
 elif [ $TRAVIS_OS_NAME == "linux" ]
 then
