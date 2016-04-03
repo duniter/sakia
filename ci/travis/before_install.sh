@@ -12,8 +12,8 @@ then
 elif [ $TRAVIS_OS_NAME == "linux" ]
 then
     wget https://download.qt.io/official_releases/qt/5.5/5.5.1/qt-opensource-linux-x64-5.5.1.run
-    chmod +x qt-unified-linux-x64-online.run
-    ./qt-unified-linux-x64-online.run --script qt-installer-non-interactive.qs
+    chmod +x qt-opensource-linux-x64-5.5.1.run
+    ./qt-opensource-linux-x64-5.5.1.run --script qt-installer-non-interactive.qs
     sudo apt-get update
     sudo apt-get install -qq -y libxcb1 libxcb1-dev libx11-xcb1 libx11-xcb-dev libxcb-keysyms1 libxcb-keysyms1-dev libxcb-image0 \
             libxcb-image0-dev libxcb-shm0 libxcb-shm0-dev libxcb-icccm4 libxcb-icccm4-dev \
@@ -66,6 +66,7 @@ then
             --enable QtWidgets \
             --enable QtGui \
             --enable QtSvg \
+            --enable QtWebKit \
             --enable QtWebKitWidgets \
             --enable QtNetwork \
             --enable QtTest
@@ -75,7 +76,8 @@ then
             --enable QtCore \
             --enable QtWidgets \
             --enable QtGui \
-            --enable QtSvg\
+            --enable QtSvg \
+            --enable QtWebKit \
             --enable QtWebKitWidgets \
             --enable QtNetwork \
             --enable QtTest
