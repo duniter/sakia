@@ -21,7 +21,7 @@ Controller.prototype.IntroductionPageCallback = function() {
 
 Controller.prototype.TargetDirectoryPageCallback = function()
 {
-    gui.currentPageWidget().TargetDirectoryLineEdit.setText("/tmp/qt/5.5.1");
+    gui.currentPageWidget().TargetDirectoryLineEdit.setText("/tmp/qt/5.5");
     gui.clickButton(buttons.NextButton);
 }
 
