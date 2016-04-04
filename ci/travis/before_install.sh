@@ -77,8 +77,7 @@ then
             --enable QtWidgets \
             --enable QtGui \
             --enable QtSvg \
-            --enable QtWebKit \
-            --enable QtWebKitWidgets \
+            --enable QtWebEngineWidgets \
             --enable QtNetwork \
             --enable QtPrintSupport \
             --enable QtTest
@@ -89,8 +88,7 @@ then
             --enable QtWidgets \
             --enable QtGui \
             --enable QtSvg \
-            --enable QtWebKit \
-            --enable QtWebKitWidgets \
+            --enable QtWebEngineWidgets \
             --enable QtNetwork \
             --enable QtPrintSupport \
             --enable QtTest
