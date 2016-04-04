@@ -77,6 +77,7 @@ then
             --enable QtWidgets \
             --enable QtGui \
             --enable QtSvg \
+            --enable QtWebChannel \
             --enable QtWebEngineWidgets \
             --enable QtNetwork \
             --enable QtPrintSupport \
@@ -88,6 +89,7 @@ then
             --enable QtWidgets \
             --enable QtGui \
             --enable QtSvg \
+            --enable QtWebChannel \
             --enable QtWebEngineWidgets \
             --enable QtNetwork \
             --enable QtPrintSupport \
