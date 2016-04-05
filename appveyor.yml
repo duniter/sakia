@@ -12,8 +12,6 @@ environment:
       CONDA_PY: "35"
       CONDA_NPY: "18"
       QTDIR: "C:\\Qt\\5.6\\msvc2015_64"
-      QDOWNLOAD: "http://download.qt.io/development_releases/qt/5.6/5.6.0-beta/qt-opensource-windows-x86-msvc2015_64-5.6.0-beta.exe"
-      QINSTALLER: "qt-opensource-windows-x86-msvc2015_64-5.6.0-beta.exe"
       platform: x64
 
     - PYTHON: "C:\\Python35_32"
@@ -22,8 +20,6 @@ environment:
       CONDA_PY: "35"
       CONDA_NPY: "18"
       QTDIR: "C:\\Qt\\5.6\\msvc2015"
-      QDOWNLOAD: "http://download.qt.io/development_releases/qt/5.6/5.6.0-beta/qt-opensource-windows-x86-msvc2015-5.6.0-beta.exe"
-      QINSTALLER: "qt-opensource-windows-x86-msvc2015-5.6.0-beta.exe"
       platform: x86
 
 install:
@@ -34,10 +30,9 @@ install:
   - dir /b /s /ad c:\Qt\5.6
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
   # Add qt to path
-  - "set PATH=%QTDIR%\\bin;%QTDIR%\\lib;%PATH%"
-
-  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%QTDIR\\lib;%PATH%"
+  - "SET PATH=%QTDIR%\\bin;%QTDIR%\\lib;%PATH%"
   - "SET QT_PLUGIN_PATH=%QTDIR%\\plugins"
+  - echo %PATH%
   - choco install -y vcredist2015
   - "%CMD_IN_ENV% conda config --set always_yes yes --set changeps1 no"
   - "%CMD_IN_ENV% conda config --add channels inso/channel/sakia"
