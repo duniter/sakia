@@ -46,7 +46,7 @@ exe = EXE(pyz,
           debug=True,
           strip=False,
           upx=True,
-          console=False,
+          console=True,
           icon='sakia.ico')
 
 coll = COLLECT(exe,
