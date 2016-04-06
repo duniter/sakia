@@ -27,7 +27,7 @@ install:
   # as well as pip, conda-build, and the binstar CLI
   - powershell .\\ci\\appveyor\\install.ps1
 
-  - dir /b /s /ad c:\Qt\5.6
+  #- dir /b /s /ad c:\Qt\5.6
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
   # Add qt to path
   - "SET PATH=%QTDIR%\\bin;%QTDIR%\\lib;%PATH%"
