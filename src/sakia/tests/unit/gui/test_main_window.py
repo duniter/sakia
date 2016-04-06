@@ -48,6 +48,7 @@ class TestMainWindow(unittest.TestCase, QuamashTest):
         label_status = Mock()
         label_time = Mock()
         combo_referentials = Mock()
+        combo_referentials.currentIndexChanged = {str: Mock()}
         mainwindow = MainWindow(self.app, self.account_joe,
                                 self.homescreen, self.community_view, self.node_manager,
                                 widget, ui, label_icon,
@@ -72,6 +73,8 @@ class TestMainWindow(unittest.TestCase, QuamashTest):
         label_status = Mock()
         label_time = Mock()
         combo_referentials = Mock()
+        combo_referentials.currentIndexChanged = {str: Mock()}
+
         type(self.app).current_account = PropertyMock(return_value=None)
         mainwindow = MainWindow(self.app, None, self.homescreen, self.community_view, self.node_manager,
                                 widget, ui, label_icon,
