@@ -79,7 +79,7 @@ class MainWindow(QObject):
 
         self.combo_referential = combo_referential
         self.combo_referential.setEnabled(False)
-        self.combo_referential.currentIndexChanged.connect(self.referential_changed)
+        self.combo_referential.currentIndexChanged[str].connect(self.referential_changed)
 
         self.homescreen = homescreen
 
