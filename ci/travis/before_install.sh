@@ -25,7 +25,13 @@ then
             libxcb-image0-dev libxcb-shm0 libxcb-shm0-dev libxcb-icccm4 libxcb-icccm4-dev \
             libxcb-xfixes0-dev libxrender-dev libxcb-shape0-dev libxcb-randr0-dev libxcb-render-util0 \
             libxcb-render-util0-dev libxcb-glx0-dev libgl1-mesa-dri libegl1-mesa libpcre3-dev \
-            curl libdbus-1-dev libdbus-glib-1-dev autoconf automake libtool libgstreamer-plugins-base0.10-0
+            curl libdbus-1-dev libdbus-glib-1-dev autoconf automake libtool libgstreamer-plugins-base0.10-0 \
+            libasound2-dev libbz2-dev libcap-dev \
+            libcups2-dev libdrm-dev libegl1-mesa-dev libgcrypt11-dev \
+            libnss3-dev libpci-dev libpulse-dev libudev-dev \
+            libxtst-dev libssl-dev libxcursor-dev \
+            libxcomposite-dev libxdamage-dev libxrandr-dev \
+            libfontconfig1-dev libxss-dev
 
     wget https://download.qt.io/official_releases/qt/5.5/5.5.1/qt-opensource-linux-x64-5.5.1.run
     chmod +x qt-opensource-linux-x64-5.5.1.run
