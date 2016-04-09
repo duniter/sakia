@@ -3,7 +3,7 @@ import aiohttp
 from PyQt5.QtCore import QObject, QEvent, QUrl
 from PyQt5.QtWidgets import QDialog
 
-from ..gen_resources.node_manager_uic import Ui_NodeManager
+#from ..gen_resources.node_manager_uic import Ui_NodeManager
 from .widgets.dialogs import QAsyncMessageBox
 from ..tools.decorators import asyncify
 
@@ -29,8 +29,9 @@ class NodeManager(QObject):
 
     @classmethod
     def create(cls, parent):
-        dialog = cls(QDialog(parent), Ui_NodeManager())
-        return dialog
+        raise TypeError("Not implemented ( https://github.com/ucoin-io/sakia/issues/399 )")
+        #dialog = cls(QDialog(parent), Ui_NodeManager())
+        #return dialog
 
     @asyncify
     async def open_home_page(self):

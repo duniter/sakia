@@ -109,6 +109,7 @@ class MainWindow(QObject):
         self.ui.actionAbout.triggered.connect(self.open_about_popup)
 
         self.ui.actionManage_local_node.triggered.connect(self.open_duniter_ui)
+        self.ui.menu_duniter.setDisabled(True)
 
     def _init_homescreen(self):
         """
@@ -143,7 +144,7 @@ class MainWindow(QObject):
 
         main_window = cls(app, None, HomeScreenWidget(app, None),
                           CommunityWidget(app, None, None),
-                          NodeManager.create(qmainwindow),
+                          None, #NodeManager.create(qmainwindow),
                           qmainwindow, Ui_MainWindow(),
                           QLabel("", qmainwindow), QLabel("", qmainwindow),
                           QLabel("", qmainwindow), QComboBox(qmainwindow),
