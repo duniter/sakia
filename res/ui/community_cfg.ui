@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>300</height>
+    <height>317</height>
    </rect>
   </property>
   <property name="contextMenuPolicy">
@@ -23,7 +23,7 @@
    <item>
     <widget class="QStackedWidget" name="stacked_pages">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="page_node">
       <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -184,10 +184,13 @@
             <item>
              <widget class="QSpinBox" name="spinbox_add_port">
               <property name="minimum">
-               <number>1025</number>
+               <number>0</number>
               </property>
               <property name="maximum">
-               <number>99999</number>
+               <number>65535</number>
+              </property>
+              <property name="singleStep">
+               <number>1</number>
               </property>
               <property name="value">
                <number>8081</number>
