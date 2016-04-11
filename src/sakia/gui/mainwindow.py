@@ -79,7 +79,7 @@ class MainWindow(QObject):
 
         self.combo_referential = combo_referential
         self.combo_referential.setEnabled(False)
-        self.combo_referential.currentIndexChanged[str].connect(self.referential_changed)
+        self.combo_referential.currentIndexChanged[int].connect(self.referential_changed)
 
         self.homescreen = homescreen
 
@@ -201,7 +201,7 @@ class MainWindow(QObject):
                              error,
                              QMessageBox.Ok)
 
-    @pyqtSlot(str)
+    @pyqtSlot(int)
     def referential_changed(self, index):
         if self.account:
             self.account.set_display_referential(index)
