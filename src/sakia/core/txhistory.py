@@ -317,6 +317,15 @@ class TxHistory():
         """
         block_doc = await self._get_block_doc(community, block_number)
 
+        # We check the block dividend state
+        match = [d for d in self._dividends if d['block_number'] == block_number]
+        if len(match) > 0:
+            if block_doc.ud:
+                match[0]['amount'] = block_doc.ud
+                match[0]['base'] = block_doc.unit_base
+            else:
+                self._dividends.remove(match[0])
+
         # We check if transactions are still present
         for transfer in [t for t in self._transfers
                          if t.state in (TransferState.VALIDATING, TransferState.VALIDATED) and
@@ -340,10 +349,13 @@ class TxHistory():
             tx_blocks = [tx.blockUID.number for tx in self._transfers
                           if tx.state in (TransferState.VALIDATED, TransferState.VALIDATING) and
                           tx.blockUID is not None]
-            tx_blocks.reverse()
-            for i, block_number in enumerate(tx_blocks):
-                self.wallet.refresh_progressed.emit(i, len(tx_blocks), self.wallet.pubkey)
-                if (await self._check_block(community, block_number)):
+            ud_blocks = [ud['block_number'] for ud in self._dividends
+                          if ud['state'] in (TransferState.AWAITING, TransferState.VALIDATING)]
+            blocks = tx_blocks + ud_blocks
+            blocks.reverse()
+            for i, block_number in enumerate(blocks):
+                self.wallet.refresh_progressed.emit(i, len(blocks), self.wallet.pubkey)
+                if await self._check_block(community, block_number):
                     break
 
             current_block = await self._get_block_doc(community, community.network.current_blockUID.number)
