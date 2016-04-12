@@ -346,37 +346,6 @@ class Identity(QObject):
             logging.debug(str(e))
         return certifiers
 
-    async def unique_valid_certifiers_of(self, identities_registry, community):
-        """
-        Get the certifications in the blockchain and in the pools
-        Get only unique and last certification for each pubkey
-        :param sakia.core.registry.identities.IdentitiesRegistry identities_registry: The identities registry
-        :param sakia.core.community.Community community: The community target
-        :return: The list of the certifiers of this community
-        :rtype: list
-        """
-        certifier_list = await self.certifiers_of(identities_registry, community)
-        unique_valid = []
-        #  add certifiers of uid
-        for certifier in tuple([c for c in certifier_list if c['cert_time']]):
-            # add only valid certification...
-            try:
-                cert_expired = await community.certification_expired(certifier['cert_time'])
-            except NoPeerAvailable:
-                logging.debug("No peer available")
-                cert_expired = True
-
-            if not cert_expired:
-                # keep only the latest certification
-                already_found = [c['identity'].pubkey for c in unique_valid]
-                if certifier['identity'].pubkey in already_found:
-                    index = already_found.index(certifier['identity'].pubkey)
-                    if certifier['cert_time'] > unique_valid[index]['cert_time']:
-                        unique_valid[index] = certifier
-                else:
-                    unique_valid.append(certifier)
-        return unique_valid
-
     async def certified_by(self, identities_registry, community):
         """
         Get the list of persons certified by this person
@@ -430,6 +399,58 @@ class Identity(QObject):
             logging.debug(str(e))
         return certified_list
 
+    async def _unique_valid(self, cert_list, community):
+        """
+        Get the certifications in the blockchain and in the pools
+        Get only unique and last certification for each pubkey
+        :param list cert_list: The certifications list to filter
+        :param sakia.core.community.Community community: The community target
+        :return: The list of the certifiers of this community
+        :rtype: list
+        """
+        unique_valid = []
+        #  add certifiers of uid
+        for certifier in tuple(cert_list):
+            # add only valid certification...
+            try:
+                cert_expired = await community.certification_expired(certifier['cert_time'])
+            except NoPeerAvailable:
+                logging.debug("No peer available")
+                cert_expired = True
+
+            if not certifier['block_number']:
+                # add only valid certification...
+                try:
+                    cert_writable = await community.certification_writable(certifier['cert_time'])
+                except NoPeerAvailable:
+                    logging.debug("No peer available")
+                    cert_writable = False
+            else:
+                cert_writable = True
+
+            if not cert_expired and cert_writable:
+                # keep only the latest certification
+                already_found = [c['identity'].pubkey for c in unique_valid]
+                if certifier['identity'].pubkey in already_found:
+                    index = already_found.index(certifier['identity'].pubkey)
+                    if certifier['cert_time'] > unique_valid[index]['cert_time']:
+                        unique_valid[index] = certifier
+                else:
+                    unique_valid.append(certifier)
+        return unique_valid
+
+    async def unique_valid_certifiers_of(self, identities_registry, community):
+        """
+        Get the certifications in the blockchain and in the pools
+        Get only unique and last certification for each pubkey
+        :param sakia.core.registry.identities.IdentitiesRegistry identities_registry: The identities registry
+        :param sakia.core.community.Community community: The community target
+        :return: The list of the certifiers of this community
+        :rtype: list
+        """
+        certifier_list = await self.certifiers_of(identities_registry, community)
+        return await self._unique_valid(certifier_list, community)
+
     async def unique_valid_certified_by(self, identities_registry, community):
         """
         Get the list of persons certified by this person, filtered to get only unique
@@ -440,26 +461,7 @@ class Identity(QObject):
         :rtype: list
         """
         certified_list = await self.certified_by(identities_registry, community)
-        unique_valid = []
-        #  add certifiers of uid
-        for certified in tuple([c for c in certified_list if c['cert_time']]):
-            # add only valid certification...
-            try:
-                cert_expired = await community.certification_expired(certified['cert_time'])
-            except NoPeerAvailable:
-                logging.debug("No peer available")
-                cert_expired = True
-
-            if not cert_expired:
-                # keep only the latest certification
-                already_found = [c['identity'].pubkey for c in unique_valid]
-                if certified['identity'].pubkey in already_found:
-                    index = already_found.index(certified['identity'].pubkey)
-                    if certified['cert_time'] > unique_valid[index]['cert_time']:
-                        unique_valid[index] = certified
-                else:
-                    unique_valid.append(certified)
-        return unique_valid
+        return await self._unique_valid(certified_list, community)
 
     async def membership_expiration_time(self, community):
         """

@@ -267,6 +267,16 @@ class Community(QObject):
         blockchain_time = await self.time()
         return blockchain_time - cert_time > parameters['sigValidity']
 
+    async def certification_writable(self, cert_time):
+        """
+        Return True if the certificaton time is too old
+
+        :param int cert_time: the timestamp of the certification
+        """
+        parameters = await self.parameters()
+        blockchain_time = await self.time()
+        return blockchain_time - cert_time < parameters['sigWindow'] * parameters['avgGenTime']
+
     def add_node(self, node):
         """
         Add a peer to the community.
