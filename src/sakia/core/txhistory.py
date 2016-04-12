@@ -162,9 +162,7 @@ class TxHistory():
         in_outputs = len([o for o in tx.outputs
                        if o.conditions.left.pubkey == self.wallet.pubkey]) > 0
 
-        # We check if the transaction correspond to one we sent
-        # but not from this sakia Instance
-        tx_hash = hashlib.sha1(tx.signed_raw().encode("ascii")).hexdigest().upper()
+        tx_hash = hashlib.sha256(tx.signed_raw().encode("ascii")).hexdigest().upper()
         # If the wallet pubkey is in the issuers we sent this transaction
         if in_issuers:
             outputs = [o for o in tx.outputs
@@ -216,7 +214,7 @@ class TxHistory():
             for (txid, tx) in enumerate(new_tx):
                 transfer = await self._parse_transaction(community, tx, block_doc.blockUID,
                                         block_doc.mediantime, received_list, txid+txmax)
-                if transfer != None:
+                if transfer:
                     #logging.debug("Transfer amount : {0}".format(transfer.metadata['amount']))
                     transfers.append(transfer)
                 else:
