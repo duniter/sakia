@@ -242,7 +242,7 @@ class CertificationDialog(QObject):
 
     def async_exec(self):
         future = asyncio.Future()
-        self.widget.finished.connect(lambda r: future.set_result(r))
+        self.widget.finished.connect(lambda r: future.set_result(r) and self.widget.finished.disconnect())
         self.widget.open()
         self.refresh()
         return future
