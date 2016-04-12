@@ -62,6 +62,8 @@ if __name__ == '__main__':
     # activate ctrl-c interrupt
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     sakia = QApplication(sys.argv)
+
+    sakia.setStyle('Fusion')
     loop = QSelectorEventLoop(sakia)
     loop.set_exception_handler(async_exception_handler)
     asyncio.set_event_loop(loop)
