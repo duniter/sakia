@@ -6,6 +6,7 @@ Created on 8 mars 2014
 
 import logging
 import asyncio
+
 import aiohttp
 
 from ucoinpy.api import errors
@@ -65,6 +66,7 @@ class StepPageInit(Step):
         server = self.config_dialog.lineedit_server.text()
         port = self.config_dialog.spinbox_port.value()
         logging.debug("Is valid ? ")
+        self.config_dialog.label_error.setText(self.tr("connecting..."))
         try:
             self.node = await Node.from_address(None, server, port, session=aiohttp.ClientSession())
             community = Community.create(self.node)
@@ -78,12 +80,15 @@ class StepPageInit(Step):
             self.config_dialog.label_error.setText(str(e))
         #except (MalformedDocumentError, ValueError) as e:
         #    self.config_dialog.label_error.setText(str(e))
+        except aiohttp.errors.TimeoutError:
+            self.config_dialog.label_error.setText(self.tr("Could not connect. Check hostname, ip address or port"))
 
     @asyncify
     async def check_connect(self, checked=False):
         server = self.config_dialog.lineedit_server.text()
         port = self.config_dialog.spinbox_port.value()
         logging.debug("Is valid ? ")
+        self.config_dialog.label_error.setText(self.tr("connecting..."))
         try:
             self.node = await Node.from_address(None, server, port, session=aiohttp.ClientSession())
             community = Community.create(self.node)
@@ -108,12 +113,15 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
             self.config_dialog.label_error.setText(str(e))
         except NoPeerAvailable:
             self.config_dialog.label_error.setText(self.tr("Could not connect. Check node peering entry"))
+        except aiohttp.errors.TimeoutError:
+            self.config_dialog.label_error.setText(self.tr("Could not connect. Check hostname, ip address or port"))
 
     @asyncify
     async def check_register(self, checked=False):
         server = self.config_dialog.lineedit_server.text()
         port = self.config_dialog.spinbox_port.value()
         logging.debug("Is valid ? ")
+        self.config_dialog.label_error.setText(self.tr("connecting..."))
         try:
             session = aiohttp.ClientSession()
             self.node = await Node.from_address(None, server, port, session=session)
@@ -152,6 +160,8 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
             self.config_dialog.label_error.setText(str(e))
         except NoPeerAvailable:
             self.config_dialog.label_error.setText(self.tr("Could not connect. Check node peering entry"))
+        except aiohttp.errors.TimeoutError:
+            self.config_dialog.label_error.setText(self.tr("Could not connect. Check hostname, ip address or port"))
 
     def is_valid(self):
         return self.node is not None
