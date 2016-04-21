@@ -16,8 +16,23 @@
 <context>
     <name>Account</name>
     <message>
-        <location filename="../../../src/sakia/core/account.py" line="510"/>
+        <location filename="../../../src/sakia/core/account.py" line="538"/>
         <source>Could not find user self certification.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/core/account.py" line="67"/>
+        <source>Warning : Your membership is expiring soon.</source>
+        <translation type="unfinished">Ostrzeżenie: Twoje członkostwo wygasa szybko.</translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/core/account.py" line="72"/>
+        <source>Warning : Your could miss certifications soon.</source>
+        <translation type="unfinished">Uwaga: Twój mogło zabraknąć certyfikaty wkrótce.</translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/core/account.py" line="77"/>
+        <source>Warning : If you don&apos;t renew soon, your identity will be considerd revoked.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -104,43 +119,43 @@
     <message>
         <location filename="../../../src/sakia/core/app.py" line="76"/>
         <source>Warning : Your membership is expiring soon.</source>
-        <translation type="unfinished">Ostrzeżenie: Twoje członkostwo wygasa szybko.</translation>
+        <translation type="obsolete">Ostrzeżenie: Twoje członkostwo wygasa szybko.</translation>
     </message>
     <message>
         <location filename="../../../src/sakia/core/app.py" line="81"/>
         <source>Warning : Your could miss certifications soon.</source>
-        <translation type="unfinished">Uwaga: Twój mogło zabraknąć certyfikaty wkrótce.</translation>
+        <translation type="obsolete">Uwaga: Twój mogło zabraknąć certyfikaty wkrótce.</translation>
     </message>
 </context>
 <context>
     <name>CertificationDialog</name>
     <message>
-        <location filename="../../../src/sakia/gui/certification.py" line="84"/>
+        <location filename="../../../src/sakia/gui/certification.py" line="135"/>
         <source>Certification</source>
         <translation>Certyfikacja</translation>
     </message>
     <message>
-        <location filename="../../ui/certification.ui" line="20"/>
+        <location filename="../../ui/certification.ui" line="26"/>
         <source>Community</source>
         <translation>Społeczność</translation>
     </message>
     <message>
-        <location filename="../../ui/certification.ui" line="32"/>
+        <location filename="../../ui/certification.ui" line="54"/>
         <source>Certify user</source>
         <translation type="unfinished">Zaświadczyć użytkownika</translation>
     </message>
     <message>
         <location filename="../../ui/certification.ui" line="40"/>
         <source>Contact</source>
-        <translation>Kontakt</translation>
+        <translation type="obsolete">Kontakt</translation>
     </message>
     <message>
         <location filename="../../ui/certification.ui" line="61"/>
         <source>User public key</source>
-        <translation>Użytkownik klucz publiczny</translation>
+        <translation type="obsolete">Użytkownik klucz publiczny</translation>
     </message>
     <message>
-        <location filename="../../ui/certification.ui" line="80"/>
+        <location filename="../../ui/certification.ui" line="157"/>
         <source>Key</source>
         <translation>Klucz</translation>
     </message>
@@ -165,23 +180,58 @@
         <translation type="obsolete">Ok</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/certification.py" line="112"/>
+        <location filename="../../../src/sakia/gui/certification.py" line="220"/>
         <source>Not a member</source>
         <translation>Nie jest członkiem</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/certification.py" line="109"/>
+        <location filename="../../../src/sakia/gui/certification.py" line="214"/>
         <source>&amp;Ok</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/certification.py" line="75"/>
+        <location filename="../../../src/sakia/gui/certification.py" line="126"/>
         <source>Success sending certification</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/certification.py" line="84"/>
+        <location filename="../../../src/sakia/gui/certification.py" line="135"/>
         <source>Could not broadcast certification : {0}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../ui/certification.ui" line="35"/>
+        <source>Certifications stock</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../ui/certification.ui" line="73"/>
+        <source>Con&amp;tact</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../ui/certification.ui" line="116"/>
+        <source>&amp;User public key</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../ui/certification.ui" line="177"/>
+        <source>Sea&amp;rch user</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/certification.py" line="197"/>
+        <source>Certifications sent : {nb_certifications}/{stock}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/certification.py" line="202"/>
+        <source>Remaining time before next available certification : {0}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/certification.py" line="217"/>
+        <source>No more certifications</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -218,17 +268,17 @@
         <translation>Serwer</translation>
     </message>
     <message>
-        <location filename="../../ui/community_cfg.ui" line="200"/>
+        <location filename="../../ui/community_cfg.ui" line="203"/>
         <source>Add</source>
         <translation>Dodać</translation>
     </message>
     <message>
-        <location filename="../../ui/community_cfg.ui" line="221"/>
+        <location filename="../../ui/community_cfg.ui" line="224"/>
         <source>Previous</source>
         <translation>Poprzedni</translation>
     </message>
     <message>
-        <location filename="../../ui/community_cfg.ui" line="244"/>
+        <location filename="../../ui/community_cfg.ui" line="247"/>
         <source>Next</source>
         <translation>Następny</translation>
     </message>
@@ -314,43 +364,48 @@
 <context>
     <name>CommunityTile</name>
     <message>
-        <location filename="../../../src/sakia/gui/community_tile.py" line="81"/>
+        <location filename="../../../src/sakia/gui/community_tile.py" line="98"/>
         <source>Member</source>
         <translation type="unfinished">Członek</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/community_tile.py" line="82"/>
+        <location filename="../../../src/sakia/gui/community_tile.py" line="98"/>
         <source>Non-Member</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/community_tile.py" line="93"/>
+        <location filename="../../../src/sakia/gui/community_tile.py" line="110"/>
         <source>members</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/community_tile.py" line="93"/>
+        <location filename="../../../src/sakia/gui/community_tile.py" line="110"/>
         <source>Monetary mass</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/community_tile.py" line="93"/>
+        <location filename="../../../src/sakia/gui/community_tile.py" line="110"/>
         <source>Status</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/community_tile.py" line="93"/>
+        <location filename="../../../src/sakia/gui/community_tile.py" line="110"/>
         <source>Balance</source>
         <translation type="unfinished">Równowaga</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/community_tile.py" line="112"/>
+        <location filename="../../../src/sakia/gui/community_tile.py" line="130"/>
         <source>Not connected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/community_tile.py" line="125"/>
+        <location filename="../../../src/sakia/gui/community_tile.py" line="143"/>
         <source>Community not initialized</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/community_tile.py" line="99"/>
+        <source>#FF0000</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -372,7 +427,7 @@
         <translation type="unfinished">Certyfikacja</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/community_view.py" line="289"/>
+        <location filename="../../../src/sakia/gui/community_view.py" line="286"/>
         <source>Renew membership</source>
         <translation type="unfinished">Odnów członkostwo</translation>
     </message>
@@ -387,62 +442,57 @@
         <translation type="obsolete">Uwaga: Twój mogło zabraknąć certyfikaty wkrótce.</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/community_view.py" line="34"/>
+        <location filename="../../../src/sakia/gui/community_view.py" line="33"/>
         <source>Transactions</source>
         <translation type="unfinished">Transakcje</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/community_view.py" line="35"/>
+        <location filename="../../../src/sakia/gui/community_view.py" line="34"/>
         <source>Web of Trust</source>
         <translation type="unfinished">Sieć Zaufania</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/community_view.py" line="37"/>
+        <location filename="../../../src/sakia/gui/community_view.py" line="90"/>
         <source>Network</source>
         <translation type="unfinished">Sieć</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/community_view.py" line="184"/>
+        <location filename="../../../src/sakia/gui/community_view.py" line="191"/>
         <source>Membership expiration</source>
         <translation type="unfinished">Wygaśnięcie członkostwa</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/community_view.py" line="184"/>
+        <location filename="../../../src/sakia/gui/community_view.py" line="191"/>
         <source>&lt;b&gt;Warning : Membership expiration in {0} days&lt;/b&gt;</source>
         <translation type="unfinished">&lt;b&gt;Uwaga : Wygaśnięcie członkostwa w {0} dni&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/community_view.py" line="195"/>
+        <location filename="../../../src/sakia/gui/community_view.py" line="202"/>
         <source>Certifications number</source>
         <translation type="unfinished">Numer Certyfikaty</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/community_view.py" line="195"/>
+        <location filename="../../../src/sakia/gui/community_view.py" line="202"/>
         <source>&lt;b&gt;Warning : You are certified by only {0} persons, need {1}&lt;/b&gt;</source>
         <translation type="unfinished">&lt;b&gt;Ostrzeżenie : certyfikowane przez zaledwie {0} osób, potrzebuję {1}&lt;/b&gt;</translation>
     </message>
     <message>
         <location filename="../../../src/sakia/gui/community_view.py" line="228"/>
         <source> Block {0}</source>
-        <translation type="unfinished"> Blok {0}</translation>
+        <translation type="obsolete"> Blok {0}</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/community_view.py" line="270"/>
-        <source> - Median fork window : {0}</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../src/sakia/gui/community_view.py" line="295"/>
+        <location filename="../../../src/sakia/gui/community_view.py" line="292"/>
         <source>Send membership demand</source>
         <translation type="unfinished">Wyślij popytu członkostwa</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/community_view.py" line="341"/>
+        <location filename="../../../src/sakia/gui/community_view.py" line="336"/>
         <source>Warning</source>
         <translation type="unfinished">Ostrzeżenie</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/community_view.py" line="341"/>
+        <location filename="../../../src/sakia/gui/community_view.py" line="336"/>
         <source>Are you sure ?
 Sending a leaving demand  cannot be canceled.
 The process to join back the community later will have to be done again.</source>
@@ -463,7 +513,7 @@ Publikowanie UID może zostać anulowane przez odwołaniu UID.</translation>
         <translation type="obsolete">UID wydawnictwa</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/community_view.py" line="375"/>
+        <location filename="../../../src/sakia/gui/community_view.py" line="369"/>
         <source>Success publishing your UID</source>
         <translation type="unfinished">Sukces publikowanie UID</translation>
     </message>
@@ -495,32 +545,32 @@ Revoking your UID can only success if it is not already validated by the network
 Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez sieć.</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/community_view.py" line="395"/>
+        <location filename="../../../src/sakia/gui/community_view.py" line="369"/>
         <source>Membership</source>
         <translation type="unfinished">Członkostwo</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/community_view.py" line="329"/>
+        <location filename="../../../src/sakia/gui/community_view.py" line="325"/>
         <source>Success sending Membership demand</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/community_view.py" line="361"/>
+        <location filename="../../../src/sakia/gui/community_view.py" line="356"/>
         <source>Revoke</source>
         <translation type="unfinished">Odwołać</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/community_view.py" line="355"/>
+        <location filename="../../../src/sakia/gui/community_view.py" line="350"/>
         <source>Success sending Revoke demand</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/community_view.py" line="39"/>
+        <location filename="../../../src/sakia/gui/community_view.py" line="94"/>
         <source>Show informations</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/community_view.py" line="38"/>
+        <location filename="../../../src/sakia/gui/community_view.py" line="95"/>
         <source>Informations</source>
         <translation type="unfinished"></translation>
     </message>
@@ -530,23 +580,38 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
         <translation type="unfinished">Opublikować UID</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/community_view.py" line="399"/>
+        <location filename="../../../src/sakia/gui/community_view.py" line="41"/>
         <source>Revoke UID</source>
         <translation type="unfinished">Odwołać UID</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/community_view.py" line="401"/>
+        <location filename="../../../src/sakia/gui/community_view.py" line="375"/>
         <source>UID</source>
         <translation type="unfinished">UID</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/community_view.py" line="395"/>
-        <source>Your UID was revoked successfully.</source>
+        <location filename="../../../src/sakia/gui/community_view.py" line="35"/>
+        <source>Search Identities</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/community_view.py" line="36"/>
-        <source>Search Identities</source>
+        <location filename="../../../src/sakia/gui/community_view.py" line="39"/>
+        <source>Explore the Web of Trust</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/community_view.py" line="99"/>
+        <source>Show explorer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/community_view.py" line="100"/>
+        <source>Explorer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/community_view.py" line="234"/>
+        <source>Block {0}</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -568,9 +633,24 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
         <translation>Klucz publiczny</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/contact.py" line="52"/>
+        <location filename="../../../src/sakia/gui/contact.py" line="81"/>
         <source>Contact already exists</source>
         <translation>Kontakt już istnieje</translation>
+    </message>
+</context>
+<context>
+    <name>ContextMenu</name>
+    <message>
+        <location filename="../../../src/sakia/gui/widgets/context_menu.py" line="165"/>
+        <source>Warning</source>
+        <translation type="unfinished">Ostrzeżenie</translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/widgets/context_menu.py" line="165"/>
+        <source>Are you sure ?
+This money transfer will be removed and not sent.</source>
+        <translation type="unfinished">Jesteś pewny ?
+Ten przelew zostanie usunięty i nie wysłał.</translation>
     </message>
 </context>
 <context>
@@ -669,48 +749,159 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
     <message>
         <location filename="../../ui/member.ui" line="14"/>
         <source>Informations</source>
-        <translation>Informacja</translation>
+        <translation type="obsolete">Informacja</translation>
     </message>
     <message>
         <location filename="../../ui/member.ui" line="34"/>
         <source>Member</source>
-        <translation>Członek</translation>
+        <translation type="obsolete">Członek</translation>
     </message>
     <message>
         <location filename="../../ui/member.ui" line="65"/>
         <source>uid</source>
-        <translation>uid</translation>
+        <translation type="obsolete">uid</translation>
     </message>
     <message>
         <location filename="../../ui/member.ui" line="72"/>
         <source>properties</source>
-        <translation type="unfinished">właściwości</translation>
+        <translation type="obsolete">właściwości</translation>
+    </message>
+</context>
+<context>
+    <name>DividendPerDay</name>
+    <message>
+        <location filename="../../../src/sakia/core/money/dividend_per_day.py" line="9"/>
+        <source>UDD</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/core/money/dividend_per_day.py" line="10"/>
+        <source>{0} {1}UDD {2}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/core/money/dividend_per_day.py" line="11"/>
+        <source>UDD {0}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/core/money/dividend_per_day.py" line="12"/>
+        <source>UDD(t) = (Q * 100) / (UD(t) / DT)
+                                        &lt;br &gt;
+                                        &lt;table&gt;
+                                        &lt;tr&gt;&lt;td&gt;R&lt;/td&gt;&lt;td&gt;Dividend per day in percent&lt;/td&gt;&lt;/tr&gt;
+                                        &lt;tr&gt;&lt;td&gt;t&lt;/td&gt;&lt;td&gt;Last UD time&lt;/td&gt;&lt;/tr&gt;
+                                        &lt;tr&gt;&lt;td&gt;Q&lt;/td&gt;&lt;td&gt;Quantitative value&lt;/td&gt;&lt;/tr&gt;
+                                        &lt;tr&gt;&lt;td&gt;UD&lt;/td&gt;&lt;td&gt;Universal Dividend&lt;/td&gt;&lt;/tr&gt;
+                                        &lt;tr&gt;&lt;td&gt;DT&lt;/td&gt;&lt;td&gt;Delay between two UD in days&lt;/td&gt;&lt;/tr&gt;
+                                        &lt;/table&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ExplorerTabWidget</name>
+    <message>
+        <location filename="../../ui/explorer_tab.ui" line="14"/>
+        <source>Form</source>
+        <translation type="unfinished">Forma</translation>
+    </message>
+    <message>
+        <location filename="../../ui/explorer_tab.ui" line="48"/>
+        <source>Steps</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../ui/explorer_tab.ui" line="65"/>
+        <source>Go</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>GraphTabWidget</name>
+    <message>
+        <location filename="../../../src/sakia/gui/graphs/graph_tab.py" line="89"/>
+        <source>
+                    &lt;table cellpadding=&quot;5&quot;&gt;
+                    &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+                    &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+                    &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+                    &lt;/table&gt;
+                    </source>
+        <translation type="unfinished">
+                    &lt;table cellpadding=&quot;5&quot;&gt;
+                    &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+                    &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+                    &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+                    &lt;/table&gt;
+                    </translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/graphs/graph_tab.py" line="71"/>
+        <source>Membership</source>
+        <translation type="unfinished">Członkostwo</translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/graphs/graph_tab.py" line="89"/>
+        <source>Last renewal on {:}, expiration on {:}</source>
+        <translation type="unfinished">Ostatni odnowienia na {:}, wygaśnięciu z dniem {:}</translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/graphs/graph_tab.py" line="107"/>
+        <source>Your web of trust</source>
+        <translation type="unfinished">Twój sieć zaufania</translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/graphs/graph_tab.py" line="107"/>
+        <source>Certified by {:} members; Certifier of {:} members</source>
+        <translation type="unfinished">Certyfikowany przez {:} członków; Certifier z {:} członków</translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/graphs/graph_tab.py" line="107"/>
+        <source>Not a member</source>
+        <translation type="unfinished">Nie jest członkiem</translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/graphs/graph_tab.py" line="107"/>
+        <source>
+                &lt;table cellpadding=&quot;5&quot;&gt;
+                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;/tr&gt;
+                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+                &lt;/table&gt;
+                </source>
+        <translation type="unfinished">
+                &lt;table cellpadding=&quot;5&quot;&gt;
+                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;/tr&gt;
+                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+                &lt;/table&gt;
+                </translation>
     </message>
 </context>
 <context>
     <name>HistoryTableModel</name>
     <message>
-        <location filename="../../../src/sakia/models/txhistory.py" line="206"/>
+        <location filename="../../../src/sakia/models/txhistory.py" line="205"/>
         <source>Date</source>
         <translation>Data</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/models/txhistory.py" line="206"/>
+        <location filename="../../../src/sakia/models/txhistory.py" line="205"/>
         <source>UID/Public key</source>
         <translation>UID/Klucz publiczny</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/models/txhistory.py" line="206"/>
+        <location filename="../../../src/sakia/models/txhistory.py" line="205"/>
         <source>Payment</source>
         <translation>Płatność</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/models/txhistory.py" line="206"/>
+        <location filename="../../../src/sakia/models/txhistory.py" line="205"/>
         <source>Deposit</source>
         <translation>Kaucja</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/models/txhistory.py" line="206"/>
+        <location filename="../../../src/sakia/models/txhistory.py" line="205"/>
         <source>Comment</source>
         <translation>Uwaga</translation>
     </message>
@@ -827,73 +1018,63 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
     <message>
         <location filename="../../../src/sakia/gui/identities_tab.py" line="36"/>
         <source>Members</source>
-        <translation type="unfinished">Członek</translation>
-    </message>
-    <message>
-        <location filename="../../../src/sakia/gui/identities_tab.py" line="37"/>
-        <source>Direct connections</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../src/sakia/gui/identities_tab.py" line="112"/>
-        <source>Informations</source>
-        <translation type="unfinished"></translation>
+        <translation type="obsolete">Członek</translation>
     </message>
     <message>
         <location filename="../../../src/sakia/gui/identities_tab.py" line="115"/>
         <source>Add as contact</source>
-        <translation type="unfinished">Dodaj jako kontakt</translation>
+        <translation type="obsolete">Dodaj jako kontakt</translation>
     </message>
     <message>
         <location filename="../../../src/sakia/gui/identities_tab.py" line="119"/>
         <source>Send money</source>
-        <translation type="unfinished">Wyślij pieniądze</translation>
+        <translation type="obsolete">Wyślij pieniądze</translation>
     </message>
     <message>
         <location filename="../../../src/sakia/gui/identities_tab.py" line="123"/>
         <source>Certify identity</source>
-        <translation type="unfinished">Poświadcza tożsamość</translation>
+        <translation type="obsolete">Poświadcza tożsamość</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/identities_tab.py" line="127"/>
-        <source>View in Web of Trust</source>
+        <location filename="../../../src/sakia/gui/identities_tab.py" line="32"/>
+        <source>Search direct certifications</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/identities_tab.py" line="131"/>
-        <source>Copy pubkey</source>
-        <translation type="unfinished"></translation>
+        <location filename="../../../src/sakia/gui/identities_tab.py" line="33"/>
+        <source>Research a pubkey, an uid...</source>
+        <translation type="unfinished">Badania klucz publiczny, uid...</translation>
     </message>
 </context>
 <context>
     <name>IdentitiesTableModel</name>
     <message>
-        <location filename="../../../src/sakia/models/identities.py" line="89"/>
+        <location filename="../../../src/sakia/models/identities.py" line="109"/>
         <source>UID</source>
         <translation>UID</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/models/identities.py" line="90"/>
+        <location filename="../../../src/sakia/models/identities.py" line="110"/>
         <source>Pubkey</source>
         <translation>Klucz publiczny</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/models/identities.py" line="91"/>
+        <location filename="../../../src/sakia/models/identities.py" line="111"/>
         <source>Renewed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/models/identities.py" line="92"/>
+        <location filename="../../../src/sakia/models/identities.py" line="112"/>
         <source>Expiration</source>
         <translation type="unfinished">Wygaśnięcie</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/models/identities.py" line="94"/>
+        <location filename="../../../src/sakia/models/identities.py" line="114"/>
         <source>Validation</source>
         <translation>Walidacja</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/models/identities.py" line="93"/>
+        <location filename="../../../src/sakia/models/identities.py" line="113"/>
         <source>Publication</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1029,47 +1210,47 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
                 </translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="115"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="119"/>
         <source>Universal Dividend UD(t) in</source>
         <translation>Uniwersalny Dywidendy UD(t) w</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="115"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="119"/>
         <source>Monetary Mass M(t-1) in</source>
         <translation>Podaż Pieniądza M(t-1) w</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="115"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="119"/>
         <source>Members N(t)</source>
         <translation>Członkowie N(t)</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="115"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="119"/>
         <source>Monetary Mass per member M(t-1)/N(t) in</source>
         <translation>Podaż Pieniądza na członka M(t-1)/N(t) w</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="115"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="119"/>
         <source>Actual growth c = UD(t)/[M(t-1)/N(t)]</source>
         <translation>Rzeczywisty wzrost c = UD(t)/[M(t-1)/N(t)]</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="115"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="119"/>
         <source>Last UD date and time (t)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="115"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="119"/>
         <source>Next UD date and time (t+1)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="194"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="196"/>
         <source>No Universal Dividend created yet.</source>
         <translation type="unfinished">Nie masz jeszcze Uniwersalny dywidendy stworzył.</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="169"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="171"/>
         <source>
                 &lt;table cellpadding=&quot;5&quot;&gt;
                 &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
@@ -1086,37 +1267,37 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
                 </translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="169"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="171"/>
         <source>{:2.0%} / {:} days</source>
         <translation>{:2.0%} / {:} dni</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="169"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="171"/>
         <source>Fundamental growth (c) / Delta time (dt)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="169"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="171"/>
         <source>UD(t+1) = MAX { UD(t) ; c &amp;#215; M(t) / N(t+1) }</source>
         <translation>UD(t+1) = MAX { UD(t) ; c &amp;#215; M(t) / N(t+1) }</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="169"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="171"/>
         <source>Universal Dividend (formula)</source>
         <translation>Uniwersalny Dywidendy (formuła)</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="169"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="171"/>
         <source>{:} = MAX {{ {:} {:} ; {:2.0%} &amp;#215; {:} {:} / {:} }}</source>
         <translation>{:} = MAX {{ {:} {:} ; {:2.0%} &amp;#215; {:} {:} / {:} }}</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="169"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="171"/>
         <source>Universal Dividend (computed)</source>
         <translation>Uniwersalny Dywidendy (obliczana)</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="217"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="223"/>
         <source>
             &lt;table cellpadding=&quot;5&quot;&gt;
             &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:2.0%} / {:} days&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
@@ -1143,42 +1324,42 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
             </translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="217"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="223"/>
         <source>Fundamental growth (c)</source>
         <translation type="unfinished">Podstawowym wzrostu (c)</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="217"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="223"/>
         <source>Initial Universal Dividend UD(0) in</source>
         <translation>Uniwersalny Dywidendy początkowa UD(0) w</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="217"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="223"/>
         <source>Time period (dt) in days (86400 seconds) between two UD</source>
         <translation>Okres czasu (dt) w dni (86400 sekund) między dwoma UD</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="217"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="223"/>
         <source>Number of blocks used for calculating median time</source>
         <translation type="unfinished">Liczba bloków stosowane do obliczania mediany czasu</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="217"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="223"/>
         <source>The average time in seconds for writing 1 block (wished time)</source>
         <translation>Średni czas w sekundach do pisania 1 blok (szkoda czasu)</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="217"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="223"/>
         <source>The number of blocks required to evaluate again PoWMin value</source>
         <translation type="unfinished">Liczba bloków wymagane do oceny wartości ponownie PoWMin</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="217"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="223"/>
         <source>The number of previous blocks to check for personalized difficulty</source>
         <translation>Liczba poprzednich bloków, aby sprawdzić indywidualną trudności</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="217"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="223"/>
         <source>The percent of previous issuers to reach for personalized difficulty</source>
         <translation type="unfinished">Procent poprzednich emitentów dotrzeć do spersonalizowanej trudności</translation>
     </message>
@@ -1194,7 +1375,7 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
             &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
             &lt;/table&gt;
             </source>
-        <translation>
+        <translation type="obsolete">
             &lt;table cellpadding=&quot;5&quot;&gt;
             &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
             &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
@@ -1208,35 +1389,35 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
     <message>
         <location filename="../../../src/sakia/gui/informations_tab.py" line="252"/>
         <source>Minimum delay between 2 identical certifications (in days)</source>
-        <translation>Minimalne opóźnienie między 2 identycznych certyfikatów (w dniach)</translation>
+        <translation type="obsolete">Minimalne opóźnienie między 2 identycznych certyfikatów (w dniach)</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="252"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="258"/>
         <source>Maximum age of a valid signature (in days)</source>
         <translation>Maksymalny wiek ważnego podpisu (w dniach)</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="252"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="258"/>
         <source>Minimum quantity of signatures to be part of the WoT</source>
         <translation>Minimalna ilość podpisów, aby być częścią WoT</translation>
     </message>
     <message>
         <location filename="../../../src/sakia/gui/informations_tab.py" line="252"/>
         <source>Minimum quantity of valid made certifications to be part of the WoT for distance rule</source>
-        <translation type="unfinished">Minimalna ilość ważnych zaświadczeń wydanych być częścią WoT dla rządów odległości</translation>
+        <translation type="obsolete">Minimalna ilość ważnych zaświadczeń wydanych być częścią WoT dla rządów odległości</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="252"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="258"/>
         <source>Maximum age of a valid membership (in days)</source>
         <translation>Maksymalny wiek ważnego członkostwa (w dniach)</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="252"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="258"/>
         <source>Maximum distance between each WoT member and a newcomer</source>
         <translation type="unfinished">La distance maximale entre les membres individuels de la WOT et novice</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="115"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="119"/>
         <source>
                 &lt;table cellpadding=&quot;5&quot;&gt;
                 &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/div&gt;&lt;/td&gt;&lt;td&gt;{:} {:}&lt;/td&gt;&lt;/tr&gt;
@@ -1252,7 +1433,7 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="115"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="119"/>
         <source>Penultimate UD date and time (t-1)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1262,23 +1443,59 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="207"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="213"/>
         <source>Name</source>
         <translation type="unfinished">Imię</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="207"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="213"/>
         <source>Units</source>
         <translation type="unfinished">Jednostki</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="207"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="213"/>
         <source>Formula</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/informations_tab.py" line="207"/>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="213"/>
         <source>Description</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="258"/>
+        <source>
+            &lt;table cellpadding=&quot;5&quot;&gt;
+            &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+            &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+            &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+            &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+            &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+            &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+            &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+            &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+            &lt;/table&gt;
+            </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="258"/>
+        <source>Minimum delay between 2 certifications (in days)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="258"/>
+        <source>Maximum quantity of active certifications made by member.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="258"/>
+        <source>Maximum delay a certification can wait before being expired for non-writing.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/informations_tab.py" line="258"/>
+        <source>Minimum percent of sentries to reach to match the distance rule</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1290,7 +1507,7 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
         <translation type="unfinished">Plik</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="131"/>
+        <location filename="../../ui/mainwindow.ui" line="138"/>
         <source>Account</source>
         <translation>Konto</translation>
     </message>
@@ -1310,12 +1527,12 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
         <translation>&amp;Pomoc</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="76"/>
+        <location filename="../../ui/mainwindow.ui" line="83"/>
         <source>Manage accounts</source>
         <translation>Zarządzanie kontami</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="81"/>
+        <location filename="../../ui/mainwindow.ui" line="88"/>
         <source>Configure trustable nodes</source>
         <translation>Skonfiguruj zaufanych węzłów</translation>
     </message>
@@ -1325,47 +1542,47 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
         <translation type="obsolete">&amp;Dodawanie kontaktu</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="106"/>
+        <location filename="../../ui/mainwindow.ui" line="113"/>
         <source>Send a message</source>
         <translation>Wyślij wiadomość</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="111"/>
+        <location filename="../../ui/mainwindow.ui" line="118"/>
         <source>Send money</source>
         <translation>Wyślij pieniądze</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="116"/>
+        <location filename="../../ui/mainwindow.ui" line="123"/>
         <source>Remove contact</source>
         <translation>Usuń kontakt</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="121"/>
+        <location filename="../../ui/mainwindow.ui" line="128"/>
         <source>Save</source>
         <translation>Zapisz</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="126"/>
+        <location filename="../../ui/mainwindow.ui" line="133"/>
         <source>&amp;Quit</source>
         <translation type="unfinished">&amp;Zamknij</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="136"/>
+        <location filename="../../ui/mainwindow.ui" line="143"/>
         <source>&amp;Transfer money</source>
         <translation type="unfinished">&amp;Przelać pieniądze</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="141"/>
+        <location filename="../../ui/mainwindow.ui" line="148"/>
         <source>&amp;Configure</source>
         <translation type="unfinished">&amp;Skonfiguruj</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="146"/>
+        <location filename="../../ui/mainwindow.ui" line="153"/>
         <source>&amp;Import</source>
         <translation>&amp;Import</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="151"/>
+        <location filename="../../ui/mainwindow.ui" line="158"/>
         <source>&amp;Export</source>
         <translation>&amp;Eksport</translation>
     </message>
@@ -1375,32 +1592,32 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
         <translation type="obsolete">&amp;Certyfikacja</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="161"/>
+        <location filename="../../ui/mainwindow.ui" line="168"/>
         <source>&amp;Set as default</source>
         <translation>&amp;Ustaw jako domyślne</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="166"/>
+        <location filename="../../ui/mainwindow.ui" line="173"/>
         <source>A&amp;bout</source>
         <translation type="unfinished">&amp;O</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="171"/>
+        <location filename="../../ui/mainwindow.ui" line="178"/>
         <source>&amp;Preferences</source>
         <translation type="unfinished">&amp;Preferencje</translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="176"/>
+        <location filename="../../ui/mainwindow.ui" line="183"/>
         <source>&amp;Add account</source>
         <translation>&amp;Dodaj konto</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/mainwindow.py" line="211"/>
+        <location filename="../../../src/sakia/gui/mainwindow.py" line="285"/>
         <source>Latest release : {version}</source>
         <translation>Najnowsze wydanie: {wersja}</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/mainwindow.py" line="218"/>
+        <location filename="../../../src/sakia/gui/mainwindow.py" line="292"/>
         <source>Download link</source>
         <translation>Link do pobrania</translation>
     </message>
@@ -1440,17 +1657,17 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
         </translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/mainwindow.py" line="251"/>
+        <location filename="../../../src/sakia/gui/mainwindow.py" line="325"/>
         <source>Please get the latest release {version}</source>
         <translation>Proszę pobrać najnowsze wydanie {wersja}</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/mainwindow.py" line="283"/>
+        <location filename="../../../src/sakia/gui/mainwindow.py" line="357"/>
         <source>Edit</source>
         <translation>Edycja</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/mainwindow.py" line="286"/>
+        <location filename="../../../src/sakia/gui/mainwindow.py" line="360"/>
         <source>Delete</source>
         <translation>Kasować</translation>
     </message>
@@ -1465,17 +1682,17 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
         <translation type="obsolete">CuteCoin {0} - Konto : {1}</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/mainwindow.py" line="348"/>
+        <location filename="../../../src/sakia/gui/mainwindow.py" line="423"/>
         <source>Export an account</source>
         <translation>Eksportować konto</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/mainwindow.py" line="349"/>
+        <location filename="../../../src/sakia/gui/mainwindow.py" line="424"/>
         <source>All account files (*.acc)</source>
         <translation type="unfinished">Pliki konto (*.acc)</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/mainwindow.py" line="350"/>
+        <location filename="../../../src/sakia/gui/mainwindow.py" line="425"/>
         <source>Export</source>
         <translation>Eksport</translation>
     </message>
@@ -1490,17 +1707,17 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="86"/>
+        <location filename="../../ui/mainwindow.ui" line="93"/>
         <source>A&amp;dd a contact</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../ui/mainwindow.ui" line="156"/>
+        <location filename="../../ui/mainwindow.ui" line="163"/>
         <source>C&amp;ertification</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/mainwindow.py" line="225"/>
+        <location filename="../../../src/sakia/gui/mainwindow.py" line="299"/>
         <source>
         &lt;h1&gt;sakia&lt;/h1&gt;
 
@@ -1521,20 +1738,30 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/mainwindow.py" line="303"/>
+        <location filename="../../../src/sakia/gui/mainwindow.py" line="382"/>
         <source>sakia {0}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/mainwindow.py" line="330"/>
+        <location filename="../../../src/sakia/gui/mainwindow.py" line="406"/>
         <source>sakia {0} - Account : {1}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../ui/mainwindow.ui" line="71"/>
+        <source>&amp;Duniter</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../ui/mainwindow.ui" line="188"/>
+        <source>&amp;Manage local node</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>MemberDialog</name>
     <message>
-        <location filename="../../../src/sakia/gui/member.py" line="46"/>
+        <location filename="../../../src/sakia/gui/member.py" line="73"/>
         <source>not a member</source>
         <translation>nie jest członkiem</translation>
     </message>
@@ -1545,97 +1772,125 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
             &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/div&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
             &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/div&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
             </source>
-        <translation>
+        <translation type="obsolete">
             &lt;table cellpadding=&quot;5&quot;&gt;
             &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/div&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
             &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/div&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
             </translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/member.py" line="64"/>
+        <location filename="../../../src/sakia/gui/member.py" line="97"/>
         <source>Public key</source>
         <translation>Klucz publiczny</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/member.py" line="64"/>
+        <location filename="../../../src/sakia/gui/member.py" line="97"/>
         <source>Join date</source>
         <translation>Data rejestracji</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/member.py" line="87"/>
+        <location filename="../../../src/sakia/gui/member.py" line="144"/>
         <source>&lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/div&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;</source>
         <translation>&lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/div&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/member.py" line="73"/>
+        <location filename="../../../src/sakia/gui/member.py" line="130"/>
         <source>Distance</source>
         <translation>Dystans</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/member.py" line="80"/>
+        <location filename="../../../src/sakia/gui/member.py" line="139"/>
         <source>Path</source>
         <translation>ścieżka</translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/member.py" line="92"/>
+        <source>
+                &lt;table cellpadding=&quot;5&quot;&gt;
+                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/div&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/div&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+                &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/div&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
+                </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/member.py" line="97"/>
+        <source>UID Published on</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>MemberView</name>
+    <message>
+        <location filename="../../ui/member.ui" line="14"/>
+        <source>Member informations</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../ui/member.ui" line="34"/>
+        <source>Member</source>
+        <translation type="unfinished">Członek</translation>
     </message>
 </context>
 <context>
     <name>NetworkFilterProxyModel</name>
     <message>
-        <location filename="../../../src/sakia/models/network.py" line="48"/>
+        <location filename="../../../src/sakia/models/network.py" line="54"/>
         <source>Address</source>
         <translation>Adres</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/models/network.py" line="49"/>
+        <location filename="../../../src/sakia/models/network.py" line="55"/>
         <source>Port</source>
         <translation>Port</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/models/network.py" line="50"/>
+        <location filename="../../../src/sakia/models/network.py" line="56"/>
         <source>Block</source>
         <translation>Blok</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/models/network.py" line="52"/>
+        <location filename="../../../src/sakia/models/network.py" line="58"/>
         <source>UID</source>
         <translation>UID</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/models/network.py" line="53"/>
+        <location filename="../../../src/sakia/models/network.py" line="59"/>
         <source>Member</source>
         <translation>Członek</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/models/network.py" line="54"/>
+        <location filename="../../../src/sakia/models/network.py" line="60"/>
         <source>Pubkey</source>
         <translation>Klucz publiczny</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/models/network.py" line="55"/>
+        <location filename="../../../src/sakia/models/network.py" line="61"/>
         <source>Software</source>
         <translation>Oprogramowanie</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/models/network.py" line="56"/>
+        <location filename="../../../src/sakia/models/network.py" line="62"/>
         <source>Version</source>
         <translation>Wersja</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/models/network.py" line="69"/>
+        <location filename="../../../src/sakia/models/network.py" line="75"/>
         <source>yes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/models/network.py" line="69"/>
+        <location filename="../../../src/sakia/models/network.py" line="75"/>
         <source>no</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/models/network.py" line="69"/>
+        <location filename="../../../src/sakia/models/network.py" line="75"/>
         <source>offline</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/models/network.py" line="51"/>
+        <location filename="../../../src/sakia/models/network.py" line="57"/>
         <source>Hash</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1648,17 +1903,17 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
         <translation type="unfinished">Forma</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/network_tab.py" line="70"/>
+        <location filename="../../../src/sakia/gui/network_tab.py" line="72"/>
         <source>Unset root node</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/network_tab.py" line="76"/>
+        <location filename="../../../src/sakia/gui/network_tab.py" line="78"/>
         <source>Set as root node</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/network_tab.py" line="82"/>
+        <location filename="../../../src/sakia/gui/network_tab.py" line="84"/>
         <source>Open in browser</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1666,23 +1921,31 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
 <context>
     <name>NetworkTableModel</name>
     <message>
-        <location filename="../../../src/sakia/models/network.py" line="136"/>
+        <location filename="../../../src/sakia/models/network.py" line="148"/>
         <source>Online</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/models/network.py" line="137"/>
+        <location filename="../../../src/sakia/models/network.py" line="149"/>
         <source>Offline</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/models/network.py" line="138"/>
+        <location filename="../../../src/sakia/models/network.py" line="150"/>
         <source>Unsynchronized</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/models/network.py" line="139"/>
+        <location filename="../../../src/sakia/models/network.py" line="151"/>
         <source>Corrupted</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>NodeManager</name>
+    <message>
+        <location filename="../../ui/node_manager.ui" line="14"/>
+        <source>Node manager</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1704,22 +1967,22 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/password_asker.py" line="66"/>
+        <location filename="../../../src/sakia/gui/password_asker.py" line="72"/>
         <source>Bad password</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/password_asker.py" line="66"/>
+        <location filename="../../../src/sakia/gui/password_asker.py" line="72"/>
         <source>Non printable characters in password</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/password_asker.py" line="72"/>
+        <location filename="../../../src/sakia/gui/password_asker.py" line="78"/>
         <source>Failed to get private key</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/password_asker.py" line="72"/>
+        <location filename="../../../src/sakia/gui/password_asker.py" line="78"/>
         <source>Wrong password typed. Cannot open the private key</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1782,45 +2045,50 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../ui/preferences.ui" line="329"/>
+        <location filename="../../ui/preferences.ui" line="356"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt; font-weight:600;&quot;&gt;Network settings&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../ui/preferences.ui" line="345"/>
+        <location filename="../../ui/preferences.ui" line="372"/>
         <source>Proxy server address : </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../ui/preferences.ui" line="355"/>
+        <location filename="../../ui/preferences.ui" line="382"/>
         <source>:</source>
         <translation>:</translation>
     </message>
     <message>
-        <location filename="../../ui/preferences.ui" line="336"/>
+        <location filename="../../ui/preferences.ui" line="363"/>
         <source>Use a http proxy server</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../ui/preferences.ui" line="379"/>
+        <location filename="../../ui/preferences.ui" line="406"/>
         <source>Automatically refresh identities informations</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../ui/preferences.ui" line="330"/>
+        <source>Enable forgetfulness</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>ProcessConfigureAccount</name>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_account.py" line="163"/>
+        <location filename="../../../src/sakia/gui/process_cfg_account.py" line="165"/>
         <source>New account</source>
         <translation>Nowe konto</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_account.py" line="170"/>
+        <location filename="../../../src/sakia/gui/process_cfg_account.py" line="172"/>
         <source>Configure {0}</source>
         <translation>Skonfiguruj {0}</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_account.py" line="185"/>
+        <location filename="../../../src/sakia/gui/process_cfg_account.py" line="187"/>
         <source>Ok</source>
         <translation>Ok</translation>
     </message>
@@ -1830,12 +2098,12 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
         <translation type="obsolete">Klucz publiczny</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_account.py" line="220"/>
+        <location filename="../../../src/sakia/gui/process_cfg_account.py" line="223"/>
         <source>Warning</source>
         <translation type="unfinished">Ostrzeżenie</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_account.py" line="220"/>
+        <location filename="../../../src/sakia/gui/process_cfg_account.py" line="223"/>
         <source>This action will delete your account locally.
 Please note your key parameters (salt and password) if you wish to recover it later.
 Your account won&apos;t be removed from the networks it joined.
@@ -1843,7 +2111,7 @@ Are you sure ?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_account.py" line="243"/>
+        <location filename="../../../src/sakia/gui/process_cfg_account.py" line="246"/>
         <source>Error</source>
         <translation>Błąd</translation>
     </message>
@@ -1851,22 +2119,22 @@ Are you sure ?</source>
 <context>
     <name>ProcessConfigureCommunity</name>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="227"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="240"/>
         <source>Configure community {0}</source>
         <translation>Skonfiguruj społeczności {0}</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="230"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="243"/>
         <source>Add a community</source>
         <translation>Dodać społeczności</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="264"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="276"/>
         <source>Error</source>
         <translation>Błąd</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="293"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="305"/>
         <source>Delete</source>
         <translation>Kasować</translation>
     </message>
@@ -1930,11 +2198,6 @@ Chciałbyś opublikować klucz ?</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/core/money/quant_zerosum.py" line="8"/>
-        <source>{0} Q0 {1}</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../../../src/sakia/core/money/quant_zerosum.py" line="9"/>
         <source>Q0 {0}</source>
         <translation type="unfinished"></translation>
@@ -1953,26 +2216,31 @@ Chciałbyś opublikować klucz ?</translation>
                                         &lt;/table&gt;</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../../../src/sakia/core/money/quant_zerosum.py" line="8"/>
+        <source>{0} {1}Q0 {2}</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>Relative</name>
     <message>
-        <location filename="../../../src/sakia/core/money/relative.py" line="7"/>
+        <location filename="../../../src/sakia/core/money/relative.py" line="9"/>
         <source>UD</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/core/money/relative.py" line="8"/>
+        <location filename="../../../src/sakia/core/money/relative.py" line="10"/>
         <source>{0} {1}UD {2}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/core/money/relative.py" line="9"/>
+        <location filename="../../../src/sakia/core/money/relative.py" line="11"/>
         <source>UD {0}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/core/money/relative.py" line="10"/>
+        <location filename="../../../src/sakia/core/money/relative.py" line="12"/>
         <source>R = Q / UD(t)
                                         &lt;br &gt;
                                         &lt;table&gt;
@@ -1985,15 +2253,40 @@ Chciałbyś opublikować klucz ?</translation>
     </message>
 </context>
 <context>
+    <name>RelativeToPast</name>
+    <message>
+        <location filename="../../../src/sakia/core/money/relative_to_past.py" line="6"/>
+        <source>Past UD</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/core/money/relative_to_past.py" line="7"/>
+        <source>{0} {1}UD({2}) {3}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/core/money/relative_to_past.py" line="8"/>
+        <source>UD({0}) {1}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/core/money/relative_to_past.py" line="9"/>
+        <source>R = Q / UD(t)
+                                        &lt;br &gt;
+                                        &lt;table&gt;
+                                        &lt;tr&gt;&lt;td&gt;R&lt;/td&gt;&lt;td&gt;Relative value&lt;/td&gt;&lt;/tr&gt;
+                                        &lt;tr&gt;&lt;td&gt;Q&lt;/td&gt;&lt;td&gt;Quantitative value&lt;/td&gt;&lt;/tr&gt;
+                                        &lt;tr&gt;&lt;td&gt;UD&lt;/td&gt;&lt;td&gt;Universal Dividend&lt;/td&gt;&lt;/tr&gt;
+                                        &lt;tr&gt;&lt;td&gt;t&lt;/td&gt;&lt;td&gt;Time when the value appeared&lt;/td&gt;&lt;/tr&gt;
+                                        &lt;/table&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>RelativeZSum</name>
     <message>
         <location filename="../../../src/sakia/core/money/relative_zerosum.py" line="7"/>
         <source>Relat Z-sum</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../src/sakia/core/money/relative_zerosum.py" line="8"/>
-        <source>{0} R0 {1}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2015,39 +2308,57 @@ Chciałbyś opublikować klucz ?</translation>
                                         &lt;/table&gt;</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../../../src/sakia/core/money/relative_zerosum.py" line="8"/>
+        <source>{0} {1}R0 {2}</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>Scene</name>
+</context>
+<context>
+    <name>SearchUserWidget</name>
     <message>
-        <location filename="../../../src/sakia/gui/views/wot.py" line="158"/>
-        <source>Certification expires at {0}</source>
-        <translation type="unfinished"></translation>
+        <location filename="../../ui/search_user_view.ui" line="14"/>
+        <source>Form</source>
+        <translation type="unfinished">Forma</translation>
+    </message>
+    <message>
+        <location filename="../../ui/search_user_view.ui" line="33"/>
+        <source>Center the view on me</source>
+        <translation type="unfinished">Wyśrodkować widok na mnie</translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/widgets/search_user.py" line="15"/>
+        <source>Research a pubkey, an uid...</source>
+        <translation type="unfinished">Badania klucz publiczny, uid...</translation>
     </message>
 </context>
 <context>
     <name>StepPageInit</name>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="95"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="101"/>
         <source>Could not find your identity on the network.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="127"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="138"/>
         <source>Broadcasting identity...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="131"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="142"/>
         <source>UID broadcast</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="131"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="142"/>
         <source>Identity broadcasted to the network</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="138"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="149"/>
         <source>Error</source>
         <translation type="unfinished">Błąd</translation>
     </message>
@@ -2057,25 +2368,40 @@ Chciałbyś opublikować klucz ?</translation>
         <translation type="obsolete">{0} : {1}</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="138"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="149"/>
         <source>{0}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="142"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="153"/>
         <source>Your pubkey or UID was already found on the network.
 Yours : {0}, the network : {1}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="145"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="156"/>
         <source>Your account already exists on the network</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="97"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="103"/>
         <source>Your pubkey or UID is different on the network.
 Yours : {0}, the network : {1}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="124"/>
+        <source>connecting...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="164"/>
+        <source>Could not connect. Check hostname, ip address or port</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="162"/>
+        <source>Could not connect. Check node peering entry</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2102,57 +2428,52 @@ Yours : {0}, the network : {1}</source>
     <message>
         <location filename="../../../src/sakia/gui/transactions_tab.py" line="175"/>
         <source>Actions</source>
-        <translation type="unfinished">Akcje</translation>
+        <translation type="obsolete">Akcje</translation>
     </message>
     <message>
         <location filename="../../../src/sakia/gui/transactions_tab.py" line="190"/>
         <source>Send again</source>
-        <translation>Wyślij ponownie</translation>
+        <translation type="obsolete">Wyślij ponownie</translation>
     </message>
     <message>
         <location filename="../../../src/sakia/gui/transactions_tab.py" line="195"/>
         <source>Cancel</source>
-        <translation>Anuluj</translation>
+        <translation type="obsolete">Anuluj</translation>
     </message>
     <message>
         <location filename="../../../src/sakia/gui/transactions_tab.py" line="201"/>
         <source>Informations</source>
-        <translation>Informacja</translation>
+        <translation type="obsolete">Informacja</translation>
     </message>
     <message>
         <location filename="../../../src/sakia/gui/transactions_tab.py" line="206"/>
         <source>Add as contact</source>
-        <translation>Dodaj jako kontakt</translation>
+        <translation type="obsolete">Dodaj jako kontakt</translation>
     </message>
     <message>
         <location filename="../../../src/sakia/gui/transactions_tab.py" line="211"/>
         <source>Send money</source>
-        <translation>Wyślij pieniądze</translation>
-    </message>
-    <message>
-        <location filename="../../../src/sakia/gui/transactions_tab.py" line="217"/>
-        <source>View in Web of Trust</source>
-        <translation type="unfinished"></translation>
+        <translation type="obsolete">Wyślij pieniądze</translation>
     </message>
     <message>
         <location filename="../../../src/sakia/gui/transactions_tab.py" line="222"/>
         <source>Copy pubkey to clipboard</source>
-        <translation>Kopiowanie klucza publicznego do schowka</translation>
+        <translation type="obsolete">Kopiowanie klucza publicznego do schowka</translation>
     </message>
     <message>
         <location filename="../../../src/sakia/gui/transactions_tab.py" line="288"/>
         <source>Warning</source>
-        <translation>Ostrzeżenie</translation>
+        <translation type="obsolete">Ostrzeżenie</translation>
     </message>
     <message>
         <location filename="../../../src/sakia/gui/transactions_tab.py" line="288"/>
         <source>Are you sure ?
 This money transfer will be removed and not sent.</source>
-        <translation>Jesteś pewny ?
+        <translation type="obsolete">Jesteś pewny ?
 Ten przelew zostanie usunięty i nie wysłał.</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/transactions_tab.py" line="160"/>
+        <location filename="../../../src/sakia/gui/transactions_tab.py" line="159"/>
         <source>{:}</source>
         <translation type="unfinished">{:}</translation>
     </message>
@@ -2185,37 +2506,37 @@ Ten przelew zostanie usunięty i nie wysłał.</translation>
         <translation type="obsolete">Kontakt</translation>
     </message>
     <message>
-        <location filename="../../ui/transfer.ui" line="80"/>
+        <location filename="../../ui/transfer.ui" line="136"/>
         <source>Key</source>
         <translation>Klucz</translation>
     </message>
     <message>
-        <location filename="../../ui/transfer.ui" line="148"/>
+        <location filename="../../ui/transfer.ui" line="250"/>
         <source> UD</source>
         <translation> UD</translation>
     </message>
     <message>
-        <location filename="../../ui/transfer.ui" line="166"/>
+        <location filename="../../ui/transfer.ui" line="268"/>
         <source>Transaction message</source>
         <translation type="unfinished">komunikat transakcji</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/transfer.py" line="108"/>
+        <location filename="../../../src/sakia/gui/transfer.py" line="131"/>
         <source>Money transfer</source>
         <translation>Przelew pieniędzy</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/transfer.py" line="108"/>
+        <location filename="../../../src/sakia/gui/transfer.py" line="131"/>
         <source>No amount. Please give the transfert amount</source>
         <translation>Nie ilość. Proszę podać kwotę przelewu</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/transfer.py" line="139"/>
+        <location filename="../../../src/sakia/gui/transfer.py" line="163"/>
         <source>Transfer</source>
         <translation>Przenieść</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/transfer.py" line="126"/>
+        <location filename="../../../src/sakia/gui/transfer.py" line="150"/>
         <source>Success sending money to {0}</source>
         <translation type="unfinished">Sukces wysyłania pieniędzy do {0}</translation>
     </message>
@@ -2230,28 +2551,33 @@ Ten przelew zostanie usunięty i nie wysłał.</translation>
         <translation type="obsolete">{0} : {1}</translation>
     </message>
     <message>
-        <location filename="../../ui/transfer.ui" line="61"/>
+        <location filename="../../ui/transfer.ui" line="95"/>
         <source>&amp;Recipient public key</source>
         <translation type="unfinished">&amp;Odbiorca klucz publiczny</translation>
     </message>
     <message>
-        <location filename="../../ui/transfer.ui" line="106"/>
+        <location filename="../../ui/transfer.ui" line="208"/>
         <source>Wallet</source>
         <translation>Portfel</translation>
     </message>
     <message>
-        <location filename="../../ui/transfer.ui" line="125"/>
+        <location filename="../../ui/transfer.ui" line="227"/>
         <source>Available money : </source>
         <translation>Dostępne pieniądze : </translation>
     </message>
     <message>
-        <location filename="../../ui/transfer.ui" line="134"/>
+        <location filename="../../ui/transfer.ui" line="236"/>
         <source>Amount</source>
         <translation>Ilość</translation>
     </message>
     <message>
-        <location filename="../../ui/transfer.ui" line="40"/>
+        <location filename="../../ui/transfer.ui" line="46"/>
         <source>Con&amp;tact</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../ui/transfer.ui" line="156"/>
+        <source>S&amp;earch user</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2268,13 +2594,45 @@ Ten przelew zostanie usunięty i nie wysłał.</translation>
         <translation type="obsolete">Walidacji... {0} %</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/models/txhistory.py" line="165"/>
+        <location filename="../../../src/sakia/models/txhistory.py" line="166"/>
         <source>{0} / {1} confirmations</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/models/txhistory.py" line="169"/>
+        <location filename="../../../src/sakia/models/txhistory.py" line="170"/>
         <source>Confirming... {0} %</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>UDDToPast</name>
+    <message>
+        <location filename="../../../src/sakia/core/money/udd_to_past.py" line="6"/>
+        <source>Past UUD</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/core/money/udd_to_past.py" line="7"/>
+        <source>{0} {1}UUD({2}) {3}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/core/money/udd_to_past.py" line="8"/>
+        <source>UUD({0}) {1}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/core/money/udd_to_past.py" line="9"/>
+        <source>R = Q / UD(t)
+                                        &lt;br &gt;
+                                        &lt;table&gt;
+                                        &lt;tr&gt;&lt;td&gt;R&lt;/td&gt;&lt;td&gt;Dividend per day in percent&lt;/td&gt;&lt;/tr&gt;
+                                        &lt;tr&gt;&lt;td&gt;t&lt;/td&gt;&lt;td&gt;Last UD time&lt;/td&gt;&lt;/tr&gt;
+                                        &lt;tr&gt;&lt;td&gt;Q&lt;/td&gt;&lt;td&gt;Quantitative value&lt;/td&gt;&lt;/tr&gt;
+                                        &lt;tr&gt;&lt;td&gt;UD&lt;/td&gt;&lt;td&gt;Universal Dividend&lt;/td&gt;&lt;/tr&gt;
+                                        &lt;tr&gt;&lt;td&gt;t&lt;/td&gt;&lt;td&gt;Time when the value appeared&lt;/td&gt;&lt;/tr&gt;
+                                        &lt;tr&gt;&lt;td&gt;DT&lt;/td&gt;&lt;td&gt;Delay between two UD in days&lt;/td&gt;&lt;/tr&gt;
+                                        &lt;/table&gt;&gt;</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2509,27 +2867,22 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
     <message>
         <location filename="../../../src/sakia/gui/views/wot.py" line="294"/>
         <source>Informations</source>
-        <translation>Informacje</translation>
+        <translation type="obsolete">Informacje</translation>
     </message>
     <message>
         <location filename="../../../src/sakia/gui/views/wot.py" line="299"/>
         <source>Add as contact</source>
-        <translation>Dodaj jako kontakt</translation>
+        <translation type="obsolete">Dodaj jako kontakt</translation>
     </message>
     <message>
         <location filename="../../../src/sakia/gui/views/wot.py" line="304"/>
         <source>Send money</source>
-        <translation>Wyślij pieniądze</translation>
+        <translation type="obsolete">Wyślij pieniądze</translation>
     </message>
     <message>
         <location filename="../../../src/sakia/gui/views/wot.py" line="309"/>
         <source>Certify identity</source>
-        <translation>Poświadcza tożsamość</translation>
-    </message>
-    <message>
-        <location filename="../../../src/sakia/gui/views/wot.py" line="314"/>
-        <source>Copy pubkey</source>
-        <translation type="unfinished"></translation>
+        <translation type="obsolete">Poświadcza tożsamość</translation>
     </message>
 </context>
 <context>
@@ -2542,12 +2895,12 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
     <message>
         <location filename="../../ui/wot_tab.ui" line="33"/>
         <source>Center the view on me</source>
-        <translation>Wyśrodkować widok na mnie</translation>
+        <translation type="obsolete">Wyśrodkować widok na mnie</translation>
     </message>
     <message>
         <location filename="../../../src/sakia/gui/wot_tab.py" line="25"/>
         <source>Research a pubkey, an uid...</source>
-        <translation type="unfinished">Badania klucz publiczny, uid...</translation>
+        <translation type="obsolete">Badania klucz publiczny, uid...</translation>
     </message>
     <message>
         <location filename="../../../src/sakia/gui/wot_tab.py" line="144"/>
@@ -2558,7 +2911,7 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
                     &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
                     &lt;/table&gt;
                     </source>
-        <translation type="unfinished">
+        <translation type="obsolete">
                     &lt;table cellpadding=&quot;5&quot;&gt;
                     &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
                     &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
@@ -2569,27 +2922,27 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
     <message>
         <location filename="../../../src/sakia/gui/wot_tab.py" line="126"/>
         <source>Membership</source>
-        <translation type="unfinished">Członkostwo</translation>
+        <translation type="obsolete">Członkostwo</translation>
     </message>
     <message>
         <location filename="../../../src/sakia/gui/wot_tab.py" line="144"/>
         <source>Last renewal on {:}, expiration on {:}</source>
-        <translation type="unfinished">Ostatni odnowienia na {:}, wygaśnięciu z dniem {:}</translation>
+        <translation type="obsolete">Ostatni odnowienia na {:}, wygaśnięciu z dniem {:}</translation>
     </message>
     <message>
         <location filename="../../../src/sakia/gui/wot_tab.py" line="162"/>
         <source>Your web of trust</source>
-        <translation type="unfinished">Twój sieć zaufania</translation>
+        <translation type="obsolete">Twój sieć zaufania</translation>
     </message>
     <message>
         <location filename="../../../src/sakia/gui/wot_tab.py" line="162"/>
         <source>Certified by {:} members; Certifier of {:} members</source>
-        <translation type="unfinished">Certyfikowany przez {:} członków; Certifier z {:} członków</translation>
+        <translation type="obsolete">Certyfikowany przez {:} członków; Certifier z {:} członków</translation>
     </message>
     <message>
         <location filename="../../../src/sakia/gui/wot_tab.py" line="162"/>
         <source>Not a member</source>
-        <translation type="unfinished">Nie jest członkiem</translation>
+        <translation type="obsolete">Nie jest członkiem</translation>
     </message>
     <message>
         <location filename="../../../src/sakia/gui/wot_tab.py" line="162"/>
@@ -2600,7 +2953,7 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
                 &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
                 &lt;/table&gt;
                 </source>
-        <translation type="unfinished">
+        <translation type="obsolete">
                 &lt;table cellpadding=&quot;5&quot;&gt;
                 &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{:}&lt;/td&gt;&lt;/tr&gt;
                 &lt;tr&gt;&lt;td align=&quot;right&quot;&gt;&lt;b&gt;{:}&lt;/b&gt;&lt;/td&gt;&lt;/tr&gt;
@@ -2610,34 +2963,128 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
     </message>
 </context>
 <context>
+    <name>certificationsTabWidget</name>
+    <message>
+        <location filename="../../ui/certifications_tab.ui" line="14"/>
+        <source>Form</source>
+        <translation type="unfinished">Forma</translation>
+    </message>
+    <message>
+        <location filename="../../ui/certifications_tab.ui" line="20"/>
+        <source>Certifications</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../ui/certifications_tab.ui" line="33"/>
+        <source>loading...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../ui/certifications_tab.ui" line="63"/>
+        <source>dd/MM/yyyy</source>
+        <translation type="unfinished">dd/MM/yyyy</translation>
+    </message>
+</context>
+<context>
+    <name>menu</name>
+    <message>
+        <location filename="../../../src/sakia/gui/widgets/context_menu.py" line="57"/>
+        <source>Certify identity</source>
+        <translation type="unfinished">Poświadcza tożsamość</translation>
+    </message>
+</context>
+<context>
+    <name>menu.qmenu</name>
+    <message>
+        <location filename="../../../src/sakia/gui/widgets/context_menu.py" line="42"/>
+        <source>Informations</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/widgets/context_menu.py" line="47"/>
+        <source>Add as contact</source>
+        <translation type="unfinished">Dodaj jako kontakt</translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/widgets/context_menu.py" line="52"/>
+        <source>Send money</source>
+        <translation type="unfinished">Wyślij pieniądze</translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/widgets/context_menu.py" line="61"/>
+        <source>View in Web of Trust</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/widgets/context_menu.py" line="65"/>
+        <source>Copy pubkey to clipboard</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/widgets/context_menu.py" line="70"/>
+        <source>Copy membership document to clipboard</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/widgets/context_menu.py" line="74"/>
+        <source>Copy self-certification document to clipboard</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/widgets/context_menu.py" line="84"/>
+        <source>Transfer</source>
+        <translation type="unfinished">Przenieść</translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/widgets/context_menu.py" line="86"/>
+        <source>Send again</source>
+        <translation type="unfinished">Wyślij ponownie</translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/widgets/context_menu.py" line="90"/>
+        <source>Cancel</source>
+        <translation type="unfinished">Anuluj</translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/widgets/context_menu.py" line="95"/>
+        <source>Copy raw transaction to clipboard</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/widgets/context_menu.py" line="100"/>
+        <source>Copy transaction block to clipboard</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>self.config_dialog</name>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="191"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="204"/>
         <source>Ok</source>
         <translation>Ok</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_account.py" line="70"/>
+        <location filename="../../../src/sakia/gui/process_cfg_account.py" line="72"/>
         <source>Forbidden : salt is too short</source>
         <translation>Zabrania się: sól jest zbyt krótki</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_account.py" line="74"/>
+        <location filename="../../../src/sakia/gui/process_cfg_account.py" line="76"/>
         <source>Forbidden : password is too short</source>
         <translation>Zabrania się: hasło jest za krótkie</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_account.py" line="78"/>
+        <location filename="../../../src/sakia/gui/process_cfg_account.py" line="80"/>
         <source>Forbidden : Invalid characters in salt field</source>
         <translation>Zabrania się: Nieprawidłowe znaki w polu soli</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_account.py" line="82"/>
+        <location filename="../../../src/sakia/gui/process_cfg_account.py" line="84"/>
         <source>Forbidden : Invalid characters in password field</source>
         <translation>Zabrania się: Nieprawidłowe znaki w polu hasła</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_account.py" line="88"/>
+        <location filename="../../../src/sakia/gui/process_cfg_account.py" line="90"/>
         <source>Error : passwords are different</source>
         <translation>Błąd: hasła są różne</translation>
     </message>
@@ -2650,7 +3097,7 @@ Odwołanie UID może tylko sukcesem, jeśli nie jest on już zatwierdzony przez 
         <translation>Forma</translation>
     </message>
     <message>
-        <location filename="../../ui/transactions_tab.ui" line="63"/>
+        <location filename="../../ui/transactions_tab.ui" line="66"/>
         <source>dd/MM/yyyy</source>
         <translation>dd/MM/yyyy</translation>
     </message>
