@@ -1,4 +1,4 @@
-ucoinpy>=0.20.dev0
+duniterpy>=0.20.dev0
 git+https://github.com/harvimt/quamash.git@gh45
 asynctest
 networkx

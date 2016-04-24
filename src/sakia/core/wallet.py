@@ -4,12 +4,12 @@ Created on 1 févr. 2014
 @author: inso
 """
 
-from ucoinpy.documents.transaction import InputSource, OutputSource, Unlock, SIGParameter, Transaction, reduce_base
-from ucoinpy.grammars import output
-from ucoinpy.key import SigningKey
+from duniterpy.documents.transaction import InputSource, OutputSource, Unlock, SIGParameter, Transaction, reduce_base
+from duniterpy.grammars import output
+from duniterpy.key import SigningKey
 
-from ucoinpy.api import bma
-from ucoinpy.api.bma import PROTOCOL_VERSION
+from duniterpy.api import bma
+from duniterpy.api.bma import PROTOCOL_VERSION
 from ..tools.exceptions import NotEnoughMoneyError, NoPeerAvailable, LookupFailureError
 from .transfer import Transfer
 from .txhistory import TxHistory
@@ -255,7 +255,7 @@ class Wallet(QObject):
         :param int amount: the amount sent to the receiver
         :param Community community: the target community
         :return: the transaction document
-        :rtype: ucoinpy.documents.Transaction
+        :rtype: duniterpy.documents.Transaction
         """
         result = self.tx_sources(int(amount), community)
         sources = result[0]

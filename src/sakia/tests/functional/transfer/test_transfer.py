@@ -32,7 +32,7 @@ class TestTransferDialog(unittest.TestCase, QuamashTest):
         self.node = Node(self.mock_nice_blockchain.peer(),
                          "", "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk",
                          None, Node.ONLINE,
-                         time.time(), {}, "ucoin", "0.14.0", 0, session=aiohttp.ClientSession())
+                         time.time(), {}, "duniter", "0.14.0", 0, session=aiohttp.ClientSession())
         self.network = Network.create(self.node)
         self.bma_access = BmaAccess.create(self.network)
         self.community = Community("test_currency", self.network, self.bma_access)

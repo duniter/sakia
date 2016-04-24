@@ -12,7 +12,7 @@ from PyQt5.QtCore import QObject
 
 from ..tools.exceptions import NoPeerAvailable
 from .net.network import Network
-from ucoinpy.api import bma, errors
+from duniterpy.api import bma, errors
 from .net.api.bma.access import BmaAccess
 
 
@@ -21,7 +21,7 @@ class Community(QObject):
     A community is a group of nodes using the same currency.
 
     .. warning:: The currency name is supposed to be unique in sakia
-    but nothing exists in ucoin to assert that a currency name is unique.
+    but nothing exists in duniter to assert that a currency name is unique.
     """
     def __init__(self, currency, network, bma_access):
         """
@@ -168,7 +168,7 @@ class Community(QObject):
                 return block
             else:
                 return None
-        except errors.UcoinError as e:
+        except errors.duniterError as e:
             if e.ucode == errors.BLOCK_NOT_FOUND:
                 logging.debug(str(e))
                 return None
@@ -203,7 +203,7 @@ class Community(QObject):
             block = await self.bma_access.future_request(bma.blockchain.Block,
                                  req_args={'number': block_number})
             return block['membersCount']
-        except errors.UcoinError as e:
+        except errors.duniterError as e:
             if e.ucode == errors.BLOCK_NOT_FOUND:
                 return 0
         except NoPeerAvailable as e:
@@ -224,7 +224,7 @@ class Community(QObject):
             block = await self.bma_access.future_request(bma.blockchain.Block,
                                  req_args={'number': block_number})
             return block['medianTime']
-        except errors.UcoinError as e:
+        except errors.duniterError as e:
             if e.ucode == errors.BLOCK_NOT_FOUND:
                 return 0
         except NoPeerAvailable as e:
@@ -281,7 +281,7 @@ class Community(QObject):
         """
         Add a peer to the community.
 
-        :param peer: The new peer as a ucoinpy Peer object.
+        :param peer: The new peer as a duniterpy Peer object.
         """
         self._network.add_root_node(node)
 

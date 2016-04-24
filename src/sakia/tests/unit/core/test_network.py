@@ -2,7 +2,7 @@ import aiohttp
 import unittest
 from unittest.mock import PropertyMock
 from asynctest import Mock, patch
-from ucoinpy.documents.block import BlockUID
+from duniterpy.documents.block import BlockUID
 from PyQt5.QtCore import QLocale
 from sakia.core.net import Network
 from sakia.tests import QuamashTest

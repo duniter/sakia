@@ -1,7 +1,7 @@
 from aiohttp import web, log
 import json
 import socket
-from ucoinpy.documents import Peer
+from duniterpy.documents import Peer
 
 
 def bma_peering_generator(port):

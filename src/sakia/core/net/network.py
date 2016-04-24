@@ -9,7 +9,7 @@ import logging
 import aiohttp
 import time
 import asyncio
-from ucoinpy.documents import Peer,  Block, BlockUID, MalformedDocumentError
+from duniterpy.documents import Peer,  Block, BlockUID, MalformedDocumentError
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
 from collections import Counter
 

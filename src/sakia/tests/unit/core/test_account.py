@@ -4,7 +4,7 @@ from PyQt5.QtCore import QLocale
 from sakia.core.registry.identities import IdentitiesRegistry, Identity
 from sakia.core import Account
 from sakia.tests import QuamashTest
-from ucoinpy.documents import BlockUID, SelfCertification
+from duniterpy.documents import BlockUID, SelfCertification
 
 
 class TestAccount(unittest.TestCase, QuamashTest):

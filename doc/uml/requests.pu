@@ -8,7 +8,7 @@ ref over BmaAccess
     (new block mined
     since last caching)
 end ref
-BmaAccess -> ucoinpy : HTTP GET
+BmaAccess -> duniterpy : HTTP GET
 alt Rollback
 BmaAccess -> BmaAccess : Find last block number rollbacked
 ref over BmaAccess

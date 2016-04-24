@@ -12,7 +12,7 @@ from sakia.core import Account, Community, Wallet
 from sakia.core.net import Network, Node
 from sakia.core.net.api.bma.access import BmaAccess
 from sakia.tests import QuamashTest
-from ucoinpy.documents.peer import BMAEndpoint
+from duniterpy.documents.peer import BMAEndpoint
 
 
 class TestTxHistory(unittest.TestCase, QuamashTest):
@@ -28,7 +28,7 @@ class TestTxHistory(unittest.TestCase, QuamashTest):
         self.node = Node("test_currency", [self.endpoint],
                          "", "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk",
                          nice_blockchain.bma_blockchain_current, Node.ONLINE,
-                         time.time(), {}, "ucoin", "0.14.0", 0)
+                         time.time(), {}, "duniter", "0.14.0", 0)
         self.network = Network.create(self.node)
         self.bma_access = BmaAccess.create(self.network)
         self.community = Community("test_currency", self.network, self.bma_access)

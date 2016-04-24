@@ -1,5 +1,5 @@
 from ..server import MockServer
-from ucoinpy.api import errors
+from duniterpy.api import errors
 
 bma_lookup_test_john = {
     "partial": False,

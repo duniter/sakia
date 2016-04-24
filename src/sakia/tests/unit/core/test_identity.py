@@ -5,8 +5,8 @@ from sakia.core.registry.identities import Identity, LocalState, BlockchainState
 
 from sakia.tests.mocks.bma import nice_blockchain, corrupted
 from sakia.tests import QuamashTest
-from ucoinpy.api import bma
-from ucoinpy.documents import BlockUID
+from duniterpy.api import bma
+from duniterpy.documents import BlockUID
 from sakia.tools.exceptions import MembershipNotFoundError
 
 

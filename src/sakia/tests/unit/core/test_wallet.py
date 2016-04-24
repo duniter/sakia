@@ -2,7 +2,7 @@ import unittest
 import pypeg2
 from unittest.mock import MagicMock, PropertyMock
 from asynctest import CoroutineMock
-from ucoinpy.grammars import output
+from duniterpy.grammars import output
 from PyQt5.QtCore import QLocale
 from sakia.core.registry.identities import IdentitiesRegistry
 from sakia.core import Wallet

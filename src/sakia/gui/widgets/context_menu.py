@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QMenu, QAction, QApplication, QMessageBox
 from PyQt5.QtCore import QObject, pyqtSignal
-from ucoinpy.documents import Block, Membership
+from duniterpy.documents import Block, Membership
 import logging
 
 from ..member import MemberDialog

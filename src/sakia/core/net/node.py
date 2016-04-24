@@ -4,12 +4,12 @@ Created on 21 févr. 2015
 @author: inso
 """
 
-from ucoinpy.documents.peer import Peer, Endpoint, BMAEndpoint
-from ucoinpy.documents import Block, BlockUID, MalformedDocumentError
+from duniterpy.documents.peer import Peer, Endpoint, BMAEndpoint
+from duniterpy.documents import Block, BlockUID, MalformedDocumentError
 from ...tools.exceptions import InvalidNodeCurrency
 from ...tools.decorators import asyncify
-from ucoinpy.api import bma, errors
-from ucoinpy.api.bma import ConnectionHandler
+from duniterpy.api import bma, errors
+from duniterpy.api.bma import ConnectionHandler
 
 from aiohttp.errors import WSClientDisconnectedError, WSServerHandshakeError, ClientResponseError
 from aiohttp.errors import ClientError, DisconnectedError
@@ -386,7 +386,7 @@ class Node(QObject):
             conn_handler = self.endpoint.conn_handler()
             block_data = await bma.blockchain.Current(conn_handler).get(self._session)
             await self.refresh_block(block_data)
-        except errors.UcoinError as e:
+        except errors.duniterError as e:
             if e.ucode == errors.BLOCK_NOT_FOUND:
                 self.main_chain_previous_block = None
                 self.set_block(None)
@@ -419,7 +419,7 @@ class Node(QObject):
                 if self.block:
                     self.main_chain_previous_block = await bma.blockchain.Block(conn_handler,
                                                                                  self.block['number']).get(self._session)
-            except errors.UcoinError as e:
+            except errors.duniterError as e:
                 if e.ucode == errors.BLOCK_NOT_FOUND:
                     self.main_chain_previous_block = None
                 else:
@@ -467,7 +467,7 @@ class Node(QObject):
                 logging.debug("Change : new state corrupted")
                 self.changed.emit()
 
-        except errors.UcoinError as e:
+        except errors.duniterError as e:
             if e.ucode == errors.PEER_NOT_FOUND:
                 logging.debug("Error in peering reply : {0}".format(str(e)))
                 self.state = Node.OFFLINE
@@ -489,11 +489,11 @@ class Node(QObject):
 
         try:
             summary_data = await bma.node.Summary(conn_handler).get(self._session)
-            self.software = summary_data["ucoin"]["software"]
-            self.version = summary_data["ucoin"]["version"]
+            self.software = summary_data["duniter"]["software"]
+            self.version = summary_data["duniter"]["version"]
             self.state = Node.ONLINE
-            if "forkWindowSize" in summary_data["ucoin"]:
-                self.fork_window = summary_data["ucoin"]["forkWindowSize"]
+            if "forkWindowSize" in summary_data["duniter"]:
+                self.fork_window = summary_data["duniter"]["forkWindowSize"]
             else:
                 self.fork_window = 0
         except (ClientError, gaierror, TimeoutError, DisconnectedError, ValueError) as e:
@@ -525,7 +525,7 @@ class Node(QObject):
             if self._uid != uid:
                 self._uid = uid
                 self.identity_changed.emit()
-        except errors.UcoinError as e:
+        except errors.duniterError as e:
             if e.ucode == errors.NO_MATCHING_IDENTITY:
                 logging.debug("UID not found : {0}".format(self.pubkey[:5]))
             else:
@@ -593,7 +593,7 @@ class Node(QObject):
                         leaf_data = await bma.network.peering.Peers(conn_handler).get(leaf=leaf_hash,
                                                                                       session=self._session)
                         self.refresh_peer_data(leaf_data['leaf']['value'])
-                    except (AttributeError, ValueError, errors.UcoinError) as e:
+                    except (AttributeError, ValueError, errors.duniterError) as e:
                         logging.debug("{pubkey} : Incorrect peer data in {leaf}".format(pubkey=self.pubkey[:5],
                                                                                         leaf=leaf_hash))
                         self.state = Node.OFFLINE
@@ -607,7 +607,7 @@ class Node(QObject):
                         self.state = Node.CORRUPTED
                 self._last_merkle = {'root' : peers_data['root'],
                                      'leaves': peers_data['leaves']}
-        except errors.UcoinError as e:
+        except errors.duniterError as e:
             if e.ucode == errors.PEER_NOT_FOUND:
                 logging.debug("Error in peers reply")
                 self.state = Node.OFFLINE

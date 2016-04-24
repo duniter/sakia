@@ -11,7 +11,7 @@ then
     sleep 3
 fi
 
-cd $HOME/build/ucoin-io/sakia
+cd $HOME/build/duniter-io/sakia
 pyenv activate sakia-env
 coverage run --source=sakia.core,sakia.gui,sakia.models setup.py test
 

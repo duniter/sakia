@@ -9,9 +9,9 @@ import time
 from enum import Enum
 from pkg_resources import parse_version
 
-from ucoinpy.documents import BlockUID, SelfCertification, MalformedDocumentError
-from ucoinpy.api import bma, errors
-from ucoinpy.api.bma import PROTOCOL_VERSION
+from duniterpy.documents import BlockUID, SelfCertification, MalformedDocumentError
+from duniterpy.api import bma, errors
+from duniterpy.api.bma import PROTOCOL_VERSION
 
 from ...tools.exceptions import Error, NoPeerAvailable,\
                                         MembershipNotFoundError, LookupFailureError
@@ -110,8 +110,8 @@ class Identity(QObject):
         This request is not cached in the person object.
 
         :param sakia.core.community.Community community: The community target to request the self certification
-        :return: A SelfCertification ucoinpy object
-        :rtype: ucoinpy.documents.certification.SelfCertification
+        :return: A SelfCertification duniterpy object
+        :rtype: duniterpy.documents.certification.SelfCertification
         """
         try:
             timestamp = BlockUID.empty()
@@ -142,7 +142,7 @@ class Identity(QObject):
                                              uid,
                                              timestamp,
                                              signature)
-        except errors.UcoinError as e:
+        except errors.duniterError as e:
             if e.ucode == errors.NO_MATCHING_IDENTITY:
                 raise LookupFailureError(self.pubkey, community)
         except MalformedDocumentError:
@@ -166,7 +166,7 @@ class Identity(QObject):
                 block = await community.bma_access.future_request(bma.blockchain.Block,
                                 req_args={'number': membership_data['blockNumber']})
                 return block['medianTime']
-        except errors.UcoinError as e:
+        except errors.duniterError as e:
             if e.ucode == errors.NO_MEMBER_MATCHING_PUB_OR_UID:
                 raise MembershipNotFoundError(self.pubkey, community.name)
         except NoPeerAvailable as e:
@@ -186,7 +186,7 @@ class Identity(QObject):
                 expiration_date = join_date + parameters['sigValidity']
             except NoPeerAvailable:
                 expiration_date = None
-            except errors.UcoinError as e:
+            except errors.duniterError as e:
                 logging.debug("Expiration date not found")
                 expiration_date = None
         except MembershipNotFoundError:
@@ -222,7 +222,7 @@ class Identity(QObject):
             else:
                 raise MembershipNotFoundError(self.pubkey, community.name)
 
-        except errors.UcoinError as e:
+        except errors.duniterError as e:
             if e.ucode == errors.NO_MEMBER_MATCHING_PUB_OR_UID:
                 raise MembershipNotFoundError(self.pubkey, community.name)
         except NoPeerAvailable as e:
@@ -245,7 +245,7 @@ class Identity(QObject):
                             person_uid = uid_data["uid"]
                         if person_uid == self.uid:
                             return True
-        except errors.UcoinError as e:
+        except errors.duniterError as e:
             if e.ucode in (errors.NO_MATCHING_IDENTITY):
                 logging.debug("Lookup error : {0}".format(str(e)))
         except NoPeerAvailable as e:
@@ -258,7 +258,7 @@ class Identity(QObject):
             try:
                 await community.bma_access.future_request(bma.wot.CertifiersOf,
                                                                {'search': self.pubkey})
-            except errors.UcoinError as e:
+            except errors.duniterError as e:
                 if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
                     logging.debug("Certifiers of error : {0}".format(str(e)))
         return False
@@ -274,7 +274,7 @@ class Identity(QObject):
             certifiers = await community.bma_access.future_request(bma.wot.CertifiersOf,
                                                                         {'search': self.pubkey})
             return certifiers['isMember']
-        except errors.UcoinError as e:
+        except errors.duniterError as e:
             if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
                 pass
             else:
@@ -311,7 +311,7 @@ class Identity(QObject):
                     certifier['block_number'] = None
 
                 certifiers.append(certifier)
-        except errors.UcoinError as e:
+        except errors.duniterError as e:
             if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
                 logging.debug("Certifiers of error : {0}".format(str(e)))
             else:
@@ -339,7 +339,7 @@ class Identity(QObject):
                                 certifier['block_number'] = None
 
                                 certifiers.append(certifier)
-        except errors.UcoinError as e:
+        except errors.duniterError as e:
             if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
                 logging.debug("Lookup error : {0}".format(str(e)))
         except NoPeerAvailable as e:
@@ -370,7 +370,7 @@ class Identity(QObject):
                 else:
                     certified['block_number'] = None
                 certified_list.append(certified)
-        except errors.UcoinError as e:
+        except errors.duniterError as e:
             if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
                 logging.debug("Certified by error : {0}".format(str(e)))
         except NoPeerAvailable as e:
@@ -392,7 +392,7 @@ class Identity(QObject):
                         certified['cert_time'] = await community.time(timestamp.number)
                         certified['block_number'] = None
                         certified_list.append(certified)
-        except errors.UcoinError as e:
+        except errors.duniterError as e:
             if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
                 logging.debug("Lookup error : {0}".format(str(e)))
         except NoPeerAvailable as e:

@@ -296,7 +296,7 @@ class MainWindow(QObject):
         text = self.tr("""
         <h1>sakia</h1>
 
-        <p>Python/Qt uCoin client</p>
+        <p>Python/Qt duniter client</p>
 
         <p>Version : {:}</p>
         {new_version_text}

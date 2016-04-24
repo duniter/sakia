@@ -5,7 +5,7 @@ Created on 24 dec. 2014
 """
 import asyncio
 import logging
-from ucoinpy.api import errors
+from duniterpy.api import errors
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QApplication, QMessageBox
 from PyQt5.QtCore import Qt, QObject, QLocale, QDateTime
 
@@ -184,7 +184,7 @@ class CertificationDialog(QObject):
         is_member = await account_identity.is_member(self.community)
         try:
             block_0 = await self.community.get_block(0)
-        except errors.UcoinError as e:
+        except errors.duniterError as e:
             if e.ucode == errors.BLOCK_NOT_FOUND:
                 block_0 = None
         except NoPeerAvailable as e:

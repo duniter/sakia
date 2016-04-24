@@ -4,11 +4,11 @@ Created on 1 févr. 2014
 @author: inso
 """
 
-from ucoinpy.documents import Membership, SelfCertification, Certification, Revokation, BlockUID, Block
-from ucoinpy.key import SigningKey
-from ucoinpy.api import bma
-from ucoinpy.api.bma import PROTOCOL_VERSION
-from ucoinpy.api import errors
+from duniterpy.documents import Membership, SelfCertification, Certification, Revokation, BlockUID, Block
+from duniterpy.key import SigningKey
+from duniterpy.api import bma
+from duniterpy.api.bma import PROTOCOL_VERSION
+from duniterpy.api import errors
 
 import logging
 import asyncio
@@ -392,7 +392,7 @@ class Account(QObject):
                     if data:
                         registered = parsers[request](data)
                     tries += 1
-                except errors.UcoinError as e:
+                except errors.duniterError as e:
                     if e.ucode in (errors.NO_MEMBER_MATCHING_PUB_OR_UID,
                                    e.ucode == errors.NO_MATCHING_IDENTITY):
                         if request == bma.wot.CertifiersOf:
@@ -438,7 +438,7 @@ class Account(QObject):
             block_data = await community.bma_access.simple_request(bma.blockchain.Current)
             signed_raw = "{0}{1}\n".format(block_data['raw'], block_data['signature'])
             block_uid = Block.from_signed_raw(signed_raw).blockUID
-        except errors.UcoinError as e:
+        except errors.duniterError as e:
             if e.ucode == errors.NO_CURRENT_BLOCK:
                 block_uid = BlockUID.empty()
             else:

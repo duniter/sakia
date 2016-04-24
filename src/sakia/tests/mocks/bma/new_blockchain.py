@@ -1,5 +1,5 @@
 from ..server import MockServer
-from ucoinpy.api import errors
+from duniterpy.api import errors
 
 bma_wot_add = {
   "pubkey": "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",

@@ -1,9 +1,9 @@
 import asyncio
 import logging
 import hashlib
-from ucoinpy.documents.transaction import SimpleTransaction
-from ucoinpy.documents.block import Block
-from ucoinpy.api import  bma, errors
+from duniterpy.documents.transaction import SimpleTransaction
+from duniterpy.documents.block import Block
+from duniterpy.api import  bma, errors
 from .transfer import Transfer, TransferState
 from .net.network import MAX_CONFIRMATIONS
 from ..tools.exceptions import LookupFailureError, NoPeerAvailable
@@ -111,7 +111,7 @@ class TxHistory():
                     logging.debug("Error in {0}".format(number))
                     block = None
                     tries += 1
-            except errors.UcoinError as e:
+            except errors.duniterError as e:
                 if e.ucode == errors.BLOCK_NOT_FOUND:
                     block = None
                     tries += 1
@@ -122,8 +122,8 @@ class TxHistory():
         """
         Parse a transaction
         :param sakia.core.Community community: The community
-        :param ucoinpy.documents.Transaction tx: The tx json data
-        :param ucoinpy.documents.BlockUID blockUID: The block id where we found the tx
+        :param duniterpy.documents.Transaction tx: The tx json data
+        :param duniterpy.documents.BlockUID blockUID: The block id where we found the tx
         :param int mediantime: Median time on the network
         :param list received_list: The list of received transactions
         :param int txid: The latest txid
@@ -236,7 +236,7 @@ class TxHistory():
                     if d['block_number'] < parsed_block:
                         dividends.remove(d)
                 return dividends
-            except errors.UcoinError as e:
+            except errors.duniterError as e:
                 if e.ucode == errors.BLOCK_NOT_FOUND:
                     pass
         return {}
@@ -390,7 +390,7 @@ class TxHistory():
                     logging.debug("Starts a new refresh")
                     task = asyncio.ensure_future(self._refresh(community, block_from, current_block, received_list))
                     self._running_refresh.append(task)
-        except errors.UcoinError as e:
+        except errors.duniterError as e:
             if e.ucode == errors.BLOCK_NOT_FOUND:
                 logging.debug("Block not found")
         except NoPeerAvailable:

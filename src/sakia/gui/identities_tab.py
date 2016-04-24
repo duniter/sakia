@@ -10,8 +10,8 @@ from PyQt5.QtCore import Qt, pyqtSignal, QEvent, QT_TRANSLATE_NOOP, QObject
 from PyQt5.QtGui import QCursor
 from PyQt5.QtWidgets import QWidget, QAction, QMenu, QDialog, \
                             QAbstractItemView
-from ucoinpy.api import bma, errors
-from ucoinpy.documents import BlockUID
+from duniterpy.api import bma, errors
+from duniterpy.documents import BlockUID
 
 from ..models.identities import IdentitiesFilterProxyModel, IdentitiesTableModel
 from ..gen_resources.identities_tab_uic import Ui_IdentitiesTab
@@ -133,7 +133,7 @@ class IdentitiesTabWidget(QObject):
             self.ui.edit_textsearch.clear()
             self.ui.edit_textsearch.setPlaceholderText(text)
             await self.refresh_identities(identities)
-        except errors.UcoinError as e:
+        except errors.duniterError as e:
             if e.ucode == errors.BLOCK_NOT_FOUND:
                 logging.debug(str(e))
         except NoPeerAvailable as e:

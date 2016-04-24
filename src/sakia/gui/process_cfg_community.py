@@ -8,8 +8,8 @@ import logging
 import asyncio
 import aiohttp
 
-from ucoinpy.api import errors
-from ucoinpy.documents import MalformedDocumentError
+from duniterpy.api import errors
+from duniterpy.documents import MalformedDocumentError
 from PyQt5.QtWidgets import QDialog, QMenu, QApplication
 from PyQt5.QtGui import QCursor
 from PyQt5.QtCore import pyqtSignal, QObject
@@ -146,7 +146,7 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
 Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
             else:
                 self.config_dialog.label_error.setText(self.tr("Your account already exists on the network"))
-        except (MalformedDocumentError, ValueError, errors.UcoinError,
+        except (MalformedDocumentError, ValueError, errors.duniterError,
                 aiohttp.errors.ClientError, aiohttp.errors.DisconnectedError) as e:
             session.close()
             self.config_dialog.label_error.setText(str(e))

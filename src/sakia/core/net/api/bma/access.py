@@ -1,6 +1,6 @@
 from PyQt5.QtCore import QObject, pyqtSlot
-from ucoinpy.api import bma
-from ucoinpy.api import errors
+from duniterpy.api import bma
+from duniterpy.api import errors
 from .....tools.exceptions import NoPeerAvailable
 from ..... import __version__
 import logging
@@ -283,7 +283,7 @@ class BmaAccess(QObject):
         Broadcast data to a network.
         Sends the data to all knew nodes.
 
-        :param request: A ucoinpy bma request class
+        :param request: A duniterpy bma request class
         :param req_args: Arguments to pass to the request constructor
         :param post_args: Arguments to pass to the request __post__ method
         :return: All nodes replies

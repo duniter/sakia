@@ -5,7 +5,7 @@ from PyQt5.QtCore import QLocale
 from sakia.tests import QuamashTest
 from sakia.tests.mocks.bma import nice_blockchain
 from sakia.gui.widgets.context_menu import ContextMenu
-from ucoinpy.documents import Membership, BlockUID
+from duniterpy.documents import Membership, BlockUID
 from sakia.tools.exceptions import MembershipNotFoundError
 
 

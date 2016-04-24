@@ -29,7 +29,7 @@ class NodeManager(QObject):
 
     @classmethod
     def create(cls, parent):
-        raise TypeError("Not implemented ( https://github.com/ucoin-io/sakia/issues/399 )")
+        raise TypeError("Not implemented ( https://github.com/duniter-io/sakia/issues/399 )")
         #dialog = cls(QDialog(parent), Ui_NodeManager())
         #return dialog
 
