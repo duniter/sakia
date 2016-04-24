@@ -524,7 +524,7 @@ class Application(QObject):
             connector = None
         try:
             with aiohttp.Timeout(15):
-                response = await aiohttp.get("https://api.github.com/repos/duniter-io/sakia/releases", connector=connector)
+                response = await aiohttp.get("https://api.github.com/repos/duniter/sakia/releases", connector=connector)
                 if response.status == 200:
                     releases = await response.json()
                     latest = None

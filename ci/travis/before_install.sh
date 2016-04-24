@@ -29,7 +29,7 @@ then
 
     wget https://download.qt.io/official_releases/qt/5.5/5.5.1/qt-opensource-linux-x64-5.5.1.run
     chmod +x qt-opensource-linux-x64-5.5.1.run
-    ./qt-opensource-linux-x64-5.5.1.run --script $HOME/build/duniter-io/sakia/ci/travis/qt-installer-noninteractive.qs
+    ./qt-opensource-linux-x64-5.5.1.run --script $HOME/build/duniter/sakia/ci/travis/qt-installer-noninteractive.qs
 
     wget http://archive.ubuntu.com/ubuntu/pool/universe/libs/libsodium/libsodium13_1.0.1-1_amd64.deb
     sudo dpkg -i libsodium13_1.0.1-1_amd64.deb

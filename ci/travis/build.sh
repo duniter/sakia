@@ -3,7 +3,7 @@
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
 
-cd $HOME/build/duniter-io/sakia
+cd $HOME/build/duniter/sakia
 
 
 pyenv activate sakia-env
