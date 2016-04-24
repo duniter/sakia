@@ -2085,7 +2085,7 @@ Le transfert de monnaie sera annulé et non envoyé.</translation>
         &lt;p&gt;Moul&lt;/p&gt;
         &lt;p&gt;canercandan&lt;/p&gt;
         </source>
-        <translation>
+        <translation type="obsolete">
         &lt;h1&gt;sakia&lt;/h1&gt;
 
         &lt;p&gt;Python/Qt uCoin client&lt;/p&gt;
@@ -2121,6 +2121,27 @@ Le transfert de monnaie sera annulé et non envoyé.</translation>
     <message>
         <location filename="../../ui/mainwindow.ui" line="188"/>
         <source>&amp;Manage local node</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/mainwindow.py" line="299"/>
+        <source>
+        &lt;h1&gt;sakia&lt;/h1&gt;
+
+        &lt;p&gt;Python/Qt duniter client&lt;/p&gt;
+
+        &lt;p&gt;Version : {:}&lt;/p&gt;
+        {new_version_text}
+
+        &lt;p&gt;License : GPLv3&lt;/p&gt;
+
+        &lt;p&gt;&lt;b&gt;Authors&lt;/b&gt;&lt;/p&gt;
+
+        &lt;p&gt;inso&lt;/p&gt;
+        &lt;p&gt;vit&lt;/p&gt;
+        &lt;p&gt;Moul&lt;/p&gt;
+        &lt;p&gt;canercandan&lt;/p&gt;
+        </source>
         <translation type="unfinished"></translation>
     </message>
 </context>
