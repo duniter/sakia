@@ -81,8 +81,7 @@ class IdentitiesRegistry:
                                 timestamp = identity.sigdate
                 return identity
             except errors.DuniterError as e:
-                if e.ucode == errors.NO_MATCHING_IDENTITY:
-                    lookup_tries += 1
+                lookup_tries += 1
             except asyncio.TimeoutError:
                 lookup_tries += 1
             except ClientError:

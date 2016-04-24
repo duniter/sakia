@@ -19,7 +19,7 @@ bma_lookup_john = {
                         {
                             "pubkey": "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
                             "meta": {
-                                "block_number": 38580
+                                "block_number": 15
                             },
                             "uids": [
                                 "doe"
@@ -466,7 +466,7 @@ def get_mock(loop):
 
     mock.add_route('GET', '/blockchain/parameters', bma_parameters, 200)
 
-    mock.add_route('GET', '/blockchain/with/[UD|ud]', bma_with_ud, 200)
+    mock.add_route('GET', '/blockchain/with/{topic}', bma_with_ud, 200)
 
     mock.add_route('GET', '/blockchain/current', bma_blockchain_current, 200)
 

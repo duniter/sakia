@@ -72,27 +72,10 @@ class TestIdentitiesTable(unittest.TestCase, QuamashTest):
             identities_tab.change_account(self.account, self.password_asker)
             identities_tab.change_community(self.community)
             await asyncio.sleep(1)
-            urls = [self.mock_nice_blockchain.get_request(i).url for i in range(0, 7)]
-            self.assertTrue('/wot/certifiers-of/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ' in urls,
-                            msg="Not found in {0}".format(urls))
-            self.assertTrue('/wot/lookup/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ' in urls,
-                            msg="Not found in {0}".format(urls))
-            self.assertTrue('/wot/certified-by/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ' in urls,
-                            msg="Not found in {0}".format(urls))
-
-
-            # requests 1 to 3 are for getting certifiers-of and certified-by
-            # on john, + a lookup
 
             QTest.keyClicks(identities_tab.ui.edit_textsearch, "doe")
             QTest.mouseClick(identities_tab.ui.button_search, Qt.LeftButton)
             await asyncio.sleep(2)
-            req = 8
-
-            self.assertEqual(self.mock_nice_blockchain.get_request(req).method, 'GET')
-            self.assertEqual(self.mock_nice_blockchain.get_request(req).url,
-                             '/blockchain/memberships/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn')
-            req += 1
 
             self.assertEqual(identities_tab.ui.table_identities.model().rowCount(), 1)
             await asyncio.sleep(2)

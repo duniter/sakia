@@ -1,4 +1,4 @@
-from aiohttp import web, log
+from aiohttp import web, log, errors
 import json
 import socket
 from duniterpy.documents import Peer
@@ -42,7 +42,8 @@ class MockServer():
     def __init__(self, loop):
         self.lp = loop
         self.requests = []
-        self.app = web.Application(loop=self.lp)
+        self.app = web.Application(loop=self.lp,
+                                   middlewares=[self.middleware_factory])
 
         self.handler = self.app.make_handler(
             keep_alive_on=False,
@@ -52,6 +53,19 @@ class MockServer():
 
     def get_request(self, i):
         return self.requests[i]
+
+    async def middleware_factory(self, app, handler):
+        async def middleware_handler(request):
+            try:
+                resp = await handler(request)
+                return resp
+            except web.HTTPNotFound:
+                return web.Response(status=404, body=bytes(json.dumps({"ucode":1001,
+                                                                    "message": "404 error"}),
+                                                           "utf-8"),
+                                    headers={'Content-Type': 'application/json'})
+
+        return middleware_handler
 
     async def _handler(self, request, data_dict, http_code):
         await request.read()

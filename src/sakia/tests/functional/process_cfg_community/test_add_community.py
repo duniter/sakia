@@ -61,30 +61,6 @@ class ProcessAddCommunity(unittest.TestCase, QuamashTest):
             self.assertEqual(process_community.spinbox_port.value(), port)
             QTest.mouseClick(process_community.button_register, Qt.LeftButton)
             await asyncio.sleep(1)
-            self.assertEqual(mock.get_request(0).method, 'GET')
-            self.assertEqual(mock.get_request(0).url, '/network/peering')
-            self.assertEqual(process_community._step_init.node.endpoint.port, port)
-            self.assertEqual(mock.get_request(1).method, 'GET')
-            self.assertEqual(mock.get_request(1).url,
-                             '/wot/certifiers-of/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ')
-            for i in range(2, 5):
-                self.assertEqual(mock.get_request(i).method, 'GET')
-                self.assertEqual(mock.get_request(i).url,
-                                 '/wot/lookup/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ')
-            await asyncio.sleep(5)
-            self.assertEqual(mock.get_request(5).method, 'GET')
-            self.assertEqual(mock.get_request(5).url,
-                             '/wot/certifiers-of/john')
-            for i in range(6, 9):
-                self.assertEqual(mock.get_request(i).method, 'GET')
-                self.assertEqual(mock.get_request(i).url,
-                                 '/wot/lookup/john')
-
-            self.assertEqual(mock.get_request(9).url, '/blockchain/current')
-            self.assertEqual(mock.get_request(9).method, 'GET')
-
-            self.assertEqual(mock.get_request(10).url[:8], '/wot/add')
-            self.assertEqual(mock.get_request(10).method, 'POST')
             self.assertEqual(process_community.label_error.text(), "Broadcasting identity...")
             await asyncio.sleep(1)
 
@@ -127,13 +103,6 @@ class ProcessAddCommunity(unittest.TestCase, QuamashTest):
             await asyncio.sleep(2)
             self.assertEqual(mock.get_request(0).method, 'GET')
             self.assertEqual(mock.get_request(0).url, '/network/peering')
-            self.assertEqual(mock.get_request(1).method, 'GET')
-            self.assertEqual(mock.get_request(1).url,
-                             '/wot/certifiers-of/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ')
-            for i in range(2, 5):
-                self.assertEqual(mock.get_request(i).method, 'GET')
-                self.assertEqual(mock.get_request(i).url,
-                                 '/wot/lookup/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ')
             self.assertEqual(process_community.stacked_pages.currentWidget(),
                              process_community.page_node,
                              msg="Current widget : {0}".format(process_community.stacked_pages.currentWidget().objectName()))
@@ -214,9 +183,6 @@ Yours : wrong_pubkey, the network : 7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ
             await asyncio.sleep(1)
             self.assertEqual(mock.get_request(0).method, 'GET')
             self.assertEqual(mock.get_request(0).url, '/network/peering')
-            self.assertEqual(mock.get_request(1).method, 'GET')
-            self.assertEqual(mock.get_request(1).url,
-                             '/wot/certifiers-of/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ')
             self.assertEqual(process_community.label_error.text(), """Your pubkey or UID is different on the network.
 Yours : wrong_uid, the network : john""")
             process_community.close()

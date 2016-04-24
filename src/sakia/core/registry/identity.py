@@ -225,6 +225,9 @@ class Identity(QObject):
         except errors.DuniterError as e:
             if e.ucode == errors.NO_MEMBER_MATCHING_PUB_OR_UID:
                 raise MembershipNotFoundError(self.pubkey, community.name)
+            else:
+                logging.debug(str(e))
+                raise MembershipNotFoundError(self.pubkey, community.name)
         except NoPeerAvailable as e:
             logging.debug(str(e))
             raise MembershipNotFoundError(self.pubkey, community.name)

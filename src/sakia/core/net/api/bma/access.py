@@ -243,9 +243,9 @@ class BmaAccess(QObject):
                     return json_data
                 except (ClientError, ServerDisconnectedError, gaierror, asyncio.TimeoutError, ValueError) as e:
                     tries += 1
-                #except jsonschema.ValidationError as e:
-                #    logging.debug(str(e))
-                #    tries += 1
+                except jsonschema.ValidationError as e:
+                    logging.debug(str(e))
+                    tries += 1
         if len(nodes) == 0 or json_data is None:
             raise NoPeerAvailable("", len(nodes))
         return json_data

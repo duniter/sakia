@@ -84,6 +84,6 @@ class TestTransferDialog(unittest.TestCase, QuamashTest):
                     QTest.keyClick(w, Qt.Key_Enter)
             await asyncio.sleep(1)
 
-        self.lp.call_later(15, close_dialog)
+        self.lp.call_later(30, close_dialog)
         asyncio.ensure_future(exec_test())
         self.lp.run_until_complete(open_dialog(transfer_dialog))
