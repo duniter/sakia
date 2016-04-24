@@ -130,7 +130,7 @@ background-color: palette(base);
                               message=self.tr("Not connected"))
             self.text_label.setText(description)
             self._state = CommunityState.OFFLINE
-        except errors.duniterError as e:
+        except errors.DuniterError as e:
             if e.ucode == errors.BLOCK_NOT_FOUND:
                 description = """<html>
                 <body>

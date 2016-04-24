@@ -972,8 +972,8 @@ This money transfer will be removed and not sent.</source>
     </message>
     <message>
         <location filename="../../ui/homescreen.ui" line="127"/>
-        <source>Get to know more about duniter</source>
-        <translation type="obsolete">Узнайте больше об duniter</translation>
+        <source>Get to know more about ucoin</source>
+        <translation type="obsolete">Узнайте больше об uCoin</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/homescreen.py" line="35"/>
@@ -1643,7 +1643,7 @@ This money transfer will be removed and not sent.</source>
         <source>
         &lt;h1&gt;sakia&lt;/h1&gt;
 
-        &lt;p&gt;Python/Qt duniter client&lt;/p&gt;
+        &lt;p&gt;Python/Qt uCoin client&lt;/p&gt;
 
         &lt;p&gt;Version : {:}&lt;/p&gt;
         {new_version_text}
@@ -2023,22 +2023,22 @@ Are you sure ?</source>
 <context>
     <name>ProcessConfigureCommunity</name>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="230"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="240"/>
         <source>Configure community {0}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="233"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="243"/>
         <source>Add a community</source>
         <translation type="unfinished">Добавить сообщество</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="266"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="276"/>
         <source>Error</source>
         <translation type="unfinished">Ошибка</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="295"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="305"/>
         <source>Delete</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2229,27 +2229,27 @@ Are you sure ?</source>
 <context>
     <name>StepPageInit</name>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="96"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="101"/>
         <source>Could not find your identity on the network.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="130"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="138"/>
         <source>Broadcasting identity...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="134"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="142"/>
         <source>UID broadcast</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="134"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="142"/>
         <source>Identity broadcasted to the network</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="141"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="149"/>
         <source>Error</source>
         <translation type="unfinished">Ошибка</translation>
     </message>
@@ -2259,29 +2259,39 @@ Are you sure ?</source>
         <translation type="obsolete">{0} : {1}</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="141"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="149"/>
         <source>{0}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="145"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="153"/>
         <source>Your pubkey or UID was already found on the network.
 Yours : {0}, the network : {1}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="148"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="156"/>
         <source>Your account already exists on the network</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="98"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="103"/>
         <source>Your pubkey or UID is different on the network.
 Yours : {0}, the network : {1}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="154"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="124"/>
+        <source>connecting...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="164"/>
+        <source>Could not connect. Check hostname, ip address or port</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="162"/>
         <source>Could not connect. Check node peering entry</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2667,7 +2677,7 @@ Yours : {0}, the network : {1}</source>
 <context>
     <name>self.config_dialog</name>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="194"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="204"/>
         <source>Ok</source>
         <translation type="unfinished">ОК</translation>
     </message>

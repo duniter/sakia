@@ -1162,8 +1162,8 @@ Le transfert de monnaie sera annulé et non envoyé.</translation>
     </message>
     <message>
         <location filename="../../ui/homescreen.ui" line="127"/>
-        <source>Get to know more about duniter</source>
-        <translation type="obsolete">En savoir plus sur duniter</translation>
+        <source>Get to know more about ucoin</source>
+        <translation type="obsolete">En savoir plus sur ucoin</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/homescreen.py" line="35"/>
@@ -1848,7 +1848,7 @@ Le transfert de monnaie sera annulé et non envoyé.</translation>
         <source>
         &lt;h1&gt;Cutecoin&lt;/h1&gt;
 
-        &lt;p&gt;Python/Qt duniter client&lt;/p&gt;
+        &lt;p&gt;Python/Qt uCoin client&lt;/p&gt;
 
         &lt;p&gt;Version : {:}&lt;/p&gt;
         {new_version_text}
@@ -1864,7 +1864,7 @@ Le transfert de monnaie sera annulé et non envoyé.</translation>
         <translation type="obsolete">
         &lt;h1&gt;Cutecoin&lt;/h1&gt;
 
-        &lt;p&gt;Client Python/Qt pour duniter&lt;/p&gt;
+        &lt;p&gt;Client Python/Qt pour uCoin&lt;/p&gt;
 
         &lt;p&gt;Version : {:}&lt;/p&gt;
         {new_version_text}
@@ -2034,7 +2034,7 @@ Le transfert de monnaie sera annulé et non envoyé.</translation>
         <source>
         &lt;h1&gt;Cutecoin&lt;/h1&gt;
 
-        &lt;p&gt;Python/Qt duniter client&lt;/p&gt;
+        &lt;p&gt;Python/Qt uCoin client&lt;/p&gt;
 
         &lt;p&gt;Version : {:}&lt;/p&gt;
         {new_version_text}
@@ -2051,7 +2051,7 @@ Le transfert de monnaie sera annulé et non envoyé.</translation>
         <translation type="obsolete">
         &lt;h1&gt;Cutecoin&lt;/h1&gt;
 
-        &lt;p&gt;Python/Qt duniter client&lt;/p&gt;
+        &lt;p&gt;Python/Qt uCoin client&lt;/p&gt;
 
         &lt;p&gt;Version : {:}&lt;/p&gt;
         {new_version_text}
@@ -2071,7 +2071,7 @@ Le transfert de monnaie sera annulé et non envoyé.</translation>
         <source>
         &lt;h1&gt;sakia&lt;/h1&gt;
 
-        &lt;p&gt;Python/Qt duniter client&lt;/p&gt;
+        &lt;p&gt;Python/Qt uCoin client&lt;/p&gt;
 
         &lt;p&gt;Version : {:}&lt;/p&gt;
         {new_version_text}
@@ -2088,7 +2088,7 @@ Le transfert de monnaie sera annulé et non envoyé.</translation>
         <translation>
         &lt;h1&gt;sakia&lt;/h1&gt;
 
-        &lt;p&gt;Python/Qt duniter client&lt;/p&gt;
+        &lt;p&gt;Python/Qt uCoin client&lt;/p&gt;
 
         &lt;p&gt;Version : {:}&lt;/p&gt;
         {new_version_text}
@@ -2533,22 +2533,22 @@ Votre compte ne sera pas supprimer des réseaux rejoins.
 <context>
     <name>ProcessConfigureCommunity</name>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="230"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="240"/>
         <source>Configure community {0}</source>
         <translation>Configurer la communauté {0}</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="233"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="243"/>
         <source>Add a community</source>
         <translation>Ajouter une communauté</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="266"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="276"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="295"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="305"/>
         <source>Delete</source>
         <translation>Supprimer</translation>
     </message>
@@ -2797,44 +2797,44 @@ Souhaitez-vous publier votre clé publique ?</translation>
 <context>
     <name>StepPageInit</name>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="96"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="101"/>
         <source>Could not find your identity on the network.</source>
         <translation>Impossible de trouver votre identité sur le réseau.</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="130"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="138"/>
         <source>Broadcasting identity...</source>
         <translation>Diffusion de votre identité...</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="134"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="142"/>
         <source>UID broadcast</source>
         <translation>Diffusion de l&apos;UID</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="134"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="142"/>
         <source>Identity broadcasted to the network</source>
         <translation>Identité diffusée sur le réseau</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="141"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="149"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="141"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="149"/>
         <source>{0}</source>
         <translation>{0}</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="145"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="153"/>
         <source>Your pubkey or UID was already found on the network.
 Yours : {0}, the network : {1}</source>
         <translation>Votre clé publique ou votre UID est déja présent sur le réseau.
 Vous : {0}, le réseau : {1}</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="148"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="156"/>
         <source>Your account already exists on the network</source>
         <translation>Votre compte existe déjà sur le réseau</translation>
     </message>
@@ -2846,14 +2846,24 @@ Vous : {0}, le réseau : {1}</translation>
 Le votre : {0}, le réseau : {1}</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="98"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="103"/>
         <source>Your pubkey or UID is different on the network.
 Yours : {0}, the network : {1}</source>
         <translation>Votre clé publique ou votre UID est différent sur le réseau.
 De votre coté : {0}, du coté du réseau : {1}</translation>
     </message>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="154"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="124"/>
+        <source>connecting...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="164"/>
+        <source>Could not connect. Check hostname, ip address or port</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="162"/>
         <source>Could not connect. Check node peering entry</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3600,7 +3610,7 @@ Revoking your UID can only success if it is not already validated by the network
 <context>
     <name>self.config_dialog</name>
     <message>
-        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="194"/>
+        <location filename="../../../src/sakia/gui/process_cfg_community.py" line="204"/>
         <source>Ok</source>
         <translation>Ok</translation>
     </message>

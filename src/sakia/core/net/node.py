@@ -386,7 +386,7 @@ class Node(QObject):
             conn_handler = self.endpoint.conn_handler()
             block_data = await bma.blockchain.Current(conn_handler).get(self._session)
             await self.refresh_block(block_data)
-        except errors.duniterError as e:
+        except errors.DuniterError as e:
             if e.ucode == errors.BLOCK_NOT_FOUND:
                 self.main_chain_previous_block = None
                 self.set_block(None)
@@ -419,7 +419,7 @@ class Node(QObject):
                 if self.block:
                     self.main_chain_previous_block = await bma.blockchain.Block(conn_handler,
                                                                                  self.block['number']).get(self._session)
-            except errors.duniterError as e:
+            except errors.DuniterError as e:
                 if e.ucode == errors.BLOCK_NOT_FOUND:
                     self.main_chain_previous_block = None
                 else:
@@ -467,7 +467,7 @@ class Node(QObject):
                 logging.debug("Change : new state corrupted")
                 self.changed.emit()
 
-        except errors.duniterError as e:
+        except errors.DuniterError as e:
             if e.ucode == errors.PEER_NOT_FOUND:
                 logging.debug("Error in peering reply : {0}".format(str(e)))
                 self.state = Node.OFFLINE
@@ -525,7 +525,7 @@ class Node(QObject):
             if self._uid != uid:
                 self._uid = uid
                 self.identity_changed.emit()
-        except errors.duniterError as e:
+        except errors.DuniterError as e:
             if e.ucode == errors.NO_MATCHING_IDENTITY:
                 logging.debug("UID not found : {0}".format(self.pubkey[:5]))
             else:
@@ -593,7 +593,7 @@ class Node(QObject):
                         leaf_data = await bma.network.peering.Peers(conn_handler).get(leaf=leaf_hash,
                                                                                       session=self._session)
                         self.refresh_peer_data(leaf_data['leaf']['value'])
-                    except (AttributeError, ValueError, errors.duniterError) as e:
+                    except (AttributeError, ValueError, errors.DuniterError) as e:
                         logging.debug("{pubkey} : Incorrect peer data in {leaf}".format(pubkey=self.pubkey[:5],
                                                                                         leaf=leaf_hash))
                         self.state = Node.OFFLINE
@@ -607,7 +607,7 @@ class Node(QObject):
                         self.state = Node.CORRUPTED
                 self._last_merkle = {'root' : peers_data['root'],
                                      'leaves': peers_data['leaves']}
-        except errors.duniterError as e:
+        except errors.DuniterError as e:
             if e.ucode == errors.PEER_NOT_FOUND:
                 logging.debug("Error in peers reply")
                 self.state = Node.OFFLINE

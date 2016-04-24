@@ -184,7 +184,7 @@ class CertificationDialog(QObject):
         is_member = await account_identity.is_member(self.community)
         try:
             block_0 = await self.community.get_block(0)
-        except errors.duniterError as e:
+        except errors.DuniterError as e:
             if e.ucode == errors.BLOCK_NOT_FOUND:
                 block_0 = None
         except NoPeerAvailable as e:

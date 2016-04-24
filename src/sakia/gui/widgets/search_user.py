@@ -81,7 +81,7 @@ class SearchUserWidget(QWidget, Ui_SearchUserWidget):
                     self.combobox_search.addItem(uid)
                 self.blockSignals(False)
                 self.combobox_search.showPopup()
-        except errors.duniterError as e:
+        except errors.DuniterError as e:
             if e.ucode == errors.NO_MATCHING_IDENTITY:
                 self.nodes = list()
                 self.blockSignals(True)

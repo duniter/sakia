@@ -111,7 +111,7 @@ class TxHistory():
                     logging.debug("Error in {0}".format(number))
                     block = None
                     tries += 1
-            except errors.duniterError as e:
+            except errors.DuniterError as e:
                 if e.ucode == errors.BLOCK_NOT_FOUND:
                     block = None
                     tries += 1
@@ -236,7 +236,7 @@ class TxHistory():
                     if d['block_number'] < parsed_block:
                         dividends.remove(d)
                 return dividends
-            except errors.duniterError as e:
+            except errors.DuniterError as e:
                 if e.ucode == errors.BLOCK_NOT_FOUND:
                     pass
         return {}
@@ -390,7 +390,7 @@ class TxHistory():
                     logging.debug("Starts a new refresh")
                     task = asyncio.ensure_future(self._refresh(community, block_from, current_block, received_list))
                     self._running_refresh.append(task)
-        except errors.duniterError as e:
+        except errors.DuniterError as e:
             if e.ucode == errors.BLOCK_NOT_FOUND:
                 logging.debug("Block not found")
         except NoPeerAvailable:

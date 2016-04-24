@@ -392,7 +392,7 @@ class Account(QObject):
                     if data:
                         registered = parsers[request](data)
                     tries += 1
-                except errors.duniterError as e:
+                except errors.DuniterError as e:
                     if e.ucode in (errors.NO_MEMBER_MATCHING_PUB_OR_UID,
                                    e.ucode == errors.NO_MATCHING_IDENTITY):
                         if request == bma.wot.CertifiersOf:
@@ -438,7 +438,7 @@ class Account(QObject):
             block_data = await community.bma_access.simple_request(bma.blockchain.Current)
             signed_raw = "{0}{1}\n".format(block_data['raw'], block_data['signature'])
             block_uid = Block.from_signed_raw(signed_raw).blockUID
-        except errors.duniterError as e:
+        except errors.DuniterError as e:
             if e.ucode == errors.NO_CURRENT_BLOCK:
                 block_uid = BlockUID.empty()
             else:

@@ -106,7 +106,7 @@ class TransactionsTabWidget(QObject):
             self.ui.date_to.setMaximumDateTime(tomorrow_datetime)
         except NoPeerAvailable as e:
             logging.debug(str(e))
-        except errors.duniterError as e:
+        except errors.DuniterError as e:
             logging.debug(str(e))
 
     def refresh(self):

@@ -241,7 +241,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                 except NoPeerAvailable as e:
                     logging.debug(str(e))
                     text += " ( ### ) "
-                except errors.duniterError as e:
+                except errors.DuniterError as e:
                     if e.ucode == errors.BLOCK_NOT_FOUND:
                         logging.debug(str(e))
 

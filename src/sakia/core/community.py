@@ -168,7 +168,7 @@ class Community(QObject):
                 return block
             else:
                 return None
-        except errors.duniterError as e:
+        except errors.DuniterError as e:
             if e.ucode == errors.BLOCK_NOT_FOUND:
                 logging.debug(str(e))
                 return None
@@ -203,7 +203,7 @@ class Community(QObject):
             block = await self.bma_access.future_request(bma.blockchain.Block,
                                  req_args={'number': block_number})
             return block['membersCount']
-        except errors.duniterError as e:
+        except errors.DuniterError as e:
             if e.ucode == errors.BLOCK_NOT_FOUND:
                 return 0
         except NoPeerAvailable as e:
@@ -224,7 +224,7 @@ class Community(QObject):
             block = await self.bma_access.future_request(bma.blockchain.Block,
                                  req_args={'number': block_number})
             return block['medianTime']
-        except errors.duniterError as e:
+        except errors.DuniterError as e:
             if e.ucode == errors.BLOCK_NOT_FOUND:
                 return 0
         except NoPeerAvailable as e:

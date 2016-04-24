@@ -133,7 +133,7 @@ class IdentitiesTabWidget(QObject):
             self.ui.edit_textsearch.clear()
             self.ui.edit_textsearch.setPlaceholderText(text)
             await self.refresh_identities(identities)
-        except errors.duniterError as e:
+        except errors.DuniterError as e:
             if e.ucode == errors.BLOCK_NOT_FOUND:
                 logging.debug(str(e))
         except NoPeerAvailable as e:
