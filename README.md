@@ -2,7 +2,7 @@
 
 ![sakia logo](https://raw.github.com/duniter/sakia/master/sakia.png)
 
-Sakia [![Coverage Status](https://coveralls.io/repos/duniter/sakia/badge.svg?branch=dev)](https://coveralls.io/r/duniter/sakia) [![Build Status](https://travis-ci.org/duniter/sakia.svg?branch=travis)](https://travis-ci.org/duniter/sakia) [![Build status](https://ci.appveyor.com/api/projects/status/nd7idaoi6s2fpsqy/branch/dev)](https://ci.appveyor.com/project/Insoleet/sakia/branch/dev) [![Translation status](http://weblate.duniter.io/widgets/sakia/-/svg-badge.svg)](http://weblate.duniter.io/engage/sakia/?utm_source=widget)
+Sakia [![Coverage Status](https://coveralls.io/repos/duniter/sakia/badge.svg?branch=dev)](https://coveralls.io/r/duniter/sakia) [![Build Status](https://travis-ci.org/duniter/sakia.svg?branch=travis)](https://travis-ci.org/duniter/sakia) [![Build status](https://ci.appveyor.com/api/projects/status/nd7idaoi6s2fpsqy/branch/dev)](https://ci.appveyor.com/project/Insoleet/sakia/branch/dev) [![Translation status](http://weblate.duniter.org/widgets/sakia/-/svg-badge.svg)](http://weblate.duniter.org/engage/sakia/?utm_source=widget)
 ========
 
 Python3 and PyQt5 Client for [duniter](http://www.duniter.org) project.
