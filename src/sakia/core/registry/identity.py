@@ -249,7 +249,7 @@ class Identity(QObject):
                         if person_uid == self.uid:
                             return True
         except errors.DuniterError as e:
-            if e.ucode in (errors.NO_MATCHING_IDENTITY):
+            if e.ucode in (errors.NO_MATCHING_IDENTITY,):
                 logging.debug("Lookup error : {0}".format(str(e)))
         except NoPeerAvailable as e:
             logging.debug(str(e))
