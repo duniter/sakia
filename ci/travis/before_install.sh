@@ -53,5 +53,6 @@ then
 
     pyenv shell $PYENV_PYTHON_VERSION
     pyenv virtualenv sakia-env
+    pip install PyQt5
 
 fi
