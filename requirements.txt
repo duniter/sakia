@@ -1,4 +1,5 @@
 duniterpy>=0.20.dev0
+PyQt5
 git+https://github.com/harvimt/quamash.git@gh45
 asynctest
 networkx
