@@ -2,7 +2,8 @@
 
 ![sakia logo](https://raw.github.com/duniter/sakia/master/sakia.png)
 
-Sakia [![Coverage Status](https://coveralls.io/repos/duniter/sakia/badge.svg?branch=dev)](https://coveralls.io/r/duniter/sakia)
+# Sakia
+[![Coverage Status](https://coveralls.io/repos/duniter/sakia/badge.svg?branch=dev)](https://coveralls.io/r/duniter/sakia)
  [![Build Status](https://travis-ci.org/duniter/sakia.svg?branch=travis)](https://travis-ci.org/duniter/sakia)
  [![Build status](https://ci.appveyor.com/api/projects/status/pvl18xon8pvu2c8w/branch/dev?svg=true)](https://ci.appveyor.com/project/Insoleet/sakia-bee4m/branch/dev)
  [![Translation status](http://weblate.duniter.org/widgets/sakia/-/svg-badge.svg)](http://weblate.duniter.org/engage/sakia/?utm_source=widget)
