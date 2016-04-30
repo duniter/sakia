@@ -20,7 +20,7 @@
    <item>
     <widget class="QStackedWidget" name="stacked_pages">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="page_init">
       <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -140,7 +140,7 @@
               <string/>
              </property>
              <property name="placeholderText">
-              <string>CryptoID</string>
+              <string>Entropy</string>
              </property>
             </widget>
            </item>
