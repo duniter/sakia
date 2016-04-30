@@ -62,7 +62,7 @@ class TestWotGraph(unittest.TestCase, QuamashTest):
                                                                {
                                                                    'cert_time': 49100,
                                                                    'identity': self.idC,
-                                                                   'block_number': 990
+                                                                   'block_number': 996
                                                                }
                                                            ])
 
@@ -133,10 +133,10 @@ class TestWotGraph(unittest.TestCase, QuamashTest):
             self.assertTrue(result)
             self.assertEqual(len(wot_graph.nx_graph.nodes()), 3)
             self.assertEqual(len(wot_graph.nx_graph.edges()), 2)
-            path = await wot_graph.get_shortest_path_to_identity(self.account_identity, self.idC)
-            self.assertEqual(path[0], self.account_identity.pubkey)
+            path = await wot_graph.get_shortest_path_to_identity(self.idC, self.account_identity)
+            self.assertEqual(path[0], self.idC.pubkey)
             self.assertEqual(path[1], self.idB.pubkey)
-            self.assertEqual(path[2], self.idC.pubkey)
+            self.assertEqual(path[2], self.account_identity.pubkey)
 
         self.lp.run_until_complete(exec_test())
 
