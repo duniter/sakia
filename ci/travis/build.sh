@@ -15,7 +15,7 @@ then
     pip install -U git+https://github.com/posborne/dbus-python.git
     pip install notify2
 
-    export PATH=/tmp/qt/5.5/5.5/gcc_64/bin:$PATH
+    export PATH=/tmp/qt/5.6/gcc_64/bin:$PATH
 fi
 
 python gen_resources.py
