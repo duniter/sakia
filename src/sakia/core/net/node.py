@@ -519,7 +519,7 @@ class Node(QObject):
                 if result["pubkey"] == self.pubkey:
                     uids = result['uids']
                     for uid in uids:
-                        if BlockUID.from_str(uid["meta"]["timestamp"]) > timestamp:
+                        if BlockUID.from_str(uid["meta"]["timestamp"]) >= timestamp:
                             timestamp = uid["meta"]["timestamp"]
                             uid = uid["uid"]
             if self._uid != uid:
