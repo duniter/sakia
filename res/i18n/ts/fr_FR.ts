@@ -184,12 +184,17 @@
     <message>
         <location filename="../../ui/account_cfg.ui" line="143"/>
         <source>CryptoID</source>
-        <translation>CryptoID</translation>
+        <translation type="obsolete">CryptoID</translation>
     </message>
     <message>
         <location filename="../../ui/account_cfg.ui" line="215"/>
         <source>Communities</source>
         <translation>Communautés</translation>
+    </message>
+    <message>
+        <location filename="../../ui/account_cfg.ui" line="143"/>
+        <source>Entropy</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
