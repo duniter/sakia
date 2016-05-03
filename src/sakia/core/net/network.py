@@ -360,6 +360,7 @@ class Network(QObject):
             logging.debug("New node found : {0}".format(peer.pubkey[:5]))
             try:
                 node = Node.from_peer(self.currency, peer, pubkey, self.session)
+                node.refresh(manual=True)
                 self.add_node(node)
                 self.nodes_changed.emit()
             except InvalidNodeCurrency as e:
