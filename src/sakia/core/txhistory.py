@@ -86,7 +86,7 @@ class TxHistory():
     def dividends(self):
         return self._dividends.copy()
 
-    def stop_coroutines(self):
+    def stop_coroutines(self, closing=False):
         self._stop_coroutines = True
 
     async def _get_block_doc(self, community, number):

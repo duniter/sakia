@@ -321,8 +321,8 @@ class Community(QObject):
     def start_coroutines(self):
         self.network.start_coroutines()
 
-    async def stop_coroutines(self):
-        await self.network.stop_coroutines()
+    async def stop_coroutines(self, closing=False):
+        await self.network.stop_coroutines(closing)
 
     def rollback_cache(self):
         self._bma_access.rollback()

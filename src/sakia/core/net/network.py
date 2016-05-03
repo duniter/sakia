@@ -141,7 +141,7 @@ class Network(QObject):
         """
         asyncio.ensure_future(self.discover_network())
 
-    async def stop_coroutines(self):
+    async def stop_coroutines(self, closing=False):
         """
         Stop network nodes crawling.
         """
@@ -150,10 +150,12 @@ class Network(QObject):
         logging.debug("Start closing")
         for node in self.nodes:
             close_tasks.append(asyncio.ensure_future(node.close_ws()))
+        logging.debug("Closing {0} websockets".format(len(close_tasks)))
         if len(close_tasks) > 0:
             await asyncio.wait(close_tasks, timeout=15)
-        logging.debug("Closing client session")
-        await self._client_session.close()
+        if closing:
+            logging.debug("Closing client session")
+            await self._client_session.close()
         logging.debug("Closed")
 
     @property

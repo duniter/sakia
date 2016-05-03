@@ -373,9 +373,9 @@ class Wallet(QObject):
         else:
             return []
 
-    def stop_coroutines(self):
+    def stop_coroutines(self, closing=False):
         for c in self.caches.values():
-            c.stop_coroutines()
+            c.stop_coroutines(closing)
 
     def jsonify(self):
         """

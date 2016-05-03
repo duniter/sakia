@@ -197,14 +197,14 @@ class Application(QObject):
             self._current_account.start_coroutines()
         self.account_changed.emit()
 
-    async def stop_current_account(self):
+    async def stop_current_account(self, closing=False):
         """
         Save the account to the cache
         and stop the coroutines
         """
         self.save_cache(self._current_account)
         self.save_notifications(self._current_account)
-        await self._current_account.stop_coroutines()
+        await self._current_account.stop_coroutines(closing)
 
     def load(self):
         """
@@ -510,7 +510,7 @@ class Application(QObject):
 
     async def stop(self):
         if self._current_account:
-            await self.stop_current_account()
+            await self.stop_current_account(closing=True)
         await asyncio.sleep(0)
         self.save_registries()
 
