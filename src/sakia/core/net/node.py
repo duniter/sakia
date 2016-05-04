@@ -43,7 +43,7 @@ class Node(QObject):
     changed = pyqtSignal()
     error = pyqtSignal()
     identity_changed = pyqtSignal()
-    neighbour_found = pyqtSignal(Peer, str)
+    neighbour_found = pyqtSignal(Peer)
 
     def __init__(self, peer, uid, pubkey, block,
                  state, last_change, last_merkle,
@@ -105,7 +105,7 @@ class Node(QObject):
         return node
 
     @classmethod
-    def from_peer(cls, currency, peer, pubkey, session):
+    def from_peer(cls, currency, peer, session):
         """
         Factory method to get a node from a peer document.
 
@@ -119,7 +119,7 @@ class Node(QObject):
             if peer.currency != currency:
                 raise InvalidNodeCurrency(peer.currency, currency)
 
-        node = cls(peer, "", pubkey, None,
+        node = cls(peer, "", peer.pubkey, None,
                    Node.OFFLINE, time.time(),
                    {'root': "", 'leaves': []},
                    "", "", 0, session)
@@ -626,8 +626,7 @@ class Node(QObject):
                 str_doc = "{0}{1}\n".format(peer_data['raw'],
                                             peer_data['signature'])
                 peer_doc = Peer.from_signed_raw(str_doc)
-                pubkey = peer_data['pubkey']
-                self.neighbour_found.emit(peer_doc, pubkey)
+                self.neighbour_found.emit(peer_doc)
             except MalformedDocumentError as e:
                 logging.debug(str(e))
         else:

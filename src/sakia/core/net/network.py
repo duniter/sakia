@@ -10,6 +10,7 @@ import aiohttp
 import time
 import asyncio
 from duniterpy.documents import Peer,  Block, BlockUID, MalformedDocumentError
+from duniterpy.key import VerifyingKey
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
 from collections import Counter
 
@@ -353,22 +354,25 @@ class Network(QObject):
 
         logging.debug("End of network discovery")
 
-    @pyqtSlot(Peer, str)
-    def handle_new_node(self, peer, pubkey):
-        pubkeys = [n.pubkey for n in self.nodes]
-        if peer.pubkey not in pubkeys:
-            logging.debug("New node found : {0}".format(peer.pubkey[:5]))
-            try:
-                node = Node.from_peer(self.currency, peer, pubkey, self.session)
-                node.refresh(manual=True)
-                self.add_node(node)
-                self.nodes_changed.emit()
-            except InvalidNodeCurrency as e:
-                logging.debug(str(e))
+    def handle_new_node(self, peer):
+        key = VerifyingKey(peer.pubkey)
+        if key.verify_document(peer):
+            pubkeys = [n.pubkey for n in self.nodes]
+            if peer.pubkey not in pubkeys:
+                logging.debug("New node found : {0}".format(peer.pubkey[:5]))
+                try:
+                    node = Node.from_peer(self.currency, peer, self.session)
+                    node.refresh(manual=True)
+                    self.add_node(node)
+                    self.nodes_changed.emit()
+                except InvalidNodeCurrency as e:
+                    logging.debug(str(e))
+            else:
+                node = [n for n in self.nodes if n.pubkey == peer.pubkey][0]
+                if node.peer.blockUID.number < peer.blockUID.number:
+                    node.peer = peer
         else:
-            node = [n for n in self.nodes if n.pubkey == pubkey][0]
-            if node.peer.blockUID.number < peer.blockUID.number:
-                node.peer = peer
+            logging.debug("Wrong document received : {0}".format(peer.signed_raw()))
 
     @pyqtSlot()
     def handle_identity_change(self):
