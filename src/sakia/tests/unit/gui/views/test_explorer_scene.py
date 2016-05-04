@@ -22,7 +22,7 @@ class TestExplorerScene(unittest.TestCase, QuamashTest):
         #    -> E
         self.identity_status = [NodeStatus.SELECTED, NodeStatus.NEUTRAL, NodeStatus.NEUTRAL,
                                 NodeStatus.OUT, NodeStatus.NEUTRAL]
-        self.test_graph = networkx.MultiDiGraph().to_undirected()
+        self.test_graph = networkx.MultiDiGraph()
         self.test_graph.add_nodes_from(self.identities_pubkeys)
         self.test_graph.add_edges_from(self.certifications)
         for index, node in enumerate(self.test_graph.nodes(data=True)):
@@ -119,7 +119,9 @@ class TestExplorerScene(unittest.TestCase, QuamashTest):
     @patch('networkx.MultiDiGraph')
     def test_set_subtree_position(self, mock_graph):
         # We mock the edges generator to ensure the order in which they appear
-        mock_graph.edges = Mock(return_value=self.certifications)
+        undirected = Mock('networkx.MultiDiGraph')
+        undirected.edges = Mock(return_value=self.certifications)
+        mock_graph.to_undirected = Mock(return_value=undirected)
         data_layout = {}
 
         for pubkey in self.identities_pubkeys:
