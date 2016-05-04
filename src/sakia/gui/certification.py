@@ -199,19 +199,20 @@ class CertificationDialog(QObject):
             stock=params['sigStock'])
         if remaining_time > 0:
             cert_text += "\n"
-            cert_text += self.tr("Remaining time before next available certification : {0}").format(
-                QLocale.toString(
-                            QLocale(),
-                            QDateTime.fromTime_t(remaining_time),
-                            QLocale.timeFormat(QLocale(), QLocale.ShortFormat)
-                        ),
-                )
+            remaining_localized = QDateTime.fromTime_t(remaining_time).toString("HH:ss.")\
+                .replace(":", self.tr(" hours and ")).replace(".", self.tr(" min"))
+            cert_text += self.tr("Remaining time before next certification validation : {0}".format(remaining_localized))
         self.ui.label_cert_stock.setText(cert_text)
 
         if is_member or not block_0:
-            if remaining_time == 0 and (nb_certifications < params['sigStock'] or params['sigStock'] == 0):
+            if nb_certifications < params['sigStock'] or params['sigStock'] == 0:
                 self.ui.button_box.button(QDialogButtonBox.Ok).setEnabled(True)
-                self.ui.button_box.button(QDialogButtonBox.Ok).setText(self.tr("&Ok"))
+                if remaining_time > 0:
+                    self.ui.button_box.button(QDialogButtonBox.Ok).setText(self.tr("&Ok") +
+                                                                           self.tr(" (Not validated before ")
+                                                                            + remaining_localized + ")")
+                else:
+                    self.ui.button_box.button(QDialogButtonBox.Ok).setText(self.tr("&Ok"))
             else:
                 self.ui.button_box.button(QDialogButtonBox.Ok).setEnabled(False)
                 self.ui.button_box.button(QDialogButtonBox.Ok).setText(self.tr("No more certifications"))
