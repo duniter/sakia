@@ -27,7 +27,7 @@ Endpoints:
 BASIC_MERKLED_API duniter.inso.ovh 80
 82o1sNCh1bLpUXU6nacbK48HBcA9Eu2sPkL1/3c2GtDPxBUZd2U2sb7DxwJ54n6ce9G0Oy7nd1hCxN3fS0oADw==
 """)
-        node = Node.from_peer('meta_brouzouf', peer, "8Fi1VSTbjkXguwThF4v2ZxC5whK7pwG2vcGTkPUPjPGU", Mock("aiohttp.ClientSession"))
+        node = Node.from_peer('meta_brouzouf', peer, Mock("aiohttp.ClientSession"))
         self.assertEqual(node.pubkey, "8Fi1VSTbjkXguwThF4v2ZxC5whK7pwG2vcGTkPUPjPGU")
         self.assertEqual(node.endpoint.inline(), "BASIC_MERKLED_API duniter.inso.ovh 80")
         self.assertEqual(node.currency, "meta_brouzouf")
