@@ -316,23 +316,25 @@ class TxHistory():
         :param int block_number: The block to check for transfers
         """
         block_doc = await self._get_block_doc(community, block_number)
+        if block_doc:
+            # We check the block dividend state
+            match = [d for d in self._dividends if d['block_number'] == block_number]
+            if len(match) > 0:
+                if block_doc.ud:
+                    match[0]['amount'] = block_doc.ud
+                    match[0]['base'] = block_doc.unit_base
+                else:
+                    self._dividends.remove(match[0])
 
-        # We check the block dividend state
-        match = [d for d in self._dividends if d['block_number'] == block_number]
-        if len(match) > 0:
-            if block_doc.ud:
-                match[0]['amount'] = block_doc.ud
-                match[0]['base'] = block_doc.unit_base
-            else:
-                self._dividends.remove(match[0])
-
-        # We check if transactions are still present
-        for transfer in [t for t in self._transfers
-                         if t.state in (TransferState.VALIDATING, TransferState.VALIDATED) and
-                         t.blockUID.number == block_number]:
-            if transfer.blockUID.sha_hash == block_doc.blockUID.sha_hash:
-                return True
-            transfer.run_state_transitions((True, block_doc))
+            # We check if transactions are still present
+            for transfer in [t for t in self._transfers
+                             if t.state in (TransferState.VALIDATING, TransferState.VALIDATED) and
+                             t.blockUID.number == block_number]:
+                if transfer.blockUID.sha_hash == block_doc.blockUID.sha_hash:
+                    return True
+                transfer.run_state_transitions((True, block_doc))
+        else:
+            logging.debug("Could not get block document")
         return False
 
     async def _rollback(self, community):
@@ -359,10 +361,11 @@ class TxHistory():
                     break
 
             current_block = await self._get_block_doc(community, community.network.current_blockUID.number)
-            members_pubkeys = await community.members_pubkeys()
-            for transfer in [t for t in self._transfers
-                             if t.state == TransferState.VALIDATED]:
-                transfer.run_state_transitions((True, current_block, MAX_CONFIRMATIONS))
+            if current_block:
+                members_pubkeys = await community.members_pubkeys()
+                for transfer in [t for t in self._transfers
+                                 if t.state == TransferState.VALIDATED]:
+                    transfer.run_state_transitions((True, current_block, MAX_CONFIRMATIONS))
         except NoPeerAvailable:
             logging.debug("No peer available")
 
