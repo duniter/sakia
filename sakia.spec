@@ -32,10 +32,8 @@ if is_darwin:
 if is_linux:
     libsodium_path = ctypes.util.find_library('libsodium.so')
     if not libsodium_path:
-        for soname in (13, 10, 5, 4):
-            libsodium_path = ctypes.util.find_library('libsodium.so.{0}'.format(soname))
-            if libsodium_path:
-                break
+        if os.path.isfile('/usr/lib/x86_64-linux-gnu/libsodium.so.13'):
+            libsodium_path = "/usr/lib/x86_64-linux-gnu/libsodium.so.13"
 
     a.binaries = a.binaries + TOC([('libsodium.so', libsodium_path, 'BINARY')])
 
