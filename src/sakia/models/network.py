@@ -89,7 +89,7 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
             if index.column() == source_model.columns_types.index('current_hash') :
                 return source_data[:10]
 
-            if index.column() == source_model.columns_types.index('current_time'):
+            if index.column() == source_model.columns_types.index('current_time') and source_data:
                 return QLocale.toString(
                             QLocale(),
                             QDateTime.fromTime_t(source_data),

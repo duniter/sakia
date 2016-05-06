@@ -334,6 +334,9 @@ class Node(QObject):
         if not self._ws_tasks['peer']:
             self._ws_tasks['peer'] = asyncio.ensure_future(self.connect_peers())
 
+        if manual:
+            asyncio.ensure_future(self.request_peers())
+        
         if self._refresh_counter % 20 == 0 or manual:
             self.refresh_informations()
             self.refresh_uid()
