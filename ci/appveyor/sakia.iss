@@ -54,6 +54,7 @@ Name: "{commondesktop}\{#MyAppName}"; IconFilename: "{app}\sakia.ico"; Filename:
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+Filename: "rd /s /q {userappdata}\sakia"; Description: "Delete existing data of Sakia"; Flags: postinstall nowait skipifsilent unchecked shellexec
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
