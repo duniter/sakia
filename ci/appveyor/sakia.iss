@@ -46,6 +46,7 @@ Source: "{#MyAppSrc}\dist\sakia\*"; DestDir: "{app}\"; Flags: ignoreversion recu
 Source: "{#MyAppSrc}\sakia.ico"; DestDir: "{app}\"; Flags: ignoreversion recursesubdirs
 Source: "{#MyAppSrc}\sakia.png"; DestDir: "{app}\"; Flags: ignoreversion recursesubdirs
 Source: "{#MyAppSrc}\LICENSE"; DestDir: "{app}\"; Flags: ignoreversion recursesubdirs
+Source: "{#MyAppSrc}\ci\appveyor\after_install.cmd"; DestDir: "{app}\"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\{#MyAppName}"; IconFilename: "{app}\sakia.ico"; Filename: "{app}\{#MyAppExeName}"
@@ -54,7 +55,7 @@ Name: "{commondesktop}\{#MyAppName}"; IconFilename: "{app}\sakia.ico"; Filename:
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
-Filename: "rd /s /q {userappdata}\sakia"; Description: "Delete existing data of Sakia"; Flags: postinstall nowait skipifsilent unchecked shellexec
+Filename: "{app}\after_install.cmd"; Description: "Supprimer les données existantes"; Flags: postinstall nowait skipifsilent unchecked
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
