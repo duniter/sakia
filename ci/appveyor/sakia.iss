@@ -53,7 +53,7 @@ Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{commondesktop}\{#MyAppName}"; IconFilename: "{app}\sakia.ico"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [InstallDelete]
-Type: filesandordirs; Name: "{userappdata}\sakia\*\__cache__"
+Type: filesandordirs; Name: "{userappdata}\sakia\cgeek\__cache__"
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
