@@ -30,7 +30,14 @@ if is_darwin:
         a.binaries = a.binaries + TOC([('lib/libsodium.dylib', libsodium_path, 'BINARY')])
 
 if is_linux:
-    a.binaries = a.binaries + TOC([('libsodium.so', ctypes.util.find_library('libsodium.so'), 'BINARY')])
+    libsodium_path = ctypes.util.find_library('libsodium.so')
+    if not libsodium_path:
+        for soname in (13, 10, 5, 4):
+            libsodium_path = ctypes.util.find_library('libsodium.so.{0}'.format(soname))
+            if libsodium_path:
+                break
+
+    a.binaries = a.binaries + TOC([('libsodium.so', libsodium_path, 'BINARY')])
 
 if is_win:
     a.binaries = a.binaries + TOC([('libsodium.dll', ctypes.util.find_library('libsodium.dll'), 'BINARY')])
