@@ -48,9 +48,17 @@ build_script:
   - ".\\ci\\appveyor\\tests.cmd"
   - echo %errorlevel%
 
+  # Windows Installer
+  - if [%APPVEYOR_REPO_TAG_NAME%] neq [] choco install -y InnoSetup
+  - if [%APPVEYOR_REPO_TAG_NAME%] neq [] set PATH="C:\Program Files (x86)\Inno Setup 5";%PATH%
+  - if [%APPVEYOR_REPO_TAG_NAME%] neq [] iscc %cd%\ci\appveyor\sakia.iss /DROOT_PATH=%cd%
+  - if [%APPVEYOR_REPO_TAG_NAME%] neq [] move %cd%\sakia.exe %cd%\sakia-%APPVEYOR_REPO_TAG_NAME%-win%PYTHON_ARCH%.exe
+
 artifacts:
   - path: dist
     name: sakia-win$(PYTHON_ARCH)
+  - path: sakia*.exe
+    name: sakia-exe
 # upload to releases
 deploy:
   tag: $(APPVEYOR_REPO_TAG_NAME)
@@ -58,7 +66,7 @@ deploy:
   provider: GitHub
   auth_token:
     secure: wbzlh6nx1zY1J1avlB0C3hKGm1abFNHBdM60u/U09i5Nam//D6kazvnv5ZBKdR89
-  artifact: sakia-win$(PYTHON_ARCH)
+  artifact: /sakia-/
   draft: true
   prerelease: true
   on:
