@@ -1,3 +1,3 @@
 @ECHO OFF
 
-mkdir %APPDATA%\sakia\test
+rd /s /q %APPDATA%\sakia
