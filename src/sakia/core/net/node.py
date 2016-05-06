@@ -336,7 +336,7 @@ class Node(QObject):
 
         if manual:
             asyncio.ensure_future(self.request_peers())
-        
+
         if self._refresh_counter % 20 == 0 or manual:
             self.refresh_informations()
             self.refresh_uid()

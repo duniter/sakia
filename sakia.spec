@@ -1,12 +1,10 @@
 # -*- mode: python -*-
-from PyInstaller.compat import is_darwin, is_win
+from PyInstaller.compat import is_darwin, is_win, is_linux
 import ctypes
 import subprocess
 import os
 
 block_cipher = None
-
-
 
 a = Analysis(['src/sakia/main.py'],
              pathex=['.'],
@@ -30,6 +28,9 @@ if is_darwin:
         libsodium_path = os.path.join(library_path, "lib",
                                       "libsodium.dylib")
         a.binaries = a.binaries + TOC([('lib/libsodium.dylib', libsodium_path, 'BINARY')])
+
+if is_linux:
+    a.binaries = a.binaries + TOC([('libsodium.so', ctypes.util.find_library('libsodium.so'), 'BINARY')])
 
 if is_win:
     a.binaries = a.binaries + TOC([('libsodium.dll', ctypes.util.find_library('libsodium.dll'), 'BINARY')])
