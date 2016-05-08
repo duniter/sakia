@@ -328,7 +328,7 @@ class Wallet(QObject):
             logging.debug("TX : {0}".format(tx.raw()))
 
             tx.sign([key])
-            logging.debug("Transaction : {0}".format(tx.signed_raw()))
+            logging.debug("Transaction : [{0}]".format(tx.signed_raw()))
             return await transfer.send(tx, community)
         except NotEnoughMoneyError as e:
             return (False, str(e))
