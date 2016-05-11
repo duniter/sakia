@@ -5,7 +5,7 @@
 import enum
 
 from PyQt5.QtWidgets import QFrame, QLabel, QVBoxLayout, QLayout
-from PyQt5.QtCore import QSize, pyqtSignal
+from PyQt5.QtCore import QSize, pyqtSignal, QDateTime
 from duniterpy.documents.block import Block
 from duniterpy.api import errors
 
@@ -94,6 +94,26 @@ background-color: palette(base);
             else:
                 localized_monetary_mass = ""
             status = self.app.current_account.pubkey in members_pubkeys
+            account_identity = await self.app.current_account.identity(self.community)
+
+            mstime_remaining_text = self.tr("Expired or never published")
+            outdistanced_text = self.tr("Outdistanced")
+
+            requirements = await account_identity.requirements(self.community)
+            mstime_remaining = 0
+            nb_certs = 0
+            if requirements:
+                mstime_remaining = requirements['membershipExpiresIn']
+                nb_certs = len(requirements['certifications'])
+                if not requirements['outdistanced']:
+                    outdistanced_text = self.tr("In WoT range")
+
+            if mstime_remaining > 0:
+                mstime_remaining_localized = QDateTime.fromTime_t(mstime_remaining).toString("HH:ss.")\
+                    .replace(":", self.tr(" hours and ")).replace(".", self.tr(" min"))
+                mstime_remaining_text = self.tr("Expires in {0}").format(mstime_remaining_localized)
+
+
             status_value = self.tr("Member") if status else self.tr("Non-Member")
             status_color = '#00AA00' if status else self.tr('#FF0000')
             description = """<html>
@@ -104,6 +124,8 @@ background-color: palette(base);
             <p>{nb_members} {members_label}</p>
             <p><span style="font-weight:600;">{monetary_mass_label}</span> : {monetary_mass}</p>
             <p><span style="font-weight:600;">{status_label}</span> : <span style="color:{status_color};">{status}</span></p>
+            <p><span style="font-weight:600;">{nb_certs_label}</span> : {nb_certs} ({outdistanced_text})</p>
+            <p><span style="font-weight:600;">{mstime_remaining_label}</span> : {mstime_remaining}</p>
             <p><span style="font-weight:600;">{balance_label}</span> : {balance}</p>
             </body>
             </html>""".format(currency=self.community.currency,
@@ -114,6 +136,11 @@ background-color: palette(base);
                               status_color=status_color,
                               status_label=self.tr("Status"),
                               status=status_value,
+                              nb_certs_label=self.tr("Certs. received"),
+                              nb_certs=nb_certs,
+                              outdistanced_text=outdistanced_text,
+                              mstime_remaining_label=self.tr("Memberships"),
+                              mstime_remaining=mstime_remaining_text,
                               balance_label=self.tr("Balance"),
                               balance=localized_amount)
             self.text_label.setText(description)

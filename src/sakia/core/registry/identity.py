@@ -496,6 +496,24 @@ class Identity(QObject):
                     return parameters['sigPeriod'] - (current_time - latest_time)
         return 0
 
+    async def requirements(self, community):
+        """
+        Get the current requirements data.
+        :param sakia.core.Community community: the community
+        :return: the requirements
+        :rtype: dict
+        """
+        try:
+            requirements = await community.bma_access.future_request(bma.wot.Requirements,
+                                                                     {'search': self.pubkey})
+            for req in requirements['identities']:
+                if req['pubkey'] == self.pubkey and req['uid'] == self.uid and \
+                        BlockUID.from_str(req['meta']['timestamp']) == self._sigdate:
+                    return req
+        except errors.DuniterError as e:
+            logging.debug(str(e))
+        return None
+
     def _refresh_uid(self, uids):
         """
         Refresh UID from uids list, got from a successful lookup request
