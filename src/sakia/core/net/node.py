@@ -361,7 +361,8 @@ class Node(QObject):
                     async for msg in ws:
                         if msg.tp == aiohttp.MsgType.text:
                             logging.debug("Received a block : {0}".format(self.pubkey[:5]))
-                            await self.request_current_block()
+                            block_data = block_websocket.parse_text(msg.data)
+                            await self.refresh_block(block_data)
                         elif msg.tp == aiohttp.MsgType.closed:
                             break
                         elif msg.tp == aiohttp.MsgType.error:
