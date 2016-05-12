@@ -5,7 +5,7 @@
 import enum
 
 from PyQt5.QtWidgets import QFrame, QLabel, QVBoxLayout, QLayout
-from PyQt5.QtCore import QSize, pyqtSignal, QDateTime
+from PyQt5.QtCore import QSize, pyqtSignal, QTime
 from duniterpy.documents.block import Block
 from duniterpy.api import errors
 
@@ -109,10 +109,15 @@ background-color: palette(base);
                     outdistanced_text = self.tr("In WoT range")
 
             if mstime_remaining > 0:
-                mstime_remaining_localized = QDateTime.fromTime_t(mstime_remaining).toString("HH:ss.")\
-                    .replace(":", self.tr(" hours and ")).replace(".", self.tr(" min"))
-                mstime_remaining_text = self.tr("Expires in {0}").format(mstime_remaining_localized)
-
+                days, remainder = divmod(mstime_remaining, 3600*24)
+                hours, remainder = divmod(remainder, 3600)
+                minutes, seconds = divmod(remainder, 60)
+                mstime_remaining_text = self.tr("Expires in ")
+                if days > 0:
+                    mstime_remaining_text += "{days} days".format(days=days)
+                else:
+                    mstime_remaining_text += "{hours} hours and {min} min.".format(hours=hours,
+                                                                                    min=minutes)
 
             status_value = self.tr("Member") if status else self.tr("Non-Member")
             status_color = '#00AA00' if status else self.tr('#FF0000')
@@ -139,7 +144,7 @@ background-color: palette(base);
                               nb_certs_label=self.tr("Certs. received"),
                               nb_certs=nb_certs,
                               outdistanced_text=outdistanced_text,
-                              mstime_remaining_label=self.tr("Memberships"),
+                              mstime_remaining_label=self.tr("Membership"),
                               mstime_remaining=mstime_remaining_text,
                               balance_label=self.tr("Balance"),
                               balance=localized_amount)

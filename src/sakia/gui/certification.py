@@ -199,8 +199,14 @@ class CertificationDialog(QObject):
             stock=params['sigStock'])
         if remaining_time > 0:
             cert_text += "\n"
-            remaining_localized = QDateTime.fromTime_t(remaining_time).toString("HH:ss.")\
-                .replace(":", self.tr(" hours and ")).replace(".", self.tr(" min"))
+            days, remainder = divmod(remaining_time, 3600*24)
+            hours, remainder = divmod(remainder, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            if days > 0:
+                remaining_localized = self.tr("{days} days").format(days=days)
+            else:
+                remaining_localized = self.tr("{hours} hours and {min} min.").format(hours=hours,
+                                                                                min=minutes)
             cert_text += self.tr("Remaining time before next certification validation : {0}".format(remaining_localized))
         self.ui.label_cert_stock.setText(cert_text)
 
