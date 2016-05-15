@@ -7,7 +7,8 @@ echo "Current version: $current"
 if [[ $1 =~ ^[0-9]+.[0-9]+.[0-9]+[0-9a-z]+$ ]]; then
   IFS='.' read -r -a array <<< "$1"
   sed -i "s/__version_info__\ = ($current)/__version_info__ = ('${array[0]}', '${array[1]}', '${array[2]}')/g" src/sakia/__init__.py
-  sed -i "#define MyAppVerStr \"($current)\"/#define MyAppVerStr \"$1\"/
+  sed -i "s/#define MyAppVerStr .*/#define MyAppVerStr \"$1\"/g" ci/appveyor/sakia.iss
+  sed -i "s/Version: .*/Version: $1/g" ci/travis/debian/DEBIAN/control
   git commit src/sakia/__init__.py -m "$1"
   git tag "$1"
 else
