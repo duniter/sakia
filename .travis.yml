@@ -25,7 +25,9 @@ deploy:
   provider: releases
   api_key:
     secure: MUdvTDBeCxO9d/EpzIhr+QYra/KxgYkXX6177SjqWCWDqw9xB3fwSUj8I9ht9DGtwVdadtveumtvLw3pbtVIR0GtIPC9pyvtNz4j6T4Ei3TSE6+StXdMK4NnInvPeTRlobGL+9sZt9MwheJwZ8YGewhBcR0F5UzVfxWeSSrxmyk=
-  file: sakia-${TRAVIS_OS_NAME}.zip
+  file:
+    - sakia-${TRAVIS_OS_NAME}.zip
+    - sakia-${TRAVIS_OS_NAME}.deb
   skip_cleanup: true
   on:
     tags: true

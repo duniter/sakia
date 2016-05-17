@@ -1,0 +1,4 @@
+#!/bin/bash
+
+rm /usr/bin/sakia
+rm -Rf /opt/sakia
