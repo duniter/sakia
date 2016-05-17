@@ -165,10 +165,13 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
             self.setWindowTitle(self.tr("New account"))
             self.button_delete.hide()
         else:
+            self.label_action.setText("Edit account uid")
+            self.edit_account_name.setPlaceholderText(self.account.name)
             self.stacked_pages.removeWidget(self.stacked_pages.widget(1))
             step_init.next_step = step_communities
             self.button_next.setEnabled(True)
             self.stacked_pages.currentWidget()
+
             self.setWindowTitle(self.tr("Configure {0}".format(self.account.name)))
 
     def open_process_add_community(self):
@@ -221,10 +224,10 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
     @asyncify
     async def action_delete_account(self, checked=False):
         reply = await QAsyncMessageBox.question(self, self.tr("Warning"),
-                                     self.tr("""This action will delete your account locally.
+                                     self.tr("""This action will delete your account ({0}) locally.
 Please note your key parameters (salt and password) if you wish to recover it later.
 Your account won't be removed from the networks it joined.
-Are you sure ?"""))
+Are you sure ?""").format(self.app.current_account.name))
         if reply == QMessageBox.Yes:
             account = self.app.current_account
             await self.app.delete_account(account)

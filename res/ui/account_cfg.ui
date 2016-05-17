@@ -46,7 +46,7 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
-             <widget class="QLabel" name="label">
+             <widget class="QLabel" name="label_action">
               <property name="text">
                <string>Account name (uid)</string>
               </property>
