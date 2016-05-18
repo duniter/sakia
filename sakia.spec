@@ -34,6 +34,8 @@ if is_linux:
     if not libsodium_path:
         if os.path.isfile('/usr/lib/x86_64-linux-gnu/libsodium.so.13'):
             libsodium_path = "/usr/lib/x86_64-linux-gnu/libsodium.so.13"
+        if os.path.isfile('/usr/lib/i386-linux-gnu/libsodium.so.13'):
+            libsodium_path = "/usr/lib/i386-linux-gnu/libsodium.so.13"
 
     a.binaries = a.binaries + TOC([('libsodium.so', libsodium_path, 'BINARY')])
 
