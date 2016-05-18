@@ -8,6 +8,7 @@ from .widgets.busy import Busy
 from ..tools.decorators import asyncify
 from ..gen_resources.member_uic import Ui_MemberView
 from ..tools.exceptions import MembershipNotFoundError, LookupFailureError, NoPeerAvailable
+from ..core.registry import LocalState
 
 
 class MemberDialog(QObject):
@@ -59,12 +60,11 @@ class MemberDialog(QObject):
 
     @asyncify
     async def refresh(self):
-        if self.identity:
+        if self.identity and self.identity.local_state != LocalState.NOT_FOUND:
             self.ui.busy.show()
             self.ui.label_uid.setText(self.identity.uid)
             self.ui.label_properties.setText("")
             try:
-
                 identity_selfcert = await self.identity.selfcert(self.community)
                 publish_time = await self.community.time(identity_selfcert.timestamp.number)
 
