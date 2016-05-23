@@ -61,5 +61,5 @@ Filename: "{app}\after_install.cmd"; Description: "Delete ALL existing data"; Fl
 ; NOTE: The value of AppId uniquely identifies this application.
 ; Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{E01B0960-74D2-8ACD-734E-8B3CB033B07F}
+AppId={{2F4DA7A9-B15B-06FC-474C-A470394CAEAA}
 LicenseFile="{#MyAppSrc}\LICENSE"
