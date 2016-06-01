@@ -42,5 +42,7 @@
     <file alias="dividend">noun_188924_cc.svg</file>
     <file alias="received">noun_188906_cc.svg</file>
     <file alias="sent">noun_188905_cc.svg</file>
+    <file alias="lock_open">noun_424413_cc.svg</file>
+    <file alias="lock_closed">noun_424414_cc.svg</file>
   </qresource>
 </RCC>
