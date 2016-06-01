@@ -4,20 +4,17 @@
 package gui {
 		class MainWindow {
 		}
-		MainWindow "1" --* "*" CurrencyTab
+		MainWindow "1" --* "1" CommunityView
 
-		class CurrencyTab {
+		class CommunityView {
 		}
-		CurrencyTab "1" --* "1" CommunityTab
-		CurrencyTab "1" --* "1" WalletTab
-		CurrencyTab "1" --* "1" InformationsTab
-		CurrencyTab "1" --* "1" TransactionsTab
+		CommunityView "1" --* "1" WalletTab
+		CommunityView "1" -down-* "1" InformationsTab
+		CommunityView "1" --* "1" TransactionsTab
+		CommunityView "1" --* "1" IdentitiesTab
+		CommunityView "1" --* "1" WotTab
+		CommunityView "1" -down-* "1" NetworkTab
 
-		class CommunityTab {
-		}
-
-		CommunityTab "1" --* "1" IdentitiesTab
-		CommunityTab "1" --* "1" WotTab
 
 		class WalletTab {
 		}
@@ -30,8 +27,6 @@ package gui {
 
 		class NetworkTab {
 		}
-
-		CurrencyTab "1" --* "1" NetworkTab
 
 		class IdentitiesTab {
 		}
@@ -51,8 +46,5 @@ package gui {
 	MainWindow --> ContactDialog
 	MainWindow --> ConfigureAccountDialog
 	ConfigureAccountDialog --> ConfigureCommunityDialog
-
-		class Wot
-		WotTab --> Wot
 }
 @enduml

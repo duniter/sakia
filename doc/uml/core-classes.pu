@@ -1,5 +1,8 @@
 @startuml
 
+hide fields
+hide methods
+
 package core {
 	class App {
 	-- Signals --
@@ -96,6 +99,10 @@ package net {
 	state
 	-- Methods --
 	}
-
+	
+	Network "1" --* "1" BmaAccess
+	
+	class BmaAccess {
+	}
 }
 @enduml
