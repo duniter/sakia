@@ -62,13 +62,21 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
 
             if role == Qt.DisplayRole:
                 if source_index.column() in (self.sourceModel().columns_ids.index('renewed'),
-                                             self.sourceModel().columns_ids.index('expiration'),
-                                             self.sourceModel().columns_ids.index('publication')):
+                                             self.sourceModel().columns_ids.index('expiration')):
                     if source_data is not None:
                         return QLocale.toString(
                             QLocale(),
                             QDateTime.fromTime_t(source_data).date(),
                             QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
+                        )
+                    else:
+                        return ""
+                if source_index.column() == self.sourceModel().columns_ids.index('publication'):
+                    if source_data is not None:
+                        return QLocale.toString(
+                            QLocale(),
+                            QDateTime.fromTime_t(source_data),
+                            QLocale.dateTimeFormat(QLocale(), QLocale.LongFormat)
                         )
                     else:
                         return ""
