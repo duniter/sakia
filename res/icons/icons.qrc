@@ -44,5 +44,6 @@
     <file alias="sent">noun_188905_cc.svg</file>
     <file alias="lock_open">noun_424413_cc.svg</file>
     <file alias="lock_closed">noun_424414_cc.svg</file>
+    <file alias="revokation">noun_169247_cc.svg</file>
   </qresource>
 </RCC>
