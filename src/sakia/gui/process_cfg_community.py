@@ -78,8 +78,8 @@ class StepPageInit(Step):
             self.config_dialog.label_error.setText(str(e))
         except aiohttp.errors.ClientError as e:
             self.config_dialog.label_error.setText(str(e))
-        #except (MalformedDocumentError, ValueError) as e:
-        #    self.config_dialog.label_error.setText(str(e))
+        except (MalformedDocumentError, ValueError) as e:
+            self.config_dialog.label_error.setText(str(e))
         except aiohttp.errors.TimeoutError:
             self.config_dialog.label_error.setText(self.tr("Could not connect. Check hostname, ip address or port"))
 

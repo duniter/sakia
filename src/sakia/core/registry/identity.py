@@ -508,7 +508,8 @@ class Identity(QObject):
                                                                      {'search': self.pubkey})
             for req in requirements['identities']:
                 if req['pubkey'] == self.pubkey and req['uid'] == self.uid and \
-                        BlockUID.from_str(req['meta']['timestamp']) == self._sigdate:
+                        self._sigdate and \
+                                BlockUID.from_str(req['meta']['timestamp']) == self._sigdate:
                     return req
         except errors.DuniterError as e:
             logging.debug(str(e))

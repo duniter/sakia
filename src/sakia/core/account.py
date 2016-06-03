@@ -462,6 +462,8 @@ class Account(QObject):
                 result = (False, (await r.text()))
             else:
                 await r.release()
+        if result[0]:
+            (await self.identity(community)).sigdate = block_uid
         return result
 
     async def send_membership(self, password, community, mstype):
