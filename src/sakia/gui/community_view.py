@@ -152,6 +152,10 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
             community.network.nodes_changed.connect(self.refresh_status)
             self.label_currency.setText(community.currency)
         logging.debug("Changed community to {0}".format(community))
+        self.button_membership.setText(self.tr("Membership"))
+        self.button_membership.setEnabled(False)
+        self.button_certification.setEnabled(False)
+        self.action_publish_uid.setEnabled(False)
         self.community = community
         self.refresh_status()
         self.refresh_quality_buttons()
@@ -250,9 +254,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                 self.button_certification.setEnabled(False)
                 self.button_send_money.setEnabled(False)
             else:
-                self.button_membership.setEnabled(True)
-                self.button_certification.setEnabled(True)
-                self.button_send_money.setEnabled(True)
+                self.refresh_quality_buttons()
 
             if self.community.network.quality > 0.66:
                 icon = ':/icons/connected'
@@ -280,7 +282,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                 if published_uid:
                     logging.debug("UID Published")
                     self.action_revoke_uid.setEnabled(uid_is_revokable)
-                    is_member = account_identity.is_member(self.community)
+                    is_member = await account_identity.is_member(self.community)
                     if is_member:
                         self.button_membership.setText(self.tr("Renew membership"))
                         self.button_membership.setEnabled(True)
@@ -299,8 +301,9 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                     self.button_certification.setEnabled(False)
                     self.action_publish_uid.setEnabled(True)
             except LookupFailureError:
-                self.button_membership.hide()
-                self.button_certification.hide()
+                self.button_membership.setEnabled(False)
+                self.button_certification.setEnabled(False)
+                self.action_publish_uid.setEnabled(False)
 
     def showEvent(self, event):
         self.refresh_status()
