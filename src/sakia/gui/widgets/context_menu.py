@@ -174,7 +174,8 @@ QMessageBox.Ok | QMessageBox.Cancel)
     async def copy_transaction_to_clipboard(self, tx):
         clipboard = QApplication.clipboard()
         raw_doc = await tx.get_raw_document(self._community)
-        clipboard.setText(raw_doc.signed_raw())
+        if raw_doc:
+            clipboard.setText(raw_doc.signed_raw())
 
     @asyncify
     async def copy_block_to_clipboard(self, number):
