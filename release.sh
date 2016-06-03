@@ -10,7 +10,7 @@ if [[ $1 =~ ^[0-9]+.[0-9]+.[0-9]+[0-9a-z]+$ ]]; then
   sed -i "s/#define MyAppVerStr .*/#define MyAppVerStr \"$1\"/g" ci/appveyor/sakia.iss
   sed -i "s/Version: .*/Version: $1/g" ci/travis/debian/DEBIAN/control
   git commit src/sakia/__init__.py ci/appveyor/sakia.iss ci/travis/debian/DEBIAN/control -m "$1"
-  git tag -a -m "$1"
+  git tag "$1" -a -m "$1"
 else
   echo "Wrong version format"
 fi
