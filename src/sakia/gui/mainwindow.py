@@ -297,6 +297,7 @@ class MainWindow(QObject):
         <h1>sakia</h1>
 
         <p>Python/Qt duniter client</p>
+        <p><a href="https://github.com/duniter/sakia">https://github.com/duniter/sakia</a></p>
 
         <p>Version : {:}</p>
         {new_version_text}
