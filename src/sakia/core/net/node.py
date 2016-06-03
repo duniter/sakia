@@ -602,7 +602,7 @@ class Node(QObject):
                                                                                         leaf=leaf_hash))
                         self.state = Node.OFFLINE
                         self.changed.emit()
-                    except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
+                    except (ClientError, gaierror, TimeoutError, DisconnectedError, ValueError) as e:
                         logging.debug("{0} : {1}".format(type(e).__name__, self.pubkey[:5]))
                         self.state = Node.OFFLINE
                     except jsonschema.ValidationError as e:
