@@ -656,7 +656,7 @@ Revoking your UID can only success if it is not already validated by the network
     <message>
         <location filename="../../../src/sakia/gui/community_view.py" line="296"></location>
         <source>Renew membership</source>
-        <translation>Renouveler le statut de membre</translation>
+        <translation>Renouveler l'adhésion</translation>
     </message>
     <message>
         <location filename="../../../src/cutecoin/gui/community_view.py" line="46"></location>
