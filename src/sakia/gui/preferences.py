@@ -55,7 +55,7 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
         self.spinbox_proxy_port.setValue(self.app.preferences.get('proxy_port', 8080))
         self.edit_proxy_address.setText(self.app.preferences.get('proxy_address', ""))
 
-        self.checkbox_forgetfulness.setChecked(self.app.preferences.get('forgetfulness', False))
+        self.checkbox_forgetfulness.setChecked(self.app.preferences.get('forgetfulness', True))
 
     def handle_proxy_change(self):
         self.spinbox_proxy_port.setEnabled(self.checkbox_proxy.isChecked())
