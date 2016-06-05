@@ -150,7 +150,7 @@ class ExplorerScene(BaseScene):
         if not data[current]['sparent']:
             theta = 0
         else:
-            theta = data[current]['theta'] - data[current]['span'] / 8
+            theta = data[current]['theta'] - data[current]['span'] / 2
 
         for edge in nx_graph.to_undirected().edges(current):
             next_node = edge[0] if edge[0] != current else edge[1]
@@ -159,7 +159,7 @@ class ExplorerScene(BaseScene):
             if data[next_node]['theta']:
                 continue
 
-            data[next_node]['theta'] = theta + data[next_node]['span'] / 8.0
+            data[next_node]['theta'] = theta + data[next_node]['span'] / 2.0
             theta += data[next_node]['span']
             if data[next_node]['nchild'] > 0:
                 ExplorerScene._set_positions(nx_graph, data, next_node)
@@ -196,7 +196,7 @@ class ExplorerScene(BaseScene):
         for node in nx_graph.nodes():
             hyp = distances[node] + 1
             theta = data[node]['theta']
-            nx_pos[node] = (hyp * math.cos(theta) * 200, hyp * math.sin(theta) * 200)
+            nx_pos[node] = (hyp * math.cos(theta) * 100, hyp * math.sin(theta) * 100)
         return nx_pos
 
     def clear(self):
