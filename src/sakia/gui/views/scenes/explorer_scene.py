@@ -260,7 +260,9 @@ class ExplorerScene(BaseScene):
                     else:
                         center_pos = QPoint(0, 0)
 
-                v = ExplorerNode(nx_node, center_pos, graph_pos, distances[nx_node[0]], dist_max)
+                small = distances[nx_node[0]] > 1
+
+                v = ExplorerNode(nx_node, center_pos, graph_pos, distances[nx_node[0]], dist_max, small)
                 self.addItem(v)
                 self.nodes[nx_node[0]] = v
 

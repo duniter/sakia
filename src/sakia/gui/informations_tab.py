@@ -92,6 +92,18 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                                                     self.community, self.app)\
                 .diff_localized(True, self.app.preferences['international_system_of_units'])
 
+            localized_ud_median_time = QLocale.toString(
+                        QLocale(),
+                        QDateTime.fromTime_t(block_ud['medianTime']),
+                        QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
+                    )
+
+            localized_next_ud_median_time = QLocale.toString(
+                        QLocale(),
+                        QDateTime.fromTime_t(block_ud['medianTime'] + params['dt']),
+                        QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
+                    )
+
             if block_ud_minus_1:
                 mass_minus_1 = (float(0) if block_ud['membersCount'] == 0 else
                         block_ud_minus_1['monetaryMass'] / block_ud['membersCount'])
@@ -106,6 +118,12 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                     actual_growth = float(0)
                 else:
                     actual_growth = block_ud['dividend'] / (block_ud_minus_1['monetaryMass'] / block_ud['membersCount'])
+
+                localized_ud_median_time_minus_1 = QLocale.toString(
+                    QLocale(),
+                    QDateTime.fromTime_t(block_ud_minus_1['medianTime']),
+                    QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
+                )
             else:
                 localized_mass_minus_1_per_member = QLocale().toString(
                         float(0), 'f', self.app.preferences['digits_after_comma']
@@ -114,6 +132,7 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                         float(0), 'f', self.app.preferences['digits_after_comma']
                 )
                 actual_growth = float(0)
+                localized_ud_median_time_minus_1 = "####"
 
             # set infos in label
             self.label_general.setText(
@@ -143,23 +162,11 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                     actual_growth,
                     params['dt'] / 86400,
                     self.tr('Actual growth c = UD(t)/[M(t-1)/N(t)]'),
-                    QLocale.toString(
-                        QLocale(),
-                        QDateTime.fromTime_t(block_ud_minus_1['medianTime']),
-                        QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
-                    ),
+                    localized_ud_median_time_minus_1,
                     self.tr('Penultimate UD date and time (t-1)'),
-                    QLocale.toString(
-                        QLocale(),
-                        QDateTime.fromTime_t(block_ud['medianTime']),
-                        QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
-                    ),
+                    localized_ud_median_time,
                     self.tr('Last UD date and time (t)'),
-                    QLocale.toString(
-                        QLocale(),
-                        QDateTime.fromTime_t(block_ud['medianTime'] + params['dt']),
-                        QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
-                    ),
+                    localized_next_ud_median_time,
                     self.tr('Next UD date and time (t+1)')
                 )
             )

@@ -7,7 +7,7 @@ import math
 
 
 class ExplorerNode(BaseNode):
-    def __init__(self, nx_node, center_pos, nx_pos, steps, steps_max):
+    def __init__(self, nx_node, center_pos, nx_pos, steps, steps_max, small):
         """
         Create node in the graph scene
 
@@ -16,6 +16,7 @@ class ExplorerNode(BaseNode):
         :param nx_pos: Position of the nodes in the graph
         :param int steps: The steps from the center identity
         :param int steps_max: The steps max of the graph
+        :param bool small: Small dots for big networks
         """
         super().__init__(nx_node, nx_pos)
 
@@ -23,22 +24,32 @@ class ExplorerNode(BaseNode):
         self.steps_max = steps_max
         self.highlighted = False
 
-        # text inside ellipse
-        self.text_item = QGraphicsSimpleTextItem(self)
-        self.text_item.setText(self.text)
-        # center ellipse around text
-        self.setRect(
-            0,
-            0,
-            self.text_item.boundingRect().width() * 2,
-            self.text_item.boundingRect().height() * 2
-        )
+        if small:
+            self.setRect(
+                0,
+                0,
+                10,
+                10
+            )
+            self.text_item = None
+        else:
+            # text inside ellipse
+            self.text_item = QGraphicsSimpleTextItem(self)
+            self.text_item.setText(self.text)
+            # center ellipse around text
+            self.setRect(
+                0,
+                0,
+                self.text_item.boundingRect().width() * 2,
+                self.text_item.boundingRect().height() * 2
+            )
+            # center text in ellipse
+            self.text_item.setPos(self.boundingRect().width() / 4.0, self.boundingRect().height() / 4.0)
+
 
         #  set anchor to the center
         self.setTransform(
             QTransform().translate(-self.boundingRect().width() / 2.0, -self.boundingRect().height() / 2.0))
-        # center text in ellipse
-        self.text_item.setPos(self.boundingRect().width() / 4.0, self.boundingRect().height() / 4.0)
 
         # cursor change on hover
         self.setAcceptHoverEvents(True)
@@ -76,7 +87,9 @@ class ExplorerNode(BaseNode):
 
         if self.status_wallet == NodeStatus.HIGHLIGHTED:
             text_color = QColor('grey')
-        self.text_item.setBrush(QBrush(text_color))
+
+        if self.text_item:
+            self.text_item.setBrush(QBrush(text_color))
 
         # create gradient inside the ellipse
         gradient = QRadialGradient(QPointF(0, self.boundingRect().height() / 4), self.boundingRect().width())

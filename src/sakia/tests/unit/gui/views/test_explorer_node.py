@@ -27,7 +27,7 @@ class TestExplorerNode(unittest.TestCase, QuamashTest):
             "B": (10, 20)
         }
         async def exec_test():
-            node = ExplorerNode(("A", metadata), QPointF(0, 0), nx_pos, 0, 1)
+            node = ExplorerNode(("A", metadata), QPointF(0, 0), nx_pos, 0, 1, False)
             self.assertEqual(node.id, "A")
             self.assertEqual(node.metadata['status'], NodeStatus.NEUTRAL)
             self.assertEqual(node.x(), 0)
@@ -35,7 +35,7 @@ class TestExplorerNode(unittest.TestCase, QuamashTest):
             self.assertEqual(node.status_wallet, False)
             self.assertEqual(node.status_member, True)
             self.assertEqual(node.text, "UserA")
-            self.assertEqual(node.toolTip(), "TestTooltip")
+            self.assertEqual(node.toolTip(), "UserA - TestTooltip")
 
         self.lp.run_until_complete(exec_test())
 
@@ -52,7 +52,7 @@ class TestExplorerNode(unittest.TestCase, QuamashTest):
             "B": (10, 20)
         }
         async def exec_test():
-            node = ExplorerNode(("A", metadata), QPointF(0, 0), nx_pos, 0, 1)
+            node = ExplorerNode(("A", metadata), QPointF(0, 0), nx_pos, 0, 1, False)
             node.paint(painter, QStyleOptionGraphicsItem(), widget)
 
         self.lp.run_until_complete(exec_test())
@@ -70,7 +70,7 @@ class TestExplorerNode(unittest.TestCase, QuamashTest):
             "B": (10, 20)
         }
         async def exec_test():
-            node = ExplorerNode(("A", metadata), QPointF(0, 0), nx_pos, 0, 1)
+            node = ExplorerNode(("A", metadata), QPointF(0, 0), nx_pos, 0, 1, False)
             bounding_rect = node.boundingRect()
             self.assertAlmostEqual(bounding_rect.x(), -0.5, delta=15)
             self.assertAlmostEqual(bounding_rect.y(), -0.5, delta=15)
