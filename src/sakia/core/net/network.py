@@ -5,6 +5,7 @@ Created on 24 févr. 2015
 """
 from .node import Node
 from ...tools.exceptions import InvalidNodeCurrency
+from ...tools.decorators import asyncify
 import logging
 import aiohttp
 import time
@@ -44,6 +45,7 @@ class Network(QObject):
         self._block_found = self.current_blockUID
         self._timer = QTimer()
         self._client_session = session
+        self._discovery_stack = []
 
     @classmethod
     def create(cls, node):
@@ -332,8 +334,10 @@ class Network(QObject):
         node = self.nodes[index]
         return self._root_nodes.index(node)
 
-    def refresh_once(self):
+    @asyncify
+    async def refresh_once(self):
         for node in self._nodes:
+            await asyncio.sleep(1)
             node.refresh(manual=True)
 
     async def discover_network(self):
@@ -343,6 +347,7 @@ class Network(QObject):
         """
         self._must_crawl = True
         first_loop = True
+        asyncio.ensure_future(self.pop_discovery_stack())
         while self.continue_crawling():
             for node in self.nodes:
                 if self.continue_crawling():
@@ -354,23 +359,40 @@ class Network(QObject):
 
         logging.debug("End of network discovery")
 
+    async def pop_discovery_stack(self):
+        """
+        Handle poping of nodes in discovery stack
+        :return:
+        """
+        while self.continue_crawling():
+            try:
+                await asyncio.sleep(1)
+                peer = self._discovery_stack.pop()
+                pubkeys = [n.pubkey for n in self.nodes]
+                if peer.pubkey not in pubkeys:
+                    logging.debug("New node found : {0}".format(peer.pubkey[:5]))
+                    try:
+                        node = Node.from_peer(self.currency, peer, self.session)
+                        node.refresh(manual=True)
+                        self.add_node(node)
+                        self.nodes_changed.emit()
+                    except InvalidNodeCurrency as e:
+                        logging.debug(str(e))
+                else:
+                    node = [n for n in self.nodes if n.pubkey == peer.pubkey][0]
+                    if node.peer.blockUID.number < peer.blockUID.number:
+                        logging.debug("Update node : {0}".format(peer.pubkey[:5]))
+                        node.peer = peer
+            except IndexError:
+                await asyncio.sleep(2)
+
     def handle_new_node(self, peer):
         key = VerifyingKey(peer.pubkey)
         if key.verify_document(peer):
-            pubkeys = [n.pubkey for n in self.nodes]
-            if peer.pubkey not in pubkeys:
-                logging.debug("New node found : {0}".format(peer.pubkey[:5]))
-                try:
-                    node = Node.from_peer(self.currency, peer, self.session)
-                    node.refresh(manual=True)
-                    self.add_node(node)
-                    self.nodes_changed.emit()
-                except InvalidNodeCurrency as e:
-                    logging.debug(str(e))
-            else:
-                node = [n for n in self.nodes if n.pubkey == peer.pubkey][0]
-                if node.peer.blockUID.number < peer.blockUID.number:
-                    node.peer = peer
+            if len(self._discovery_stack) < 1000 \
+                and peer.signatures[0] not in [p.signatures[0] for p in self._discovery_stack]:
+                logging.debug("Stacking new peer document : {0}".format(peer.pubkey))
+                self._discovery_stack.append(peer)
         else:
             logging.debug("Wrong document received : {0}".format(peer.signed_raw()))
 
