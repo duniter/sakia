@@ -126,6 +126,7 @@ class TestExplorerGraph(unittest.TestCase, QuamashTest):
     def test_explore_full_from_center(self, app, community):
         community.parameters = CoroutineMock(return_value = {'sigValidity': 1000})
         community.network.confirmations = Mock(side_effect=lambda n: 4 if 996 else None)
+        community.nb_members = CoroutineMock(return_value = 3)
         app.preferences = {'expert_mode': True}
 
         explorer_graph = ExplorerGraph(app, community)
@@ -143,6 +144,7 @@ class TestExplorerGraph(unittest.TestCase, QuamashTest):
     def test_explore_full_from_extremity(self, app, community):
         community.parameters = CoroutineMock(return_value = {'sigValidity': 1000})
         community.network.confirmations = Mock(side_effect=lambda n: 4 if 996 else None)
+        community.nb_members = CoroutineMock(return_value = 3)
         app.preferences = {'expert_mode': True}
 
         explorer_graph = ExplorerGraph(app, community)
@@ -160,6 +162,7 @@ class TestExplorerGraph(unittest.TestCase, QuamashTest):
     def test_explore_partial(self, app, community):
         community.parameters = CoroutineMock(return_value = {'sigValidity': 1000})
         community.network.confirmations = Mock(side_effect=lambda n: 4 if 996 else None)
+        community.nb_members = CoroutineMock(return_value = 3)
         app.preferences = {'expert_mode': True}
 
         explorer_graph = ExplorerGraph(app, community)
