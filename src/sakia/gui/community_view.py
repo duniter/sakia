@@ -294,7 +294,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                         self.button_membership.setEnabled(True)
                         self.action_publish_uid.setEnabled(False)
                         if self.community.get_block(0) is not None:
-                            self.button_certification.setEnable(False)
+                            self.button_certification.setEnabled(False)
                 else:
                     logging.debug("UID not published")
                     self.button_membership.setEnabled(False)
