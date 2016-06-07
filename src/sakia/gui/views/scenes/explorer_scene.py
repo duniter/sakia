@@ -246,6 +246,7 @@ class ExplorerScene(BaseScene):
             if nx_node[0] in self.nodes:
                 v = self.nodes[nx_node[0]]
                 v.move_to(graph_pos)
+                v.update_metadata(nx_node[1])
             else:
                 center_pos = None
                 if len(nx_graph.edges(nx_node[0])) > 0:

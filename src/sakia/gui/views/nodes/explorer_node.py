@@ -23,6 +23,7 @@ class ExplorerNode(BaseNode):
         self.steps = steps
         self.steps_max = steps_max
         self.highlighted = False
+        self.status_sentry = False
 
         if small:
             self.setRect(
@@ -64,20 +65,28 @@ class ExplorerNode(BaseNode):
         self.setPos(center_pos)
         self.move_to(nx_pos)
 
+    def update_metadata(self, metadata):
+        super().update_metadata(metadata)
+        self.status_sentry = self.metadata['is_sentry'] if 'is_sentry' in self.metadata else False
+        self._refresh_colors()
+
     def _refresh_colors(self):
         """
         Refresh elements in the node
         """
         # color around ellipse
-        outline_color = QColor('black')
+        outline_color = QColor('grey')
         outline_style = Qt.SolidLine
         outline_width = 1
         if self.status_wallet:
-            outline_color = QColor('grey')
             outline_width = 2
         if not self.status_member:
             outline_color = QColor('red')
-            outline_style = Qt.SolidLine
+
+        if self.status_sentry:
+            outline_color = QColor('black')
+            outline_width = 3
+
         self.setPen(QPen(outline_color, outline_width, outline_style))
 
         if self.highlighted:

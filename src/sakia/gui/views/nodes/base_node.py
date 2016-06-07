@@ -32,6 +32,13 @@ class BaseNode(QGraphicsEllipseItem):
         self.action_contact = None
         self.action_show_member = None
 
+    def update_metadata(self, metadata):
+        self.metadata = metadata
+        self.status_wallet = self.metadata['status'] & NodeStatus.HIGHLIGHTED
+        self.status_member = not self.metadata['status'] & NodeStatus.OUT
+        self.text = self.metadata['text']
+        self.setToolTip(self.text + " - " + self.metadata['tooltip'])
+
     def mousePressEvent(self, event: QMouseEvent):
         """
         Click on mouse button
@@ -59,3 +66,4 @@ class BaseNode(QGraphicsEllipseItem):
         :param event: scene context menu event
         """
         self.scene().node_context_menu_requested.emit(self.id)
+
