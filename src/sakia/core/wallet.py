@@ -187,7 +187,7 @@ class Wallet(QObject):
                 sources.append(s)
                 buf_sources.remove(s)
                 if value >= amount * pow(10, amount_base):
-                    overhead = value - int(amount)
+                    overhead = value - int(amount) * pow(10, amount_base)
                     overhead, overhead_max_base = reduce_base(overhead, 0)
                     if overhead_max_base >= current_base:
                         return (sources, buf_sources)
