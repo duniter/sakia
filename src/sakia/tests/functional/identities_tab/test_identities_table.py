@@ -1,14 +1,11 @@
 import sys
 import unittest
 import asyncio
-import quamash
+import aiohttp
 import logging
 import time
-from PyQt5.QtWidgets import QDialog
-from PyQt5.QtCore import QLocale, Qt, QPoint
+from PyQt5.QtCore import QLocale, Qt
 from PyQt5.QtTest import QTest
-from ucoinpy.api import bma
-from ucoinpy.api.bma import API
 
 from sakia.tests.mocks.bma import nice_blockchain
 from sakia.core.registry.identities import IdentitiesRegistry
@@ -17,7 +14,6 @@ from sakia.gui.password_asker import PasswordAskerDialog
 from sakia.core.app import Application
 from sakia.core import Account, Community, Wallet
 from sakia.core.net import Network, Node
-from ucoinpy.documents.peer import BMAEndpoint
 from sakia.core.net.api.bma.access import BmaAccess
 from sakia.tests import QuamashTest
 
@@ -35,7 +31,7 @@ class TestIdentitiesTable(unittest.TestCase, QuamashTest):
         self.node = Node(self.mock_nice_blockchain.peer(),
                          "", "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk",
                          None, Node.ONLINE,
-                         time.time(), {}, "ucoin", "0.14.0", 0)
+                         time.time(), {}, "duniter", "0.14.0", 0, session=aiohttp.ClientSession())
         self.network = Network.create(self.node)
         self.bma_access = BmaAccess.create(self.network)
         self.community = Community("test_currency", self.network, self.bma_access)
@@ -76,27 +72,10 @@ class TestIdentitiesTable(unittest.TestCase, QuamashTest):
             identities_tab.change_account(self.account, self.password_asker)
             identities_tab.change_community(self.community)
             await asyncio.sleep(1)
-            urls = [self.mock_nice_blockchain.get_request(i).url for i in range(0, 7)]
-            self.assertTrue('/wot/certifiers-of/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ' in urls,
-                            msg="Not found in {0}".format(urls))
-            self.assertTrue('/wot/lookup/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ' in urls,
-                            msg="Not found in {0}".format(urls))
-            self.assertTrue('/wot/certified-by/7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ' in urls,
-                            msg="Not found in {0}".format(urls))
-
-
-            # requests 1 to 3 are for getting certifiers-of and certified-by
-            # on john, + a lookup
 
             QTest.keyClicks(identities_tab.ui.edit_textsearch, "doe")
             QTest.mouseClick(identities_tab.ui.button_search, Qt.LeftButton)
             await asyncio.sleep(2)
-            req = 8
-
-            self.assertEqual(self.mock_nice_blockchain.get_request(req).method, 'GET')
-            self.assertEqual(self.mock_nice_blockchain.get_request(req).url,
-                             '/blockchain/memberships/FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn')
-            req += 1
 
             self.assertEqual(identities_tab.ui.table_identities.model().rowCount(), 1)
             await asyncio.sleep(2)
@@ -105,8 +84,3 @@ class TestIdentitiesTable(unittest.TestCase, QuamashTest):
         asyncio.ensure_future(exec_test())
         self.lp.call_later(15, close_dialog)
         self.lp.run_until_complete(open_widget())
-
-if __name__ == '__main__':
-    logging.basicConfig( stream=sys.stderr )
-    logging.getLogger().setLevel( logging.DEBUG )
-    unittest.main()

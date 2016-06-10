@@ -6,7 +6,7 @@ Created on 2 févr. 2014
 
 import logging
 import time
-
+from duniterpy.api import errors
 from PyQt5.QtCore import pyqtSlot, QDateTime, QLocale, QEvent, QT_TRANSLATE_NOOP, Qt
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import QWidget, QMessageBox, QDialog, QPushButton, QTabBar, QAction
@@ -104,9 +104,6 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.action_publish_uid.triggered.connect(self.publish_uid)
         self.toolbutton_menu.addAction(self.action_publish_uid)
 
-        self.action_revoke_uid.triggered.connect(self.revoke_uid)
-        self.toolbutton_menu.addAction(self.action_revoke_uid)
-
         self.button_membership.clicked.connect(self.send_membership_demand)
 
     def show_closable_tab(self, tab, icon, title):
@@ -155,6 +152,10 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
             community.network.nodes_changed.connect(self.refresh_status)
             self.label_currency.setText(community.currency)
         logging.debug("Changed community to {0}".format(community))
+        self.button_membership.setText(self.tr("Membership"))
+        self.button_membership.setEnabled(False)
+        self.button_certification.setEnabled(False)
+        self.action_publish_uid.setEnabled(False)
         self.community = community
         self.refresh_status()
         self.refresh_quality_buttons()
@@ -231,7 +232,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         if self.community:
             text = ""
 
-            current_block_number = self.community.network.current_blockid.number
+            current_block_number = self.community.network.current_blockUID.number
             if current_block_number:
                 text += self.tr("Block {0}").format(current_block_number)
                 try:
@@ -244,17 +245,16 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                 except NoPeerAvailable as e:
                     logging.debug(str(e))
                     text += " ( ### ) "
-                except ValueError as e:
-                    logging.debug(str(e))
+                except errors.DuniterError as e:
+                    if e.ucode == errors.BLOCK_NOT_FOUND:
+                        logging.debug(str(e))
 
             if len(self.community.network.synced_nodes) == 0:
                 self.button_membership.setEnabled(False)
                 self.button_certification.setEnabled(False)
                 self.button_send_money.setEnabled(False)
             else:
-                self.button_membership.setEnabled(True)
-                self.button_certification.setEnabled(True)
-                self.button_send_money.setEnabled(True)
+                self.refresh_quality_buttons()
 
             if self.community.network.quality > 0.66:
                 icon = ':/icons/connected'
@@ -282,7 +282,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                 if published_uid:
                     logging.debug("UID Published")
                     self.action_revoke_uid.setEnabled(uid_is_revokable)
-                    is_member = account_identity.is_member(self.community)
+                    is_member = await account_identity.is_member(self.community)
                     if is_member:
                         self.button_membership.setText(self.tr("Renew membership"))
                         self.button_membership.setEnabled(True)
@@ -294,15 +294,16 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
                         self.button_membership.setEnabled(True)
                         self.action_publish_uid.setEnabled(False)
                         if self.community.get_block(0) is not None:
-                            self.button_certification.setEnable(False)
+                            self.button_certification.setEnabled(False)
                 else:
                     logging.debug("UID not published")
                     self.button_membership.setEnabled(False)
                     self.button_certification.setEnabled(False)
                     self.action_publish_uid.setEnabled(True)
             except LookupFailureError:
-                self.button_membership.hide()
-                self.button_certification.hide()
+                self.button_membership.setEnabled(False)
+                self.button_certification.setEnabled(False)
+                self.action_publish_uid.setEnabled(False)
 
     def showEvent(self, event):
         self.refresh_status()
@@ -372,25 +373,6 @@ The process to join back the community later will have to be done again.""")
         else:
             if self.app.preferences['notifications']:
                 toast.display(self.tr("UID"), result[1])
-            else:
-                await QAsyncMessageBox.critical(self, self.tr("UID"),
-                                                        result[1])
-
-    @asyncify
-    async def revoke_uid(self, checked=False):
-        password = await self.password_asker.async_exec()
-        if self.password_asker.result() == QDialog.Rejected:
-            return
-        result = await self.account.revoke(password, self.community)
-        if result[0]:
-            if self.app.preferences['notifications']:
-                toast.display(self.tr("Revoke UID"), self.tr("Your UID was revoked successfully."))
-            else:
-                await QAsyncMessageBox.information(self, self.tr("Membership"),
-                                                        self.tr("Your UID was revoked successfully."))
-        else:
-            if self.app.preferences['notifications']:
-                toast.display(self.tr("Revoke UID"), result[1])
             else:
                 await QAsyncMessageBox.critical(self, self.tr("UID"),
                                                         result[1])

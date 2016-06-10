@@ -1,12 +1,10 @@
 # -*- mode: python -*-
-from PyInstaller.compat import is_darwin, is_win
+from PyInstaller.compat import is_darwin, is_win, is_linux
 import ctypes
 import subprocess
 import os
 
 block_cipher = None
-
-
 
 a = Analysis(['src/sakia/main.py'],
              pathex=['.'],
@@ -31,6 +29,16 @@ if is_darwin:
                                       "libsodium.dylib")
         a.binaries = a.binaries + TOC([('lib/libsodium.dylib', libsodium_path, 'BINARY')])
 
+if is_linux:
+    libsodium_path = ctypes.util.find_library('libsodium.so')
+    if not libsodium_path:
+        if os.path.isfile('/usr/lib/x86_64-linux-gnu/libsodium.so.13'):
+            libsodium_path = "/usr/lib/x86_64-linux-gnu/libsodium.so.13"
+        if os.path.isfile('/usr/lib/i386-linux-gnu/libsodium.so.13'):
+            libsodium_path = "/usr/lib/i386-linux-gnu/libsodium.so.13"
+
+    a.binaries = a.binaries + TOC([('libsodium.so', libsodium_path, 'BINARY')])
+
 if is_win:
     a.binaries = a.binaries + TOC([('libsodium.dll', ctypes.util.find_library('libsodium.dll'), 'BINARY')])
 
@@ -43,10 +51,10 @@ exe = EXE(pyz,
           a.scripts,
           exclude_binaries=True,
           name='sakia',
-          debug=False,
+          debug=True,
           strip=False,
           upx=True,
-          console=False,
+          console=True,
           icon='sakia.ico')
 
 coll = COLLECT(exe,

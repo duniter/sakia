@@ -5,7 +5,6 @@ Created on 31 janv. 2015
 """
 
 import logging
-import asyncio
 from PyQt5.QtCore import QLocale, QDateTime, QEvent
 from PyQt5.QtWidgets import QWidget
 from ..gen_resources.informations_tab_uic import Ui_InformationsTabWidget
@@ -93,6 +92,18 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                                                     self.community, self.app)\
                 .diff_localized(True, self.app.preferences['international_system_of_units'])
 
+            localized_ud_median_time = QLocale.toString(
+                        QLocale(),
+                        QDateTime.fromTime_t(block_ud['medianTime']),
+                        QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
+                    )
+
+            localized_next_ud_median_time = QLocale.toString(
+                        QLocale(),
+                        QDateTime.fromTime_t(block_ud['medianTime'] + params['dt']),
+                        QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
+                    )
+
             if block_ud_minus_1:
                 mass_minus_1 = (float(0) if block_ud['membersCount'] == 0 else
                         block_ud_minus_1['monetaryMass'] / block_ud['membersCount'])
@@ -107,6 +118,12 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                     actual_growth = float(0)
                 else:
                     actual_growth = block_ud['dividend'] / (block_ud_minus_1['monetaryMass'] / block_ud['membersCount'])
+
+                localized_ud_median_time_minus_1 = QLocale.toString(
+                    QLocale(),
+                    QDateTime.fromTime_t(block_ud_minus_1['medianTime']),
+                    QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
+                )
             else:
                 localized_mass_minus_1_per_member = QLocale().toString(
                         float(0), 'f', self.app.preferences['digits_after_comma']
@@ -115,6 +132,7 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                         float(0), 'f', self.app.preferences['digits_after_comma']
                 )
                 actual_growth = float(0)
+                localized_ud_median_time_minus_1 = "####"
 
             # set infos in label
             self.label_general.setText(
@@ -144,23 +162,11 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                     actual_growth,
                     params['dt'] / 86400,
                     self.tr('Actual growth c = UD(t)/[M(t-1)/N(t)]'),
-                    QLocale.toString(
-                        QLocale(),
-                        QDateTime.fromTime_t(block_ud_minus_1['medianTime']),
-                        QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
-                    ),
+                    localized_ud_median_time_minus_1,
                     self.tr('Penultimate UD date and time (t-1)'),
-                    QLocale.toString(
-                        QLocale(),
-                        QDateTime.fromTime_t(block_ud['medianTime']),
-                        QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
-                    ),
+                    localized_ud_median_time,
                     self.tr('Last UD date and time (t)'),
-                    QLocale.toString(
-                        QLocale(),
-                        QDateTime.fromTime_t(block_ud['medianTime'] + params['dt']),
-                        QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
-                    ),
+                    localized_next_ud_median_time,
                     self.tr('Next UD date and time (t+1)')
                 )
             )
@@ -265,17 +271,22 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             </table>
             """).format(
-                        params['sigDelay'] / 86400,
-                        self.tr('Minimum delay between 2 identical certifications (in days)'),
+                        params['sigPeriod'] / 86400,
+                        self.tr('Minimum delay between 2 certifications (in days)'),
                         params['sigValidity'] / 86400,
                         self.tr('Maximum age of a valid signature (in days)'),
                         params['sigQty'],
                         self.tr('Minimum quantity of signatures to be part of the WoT'),
-                        params['sigWoT'],
-                        self.tr(
-                            'Minimum quantity of valid made certifications to be part of the WoT for distance rule'),
+                        params['sigStock'],
+                        self.tr('Maximum quantity of active certifications made by member.'),
+                        params['sigWindow'],
+                        self.tr('Maximum delay a certification can wait before being expired for non-writing.'),
+                        params['xpercent'],
+                        self.tr('Minimum percent of sentries to reach to match the distance rule'),
                         params['msValidity'] / 86400,
                         self.tr('Maximum age of a valid membership (in days)'),
                         params['stepMax'],

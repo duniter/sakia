@@ -8,7 +8,7 @@ from sakia.core.registry.identities import IdentitiesRegistry
 from sakia.gui.preferences import PreferencesDialog
 from sakia.core.app import Application
 from sakia.tests import QuamashTest
-from ucoinpy.api import bma
+from duniterpy.api import bma
 
 
 class TestPreferencesDialog(unittest.TestCase, QuamashTest):

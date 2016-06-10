@@ -5,18 +5,16 @@ Created on 24 dec. 2014
 """
 import asyncio
 import logging
-
+from duniterpy.api import errors
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QApplication, QMessageBox
+from PyQt5.QtCore import Qt, QObject, QLocale, QDateTime
 
-from PyQt5.QtCore import Qt, QObject
-
-from ..gen_resources.certification_uic import Ui_CertificationDialog
 from .widgets import toast
 from .widgets.dialogs import QAsyncMessageBox
 from .member import MemberDialog
 from ..tools.decorators import asyncify, once_at_a_time
 from ..tools.exceptions import NoPeerAvailable
-
+from ..gen_resources.certification_uic import Ui_CertificationDialog
 
 class CertificationDialog(QObject):
     """
@@ -75,15 +73,18 @@ class CertificationDialog(QObject):
         self.ui.combo_community.currentIndexChanged.connect(self.change_current_community)
 
     @classmethod
-    def open_dialog(cls, app, account, password_asker):
+    def open_dialog(cls, app, account, community, password_asker):
         """
         Certify and identity
         :param sakia.core.Application app: the application
         :param sakia.core.Account account: the account certifying the identity
+        :param sakia.core.Community community: the community
         :param sakia.gui.password_asker.PasswordAsker password_asker: the password asker
         :return:
         """
         dialog = cls(app, account, password_asker, QDialog(), Ui_CertificationDialog())
+        dialog.ui.combo_community.setCurrentText(community.name)
+        dialog.refresh()
         return dialog.exec()
 
     @classmethod
@@ -101,6 +102,7 @@ class CertificationDialog(QObject):
         dialog.ui.combo_community.setCurrentText(community.name)
         dialog.ui.edit_pubkey.setText(identity.pubkey)
         dialog.ui.radio_pubkey.setChecked(True)
+        dialog.refresh()
         return await dialog.async_exec()
 
     @asyncify
@@ -139,7 +141,8 @@ class CertificationDialog(QObject):
     def change_current_community(self, index):
         self.community = self.account.communities[index]
         self.ui.search_user.change_community(self.community)
-        if self.isVisible():
+        self.ui.member_widget.change_community(self.community)
+        if self.widget.isVisible():
             self.refresh()
 
     def selected_pubkey(self):
@@ -181,16 +184,44 @@ class CertificationDialog(QObject):
         is_member = await account_identity.is_member(self.community)
         try:
             block_0 = await self.community.get_block(0)
-        except ValueError as e:
-            if '404' in str(e) or '000' in str(e):
+        except errors.DuniterError as e:
+            if e.ucode == errors.BLOCK_NOT_FOUND:
                 block_0 = None
         except NoPeerAvailable as e:
             logging.debug(str(e))
             block_0 = None
 
+        params = await self.community.parameters()
+        nb_certifications = len(await account_identity.unique_valid_certified_by(self.app.identities_registry, self.community))
+        remaining_time = await account_identity.cert_issuance_delay(self.app.identities_registry, self.community)
+        cert_text = self.tr("Certifications sent : {nb_certifications}/{stock}").format(
+            nb_certifications=nb_certifications,
+            stock=params['sigStock'])
+        if remaining_time > 0:
+            cert_text += "\n"
+            days, remainder = divmod(remaining_time, 3600*24)
+            hours, remainder = divmod(remainder, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            if days > 0:
+                remaining_localized = self.tr("{days} days").format(days=days)
+            else:
+                remaining_localized = self.tr("{hours} hours and {min} min.").format(hours=hours,
+                                                                                min=minutes)
+            cert_text += self.tr("Remaining time before next certification validation : {0}".format(remaining_localized))
+        self.ui.label_cert_stock.setText(cert_text)
+
         if is_member or not block_0:
-            self.ui.button_box.button(QDialogButtonBox.Ok).setEnabled(True)
-            self.ui.button_box.button(QDialogButtonBox.Ok).setText(self.tr("&Ok"))
+            if nb_certifications < params['sigStock'] or params['sigStock'] == 0:
+                self.ui.button_box.button(QDialogButtonBox.Ok).setEnabled(True)
+                if remaining_time > 0:
+                    self.ui.button_box.button(QDialogButtonBox.Ok).setText(self.tr("&Ok") +
+                                                                           self.tr(" (Not validated before ")
+                                                                            + remaining_localized + ")")
+                else:
+                    self.ui.button_box.button(QDialogButtonBox.Ok).setText(self.tr("&Ok"))
+            else:
+                self.ui.button_box.button(QDialogButtonBox.Ok).setEnabled(False)
+                self.ui.button_box.button(QDialogButtonBox.Ok).setText(self.tr("No more certifications"))
         else:
             self.ui.button_box.button(QDialogButtonBox.Ok).setEnabled(False)
             self.ui.button_box.button(QDialogButtonBox.Ok).setText(self.tr("Not a member"))

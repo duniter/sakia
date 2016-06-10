@@ -63,6 +63,7 @@ class ExplorerGraph(BaseGraph):
         current_identity = identity
         self.nx_graph.clear()
         self.add_identity(current_identity, NodeStatus.HIGHLIGHTED)
+        self.nx_graph.node[current_identity.pubkey]['is_sentry'] = False
         self.graph_changed.emit()
         for step in range(1, steps + 1):
             explorable[step] = []
@@ -73,7 +74,8 @@ class ExplorerGraph(BaseGraph):
                 # for each pubkey connected...
                 if current_identity not in explored:
                     self.current_identity_changed.emit(current_identity.pubkey)
-                    self.add_identity(current_identity, NodeStatus.NEUTRAL)
+                    node = self.add_identity(current_identity, NodeStatus.NEUTRAL)
+                    self.nx_graph.node[current_identity.pubkey]['is_sentry'] = False
                     logging.debug("New identity explored : {pubkey}".format(pubkey=current_identity.pubkey[:5]))
                     self.graph_changed.emit()
 
@@ -81,7 +83,12 @@ class ExplorerGraph(BaseGraph):
                                                                                              self.community)
                     await self.add_certifier_list(certifier_list, current_identity, identity)
                     logging.debug("New identity certifiers : {pubkey}".format(pubkey=current_identity.pubkey[:5]))
+
+                    is_sentry = self.is_sentry(len(certifier_list), await self.community.nb_members())
+                    self.nx_graph.node[current_identity.pubkey]['is_sentry'] = is_sentry
+
                     self.graph_changed.emit()
+
 
                     certified_list = await current_identity.unique_valid_certified_by(self.app.identities_registry,
                                                                                             self.community)

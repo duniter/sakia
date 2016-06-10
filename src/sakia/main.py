@@ -62,6 +62,8 @@ if __name__ == '__main__':
     # activate ctrl-c interrupt
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     sakia = QApplication(sys.argv)
+
+    sakia.setStyle('Fusion')
     loop = QSelectorEventLoop(sakia)
     loop.set_exception_handler(async_exception_handler)
     asyncio.set_event_loop(loop)
@@ -72,6 +74,10 @@ if __name__ == '__main__':
         loop.run_forever()
         try:
             loop.run_until_complete(app.stop())
+            logging.debug("Application stopped")
         except asyncio.CancelledError:
             logging.info('CancelledError')
+    logging.debug("Exiting")
     sys.exit()
+    logging.debug("Application stopped")
+

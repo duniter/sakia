@@ -6,9 +6,11 @@ Created on 8 mars 2014
 
 import logging
 import asyncio
+
 import aiohttp
 
-from ucoinpy.documents import MalformedDocumentError
+from duniterpy.api import errors
+from duniterpy.documents import MalformedDocumentError
 from PyQt5.QtWidgets import QDialog, QMenu, QApplication
 from PyQt5.QtGui import QCursor
 from PyQt5.QtCore import pyqtSignal, QObject
@@ -20,6 +22,7 @@ from ..core.net import Node
 from .widgets import toast
 from .widgets.dialogs import QAsyncMessageBox
 from ..tools.decorators import asyncify
+from ..tools.exceptions import NoPeerAvailable
 
 
 class Step(QObject):
@@ -63,8 +66,9 @@ class StepPageInit(Step):
         server = self.config_dialog.lineedit_server.text()
         port = self.config_dialog.spinbox_port.value()
         logging.debug("Is valid ? ")
+        self.config_dialog.label_error.setText(self.tr("connecting..."))
         try:
-            self.node = await Node.from_address(None, server, port)
+            self.node = await Node.from_address(None, server, port, session=aiohttp.ClientSession())
             community = Community.create(self.node)
             self.config_dialog.button_connect.setEnabled(False)
             self.config_dialog.button_register.setEnabled(False)
@@ -76,14 +80,17 @@ class StepPageInit(Step):
             self.config_dialog.label_error.setText(str(e))
         except (MalformedDocumentError, ValueError) as e:
             self.config_dialog.label_error.setText(str(e))
+        except aiohttp.errors.TimeoutError:
+            self.config_dialog.label_error.setText(self.tr("Could not connect. Check hostname, ip address or port"))
 
     @asyncify
     async def check_connect(self, checked=False):
         server = self.config_dialog.lineedit_server.text()
         port = self.config_dialog.spinbox_port.value()
         logging.debug("Is valid ? ")
+        self.config_dialog.label_error.setText(self.tr("connecting..."))
         try:
-            self.node = await Node.from_address(None, server, port)
+            self.node = await Node.from_address(None, server, port, session=aiohttp.ClientSession())
             community = Community.create(self.node)
             self.config_dialog.button_connect.setEnabled(False)
             self.config_dialog.button_register.setEnabled(False)
@@ -104,14 +111,20 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
             self.config_dialog.label_error.setText(str(e))
         except (MalformedDocumentError, ValueError) as e:
             self.config_dialog.label_error.setText(str(e))
+        except NoPeerAvailable:
+            self.config_dialog.label_error.setText(self.tr("Could not connect. Check node peering entry"))
+        except aiohttp.errors.TimeoutError:
+            self.config_dialog.label_error.setText(self.tr("Could not connect. Check hostname, ip address or port"))
 
     @asyncify
     async def check_register(self, checked=False):
         server = self.config_dialog.lineedit_server.text()
         port = self.config_dialog.spinbox_port.value()
         logging.debug("Is valid ? ")
+        self.config_dialog.label_error.setText(self.tr("connecting..."))
         try:
-            self.node = await Node.from_address(None, server, port)
+            session = aiohttp.ClientSession()
+            self.node = await Node.from_address(None, server, port, session=session)
             community = Community.create(self.node)
             self.config_dialog.button_connect.setEnabled(False)
             self.config_dialog.button_register.setEnabled(False)
@@ -141,12 +154,14 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
 Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
             else:
                 self.config_dialog.label_error.setText(self.tr("Your account already exists on the network"))
-        except aiohttp.errors.DisconnectedError as e:
+        except (MalformedDocumentError, ValueError, errors.DuniterError,
+                aiohttp.errors.ClientError, aiohttp.errors.DisconnectedError) as e:
+            session.close()
             self.config_dialog.label_error.setText(str(e))
-        except aiohttp.errors.ClientError as e:
-            self.config_dialog.label_error.setText(str(e))
-        except (MalformedDocumentError, ValueError) as e:
-            self.config_dialog.label_error.setText(str(e))
+        except NoPeerAvailable:
+            self.config_dialog.label_error.setText(self.tr("Could not connect. Check node peering entry"))
+        except aiohttp.errors.TimeoutError:
+            self.config_dialog.label_error.setText(self.tr("Could not connect. Check hostname, ip address or port"))
 
     def is_valid(self):
         return self.node is not None
@@ -255,7 +270,7 @@ class ProcessConfigureCommunity(QDialog, Ui_CommunityConfigurationDialog):
         port = self.spinbox_add_port.value()
 
         try:
-            node = await Node.from_address(self.community.currency, server, port)
+            node = await Node.from_address(self.community.currency, server, port, session=self.community.network.session)
             self.community.add_node(node)
         except Exception as e:
             await QAsyncMessageBox.critical(self, self.tr("Error"),

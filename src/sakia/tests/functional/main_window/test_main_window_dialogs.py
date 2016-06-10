@@ -6,8 +6,6 @@ from sakia.core.app import Application
 from sakia.tests import QuamashTest
 from sakia.core.registry.identities import IdentitiesRegistry
 
-# Qapplication cause a core dumped when re-run in setup
-# set it as global var
 
 class MainWindowDialogsTest(unittest.TestCase, QuamashTest):
     def setUp(self):

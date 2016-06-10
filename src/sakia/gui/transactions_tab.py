@@ -1,6 +1,6 @@
 import logging
-import asyncio
 
+from duniterpy.api import errors
 from PyQt5.QtWidgets import QWidget, QAbstractItemView, QHeaderView
 from PyQt5.QtCore import Qt, QObject, QDateTime, QTime, QModelIndex, pyqtSignal, pyqtSlot, QEvent
 from PyQt5.QtGui import QCursor
@@ -106,7 +106,7 @@ class TransactionsTabWidget(QObject):
             self.ui.date_to.setMaximumDateTime(tomorrow_datetime)
         except NoPeerAvailable as e:
             logging.debug(str(e))
-        except ValueError as e:
+        except errors.DuniterError as e:
             logging.debug(str(e))
 
     def refresh(self):
@@ -150,18 +150,23 @@ class TransactionsTabWidget(QObject):
     @asyncify
     async def refresh_balance(self):
         self.ui.busy_balance.show()
-        amount = await self.app.current_account.amount(self.community)
-        localized_amount = await self.app.current_account.current_ref.instance(amount, self.community,
+        try:
+            amount = await self.app.current_account.amount(self.community)
+            localized_amount = await self.app.current_account.current_ref.instance(amount, self.community,
                                                                            self.app).localized(units=True,
                                         international_system=self.app.preferences['international_system_of_units'])
 
-        # set infos in label
-        self.ui.label_balance.setText(
-            self.tr("{:}")
-            .format(
-                localized_amount
+            # set infos in label
+            self.ui.label_balance.setText(
+                self.tr("{:}")
+                .format(
+                    localized_amount
+                )
             )
-        )
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
+        except errors.DuniterError as e:
+            logging.debug(str(e))
         self.ui.busy_balance.hide()
 
     @once_at_a_time

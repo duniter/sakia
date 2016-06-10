@@ -4,15 +4,16 @@ Created on 1 févr. 2014
 @author: inso
 """
 
-from ucoinpy.documents.certification import SelfCertification, Certification, Revocation
-from ucoinpy.documents.membership import Membership
-from ucoinpy.key import SigningKey
+from duniterpy.documents import Membership, SelfCertification, Certification, Revokation, BlockUID, Block
+from duniterpy.key import SigningKey
+from duniterpy.api import bma
+from duniterpy.api.bma import PROTOCOL_VERSION
+from duniterpy.api import errors
 
 import logging
-import time
 import asyncio
 from pkg_resources import parse_version
-
+from aiohttp.errors import ClientError
 from PyQt5.QtCore import QObject, pyqtSignal
 
 from . import money
@@ -21,9 +22,6 @@ from .community import Community
 from .registry import LocalState
 from ..tools.exceptions import ContactAlreadyExists
 from .. import __version__
-from ucoinpy.api import bma
-from ucoinpy.api.bma import PROTOCOL_VERSION
-from aiohttp.errors import ClientError
 
 
 class Account(QObject):
@@ -72,6 +70,11 @@ class Account(QObject):
                             'warning_certifications':
                                     [
                                         self.tr("Warning : Your could miss certifications soon."),
+                                        0
+                                    ],
+                            'warning_revokation':
+                                    [
+                                        self.tr("Warning : If you don't renew soon, your identity will be considerd revoked."),
                                         0
                                     ],
                             'warning_certifying_first_time': True,
@@ -345,13 +348,13 @@ class Account(QObject):
             return self.name == data['uid'], self.name, data['uid']
 
         def _parse_uid_lookup(data):
-            timestamp = 0
+            timestamp = BlockUID.empty()
             found_uid = ""
             for result in data['results']:
                 if result["pubkey"] == self.pubkey:
                     uids = result['uids']
                     for uid_data in uids:
-                        if uid_data["meta"]["timestamp"] > timestamp:
+                        if BlockUID.from_str(uid_data["meta"]["timestamp"]) >= timestamp:
                             timestamp = uid_data["meta"]["timestamp"]
                             found_uid = uid_data["uid"]
             return self.name == found_uid, self.name, found_uid
@@ -360,13 +363,13 @@ class Account(QObject):
             return self.pubkey == data['pubkey'], self.pubkey, data['pubkey']
 
         def _parse_pubkey_lookup(data):
-            timestamp = 0
+            timestamp = BlockUID.empty()
             found_uid = ""
             found_result = ["", ""]
             for result in data['results']:
                 uids = result['uids']
                 for uid_data in uids:
-                    if uid_data["meta"]["timestamp"] > timestamp:
+                    if BlockUID.from_str(uid_data["meta"]["timestamp"]) >= timestamp:
                         timestamp = uid_data["meta"]["timestamp"]
                         found_uid = uid_data["uid"]
                 if found_uid == self.name:
@@ -389,8 +392,9 @@ class Account(QObject):
                     if data:
                         registered = parsers[request](data)
                     tries += 1
-                except ValueError as e:
-                    if '404' in str(e) or '400' in str(e):
+                except errors.DuniterError as e:
+                    if e.ucode in (errors.NO_MEMBER_MATCHING_PUB_OR_UID,
+                                   e.ucode == errors.NO_MATCHING_IDENTITY):
                         if request == bma.wot.CertifiersOf:
                             request = bma.wot.Lookup
                             tries = 0
@@ -430,19 +434,26 @@ class Account(QObject):
         :param str password: The account SigningKey password
         :param community: The community target of the self certification
         """
+        try:
+            block_data = await community.bma_access.simple_request(bma.blockchain.Current)
+            signed_raw = "{0}{1}\n".format(block_data['raw'], block_data['signature'])
+            block_uid = Block.from_signed_raw(signed_raw).blockUID
+        except errors.DuniterError as e:
+            if e.ucode == errors.NO_CURRENT_BLOCK:
+                block_uid = BlockUID.empty()
+            else:
+                raise
         selfcert = SelfCertification(PROTOCOL_VERSION,
                                      community.currency,
                                      self.pubkey,
-                                     int(time.time()),
                                      self.name,
+                                     block_uid,
                                      None)
         key = SigningKey(self.salt, password)
         selfcert.sign([key])
         logging.debug("Key publish : {0}".format(selfcert.signed_raw()))
 
-        responses = await community.bma_access.broadcast(bma.wot.Add, {}, {'pubkey': self.pubkey,
-                                              'self_': selfcert.signed_raw(),
-                                              'other': {}})
+        responses = await community.bma_access.broadcast(bma.wot.Add, {}, {'identity': selfcert.signed_raw()})
         result = (False, "")
         for r in responses:
             if r.status == 200:
@@ -451,6 +462,8 @@ class Account(QObject):
                 result = (False, (await r.text()))
             else:
                 await r.release()
+        if result[0]:
+            (await self.identity(community)).sigdate = block_uid
         return result
 
     async def send_membership(self, password, community, mstype):
@@ -464,12 +477,12 @@ class Account(QObject):
         """
         logging.debug("Send membership")
 
-        blockid = await community.blockid()
+        blockUID = community.network.current_blockUID
         self_identity = await self._identities_registry.future_find(self.pubkey, community)
         selfcert = await self_identity.selfcert(community)
 
         membership = Membership(PROTOCOL_VERSION, community.currency,
-                                selfcert.pubkey, blockid, mstype, selfcert.uid,
+                                selfcert.pubkey, blockUID, mstype, selfcert.uid,
                                 selfcert.timestamp, None)
         key = SigningKey(self.salt, password)
         membership.sign([key])
@@ -495,23 +508,21 @@ class Account(QObject):
         :param str pubkey: The certified identity pubkey
         """
         logging.debug("Certdata")
-        blockid = await community.blockid()
+        blockUID = community.network.current_blockUID
         identity = await self._identities_registry.future_find(pubkey, community)
         selfcert = await identity.selfcert(community)
         if selfcert:
             certification = Certification(PROTOCOL_VERSION, community.currency,
-                                          self.pubkey, pubkey, blockid, None)
+                                          self.pubkey, pubkey, blockUID, None)
 
             key = SigningKey(self.salt, password)
             certification.sign(selfcert, [key])
             signed_cert = certification.signed_raw(selfcert)
             logging.debug("Certification : {0}".format(signed_cert))
 
-            data = {'pubkey': pubkey,
-                    'self_': selfcert.signed_raw(),
-                    'other': "{0}\n".format(certification.inline())}
+            data = {'cert': certification.signed_raw(selfcert)}
             logging.debug("Posted data : {0}".format(data))
-            responses = await community.bma_access.broadcast(bma.wot.Add, {}, data)
+            responses = await community.bma_access.broadcast(bma.wot.Certify, {}, data)
             result = (False, "")
             for r in responses:
                 if r.status == 200:
@@ -531,23 +542,23 @@ class Account(QObject):
         Revoke self-identity on server, not in blockchain
 
         :param str password: The account SigningKey password
-        :param sakia.core.community.Community community: The community target of the revocation
+        :param sakia.core.community.Community community: The community target of the revokation
         """
         revoked = await self._identities_registry.future_find(self.pubkey, community)
 
-        revocation = Revocation(PROTOCOL_VERSION, community.currency, None)
+        revokation = Revokation(PROTOCOL_VERSION, community.currency, None)
         selfcert = await revoked.selfcert(community)
 
         key = SigningKey(self.salt, password)
-        revocation.sign(selfcert, [key])
+        revokation.sign(selfcert, [key])
 
-        logging.debug("Self-Revocation Document : \n{0}".format(revocation.raw(selfcert)))
-        logging.debug("Signature : \n{0}".format(revocation.signatures[0]))
+        logging.debug("Self-Revokation Document : \n{0}".format(revokation.raw(selfcert)))
+        logging.debug("Signature : \n{0}".format(revokation.signatures[0]))
 
         data = {
             'pubkey': revoked.pubkey,
             'self_': selfcert.signed_raw(),
-            'sig': revocation.signatures[0]
+            'sig': revokation.signatures[0]
         }
         logging.debug("Posted data : {0}".format(data))
         responses = await community.bma_access.broadcast(bma.wot.Revoke, {}, data)
@@ -565,12 +576,15 @@ class Account(QObject):
         for c in self.communities:
             c.start_coroutines()
 
-    async def stop_coroutines(self):
+    async def stop_coroutines(self, closing=False):
+        logging.debug("Stop communities coroutines")
         for c in self.communities:
-            await c.stop_coroutines()
+            await c.stop_coroutines(closing)
 
+        logging.debug("Stop wallets coroutines")
         for w in self.wallets:
-            w.stop_coroutines()
+            w.stop_coroutines(closing)
+        logging.debug("Account coroutines stopped")
 
     def jsonify(self):
         """

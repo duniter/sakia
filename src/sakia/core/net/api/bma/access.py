@@ -1,5 +1,6 @@
 from PyQt5.QtCore import QObject, pyqtSlot
-from ucoinpy.api import bma
+from duniterpy.api import bma
+from duniterpy.api import errors
 from .....tools.exceptions import NoPeerAvailable
 from ..... import __version__
 import logging
@@ -9,6 +10,7 @@ import random
 from socket import gaierror
 import jsonschema
 from pkg_resources import parse_version
+import copy
 
 
 class BmaAccess(QObject):
@@ -125,9 +127,9 @@ class BmaAccess(QObject):
                 if request is bma.blockchain.Parameters and self._rollback_to == 0:
                     need_reload = True
             elif str(request) in BmaAccess.__saved_requests \
-                or cached_data['metadata']['block_hash'] == self._network.current_blockid.sha_hash:
+                or cached_data['metadata']['block_hash'] == self._network.current_blockUID.sha_hash:
                 need_reload = False
-            ret_data = cached_data['value']
+            ret_data = copy.deepcopy(cached_data['value'])
         else:
             need_reload = True
             ret_data = None
@@ -168,11 +170,11 @@ class BmaAccess(QObject):
             self._data[cache_key] = {'metadata': {},
                                      'value': {}}
 
-        self._data[cache_key]['metadata']['block_number'] = self._network.current_blockid.number
-        self._data[cache_key]['metadata']['block_hash'] = self._network.current_blockid.sha_hash
+        self._data[cache_key]['metadata']['block_number'] = self._network.current_blockUID.number
+        self._data[cache_key]['metadata']['block_hash'] = self._network.current_blockUID.sha_hash
         self._data[cache_key]['metadata']['sakia_version'] = __version__
         if not self._compare_json(self._data[cache_key]['value'], data):
-            self._data[cache_key]['value'] = data
+            self._data[cache_key]['value'] = copy.deepcopy(data)
             return True
         return False
 
@@ -203,7 +205,7 @@ class BmaAccess(QObject):
                 except TypeError:
                     return False
             else:
-                return False
+                return True
         filters = {
             bma.ud.History: lambda n: compare_versions(n, "0.11.0"),
             bma.tx.History: lambda n: compare_versions(n, "0.11.0"),
@@ -236,14 +238,10 @@ class BmaAccess(QObject):
                 conn_handler = node.endpoint.conn_handler()
                 req = request(conn_handler, **req_args)
                 try:
-                    json_data = await req.get(**get_args)
+                    json_data = await req.get(**get_args, session=self._network.session)
                     self._update_cache(request, req_args, get_args, json_data)
                     return json_data
-                except ValueError as e:
-                    if '404' in str(e) or '400' in str(e):
-                        raise
-                    tries += 1
-                except (ClientError, ServerDisconnectedError, gaierror, asyncio.TimeoutError) as e:
+                except (ClientError, ServerDisconnectedError, gaierror, asyncio.TimeoutError, ValueError) as e:
                     tries += 1
                 except jsonschema.ValidationError as e:
                     logging.debug(str(e))
@@ -269,17 +267,13 @@ class BmaAccess(QObject):
             json_data = None
             while tries < 3:
                 try:
-                    json_data = await req.get(**get_args)
+                    json_data = await req.get(**get_args, session=self._network.session)
                     return json_data
-                except ValueError as e:
-                    if '404' in str(e) or '400' in str(e):
-                        raise
+                except (ClientError, ServerDisconnectedError, gaierror, asyncio.TimeoutError, ValueError) as e:
                     tries += 1
-                except (ClientError, ServerDisconnectedError, gaierror, asyncio.TimeoutError) as e:
-                    tries += 1
-                except jsonschema.ValidationError as e:
-                    logging.debug(str(e))
-                    tries += 1
+                #except jsonschema.ValidationError as e:
+                #    logging.debug(str(e))
+                #    tries += 1
         if len(nodes) == 0 or not json_data:
             raise NoPeerAvailable("", len(nodes))
         return json_data
@@ -289,7 +283,7 @@ class BmaAccess(QObject):
         Broadcast data to a network.
         Sends the data to all knew nodes.
 
-        :param request: A ucoinpy bma request class
+        :param request: A duniterpy bma request class
         :param req_args: Arguments to pass to the request constructor
         :param post_args: Arguments to pass to the request __post__ method
         :return: All nodes replies
@@ -307,7 +301,7 @@ class BmaAccess(QObject):
                 logging.debug("Trying to connect to : " + node.pubkey)
                 conn_handler = node.endpoint.conn_handler()
                 req = request(conn_handler, **req_args)
-                reply = asyncio.ensure_future(req.post(**post_args))
+                reply = asyncio.ensure_future(req.post(**post_args, session=self._network.session))
                 replies.append(reply)
             self._invalidate_cache(request)
         else:
@@ -315,9 +309,7 @@ class BmaAccess(QObject):
 
         try:
             result = await asyncio.gather(*replies)
-        except ValueError as e:
-            if '404' in str(e) or '400' in str(e):
-                raise
-        except (ClientError, ServerDisconnectedError, gaierror, asyncio.TimeoutError) as e:
+            return tuple(result)
+        except (ClientError, ServerDisconnectedError, gaierror, asyncio.TimeoutError, ValueError) as e:
             pass
-        return tuple(result)
+        return ()

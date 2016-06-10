@@ -1,0 +1,8 @@
+Package: sakia
+Version: 0.20.1
+Section: misc
+Priority: optional
+Architecture: all
+Installed-Size: 122000
+Maintainer: inso <insomniak.fr@gmail.com>
+Description: Sakia Wallet

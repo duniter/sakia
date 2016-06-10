@@ -11,7 +11,7 @@ from PyQt5.QtGui import QCursor, QDesktopServices
 from PyQt5.QtWidgets import QWidget, QMenu, QAction
 from PyQt5.QtCore import Qt, QModelIndex, pyqtSlot, QUrl, QEvent
 from ..models.network import NetworkTableModel, NetworkFilterProxyModel
-from ucoinpy.api import bma
+from duniterpy.api import bma
 from ..gen_resources.network_tab_uic import Ui_NetworkTabWidget
 
 

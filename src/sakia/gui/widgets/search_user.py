@@ -3,7 +3,7 @@ import logging
 from PyQt5.QtCore import QEvent, pyqtSignal, QT_TRANSLATE_NOOP, Qt
 from PyQt5.QtWidgets import QComboBox, QWidget
 
-from ucoinpy.api import bma
+from duniterpy.api import bma, errors
 
 from ...tools.decorators import asyncify
 from ...tools.exceptions import NoPeerAvailable
@@ -81,8 +81,8 @@ class SearchUserWidget(QWidget, Ui_SearchUserWidget):
                     self.combobox_search.addItem(uid)
                 self.blockSignals(False)
                 self.combobox_search.showPopup()
-        except ValueError as e:
-            if '404' in str(e):
+        except errors.DuniterError as e:
+            if e.ucode == errors.NO_MATCHING_IDENTITY:
                 self.nodes = list()
                 self.blockSignals(True)
                 self.combobox_search.clear()

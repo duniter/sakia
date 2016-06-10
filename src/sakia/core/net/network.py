@@ -5,12 +5,13 @@ Created on 24 févr. 2015
 """
 from .node import Node
 from ...tools.exceptions import InvalidNodeCurrency
+from ...tools.decorators import asyncify
 import logging
-import statistics
+import aiohttp
 import time
 import asyncio
-from ucoinpy.documents.peer import Peer
-from ucoinpy.documents.block import Block, BlockId
+from duniterpy.documents import Peer,  Block, BlockUID, MalformedDocumentError
+from duniterpy.key import VerifyingKey
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
 from collections import Counter
 
@@ -27,7 +28,7 @@ class Network(QObject):
     new_block_mined = pyqtSignal(int)
     blockchain_rollback = pyqtSignal(int)
 
-    def __init__(self, currency, nodes):
+    def __init__(self, currency, nodes, session):
         """
         Constructor of a network
 
@@ -41,8 +42,10 @@ class Network(QObject):
             self.add_node(n)
         self.currency = currency
         self._must_crawl = False
-        self._block_found = self.current_blockid
+        self._block_found = self.current_blockUID
         self._timer = QTimer()
+        self._client_session = session
+        self._discovery_stack = []
 
     @classmethod
     def create(cls, node):
@@ -54,7 +57,7 @@ class Network(QObject):
         :param node: The first knew node of the network
         """
         nodes = [node]
-        network = cls(node.currency, nodes)
+        network = cls(node.currency, nodes, node.session)
         return network
 
     def merge_with_json(self, json_data, file_version):
@@ -66,26 +69,29 @@ class Network(QObject):
         :param NormalizedVersion file_version: The node version
         """
         for data in json_data:
-            node = Node.from_json(self.currency, data, file_version)
-            if node.pubkey not in [n.pubkey for n in self.nodes]:
-                self.add_node(node)
-                logging.debug("Loading : {:}".format(data['pubkey']))
-            else:
-                other_node = [n for n in self.nodes if n.pubkey == node.pubkey][0]
-                other_node._uid = node.uid
-                other_node._version = node.version
-                other_node._software = node.software
-                other_node._peer = node.peer
-                switch = False
-                if other_node.block and node.block:
-                    if other_node.block['hash'] != node.block['hash']:
-                        switch = True
+            try:
+                node = Node.from_json(self.currency, data, file_version, self.session)
+                if node.pubkey not in [n.pubkey for n in self.nodes]:
+                    self.add_node(node)
+                    logging.debug("Loading : {:}".format(data['pubkey']))
                 else:
-                    switch = True
-                if switch:
-                    other_node.set_block(node.block)
-                    other_node.last_change = node.last_change
-                    other_node.state = node.state
+                    other_node = [n for n in self.nodes if n.pubkey == node.pubkey][0]
+                    other_node._uid = node.uid
+                    other_node._version = node.version
+                    other_node._software = node.software
+                    other_node._peer = node.peer
+                    switch = False
+                    if other_node.block and node.block:
+                        if other_node.block['hash'] != node.block['hash']:
+                            switch = True
+                    else:
+                        switch = True
+                    if switch:
+                        other_node.set_block(node.block)
+                        other_node.last_change = node.last_change
+                        other_node.state = node.state
+            except MalformedDocumentError:
+                logging.debug("Could not load node {0}".format(data))
 
     @classmethod
     def from_json(cls, currency, json_data, file_version):
@@ -96,11 +102,15 @@ class Network(QObject):
         :param dict json_data: A json_data view of a network
         :param NormalizedVersion file_version: the version of the json file
         """
+        session = aiohttp.ClientSession()
         nodes = []
         for data in json_data:
-            node = Node.from_json(currency, data, file_version)
-            nodes.append(node)
-        network = cls(currency, nodes)
+            try:
+                node = Node.from_json(currency, data, file_version, session)
+                nodes.append(node)
+            except MalformedDocumentError:
+                logging.debug("Could not load node {0}".format(data))
+        network = cls(currency, nodes, session)
         return network
 
     def jsonify(self):
@@ -121,7 +131,10 @@ class Network(QObject):
         """
         synced = len(self.synced_nodes)
         total = len(self.nodes)
-        ratio_synced = synced / total
+        if total == 0:
+            ratio_synced = 0
+        else:
+            ratio_synced = synced / total
         return ratio_synced
 
     def start_coroutines(self):
@@ -131,17 +144,26 @@ class Network(QObject):
         """
         asyncio.ensure_future(self.discover_network())
 
-    async def stop_coroutines(self):
+    async def stop_coroutines(self, closing=False):
         """
         Stop network nodes crawling.
         """
         self._must_crawl = False
         close_tasks = []
+        logging.debug("Start closing")
         for node in self.nodes:
             close_tasks.append(asyncio.ensure_future(node.close_ws()))
-        await asyncio.wait(close_tasks, timeout=15)
+        logging.debug("Closing {0} websockets".format(len(close_tasks)))
+        if len(close_tasks) > 0:
+            await asyncio.wait(close_tasks, timeout=15)
+        if closing:
+            logging.debug("Closing client session")
+            await self._client_session.close()
         logging.debug("Closed")
 
+    @property
+    def session(self):
+        return self._client_session
 
     def continue_crawling(self):
         return self._must_crawl
@@ -175,16 +197,16 @@ class Network(QObject):
         return self._root_nodes
 
     @property
-    def current_blockid(self):
+    def current_blockUID(self):
         """
         Get the latest block considered valid
         It is the most frequent last block of every known nodes
         """
         blocks = [n.block for n in self.synced_nodes if n.block]
         if len(blocks) > 0:
-            return BlockId(blocks[0]['number'], blocks[0]['hash'])
+            return BlockUID(blocks[0]['number'], blocks[0]['hash'])
         else:
-            return BlockId.empty()
+            return BlockUID.empty()
 
     def _check_nodes_sync(self):
         """
@@ -267,9 +289,9 @@ class Network(QObject):
         :rtype: int
         """
         if block_number:
-            if block_number > self.current_blockid.number:
+            if block_number > self.current_blockUID.number:
                 raise ValueError("Could not compute confirmations : data block number is after current block")
-            return self.current_blockid.number - block_number + 1
+            return self.current_blockUID.number - block_number + 1
         else:
             return 0
 
@@ -312,8 +334,10 @@ class Network(QObject):
         node = self.nodes[index]
         return self._root_nodes.index(node)
 
-    def refresh_once(self):
+    @asyncify
+    async def refresh_once(self):
         for node in self._nodes:
+            await asyncio.sleep(1)
             node.refresh(manual=True)
 
     async def discover_network(self):
@@ -323,6 +347,7 @@ class Network(QObject):
         """
         self._must_crawl = True
         first_loop = True
+        asyncio.ensure_future(self.pop_discovery_stack())
         while self.continue_crawling():
             for node in self.nodes:
                 if self.continue_crawling():
@@ -330,24 +355,46 @@ class Network(QObject):
                     if not first_loop:
                         await asyncio.sleep(15)
             first_loop = False
+            await asyncio.sleep(15)
 
         logging.debug("End of network discovery")
 
-    @pyqtSlot(Peer, str)
-    def handle_new_node(self, peer, pubkey):
-        pubkeys = [n.pubkey for n in self.nodes]
-        if peer.pubkey not in pubkeys:
-            logging.debug("New node found : {0}".format(peer.pubkey[:5]))
+    async def pop_discovery_stack(self):
+        """
+        Handle poping of nodes in discovery stack
+        :return:
+        """
+        while self.continue_crawling():
             try:
-                node = Node.from_peer(self.currency, peer, pubkey)
-                self.add_node(node)
-                self.nodes_changed.emit()
-            except InvalidNodeCurrency as e:
-                logging.debug(str(e))
+                await asyncio.sleep(1)
+                peer = self._discovery_stack.pop()
+                pubkeys = [n.pubkey for n in self.nodes]
+                if peer.pubkey not in pubkeys:
+                    logging.debug("New node found : {0}".format(peer.pubkey[:5]))
+                    try:
+                        node = Node.from_peer(self.currency, peer, self.session)
+                        node.refresh(manual=True)
+                        self.add_node(node)
+                        self.nodes_changed.emit()
+                    except InvalidNodeCurrency as e:
+                        logging.debug(str(e))
+                else:
+                    node = [n for n in self.nodes if n.pubkey == peer.pubkey][0]
+                    if node.peer.blockUID.number < peer.blockUID.number:
+                        logging.debug("Update node : {0}".format(peer.pubkey[:5]))
+                        node.peer = peer
+            except IndexError:
+                await asyncio.sleep(2)
+
+    def handle_new_node(self, peer):
+        key = VerifyingKey(peer.pubkey)
+        if key.verify_document(peer):
+            if len(self._discovery_stack) < 1000 \
+                and peer.signatures[0] not in [p.signatures[0] for p in self._discovery_stack]:
+                logging.debug("Stacking new peer document : {0}".format(peer.pubkey))
+                self._discovery_stack.append(peer)
         else:
-            node = [n for n in self.nodes if n.pubkey == pubkey][0]
-            if node.peer.blockid.number < peer.blockid.number:
-                node.peer = peer
+            logging.debug("Wrong document received : {0}".format(peer.signed_raw()))
 
     @pyqtSlot()
     def handle_identity_change(self):
@@ -376,19 +423,19 @@ class Network(QObject):
         self.nodes_changed.emit()
 
         if node.state == Node.ONLINE:
-            logging.debug("{0} -> {1}".format(self._block_found.sha_hash[:10], self.current_blockid.sha_hash[:10]))
-            if self._block_found.sha_hash != self.current_blockid.sha_hash:
-                logging.debug("Latest block changed : {0}".format(self.current_blockid.number))
+            logging.debug("{0} -> {1}".format(self._block_found.sha_hash[:10], self.current_blockUID.sha_hash[:10]))
+            if self._block_found.sha_hash != self.current_blockUID.sha_hash:
+                logging.debug("Latest block changed : {0}".format(self.current_blockUID.number))
                 # If new latest block is lower than the previously found one
                 # or if the previously found block is different locally
                 # than in the main chain, we declare a rollback
                 if self._block_found.number and \
-                                self.current_blockid.number <= self._block_found.number \
+                                self.current_blockUID.number <= self._block_found.number \
                         or node.main_chain_previous_block and \
                                         node.main_chain_previous_block['hash'] != self._block_found.sha_hash:
 
-                    self._block_found = self.current_blockid
-                    self.blockchain_rollback.emit(self.current_blockid.number)
+                    self._block_found = self.current_blockUID
+                    self.blockchain_rollback.emit(self.current_blockUID.number)
                 else:
-                    self._block_found = self.current_blockid
-                    self.new_block_mined.emit(self.current_blockid.number)
+                    self._block_found = self.current_blockUID
+                    self.new_block_mined.emit(self.current_blockUID.number)

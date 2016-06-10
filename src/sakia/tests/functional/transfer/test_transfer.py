@@ -1,13 +1,12 @@
 import sys
 import unittest
 import asyncio
-import quamash
+import aiohttp
 import time
 import logging
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QMessageBox, QApplication
 from PyQt5.QtCore import QLocale, Qt
 from PyQt5.QtTest import QTest
-from ucoinpy.api.bma import API
 
 from sakia.tests.mocks.bma import nice_blockchain
 from sakia.core.registry.identities import IdentitiesRegistry
@@ -16,10 +15,8 @@ from sakia.gui.password_asker import PasswordAskerDialog
 from sakia.core.app import Application
 from sakia.core import Account, Community, Wallet
 from sakia.core.net import Network, Node
-from ucoinpy.documents.peer import BMAEndpoint
 from sakia.core.net.api.bma.access import BmaAccess
 from sakia.tests import QuamashTest
-from ucoinpy.api import bma
 
 
 class TestTransferDialog(unittest.TestCase, QuamashTest):
@@ -35,7 +32,7 @@ class TestTransferDialog(unittest.TestCase, QuamashTest):
         self.node = Node(self.mock_nice_blockchain.peer(),
                          "", "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk",
                          None, Node.ONLINE,
-                         time.time(), {}, "ucoin", "0.14.0", 0)
+                         time.time(), {}, "duniter", "0.14.0", 0, session=aiohttp.ClientSession())
         self.network = Network.create(self.node)
         self.bma_access = BmaAccess.create(self.network)
         self.community = Community("test_currency", self.network, self.bma_access)
@@ -66,16 +63,15 @@ class TestTransferDialog(unittest.TestCase, QuamashTest):
         async def open_dialog(transfer_dialog):
             srv, port, url = await self.mock_nice_blockchain.create_server()
             self.addCleanup(srv.close)
-
+            await asyncio.sleep(1)
             result = await transfer_dialog.async_exec()
             self.assertEqual(result, QDialog.Accepted)
 
         def close_dialog():
-            if transfer_dialog.isVisible():
-                transfer_dialog.close()
+            if transfer_dialog.widget.isVisible():
+                transfer_dialog.widget.close()
 
         async def exec_test():
-            await asyncio.sleep(1)
             self.account.wallets[0].caches[self.community.currency].available_sources = await self.wallet.sources(self.community)
             QTest.mouseClick(transfer_dialog.ui.radio_pubkey, Qt.LeftButton)
             QTest.keyClicks(transfer_dialog.ui.edit_pubkey, "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn")
@@ -86,13 +82,8 @@ class TestTransferDialog(unittest.TestCase, QuamashTest):
             for w in topWidgets:
                 if type(w) is QMessageBox:
                     QTest.keyClick(w, Qt.Key_Enter)
+            await asyncio.sleep(1)
 
-        self.lp.call_later(15, close_dialog)
+        self.lp.call_later(30, close_dialog)
         asyncio.ensure_future(exec_test())
         self.lp.run_until_complete(open_dialog(transfer_dialog))
-
-
-if __name__ == '__main__':
-    logging.basicConfig(stream=sys.stderr)
-    logging.getLogger().setLevel(logging.DEBUG)
-    unittest.main()

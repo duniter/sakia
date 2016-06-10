@@ -7,7 +7,7 @@ Created on 5 févr. 2014
 import logging
 import asyncio
 
-from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel
+from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, QDateTime, QLocale
 from PyQt5.QtGui import QColor, QFont, QIcon
 
 from ..tools.exceptions import NoPeerAvailable
@@ -55,6 +55,7 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
             'port': self.tr('Port'),
             'current_block': self.tr('Block'),
             'current_hash': self.tr('Hash'),
+            'current_time': self.tr('Time'),
             'uid': self.tr('UID'),
             'is_member': self.tr('Member'),
             'pubkey': self.tr('Pubkey'),
@@ -70,25 +71,30 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
         if not source_index.isValid():
             return QVariant()
         source_data = source_model.data(source_index, role)
-        if index.column() == source_model.columns_types.index('is_member') \
-                and role == Qt.DisplayRole:
-            value = {True: self.tr('yes'), False: self.tr('no'), None: self.tr('offline')}
-            return value[source_data]
 
-        if index.column() == source_model.columns_types.index('pubkey') \
-            and role == Qt.DisplayRole:
-            return source_data[:5]
+        if role == Qt.DisplayRole:
+            if index.column() == source_model.columns_types.index('is_member'):
+                value = {True: self.tr('yes'), False: self.tr('no'), None: self.tr('offline')}
+                return value[source_data]
 
-        if index.column() == source_model.columns_types.index('current_block') \
-            and role == Qt.DisplayRole:
-            if source_data == -1:
-                return ""
-            else:
-                return source_data
+            if index.column() == source_model.columns_types.index('pubkey'):
+                return source_data[:5]
 
-        if index.column() == source_model.columns_types.index('current_hash') \
-            and role == Qt.DisplayRole:
-            return source_data[:10]
+            if index.column() == source_model.columns_types.index('current_block'):
+                if source_data == -1:
+                    return ""
+                else:
+                    return source_data
+
+            if index.column() == source_model.columns_types.index('current_hash') :
+                return source_data[:10]
+
+            if index.column() == source_model.columns_types.index('current_time') and source_data:
+                return QLocale.toString(
+                            QLocale(),
+                            QDateTime.fromTime_t(source_data),
+                            QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
+                        )
 
         if role == Qt.TextAlignmentRole:
             if source_index.column() == source_model.columns_types.index('address') or source_index.column() == self.sourceModel().columns_types.index('current_block'):
@@ -123,6 +129,7 @@ class NetworkTableModel(QAbstractTableModel):
             'port',
             'current_block',
             'current_hash',
+            'current_time',
             'uid',
             'is_member',
             'pubkey',
@@ -186,10 +193,10 @@ class NetworkTableModel(QAbstractTableModel):
 
         is_root = self.community.network.is_root_node(node)
         if node.block:
-            number, block_hash = node.block['number'], node.block['hash']
+            number, block_hash, block_time = node.block['number'], node.block['hash'], node.block['medianTime']
         else:
-            number, block_hash = "", ""
-        return (address, port, number, block_hash, node.uid,
+            number, block_hash, block_time = "", "", ""
+        return (address, port, number, block_hash, block_time, node.uid,
                 is_member, node.pubkey, node.software, node.version, is_root, node.state)
 
     @once_at_a_time

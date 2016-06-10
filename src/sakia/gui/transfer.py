@@ -128,7 +128,7 @@ class TransferMoneyDialog(QObject):
         amount = self.ui.spinbox_amount.value()
 
         if not amount:
-            await QAsyncMessageBox.critical(self, self.tr("Money transfer"),
+            await QAsyncMessageBox.critical(self.widget, self.tr("Money transfer"),
                                  self.tr("No amount. Please give the transfert amount"),
                                  QMessageBox.Ok)
             self.ui.button_box.setEnabled(True)
@@ -139,7 +139,7 @@ class TransferMoneyDialog(QObject):
             return
 
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QApplication.processEvents()
+
         result = await self.wallet.send_money(self.account.salt, password, self.community,
                                    recipient, amount, comment)
         if result[0]:
@@ -218,7 +218,7 @@ class TransferMoneyDialog(QObject):
 
     def async_exec(self):
         future = asyncio.Future()
-        self.widget.finished.connect(lambda r: future.set_result(r))
+        self.widget.finished.connect(lambda r: future.set_result(r) and self.widget.finished.disconnect())
         self.widget.open()
         return future
 

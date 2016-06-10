@@ -5,8 +5,8 @@ Created on 31 janv. 2015
 """
 import logging
 import time
-from ucoinpy.api import bma
-from ucoinpy.documents import Block, BlockId
+from duniterpy.api import bma
+from duniterpy.documents import Block, BlockUID
 from PyQt5.QtCore import pyqtSignal, QObject
 from enum import Enum
 
@@ -36,7 +36,7 @@ class Transfer(QObject):
     transfer_broadcasted = pyqtSignal(str)
     broadcast_error = pyqtSignal(int, str)
 
-    def __init__(self, sha_hash, state, blockid, metadata, locally_created):
+    def __init__(self, sha_hash, state, blockUID, metadata, locally_created):
         """
         The constructor of a transfer.
         Check for metadata keys which must be present :
@@ -49,7 +49,7 @@ class Transfer(QObject):
 
         :param str sha_hash: The hash of the transaction
         :param TransferState state: The state of the Transfer
-        :param ucoinpy.documents.BlockId blockid: The blockid of the transaction in the blockchain
+        :param duniterpy.documents.BlockUID blockUID: The blockUID of the transaction in the blockchain
         :param dict metadata: The transfer metadata
         """
         assert('receiver' in metadata)
@@ -64,7 +64,7 @@ class Transfer(QObject):
 
         self.sha_hash = sha_hash
         self.state = state
-        self.blockid = blockid
+        self.blockUID = blockUID
         self._locally_created = locally_created
         self._metadata = metadata
 
@@ -111,16 +111,16 @@ class Transfer(QObject):
         return cls(None, TransferState.TO_SEND, None, metadata, True)
 
     @classmethod
-    def create_from_blockchain(cls, hash, blockid, metadata):
+    def create_from_blockchain(cls, hash, blockUID, metadata):
         """
         Create a new transfer sent from another sakia instance
         :param str hash: The transaction hash
-        :param ucoinpy.documents.BlockId blockid: The block id were we found the tx
+        :param duniterpy.documents.BlockUID blockUID: The block id were we found the tx
         :param dict metadata: The computed metadata of the transaction
         :return: A new transfer
         :rtype: Transfer
         """
-        return cls(hash, TransferState.VALIDATING, blockid, metadata, False)
+        return cls(hash, TransferState.VALIDATING, blockUID, metadata, False)
 
     @classmethod
     def load(cls, data):
@@ -132,7 +132,7 @@ class Transfer(QObject):
         """
         return cls(data['hash'],
                    TransferState[data['state']],
-                   BlockId.from_str(data['blockid']) if data['blockid'] else None,
+                   BlockUID.from_str(data['blockUID']) if data['blockUID'] else None,
                    data['metadata'], data['local'])
 
     def jsonify(self):
@@ -141,7 +141,7 @@ class Transfer(QObject):
         """
         return {'hash': self.sha_hash,
                 'state': self.state.name,
-                'blockid': str(self.blockid) if self.blockid else None,
+                'blockUID': str(self.blockUID) if self.blockUID else None,
                 'metadata': self._metadata,
                 'local': self._locally_created}
 
@@ -156,7 +156,7 @@ class Transfer(QObject):
         """
         Check if the transaction could not be found in the blockchain
         :param bool rollback: True if we are in a rollback procedure
-        :param ucoinpy.documents.Block block: The block to look for the tx
+        :param duniterpy.documents.Block block: The block to look for the tx
         :param int mediantime_target: The mediantime to mine a block in the community parameters
         :param int mediantime_blocks: The number of block used to derive the mediantime
         :return: True if the transaction could not be found in a given time
@@ -174,7 +174,7 @@ class Transfer(QObject):
         """
         Check if the transaction can be found in the blockchain
         :param bool rollback: True if we are in a rollback procedure
-        :param ucoinpy.documents.Block block: The block to check for the transaction
+        :param duniterpy.documents.Block block: The block to check for the transaction
         :return: True if the transaction was found
         :rtype: bool
         """
@@ -188,7 +188,7 @@ class Transfer(QObject):
         """
         Check if the retcode is 200 after a POST
         :param list ret_codes: The POST return codes of the broadcast
-        :param ucoinpy.documents.Block block: The current block used for transition.
+        :param duniterpy.documents.Block block: The current block used for transition.
         :return: True if the post was successful
         :rtype: bool
         """
@@ -207,22 +207,22 @@ class Transfer(QObject):
         """
         Check if the transfer reached enough confrmation in the blockchain
         :param bool rollback: True if we are in a rollback procedure
-        :param ucoinpy.documents.Block current_block: The current block of the main blockchain
+        :param duniterpy.documents.Block current_block: The current block of the main blockchain
         :param int fork_window: The number of confrmations needed on the network
         :return: True if the transfer reached enough confrmations
         :rtype: bool
         """
-        return not rollback and self.blockid.number + fork_window <= current_block.number
+        return not rollback and self.blockUID.number + fork_window <= current_block.number
 
     def _rollback_and_removed(self, rollback, block):
         """
         Check if the transfer is not in the block anymore
         :param bool rollback: True if we are in a rollback procedure
-        :param ucoinpy.documents.Block block: The block to check for the transaction
+        :param duniterpy.documents.Block block: The block to check for the transaction
         :return: True if the transfer is not found in the block
         """
         if rollback:
-            if not block or block.blockid != self.blockid:
+            if not block or block.blockUID != self.blockUID:
                 return True
             else:
                 return self.sha_hash not in [t.sha_hash for t in block.transactions]
@@ -232,21 +232,21 @@ class Transfer(QObject):
         """
         Check if the transfer is not in the block anymore
         :param bool rollback: True if we are in a rollback procedure
-        :param ucoinpy.documents.Block current_block: The block to check for the transaction
+        :param duniterpy.documents.Block current_block: The block to check for the transaction
         :return: True if the transfer is found in the block
         """
         if rollback:
-            return self.blockid.number + fork_window > current_block.number
+            return self.blockUID.number + fork_window > current_block.number
         return False
 
     def _rollback_and_local(self, rollback, block):
         """
         Check if the transfer is not in the block anymore
         :param bool rollback: True if we are in a rollback procedure
-        :param ucoinpy.documents.Block block: The block to check for the transaction
+        :param duniterpy.documents.Block block: The block to check for the transaction
         :return: True if the transfer is found in the block
         """
-        if rollback and self._locally_created and block.blockid == self.blockid:
+        if rollback and self._locally_created and block.blockUID == self.blockUID:
             return self.sha_hash not in [t.sha_hash for t in block.transactions]
         return False
 
@@ -260,9 +260,9 @@ class Transfer(QObject):
     def _wait(self, current_block):
         """
         Set the transfer as AWAITING confrmation.
-        :param ucoinpy.documents.Block current_block: Current block of the main blockchain
+        :param duniterpy.documents.Block current_block: Current block of the main blockchain
         """
-        self.blockid = current_block.blockid
+        self.blockUID = current_block.blockUID
         self._metadata['time'] = int(time.time())
 
     def _be_validating(self, block):
@@ -270,9 +270,9 @@ class Transfer(QObject):
         Action when the transfer ins found in a block
 
         :param bool rollback: True if we are in a rollback procedure
-        :param ucoinpy.documents.Block block: The block checked
+        :param duniterpy.documents.Block block: The block checked
         """
-        self.blockid = block.blockid
+        self.blockUID = block.blockUID
         self._metadata['time'] = block.mediantime
 
     def _drop(self):
@@ -280,7 +280,7 @@ class Transfer(QObject):
         Cancel the transfer locally.
         The transfer state becomes TransferState.DROPPED.
         """
-        self.blockid = None
+        self.blockUID = None
 
     def _try_transition(self, transition_key, inputs):
         """
@@ -336,15 +336,15 @@ class Transfer(QObject):
         If the transaction was refused (return code != 200), state becomes REFUSED
         The txdoc is saved as the transfer txdoc.
 
-        :param txdoc: A transaction ucoinpy object
+        :param txdoc: A transaction duniterpy object
         :param community: The community target of the transaction
         """
         self.sha_hash = txdoc.sha_hash
         responses = await community.bma_access.broadcast(bma.tx.Process,
                 post_args={'transaction': txdoc.signed_raw()})
-        blockid = await community.blockid()
+        blockUID = community.network.current_blockUID
         block = await community.bma_access.future_request(bma.blockchain.Block,
-                                  req_args={'number': blockid.number})
+                                  req_args={'number': blockUID.number})
         signed_raw = "{0}{1}\n".format(block['raw'], block['signature'])
         block_doc = Block.from_signed_raw(signed_raw)
         result = (False, "")
@@ -363,7 +363,7 @@ class Transfer(QObject):
         """
         Get the raw documents of this transfer
         """
-        block = await community.get_block(self.blockid.number)
+        block = await community.get_block(self.blockUID.number)
         if block:
             block_doc = Block.from_signed_raw("{0}{1}\n".format(block['raw'], block['signature']))
             for tx in block_doc.transactions:

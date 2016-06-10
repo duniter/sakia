@@ -63,7 +63,7 @@ class ConfigureContactDialog(QDialog, Ui_ConfigureContactDialog):
         return ConfigureContactDialog(app, account, parent)
 
     @classmethod
-    def edit_contact(cls, app, parent, account, index):
+    def edit_contact(cls, app, account, parent, index):
         return ConfigureContactDialog(app, account, parent, None, index)
 
     def accept(self):

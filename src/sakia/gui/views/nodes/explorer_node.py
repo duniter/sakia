@@ -7,7 +7,7 @@ import math
 
 
 class ExplorerNode(BaseNode):
-    def __init__(self, nx_node, center_pos, nx_pos, steps, steps_max):
+    def __init__(self, nx_node, center_pos, nx_pos, steps, steps_max, small):
         """
         Create node in the graph scene
 
@@ -16,29 +16,41 @@ class ExplorerNode(BaseNode):
         :param nx_pos: Position of the nodes in the graph
         :param int steps: The steps from the center identity
         :param int steps_max: The steps max of the graph
+        :param bool small: Small dots for big networks
         """
         super().__init__(nx_node, nx_pos)
 
         self.steps = steps
         self.steps_max = steps_max
         self.highlighted = False
+        self.status_sentry = False
 
-        # text inside ellipse
-        self.text_item = QGraphicsSimpleTextItem(self)
-        self.text_item.setText(self.text)
-        # center ellipse around text
-        self.setRect(
-            0,
-            0,
-            self.text_item.boundingRect().width() * 2,
-            self.text_item.boundingRect().height() * 2
-        )
+        if small:
+            self.setRect(
+                0,
+                0,
+                10,
+                10
+            )
+            self.text_item = None
+        else:
+            # text inside ellipse
+            self.text_item = QGraphicsSimpleTextItem(self)
+            self.text_item.setText(self.text)
+            # center ellipse around text
+            self.setRect(
+                0,
+                0,
+                self.text_item.boundingRect().width() * 2,
+                self.text_item.boundingRect().height() * 2
+            )
+            # center text in ellipse
+            self.text_item.setPos(self.boundingRect().width() / 4.0, self.boundingRect().height() / 4.0)
+
 
         #  set anchor to the center
         self.setTransform(
             QTransform().translate(-self.boundingRect().width() / 2.0, -self.boundingRect().height() / 2.0))
-        # center text in ellipse
-        self.text_item.setPos(self.boundingRect().width() / 4.0, self.boundingRect().height() / 4.0)
 
         # cursor change on hover
         self.setAcceptHoverEvents(True)
@@ -53,20 +65,28 @@ class ExplorerNode(BaseNode):
         self.setPos(center_pos)
         self.move_to(nx_pos)
 
+    def update_metadata(self, metadata):
+        super().update_metadata(metadata)
+        self.status_sentry = self.metadata['is_sentry'] if 'is_sentry' in self.metadata else False
+        self._refresh_colors()
+
     def _refresh_colors(self):
         """
         Refresh elements in the node
         """
         # color around ellipse
-        outline_color = QColor('black')
+        outline_color = QColor('grey')
         outline_style = Qt.SolidLine
         outline_width = 1
         if self.status_wallet:
-            outline_color = QColor('grey')
             outline_width = 2
         if not self.status_member:
             outline_color = QColor('red')
-            outline_style = Qt.SolidLine
+
+        if self.status_sentry:
+            outline_color = QColor('black')
+            outline_width = 3
+
         self.setPen(QPen(outline_color, outline_width, outline_style))
 
         if self.highlighted:
@@ -76,7 +96,9 @@ class ExplorerNode(BaseNode):
 
         if self.status_wallet == NodeStatus.HIGHLIGHTED:
             text_color = QColor('grey')
-        self.text_item.setBrush(QBrush(text_color))
+
+        if self.text_item:
+            self.text_item.setBrush(QBrush(text_color))
 
         # create gradient inside the ellipse
         gradient = QRadialGradient(QPointF(0, self.boundingRect().height() / 4), self.boundingRect().width())
@@ -107,7 +129,8 @@ class ExplorerNode(BaseNode):
             x = origin_x + (final_x - origin_x) * value
             y = origin_y + (final_y - origin_y) * value
             self.setPos(x, y)
-            self.scene().node_moved.emit(self.id, x, y)
+            if self.scene():
+                self.scene().node_moved.emit(self.id, x, y)
 
         def timeline_ends():
             self.setPos(final_x, final_y)

@@ -6,12 +6,12 @@ Created on 11 févr. 2014
 
 import logging
 import time
-import asyncio
 from enum import Enum
+from pkg_resources import parse_version
 
-from ucoinpy.documents.certification import SelfCertification
-from ucoinpy.api import bma as bma
-from ucoinpy.api.bma import PROTOCOL_VERSION
+from duniterpy.documents import BlockUID, SelfCertification, MalformedDocumentError
+from duniterpy.api import bma, errors
+from duniterpy.api.bma import PROTOCOL_VERSION
 
 from ...tools.exceptions import Error, NoPeerAvailable,\
                                         MembershipNotFoundError, LookupFailureError
@@ -55,14 +55,16 @@ class Identity(QObject):
 
         :param str uid: The identity uid, also known as its uid on the network
         :param str pubkey: The identity pubkey
-        :parma int sig_date: The date of signature of the self certification
+        :parma BlockUID sig_date: The date of signature of the self certification
         :param LocalState local_state: The local status of the identity
         :param BlockchainState blockchain_state: The blockchain status of the identity
         """
+        if sigdate:
+            assert type(sigdate) is BlockUID
         super().__init__()
         self.uid = uid
         self.pubkey = pubkey
-        self.sigdate = sigdate
+        self._sigdate = sigdate
         self.local_state = local_state
         self.blockchain_state = blockchain_state
 
@@ -75,7 +77,7 @@ class Identity(QObject):
         return cls(uid, pubkey, sigdate, LocalState.COMPLETED, blockchain_state)
 
     @classmethod
-    def from_json(cls, json_data):
+    def from_json(cls, json_data, version):
         """
         Create a person from json data
 
@@ -84,11 +86,23 @@ class Identity(QObject):
         """
         pubkey = json_data['pubkey']
         uid = json_data['uid']
-        sigdate = json_data['sigdate']
         local_state = LocalState[json_data['local_state']]
         blockchain_state = BlockchainState[json_data['blockchain_state']]
+        if version >= parse_version("0.20.0dev0") and json_data['sigdate']:
+            sigdate = BlockUID.from_str(json_data['sigdate'])
+        else:
+            sigdate = BlockUID.empty()
 
         return cls(uid, pubkey, sigdate, local_state, blockchain_state)
+
+    @property
+    def sigdate(self):
+        return self._sigdate
+
+    @sigdate.setter
+    def sigdate(self, sigdate):
+        assert type(sigdate) is BlockUID
+        self._sigdate = sigdate
 
     async def selfcert(self, community):
         """
@@ -96,11 +110,11 @@ class Identity(QObject):
         This request is not cached in the person object.
 
         :param sakia.core.community.Community community: The community target to request the self certification
-        :return: A SelfCertification ucoinpy object
-        :rtype: ucoinpy.documents.certification.SelfCertification
+        :return: A SelfCertification duniterpy object
+        :rtype: duniterpy.documents.certification.SelfCertification
         """
         try:
-            timestamp = 0
+            timestamp = BlockUID.empty()
             lookup_data = await community.bma_access.future_request(bma.wot.Lookup,
                                                                          req_args={'search': self.pubkey})
 
@@ -108,14 +122,14 @@ class Identity(QObject):
                 if result["pubkey"] == self.pubkey:
                     uids = result['uids']
                     for uid_data in uids:
-                        # If we sigDate was written in the blockchain
-                        if self.sigdate and uid_data["meta"]["timestamp"] == self.sigdate:
-                                timestamp = uid_data["meta"]["timestamp"]
-                                uid = uid_data["uid"]
-                                signature = uid_data["self"]
+                        # If the sigDate was written in the blockchain
+                        if self._sigdate and BlockUID.from_str(uid_data["meta"]["timestamp"]) == self._sigdate:
+                            timestamp = BlockUID.from_str(uid_data["meta"]["timestamp"])
+                            uid = uid_data["uid"]
+                            signature = uid_data["self"]
                         # Else we choose the latest one found
-                        elif uid_data["meta"]["timestamp"] > timestamp:
-                            timestamp = uid_data["meta"]["timestamp"]
+                        elif BlockUID.from_str(uid_data["meta"]["timestamp"]) >= timestamp:
+                            timestamp = BlockUID.from_str(uid_data["meta"]["timestamp"])
                             uid = uid_data["uid"]
                             signature = uid_data["self"]
 
@@ -125,12 +139,14 @@ class Identity(QObject):
                     return SelfCertification(PROTOCOL_VERSION,
                                              community.currency,
                                              self.pubkey,
-                                             timestamp,
                                              uid,
+                                             timestamp,
                                              signature)
-        except ValueError as e:
-            if '404' in str(e):
+        except errors.DuniterError as e:
+            if e.ucode == errors.NO_MATCHING_IDENTITY:
                 raise LookupFailureError(self.pubkey, community)
+        except MalformedDocumentError:
+            raise LookupFailureError(self.pubkey, community)
         except NoPeerAvailable:
             logging.debug("No peer available")
 
@@ -150,8 +166,8 @@ class Identity(QObject):
                 block = await community.bma_access.future_request(bma.blockchain.Block,
                                 req_args={'number': membership_data['blockNumber']})
                 return block['medianTime']
-        except ValueError as e:
-            if '404' in str(e) or '400' in str(e):
+        except errors.DuniterError as e:
+            if e.ucode == errors.NO_MEMBER_MATCHING_PUB_OR_UID:
                 raise MembershipNotFoundError(self.pubkey, community.name)
         except NoPeerAvailable as e:
             logging.debug(str(e))
@@ -170,7 +186,7 @@ class Identity(QObject):
                 expiration_date = join_date + parameters['sigValidity']
             except NoPeerAvailable:
                 expiration_date = None
-            except ValueError as e:
+            except errors.DuniterError as e:
                 logging.debug("Expiration date not found")
                 expiration_date = None
         except MembershipNotFoundError:
@@ -192,9 +208,7 @@ class Identity(QObject):
                                            {'search': self.pubkey})
             block_number = -1
             membership_data = None
-            #TODO: Should not be here, should be set when we look for the identity
-            #We do it because we do not have this info in certifiers-of yet...
-            self.sigdate = search['sigDate']
+
             for ms in search['memberships']:
                 if ms['blockNumber'] > block_number:
                     block_number = ms['blockNumber']
@@ -208,8 +222,11 @@ class Identity(QObject):
             else:
                 raise MembershipNotFoundError(self.pubkey, community.name)
 
-        except ValueError as e:
-            if '404' in str(e) or '400' in str(e):
+        except errors.DuniterError as e:
+            if e.ucode == errors.NO_MEMBER_MATCHING_PUB_OR_UID:
+                raise MembershipNotFoundError(self.pubkey, community.name)
+            else:
+                logging.debug(str(e))
                 raise MembershipNotFoundError(self.pubkey, community.name)
         except NoPeerAvailable as e:
             logging.debug(str(e))
@@ -219,21 +236,20 @@ class Identity(QObject):
         try:
             data = await community.bma_access.future_request(bma.wot.Lookup,
                                  req_args={'search': self.pubkey})
-            timestamp = 0
+            timestamp = BlockUID.empty()
 
             for result in data['results']:
                 if result["pubkey"] == self.pubkey:
                     uids = result['uids']
                     person_uid = ""
                     for uid_data in uids:
-                        if uid_data["meta"]["timestamp"] > timestamp:
+                        if BlockUID.from_str(uid_data["meta"]["timestamp"]) >= timestamp:
                             timestamp = uid_data["meta"]["timestamp"]
                             person_uid = uid_data["uid"]
                         if person_uid == self.uid:
                             return True
-        except ValueError as e:
-            if '404' in str(e):
-                return False
+        except errors.DuniterError as e:
+            logging.debug("Lookup error : {0}".format(str(e)))
         except NoPeerAvailable as e:
             logging.debug(str(e))
         return False
@@ -244,9 +260,9 @@ class Identity(QObject):
             try:
                 await community.bma_access.future_request(bma.wot.CertifiersOf,
                                                                {'search': self.pubkey})
-            except ValueError as e:
-                if '404' in str(e) or '400' in str(e):
-                    return True
+            except errors.DuniterError as e:
+                if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
+                    logging.debug("Certifiers of error : {0}".format(str(e)))
         return False
 
     async def is_member(self, community):
@@ -260,11 +276,9 @@ class Identity(QObject):
             certifiers = await community.bma_access.future_request(bma.wot.CertifiersOf,
                                                                         {'search': self.pubkey})
             return certifiers['isMember']
-        except ValueError as e:
-            if '404' in str(e) or '400' in str(e):
+        except errors.DuniterError as e:
+            if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
                 pass
-            else:
-                raise
         except NoPeerAvailable as e:
             logging.debug(str(e))
         return False
@@ -274,7 +288,7 @@ class Identity(QObject):
         Get the list of this person certifiers
 
         :param sakia.core.registry.identities.IdentitiesRegistry identities_registry: The identities registry
-        :param sakia.core.community.Community community: The community target to request the join date
+        :param sakia.core.community.Community community: The community target
         :return: The list of the certifiers of this community
         :rtype: list
         """
@@ -291,15 +305,15 @@ class Identity(QObject):
                                                                               BlockchainState.VALIDATED,
                                                                               community)
                 certifier['cert_time'] = certifier_data['cert_time']['medianTime']
-                if 'written' in certifier_data and type(certifier_data['written']) is dict:
+                if certifier_data['written']:
                     certifier['block_number'] = certifier_data['written']['number']
                 else:
-                    certifier['block_number'] = certifier_data['cert_time']['block']
+                    certifier['block_number'] = None
 
                 certifiers.append(certifier)
-        except ValueError as e:
-            if '404' in str(e):
-                logging.debug('bma.wot.CertifiersOf request error')
+        except errors.DuniterError as e:
+            if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
+                logging.debug("Certifiers of error : {0}".format(str(e)))
             else:
                 logging.debug(str(e))
         except NoPeerAvailable as e:
@@ -321,56 +335,22 @@ class Identity(QObject):
                                                       None,
                                                       BlockchainState.BUFFERED,
                                                       community)
-                                block = await community.bma_access.future_request(bma.blockchain.Block,
-                                                                     {'number': certifier_data['meta']['block_number']})
-                                certifier['cert_time'] = block['medianTime']
+                                certifier['cert_time'] = await community.time(certifier_data['meta']['block_number'])
                                 certifier['block_number'] = None
 
                                 certifiers.append(certifier)
-        except ValueError as e:
-            logging.debug("Lookup error : {0}".format(str(e)))
+        except errors.DuniterError as e:
+            if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
+                logging.debug("Lookup error : {0}".format(str(e)))
         except NoPeerAvailable as e:
             logging.debug(str(e))
         return certifiers
-
-    async def unique_valid_certifiers_of(self, identities_registry, community):
-        """
-        Get the certifications in the blockchain and in the pools
-        Get only unique and last certification for each pubkey
-        :param sakia.core.registry.identities.IdentitiesRegistry identities_registry: The identities registry
-        :param sakia.core.community.Community community: The community target to request the join date
-        :return: The list of the certifiers of this community
-        :rtype: list
-        """
-        certifier_list = await self.certifiers_of(identities_registry, community)
-        unique_valid = []
-        #  add certifiers of uid
-        for certifier in tuple(certifier_list):
-            # add only valid certification...
-            try:
-                cert_expired = await community.certification_expired(certifier['cert_time'])
-            except NoPeerAvailable:
-                logging.debug("No peer available")
-                cert_expired = True
-
-            if not cert_expired:
-                # keep only the latest certification
-                already_found = [c['identity'].pubkey for c in unique_valid]
-                if certifier['identity'].pubkey in already_found:
-                    index = already_found.index(certifier['identity'].pubkey)
-                    if certifier['cert_time'] > unique_valid[index]['cert_time']:
-                        unique_valid[index] = certifier
-                else:
-                    unique_valid.append(certifier)
-        return unique_valid
 
     async def certified_by(self, identities_registry, community):
         """
         Get the list of persons certified by this person
         :param sakia.core.registry.IdentitiesRegistry identities_registry: The registry
-        :param sakia.core.Community community: The community
-
-        :param sakia.core.community.Community community: The community target to request the join date
+        :param sakia.core.community.Community community: The community target
         :return: The list of the certified persons of this community in BMA json format
         :rtype: list
         """
@@ -385,14 +365,14 @@ class Identity(QObject):
                                                                               BlockchainState.VALIDATED,
                                                                               community)
                 certified['cert_time'] = certified_data['cert_time']['medianTime']
-                if 'written' in certified_data and type(certified_data['written']) is dict:
+                if certified_data['written']:
                     certified['block_number'] = certified_data['written']['number']
                 else:
-                    certified['block_number'] = certified_data['cert_time']['block']
+                    certified['block_number'] = None
                 certified_list.append(certified)
-        except ValueError as e:
-            if '404' in str(e):
-                logging.debug('bma.wot.CertifiedBy request error')
+        except errors.DuniterError as e:
+            if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
+                logging.debug("Certified by error : {0}".format(str(e)))
         except NoPeerAvailable as e:
             logging.debug(str(e))
 
@@ -408,40 +388,88 @@ class Identity(QObject):
                                                                           None,
                                                                           BlockchainState.BUFFERED,
                                                                           community)
-                        certified['cert_time'] = certified_data['meta']['timestamp']
+                        timestamp = BlockUID.from_str(certified_data['meta']['timestamp'])
+                        certified['cert_time'] = await community.time(timestamp.number)
                         certified['block_number'] = None
                         certified_list.append(certified)
-        except ValueError as e:
-            if '404' in str(e):
-                logging.debug('bma.wot.Lookup request error')
+        except errors.DuniterError as e:
+            if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
+                logging.debug("Lookup error : {0}".format(str(e)))
         except NoPeerAvailable as e:
             logging.debug(str(e))
         return certified_list
 
-    async def unique_valid_certified_by(self, identities_registry, community):
-        certified_list = await self.certified_by(identities_registry, community)
+    async def _unique_valid(self, cert_list, community):
+        """
+        Get the certifications in the blockchain and in the pools
+        Get only unique and last certification for each pubkey
+        :param list cert_list: The certifications list to filter
+        :param sakia.core.community.Community community: The community target
+        :return: The list of the certifiers of this community
+        :rtype: list
+        """
         unique_valid = []
         #  add certifiers of uid
-        for certified in tuple(certified_list):
+        for certifier in tuple(cert_list):
             # add only valid certification...
             try:
-                cert_expired = await community.certification_expired(certified['cert_time'])
+                cert_expired = await community.certification_expired(certifier['cert_time'])
             except NoPeerAvailable:
                 logging.debug("No peer available")
                 cert_expired = True
 
-            if not cert_expired:
+            if not certifier['block_number']:
+                # add only valid certification...
+                try:
+                    cert_writable = await community.certification_writable(certifier['cert_time'])
+                except NoPeerAvailable:
+                    logging.debug("No peer available")
+                    cert_writable = False
+            else:
+                cert_writable = True
+
+            if not cert_expired and cert_writable:
                 # keep only the latest certification
                 already_found = [c['identity'].pubkey for c in unique_valid]
-                if certified['identity'].pubkey in already_found:
-                    index = already_found.index(certified['identity'].pubkey)
-                    if certified['cert_time'] > unique_valid[index]['cert_time']:
-                        unique_valid[index] = certified
+                if certifier['identity'].pubkey in already_found:
+                    index = already_found.index(certifier['identity'].pubkey)
+                    if certifier['cert_time'] > unique_valid[index]['cert_time']:
+                        unique_valid[index] = certifier
                 else:
-                    unique_valid.append(certified)
+                    unique_valid.append(certifier)
         return unique_valid
 
+    async def unique_valid_certifiers_of(self, identities_registry, community):
+        """
+        Get the certifications in the blockchain and in the pools
+        Get only unique and last certification for each pubkey
+        :param sakia.core.registry.identities.IdentitiesRegistry identities_registry: The identities registry
+        :param sakia.core.community.Community community: The community target
+        :return: The list of the certifiers of this community
+        :rtype: list
+        """
+        certifier_list = await self.certifiers_of(identities_registry, community)
+        return await self._unique_valid(certifier_list, community)
+
+    async def unique_valid_certified_by(self, identities_registry, community):
+        """
+        Get the list of persons certified by this person, filtered to get only unique
+        and valid certifications.
+        :param sakia.core.registry.IdentitiesRegistry identities_registry: The registry
+        :param sakia.core.community.Community community: The community target
+        :return: The list of the certified persons of this community in BMA json format
+        :rtype: list
+        """
+        certified_list = await self.certified_by(identities_registry, community)
+        return await self._unique_valid(certified_list, community)
+
     async def membership_expiration_time(self, community):
+        """
+        Get the remaining time before membership expiration
+        :param sakia.core.Community community: the community
+        :return: the remaining time
+        :rtype: int
+        """
         membership = await self.membership(community)
         join_block = membership['blockNumber']
         block = await community.get_block(join_block)
@@ -451,16 +479,52 @@ class Identity(QObject):
         current_time = time.time()
         return expiration_date - current_time
 
+    async def cert_issuance_delay(self, identities_registry, community):
+        """
+        Get the remaining time before being able to issue new certification.
+        :param sakia.core.Community community: the community
+        :return: the remaining time
+        :rtype: int
+        """
+        certified = await self.certified_by(identities_registry, community)
+        if len(certified) > 0:
+            latest_time = max([c['cert_time'] for c in certified if c['cert_time']])
+            parameters = await community.parameters()
+            if parameters and latest_time:
+                current_time = await community.time()
+                if current_time - latest_time < parameters['sigPeriod']:
+                    return parameters['sigPeriod'] - (current_time - latest_time)
+        return 0
+
+    async def requirements(self, community):
+        """
+        Get the current requirements data.
+        :param sakia.core.Community community: the community
+        :return: the requirements
+        :rtype: dict
+        """
+        try:
+            requirements = await community.bma_access.future_request(bma.wot.Requirements,
+                                                                     {'search': self.pubkey})
+            for req in requirements['identities']:
+                if req['pubkey'] == self.pubkey and req['uid'] == self.uid and \
+                        self._sigdate and \
+                                BlockUID.from_str(req['meta']['timestamp']) == self._sigdate:
+                    return req
+        except errors.DuniterError as e:
+            logging.debug(str(e))
+        return None
+
     def _refresh_uid(self, uids):
         """
         Refresh UID from uids list, got from a successful lookup request
         :param list uids: UIDs got from a lookup request
         """
-        timestamp = 0
+        timestamp = BlockUID.empty()
         if self.local_state == LocalState.NOT_FOUND:
             for uid_data in uids:
-                if uid_data["meta"]["timestamp"] > timestamp:
-                    timestamp = uid_data["meta"]["timestamp"]
+                if BlockUID.from_str(uid_data["meta"]["timestamp"]) >= timestamp:
+                    timestamp = BlockUID.from_str(uid_data["meta"]["timestamp"])
                     identity_uid = uid_data["uid"]
                     self.uid = identity_uid
                     self.blockchain_state = BlockchainState.BUFFERED
@@ -473,7 +537,7 @@ class Identity(QObject):
         """
         data = {'uid': self.uid,
                 'pubkey': self.pubkey,
-                'sigdate': self.sigdate,
+                'sigdate': str(self._sigdate) if self._sigdate else None,
                 'local_state': self.local_state.name,
                 'blockchain_state': self.blockchain_state.name}
         return data
@@ -481,6 +545,6 @@ class Identity(QObject):
     def __str__(self):
         return "{uid} - {pubkey} - {sigdate} - {local} - {blockchain}".format(uid=self.uid,
                                                                             pubkey=self.pubkey,
-                                                                            sigdate=self.sigdate,
+                                                                            sigdate=self._sigdate,
                                                                             local=self.local_state,
                                                                             blockchain=self.blockchain_state)

@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QMenu, QAction, QApplication, QMessageBox
 from PyQt5.QtCore import QObject, pyqtSignal
-from ucoinpy.documents import Block, Membership
+from duniterpy.documents import Block, Membership
 import logging
 
 from ..member import MemberDialog
@@ -96,9 +96,9 @@ class ContextMenu(QObject):
             copy_doc.triggered.connect(lambda checked, tx=transfer: menu.copy_transaction_to_clipboard(tx))
             menu.qmenu.addAction(copy_doc)
 
-            if transfer.blockid:
+            if transfer.blockUID:
                 copy_doc = QAction(menu.qmenu.tr("Copy transaction block to clipboard"), menu.qmenu.parent())
-                copy_doc.triggered.connect(lambda checked, number=transfer.blockid.number:
+                copy_doc.triggered.connect(lambda checked, number=transfer.blockUID.number:
                                            menu.copy_block_to_clipboard(number))
                 menu.qmenu.addAction(copy_doc)
 
@@ -174,7 +174,8 @@ QMessageBox.Ok | QMessageBox.Cancel)
     async def copy_transaction_to_clipboard(self, tx):
         clipboard = QApplication.clipboard()
         raw_doc = await tx.get_raw_document(self._community)
-        clipboard.setText(raw_doc.signed_raw())
+        if raw_doc:
+            clipboard.setText(raw_doc.signed_raw())
 
     @asyncify
     async def copy_block_to_clipboard(self, number):

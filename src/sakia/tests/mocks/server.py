@@ -1,30 +1,30 @@
-from aiohttp import web, log
+from aiohttp import web, log, errors
 import json
 import socket
-from ucoinpy.documents import Peer
+from duniterpy.documents import Peer
 
 
 def bma_peering_generator(port):
     return {
-          "version": 1,
+          "version": 2,
           "currency": "test_currency",
           "endpoints": [
             "BASIC_MERKLED_API 127.0.0.1 {port}".format(port=port)
           ],
           "status": "UP",
-          "block": "30152-00003E7F9234E7542FCF669B69B0F84FF79CCCD3",
+          "block": "0-E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
           "signature": "cXuqZuDfyHvxYAEUkPH1TQ1M+8YNDpj8kiHGYi3LIaMqEdVqwVc4yQYGivjxFMYyngRfxXkyvqBKZA6rKOulCA==",
-          "raw": "Version: 1\nType: Peer\nCurrency: meta_brouzouf\nPublicKey: HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk\nBlock: 30152-00003E7F9234E7542FCF669B69B0F84FF79CCCD3\nEndpoints:\nBASIC_MERKLED_API 127.0.0.1 {port}\n".format(port=port),
+          "raw": "Version: 2\nType: Peer\nCurrency: meta_brouzouf\nPublicKey: HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk\nBlock: 30152-00003E7F9234E7542FCF669B69B0F84FF79CCCD3\nEndpoints:\nBASIC_MERKLED_API 127.0.0.1 {port}\n".format(port=port),
           "pubkey": "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk"
         }
 
 
 def peer_document_generator(port):
-    return Peer.from_signed_raw("""Version: 1
+    return Peer.from_signed_raw("""Version: 2
 Type: Peer
 Currency: meta_brouzouf
 PublicKey: HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk
-Block: 30152-00003E7F9234E7542FCF669B69B0F84FF79CCCD3
+Block: 0-E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855
 Endpoints:
 BASIC_MERKLED_API 127.0.0.1 {port}
 cXuqZuDfyHvxYAEUkPH1TQ1M+8YNDpj8kiHGYi3LIaMqEdVqwVc4yQYGivjxFMYyngRfxXkyvqBKZA6rKOulCA==
@@ -42,7 +42,8 @@ class MockServer():
     def __init__(self, loop):
         self.lp = loop
         self.requests = []
-        self.app = web.Application(loop=self.lp)
+        self.app = web.Application(loop=self.lp,
+                                   middlewares=[self.middleware_factory])
 
         self.handler = self.app.make_handler(
             keep_alive_on=False,
@@ -52,6 +53,19 @@ class MockServer():
 
     def get_request(self, i):
         return self.requests[i]
+
+    async def middleware_factory(self, app, handler):
+        async def middleware_handler(request):
+            try:
+                resp = await handler(request)
+                return resp
+            except web.HTTPNotFound:
+                return web.Response(status=404, body=bytes(json.dumps({"ucode":1001,
+                                                                    "message": "404 error"}),
+                                                           "utf-8"),
+                                    headers={'Content-Type': 'application/json'})
+
+        return middleware_handler
 
     async def _handler(self, request, data_dict, http_code):
         await request.read()

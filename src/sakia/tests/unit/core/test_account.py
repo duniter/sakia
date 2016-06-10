@@ -4,7 +4,7 @@ from PyQt5.QtCore import QLocale
 from sakia.core.registry.identities import IdentitiesRegistry, Identity
 from sakia.core import Account
 from sakia.tests import QuamashTest
-from ucoinpy.documents import BlockId, SelfCertification
+from duniterpy.documents import BlockUID, SelfCertification
 
 
 class TestAccount(unittest.TestCase, QuamashTest):
@@ -79,17 +79,17 @@ class TestAccount(unittest.TestCase, QuamashTest):
                           "test_account", [], [], [],
                           self.identities_registry)
         account_identity = MagicMock(autospec='sakia.core.registry.Identity')
-        account_identity.selfcert = CoroutineMock(return_value=SelfCertification(1, "meta_brouzouf",
+        account_identity.selfcert = CoroutineMock(return_value=SelfCertification(2, "meta_brouzouf",
                                             "H8uYXvyF6GWeCr8cwFJ6V5B8tNprwRdjepFNJBqivrzr", "test_account", 1000000000, ""))
         community = MagicMock(autospec='sakia.core.Community')
-        community.blockid = CoroutineMock(return_value=BlockId(3102, "0000C5336F0B64BFB87FF4BC858AE25726B88175"))
+        community.blockUID = CoroutineMock(return_value=BlockUID(3102, "0000C5336F0B64BFB87FF4BC858AE25726B88175"))
         self.identities_registry.future_find = CoroutineMock(return_value=account_identity)
         community.bma_access = MagicMock(autospec='sakia.core.net.api.bma.access.BmaAccess')
         response = Mock()
         response.json = CoroutineMock(return_value={
   "signature": "H41/8OGV2W4CLKbE35kk5t1HJQsb3jEM0/QGLUf80CwJvGZf3HvVCcNtHPUFoUBKEDQO9mPK3KJkqOoxHpqHCw==",
   "membership": {
-    "version": "2",
+    "version": 2,
     "currency": "beta_brouzouf",
     "issuer": "HsLShAtzXTVxeUtQd7yi5Z5Zh4zNvbu8sTEZ53nfKcqY",
     "membership": "IN",
@@ -105,7 +105,6 @@ class TestAccount(unittest.TestCase, QuamashTest):
 
         self.lp.run_until_complete(exec_test())
 
-
     def test_send_certification(self):
         cert_signal_sent = False
         def check_certification_accepted():
@@ -117,18 +116,22 @@ class TestAccount(unittest.TestCase, QuamashTest):
                           self.identities_registry)
         account.certification_accepted.connect(check_certification_accepted)
         account_identity = MagicMock(autospec='sakia.core.registry.Identity')
-        account_identity.selfcert = CoroutineMock(return_value=SelfCertification(1, "meta_brouzouf",
-                                            "H8uYXvyF6GWeCr8cwFJ6V5B8tNprwRdjepFNJBqivrzr", "test_account", 1000000000, ""))
+        account_identity.selfcert = CoroutineMock(return_value=SelfCertification(2, "meta_brouzouf",
+                                            "H8uYXvyF6GWeCr8cwFJ6V5B8tNprwRdjepFNJBqivrzr", "test_account",
+                                            BlockUID(1000, "49E2A1D1131F1496FAD6EDAE794A9ADBFA8844029675E3732D3B027ABB780243"),
+                                            "82o1sNCh1bLpUXU6nacbK48HBcA9Eu2sPkL1/3c2GtDPxBUZd2U2sb7DxwJ54n6ce9G0Oy7nd1hCxN3fS0oADw=="))
 
         certified = MagicMock(autospec='sakia.core.registry.Identity')
         certified.uid = "john"
         certified.pubkey = "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ"
         certified.sigdate = 1441130831
-        certified.selfcert = CoroutineMock(return_value=SelfCertification(1, "meta_brouzouf",
-                                            "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ", "john", 1441130831, ""))
+        certified.selfcert = CoroutineMock(return_value=SelfCertification(2, "meta_brouzouf",
+                                            "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ", "john",
+                                            BlockUID(1200, "49E2A1D1131F1496FAD6EDAE794A9ADBFA8844029675E3732D3B027ABB780243"),
+                                            "82o1sNCh1bLpUXU6nacbK48HBcA9Eu2sPkL1/3c2GtDPxBUZd2U2sb7DxwJ54n6ce9G0Oy7nd1hCxN3fS0oADw=="))
 
         community = MagicMock(autospec='sakia.core.Community')
-        community.blockid = CoroutineMock(return_value=BlockId(3102, "0000C5336F0B64BFB87FF4BC858AE25726B88175"))
+        community.blockUID = CoroutineMock(return_value=BlockUID(3102, "49E2A1D1131F1496FAD6EDAE794A9ADBFA8844029675E3732D3B027ABB780243"))
         self.identities_registry.future_find = CoroutineMock(side_effect=lambda pubkey, community :account_identity \
                         if pubkey == "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ" else certified)
         community.bma_access = MagicMock(autospec='sakia.core.net.api.bma.access.BmaAccess')

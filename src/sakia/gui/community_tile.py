@@ -2,12 +2,12 @@
 @author: inso
 """
 
-import asyncio
 import enum
 
 from PyQt5.QtWidgets import QFrame, QLabel, QVBoxLayout, QLayout
-from PyQt5.QtCore import QSize, pyqtSignal
-from ucoinpy.documents.block import Block
+from PyQt5.QtCore import QSize, pyqtSignal, QTime
+from duniterpy.documents.block import Block
+from duniterpy.api import errors
 
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from ..tools.exceptions import NoPeerAvailable
@@ -62,7 +62,7 @@ background-color: palette(base);
 
     def handle_nodes_change(self):
         if len(self.community.network.online_nodes) > 0:
-            if self.community.network.current_blockid.sha_hash == Block.Empty_Hash:
+            if self.community.network.current_blockUID.sha_hash == Block.Empty_Hash:
                 state = CommunityState.NOT_INIT
             else:
                 state = CommunityState.READY
@@ -94,6 +94,31 @@ background-color: palette(base);
             else:
                 localized_monetary_mass = ""
             status = self.app.current_account.pubkey in members_pubkeys
+            account_identity = await self.app.current_account.identity(self.community)
+
+            mstime_remaining_text = self.tr("Expired or never published")
+            outdistanced_text = self.tr("Outdistanced")
+
+            requirements = await account_identity.requirements(self.community)
+            mstime_remaining = 0
+            nb_certs = 0
+            if requirements:
+                mstime_remaining = requirements['membershipExpiresIn']
+                nb_certs = len(requirements['certifications'])
+                if not requirements['outdistanced']:
+                    outdistanced_text = self.tr("In WoT range")
+
+            if mstime_remaining > 0:
+                days, remainder = divmod(mstime_remaining, 3600*24)
+                hours, remainder = divmod(remainder, 3600)
+                minutes, seconds = divmod(remainder, 60)
+                mstime_remaining_text = self.tr("Expires in ")
+                if days > 0:
+                    mstime_remaining_text += "{days} days".format(days=days)
+                else:
+                    mstime_remaining_text += "{hours} hours and {min} min.".format(hours=hours,
+                                                                                    min=minutes)
+
             status_value = self.tr("Member") if status else self.tr("Non-Member")
             status_color = '#00AA00' if status else self.tr('#FF0000')
             description = """<html>
@@ -104,6 +129,8 @@ background-color: palette(base);
             <p>{nb_members} {members_label}</p>
             <p><span style="font-weight:600;">{monetary_mass_label}</span> : {monetary_mass}</p>
             <p><span style="font-weight:600;">{status_label}</span> : <span style="color:{status_color};">{status}</span></p>
+            <p><span style="font-weight:600;">{nb_certs_label}</span> : {nb_certs} ({outdistanced_text})</p>
+            <p><span style="font-weight:600;">{mstime_remaining_label}</span> : {mstime_remaining}</p>
             <p><span style="font-weight:600;">{balance_label}</span> : {balance}</p>
             </body>
             </html>""".format(currency=self.community.currency,
@@ -114,6 +141,11 @@ background-color: palette(base);
                               status_color=status_color,
                               status_label=self.tr("Status"),
                               status=status_value,
+                              nb_certs_label=self.tr("Certs. received"),
+                              nb_certs=nb_certs,
+                              outdistanced_text=outdistanced_text,
+                              mstime_remaining_label=self.tr("Membership"),
+                              mstime_remaining=mstime_remaining_text,
                               balance_label=self.tr("Balance"),
                               balance=localized_amount)
             self.text_label.setText(description)
@@ -130,8 +162,8 @@ background-color: palette(base);
                               message=self.tr("Not connected"))
             self.text_label.setText(description)
             self._state = CommunityState.OFFLINE
-        except ValueError as e:
-            if '404' in str(e):
+        except errors.DuniterError as e:
+            if e.ucode == errors.BLOCK_NOT_FOUND:
                 description = """<html>
                 <body>
                 <p>

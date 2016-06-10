@@ -1,11 +1,12 @@
 import unittest
-from asynctest import Mock, CoroutineMock
+from asynctest import Mock, CoroutineMock, patch
 from PyQt5.QtCore import QLocale
 from sakia.core.registry.identities import Identity, LocalState, BlockchainState
 
 from sakia.tests.mocks.bma import nice_blockchain, corrupted
 from sakia.tests import QuamashTest
-from ucoinpy.api import bma
+from duniterpy.api import bma
+from duniterpy.documents import BlockUID
 from sakia.tools.exceptions import MembershipNotFoundError
 
 
@@ -30,13 +31,22 @@ class TestIdentity(unittest.TestCase, QuamashTest):
             if request is bma.blockchain.Block:
                 return nice_blockchain.bma_blockchain_current
 
-        identity = Identity("john", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ", 1441130831,
+        def block_to_time(block_number=None):
+            if block_number == 15:
+                return 1200000200
+            else:
+                return 1500000400
+
+        identity = Identity("john", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
+                            BlockUID(20, "7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67"),
                             LocalState.COMPLETED, BlockchainState.VALIDATED)
-        id_doe = Identity("doe", "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn", 1441230831,
+        id_doe = Identity("doe", "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
+                            BlockUID(101, "BAD49448A1AD73C978CEDCB8F137D20A5715EBAA739DAEF76B1E28EE67B2C00C"),
                             LocalState.COMPLETED, BlockchainState.VALIDATED)
 
         self.community.bma_access.future_request = CoroutineMock(side_effect=bma_access)
         self.identities_registry.from_handled_data = Mock(return_value=id_doe)
+        self.community.time = CoroutineMock(side_effect=block_to_time)
         async def exec_test():
             certifiers = await identity.certifiers_of(self.identities_registry, self.community)
 
@@ -46,12 +56,46 @@ class TestIdentity(unittest.TestCase, QuamashTest):
 
         self.lp.run_until_complete(exec_test())
 
+    @patch('time.time', Mock(return_value=1500000400))
+    def test_identity_cert_delay(self):
+        def bma_access(request, *args):
+            if request is bma.wot.CertifiedBy:
+                return nice_blockchain.bma_certified_by_doe
+            if request is bma.wot.Lookup:
+                return nice_blockchain.bma_lookup_doe
+            if request is bma.blockchain.Block:
+                return nice_blockchain.bma_blockchain_current
+
+        def block_to_time(block_number=None):
+            if block_number == 38580:
+                return 1500000200
+            else:
+                return 1500000400
+
+        identity = Identity("john", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
+                            BlockUID(20, "7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67"),
+                            LocalState.COMPLETED, BlockchainState.VALIDATED)
+        id_doe = Identity("doe", "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
+                            BlockUID(101, "BAD49448A1AD73C978CEDCB8F137D20A5715EBAA739DAEF76B1E28EE67B2C00C"),
+                            LocalState.COMPLETED, BlockchainState.VALIDATED)
+
+        self.community.bma_access.future_request = CoroutineMock(side_effect=bma_access)
+        self.community.parameters = CoroutineMock(side_effect=lambda: nice_blockchain.bma_parameters)
+        self.community.time = CoroutineMock(side_effect=block_to_time)
+        self.identities_registry.from_handled_data = Mock(return_value=id_doe)
+        async def exec_test():
+            cert_delay = await identity.cert_issuance_delay(self.identities_registry, self.community)
+            self.assertEqual(cert_delay, 200)
+
+        self.lp.run_until_complete(exec_test())
+
     def test_identity_membership(self):
         def bma_access(request, *args):
             if request is bma.blockchain.Membership:
                 return nice_blockchain.bma_membership_john
 
-        identity = Identity("john", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ", 1441130831,
+        identity = Identity("john", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
+                            BlockUID(20, "7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67"),
                             LocalState.COMPLETED, BlockchainState.VALIDATED)
 
         self.community.bma_access.future_request = CoroutineMock(side_effect=bma_access)
@@ -59,7 +103,7 @@ class TestIdentity(unittest.TestCase, QuamashTest):
         async def exec_test():
             ms = await identity.membership(self.community)
             self.assertEqual(ms["blockNumber"], 0)
-            self.assertEqual(ms["blockHash"], "DA39A3EE5E6B4B0D3255BFEF95601890AFD80709")
+            self.assertEqual(ms["blockHash"], "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855")
             self.assertEqual(ms["membership"], "IN")
             self.assertEqual(ms["currency"], "test_currency")
             self.assertEqual(ms["written"], 10000)
@@ -71,7 +115,8 @@ class TestIdentity(unittest.TestCase, QuamashTest):
             if request is bma.blockchain.Membership:
                 return corrupted.bma_memberships_empty_array
 
-        identity = Identity("john", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ", 1441130831,
+        identity = Identity("john", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
+                            BlockUID(20, "7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67"),
                             LocalState.COMPLETED, BlockchainState.VALIDATED)
         self.community.bma_access.future_request = CoroutineMock(side_effect=bma_access)
         async def exec_test():

@@ -10,7 +10,8 @@ from PyQt5.QtCore import Qt, pyqtSignal, QEvent, QT_TRANSLATE_NOOP, QObject
 from PyQt5.QtGui import QCursor
 from PyQt5.QtWidgets import QWidget, QAction, QMenu, QDialog, \
                             QAbstractItemView
-from ucoinpy.api import bma
+from duniterpy.api import bma, errors
+from duniterpy.documents import BlockUID
 
 from ..models.identities import IdentitiesFilterProxyModel, IdentitiesTableModel
 from ..gen_resources.identities_tab_uic import Ui_IdentitiesTab
@@ -125,14 +126,17 @@ class IdentitiesTabWidget(QObject):
                 for uid_data in identity_data['uids']:
                     identity = Identity.from_handled_data(uid_data['uid'],
                                                          identity_data['pubkey'],
-                                                         uid_data['meta']['timestamp'],
+                                                         BlockUID.from_str(uid_data['meta']['timestamp']),
                                                          BlockchainState.BUFFERED)
                     identities.append(identity)
 
             self.ui.edit_textsearch.clear()
             self.ui.edit_textsearch.setPlaceholderText(text)
             await self.refresh_identities(identities)
-        except ValueError as e:
+        except errors.DuniterError as e:
+            if e.ucode == errors.BLOCK_NOT_FOUND:
+                logging.debug(str(e))
+        except NoPeerAvailable as e:
             logging.debug(str(e))
         finally:
             self.ui.busy.hide()

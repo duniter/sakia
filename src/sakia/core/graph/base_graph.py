@@ -77,6 +77,25 @@ class BaseGraph(QObject):
             pass
         return None
 
+    def is_sentry(self, nb_certs, nb_members):
+        """
+        Check if it is a sentry or not
+        :param int nb_certs: the number of certs
+        :param int nb_members: the number of members
+        :return: True if a sentry
+        """
+        Y = {
+            10: 2,
+            100: 4,
+            1000: 6,
+            10000: 12,
+            100000: 20
+        }
+        for k in reversed(sorted(Y.keys())):
+            if nb_members >= k:
+                return nb_certs >= Y[k]
+        return False
+
     async def add_certifier_list(self, certifier_list, identity, account_identity):
         """
         Add list of certifiers to graph
@@ -107,7 +126,7 @@ class BaseGraph(QObject):
                             QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
                         ),
                         'cert_time': certifier['cert_time'],
-                        'confirmation_text': self.confirmation_text(certifier['cert_time'])
+                        'confirmation_text': self.confirmation_text(certifier['block_number'])
                     }
 
                     self.nx_graph.add_edge(certifier['identity'].pubkey, identity.pubkey, attr_dict=arc, weight=len(certifier_list))
@@ -145,7 +164,7 @@ class BaseGraph(QObject):
                             QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
                         ),
                         'cert_time': certified['cert_time'],
-                        'confirmation_text': self.confirmation_text(certified['cert_time'])
+                        'confirmation_text': self.confirmation_text(certified['block_number'])
                     }
 
                     self.nx_graph.add_edge(identity.pubkey, certified['identity'].pubkey, attr_dict=arc,
@@ -161,7 +180,6 @@ class BaseGraph(QObject):
         :param int status:  Optional, default=None, Node status (see sakia.gui.views.wot)
         :param list edges:  Optional, default=None, List of edges (certified by identity)
         :param list connected:  Optional, default=None, Public key list of the connected nodes around the identity
-        :return:
         """
         metadata = {
             'text': identity.uid,

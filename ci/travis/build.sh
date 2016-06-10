@@ -3,7 +3,9 @@
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
 
-cd $HOME/build/ucoin-io/sakia
+cd $HOME/build/duniter/sakia
+
+
 pyenv activate sakia-env
 pip install coveralls
 pip install pyinstaller
@@ -12,10 +14,12 @@ if [ $TRAVIS_OS_NAME == "linux" ]
 then
     pip install -U git+https://github.com/posborne/dbus-python.git
     pip install notify2
+
+    export PATH=/tmp/qt/5.5/5.5/gcc_64/bin:$PATH
 fi
 
 python gen_resources.py
-python gen_translations.py
+python gen_translations.py --lrelease
 
 if [ $TRAVIS_OS_NAME == "osx" ]
 then

@@ -35,7 +35,6 @@ def once_at_a_time(fn):
         if fn.__name__ in args[0].__tasks:
             args[0].__tasks[fn.__name__]._next_task = fn
             args[0].__tasks[fn.__name__].cancel()
-            logging.debug("Previous {0} was cancelled".format(fn.__name__))
         else:
             fn._start()
 

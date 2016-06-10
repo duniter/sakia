@@ -4,17 +4,19 @@ Created on 1 févr. 2014
 @author: inso
 """
 
-from ucoinpy.documents.transaction import InputSource, OutputSource, Transaction
-from ucoinpy.key import SigningKey
+from duniterpy.documents.transaction import InputSource, OutputSource, Unlock, SIGParameter, Transaction, reduce_base
+from duniterpy.grammars import output
+from duniterpy.key import SigningKey
 
-from ucoinpy.api import bma
-from ucoinpy.api.bma import PROTOCOL_VERSION
+from duniterpy.api import bma
+from duniterpy.api.bma import PROTOCOL_VERSION
 from ..tools.exceptions import NotEnoughMoneyError, NoPeerAvailable, LookupFailureError
 from .transfer import Transfer
 from .txhistory import TxHistory
-from .registry import IdentitiesRegistry, Identity
+from .. import __version__
 
-from PyQt5.QtCore import QObject, pyqtSignal, QCoreApplication
+from pkg_resources import parse_version
+from PyQt5.QtCore import QObject, pyqtSignal
 
 import logging
 import asyncio
@@ -78,10 +80,12 @@ class Wallet(QObject):
 
         :param dict json_data: The caches as a dict in json format
         """
+        version = parse_version(json_data['version'])
         for currency in json_data:
             if currency != 'version':
                 self.caches[currency] = TxHistory(app, self)
-                self.caches[currency].load_from_json(json_data[currency])
+                if version >= parse_version("0.20.dev0"):
+                    self.caches[currency].load_from_json(json_data[currency], version)
 
     def jsonify_caches(self):
         """
@@ -159,10 +163,10 @@ class Wallet(QObject):
         value = 0
         sources = await self.sources(community)
         for s in sources:
-            value += s.amount
+            value += s['amount'] * pow(10, s['base'])
         return value
 
-    def tx_inputs(self, amount, community):
+    def tx_sources(self, amount, community):
         """
         Get inputs to generate a transaction with a given amount of money
 
@@ -171,21 +175,52 @@ class Wallet(QObject):
 
         :return: The list of inputs to use in the transaction document
         """
-        value = 0
-        inputs = []
+        amount, amount_base = reduce_base(amount, 0)
         cache = self.caches[community.currency]
-
-        buf_inputs = list(cache.available_sources)
-        for s in cache.available_sources:
-            value += s.amount
-            s.index = 0
-            inputs.append(s)
-            buf_inputs.remove(s)
-            if value >= amount:
-                return (inputs, buf_inputs)
+        current_base = amount_base
+        while current_base >= 0:
+            value = 0
+            sources = []
+            buf_sources = list(cache.available_sources)
+            for s in [src for src in cache.available_sources if src['base'] == current_base]:
+                value += s['amount'] * pow(10, s['base'])
+                sources.append(s)
+                buf_sources.remove(s)
+                if value >= amount * pow(10, amount_base):
+                    overhead = value - int(amount)
+                    overhead, overhead_max_base = reduce_base(overhead, 0)
+                    if overhead_max_base >= current_base:
+                        return (sources, buf_sources)
+            current_base -= 1
 
         raise NotEnoughMoneyError(value, community.currency,
-                                  len(inputs), amount)
+                                  len(sources), amount * pow(10, amount_base))
+
+    def tx_inputs(self, sources):
+        """
+        Get inputs to generate a transaction with a given amount of money
+
+        :param list sources: The sources used to send the given amount of money
+
+        :return: The list of inputs to use in the transaction document
+        """
+        inputs = []
+        for s in sources:
+            inputs.append(InputSource(s['type'], s['identifier'], s['noffset']))
+        return inputs
+
+    def tx_unlocks(self, sources):
+        """
+        Get unlocks to generate a transaction with a given amount of money
+
+        :param list sources: The sources used to send the given amount of money
+
+        :return: The list of unlocks to use in the transaction document
+        """
+        unlocks = []
+        for i, s in enumerate(sources):
+            unlocks.append(Unlock(i, [SIGParameter(0)]))
+        return unlocks
 
     def tx_outputs(self, pubkey, amount, inputs):
         """
@@ -201,13 +236,40 @@ class Wallet(QObject):
         inputs_value = 0
         for i in inputs:
             logging.debug(i)
-            inputs_value += i.amount
-
+            inputs_value += i['amount'] * pow(10, i['base'])
+        inputs_max_base = max([i['base'] for i in inputs])
         overhead = inputs_value - int(amount)
-        outputs.append(OutputSource(pubkey, int(amount)))
+
+        amount, amount_base = int(amount / pow(10, inputs_max_base)), inputs_max_base
+        overhead, overhead_base = int(overhead / pow(10, inputs_max_base)), inputs_max_base
+
+        outputs.append(OutputSource(amount, amount_base, output.Condition.token(output.SIG.token(pubkey))))
         if overhead != 0:
-            outputs.append(OutputSource(self.pubkey, overhead))
+            outputs.append(OutputSource(overhead, overhead_base, output.Condition.token(output.SIG.token(self.pubkey))))
         return outputs
+
+    def prepare_tx(self, pubkey, amount, message, community):
+        """
+        Prepare a simple Transaction document
+        :param str pubkey: the target of the transaction
+        :param int amount: the amount sent to the receiver
+        :param Community community: the target community
+        :return: the transaction document
+        :rtype: duniterpy.documents.Transaction
+        """
+        result = self.tx_sources(int(amount), community)
+        sources = result[0]
+        self.caches[community.currency].available_sources = result[1][1:]
+        logging.debug("Inputs : {0}".format(sources))
+
+        inputs = self.tx_inputs(sources)
+        unlocks = self.tx_unlocks(sources)
+        outputs = self.tx_outputs(pubkey, amount, sources)
+        logging.debug("Outputs : {0}".format(outputs))
+        tx = Transaction(PROTOCOL_VERSION, community.currency, 0,
+                         [self.pubkey], inputs, unlocks,
+                         outputs, message, None)
+        return tx
 
     async def send_money(self, salt, password, community,
                    recipient, amount, message):
@@ -222,9 +284,9 @@ class Wallet(QObject):
         :param str message: The message to send with the transfer
         """
         try:
-            blockid = await community.blockid()
+            blockUID = community.network.current_blockUID
             block = await community.bma_access.future_request(bma.blockchain.Block,
-                                      req_args={'number': blockid.number})
+                                      req_args={'number': blockUID.number})
         except ValueError as e:
             if '404' in str(e):
                 return False, "Could not send transfer with null blockchain"
@@ -260,44 +322,32 @@ class Wallet(QObject):
                     'txid': txid
                     }
         transfer = Transfer.initiate(metadata)
-
         self.caches[community.currency]._transfers.append(transfer)
-
         try:
-            result = self.tx_inputs(int(amount), community)
-            inputs = result[0]
-            self.caches[community.currency].available_sources = result[1][1:]
+            tx = self.prepare_tx(recipient, amount, message, community)
+            logging.debug("TX : {0}".format(tx.raw()))
+
+            tx.sign([key])
+            logging.debug("Transaction : [{0}]".format(tx.signed_raw()))
+            return await transfer.send(tx, community)
         except NotEnoughMoneyError as e:
-            return False, str(e)
-        logging.debug("Inputs : {0}".format(inputs))
-
-        outputs = self.tx_outputs(recipient, amount, inputs)
-        logging.debug("Outputs : {0}".format(outputs))
-        tx = Transaction(PROTOCOL_VERSION, community.currency,
-                         [self.pubkey], inputs,
-                         outputs, message, None)
-        logging.debug("TX : {0}".format(tx.raw()))
-
-        tx.sign([key])
-        logging.debug("Transaction : {0}".format(tx.signed_raw()))
-        return (await transfer.send(tx, community))
+            return (False, str(e))
 
     async def sources(self, community):
         """
         Get available sources in a given community
 
         :param sakia.core.community.Community community: The community where we want available sources
-        :return: List of InputSource ucoinpy objects
+        :return: List of bma sources
         """
-        tx = []
+        sources = []
         try:
             data = await community.bma_access.future_request(bma.tx.Sources,
                                      req_args={'pubkey': self.pubkey})
-            for s in data['sources']:
-                tx.append(InputSource.from_bma(s))
+            return data['sources'].copy()
         except NoPeerAvailable as e:
             logging.debug(str(e))
-        return tx
+        return sources
 
     def transfers(self, community):
         """
@@ -323,9 +373,9 @@ class Wallet(QObject):
         else:
             return []
 
-    def stop_coroutines(self):
+    def stop_coroutines(self, closing=False):
         for c in self.caches.values():
-            c.stop_coroutines()
+            c.stop_coroutines(closing)
 
     def jsonify(self):
         """
@@ -335,4 +385,5 @@ class Wallet(QObject):
         """
         return {'walletid': self.walletid,
                 'pubkey': self.pubkey,
-                'name': self.name}
+                'name': self.name,
+                'version': __version__}

@@ -73,7 +73,7 @@ class ExplorerScene(BaseScene):
         while queue:
             n = queue.pop()
             nsteps = data[n]['scenter'] + 1
-            for edge in networkx.edges(nx_graph, n):
+            for edge in networkx.edges(nx_graph.to_undirected(), n):
                 next_node = edge[0] if edge[0] is not n else edge[1]
                 if data[next_node]['sparent']:
                     continue
@@ -128,7 +128,7 @@ class ExplorerScene(BaseScene):
         :param str current: the current node which we compute the subtree
         """
         ratio = data[current]['span'] / data[current]['stsize']
-        for edge in nx_graph.edges(current):
+        for edge in nx_graph.to_undirected().edges(current):
             next_node = edge[0] if edge[0] != current else edge[1]
             if data[next_node]['sparent'] != current:
                 continue
@@ -152,7 +152,7 @@ class ExplorerScene(BaseScene):
         else:
             theta = data[current]['theta'] - data[current]['span'] / 2
 
-        for edge in nx_graph.edges(current):
+        for edge in nx_graph.to_undirected().edges(current):
             next_node = edge[0] if edge[0] != current else edge[1]
             if data[next_node]['sparent'] != current:
                 continue
@@ -179,7 +179,7 @@ class ExplorerScene(BaseScene):
 
         if len(nx_graph.nodes()) == 1:
             return {nx_graph.nodes()[0]: (0, 0)}
-        nx_graph = nx_graph.to_undirected()
+        #nx_graph = nx_graph.to_undirected()
 
         data = ExplorerScene._init_layout(nx_graph)
         if not center:
@@ -191,7 +191,7 @@ class ExplorerScene(BaseScene):
         data[center]['theta'] = 0.0
         ExplorerScene._set_positions(nx_graph, data, center)
 
-        distances = networkx.shortest_path_length(nx_graph, center)
+        distances = networkx.shortest_path_length(nx_graph.to_undirected(), center)
         nx_pos = {}
         for node in nx_graph.nodes():
             hyp = distances[node] + 1
@@ -246,6 +246,7 @@ class ExplorerScene(BaseScene):
             if nx_node[0] in self.nodes:
                 v = self.nodes[nx_node[0]]
                 v.move_to(graph_pos)
+                v.update_metadata(nx_node[1])
             else:
                 center_pos = None
                 if len(nx_graph.edges(nx_node[0])) > 0:
@@ -260,13 +261,15 @@ class ExplorerScene(BaseScene):
                     else:
                         center_pos = QPoint(0, 0)
 
-                v = ExplorerNode(nx_node, center_pos, graph_pos, distances[nx_node[0]], dist_max)
+                small = distances[nx_node[0]] > 1
+
+                v = ExplorerNode(nx_node, center_pos, graph_pos, distances[nx_node[0]], dist_max, small)
                 self.addItem(v)
                 self.nodes[nx_node[0]] = v
 
         for edge in nx_graph.edges(data=True):
             edge[2]["confirmation_text"] = ""
-            if (edge[0], edge[1]) not in self.edges and (edge[1], edge[0]) not in self.edges:
+            if (edge[0], edge[1]) not in self.edges:
                 distance = max(self.nodes[edge[0]].steps, self.nodes[edge[1]].steps)
                 explorer_edge = ExplorerEdge(edge[0], edge[1], edge[2], graph_pos, distance, dist_max)
                 self.node_moved.connect(explorer_edge.move_source_point)
@@ -283,18 +286,24 @@ class ExplorerScene(BaseScene):
 
             for node in self.nodes.values():
                 node.neutralize()
-            try:
-                path = networkx.shortest_path(self.nx_graph.to_undirected(), self.identity.pubkey, node_id)
 
-                for node, next_node in zip(path[:-1], path[1:]):
-                    if (node, next_node) in self.edges:
-                        edge = self.edges[(node, next_node)]
-                    elif (next_node, node) in self.edges:
-                        edge = self.edges[(next_node, node)]
-                    if edge:
-                        edge.highlight()
-                        self.nodes[node].highlight()
-                        self.nodes[next_node].highlight()
-                        logging.debug("Update edge between {0} and {1}".format(node, next_node))
+            path = []
+            try:
+                path = networkx.shortest_path(self.nx_graph, node_id, self.identity.pubkey)
             except (networkx.exception.NetworkXError, networkx.exception.NetworkXNoPath) as e:
                 logging.debug(str(e))
+                try:
+                    path = networkx.shortest_path(self.nx_graph, self.identity.pubkey, node_id)
+                except (networkx.exception.NetworkXError, networkx.exception.NetworkXNoPath) as e:
+                    logging.debug(str(e))
+
+            for node, next_node in zip(path[:-1], path[1:]):
+                if (node, next_node) in self.edges:
+                    edge = self.edges[(node, next_node)]
+                elif (next_node, node) in self.edges:
+                    edge = self.edges[(next_node, node)]
+                if edge:
+                    edge.highlight()
+                    self.nodes[node].highlight()
+                    self.nodes[next_node].highlight()
+                    logging.debug("Update edge between {0} and {1}".format(node, next_node))

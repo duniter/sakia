@@ -5,18 +5,14 @@ Created on 1 févr. 2014
 """
 
 import logging
-import hashlib
 import re
-import time
-import asyncio
 import math
 
-from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtCore import QObject
 
 from ..tools.exceptions import NoPeerAvailable
 from .net.network import Network
-from ucoinpy.api import bma
-from ucoinpy.documents import Block, BlockId
+from duniterpy.api import bma, errors
 from .net.api.bma.access import BmaAccess
 
 
@@ -25,7 +21,7 @@ class Community(QObject):
     A community is a group of nodes using the same currency.
 
     .. warning:: The currency name is supposed to be unique in sakia
-    but nothing exists in ucoin to assert that a currency name is unique.
+    but nothing exists in duniter to assert that a currency name is unique.
     """
     def __init__(self, currency, network, bma_access):
         """
@@ -172,8 +168,8 @@ class Community(QObject):
                 return block
             else:
                 return None
-        except ValueError as e:
-            if '404' in str(e):
+        except errors.DuniterError as e:
+            if e.ucode == errors.BLOCK_NOT_FOUND:
                 logging.debug(str(e))
                 return None
         except NoPeerAvailable as e:
@@ -187,7 +183,7 @@ class Community(QObject):
         :return: The monetary mass value
         """
         # Get cached block by block number
-        block_number = self.network.current_blockid.number
+        block_number = self.network.current_blockUID.number
         if block_number:
             block = await self.bma_access.future_request(bma.blockchain.Block,
                                  req_args={'number': block_number})
@@ -203,31 +199,33 @@ class Community(QObject):
         """
         try:
             # Get cached block by block number
-            block_number = self.network.current_blockid.number
+            block_number = self.network.current_blockUID.number
             block = await self.bma_access.future_request(bma.blockchain.Block,
                                  req_args={'number': block_number})
             return block['membersCount']
-        except ValueError as e:
-            if '404' in e:
+        except errors.DuniterError as e:
+            if e.ucode == errors.BLOCK_NOT_FOUND:
                 return 0
         except NoPeerAvailable as e:
             logging.debug(str(e))
             return 0
 
-    async def time(self):
+    async def time(self, block_number=None):
         """
         Get the blockchain time
+        :param block_number: The block number, None if current block
         :return: The community blockchain time
         :rtype: int
         """
         try:
             # Get cached block by block number
-            block_number = self.network.current_blockid.number
+            if block_number is None:
+                block_number = self.network.current_blockUID.number
             block = await self.bma_access.future_request(bma.blockchain.Block,
                                  req_args={'number': block_number})
             return block['medianTime']
-        except ValueError as e:
-            if '404' in e:
+        except errors.DuniterError as e:
+            if e.ucode == errors.BLOCK_NOT_FOUND:
                 return 0
         except NoPeerAvailable as e:
             logging.debug(str(e))
@@ -239,7 +237,7 @@ class Community(QObject):
         Get the community network instance.
 
         :return: The community network instance.
-        :rtype: sakia.core.net.network.Network
+        :rtype: sakia.core.net.Network
         """
         return self._network
 
@@ -259,19 +257,31 @@ class Community(QObject):
         """
         return await self.bma_access.future_request(bma.blockchain.Parameters)
 
-    async def certification_expired(self, certtime):
+    async def certification_expired(self, cert_time):
         """
         Return True if the certificaton time is too old
+
+        :param int cert_time: the timestamp of the certification
         """
         parameters = await self.parameters()
         blockchain_time = await self.time()
-        return blockchain_time - certtime > parameters['sigValidity']
+        return blockchain_time - cert_time > parameters['sigValidity']
+
+    async def certification_writable(self, cert_time):
+        """
+        Return True if the certificaton time is too old
+
+        :param int cert_time: the timestamp of the certification
+        """
+        parameters = await self.parameters()
+        blockchain_time = await self.time()
+        return blockchain_time - cert_time < parameters['sigWindow'] * parameters['avgGenTime']
 
     def add_node(self, node):
         """
         Add a peer to the community.
 
-        :param peer: The new peer as a ucoinpy Peer object.
+        :param peer: The new peer as a duniterpy Peer object.
         """
         self._network.add_root_node(node)
 
@@ -290,7 +300,7 @@ class Community(QObject):
         :param int number: The block number. If none, returns current block.
         """
         if number is None:
-            block_number = self.network.current_blockid.number
+            block_number = self.network.current_blockUID.number
             data = await self.bma_access.future_request(bma.blockchain.Block,
                                  req_args={'number': block_number})
         else:
@@ -298,23 +308,6 @@ class Community(QObject):
             data = await self.bma_access.future_request(bma.blockchain.Block,
                                 req_args={'number': number})
         return data
-
-    async def blockid(self):
-        """
-        Get the block id.
-
-        :return: The current block ID as [NUMBER-HASH] format.
-        """
-        try:
-            block_number = self.network.current_blockid.number
-            block = await self.bma_access.future_request(bma.blockchain.Block,
-                                 req_args={'number': block_number})
-            signed_raw = "{0}{1}\n".format(block['raw'], block['signature'])
-        except ValueError as e:
-            if '404' in str(e):
-                return BlockId.empty()
-
-        return Block.from_signed_raw(signed_raw).blockid
 
     async def members_pubkeys(self):
         """
@@ -328,8 +321,8 @@ class Community(QObject):
     def start_coroutines(self):
         self.network.start_coroutines()
 
-    async def stop_coroutines(self):
-        await self.network.stop_coroutines()
+    async def stop_coroutines(self, closing=False):
+        await self.network.stop_coroutines(closing)
 
     def rollback_cache(self):
         self._bma_access.rollback()

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>681</width>
-    <height>549</height>
+    <width>900</width>
+    <height>550</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,7 +21,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>681</width>
+     <width>900</width>
      <height>30</height>
     </rect>
    </property>
@@ -66,8 +66,15 @@
     </property>
     <addaction name="actionAbout"/>
    </widget>
+   <widget class="QMenu" name="menu_duniter">
+    <property name="title">
+     <string>&amp;Duniter</string>
+    </property>
+    <addaction name="actionManage_local_node"/>
+   </widget>
    <addaction name="menu_file"/>
    <addaction name="menu_account"/>
+   <addaction name="menu_duniter"/>
    <addaction name="menu_help"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -174,6 +181,11 @@
   <action name="action_add_account">
    <property name="text">
     <string>&amp;Add account</string>
+   </property>
+  </action>
+  <action name="actionManage_local_node">
+   <property name="text">
+    <string>&amp;Manage local node</string>
    </property>
   </action>
  </widget>

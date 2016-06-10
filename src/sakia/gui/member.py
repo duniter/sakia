@@ -7,7 +7,8 @@ from ..core.graph import WoTGraph
 from .widgets.busy import Busy
 from ..tools.decorators import asyncify
 from ..gen_resources.member_uic import Ui_MemberView
-from ..tools.exceptions import MembershipNotFoundError
+from ..tools.exceptions import MembershipNotFoundError, LookupFailureError, NoPeerAvailable
+from ..core.registry import LocalState
 
 
 class MemberDialog(QObject):
@@ -49,29 +50,44 @@ class MemberDialog(QObject):
     def as_widget(cls, parent_widget, app, account, community, identity):
         return cls(app, account, community, identity, QWidget(parent_widget), Ui_MemberView())
 
+    def change_community(self, community):
+        """
+        Change current community
+        :param sakia.core.Community community: the new community
+        """
+        self.community = community
+        self.refresh()
+
     @asyncify
     async def refresh(self):
-        if self.identity:
+        if self.identity and self.identity.local_state != LocalState.NOT_FOUND:
             self.ui.busy.show()
             self.ui.label_uid.setText(self.identity.uid)
             self.ui.label_properties.setText("")
             try:
+                identity_selfcert = await self.identity.selfcert(self.community)
+                publish_time = await self.community.time(identity_selfcert.timestamp.number)
+
                 join_date = await self.identity.get_join_date(self.community)
+                if join_date is None:
+                    join_date = self.tr('not a member')
+                else:
+                    join_date = datetime.datetime.fromtimestamp(join_date).strftime("%d/%m/%Y %I:%M")
+
             except MembershipNotFoundError:
-                join_date = None
+                join_date = "###"
+            except (LookupFailureError, NoPeerAvailable):
+                publish_time = None
+                join_date = "###"
 
-            if join_date is None:
-                join_date = self.tr('not a member')
+            if publish_time:
+                uid_publish_date = QLocale.toString(
+                        QLocale(),
+                        QDateTime.fromTime_t(publish_time),
+                        QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
+                    )
             else:
-                join_date = datetime.datetime.fromtimestamp(join_date).strftime("%d/%m/%Y %I:%M")
-
-
-            identity_selfcert = await self.identity.selfcert(self.community)
-            uid_publish_date = QLocale.toString(
-                    QLocale(),
-                    QDateTime.fromTime_t(identity_selfcert.timestamp),
-                    QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
-                )
+                uid_publish_date = "###"
 
             text = self.tr("""
                 <table cellpadding="5">

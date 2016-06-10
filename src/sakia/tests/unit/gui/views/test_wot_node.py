@@ -35,7 +35,7 @@ class TestWotNode(unittest.TestCase, QuamashTest):
             self.assertEqual(node.status_wallet, False)
             self.assertEqual(node.status_member, True)
             self.assertEqual(node.text, "UserA")
-            self.assertEqual(node.toolTip(), "TestTooltip")
+            self.assertEqual(node.toolTip(), "UserA - TestTooltip")
 
         self.lp.run_until_complete(exec_test())
 

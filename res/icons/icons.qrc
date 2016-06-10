@@ -13,7 +13,7 @@
     <file alias="home_icon">iconmonstr-home-icon.svg</file>
     <file alias="add_account_icon">noun_7440_cc.svg</file>
     <file alias="sakia_logo">logo.svg</file>
-    <file alias="ucoin_info_icon">noun_76373_cc.svg</file>
+    <file alias="duniter_info_icon">noun_76373_cc.svg</file>
     <file alias="import_icon">noun_62479_cc.svg</file>
     <file alias="network_icon">noun_21549_cc.svg</file>
     <file alias="member_icon">iconmonstr-user-icon.svg</file>
@@ -42,5 +42,8 @@
     <file alias="dividend">noun_188924_cc.svg</file>
     <file alias="received">noun_188906_cc.svg</file>
     <file alias="sent">noun_188905_cc.svg</file>
+    <file alias="lock_open">noun_424413_cc.svg</file>
+    <file alias="lock_closed">noun_424414_cc.svg</file>
+    <file alias="revokation">noun_169247_cc.svg</file>
   </qresource>
 </RCC>

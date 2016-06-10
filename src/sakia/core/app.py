@@ -15,7 +15,7 @@ import asyncio
 from pkg_resources import parse_version
 
 from PyQt5.QtCore import QObject, pyqtSignal, QTranslator, QCoreApplication, QLocale
-from ucoinpy.api.bma import API
+from duniterpy.api.bma import API
 from aiohttp.connector import ProxyConnector
 from . import config
 from .account import Account
@@ -197,14 +197,14 @@ class Application(QObject):
             self._current_account.start_coroutines()
         self.account_changed.emit()
 
-    async def stop_current_account(self):
+    async def stop_current_account(self, closing=False):
         """
         Save the account to the cache
         and stop the coroutines
         """
         self.save_cache(self._current_account)
         self.save_notifications(self._current_account)
-        await self._current_account.stop_coroutines()
+        await self._current_account.stop_coroutines(closing)
 
     def load(self):
         """
@@ -510,7 +510,7 @@ class Application(QObject):
 
     async def stop(self):
         if self._current_account:
-            await self.stop_current_account()
+            await self.stop_current_account(closing=True)
         await asyncio.sleep(0)
         self.save_registries()
 
@@ -524,7 +524,7 @@ class Application(QObject):
             connector = None
         try:
             with aiohttp.Timeout(15):
-                response = await aiohttp.get("https://api.github.com/repos/ucoin-io/sakia/releases", connector=connector)
+                response = await aiohttp.get("https://api.github.com/repos/duniter/sakia/releases", connector=connector)
                 if response.status == 200:
                     releases = await response.json()
                     latest = None
