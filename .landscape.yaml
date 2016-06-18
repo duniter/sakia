@@ -1,4 +1,10 @@
+requirements:
+    - requirements.txt
+python-targets:
+    - 3
 ignore-paths:
   - lib
   - build
   - res
+  - ci
+  - doc
