@@ -29,7 +29,80 @@ class TestWallet(unittest.TestCase, QuamashTest):
         self.assertEqual(wallet.name, wallet_from_json.name)
         self.assertEqual(wallet._identities_registry, wallet_from_json._identities_registry)
 
-    def test_prepare_tx(self):
+    def test_prepare_tx_base_0(self):
+        community = MagicMock("sakia.core.Community")
+        community.currency = "test_currency"
+        cache = MagicMock("sakia.core.txhistory.TxHistory")
+        cache.available_sources = [{
+            "pubkey": "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
+            "type": "D",
+            "noffset": 2,
+            "identifier": "FCAD5A388AC8A811B45A9334A375585E77071AA9F6E5B6896582961A6C66F365",
+            "amount": 15,
+            "base": 0
+        },
+            {
+                "pubkey": "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
+                "type": "D",
+                "noffset": 4,
+                "identifier": "A0AC57E2E4B24D66F2D25E66D8501D8E881D9E6453D1789ED753D7D426537ED5",
+                "amount": 85,
+                "base": 0
+            },
+            {
+                "pubkey": "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
+                "type": "T",
+                "noffset": 4,
+                "identifier": "7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67",
+                "amount": 11,
+                "base": 1
+            }]
+        wallet = Wallet(0, "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
+                        "Wallet 1", self.identities_registry)
+        wallet.caches["test_currency"] = cache
+        tx = wallet.prepare_tx("FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
+                               99, "", community)
+        self.assertEqual(len(tx.issuers), 1)
+        self.assertEqual(tx.issuers[0], "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ")
+        self.assertEqual(len(tx.inputs), 2)
+        self.assertEqual(tx.inputs[0].origin_id, "FCAD5A388AC8A811B45A9334A375585E77071AA9F6E5B6896582961A6C66F365")
+        self.assertEqual(tx.inputs[0].source, "D")
+        self.assertEqual(tx.inputs[0].index, 2)
+        self.assertEqual(tx.inputs[1].origin_id, "A0AC57E2E4B24D66F2D25E66D8501D8E881D9E6453D1789ED753D7D426537ED5")
+        self.assertEqual(tx.inputs[1].source, "D")
+        self.assertEqual(tx.inputs[1].index, 4)
+        self.assertEqual(len(tx.outputs), 2)
+        self.assertEqual(tx.outputs[0].amount, 99)
+        self.assertEqual(tx.outputs[0].base, 0)
+        self.assertEqual(pypeg2.compose(tx.outputs[0].conditions, output.Condition),
+                         "SIG(FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn)")
+        self.assertEqual(tx.outputs[1].amount, 1)
+        self.assertEqual(tx.outputs[1].base, 0)
+        self.assertEqual(pypeg2.compose(tx.outputs[1].conditions, output.Condition),
+                         "SIG(7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ)")
+        self.assertEqual(len(tx.unlocks), 2)
+        self.assertEqual(tx.unlocks[0].index, 0)
+        self.assertEqual(tx.unlocks[0].parameters[0].index, 0)
+        self.assertEqual(tx.unlocks[1].index, 1)
+        self.assertEqual(tx.unlocks[0].parameters[0].index, 0)
+        self.assertEqual(tx.raw(), """Version: 2
+Type: Transaction
+Currency: test_currency
+Locktime: 0
+Issuers:
+7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ
+Inputs:
+D:FCAD5A388AC8A811B45A9334A375585E77071AA9F6E5B6896582961A6C66F365:2
+D:A0AC57E2E4B24D66F2D25E66D8501D8E881D9E6453D1789ED753D7D426537ED5:4
+Unlocks:
+0:SIG(0)
+1:SIG(0)
+Outputs:
+99:0:SIG(FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn)
+1:0:SIG(7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ)
+Comment:""" + " \n")
+
+    def test_prepare_tx_base_1(self):
         community = MagicMock("sakia.core.Community")
         community.currency = "test_currency"
         cache = MagicMock("sakia.core.txhistory.TxHistory")
@@ -64,22 +137,21 @@ class TestWallet(unittest.TestCase, QuamashTest):
                                100, "", community)
         self.assertEqual(len(tx.issuers), 1)
         self.assertEqual(tx.issuers[0], "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ")
-        self.assertEqual(len(tx.inputs), 2)
-        self.assertEqual(tx.inputs[0].origin_id, "FCAD5A388AC8A811B45A9334A375585E77071AA9F6E5B6896582961A6C66F365")
-        self.assertEqual(tx.inputs[0].source, "D")
-        self.assertEqual(tx.inputs[0].index, 2)
-        self.assertEqual(tx.inputs[1].origin_id, "A0AC57E2E4B24D66F2D25E66D8501D8E881D9E6453D1789ED753D7D426537ED5")
-        self.assertEqual(tx.inputs[1].source, "D")
-        self.assertEqual(tx.inputs[1].index, 4)
-        self.assertEqual(len(tx.outputs), 1)
-        self.assertEqual(tx.outputs[0].amount, 100)
-        self.assertEqual(tx.outputs[0].base, 0)
+        self.assertEqual(len(tx.inputs), 1)
+        self.assertEqual(tx.inputs[0].origin_id, "7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67")
+        self.assertEqual(tx.inputs[0].source, "T")
+        self.assertEqual(tx.inputs[0].index, 4)
+        self.assertEqual(len(tx.outputs), 2)
+        self.assertEqual(tx.outputs[0].amount, 10)
+        self.assertEqual(tx.outputs[0].base, 1)
         self.assertEqual(pypeg2.compose(tx.outputs[0].conditions, output.Condition),
                          "SIG(FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn)")
-        self.assertEqual(len(tx.unlocks), 2)
+        self.assertEqual(tx.outputs[1].amount, 1)
+        self.assertEqual(tx.outputs[1].base, 1)
+        self.assertEqual(pypeg2.compose(tx.outputs[1].conditions, output.Condition),
+                         "SIG(7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ)")
+        self.assertEqual(len(tx.unlocks), 1)
         self.assertEqual(tx.unlocks[0].index, 0)
-        self.assertEqual(tx.unlocks[0].parameters[0].index, 0)
-        self.assertEqual(tx.unlocks[1].index, 1)
         self.assertEqual(tx.unlocks[0].parameters[0].index, 0)
         self.assertEqual(tx.raw(), """Version: 2
 Type: Transaction
@@ -88,11 +160,10 @@ Locktime: 0
 Issuers:
 7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ
 Inputs:
-D:FCAD5A388AC8A811B45A9334A375585E77071AA9F6E5B6896582961A6C66F365:2
-D:A0AC57E2E4B24D66F2D25E66D8501D8E881D9E6453D1789ED753D7D426537ED5:4
+T:7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67:4
 Unlocks:
 0:SIG(0)
-1:SIG(0)
 Outputs:
-100:0:SIG(FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn)
+10:1:SIG(FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn)
+1:1:SIG(7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ)
 Comment:""" + " \n")
