@@ -136,6 +136,7 @@ class TransferMoneyDialog(QObject):
 
         password = await self.password_asker.async_exec()
         if self.password_asker.result() == QDialog.Rejected:
+            self.ui.button_box.setEnabled(True)
             return
 
         QApplication.setOverrideCursor(Qt.WaitCursor)
