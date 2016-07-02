@@ -118,7 +118,7 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
                 if block_ud['membersCount'] == 0 or block_ud_minus_1['monetaryMass'] == 0:
                     actual_growth = float(0)
                 else:
-                    actual_growth = block_ud['dividend'] / (block_ud_minus_1['monetaryMass'] / block_ud['membersCount'])
+                    actual_growth = (block_ud['dividend'] * math.pow(10, block_ud['unitbase'])) / (block_ud_minus_1['monetaryMass'] / block_ud['membersCount'])
 
                 localized_ud_median_time_minus_1 = QLocale.toString(
                     QLocale(),
