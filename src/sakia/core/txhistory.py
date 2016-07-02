@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import hashlib
+import math
 from duniterpy.documents.transaction import SimpleTransaction
 from duniterpy.documents.block import Block
 from duniterpy.api import  bma, errors
@@ -9,7 +10,7 @@ from .net.network import MAX_CONFIRMATIONS
 from ..tools.exceptions import LookupFailureError, NoPeerAvailable
 
 
-class TxHistory():
+class TxHistory:
     def __init__(self, app, wallet):
         self._latest_block = 0
         self.wallet = wallet
@@ -169,7 +170,7 @@ class TxHistory():
                        if o.conditions.left.pubkey != self.wallet.pubkey]
             amount = 0
             for o in outputs:
-                amount += o.amount
+                amount += o.amount * math.pow(10, o.base)
             metadata['amount'] = amount
             transfer = Transfer.create_from_blockchain(tx_hash,
                                                        blockUID,
@@ -182,7 +183,7 @@ class TxHistory():
                        if o.conditions.left.pubkey == self.wallet.pubkey]
             amount = 0
             for o in outputs:
-                amount += o.amount
+                amount += o.amount * math.pow(10, o.base)
             metadata['amount'] = amount
 
             transfer = Transfer.create_from_blockchain(tx_hash,
