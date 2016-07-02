@@ -5,6 +5,7 @@ Created on 31 janv. 2015
 """
 
 import logging
+import math
 from PyQt5.QtCore import QLocale, QDateTime, QEvent
 from PyQt5.QtWidgets import QWidget
 from ..gen_resources.informations_tab_uic import Ui_InformationsTabWidget
@@ -77,7 +78,7 @@ class InformationsTabWidget(QWidget, Ui_InformationsTabWidget):
 
         if block_ud:
             # display float values
-            localized_ud = await self.account.current_ref.instance(block_ud['dividend'],
+            localized_ud = await self.account.current_ref.instance(block_ud['dividend'] * math.pow(10, block_ud['unitbase']),
                                                                self.community,
                                                                self.app) \
                 .diff_localized(True, self.app.preferences['international_system_of_units'])
