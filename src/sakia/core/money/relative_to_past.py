@@ -72,7 +72,7 @@ class RelativeToPast(BaseReferential):
     async def localized(self, units=False, international_system=False):
         from . import Relative
         value = await self.value()
-        block = await self.community.get_block()
+        block = await self.community.get_ud_block()
         prefix = ""
         if international_system:
             localized_value, prefix = Relative.to_si(value, self.app.preferences['digits_after_comma'])
@@ -95,7 +95,7 @@ class RelativeToPast(BaseReferential):
     async def diff_localized(self, units=False, international_system=False):
         from . import Relative
         value = await self.differential()
-        block = await self.community.get_block(self._block_number)
+        block = await self.community.get_ud_block(0, self._block_number)
         prefix = ""
         if international_system and value != 0:
             localized_value, prefix = Relative.to_si(value, self.app.preferences['digits_after_comma'])
