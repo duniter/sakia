@@ -51,7 +51,7 @@ class TestRelativeToPast(unittest.TestCase, QuamashTest):
     @patch('sakia.core.Application')
     def test_localized_no_si(self, app, community):
         community.dividend = CoroutineMock(return_value=1000)
-        community.get_block = CoroutineMock(return_value={'medianTime': 1452663088792})
+        community.get_ud_block = CoroutineMock(return_value={'medianTime': 1452663088792})
         type(community).short_currency = PropertyMock(return_value="TC")
         app.preferences = {
             'digits_after_comma': 6
@@ -70,7 +70,7 @@ class TestRelativeToPast(unittest.TestCase, QuamashTest):
     @patch('sakia.core.Application')
     def test_localized_with_si(self, app, community):
         community.dividend = CoroutineMock(return_value=1000000)
-        community.get_block = CoroutineMock(return_value={'medianTime': 1452663088792})
+        community.get_ud_block = CoroutineMock(return_value={'medianTime': 1452663088792})
         type(community).short_currency = PropertyMock(return_value="TC")
         app.preferences = {
             'digits_after_comma': 6
@@ -89,7 +89,7 @@ class TestRelativeToPast(unittest.TestCase, QuamashTest):
     @patch('sakia.core.Application')
     def test_localized_no_units_no_si(self, app, community):
         community.dividend = CoroutineMock(return_value=10000)
-        community.get_block = CoroutineMock(return_value={'medianTime': 1452663088792})
+        community.get_ud_block = CoroutineMock(return_value={'medianTime': 1452663088792})
         type(community).short_currency = PropertyMock(return_value="TC")
         app.preferences = {
             'digits_after_comma': 6
@@ -104,7 +104,7 @@ class TestRelativeToPast(unittest.TestCase, QuamashTest):
     @patch('sakia.core.Application')
     def test_localized_no_units_with_si(self, app, community):
         community.dividend = CoroutineMock(return_value=1000000)
-        community.get_block = CoroutineMock(return_value={'medianTime': 1452663088792})
+        community.get_ud_block = CoroutineMock(return_value={'medianTime': 1452663088792})
         type(community).short_currency = PropertyMock(return_value="TC")
         app.preferences = {
             'digits_after_comma': 6
@@ -123,7 +123,7 @@ class TestRelativeToPast(unittest.TestCase, QuamashTest):
     @patch('sakia.core.Application')
     def test_diff_localized_no_si(self, app, community):
         community.dividend = CoroutineMock(return_value=10000)
-        community.get_block = CoroutineMock(return_value={'medianTime': 1452663088792})
+        community.get_ud_block = CoroutineMock(return_value={'medianTime': 1452663088792})
         type(community).short_currency = PropertyMock(return_value="TC")
         app.preferences = {
             'digits_after_comma': 6
@@ -142,7 +142,7 @@ class TestRelativeToPast(unittest.TestCase, QuamashTest):
     @patch('sakia.core.Application')
     def test_diff_localized_with_si(self, app, community):
         community.dividend = CoroutineMock(return_value=1000000)
-        community.get_block = CoroutineMock(return_value={'medianTime': 1452663088792})
+        community.get_ud_block = CoroutineMock(return_value={'medianTime': 1452663088792})
         type(community).short_currency = PropertyMock(return_value="TC")
         app.preferences = {
             'digits_after_comma': 6
@@ -161,7 +161,7 @@ class TestRelativeToPast(unittest.TestCase, QuamashTest):
     @patch('sakia.core.Application')
     def test_diff_localized_no_units_no_si(self, app, community):
         community.dividend = CoroutineMock(return_value=10000)
-        community.get_block = CoroutineMock(return_value={'medianTime': 1452663088792})
+        community.get_ud_block = CoroutineMock(return_value={'medianTime': 1452663088792})
         type(community).short_currency = PropertyMock(return_value="TC")
         app.preferences = {
             'digits_after_comma': 6
@@ -176,7 +176,7 @@ class TestRelativeToPast(unittest.TestCase, QuamashTest):
     @patch('sakia.core.Application')
     def test_diff_localized_no_units_with_si(self, app, community):
         community.dividend = CoroutineMock(return_value=1000000)
-        community.get_block = CoroutineMock(return_value={'medianTime': 1452663088792})
+        community.get_ud_block = CoroutineMock(return_value={'medianTime': 1452663088792})
         type(community).short_currency = PropertyMock(return_value="TC")
         app.preferences = {
             'digits_after_comma': 6
