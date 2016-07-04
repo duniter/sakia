@@ -33,7 +33,7 @@ install:
   - "SET PATH=%QTDIR%\\bin;%QTDIR%\\lib;%PATH%"
   - "SET QT_PLUGIN_PATH=%QTDIR%\\plugins"
   - echo %PATH%
-  - choco install -y vcredist2015
+  #- choco install -y vcredist2015
   - "%CMD_IN_ENV% conda config --set always_yes yes --set changeps1 no"
   - "%CMD_IN_ENV% conda config --add channels inso/channel/sakia"
   - "%CMD_IN_ENV% conda create -q -n test-environment python=%PYTHON_VERSION% pyqt5=5.6 libsodium=1.0.3 setuptools=19.2"
