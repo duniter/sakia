@@ -100,6 +100,7 @@ if __name__ == '__main__':
         window = MainWindow.startup(app)
         loop.run_forever()
         try:
+            loop.set_exception_handler(None)
             loop.run_until_complete(app.stop())
             logging.debug("Application stopped")
         except asyncio.CancelledError:
