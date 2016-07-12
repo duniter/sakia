@@ -5,7 +5,7 @@ Created on 2 févr. 2014
 """
 import asyncio
 
-from PyQt5.QtWidgets import QDialog, QApplication
+from PyQt5.QtWidgets import QDialog, QApplication, QDialogButtonBox
 from PyQt5.QtCore import QRegExp, Qt, QObject
 
 from PyQt5.QtGui import QRegExpValidator
@@ -168,19 +168,27 @@ class TransferMoneyDialog(QObject):
 
     @asyncify
     async def amount_changed(self, value):
-        dividend = await self.community.dividend()
+        ud_block = await self.community.get_ud_block()
+        dividend = ud_block['dividend']
+        base = ud_block['unitbase']
         relative = value / dividend
         self.ui.spinbox_relative.blockSignals(True)
         self.ui.spinbox_relative.setValue(relative)
         self.ui.spinbox_relative.blockSignals(False)
+        correct_amount = int(pow(10, base) * round(float(value) / pow(10, base)))
+        self.ui.button_box.button(QDialogButtonBox.Ok).setEnabled(correct_amount == value)
 
     @asyncify
     async def relative_amount_changed(self, value):
-        dividend = await self.community.dividend()
+        ud_block = await self.community.get_ud_block()
+        dividend = ud_block['dividend']
+        base = ud_block['unitbase']
         amount = value * dividend
+        amount = int(pow(10, base) * round(float(amount) / pow(10, base)))
         self.ui.spinbox_amount.blockSignals(True)
         self.ui.spinbox_amount.setValue(amount)
         self.ui.spinbox_amount.blockSignals(False)
+        self.ui.button_box.button(QDialogButtonBox.Ok).setEnabled(True)
 
     @asyncify
     async def change_current_community(self, index):
@@ -192,11 +200,7 @@ class TransferMoneyDialog(QObject):
                             international_system=self.app.preferences['international_system_of_units'])
         self.ui.label_total.setText("{0}".format(ref_text))
         self.ui.spinbox_amount.setSuffix(" " + self.community.currency)
-        amount = await self.wallet.value(self.community)
-        dividend = await self.community.dividend()
-        relative = amount / dividend
-        self.ui.spinbox_amount.setMaximum(amount)
-        self.ui.spinbox_relative.setMaximum(relative)
+        await self.refresh_spinboxes()
 
     @asyncify
     async def change_displayed_wallet(self, index):
@@ -206,11 +210,18 @@ class TransferMoneyDialog(QObject):
             .diff_localized(units=True,
                             international_system=self.app.preferences['international_system_of_units'])
         self.ui.label_total.setText("{0}".format(ref_text))
-        amount = await self.wallet.value(self.community)
-        dividend = await self.community.dividend()
-        relative = amount / dividend
-        self.ui.spinbox_amount.setMaximum(amount)
-        self.ui.spinbox_relative.setMaximum(relative)
+        await self.refresh_spinboxes()
+
+    async def refresh_spinboxes(self):
+        max_amount = await self.wallet.value(self.community)
+        ud_block = await self.community.get_ud_block()
+        dividend = ud_block['dividend']
+        base = ud_block['unitbase']
+        max_amount = int(pow(10, base) * round(float(max_amount) / pow(10, base)))
+        max_relative = max_amount / dividend
+        self.ui.spinbox_amount.setMaximum(max_amount)
+        self.ui.spinbox_relative.setMaximum(max_relative)
+        self.ui.spinbox_amount.setSingleStep(pow(10, base))
 
     def recipient_mode_changed(self, radio):
         self.ui.edit_pubkey.setEnabled(radio == "pubkey")

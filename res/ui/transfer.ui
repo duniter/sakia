@@ -153,7 +153,7 @@
            </sizepolicy>
           </property>
           <property name="text">
-           <string>S&amp;earch user</string>
+           <string>Search &amp;user</string>
           </property>
          </widget>
         </item>
@@ -254,6 +254,9 @@
           </property>
           <property name="maximum">
            <double>99999999999999991611392.000000000000000</double>
+          </property>
+          <property name="singleStep">
+           <double>0.100000000000000</double>
           </property>
          </widget>
         </item>
