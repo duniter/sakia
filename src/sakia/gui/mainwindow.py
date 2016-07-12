@@ -5,8 +5,10 @@ Created on 1 févr. 2014
 """
 import aiohttp
 import logging
+import traceback
 
-from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog, QMessageBox, QLabel, QComboBox, QDialog, QApplication
+from PyQt5.QtWidgets import QMainWindow, QAction, QFileDialog, \
+    QMessageBox, QLabel, QComboBox, QDialog, QApplication, QErrorMessage
 from PyQt5.QtCore import QLocale, QEvent, \
     pyqtSlot, QDateTime, QTimer, Qt, QObject, QUrl
 from PyQt5.QtGui import QIcon
@@ -29,6 +31,7 @@ from ..core.community import Community
 from ..tools.decorators import asyncify
 from ..__init__ import __version__
 from .widgets import toast
+from .widgets.dialogs import QAsyncMessageBox
 
 
 class MainWindow(QObject):

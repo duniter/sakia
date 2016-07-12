@@ -180,6 +180,7 @@ class TransferMoneyDialog(QObject):
 
     @asyncify
     async def relative_amount_changed(self, value):
+        raise Exception("Test")
         ud_block = await self.community.get_ud_block()
         dividend = ud_block['dividend']
         base = ud_block['unitbase']
