@@ -169,8 +169,12 @@ class TransferMoneyDialog(QObject):
     @asyncify
     async def amount_changed(self, value):
         ud_block = await self.community.get_ud_block()
-        dividend = ud_block['dividend']
-        base = ud_block['unitbase']
+        if ud_block:
+            dividend = ud_block['dividend']
+            base = ud_block['unitbase']
+        else:
+            dividend = 1
+            base = 0
         relative = value / dividend
         self.ui.spinbox_relative.blockSignals(True)
         self.ui.spinbox_relative.setValue(relative)
@@ -182,8 +186,12 @@ class TransferMoneyDialog(QObject):
     async def relative_amount_changed(self, value):
         raise Exception("Test")
         ud_block = await self.community.get_ud_block()
-        dividend = ud_block['dividend']
-        base = ud_block['unitbase']
+        if ud_block:
+            dividend = ud_block['dividend']
+            base = ud_block['unitbase']
+        else:
+            dividend = 1
+            base = 0
         amount = value * dividend
         amount = int(pow(10, base) * round(float(amount) / pow(10, base)))
         self.ui.spinbox_amount.blockSignals(True)
@@ -216,8 +224,12 @@ class TransferMoneyDialog(QObject):
     async def refresh_spinboxes(self):
         max_amount = await self.wallet.value(self.community)
         ud_block = await self.community.get_ud_block()
-        dividend = ud_block['dividend']
-        base = ud_block['unitbase']
+        if ud_block:
+            dividend = ud_block['dividend']
+            base = ud_block['unitbase']
+        else:
+            dividend = 1
+            base = 0
         max_amount = int(pow(10, base) * round(float(max_amount) / pow(10, base)))
         max_relative = max_amount / dividend
         self.ui.spinbox_amount.setMaximum(max_amount)
