@@ -58,6 +58,8 @@ then
     cd $HOME
 
     wget http://sourceforge.net/projects/pyqt/files/sip/sip-4.17/sip-4.17.tar.gz
+    file sip-4.17.tar.gz
+    gzip -t sip-4.17.tar.gz
     tar xzf sip-4.17.tar.gz
     cd sip-4.17/
     pyenv activate sakia-env
@@ -68,6 +70,8 @@ then
     cd $HOME
 
     wget http://sourceforge.net/projects/pyqt/files/PyQt5/PyQt-5.5.1/PyQt-gpl-5.5.1.tar.gz
+    file PyQt-gpl-5.5.1.tar.gz
+    gzip -t PyQt-gpl-5.5.1.tar.gz
     tar xzf PyQt-gpl-5.5.1.tar.gz
     cd PyQt-gpl-5.5.1/
     pyenv activate sakia-env
