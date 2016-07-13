@@ -68,6 +68,9 @@ class StepPageKey(Step):
         super().__init__(config_dialog)
 
     def is_valid(self):
+        if self.config_dialog.app.preferences['expert_mode']:
+            return True
+
         if len(self.config_dialog.edit_salt.text()) < 6:
             self.config_dialog.label_info.setText(self.config_dialog.tr("Forbidden : salt is too short"))
             return False

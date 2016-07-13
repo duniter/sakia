@@ -41,10 +41,16 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
         """
         Sort table by given column number.
         """
-        left_data = str(self.sourceModel().data(left, Qt.DisplayRole))
-        right_data = str(self.sourceModel().data(right, Qt.DisplayRole))
+        source_model = self.sourceModel()
+        left_data = self.sourceModel().data(left, Qt.DisplayRole)
+        right_data = self.sourceModel().data(right, Qt.DisplayRole)
+        if left.column() in (source_model.columns_types.index('port'),
+                             source_model.columns_types.index('current_block'),
+                             source_model.columns_types.index('current_time')):
+            left_data = int(left_data) if left_data != '' else 0
+            right_data = int(right_data) if right_data != '' else 0
 
-        return (left_data < right_data)
+        return left_data < right_data
 
     def headerData(self, section, orientation, role):
         if role != Qt.DisplayRole:

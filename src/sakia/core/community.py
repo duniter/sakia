@@ -114,7 +114,7 @@ class Community(QObject):
         """
         block = await self.get_ud_block(block_number=block_number)
         if block:
-            return block['dividend']
+            return block['dividend'] * math.pow(10, block['unitbase'])
         else:
             return 1
 

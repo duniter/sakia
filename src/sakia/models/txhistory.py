@@ -7,6 +7,7 @@ Created on 5 févr. 2014
 import datetime
 import logging
 import asyncio
+import math
 from ..core.transfer import Transfer, TransferState
 from ..core.net.network import MAX_CONFIRMATIONS
 from ..tools.exceptions import NoPeerAvailable
@@ -283,9 +284,9 @@ class HistoryTableModel(QAbstractTableModel):
                 transfer.metadata['receiver'], block_number, amount)
 
     async def data_dividend(self, dividend):
-        amount = dividend['amount']
+        amount = dividend['amount'] * math.pow(10, dividend['base'])
         try:
-            deposit = await self.account.current_ref.instance(dividend['amount'], self.community, self.app, dividend['block_number'])\
+            deposit = await self.account.current_ref.instance(amount, self.community, self.app, dividend['block_number'])\
                 .diff_localized(international_system=self.app.preferences['international_system_of_units'])
         except NoPeerAvailable:
             deposit = "Could not compute"
