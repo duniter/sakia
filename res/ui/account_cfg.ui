@@ -140,7 +140,7 @@
               <string/>
              </property>
              <property name="placeholderText">
-              <string>Entropy</string>
+              <string>Secret key</string>
              </property>
             </widget>
            </item>
