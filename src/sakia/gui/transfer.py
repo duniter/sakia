@@ -4,6 +4,7 @@ Created on 2 févr. 2014
 @author: inso
 """
 import asyncio
+import logging
 
 from PyQt5.QtWidgets import QDialog, QApplication, QDialogButtonBox
 from PyQt5.QtCore import QRegExp, Qt, QObject
@@ -110,9 +111,11 @@ class TransferMoneyDialog(QObject):
 
     @asyncify
     async def accept(self):
+        logging.debug("Accept transfer action...")
         self.ui.button_box.setEnabled(False)
         comment = self.ui.edit_message.text()
 
+        logging.debug("checking recipient mode...")
         if self.ui.radio_contact.isChecked():
             for contact in self.account.contacts:
                 if contact['name'] == self.ui.combo_contact.currentText():
@@ -127,29 +130,34 @@ class TransferMoneyDialog(QObject):
             recipient = self.ui.edit_pubkey.text()
         amount = self.ui.spinbox_amount.value()
 
+        logging.debug("checking amount...")
         if not amount:
             await QAsyncMessageBox.critical(self.widget, self.tr("Money transfer"),
                                  self.tr("No amount. Please give the transfert amount"),
                                  QMessageBox.Ok)
             self.ui.button_box.setEnabled(True)
             return
-
+        logging.debug("Showing password dialog...")
         password = await self.password_asker.async_exec()
         if self.password_asker.result() == QDialog.Rejected:
             self.ui.button_box.setEnabled(True)
             return
 
+        logging.debug("Setting cursor...")
         QApplication.setOverrideCursor(Qt.WaitCursor)
 
+        logging.debug("Send money...")
         result = await self.wallet.send_money(self.account.salt, password, self.community,
                                    recipient, amount, comment)
         if result[0]:
+            logging.debug("Checking result to display...")
             if self.app.preferences['notifications']:
                 toast.display(self.tr("Transfer"),
                           self.tr("Success sending money to {0}").format(recipient))
             else:
                 await QAsyncMessageBox.information(self.widget, self.tr("Transfer"),
                           self.tr("Success sending money to {0}").format(recipient))
+            logging.debug("Restore cursor...")
             QApplication.restoreOverrideCursor()
 
             # If we sent back a transaction we cancel the first one
@@ -158,6 +166,7 @@ class TransferMoneyDialog(QObject):
             self.app.refresh_transfers.emit()
             self.widget.accept()
         else:
+            logging.debug("Error occured...")
             if self.app.preferences['notifications']:
                 toast.display(self.tr("Transfer"), "Error : {0}".format(result[1]))
             else:
