@@ -175,7 +175,7 @@ class TransferMoneyDialog(QObject):
         else:
             dividend = 1
             base = 0
-        relative = value / dividend
+        relative = value / (dividend * pow(10, base))
         self.ui.spinbox_relative.blockSignals(True)
         self.ui.spinbox_relative.setValue(relative)
         self.ui.spinbox_relative.blockSignals(False)
@@ -191,7 +191,7 @@ class TransferMoneyDialog(QObject):
         else:
             dividend = 1
             base = 0
-        amount = value * dividend
+        amount = value * dividend * pow(10, base)
         amount = int(pow(10, base) * round(float(amount) / pow(10, base)))
         self.ui.spinbox_amount.blockSignals(True)
         self.ui.spinbox_amount.setValue(amount)
