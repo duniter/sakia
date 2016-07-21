@@ -9,11 +9,11 @@ import time
 from duniterpy.api import errors
 from PyQt5.QtCore import pyqtSlot, QDateTime, QLocale, QEvent, QT_TRANSLATE_NOOP, Qt
 from PyQt5.QtGui import QIcon, QPixmap
-from PyQt5.QtWidgets import QWidget, QMessageBox, QDialog, QPushButton, QTabBar, QAction
+from PyQt5.QtWidgets import QWidget, QMessageBox, QDialog, QPushButton, QTabBar, QAction, QMenu, QFileDialog
 
 from .graphs.wot_tab import WotTabWidget
 from .widgets import toast
-from .widgets.dialogs import QAsyncMessageBox
+from .widgets.dialogs import QAsyncMessageBox, QAsyncFileDialog
 from .identities_tab import IdentitiesTabWidget
 from .informations_tab import InformationsTabWidget
 from .network_tab import NetworkTabWidget
@@ -68,6 +68,9 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
 
         super().setupUi(self)
 
+        tool_menu = QMenu(self.tr("Tools"), self.toolbutton_menu)
+        self.toolbutton_menu.setMenu(tool_menu)
+
         self.tab_identities.view_in_wot.connect(self.tab_wot.draw_graph)
         self.tab_identities.view_in_wot.connect(lambda: self.tabs.setCurrentWidget(self.tab_wot.widget))
         self.tab_history.view_in_wot.connect(self.tab_wot.draw_graph)
@@ -94,15 +97,21 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         action_showinfo = QAction(self.tr("Show informations"), self.toolbutton_menu)
         action_showinfo.triggered.connect(lambda : self.show_closable_tab(self.tab_informations,
                                     QIcon(":/icons/informations_icon"), self.tr("Informations")))
-        self.toolbutton_menu.addAction(action_showinfo)
+        tool_menu.addAction(action_showinfo)
 
         action_showexplorer = QAction(self.tr("Show explorer"), self.toolbutton_menu)
         action_showexplorer.triggered.connect(lambda : self.show_closable_tab(self.tab_explorer.widget,
                                     QIcon(":/icons/explorer_icon"), self.tr("Explorer")))
-        self.toolbutton_menu.addAction(action_showexplorer)
+        tool_menu.addAction(action_showexplorer)
+
+        menu_advanced = QMenu(self.tr("Advanced"), self.toolbutton_menu)
+        action_gen_revokation = QAction(self.tr("Save revokation document"), menu_advanced)
+        action_gen_revokation.triggered.connect(self.action_save_revokation)
+        menu_advanced.addAction(action_gen_revokation)
+        tool_menu.addMenu(menu_advanced)
 
         self.action_publish_uid.triggered.connect(self.publish_uid)
-        self.toolbutton_menu.addAction(self.action_publish_uid)
+        tool_menu.addAction(self.action_publish_uid)
 
         self.button_membership.clicked.connect(self.send_membership_demand)
 
@@ -165,6 +174,20 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         QMessageBox.critical(self, ":(",
                     error,
                     QMessageBox.Ok)
+
+    @asyncify
+    async def action_save_revokation(self, checked=False):
+        password = await self.password_asker.async_exec()
+        if self.password_asker.result() == QDialog.Rejected:
+            return
+
+        raw_document = await self.account.generate_revokation(self.community, password)
+        # Testable way of using a QFileDialog
+        selected_files = await QAsyncFileDialog.get_save_filename(self, self.tr("Save a revokation document"),
+                                                "",  self.tr("All text files (*.txt)"))
+        if selected_files:
+            with open(selected_files[0], 'w') as save_file:
+                save_file.write(raw_document)
 
     @once_at_a_time
     @asyncify

@@ -572,6 +572,23 @@ class Account(QObject):
                 await r.release()
         return result
 
+    async def generate_revokation(self, community, password):
+        """
+        Generate account revokation document for given community
+        :param sakia.core.Community community: the community
+        :param str password: the password
+        :return: the revokation document
+        :rtype: duniterpy.documents.certification.Revokation
+        """
+        document = Revokation(PROTOCOL_VERSION, community.currency, self.pubkey, "")
+        identity = await self.identity(community)
+        selfcert = await identity.selfcert(community)
+
+        key = SigningKey(self.salt, password)
+
+        document.sign(selfcert, [key])
+        return document.signed_raw(selfcert)
+
     def start_coroutines(self):
         for c in self.communities:
             c.start_coroutines()

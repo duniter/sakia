@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QMessageBox as QMessageBox
+from PyQt5.QtWidgets import QMessageBox, QFileDialog
 import asyncio
 
 
@@ -7,6 +7,18 @@ def dialog_async_exec(dialog):
     dialog.finished.connect(lambda r: future.set_result(r))
     dialog.open()
     return future
+
+
+class QAsyncFileDialog:
+    @staticmethod
+    async def get_save_filename(parent, title, url, filtr):
+        dialog = QFileDialog(parent, title, url, filtr)
+        dialog.setAcceptMode(QFileDialog.AcceptSave)
+        result = await dialog_async_exec(dialog)
+        if result == QFileDialog.AcceptSave:
+            return dialog.selectedFiles()
+        else:
+            return []
 
 
 class QAsyncMessageBox:
