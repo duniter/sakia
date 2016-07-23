@@ -1,6 +1,9 @@
 [Desktop Entry]
+Version=0.20.4
 Name=Sakia
+Comment=Duniter Qt Client
 Exec=sakia
 Icon=/opt/sakia/sakia.png
+Terminal=false
 Type=Application
-Categories=Utility
+Categories=Utility;Application;
