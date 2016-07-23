@@ -479,7 +479,7 @@ class Node(QObject):
         except (ClientError, gaierror, TimeoutError, DisconnectedError, ValueError) as e:
             logging.debug("{0} : {1}".format(type(e).__name__, self.pubkey[:5]))
             self.state = Node.OFFLINE
-        except jsonschema.ValidationError as e:
+        except (MalformedDocumentError, jsonschema.ValidationError) as e:
             logging.debug(str(e))
             logging.debug("Validation error : {0}".format(self.pubkey[:5]))
             self.state = Node.CORRUPTED
