@@ -42,7 +42,7 @@ class MainWindowMenusTest(unittest.TestCase, QuamashTest):
         self.assertEqual('actionCertification', actions[4].objectName())
         self.assertEqual('actionTransfer_money', actions[5].objectName())
         self.assertEqual('action_add_a_contact', actions[7].objectName())
-        self.assertEqual(9, len(actions))
+        self.assertEqual(11, len(actions))
 
     def test_menu_actions(self):
         actions = self.main_window.ui.menu_help.actions()
