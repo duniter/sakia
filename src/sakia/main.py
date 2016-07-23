@@ -76,7 +76,7 @@ def exception_message(log_lines, exc_info):
     """.format(log_lines='\n'.join(log_lines), stacktrace='\n'.join(stacktrace))
     mb = QMessageBox(QMessageBox.Critical, "Critical error",
                     """A critical error occured. Select the details to display it.
-                    Please report it to <a href=\"https://github.com/duniter/sakia/issues/new\">the developers github</a>""",
+                    Please report it to <a href='https://github.com/duniter/sakia/issues/new'>the developers github</a>""",
                      QMessageBox.Ok, QApplication.activeWindow())
     mb.setDetailedText(message)
     mb.setTextFormat(Qt.RichText)
