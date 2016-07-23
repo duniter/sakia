@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import QWidget, QMessageBox, QDialog, QPushButton, QTabBar,
 
 from .graphs.wot_tab import WotTabWidget
 from .widgets import toast
-from .widgets.dialogs import QAsyncMessageBox, QAsyncFileDialog
+from .widgets.dialogs import QAsyncMessageBox, QAsyncFileDialog, dialog_async_exec
 from .identities_tab import IdentitiesTabWidget
 from .informations_tab import InformationsTabWidget
 from .network_tab import NetworkTabWidget
@@ -186,8 +186,19 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         selected_files = await QAsyncFileDialog.get_save_filename(self, self.tr("Save a revokation document"),
                                                 "",  self.tr("All text files (*.txt)"))
         if selected_files:
-            with open(selected_files[0], 'w') as save_file:
+            path = selected_files[0]
+            if not path.endswith('.txt'):
+                path = "{0}.txt".format(path)
+            with open(path, 'w') as save_file:
                 save_file.write(raw_document)
+
+        dialog = QMessageBox(QMessageBox.Information, self.tr("Revokation file"),
+                                           self.tr("""<div>Your revokation document has been saved.</div>
+<div><b>Please keep it in a safe place.</b></div>
+The publication of this document will remove your identity from the network.</p>"""), QMessageBox.Ok,
+                             self)
+        dialog.setTextFormat(Qt.RichText)
+        await dialog_async_exec(dialog)
 
     @once_at_a_time
     @asyncify
