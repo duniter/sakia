@@ -83,7 +83,8 @@ class CertificationDialog(QObject):
         :return:
         """
         dialog = cls(app, account, password_asker, QDialog(), Ui_CertificationDialog())
-        dialog.ui.combo_community.setCurrentText(community.name)
+        if community:
+            dialog.ui.combo_community.setCurrentText(community.name)
         dialog.refresh()
         return dialog.exec()
 
