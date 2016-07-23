@@ -21,6 +21,7 @@ from .community_view import CommunityWidget
 from .contact import ConfigureContactDialog
 from .import_account import ImportAccountDialog
 from .certification import CertificationDialog
+from .revocation import RevocationDialog
 from .password_asker import PasswordAskerDialog
 from .preferences import PreferencesDialog
 from .process_cfg_community import ProcessConfigureCommunity
@@ -110,6 +111,7 @@ class MainWindow(QObject):
         self.ui.actionCertification.triggered.connect(self.open_certification_dialog)
         self.ui.actionPreferences.triggered.connect(self.open_preferences_dialog)
         self.ui.actionAbout.triggered.connect(self.open_about_popup)
+        self.ui.action_revoke_identity.triggered.connect(self.open_revocation_dialog)
 
         self.ui.actionManage_local_node.triggered.connect(self.open_duniter_ui)
         self.ui.menu_duniter.setDisabled(True)
@@ -262,6 +264,10 @@ class MainWindow(QObject):
                                      self.account,
                                      self.community_view.community,
                                      self.password_asker)
+
+    def open_revocation_dialog(self):
+        RevocationDialog.open_dialog(self.app,
+                                     self.account)
 
     def open_add_contact_dialog(self):
         dialog = ConfigureContactDialog.new_contact(self.app, self.account, self.widget)

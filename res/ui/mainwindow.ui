@@ -50,6 +50,12 @@
       <string>&amp;Open</string>
      </property>
     </widget>
+    <widget class="QMenu" name="menuAdvanced">
+     <property name="title">
+      <string>Advanced</string>
+     </property>
+     <addaction name="action_revoke_identity"/>
+    </widget>
     <addaction name="menu_change_account"/>
     <addaction name="action_configure_parameters"/>
     <addaction name="action_add_account"/>
@@ -59,6 +65,8 @@
     <addaction name="separator"/>
     <addaction name="action_add_a_contact"/>
     <addaction name="menu_contacts_list"/>
+    <addaction name="separator"/>
+    <addaction name="menuAdvanced"/>
    </widget>
    <widget class="QMenu" name="menu_help">
     <property name="title">
@@ -186,6 +194,11 @@
   <action name="actionManage_local_node">
    <property name="text">
     <string>&amp;Manage local node</string>
+   </property>
+  </action>
+  <action name="action_revoke_identity">
+   <property name="text">
+    <string>Revoke an identity</string>
    </property>
   </action>
  </widget>

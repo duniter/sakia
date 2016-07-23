@@ -4,7 +4,7 @@ Created on 1 févr. 2014
 @author: inso
 """
 
-from duniterpy.documents import Membership, SelfCertification, Certification, Revokation, BlockUID, Block
+from duniterpy.documents import Membership, SelfCertification, Certification, Revocation, BlockUID, Block
 from duniterpy.key import SigningKey
 from duniterpy.api import bma
 from duniterpy.api.bma import PROTOCOL_VERSION
@@ -546,7 +546,7 @@ class Account(QObject):
         """
         revoked = await self._identities_registry.future_find(self.pubkey, community)
 
-        revokation = Revokation(PROTOCOL_VERSION, community.currency, None)
+        revokation = Revocation(PROTOCOL_VERSION, community.currency, None)
         selfcert = await revoked.selfcert(community)
 
         key = SigningKey(self.salt, password)
@@ -578,9 +578,9 @@ class Account(QObject):
         :param sakia.core.Community community: the community
         :param str password: the password
         :return: the revokation document
-        :rtype: duniterpy.documents.certification.Revokation
+        :rtype: duniterpy.documents.certification.Revocation
         """
-        document = Revokation(PROTOCOL_VERSION, community.currency, self.pubkey, "")
+        document = Revocation(PROTOCOL_VERSION, community.currency, self.pubkey, "")
         identity = await self.identity(community)
         selfcert = await identity.selfcert(community)
 

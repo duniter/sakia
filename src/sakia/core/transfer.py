@@ -68,6 +68,9 @@ class Transfer(QObject):
         self._locally_created = locally_created
         self._metadata = metadata
 
+        # Dict containing states of a transfer :
+        # keys are a tuple containg (current_state, transition_parameters)
+        # values are tuples containing (transition_test, transition_success, new_state)
         self._table_states = {
             (TransferState.TO_SEND, (list, Block)):
                 (
