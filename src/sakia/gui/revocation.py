@@ -84,6 +84,8 @@ class RevocationDialog(QObject):
                                           "",
                                           self.tr("All text files (*.txt)"))
         selected_file = selected_files[0]
+        if (selected_file == ''):
+            return;
         try:
             with open(selected_file, 'r') as file:
                 file_content = file.read()
