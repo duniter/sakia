@@ -263,6 +263,8 @@ class Identity(QObject):
             except errors.DuniterError as e:
                 if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
                     logging.debug("Certifiers of error : {0}".format(str(e)))
+            except NoPeerAvailable as e:
+                logging.debug(str(e))
         return False
 
     async def is_member(self, community):
