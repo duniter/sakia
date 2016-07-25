@@ -84,8 +84,6 @@ class RevocationDialog(QObject):
                                           "",
                                           self.tr("All text files (*.txt)"))
         selected_file = selected_files[0]
-        if (selected_file == ''):
-            return;
         try:
             with open(selected_file, 'r') as file:
                 file_content = file.read()
@@ -93,6 +91,8 @@ class RevocationDialog(QObject):
                 self.revoked_selfcert = Revocation.extract_self_cert(file_content)
                 self.refresh()
                 self.ui.button_next.setEnabled(True)
+        except FileNotFoundError:
+            pass
         except MalformedDocumentError:
             QMessageBox.critical(self.widget, self.tr("Error loading document"),
                                         self.tr("Loaded document is not a revocation document"),
