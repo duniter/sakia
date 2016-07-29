@@ -117,9 +117,9 @@ class IdentitiesTableModel(QAbstractTableModel):
                                'pubkey': lambda: self.tr('Pubkey'),
                                'renewed': lambda: self.tr('Renewed'),
                                'expiration': lambda: self.tr('Expiration'),
-                               'publication': lambda: self.tr('Publication'),
-                               'validation': lambda: self.tr('Validation'),}
-        self.columns_ids = ('uid', 'pubkey', 'renewed', 'expiration', 'publication')
+                               'publication': lambda: self.tr('Publication Date'),
+                               'block': lambda: self.tr('Publication Block'),}
+        self.columns_ids = ('uid', 'pubkey', 'renewed', 'expiration', 'publication', 'block')
         self.identities_data = []
         self._sig_validity = 0
 
@@ -155,10 +155,12 @@ class IdentitiesTableModel(QAbstractTableModel):
 
         if identity.sigdate:
             sigdate_ts = await self.community.time(identity.sigdate.number)
+            sigdate_block = identity.sigdate.sha_hash[:7]
         else:
             sigdate_ts = None
+            sigdate_block = None
 
-        return identity.uid, identity.pubkey, join_date, expiration_date, sigdate_ts
+        return identity.uid, identity.pubkey, join_date, expiration_date, sigdate_ts, sigdate_block
 
     async def refresh_identities(self, identities):
         """
