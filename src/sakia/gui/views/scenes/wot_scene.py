@@ -54,6 +54,10 @@ class WotScene(BaseScene):
         return pos
 
     @staticmethod
+    def center_pos(nb_certifiers, nb_certified, scale):
+        return 0, max(nb_certified, nb_certifiers,) / 2 * 0.12 * scale
+
+    @staticmethod
     def certifiers_partial_layout(nx_graph, center, scale=1):
         """
         Method to generate a partial wot with certifiers layout
@@ -67,8 +71,7 @@ class WotScene(BaseScene):
 
         certifier = [n for n in nx_graph.nodes(data=True) if n[0] in certifier_edge]
 
-        pos = {center: (0, max(len(certified_edge),
-                                    len(certifier_edge))/2*0.12*scale)}
+        pos = {center: WotScene.center_pos(len(certified_edge), len(certifier_edge), scale)}
 
         y = 0
         x = -1 * scale
@@ -95,8 +98,7 @@ class WotScene(BaseScene):
 
         certified = [n for n in nx_graph.nodes(data=True) if n[0] in certified_edge]
 
-        pos = {center: (0, max(len(certified_edge),
-                            len(certifier_edge))/2*0.12*scale)}
+        pos = {center: WotScene.center_pos(len(certified_edge), len(certifier_edge), scale)}
 
         y = 0
         x = 1 * scale
@@ -111,23 +113,22 @@ class WotScene(BaseScene):
     @staticmethod
     def path_partial_layout(nx_graph, path, scale=1):
         """
-
+        Layout from the center to the outside, showing the network path
         :param networkx.MultiDiGraph nx_graph: The graph to show
         :param list path:
         :param int scale:
         :return:
         """
-        destination = path[-1]
-        certifier_edge = [edge[0] for edge in nx_graph.in_edges() if edge[1] == destination]
-        certified_edge = [edge[1] for edge in nx_graph.out_edges() if edge[0] == destination]
+        origin = path[0]
+        certifier_edge = [edge[0] for edge in nx_graph.in_edges() if edge[1] == origin]
+        certified_edge = [edge[1] for edge in nx_graph.out_edges() if edge[0] == origin]
 
-        x = 0
-        y = max(len(certified_edge), len(certifier_edge))/2*0.12*scale
-        pos = {destination: (x, y)}
+        x, y = WotScene.center_pos(len(certified_edge), len(certifier_edge), scale)
+        pos = {}
 
-        for node in reversed(path[:-1]):
-            y -= 100
+        for node in path:
             pos[node] = (x, y)
+            y -= 100
         return pos
 
     def update_wot(self, nx_graph, identity):
@@ -161,7 +162,7 @@ class WotScene(BaseScene):
 
     def update_path(self, nx_graph, path):
         path_graph_pos = WotScene.path_partial_layout(nx_graph, path, scale=200)
-        nodes_path = [n for n in nx_graph.nodes(data=True) if n[0] in path[:-1]]
+        nodes_path = [n for n in nx_graph.nodes(data=True) if n[0] in path[1:]]
         for node in nodes_path:
             v = WotNode(node, path_graph_pos)
             self.addItem(v)

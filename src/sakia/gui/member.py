@@ -118,7 +118,7 @@ class MemberDialog(QObject):
         path = None
         # if selected member is not the account member...
         if self.identity.pubkey != self.account.pubkey:
-            # add path from selected member to account member
+            # add path from us to him
             account_identity = await self.account.identity(self.community)
             path = await graph.get_shortest_path_to_identity(self.identity,
                                                             account_identity)

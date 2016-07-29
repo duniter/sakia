@@ -102,7 +102,7 @@ class WotTabWidget(GraphTabWidget):
             # if selected member is not the account member...
             if identity.pubkey != identity_account.pubkey:
                 # add path from selected member to account member
-                path = await graph.get_shortest_path_to_identity(identity_account, identity)
+                path = await graph.get_shortest_path_to_identity(identity, identity_account)
                 if path:
                     self.ui.graphicsView.scene().update_path(graph.nx_graph, path)
         self.busy.hide()
