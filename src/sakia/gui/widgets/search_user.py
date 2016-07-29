@@ -15,6 +15,8 @@ class SearchUserWidget(QWidget, Ui_SearchUserWidget):
     _search_placeholder = QT_TRANSLATE_NOOP("SearchUserWidget", "Research a pubkey, an uid...")
 
     identity_selected = pyqtSignal(Identity)
+    search_started = pyqtSignal()
+    search_completed = pyqtSignal()
     reset = pyqtSignal()
 
     def __init__(self, parent):
@@ -60,38 +62,41 @@ class SearchUserWidget(QWidget, Ui_SearchUserWidget):
         """
         Search nodes when return is pressed in combobox lineEdit
         """
+        self.search_started.emit()
         text = self.combobox_search.lineEdit().text()
+        self.combobox_search.lineEdit().clear()
+        self.combobox_search.lineEdit().setPlaceholderText(self.tr("Looking for {0}...".format(text)))
 
-        if len(text) < 2:
-            return False
-        try:
-            response = await self.community.bma_access.future_request(bma.wot.Lookup, {'search': text})
+        if len(text) > 2:
+            try:
+                response = await self.community.bma_access.future_request(bma.wot.Lookup, {'search': text})
 
-            nodes = {}
-            for identity in response['results']:
-                nodes[identity['pubkey']] = identity['uids'][0]['uid']
+                nodes = {}
+                for identity in response['results']:
+                    nodes[identity['pubkey']] = identity['uids'][0]['uid']
 
-            if nodes:
-                self.nodes = list()
-                self.blockSignals(True)
-                self.combobox_search.clear()
-                self.combobox_search.lineEdit().setText(text)
-                for pubkey, uid in nodes.items():
-                    self.nodes.append({'pubkey': pubkey, 'uid': uid})
-                    self.combobox_search.addItem(uid)
-                self.blockSignals(False)
-                self.combobox_search.showPopup()
-        except errors.DuniterError as e:
-            if e.ucode == errors.NO_MATCHING_IDENTITY:
-                self.nodes = list()
-                self.blockSignals(True)
-                self.combobox_search.clear()
-                self.blockSignals(False)
-                self.combobox_search.showPopup()
-            else:
+                if nodes:
+                    self.nodes = list()
+                    self.blockSignals(True)
+                    self.combobox_search.clear()
+                    self.combobox_search.lineEdit().setText(text)
+                    for pubkey, uid in nodes.items():
+                        self.nodes.append({'pubkey': pubkey, 'uid': uid})
+                        self.combobox_search.addItem(uid)
+                    self.blockSignals(False)
+                    self.combobox_search.showPopup()
+            except errors.DuniterError as e:
+                if e.ucode == errors.NO_MATCHING_IDENTITY:
+                    self.nodes = list()
+                    self.blockSignals(True)
+                    self.combobox_search.clear()
+                    self.blockSignals(False)
+                    self.combobox_search.showPopup()
+                else:
+                    pass
+            except NoPeerAvailable:
                 pass
-        except NoPeerAvailable:
-            pass
+        self.search_completed.emit()
 
     def select_node(self, index):
         """
