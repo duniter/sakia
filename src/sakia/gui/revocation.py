@@ -91,6 +91,8 @@ class RevocationDialog(QObject):
                 self.revoked_selfcert = Revocation.extract_self_cert(file_content)
                 self.refresh()
                 self.ui.button_next.setEnabled(True)
+        except FileNotFoundError:
+            pass
         except MalformedDocumentError:
             QMessageBox.critical(self.widget, self.tr("Error loading document"),
                                         self.tr("Loaded document is not a revocation document"),
