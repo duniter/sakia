@@ -193,11 +193,15 @@ class CertificationDialog(QObject):
             block_0 = None
 
         params = await self.community.parameters()
-        nb_certifications = len(await account_identity.unique_valid_certified_by(self.app.identities_registry, self.community))
+        certifications = await account_identity.unique_valid_certified_by(self.app.identities_registry, self.community)
+        nb_certifications = len([c for c in certifications if c['block_number']])
+        nb_cert_pending = len([c for c in certifications if not c['block_number']])
         remaining_time = await account_identity.cert_issuance_delay(self.app.identities_registry, self.community)
         cert_text = self.tr("Certifications sent : {nb_certifications}/{stock}").format(
             nb_certifications=nb_certifications,
             stock=params['sigStock'])
+        if nb_cert_pending > 0:
+            cert_text += " (+{nb_cert_pending} certifications pending)".format(nb_cert_pending=nb_cert_pending)
         if remaining_time > 0:
             cert_text += "\n"
             days, remainder = divmod(remaining_time, 3600*24)
