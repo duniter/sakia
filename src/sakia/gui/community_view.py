@@ -288,6 +288,7 @@ The publication of this document will remove your identity from the network.</p>
                 self.button_certification.setEnabled(False)
                 self.button_send_money.setEnabled(False)
             else:
+                self.button_send_money.setEnabled(True)
                 self.refresh_quality_buttons()
 
             if self.community.network.quality > 0.66:
