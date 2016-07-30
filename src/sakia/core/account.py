@@ -74,7 +74,7 @@ class Account(QObject):
                                     ],
                             'warning_revokation':
                                     [
-                                        self.tr("Warning : If you don't renew soon, your identity will be considerd revoked."),
+                                        self.tr("Warning : If you don't renew soon, your identity will be considered revoked."),
                                         0
                                     ],
                             'warning_certifying_first_time': True,
