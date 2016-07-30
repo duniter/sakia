@@ -48,11 +48,13 @@ build_script:
   - ".\\ci\\appveyor\\tests.cmd"
   - echo %errorlevel%
 
+  - powershell .\\ci\\appveyor\\download_vcredist.ps1 -target %cd%\\ci\\appveyor
+
   # Windows Installer
-  - if [%APPVEYOR_REPO_TAG_NAME%] neq [] choco install -y InnoSetup
-  - if [%APPVEYOR_REPO_TAG_NAME%] neq [] set PATH="C:\Program Files (x86)\Inno Setup 5";%PATH%
-  - if [%APPVEYOR_REPO_TAG_NAME%] neq [] iscc %cd%\ci\appveyor\sakia.iss /DROOT_PATH=%cd%
-  - if [%APPVEYOR_REPO_TAG_NAME%] neq [] move %cd%\sakia.exe %cd%\sakia-%APPVEYOR_REPO_TAG_NAME%-win%PYTHON_ARCH%.exe
+  - choco install -y InnoSetup
+  - set PATH="C:\Program Files (x86)\Inno Setup 5";%PATH%
+  - iscc %cd%\ci\appveyor\sakia.iss /DROOT_PATH=%cd%
+  - move %cd%\sakia.exe %cd%\sakia-%APPVEYOR_REPO_TAG_NAME%-win%PYTHON_ARCH%.exe
 
 artifacts:
   - path: dist
