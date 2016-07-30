@@ -465,6 +465,23 @@ class Identity(QObject):
         certified_list = await self.certified_by(identities_registry, community)
         return await self._unique_valid(certified_list, community)
 
+    async def identity_revocation_time(self, community):
+        """
+        Get the remaining time before identity implicit revocation
+        :param sakia.core.Community community: the community
+        :return: the remaining time
+        :rtype: int
+        """
+        membership = await self.membership(community)
+        join_block = membership['blockNumber']
+        block = await community.get_block(join_block)
+        join_date = block['medianTime']
+        parameters = await community.parameters()
+        # revocation date is join_date + 1 sigvalidity (expiration date)  + 2*sigvalidity
+        revocation_date = join_date + 3*parameters['sigValidity']
+        current_time = time.time()
+        return revocation_date - current_time
+
     async def membership_expiration_time(self, community):
         """
         Get the remaining time before membership expiration

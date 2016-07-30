@@ -212,14 +212,14 @@ The publication of this document will remove your identity from the network.</p>
         try:
             person = await self.app.identities_registry.future_find(self.app.current_account.pubkey, self.community)
             expiration_time = await person.membership_expiration_time(self.community)
+            revokation_time = await person.identity_revocation_time(self.community)
             parameters = await self.community.parameters()
             sig_validity = parameters['sigValidity']
             warning_expiration_time = int(sig_validity / 3)
             will_expire_soon = (expiration_time < warning_expiration_time)
-            revokation_deadline = expiration_time + 2*sig_validity
-            revokation_soon = (time.time() > revokation_deadline)
+            revokation_soon = (revokation_time < 2*warning_expiration_time)
             if revokation_soon:
-                days = int((revokation_deadline - time.time()) / 3600 / 24)
+                days = int(revokation_time / 3600 / 24)
                 if 'warning_revokation' not in self.status_info:
                     self.status_info.append('warning_revokation')
 
