@@ -66,6 +66,7 @@ class TestCertificationDialog(unittest.TestCase, QuamashTest):
             srv, port, url = await self.mock_new_community.create_server()
             self.addCleanup(srv.close)
             await certification_dialog.async_exec()
+            await self.mock_new_community.close()
 
         def close_dialog():
             if certification_dialog.widget.isVisible():

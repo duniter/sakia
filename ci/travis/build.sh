@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
 eval "$(pyenv init -)"
-eval "$(pyenv virtualenv-init -)"
 
 cd $HOME/build/duniter/sakia
 
-
-pyenv activate sakia-env
+pyenv shell $PYENV_PYTHON_VERSION
+pip install --upgrade pip
+pyenv rehash
 pip install coveralls
 pip install pyinstaller
 pip install -r requirements.txt
@@ -16,6 +16,10 @@ then
     pip install notify2
 
     export PATH=/tmp/qt/5.5/5.5/gcc_64/bin:$PATH
+fi
+if [ $TRAVIS_OS_NAME == "osx" ]
+then
+    export PATH=/Users/travis/.pyenv/versions/$PYENV_PYTHON_VERSION/Python.framework/Versions/3.5/bin:$PATH
 fi
 
 python gen_resources.py

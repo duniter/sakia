@@ -67,6 +67,7 @@ class ProcessAddCommunity(unittest.TestCase, QuamashTest):
             self.assertEqual(process_community.stacked_pages.currentWidget(),
                              process_community.page_add_nodes,
                              msg="Current widget : {0}".format(process_community.stacked_pages.currentWidget().objectName()))
+            await mock.close()
             QTest.mouseClick(process_community.button_next, Qt.LeftButton)
 
         self.lp.call_later(15, close_dialog)
@@ -107,6 +108,7 @@ class ProcessAddCommunity(unittest.TestCase, QuamashTest):
                              process_community.page_node,
                              msg="Current widget : {0}".format(process_community.stacked_pages.currentWidget().objectName()))
             self.assertEqual(process_community.label_error.text(), "Could not find your identity on the network.")
+            await mock.close()
             process_community.close()
 
         self.lp.call_later(15, close_dialog)
@@ -147,6 +149,7 @@ class ProcessAddCommunity(unittest.TestCase, QuamashTest):
                              '/wot/certifiers-of/wrong_pubkey')
             self.assertEqual(process_community.label_error.text(), """Your pubkey or UID is different on the network.
 Yours : wrong_pubkey, the network : 7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ""")
+            await mock.close()
             process_community.close()
 
         self.lp.call_later(15, close_dialog)
@@ -185,6 +188,7 @@ Yours : wrong_pubkey, the network : 7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ
             self.assertEqual(mock.get_request(0).url, '/network/peering')
             self.assertEqual(process_community.label_error.text(), """Your pubkey or UID is different on the network.
 Yours : wrong_uid, the network : john""")
+            await mock.close()
             process_community.close()
 
         self.lp.call_later(15, close_dialog)
@@ -205,8 +209,6 @@ Yours : wrong_uid, the network : john""")
 
         async def exec_test():
             srv, port, url = await mock.create_server()
-            self.addCleanup(srv.close)
-            await asyncio.sleep(1)
             QTest.mouseClick(process_community.lineedit_server, Qt.LeftButton)
             QTest.keyClicks(process_community.lineedit_server, "127.0.0.1")
             QTest.mouseDClick(process_community.spinbox_port, Qt.LeftButton)
@@ -226,6 +228,7 @@ Yours : wrong_uid, the network : john""")
             self.assertEqual(process_community.stacked_pages.currentWidget(),
                              process_community.page_add_nodes,
                              msg="Current widget : {0}".format(process_community.stacked_pages.currentWidget().objectName()))
+            await mock.close()
             QTest.mouseClick(process_community.button_next, Qt.LeftButton)
 
         self.lp.call_later(15, close_dialog)

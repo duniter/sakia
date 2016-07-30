@@ -78,7 +78,7 @@ class TestIdentitiesTable(unittest.TestCase, QuamashTest):
             await asyncio.sleep(2)
 
             self.assertEqual(identities_tab.ui.table_identities.model().rowCount(), 1)
-            await asyncio.sleep(2)
+            await self.mock_nice_blockchain.close()
             self.lp.call_soon(close_dialog)
 
         asyncio.ensure_future(exec_test())

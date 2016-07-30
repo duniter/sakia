@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 eval "$(pyenv init -)"
-eval "$(pyenv virtualenv-init -)"
 
 if [ $TRAVIS_OS_NAME == "linux" ]
 then
@@ -12,6 +11,12 @@ then
 fi
 
 cd $HOME/build/duniter/sakia
-pyenv activate sakia-env
-coverage run --source=sakia.core,sakia.gui,sakia.models setup.py test
+pyenv shell $PYENV_PYTHON_VERSION
+if [ $TRAVIS_OS_NAME == "linux" ]
+then
+    coverage run --source=sakia.core,sakia.gui,sakia.models setup.py test
+else
+    python setup.py test
+fi
+
 

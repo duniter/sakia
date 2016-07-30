@@ -8,7 +8,7 @@ matrix:
     - os: linux
 
 env:
-- PYENV_PYTHON_VERSION=3.5.0
+- PYENV_PYTHON_VERSION=3.5.2
 
 before_install:
 - ci/travis/before_install.sh

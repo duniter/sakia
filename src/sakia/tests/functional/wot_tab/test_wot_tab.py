@@ -63,6 +63,7 @@ class TestWotTab(unittest.TestCase, QuamashTest):
             srv, port, url = await self.mock_nice_blockchain.create_server()
             self.addCleanup(srv.close)
             await open_widget()
+            await self.mock_nice_blockchain.close()
 
         def close_dialog():
             if wot_tab.widget.isVisible():

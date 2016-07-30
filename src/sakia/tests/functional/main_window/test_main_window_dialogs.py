@@ -1,4 +1,5 @@
 import unittest
+import asyncio
 from PyQt5.QtWidgets import QDialog, QFileDialog
 from PyQt5.QtCore import QLocale, QTimer
 from sakia.gui.mainwindow import MainWindow
@@ -31,21 +32,19 @@ class MainWindowDialogsTest(unittest.TestCase, QuamashTest):
                     break
 
     def test_action_add_account(self):
-        #asynchronous test, cause dialog is waiting user response
-        QTimer.singleShot(1, self._async_test_action_add_account)
-        #select menu
-        self.main_window.ui.action_add_account.trigger()
-
-    def _async_test_action_add_account(self):
-        widgets = self.qapplication.topLevelWidgets()
-        for widget in widgets:
-            if isinstance(widget, QDialog):
-                if widget.isVisible():
-                    try:
-                        self.assertEqual('AccountConfigurationDialog', widget.objectName())
-                        break
-                    finally:
-                        widget.close()
+        async def exec_test():
+            self.main_window.ui.action_add_account.trigger()
+            await asyncio.sleep(1)
+            widgets = self.qapplication.topLevelWidgets()
+            for widget in widgets:
+                if isinstance(widget, QDialog):
+                    if widget.isVisible():
+                        try:
+                            self.assertEqual('AccountConfigurationDialog', widget.objectName())
+                            break
+                        finally:
+                            widget.close()
+        self.lp.run_until_complete(exec_test())
 
     # fixme: require a app.current_account fixture
     # def test_action_configure_account(self):

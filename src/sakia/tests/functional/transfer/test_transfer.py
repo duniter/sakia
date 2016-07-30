@@ -65,6 +65,7 @@ class TestTransferDialog(unittest.TestCase, QuamashTest):
             self.addCleanup(srv.close)
             await asyncio.sleep(1)
             result = await transfer_dialog.async_exec()
+            await self.mock_nice_blockchain.close()
             self.assertEqual(result, QDialog.Accepted)
 
         def close_dialog():

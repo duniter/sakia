@@ -47,7 +47,8 @@ class MockServer():
 
         self.handler = self.app.make_handler(
             keep_alive_on=False,
-            access_log=log.access_logger)
+            access_log=log.access_logger,
+        )
 
         self.port = self.find_unused_port()
 
@@ -96,3 +97,6 @@ class MockServer():
         self.add_route('GET', '/network/peering', bma_peering_generator(self.port))
 
         return srv, self.port, url
+
+    async def close(self):
+        await self.handler.finish_connections()

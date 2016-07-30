@@ -1,4 +1,4 @@
 duniterpy>=0.20.dev0
-git+https://github.com/harvimt/quamash.git@gh45
+git+https://github.com/Insoleet/quamash.git@master
 asynctest
 networkx
