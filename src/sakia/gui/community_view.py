@@ -216,9 +216,20 @@ The publication of this document will remove your identity from the network.</p>
             sig_validity = parameters['sigValidity']
             warning_expiration_time = int(sig_validity / 3)
             will_expire_soon = (expiration_time < warning_expiration_time)
+            revokation_deadline = expiration_time + 2*sig_validity
+            revokation_soon = (time.time() > revokation_deadline)
+            if revokation_soon:
+                days = int((revokation_deadline - time.time()) / 3600 / 24)
+                if 'warning_revokation' not in self.status_info:
+                    self.status_info.append('warning_revokation')
 
-            logging.debug("Try")
-            if will_expire_soon:
+                if self.app.preferences['notifications'] and \
+                        self.account.notifications['warning_revokation'][1]+24*3600 < time.time():
+                    toast.display(self.tr("Identity revokation"),
+                              self.tr("<b>Warning : Your identity will be implicitely revoked\
+                               if you dont renew before {0} days</b>").format(days))
+                    self.account.notifications['warning_revokation'][1] = time.time()
+            elif will_expire_soon:
                 days = int(expiration_time / 3600 / 24)
                 if days > 0:
                     if 'membership_expire_soon' not in self.status_info:
@@ -328,7 +339,7 @@ The publication of this document will remove your identity from the network.</p>
                         self.button_membership.setText(self.tr("Send membership demand"))
                         self.button_membership.setEnabled(True)
                         self.action_publish_uid.setEnabled(False)
-                        if self.community.get_block(0) is not None:
+                        if await self.community.get_block(0) is not None:
                             self.button_certification.setEnabled(False)
                 else:
                     logging.debug("UID not published")
