@@ -138,7 +138,7 @@
   </action>
  </widget>
  <resources>
-  <include location="../icons/icons.qrc"/>
+  <include location="../../../../res/icons/icons.qrc"/>
  </resources>
  <connections/>
  <slots>

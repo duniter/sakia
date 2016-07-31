@@ -18,5 +18,14 @@ class AgentController(QObject):
         self.model = model
 
     def attach(self, controller):
-        controller.setParent(self)
-        return controller
+        """
+        Attach an agent controller to this controller
+        :param AgentController controller: the attached controller
+        :return: the attached controller
+        :rtype: AgentController
+        """
+        if controller:
+            controller.setParent(self)
+            return controller
+        else:
+            return None

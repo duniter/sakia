@@ -1,72 +1,36 @@
-from PyQt5.QtWidgets import QFrame, QAction, QMenu, QDialog, QMessageBox
-from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import QObject, QT_TRANSLATE_NOOP, Qt
+from PyQt5.QtWidgets import QDialog, QMessageBox
+from PyQt5.QtCore import QT_TRANSLATE_NOOP, Qt
+from ..agent.controller import AgentController
 from .model import ToolbarModel
 from .view import ToolbarView
-from .toolbar_uic import Ui_SakiaToolbar
 from ...tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from ..widgets.dialogs import QAsyncMessageBox, QAsyncFileDialog, dialog_async_exec
 from ..widgets import toast
 import logging
 
 
-class ToolbarController(QObject):
+class ToolbarController(AgentController):
     """
     The navigation panel
     """
-    _action_showinfo_text = QT_TRANSLATE_NOOP("CommunityWidget", "Show informations")
-    _action_explore_text = QT_TRANSLATE_NOOP("CommunityWidget", "Explore the Web of Trust")
-    _action_publish_uid_text = QT_TRANSLATE_NOOP("CommunityWidget", "Publish UID")
-    _action_revoke_uid_text = QT_TRANSLATE_NOOP("CommunityWidget", "Revoke UID")
 
-    def __init__(self, view, model, account, community, password_asker):
+    def __init__(self, parent, view, model, password_asker):
         """
-
+        :param sakia.gui.agent.controller.AgentController parent: the parent
         :param sakia.gui.toolbar.view.ToolbarView view:
         :param sakia.gui.toolbar.model.ToolbarModel model:
         """
-        self.view = view
-        self.model = model
-        self.account = account
-        self.community = community
+        super().__init__(parent, view, model)
         self.password_asker = password_asker
 
-        tool_menu = QMenu(self.tr("Tools"), self.toolbutton_menu)
-        self.toolbutton_menu.setMenu(tool_menu)
-
-        self.action_publish_uid = QAction(self.tr(ToolbarController._action_publish_uid_text), self)
-        self.action_revoke_uid = QAction(self.tr(ToolbarController._action_revoke_uid_text), self)
-        self.action_showinfo = QAction(self.tr(ToolbarController._action_showinfo_text), self)
-        self.action_explorer = QAction(self.tr(ToolbarController._action_explore_text), self)
-
-        action_showinfo = QAction(self.tr("Show informations"), self.toolbutton_menu)
-        action_showinfo.triggered.connect(lambda: self.show_closable_tab(self.tab_informations,
-                                                                         QIcon(":/icons/informations_icon"),
-                                                                         self.tr("Informations")))
-        tool_menu.addAction(action_showinfo)
-
-        action_showexplorer = QAction(self.tr("Show explorer"), self.toolbutton_menu)
-        action_showexplorer.triggered.connect(lambda: self.show_closable_tab(self.tab_explorer.widget,
-                                                                             QIcon(":/icons/explorer_icon"),
-                                                                             self.tr("Explorer")))
-        tool_menu.addAction(action_showexplorer)
-
-        menu_advanced = QMenu(self.tr("Advanced"), self.toolbutton_menu)
-        action_gen_revokation = QAction(self.tr("Save revokation document"), menu_advanced)
-        action_gen_revokation.triggered.connect(self.action_save_revokation)
-        menu_advanced.addAction(action_gen_revokation)
-        tool_menu.addMenu(menu_advanced)
-
-        self.action_publish_uid.triggered.connect(self.publish_uid)
-        tool_menu.addAction(self.action_publish_uid)
-
-        self.button_membership.clicked.connect(self.send_membership_demand)
-
-        self.community_view.button_certification.clicked.connect(self.open_certification_dialog)
-        self.community_view.button_send_money.clicked.connect(self.open_transfer_money_dialog)
+        self.view.button_certification.clicked.connect(self.open_certification_dialog)
+        self.view.button_send_money.clicked.connect(self.open_transfer_money_dialog)
+        self.view.action_gen_revokation.triggered.connect(self.action_save_revokation)
+        self.view.action_publish_uid.triggered.connect(self.publish_uid)
+        self.view.button_membership.clicked.connect(self.send_membership_demand)
 
     @classmethod
-    def create(cls, parent):
+    def create(cls, parent, password_asker):
         """
         Instanciate a navigation agent
         :param sakia.gui.agent.controller.AgentController parent:
@@ -75,7 +39,7 @@ class ToolbarController(QObject):
         """
         view = ToolbarView(parent.view)
         model = ToolbarModel(None)
-        toolbar = cls(view, model)
+        toolbar = cls(parent, view, model, password_asker)
         model.setParent(toolbar)
         return toolbar
 

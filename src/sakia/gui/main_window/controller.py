@@ -18,6 +18,8 @@ from ..agent.controller import AgentController
 from .view import MainWindowView
 from .model import MainWindowModel
 from ..status_bar.controller import StatusBarController
+from ..toolbar.controller import ToolbarController
+from ..navigation.controller import NavigationController
 
 
 class MainWindowController(AgentController):
@@ -25,12 +27,13 @@ class MainWindowController(AgentController):
     classdocs
     """
 
-    def __init__(self, view, model, password_asker, status_bar):
+    def __init__(self, view, model, password_asker, status_bar, toolbar):
         """
         Init
         :param MainWindowView view: the ui of the mainwindow agent
         :param sakia.gui.main_window.model.MainWindowModel: the model of the mainwindow agent
         :param sakia.gui.status_bar.controller.StatusBarController: the controller of the status bar agent
+        :param sakia.gui.toolbar.controller.ToolbarController: the controller of the toolbar agent
 
         :param PasswordAsker password_asker: the password asker of the application
         :type: sakia.core.app.Application
@@ -39,8 +42,8 @@ class MainWindowController(AgentController):
         super().__init__(None, view, model)
         self.initialized = False
         self.password_asker = password_asker
-        if status_bar:
-            self.status_bar = self.attach(status_bar)
+        self.status_bar = self.attach(status_bar)
+        self.toolbar = self.attach(toolbar)
 
         QApplication.setWindowIcon(QIcon(":/icons/sakia_logo"))
 
@@ -48,9 +51,12 @@ class MainWindowController(AgentController):
     def startup(cls, app):
         view = MainWindowView(None)
         model = MainWindowModel(None, app)
-        main_window = cls(view, model,PasswordAskerDialog(None), None)
+        password_asker = PasswordAskerDialog(None)
+        main_window = cls(view, model, password_asker, None, None)
         main_window.status_bar = main_window.attach(StatusBarController.create(main_window, app))
-        main_window.view.setStatusBar(main_window.status_bar.view)
+        view.setStatusBar(main_window.status_bar.view)
+        main_window.toolbar = main_window.attach(ToolbarController.create(main_window, password_asker))
+        main_window.toolbar.view.setParent(view.centralwidget)
         #app.version_requested.connect(main_window.latest_version_requested)
         #app.account_imported.connect(main_window.import_account_accepted)
         #app.account_changed.connect(main_window.change_account)
