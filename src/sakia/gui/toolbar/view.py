@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QFrame, QAction, QMenu, QDialog, QMessageBox
+from PyQt5.QtWidgets import QFrame, QAction, QMenu, QSizePolicy, QMessageBox
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QObject, QT_TRANSLATE_NOOP, Qt
 from .toolbar_uic import Ui_SakiaToolbar
@@ -42,4 +42,6 @@ class ToolbarView(QFrame, Ui_SakiaToolbar):
         menu_advanced.addAction(self.action_gen_revokation)
         tool_menu.addMenu(menu_advanced)
         tool_menu.addAction(self.action_publish_uid)
+        self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Minimum)
+        self.setMaximumHeight(60)
 

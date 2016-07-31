@@ -86,7 +86,7 @@ class Application(QObject):
         app.get_last_version()
         if app.preferences["account"] != "":
             account = app.get_account(app.preferences["account"])
-            app.change_current_account(account)
+            app._current_account = account
         # no default account...
         else:
             # if at least one account exists, set it as default...

@@ -64,11 +64,10 @@ class StatusBarController(AgentController):
             self.view.combo_referential.clear()
             for ref in self.model.referentials():
                 self.view.combo_referential.addItem(ref.translated_name())
-            logging.debug(self.app.preferences)
 
             self.view.combo_referential.setEnabled(True)
             self.view.combo_referential.blockSignals(False)
-            self.view.combo_referential.setCurrentIndex(self.app.preferences['ref'])
+            self.view.combo_referential.setCurrentIndex(self.model.default_referential())
 
     @pyqtSlot(int)
     def referential_changed(self, index):

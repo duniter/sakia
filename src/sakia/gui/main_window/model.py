@@ -1,5 +1,4 @@
 from sakia.gui.agent.model import AgentModel
-from sakia.core.money import Referentials
 
 
 class MainWindowModel(AgentModel):
@@ -11,5 +10,3 @@ class MainWindowModel(AgentModel):
         super().__init__(parent)
         self.app = app
 
-    def referentials(self):
-        return Referentials

@@ -27,13 +27,14 @@ class MainWindowController(AgentController):
     classdocs
     """
 
-    def __init__(self, view, model, password_asker, status_bar, toolbar):
+    def __init__(self, view, model, password_asker, status_bar, toolbar, navigation):
         """
         Init
         :param MainWindowView view: the ui of the mainwindow agent
         :param sakia.gui.main_window.model.MainWindowModel: the model of the mainwindow agent
-        :param sakia.gui.status_bar.controller.StatusBarController: the controller of the status bar agent
-        :param sakia.gui.toolbar.controller.ToolbarController: the controller of the toolbar agent
+        :param sakia.gui.status_bar.controller.StatusBarController status_bar: the controller of the status bar agent
+        :param sakia.gui.toolbar.controller.ToolbarController toolbar: the controller of the toolbar agent
+        :param sakia.gui.navigation.contoller.NavigationController navigation: the controller of the navigation
 
         :param PasswordAsker password_asker: the password asker of the application
         :type: sakia.core.app.Application
@@ -44,6 +45,7 @@ class MainWindowController(AgentController):
         self.password_asker = password_asker
         self.status_bar = self.attach(status_bar)
         self.toolbar = self.attach(toolbar)
+        self.navigation = self.attach(navigation)
 
         QApplication.setWindowIcon(QIcon(":/icons/sakia_logo"))
 
@@ -52,11 +54,13 @@ class MainWindowController(AgentController):
         view = MainWindowView(None)
         model = MainWindowModel(None, app)
         password_asker = PasswordAskerDialog(None)
-        main_window = cls(view, model, password_asker, None, None)
+        main_window = cls(view, model, password_asker, None, None, None)
         main_window.status_bar = main_window.attach(StatusBarController.create(main_window, app))
         view.setStatusBar(main_window.status_bar.view)
         main_window.toolbar = main_window.attach(ToolbarController.create(main_window, password_asker))
-        main_window.toolbar.view.setParent(view.centralwidget)
+        view.top_layout.addWidget(main_window.toolbar.view)
+        main_window.navigation = main_window.attach(NavigationController.create(main_window, app))
+        view.bottom_layout.addWidget(main_window.navigation.view)
         #app.version_requested.connect(main_window.latest_version_requested)
         #app.account_imported.connect(main_window.import_account_accepted)
         #app.account_changed.connect(main_window.change_account)

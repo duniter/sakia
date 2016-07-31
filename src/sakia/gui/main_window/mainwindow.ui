@@ -16,11 +16,13 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_6">
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout"/>
+     <layout class="QHBoxLayout" name="top_layout"/>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="bottom_layout"/>
     </item>
    </layout>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
   <action name="actionManage_accounts">
    <property name="text">
     <string>Manage accounts</string>
