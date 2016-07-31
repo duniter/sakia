@@ -13,13 +13,12 @@ from PyQt5.QtWidgets import QWidget, QMessageBox, QDialog, QPushButton, QTabBar,
 
 from .graphs.wot_tab import WotTabWidget
 from .widgets import toast
-from .widgets.dialogs import QAsyncMessageBox, QAsyncFileDialog, dialog_async_exec
 from .identities_tab import IdentitiesTabWidget
 from .informations_tab import InformationsTabWidget
 from .network_tab import NetworkTabWidget
 from .transactions_tab import TransactionsTabWidget
 from .graphs.explorer_tab import ExplorerTabWidget
-from ..gen_resources.community_view_uic import Ui_CommunityWidget
+from ..presentation.community_view_uic import Ui_CommunityWidget
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from ..tools.exceptions import MembershipNotFoundError, LookupFailureError, NoPeerAvailable
 
@@ -35,10 +34,6 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
     _tab_identities_label = QT_TRANSLATE_NOOP("CommunityWidget", "Search Identities")
     _tab_network_label = QT_TRANSLATE_NOOP("CommunityWidget", "Network")
     _tab_informations_label = QT_TRANSLATE_NOOP("CommunityWidget", "Informations")
-    _action_showinfo_text = QT_TRANSLATE_NOOP("CommunityWidget", "Show informations")
-    _action_explore_text = QT_TRANSLATE_NOOP("CommunityWidget", "Explore the Web of Trust")
-    _action_publish_uid_text = QT_TRANSLATE_NOOP("CommunityWidget", "Publish UID")
-    _action_revoke_uid_text = QT_TRANSLATE_NOOP("CommunityWidget", "Revoke UID")
 
     def __init__(self, app, status_label, label_icon):
         """
@@ -61,15 +56,7 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.tab_network = NetworkTabWidget(self.app)
         self.tab_explorer = ExplorerTabWidget(self.app)
 
-        self.action_publish_uid = QAction(self.tr(CommunityWidget._action_publish_uid_text), self)
-        self.action_revoke_uid = QAction(self.tr(CommunityWidget._action_revoke_uid_text), self)
-        self.action_showinfo = QAction(self.tr(CommunityWidget._action_showinfo_text), self)
-        self.action_explorer = QAction(self.tr(CommunityWidget._action_explore_text), self)
-
         super().setupUi(self)
-
-        tool_menu = QMenu(self.tr("Tools"), self.toolbutton_menu)
-        self.toolbutton_menu.setMenu(tool_menu)
 
         self.tab_identities.view_in_wot.connect(self.tab_wot.draw_graph)
         self.tab_identities.view_in_wot.connect(lambda: self.tabs.setCurrentWidget(self.tab_wot.widget))
@@ -93,27 +80,6 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         self.tabs.addTab(self.tab_network,
                                  QIcon(":/icons/network_icon"),
                                  self.tr("Network"))
-
-        action_showinfo = QAction(self.tr("Show informations"), self.toolbutton_menu)
-        action_showinfo.triggered.connect(lambda : self.show_closable_tab(self.tab_informations,
-                                    QIcon(":/icons/informations_icon"), self.tr("Informations")))
-        tool_menu.addAction(action_showinfo)
-
-        action_showexplorer = QAction(self.tr("Show explorer"), self.toolbutton_menu)
-        action_showexplorer.triggered.connect(lambda : self.show_closable_tab(self.tab_explorer.widget,
-                                    QIcon(":/icons/explorer_icon"), self.tr("Explorer")))
-        tool_menu.addAction(action_showexplorer)
-
-        menu_advanced = QMenu(self.tr("Advanced"), self.toolbutton_menu)
-        action_gen_revokation = QAction(self.tr("Save revokation document"), menu_advanced)
-        action_gen_revokation.triggered.connect(self.action_save_revokation)
-        menu_advanced.addAction(action_gen_revokation)
-        tool_menu.addMenu(menu_advanced)
-
-        self.action_publish_uid.triggered.connect(self.publish_uid)
-        tool_menu.addAction(self.action_publish_uid)
-
-        self.button_membership.clicked.connect(self.send_membership_demand)
 
     def show_closable_tab(self, tab, icon, title):
         if self.tabs.indexOf(tab) == -1:
@@ -174,31 +140,6 @@ class CommunityWidget(QWidget, Ui_CommunityWidget):
         QMessageBox.critical(self, ":(",
                     error,
                     QMessageBox.Ok)
-
-    @asyncify
-    async def action_save_revokation(self, checked=False):
-        password = await self.password_asker.async_exec()
-        if self.password_asker.result() == QDialog.Rejected:
-            return
-
-        raw_document = await self.account.generate_revokation(self.community, password)
-        # Testable way of using a QFileDialog
-        selected_files = await QAsyncFileDialog.get_save_filename(self, self.tr("Save a revokation document"),
-                                                "",  self.tr("All text files (*.txt)"))
-        if selected_files:
-            path = selected_files[0]
-            if not path.endswith('.txt'):
-                path = "{0}.txt".format(path)
-            with open(path, 'w') as save_file:
-                save_file.write(raw_document)
-
-        dialog = QMessageBox(QMessageBox.Information, self.tr("Revokation file"),
-                                           self.tr("""<div>Your revokation document has been saved.</div>
-<div><b>Please keep it in a safe place.</b></div>
-The publication of this document will remove your identity from the network.</p>"""), QMessageBox.Ok,
-                             self)
-        dialog.setTextFormat(Qt.RichText)
-        await dialog_async_exec(dialog)
 
     @once_at_a_time
     @asyncify
@@ -317,40 +258,6 @@ The publication of this document will remove your identity from the network.</p>
             self.status_label.setText(label_text)
             self.label_icon.setPixmap(QPixmap(icon).scaled(24, 24, Qt.KeepAspectRatio, Qt.SmoothTransformation))
 
-    @once_at_a_time
-    @asyncify
-    async def refresh_quality_buttons(self):
-        if self.account and self.community:
-            try:
-                account_identity = await self.account.identity(self.community)
-                published_uid = await account_identity.published_uid(self.community)
-                uid_is_revokable = await account_identity.uid_is_revokable(self.community)
-                if published_uid:
-                    logging.debug("UID Published")
-                    self.action_revoke_uid.setEnabled(uid_is_revokable)
-                    is_member = await account_identity.is_member(self.community)
-                    if is_member:
-                        self.button_membership.setText(self.tr("Renew membership"))
-                        self.button_membership.setEnabled(True)
-                        self.button_certification.setEnabled(True)
-                        self.action_publish_uid.setEnabled(False)
-                    else:
-                        logging.debug("Not a member")
-                        self.button_membership.setText(self.tr("Send membership demand"))
-                        self.button_membership.setEnabled(True)
-                        self.action_publish_uid.setEnabled(False)
-                        if await self.community.get_block(0) is not None:
-                            self.button_certification.setEnabled(False)
-                else:
-                    logging.debug("UID not published")
-                    self.button_membership.setEnabled(False)
-                    self.button_certification.setEnabled(False)
-                    self.action_publish_uid.setEnabled(True)
-            except LookupFailureError:
-                self.button_membership.setEnabled(False)
-                self.button_certification.setEnabled(False)
-                self.action_publish_uid.setEnabled(False)
-
     def showEvent(self, event):
         self.refresh_status()
 
@@ -359,69 +266,6 @@ The publication of this document will remove your identity from the network.</p>
             self.tab_history.ui.table_history.model().sourceModel().refresh_transfers()
             self.tab_history.refresh_balance()
             self.tab_informations.refresh()
-
-    @asyncify
-    async def send_membership_demand(self, checked=False):
-        password = await self.password_asker.async_exec()
-        if self.password_asker.result() == QDialog.Rejected:
-            return
-        result = await self.account.send_membership(password, self.community, 'IN')
-        if result[0]:
-            if self.app.preferences['notifications']:
-                toast.display(self.tr("Membership"), self.tr("Success sending Membership demand"))
-            else:
-                await QAsyncMessageBox.information(self, self.tr("Membership"),
-                                                        self.tr("Success sending Membership demand"))
-        else:
-            if self.app.preferences['notifications']:
-                toast.display(self.tr("Membership"), result[1])
-            else:
-                await QAsyncMessageBox.critical(self, self.tr("Membership"),
-                                                        result[1])
-
-    @asyncify
-    async def send_membership_leaving(self):
-        reply = await QAsyncMessageBox.warning(self, self.tr("Warning"),
-                             self.tr("""Are you sure ?
-Sending a leaving demand  cannot be canceled.
-The process to join back the community later will have to be done again.""")
-.format(self.account.pubkey), QMessageBox.Ok | QMessageBox.Cancel)
-        if reply == QMessageBox.Ok:
-            password = self.password_asker.exec_()
-            if self.password_asker.result() == QDialog.Rejected:
-                return
-            result = await self.account.send_membership(password, self.community, 'OUT')
-            if result[0]:
-                if self.app.preferences['notifications']:
-                    toast.display(self.tr("Revoke"), self.tr("Success sending Revoke demand"))
-                else:
-                    await QAsyncMessageBox.information(self, self.tr("Revoke"),
-                                                            self.tr("Success sending Revoke demand"))
-            else:
-                if self.app.preferences['notifications']:
-                    toast.display(self.tr("Revoke"), result[1])
-                else:
-                    await QAsyncMessageBox.critical(self, self.tr("Revoke"),
-                                                         result[1])
-
-    @asyncify
-    async def publish_uid(self, checked=False):
-        password = await self.password_asker.async_exec()
-        if self.password_asker.result() == QDialog.Rejected:
-            return
-        result = await self.account.send_selfcert(password, self.community)
-        if result[0]:
-            if self.app.preferences['notifications']:
-                toast.display(self.tr("UID"), self.tr("Success publishing your UID"))
-            else:
-                await QAsyncMessageBox.information(self, self.tr("Membership"),
-                                                        self.tr("Success publishing your UID"))
-        else:
-            if self.app.preferences['notifications']:
-                toast.display(self.tr("UID"), result[1])
-            else:
-                await QAsyncMessageBox.critical(self, self.tr("UID"),
-                                                        result[1])
 
     def retranslateUi(self, widget):
         """
@@ -434,9 +278,6 @@ The process to join back the community later will have to be done again.""")
         self.tabs.setTabText(self.tabs.indexOf(self.tab_informations), self.tr(CommunityWidget._tab_informations_label))
         self.tabs.setTabText(self.tabs.indexOf(self.tab_history.widget), self.tr(CommunityWidget._tab_history_label))
         self.tabs.setTabText(self.tabs.indexOf(self.tab_identities.widget), self.tr(CommunityWidget._tab_identities_label))
-        self.action_publish_uid.setText(self.tr(CommunityWidget._action_publish_uid_text))
-        self.action_revoke_uid.setText(self.tr(CommunityWidget._action_revoke_uid_text))
-        self.action_showinfo.setText(self.tr(CommunityWidget._action_showinfo_text))
         super().retranslateUi(self)
 
     def showEvent(self, QShowEvent):

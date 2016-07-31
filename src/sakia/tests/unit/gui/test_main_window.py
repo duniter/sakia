@@ -42,7 +42,7 @@ class TestMainWindow(unittest.TestCase, QuamashTest):
     def test_change_account(self):
         widget = Mock(spec='PyQt5.QtWidgets.QMainWindow', create=True)
         widget.installEventFilter = Mock()
-        ui = Mock(spec='sakia.gen_resources.mainwindow_uic.Ui_MainWindow', create=True)
+        ui = Mock(spec='sakia.presentation.mainwindow_uic.Ui_MainWindow', create=True)
         ui.setupUi = Mock()
         label_icon = Mock()
         label_status = Mock()
@@ -67,7 +67,7 @@ class TestMainWindow(unittest.TestCase, QuamashTest):
     def test_change_account_from_none(self):
         widget = Mock(spec='PyQt5.QtWidgets.QMainWindow', create=True)
         widget.installEventFilter = Mock()
-        ui = Mock(spec='sakia.gen_resources.mainwindow_uic.Ui_MainWindow', create=True)
+        ui = Mock(spec='sakia.presentation.mainwindow_uic.Ui_MainWindow', create=True)
         ui.setupUi = Mock()
         label_icon = Mock()
         label_status = Mock()

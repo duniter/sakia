@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QWidget, QAbstractItemView, QHeaderView
 from PyQt5.QtCore import Qt, QObject, QDateTime, QTime, QModelIndex, pyqtSignal, pyqtSlot, QEvent
 from PyQt5.QtGui import QCursor
 
-from ..gen_resources.transactions_tab_uic import Ui_transactionsTabWidget
+from ..presentation.transactions_tab_uic import Ui_transactionsTabWidget
 from ..models.txhistory import HistoryTableModel, TxFilterProxyModel
 from ..tools.exceptions import NoPeerAvailable
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task

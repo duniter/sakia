@@ -14,7 +14,8 @@ from .widgets.dialogs import QAsyncMessageBox
 from .member import MemberDialog
 from ..tools.decorators import asyncify, once_at_a_time
 from ..tools.exceptions import NoPeerAvailable
-from ..gen_resources.certification_uic import Ui_CertificationDialog
+from ..presentation.certification_uic import Ui_CertificationDialog
+
 
 class CertificationDialog(QObject):
     """

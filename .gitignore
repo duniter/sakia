@@ -46,3 +46,4 @@ res/i18n/lang-*
 out
 .directory
 temp
+*_uic.py

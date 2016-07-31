@@ -7,7 +7,7 @@ from ...tools.exceptions import NoPeerAvailable
 from ...tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from ...core.graph import ExplorerGraph
 from .graph_tab import GraphTabWidget
-from ...gen_resources.explorer_tab_uic import Ui_ExplorerTabWidget
+from ...presentation.explorer_tab_uic import Ui_ExplorerTabWidget
 
 
 class ExplorerTabWidget(GraphTabWidget, Ui_ExplorerTabWidget):

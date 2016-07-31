@@ -14,76 +14,11 @@
    <string notr="true">Sakia</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_6"/>
-  </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>900</width>
-     <height>30</height>
-    </rect>
-   </property>
-   <widget class="QMenu" name="menu_file">
-    <property name="title">
-     <string>Fi&amp;le</string>
-    </property>
-    <addaction name="action_import"/>
-    <addaction name="action_export"/>
-    <addaction name="separator"/>
-    <addaction name="actionPreferences"/>
-    <addaction name="action_quit"/>
-   </widget>
-   <widget class="QMenu" name="menu_account">
-    <property name="title">
-     <string>Acco&amp;unt</string>
-    </property>
-    <widget class="QMenu" name="menu_contacts_list">
-     <property name="title">
-      <string>Co&amp;ntacts</string>
-     </property>
-     <addaction name="separator"/>
-    </widget>
-    <widget class="QMenu" name="menu_change_account">
-     <property name="title">
-      <string>&amp;Open</string>
-     </property>
-    </widget>
-    <widget class="QMenu" name="menuAdvanced">
-     <property name="title">
-      <string>Advanced</string>
-     </property>
-     <addaction name="action_revoke_identity"/>
-    </widget>
-    <addaction name="menu_change_account"/>
-    <addaction name="action_configure_parameters"/>
-    <addaction name="action_add_account"/>
-    <addaction name="separator"/>
-    <addaction name="actionCertification"/>
-    <addaction name="actionTransfer_money"/>
-    <addaction name="separator"/>
-    <addaction name="action_add_a_contact"/>
-    <addaction name="menu_contacts_list"/>
-    <addaction name="separator"/>
-    <addaction name="menuAdvanced"/>
-   </widget>
-   <widget class="QMenu" name="menu_help">
-    <property name="title">
-     <string>&amp;Help</string>
-    </property>
-    <addaction name="actionAbout"/>
-   </widget>
-   <widget class="QMenu" name="menu_duniter">
-    <property name="title">
-     <string>&amp;Duniter</string>
-    </property>
-    <addaction name="actionManage_local_node"/>
-   </widget>
-   <addaction name="menu_file"/>
-   <addaction name="menu_account"/>
-   <addaction name="menu_duniter"/>
-   <addaction name="menu_help"/>
+   <layout class="QVBoxLayout" name="verticalLayout_6">
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout"/>
+    </item>
+   </layout>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionManage_accounts">
@@ -198,7 +133,7 @@
   </action>
   <action name="action_revoke_identity">
    <property name="text">
-    <string>Revoke an identity</string>
+    <string>&amp;Revoke an identity</string>
    </property>
   </action>
  </widget>

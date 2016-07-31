@@ -14,7 +14,7 @@ from duniterpy.api import bma, errors
 from duniterpy.documents import BlockUID
 
 from ..models.identities import IdentitiesFilterProxyModel, IdentitiesTableModel
-from ..gen_resources.identities_tab_uic import Ui_IdentitiesTab
+from ..presentation.identities_tab_uic import Ui_IdentitiesTab
 from ..core.registry import Identity, BlockchainState
 from ..tools.exceptions import NoPeerAvailable
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task

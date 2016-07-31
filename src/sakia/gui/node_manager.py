@@ -18,7 +18,7 @@ class NodeManager(QObject):
         Init MemberDialog
 
         :param PyQt5.QtWidget widget: The class of the widget
-        :param sakia.gen_resources.member_uic.Ui_DialogMember ui: the class of the ui applyed to the widget
+        :param sakia.presentation.member_uic.Ui_DialogMember ui: the class of the ui applyed to the widget
         :return:
         """
         super().__init__()

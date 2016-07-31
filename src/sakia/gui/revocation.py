@@ -11,7 +11,7 @@ from PyQt5.QtCore import QObject
 
 from .widgets.dialogs import QAsyncMessageBox
 from ..tools.decorators import asyncify
-from ..gen_resources.revocation_uic import Ui_RevocationDialog
+from ..presentation.revocation_uic import Ui_RevocationDialog
 
 
 class RevocationDialog(QObject):

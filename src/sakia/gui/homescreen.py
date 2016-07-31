@@ -6,7 +6,7 @@ Created on 31 janv. 2015
 
 from PyQt5.QtWidgets import QWidget, QFrame, QGridLayout, QAction
 from PyQt5.QtCore import QEvent, Qt, pyqtSlot, pyqtSignal
-from ..gen_resources.homescreen_uic import Ui_HomescreenWidget
+from ..presentation.homescreen_uic import Ui_HomescreenWidget
 from .community_tile import CommunityTile
 from ..core.community import Community
 import logging

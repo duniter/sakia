@@ -7,7 +7,7 @@ import re
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QMessageBox, QFileDialog
 
 from ..tools.exceptions import Error
-from ..gen_resources.import_account_uic import Ui_ImportAccountDialog
+from ..presentation.import_account_uic import Ui_ImportAccountDialog
 
 
 class ImportAccountDialog(QDialog, Ui_ImportAccountDialog):

@@ -20,7 +20,7 @@ import PyQt5.QtSvg
 from quamash import QSelectorEventLoop
 from PyQt5.QtWidgets import QApplication, QMessageBox
 from PyQt5.QtCore import Qt
-from sakia.gui.mainwindow import MainWindow
+from sakia.gui.main_window.controller import MainWindowController
 from sakia.core.app import Application
 
 
@@ -97,7 +97,7 @@ if __name__ == '__main__':
 
     with loop:
         app = Application.startup(sys.argv, sakia, loop)
-        window = MainWindow.startup(app)
+        window = MainWindowController.startup(app)
         loop.run_forever()
         try:
             loop.set_exception_handler(None)

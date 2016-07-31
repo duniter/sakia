@@ -5,7 +5,7 @@ from PyQt5.QtCore import QEvent, pyqtSignal, QT_TRANSLATE_NOOP, QObject
 from PyQt5.QtWidgets import QWidget
 from ...tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from ...core.graph import WoTGraph
-from ...gen_resources.wot_tab_uic import Ui_WotTabWidget
+from ...presentation.wot_tab_uic import Ui_WotTabWidget
 from ...gui.widgets.busy import Busy
 from .graph_tab import GraphTabWidget
 

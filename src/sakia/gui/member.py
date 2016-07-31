@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QDialog, QWidget
 from ..core.graph import WoTGraph
 from .widgets.busy import Busy
 from ..tools.decorators import asyncify
-from ..gen_resources.member_uic import Ui_MemberView
+from ..presentation.member_uic import Ui_MemberView
 from ..tools.exceptions import MembershipNotFoundError, LookupFailureError, NoPeerAvailable
 from ..core.registry import LocalState
 
@@ -25,7 +25,7 @@ class MemberDialog(QObject):
         :param sakia.core.community.Community community: Community instance
         :param sakia.core.registry.identity.Identity identity: Identity instance
         :param PyQt5.QtWidget widget: The class of the widget
-        :param sakia.gen_resources.member_uic.Ui_DialogMember ui: the class of the ui applyed to the widget
+        :param sakia.presentation.member_uic.Ui_DialogMember ui: the class of the ui applyed to the widget
         :return:
         """
         super().__init__()

@@ -8,7 +8,7 @@ from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtWidgets import QDialog
 
 from ..core import money
-from ..gen_resources.preferences_uic import Ui_PreferencesDialog
+from ..presentation.preferences_uic import Ui_PreferencesDialog
 
 
 class PreferencesDialog(QDialog, Ui_PreferencesDialog):

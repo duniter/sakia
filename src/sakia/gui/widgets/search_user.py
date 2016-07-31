@@ -8,7 +8,7 @@ from duniterpy.api import bma, errors
 from ...tools.decorators import asyncify
 from ...tools.exceptions import NoPeerAvailable
 from ...core.registry import BlockchainState, Identity
-from ...gen_resources.search_user_view_uic import Ui_SearchUserWidget
+from ...presentation.search_user_view_uic import Ui_SearchUserWidget
 
 
 class SearchUserWidget(QWidget, Ui_SearchUserWidget):

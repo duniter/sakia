@@ -6,7 +6,7 @@ Created on 6 mars 2014
 import logging
 import asyncio
 from duniterpy.key import SigningKey
-from ..gen_resources.account_cfg_uic import Ui_AccountConfigurationDialog
+from ..presentation.account_cfg_uic import Ui_AccountConfigurationDialog
 from ..gui.process_cfg_community import ProcessConfigureCommunity
 from ..gui.password_asker import PasswordAskerDialog, detect_non_printable
 from ..gui.widgets.dialogs import QAsyncMessageBox

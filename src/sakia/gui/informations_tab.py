@@ -8,7 +8,7 @@ import logging
 import math
 from PyQt5.QtCore import QLocale, QDateTime, QEvent
 from PyQt5.QtWidgets import QWidget
-from ..gen_resources.informations_tab_uic import Ui_InformationsTabWidget
+from ..presentation.informations_tab_uic import Ui_InformationsTabWidget
 from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from ..tools.exceptions import NoPeerAvailable
 from .widgets import Busy

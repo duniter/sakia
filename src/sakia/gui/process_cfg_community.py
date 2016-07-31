@@ -15,7 +15,7 @@ from PyQt5.QtWidgets import QDialog, QMenu, QApplication
 from PyQt5.QtGui import QCursor
 from PyQt5.QtCore import pyqtSignal, QObject
 
-from ..gen_resources.community_cfg_uic import Ui_CommunityConfigurationDialog
+from ..presentation.community_cfg_uic import Ui_CommunityConfigurationDialog
 from ..models.peering import PeeringTreeModel
 from ..core import Community
 from ..core.net import Node
