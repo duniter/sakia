@@ -4,7 +4,7 @@ from .mainwindow_uic import Ui_MainWindow
 
 class MainWindowView(QMainWindow, Ui_MainWindow):
     """
-    The model of Navigation agent
+    The model of Navigation component
     """
 
     def __init__(self, parent):

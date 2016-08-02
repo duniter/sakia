@@ -5,7 +5,7 @@ from PyQt5.QtCore import Qt
 
 class StatusBarView(QStatusBar):
     """
-    The model of Navigation agent
+    The model of Navigation component
     """
 
     def __init__(self, parent):

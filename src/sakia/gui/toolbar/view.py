@@ -6,7 +6,7 @@ from .toolbar_uic import Ui_SakiaToolbar
 
 class ToolbarView(QFrame, Ui_SakiaToolbar):
     """
-    The model of Navigation agent
+    The model of Navigation component
     """
     _action_showinfo_text = QT_TRANSLATE_NOOP("ToolbarView", "Show informations")
     _action_explore_text = QT_TRANSLATE_NOOP("ToolbarView", "Explore the Web of Trust")

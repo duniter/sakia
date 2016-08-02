@@ -38,6 +38,9 @@ class NodeItem(QAbstractItemModel):
         if role == Qt.DecorationRole and 'icon' in self.node:
             return QIcon(self.node['icon'])
 
+        if role == GenericTreeModel.ROLE_RAW_DATA:
+            return self.node
+
     def row(self):
         if self.parent_item:
             return self.parent_item.row() + self.parent_item.children.index(self)
@@ -58,6 +61,9 @@ class GenericTreeModel(QAbstractItemModel):
     }
 
     """
+
+    ROLE_RAW_DATA = 101
+
 
     def __init__(self, title, root_item):
         """
@@ -94,6 +100,8 @@ class GenericTreeModel(QAbstractItemModel):
         item = index.internalPointer()
 
         if role == Qt.DisplayRole and index.column() == 0:
+            return item.data(0, role)
+        elif role == GenericTreeModel.ROLE_RAW_DATA:
             return item.data(0, role)
 
         return None

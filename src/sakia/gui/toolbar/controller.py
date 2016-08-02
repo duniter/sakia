@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QDialog, QMessageBox
 from PyQt5.QtCore import QT_TRANSLATE_NOOP, Qt
-from ..agent.controller import AgentController
+from ..component.controller import ComponentController
 from .model import ToolbarModel
 from .view import ToolbarView
 from ...tools.decorators import asyncify, once_at_a_time, cancel_once_task
@@ -9,7 +9,7 @@ from ..widgets import toast
 import logging
 
 
-class ToolbarController(AgentController):
+class ToolbarController(ComponentController):
     """
     The navigation panel
     """
@@ -32,7 +32,7 @@ class ToolbarController(AgentController):
     @classmethod
     def create(cls, parent, password_asker):
         """
-        Instanciate a navigation agent
+        Instanciate a navigation component
         :param sakia.gui.agent.controller.AgentController parent:
         :return: a new Toolbar controller
         :rtype: ToolbarController

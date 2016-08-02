@@ -1,18 +1,18 @@
 from PyQt5.QtCore import QLocale, pyqtSlot, QDateTime, QTimer
-from ..agent.controller import AgentController
+from ..component.controller import ComponentController
 from .model import StatusBarModel
 from .view import StatusBarView
 import logging
 
 
-class StatusBarController(AgentController):
+class StatusBarController(ComponentController):
     """
     The navigation panel
     """
 
     def __init__(self, parent, view, model):
         """
-        Constructor of the navigation agent
+        Constructor of the navigation component
 
         :param sakia.gui.status_bar.view.StatusBarView view: the presentation
         :param sakia.core.status_bar.model.StatusBarModel model: the model
@@ -24,7 +24,7 @@ class StatusBarController(AgentController):
     @classmethod
     def create(cls, parent, app):
         """
-        Instanciate a navigation agent
+        Instanciate a navigation component
         :param sakia.gui.main_window.controller.MainWindowController parent:
         :return: a new Navigation controller
         :rtype: NavigationController

@@ -1,43 +1,67 @@
-from ..agent.model import AgentModel
+from ..component.model import ComponentModel
 from sakia.models.generic_tree import GenericTreeModel
+from PyQt5.QtCore import pyqtSignal
 
 
-class NavigationModel(AgentModel):
+class NavigationModel(ComponentModel):
     """
-    The model of Navigation agent
+    The model of Navigation component
     """
+    navigation_changed = pyqtSignal(GenericTreeModel)
+
     def __init__(self, parent, app):
+        """
+
+        :param sakia.gui.component.controller.ComponentController parent:
+        :param sakia.core.app.Application app:
+        """
         super().__init__(parent)
         self.app = app
+        self.navigation = {}
 
-    def tree(self):
-        navigation = [{'node': {
-                            'title': self.app.current_account.name
-                        },
-                        'children': []
-                        }
-                    ]
-        for c in self.app.current_account.communities:
-            navigation[0]['children'].append({
+    def init_navigation_data(self):
+        self.navigation = [
+            {
                 'node': {
-                    'title': c.currency
+                    'title': self.app.current_account.name,
+                    'component': "HomeScreen"
+                },
+                'children': []
+            }
+        ]
+        for c in self.app.current_account.communities:
+            self.navigation[0]['children'].append({
+                'node': {
+                    'title': c.currency,
                 },
                 'children': [
                     {
                         'node': {
-                            'title': self.tr('Transfers')
+                            'title': self.tr('Transfers'),
+                            'component': "TxHistory",
+                            'community': c,
+                            'account': self.app.current_account
                         }
                     },
                     {
                         'node': {
-                            'title': self.tr('Network')
+                            'title': self.tr('Network'),
+                            'component': "Network",
+                            'community': c,
+                            'account': self.app.current_account
                         }
                     },
                     {
                         'node': {
-                            'title': self.tr('Network')
+                            'title': self.tr('Identities'),
+                            'component': "Identities",
+                            'community': c,
+                            'account': self.app.current_account
                         }
                     }
                 ]
             })
-        return GenericTreeModel.create("Navigation", navigation)
+        return self.navigation
+
+    def generic_tree(self):
+        return GenericTreeModel.create("Navigation", self.navigation)

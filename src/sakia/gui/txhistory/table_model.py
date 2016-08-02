@@ -8,10 +8,10 @@ import datetime
 import logging
 import asyncio
 import math
-from ..core.transfer import Transfer, TransferState
-from ..core.net.network import MAX_CONFIRMATIONS
-from ..tools.exceptions import NoPeerAvailable
-from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
+from ...core.transfer import Transfer, TransferState
+from ...core.net.network import MAX_CONFIRMATIONS
+from ...tools.exceptions import NoPeerAvailable
+from ...tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, \
     QDateTime, QLocale, QModelIndex
 

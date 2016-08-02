@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>transactionsTabWidget</class>
- <widget class="QWidget" name="transactionsTabWidget">
+ <class>TxHistoryWidget</class>
+ <widget class="QWidget" name="TxHistoryWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -117,7 +117,7 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../icons/icons.qrc"/>
+  <include location="../../../../res/icons/icons.qrc"/>
  </resources>
  <connections/>
 </ui>
