@@ -9,3 +9,7 @@ class HomeScreenModel(ComponentModel):
     def __init__(self, parent, app):
         super().__init__(parent)
         self.app = app
+
+    @property
+    def account(self):
+        return self.app.current_account
