@@ -21,7 +21,6 @@ class TxHistoryView(QWidget, Ui_TxHistoryWidget):
         self.table_history.setSortingEnabled(True)
         self.table_history.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
         self.table_history.resizeColumnsToContents()
-        self.table_history.customContextMenuRequested['QPoint'].connect(self.history_context_menu)
 
     def get_time_frame(self):
         """
@@ -39,29 +38,6 @@ class TxHistoryView(QWidget, Ui_TxHistoryWidget):
         self.table_history.setModel(model)
         model.modelAboutToBeReset.connect(lambda: self.table_history.setEnabled(False))
         model.modelReset.connect(lambda: self.table_history.setEnabled(True))
-
-    @once_at_a_time
-    @asyncify
-    async def history_context_menu(self, point):
-        index = self.table_history.indexAt(point)
-        model = self.table_history.model()
-        if index.isValid() and index.row() < model.rowCount(QModelIndex()):
-            source_index = model.mapToSource(index)
-
-            pubkey_col = model.sourceModel().columns_types.index('pubkey')
-            pubkey_index = model.sourceModel().index(source_index.row(),
-                                                     pubkey_col)
-            pubkey = model.sourceModel().data(pubkey_index, Qt.DisplayRole)
-
-            identity = await self.app.identities_registry.future_find(pubkey, self.community)
-
-            transfer = model.sourceModel().transfers()[source_index.row()]
-            menu = ContextMenu.from_data(self, self.app, self.account, self.community, self.password_asker,
-                                         (identity, transfer))
-            menu.view_identity_in_wot.connect(self.view_in_wot)
-
-            # Show the context menu.
-            menu.qmenu.popup(QCursor.pos())
 
     async def set_minimum_maximum_datetime(self, minimum, maximum):
         """

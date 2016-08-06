@@ -1,14 +1,14 @@
 import logging
 
-from duniterpy.api import errors
-from PyQt5.QtCore import QDateTime, QTime, pyqtSignal
+from PyQt5.QtCore import QTime, pyqtSignal
+from PyQt5.QtGui import QCursor
 
 from ..component.controller import ComponentController
 from .view import TxHistoryView
 from .model import TxHistoryModel
-from ...tools.exceptions import NoPeerAvailable
-from ...tools.decorators import asyncify, once_at_a_time, cancel_once_task
+from ...tools.decorators import asyncify, once_at_a_time
 from ..widgets import toast
+from ..widgets.context_menu import ContextMenu
 
 
 class TxHistoryController(ComponentController):
@@ -34,6 +34,7 @@ class TxHistoryController(ComponentController):
 
         self.view.date_from.dateChanged['QDate'].connect(self.dates_changed)
         self.view.date_to.dateChanged['QDate'].connect(self.dates_changed)
+        self.view.table_history.customContextMenuRequested['QPoint'].connect(self.history_context_menu)
         self.model.loading_progressed.connect(self.view.set_progress_bar)
         self.refresh()
 
@@ -77,6 +78,19 @@ class TxHistoryController(ComponentController):
         localized_amount = await self.model.localized_balance()
         self.view.set_balance(localized_amount)
         self.view.busy_balance.hide()
+
+    @once_at_a_time
+    @asyncify
+    async def history_context_menu(self, point):
+        index = self.view.table_history.indexAt(point)
+        identity, transfer = await self.model.table_data(index)
+        menu = ContextMenu.from_data(self.view, self.model.app, self.model.account, self.model.community,
+                                     self.password_asker,
+                                     (identity, transfer))
+        menu.view_identity_in_wot.connect(self.view_in_wot)
+
+        # Show the context menu.
+        menu.qmenu.popup(QCursor.pos())
 
     def dates_changed(self):
         logging.debug("Changed dates")

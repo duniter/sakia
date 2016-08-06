@@ -1,6 +1,6 @@
 from sakia.gui.component.model import ComponentModel
 from .table_model import HistoryTableModel, TxFilterProxyModel
-from PyQt5.QtCore import Qt, QDateTime, QTime, pyqtSignal
+from PyQt5.QtCore import Qt, QDateTime, QTime, pyqtSignal, QModelIndex
 from sakia.tools.exceptions import NoPeerAvailable
 from duniterpy.api import errors
 
@@ -44,6 +44,26 @@ class TxHistoryModel(ComponentModel):
         self._model.refresh_transfers()
 
         return self._proxy
+
+    async def table_data(self, index):
+        """
+        Gets available table data at given index
+        :param index:
+        :return: tuple containing (Identity, Transfer)
+        """
+        if index.isValid() and index.row() < self.table_model.rowCount(QModelIndex()):
+            source_index = self.table_model.mapToSource(index)
+
+            pubkey_col = self.table_model.sourceModel().columns_types.index('pubkey')
+            pubkey_index = self.table_model.sourceModel().index(source_index.row(),
+                                                     pubkey_col)
+            pubkey = self.table_model.sourceModel().data(pubkey_index, Qt.DisplayRole)
+
+            identity = await self.app.identities_registry.future_find(pubkey, self.community)
+
+            transfer = self.table_model.sourceModel().transfers()[source_index.row()]
+            return identity, transfer
+        return None
 
     def connect_progress(self):
         def progressing(community, value, maximum):
