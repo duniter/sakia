@@ -4,6 +4,7 @@ from .view import NavigationView
 from ..txhistory.controller import TxHistoryController
 from ..homescreen.controller import HomeScreenController
 from ..network.controller import NetworkController
+from ..identities.controller import IdentitiesController
 
 
 class NavigationController(ComponentController):
@@ -23,7 +24,7 @@ class NavigationController(ComponentController):
             'TxHistory': TxHistoryController,
             'HomeScreen': HomeScreenController,
             'Network': NetworkController,
-            'Identities': TxHistoryController
+            'Identities': IdentitiesController
         }
 
     @classmethod

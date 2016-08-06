@@ -13,7 +13,7 @@ class HomeScreenController(ComponentController):
         Constructor of the navigation component
 
         :param PyQt5.QtWidgets.QWidget presentation: the presentation
-        :param sakia.core.gui.navigation.model.NavigationModel model: the model
+        :param sakia.gui.navigation.model.NavigationModel model: the model
         """
         super().__init__(parent, view, model)
 

@@ -10,6 +10,6 @@ class ComponentModel(QObject):
         """
         Constructor of an component
 
-        :param sakia.core.gui.component.controller.AbstractAgentController controller: the controller
+        :param sakia.gui.component.controller.ComponentController parent: the controller
         """
         super().__init__(parent)

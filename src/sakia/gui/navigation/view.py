@@ -37,6 +37,7 @@ class NavigationView(QFrame, Ui_Navigation):
         """
         if index.isValid():
             raw_data = self.tree_view.model().data(index, GenericTreeModel.ROLE_RAW_DATA)
-            widget = raw_data['widget']
-            if self.stacked_widget.indexOf(widget):
-                self.stacked_widget.setCurrentWidget(widget)
+            if 'widget' in raw_data:
+                widget = raw_data['widget']
+                if self.stacked_widget.indexOf(widget):
+                    self.stacked_widget.setCurrentWidget(widget)

@@ -4,7 +4,7 @@ Created on 5 févr. 2014
 @author: inso
 """
 
-from ..tools.exceptions import NoPeerAvailable, MembershipNotFoundError
+from sakia.tools.exceptions import NoPeerAvailable, MembershipNotFoundError
 from PyQt5.QtCore import QAbstractTableModel, QSortFilterProxyModel, Qt, \
                         QDateTime, QModelIndex, QLocale, QEvent
 from PyQt5.QtGui import QColor, QIcon
@@ -107,12 +107,12 @@ class IdentitiesTableModel(QAbstractTableModel):
     A Qt abstract item model to display communities in a tree
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, parent, community):
         """
         Constructor
         """
         super().__init__(parent)
-        self.community = None
+        self.community = community
         self.columns_titles = {'uid': lambda: self.tr('UID'),
                                'pubkey': lambda: self.tr('Pubkey'),
                                'renewed': lambda: self.tr('Renewed'),
@@ -122,9 +122,6 @@ class IdentitiesTableModel(QAbstractTableModel):
         self.columns_ids = ('uid', 'pubkey', 'renewed', 'expiration', 'publication', 'block')
         self.identities_data = []
         self._sig_validity = 0
-
-    def change_community(self, community):
-        self.community = community
 
     def sig_validity(self):
         return self._sig_validity
