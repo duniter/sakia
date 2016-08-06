@@ -83,14 +83,15 @@ class TxHistoryController(ComponentController):
     @asyncify
     async def history_context_menu(self, point):
         index = self.view.table_history.indexAt(point)
-        identity, transfer = await self.model.table_data(index)
-        menu = ContextMenu.from_data(self.view, self.model.app, self.model.account, self.model.community,
-                                     self.password_asker,
-                                     (identity, transfer))
-        menu.view_identity_in_wot.connect(self.view_in_wot)
+        valid, identity, transfer = await self.model.table_data(index)
+        if valid:
+            menu = ContextMenu.from_data(self.view, self.model.app, self.model.account, self.model.community,
+                                         self.password_asker,
+                                         (identity, transfer))
+            menu.view_identity_in_wot.connect(self.view_in_wot)
 
-        # Show the context menu.
-        menu.qmenu.popup(QCursor.pos())
+            # Show the context menu.
+            menu.qmenu.popup(QCursor.pos())
 
     def dates_changed(self):
         logging.debug("Changed dates")

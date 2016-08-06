@@ -10,8 +10,8 @@ import asyncio
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, QDateTime, QLocale
 from PyQt5.QtGui import QColor, QFont, QIcon
 
-from ..tools.exceptions import NoPeerAvailable
-from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
+from sakia.tools.exceptions import NoPeerAvailable
+from sakia.tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from sakia.core.net.node import Node
 
 
@@ -163,17 +163,6 @@ class NetworkTableModel(QAbstractTableModel):
             Node.CORRUPTED: lambda: self.tr('Corrupted')
         }
         self.nodes_data = []
-
-    def change_community(self, community):
-        """
-        Change current community displayed in network and refresh the nodes
-        :param sakia.core.Community community: the new community
-        :return: the refresh task
-        :rtype: asyncio.Task
-        """
-        cancel_once_task(self, self.refresh_nodes)
-        self.community = community
-        return self.refresh_nodes()
 
     async def data_node(self, node: Node) -> tuple:
         """

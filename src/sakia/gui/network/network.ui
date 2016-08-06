@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>NetworkTabWidget</class>
- <widget class="QWidget" name="NetworkTabWidget">
+ <class>NetworkWidget</class>
+ <widget class="QWidget" name="NetworkWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -40,7 +40,7 @@
           <string/>
          </property>
          <property name="icon">
-          <iconset resource="../icons/icons.qrc">
+          <iconset resource="../../../../res/icons/icons.qrc">
            <normaloff>:/icons/refresh_icon</normaloff>:/icons/refresh_icon</iconset>
          </property>
          <property name="iconSize">
@@ -86,29 +86,13 @@
   </layout>
  </widget>
  <resources>
-  <include location="../icons/icons.qrc"/>
+  <include location="../../../../res/icons/icons.qrc"/>
  </resources>
  <connections>
   <connection>
-   <sender>table_network</sender>
-   <signal>customContextMenuRequested(QPoint)</signal>
-   <receiver>NetworkTabWidget</receiver>
-   <slot>node_context_menu()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>199</x>
-     <y>149</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>149</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>button_manual_refresh</sender>
    <signal>clicked()</signal>
-   <receiver>NetworkTabWidget</receiver>
+   <receiver>NetworkWidget</receiver>
    <slot>manual_nodes_refresh()</slot>
    <hints>
     <hint type="sourcelabel">

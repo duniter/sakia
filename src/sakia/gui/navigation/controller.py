@@ -3,6 +3,7 @@ from ..component.controller import ComponentController
 from .view import NavigationView
 from ..txhistory.controller import TxHistoryController
 from ..homescreen.controller import HomeScreenController
+from ..network.controller import NetworkController
 
 
 class NavigationController(ComponentController):
@@ -21,7 +22,7 @@ class NavigationController(ComponentController):
         self.components = {
             'TxHistory': TxHistoryController,
             'HomeScreen': HomeScreenController,
-            'Network': TxHistoryController,
+            'Network': NetworkController,
             'Identities': TxHistoryController
         }
 

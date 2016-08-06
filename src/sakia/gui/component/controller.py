@@ -10,7 +10,7 @@ class ComponentController(QObject):
         """
         Constructor of the navigation component
 
-        :param PyQt5.QtWidgets.QWidget presentation: the presentation
+        :param PyQt5.QtWidgets.QWidget view: the presentation
         :param sakia.core.gui.navigation.model.NavigationModel model: the model
         """
         super().__init__(parent)

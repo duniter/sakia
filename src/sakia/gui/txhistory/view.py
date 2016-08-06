@@ -1,14 +1,11 @@
 from PyQt5.QtWidgets import QWidget, QAbstractItemView, QHeaderView
-from PyQt5.QtGui import QCursor
-from PyQt5.QtCore import Qt, QModelIndex, QDateTime, QEvent
+from PyQt5.QtCore import QDateTime, QEvent
 from .txhistory_uic import Ui_TxHistoryWidget
-from ...tools.decorators import asyncify, once_at_a_time
-from ..widgets.context_menu import ContextMenu
 
 
 class TxHistoryView(QWidget, Ui_TxHistoryWidget):
     """
-    The model of Navigation component
+    The view of TxHistory component
     """
 
     def __init__(self, parent):

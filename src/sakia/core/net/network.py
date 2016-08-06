@@ -313,11 +313,11 @@ class Network(QObject):
         self._root_nodes.append(node)
         self.root_nodes_changed.emit()
 
-    def remove_root_node(self, index):
+    def remove_root_node(self, node):
         """
         Remove a node from the root nodes list
         """
-        self._root_nodes.pop(index)
+        self._root_nodes.remove(node)
         self.root_nodes_changed.emit()
 
     def is_root_node(self, node):

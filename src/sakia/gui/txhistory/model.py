@@ -17,9 +17,9 @@ class TxHistoryModel(ComponentModel):
         """
 
         :param sakia.gui.txhistory.TxHistoryParent parent: the parent controller
-        :param app:
-        :param account:
-        :param community:
+        :param sakia.core.Application app: the app
+        :param sakia.core.Account account: the account
+        :param sakia.core.Community community: the community
         """
         super().__init__(parent)
         self.app = app
@@ -62,8 +62,8 @@ class TxHistoryModel(ComponentModel):
             identity = await self.app.identities_registry.future_find(pubkey, self.community)
 
             transfer = self.table_model.sourceModel().transfers()[source_index.row()]
-            return identity, transfer
-        return None
+            return True, identity, transfer
+        return False, None, None
 
     def connect_progress(self):
         def progressing(community, value, maximum):
