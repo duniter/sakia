@@ -19,24 +19,24 @@ def once_at_a_time(fn):
                 func_call = args[0].__tasks[fn.__name__]
                 args[0].__tasks.pop(fn.__name__)
                 if getattr(func_call, "_next_task", None):
-                    func_call._next_task._start()
+                    start_task(func_call._next_task[0],
+                               *func_call._next_task[1],
+                               **func_call._next_task[2])
             except KeyError:
                 logging.debug("Task {0} already removed".format(fn.__name__))
 
-        def start_task():
-            args[0].__tasks[fn.__name__] = fn(*args, **kwargs)
-            args[0].__tasks[fn.__name__].add_done_callback(task_done)
+        def start_task(f, *a, **k):
+            args[0].__tasks[f.__name__] = f(*a, **k)
+            args[0].__tasks[f.__name__].add_done_callback(task_done)
 
         if getattr(args[0], "__tasks", None) is None:
             setattr(args[0], "__tasks", {})
 
-        fn._start = lambda: start_task()
-
         if fn.__name__ in args[0].__tasks:
-            args[0].__tasks[fn.__name__]._next_task = fn
+            args[0].__tasks[fn.__name__]._next_task = (fn, args, kwargs)
             args[0].__tasks[fn.__name__].cancel()
         else:
-            fn._start()
+            start_task(fn, *args, **kwargs)
 
         return args[0].__tasks[fn.__name__]
     return wrapper

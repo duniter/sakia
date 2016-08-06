@@ -112,3 +112,44 @@ class TestDecorators(unittest.TestCase, QuamashTest):
         self.assertEqual(calls["B"], 1)
         self.assertEqual(calls["C"], 0)
         self.assertEqual(calls["D"], 1)
+
+    def test_two_runners(self):
+        class TaskRunner:
+            def __init__(self, name):
+                self.some_long_task(name, incrementer)
+
+            @classmethod
+            def create(cls, name):
+                return cls(name)
+
+            @once_at_a_time
+            @asyncify
+            async def some_long_task(self, name, callback):
+                await asyncio.sleep(1)
+                callback(name)
+                await asyncio.sleep(1)
+                callback(name)
+
+            def cancel_long_task(self):
+                cancel_once_task(self, self.some_long_task)
+
+        calls = {'A': 0, 'B': 0, 'C': 0}
+
+        def incrementer(name):
+            nonlocal calls
+            calls[name] += 1
+
+        async def exec_test():
+            tr1 = TaskRunner.create("A")
+            tr2 = TaskRunner.create("B")
+            tr3 = TaskRunner.create("C")
+            await asyncio.sleep(1.5)
+            tr1.some_long_task("A", incrementer)
+            tr2.some_long_task("B", incrementer)
+            tr3.some_long_task("C", incrementer)
+            await asyncio.sleep(1.5)
+
+        self.lp.run_until_complete(exec_test())
+        self.assertEqual(calls["A"], 2)
+        self.assertEqual(calls["B"], 2)
+        self.assertEqual(calls["C"], 2)
