@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>WotTabWidget</class>
- <widget class="QWidget" name="WotTabWidget">
+ <class>WotWidget</class>
+ <widget class="QWidget" name="WotWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -15,7 +15,7 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="1" column="0" colspan="2">
-    <widget class="WotView" name="graphicsView">
+    <widget class="WotGraphicsView" name="graphics_view">
      <property name="viewportUpdateMode">
       <enum>QGraphicsView::BoundingRectViewportUpdate</enum>
      </property>
@@ -28,9 +28,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>WotView</class>
+   <class>WotGraphicsView</class>
    <extends>QGraphicsView</extends>
-   <header>sakia.gui.views.wot</header>
+   <header>sakia.gui.graphs.wot.graphics_view</header>
   </customwidget>
   <customwidget>
    <class>SearchUserWidget</class>
@@ -40,7 +40,7 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../icons/icons.qrc"/>
+  <include location="../../../../../res/icons/icons.qrc"/>
  </resources>
  <connections/>
  <slots>

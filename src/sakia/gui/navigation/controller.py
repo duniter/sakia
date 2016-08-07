@@ -6,6 +6,7 @@ from ..homescreen.controller import HomeScreenController
 from ..network.controller import NetworkController
 from ..identities.controller import IdentitiesController
 from ..informations.controller import InformationsController
+from ..graphs.wot.controller import WotController
 
 
 class NavigationController(ComponentController):
@@ -26,7 +27,8 @@ class NavigationController(ComponentController):
             'HomeScreen': HomeScreenController,
             'Network': NetworkController,
             'Identities': IdentitiesController,
-            'Informations': InformationsController
+            'Informations': InformationsController,
+            'Wot': WotController
         }
 
     @classmethod

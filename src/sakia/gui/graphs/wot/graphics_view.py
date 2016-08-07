@@ -1,10 +1,10 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter, QWheelEvent
 from PyQt5.QtWidgets import QGraphicsView
-from .scenes import WotScene
+from .scene import WotScene
 
 
-class WotView(QGraphicsView):
+class WotGraphicsView(QGraphicsView):
     def __init__(self, parent=None):
         """
         Create View to display scene

@@ -2,7 +2,7 @@ from PyQt5.QtCore import Qt, QRectF, QLineF, QPointF, QSizeF, \
                         qFuzzyCompare
 from PyQt5.QtGui import QColor, QPen, QPolygonF
 import math
-from .base_edge import BaseEdge
+from ..base.edge import BaseEdge
 from ....core.graph.constants import EdgeStatus
 
 

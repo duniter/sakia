@@ -30,15 +30,6 @@ class GraphTabWidget(QObject):
 
         self.app = app
 
-    def set_scene(self, scene):
-        """
-        Set the scene and connects the signals
-        :param sakia.gui.views.scenes.base_scene.BaseScene scene: the scene
-        :return:
-        """
-        # add scene events
-        scene.node_context_menu_requested.connect(self.node_context_menu)
-        scene.node_clicked.connect(self.handle_node_click)
 
     @once_at_a_time
     @asyncify
@@ -120,63 +111,4 @@ class GraphTabWidget(QObject):
                 )
             )
 
-    @pyqtSlot(str, dict)
-    def handle_node_click(self, pubkey, metadata):
-        self.draw_graph(
-            self.app.identities_registry.from_handled_data(
-                metadata['text'],
-                pubkey,
-                None,
-                BlockchainState.VALIDATED,
-                self.community
-            )
-        )
 
-    @once_at_a_time
-    @asyncify
-    async def draw_graph(self, identity):
-        """
-        Draw community graph centered on the identity
-
-        :param sakia.core.registry.Identity identity: Graph node identity
-        """
-        pass
-
-    @once_at_a_time
-    @asyncify
-    async def reset(self, checked=False):
-        """
-        Reset graph scene to wallet identity
-        """
-        pass
-
-    def refresh(self):
-        """
-        Refresh graph scene to current metadata
-        """
-        pass
-
-    @asyncify
-    async def node_context_menu(self, pubkey):
-        """
-        Open the node context menu
-        :param str pubkey: the pubkey of the node to open
-        """
-        identity = await self.app.identities_registry.future_find(pubkey, self.community)
-        menu = ContextMenu.from_data(self.widget, self.app, self.account, self.community, self.password_asker,
-                                     (identity,))
-        menu.view_identity_in_wot.connect(self.draw_graph)
-
-        # Show the context menu.
-        menu.qmenu.popup(QCursor.pos())
-
-    def changeEvent(self, event):
-        """
-        Intercepte LanguageChange event to translate UI
-        :param QEvent QEvent: Event
-        :return:
-        """
-        if event.type() == QEvent.LanguageChange:
-            self.retranslateUi(self)
-            self.refresh()
-        return super().changeEvent(event)

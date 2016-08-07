@@ -5,15 +5,15 @@ from .model import HomeScreenModel
 
 class HomeScreenController(ComponentController):
     """
-    The navigation panel
+    The homescreen view
     """
 
     def __init__(self, parent, view, model):
         """
-        Constructor of the navigation component
+        Constructor of the homescreen component
 
-        :param PyQt5.QtWidgets.QWidget presentation: the presentation
-        :param sakia.gui.navigation.model.NavigationModel model: the model
+        :param sakia.gui.homescreen.view.HomeScreenView: the view
+        :param sakia.gui.homescreen.model.HomeScreenModel model: the model
         """
         super().__init__(parent, view, model)
 

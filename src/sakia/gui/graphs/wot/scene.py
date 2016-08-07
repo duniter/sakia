@@ -2,10 +2,10 @@ import networkx
 from PyQt5.QtCore import QPoint, pyqtSignal
 from PyQt5.QtWidgets import QGraphicsScene
 
-from ..edges import WotEdge
-from ..nodes import WotNode
+from .edge import WotEdge
+from .node import WotNode
 
-from .base_scene import BaseScene
+from ..base.scene import BaseScene
 
 
 class WotScene(BaseScene):

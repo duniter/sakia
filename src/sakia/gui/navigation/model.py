@@ -61,6 +61,14 @@ class NavigationModel(ComponentModel):
                             'community': c,
                             'account': self.app.current_account
                         }
+                    },
+                    {
+                        'node': {
+                            'title': self.tr('Web of Trust'),
+                            'component': "Wot",
+                            'community': c,
+                            'account': self.app.current_account
+                        }
                     }
                 ]
             })
