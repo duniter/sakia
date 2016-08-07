@@ -35,6 +35,14 @@ class NetworkController(ComponentController):
         model.setParent(txhistory)
         return txhistory
 
+    @property
+    def view(self) -> NetworkView:
+        return self._view
+
+    @property
+    def model(self) -> NetworkModel:
+        return self._model
+    
     def refresh_nodes_manually(self):
         self.model.refresh_nodes_once()
 

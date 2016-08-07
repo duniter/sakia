@@ -29,12 +29,20 @@ class StatusBarController(ComponentController):
         :return: a new Navigation controller
         :rtype: NavigationController
         """
-        view = StatusBarView(parent.view)
+        view = StatusBarView(parent._view)
 
         model = StatusBarModel(None, app)
         status_bar = cls(parent, view, model)
         model.setParent(status_bar)
         return status_bar
+
+    @property
+    def view(self) -> StatusBarView:
+        return self._view
+
+    @property
+    def model(self) -> StatusBarModel:
+        return self._model
 
     @pyqtSlot()
     def update_time(self):

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>InformationsTabWidget</class>
- <widget class="QWidget" name="InformationsTabWidget">
+ <class>InformationsWidget</class>
+ <widget class="QWidget" name="InformationsWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -38,8 +38,8 @@ QGroupBox::title {
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>518</width>
-        <height>717</height>
+        <width>522</width>
+        <height>721</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -151,7 +151,7 @@ QGroupBox::title {
   </layout>
  </widget>
  <resources>
-  <include location="../icons/icons.qrc"/>
+  <include location="../../../../res/icons/icons.qrc"/>
  </resources>
  <connections/>
 </ui>

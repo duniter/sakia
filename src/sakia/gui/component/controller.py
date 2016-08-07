@@ -14,8 +14,17 @@ class ComponentController(QObject):
         :param sakia.gui.component.model.ComponentModel model: the model
         """
         super().__init__(parent)
-        self.view = view
-        self.model = model
+        self._view = view
+        self._model = model
+
+    @property
+    def view(self):
+        raise NotImplementedError("View property not implemented")
+
+    @property
+    def model(self):
+        raise NotImplementedError("Model property not implemented")
+
 
     @classmethod
     def create(cls, parent, app, **kwargs):

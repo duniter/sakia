@@ -43,6 +43,14 @@ class ToolbarController(ComponentController):
         model.setParent(toolbar)
         return toolbar
 
+    @property
+    def view(self) -> ToolbarView:
+        return self._view
+
+    @property
+    def model(self) -> ToolbarModel:
+        return self._model
+    
     def cancel_once_tasks(self):
         cancel_once_task(self, self.refresh_block)
         cancel_once_task(self, self.refresh_status)

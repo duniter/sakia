@@ -13,6 +13,9 @@ class IdentitiesModel(ComponentModel):
         Constructor of a model of Identities component
 
         :param sakia.gui.identities.controller.IdentitiesController parent: the controller
+        :param sakia.core.Application app: the app
+        :param sakia.core.Account account: the account
+        :param sakia.core.Community community: the communitys
         """
         super().__init__(parent)
         self.app = app

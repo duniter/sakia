@@ -31,3 +31,10 @@ class HomeScreenController(ComponentController):
         model.setParent(homescreen)
         return homescreen
 
+    @property
+    def view(self) -> HomeScreenView:
+        return self._view
+
+    @property
+    def model(self) -> HomeScreenModel:
+        return self._model

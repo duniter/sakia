@@ -5,6 +5,7 @@ from ..txhistory.controller import TxHistoryController
 from ..homescreen.controller import HomeScreenController
 from ..network.controller import NetworkController
 from ..identities.controller import IdentitiesController
+from ..informations.controller import InformationsController
 
 
 class NavigationController(ComponentController):
@@ -24,7 +25,8 @@ class NavigationController(ComponentController):
             'TxHistory': TxHistoryController,
             'HomeScreen': HomeScreenController,
             'Network': NetworkController,
-            'Identities': IdentitiesController
+            'Identities': IdentitiesController,
+            'Informations': InformationsController
         }
 
     @classmethod
@@ -41,6 +43,14 @@ class NavigationController(ComponentController):
         model.setParent(navigation)
         navigation.init_navigation()
         return navigation
+
+    @property
+    def view(self) -> NavigationView:
+        return self._view
+
+    @property
+    def model(self) -> NavigationModel:
+        return self._model
 
     def init_navigation(self):
         def parse_node(node_data):

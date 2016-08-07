@@ -59,13 +59,13 @@ class MainWindowController(ComponentController):
         main_window = cls(view, model, password_asker, None, None, None)
 
         main_window.status_bar = main_window.attach(StatusBarController.create(main_window, app))
-        view.setStatusBar(main_window.status_bar.view)
+        view.setStatusBar(main_window.status_bar._view)
 
         main_window.toolbar = main_window.attach(ToolbarController.create(main_window, password_asker))
-        view.top_layout.addWidget(main_window.toolbar.view)
+        view.top_layout.addWidget(main_window.toolbar._view)
 
         main_window.navigation = main_window.attach(NavigationController.create(main_window, app))
-        view.bottom_layout.insertWidget(0, main_window.navigation.view)
+        view.bottom_layout.insertWidget(0, main_window.navigation._view)
 
         #app.version_requested.connect(main_window.latest_version_requested)
         #app.account_imported.connect(main_window.import_account_accepted)
@@ -75,14 +75,13 @@ class MainWindowController(ComponentController):
         main_window.refresh()
         return main_window
 
-    def add_to_stack(self, index, widget):
-        """
-        Add a view to the stack
-        :param int index: the index of the page
-        :param PyQt5.QtWidgets.QWidget widget: the view
-        """
-        self.stack.addWidget(widget)
-        self.stacked_widgets[index] = widget
+    @property
+    def view(self) -> MainWindowView:
+        return self._view
+
+    @property
+    def model(self) -> MainWindowModel:
+        return self._model
 
     @pyqtSlot(str)
     def display_error(self, error):

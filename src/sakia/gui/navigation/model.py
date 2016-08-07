@@ -33,6 +33,9 @@ class NavigationModel(ComponentModel):
             self.navigation[0]['children'].append({
                 'node': {
                     'title': c.currency,
+                    'component': "Informations",
+                    'community': c,
+                    'account': self.app.current_account
                 },
                 'children': [
                     {

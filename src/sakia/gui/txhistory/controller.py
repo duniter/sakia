@@ -49,6 +49,14 @@ class TxHistoryController(ComponentController):
         model.setParent(txhistory)
         return txhistory
 
+    @property
+    def view(self) -> TxHistoryView:
+        return self._view
+
+    @property
+    def model(self) -> TxHistoryModel:
+        return self._model
+    
     @once_at_a_time
     @asyncify
     async def refresh_minimum_maximum(self):

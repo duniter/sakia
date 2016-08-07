@@ -32,6 +32,14 @@ class IdentitiesController(ComponentController):
         self.view.set_table_identities_model(table_model)
 
     @property
+    def view(self) -> IdentitiesView:
+        return self._view
+
+    @property
+    def model(self) -> IdentitiesModel:
+        return self._model
+
+    @property
     def app(self):
         return self.model.app
 
