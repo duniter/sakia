@@ -96,6 +96,7 @@ class TxHistoryModel(ComponentModel):
             logging.debug(str(e))
         except errors.DuniterError as e:
             logging.debug(str(e))
+        return QDateTime().currentDateTime(), QDateTime.currentDateTime().addDays(1)
 
     async def received_amount(self, received_list):
         """

@@ -4,10 +4,10 @@ import math
 from PyQt5.QtCore import QPoint, pyqtSignal
 from PyQt5.QtWidgets import QGraphicsScene
 
-from ..edges import ExplorerEdge
-from ..nodes import ExplorerNode
+from .edge import ExplorerEdge
+from .node import ExplorerNode
 
-from .base_scene import BaseScene
+from ..base.scene import BaseScene
 
 
 class ExplorerScene(BaseScene):

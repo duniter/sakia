@@ -2,7 +2,8 @@ from ..component.controller import ComponentController
 from .model import InformationsModel
 from .view import InformationsView
 from sakia.tools.decorators import asyncify
-
+from sakia.tools.exceptions import NoPeerAvailable
+import logging
 
 class InformationsController(ComponentController):
     """
@@ -55,9 +56,10 @@ class InformationsController(ComponentController):
         self.view.set_general_text_no_dividend()
         self.view.set_text_referentials(referentials)
         params = await self.model.parameters()
-        self.view.set_money_text(params, self.model.short_currency())
-        self.view.set_wot_text(params)
-        self.refresh_localized_data()
+        if params:
+            self.view.set_money_text(params, self.model.short_currency())
+            self.view.set_wot_text(params)
+            self.refresh_localized_data()
 
     @asyncify
     async def refresh_localized_data(self):

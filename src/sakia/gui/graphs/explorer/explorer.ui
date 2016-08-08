@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ExplorerTabWidget</class>
- <widget class="QWidget" name="ExplorerTabWidget">
+ <class>ExplorerWidget</class>
+ <widget class="QWidget" name="ExplorerWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -18,7 +18,7 @@
     <widget class="SearchUserWidget" name="search_user_widget" native="true"/>
    </item>
    <item>
-    <widget class="ExplorerView" name="graphicsView">
+    <widget class="ExplorerGraphicsView" name="graphics_view">
      <property name="viewportUpdateMode">
       <enum>QGraphicsView::BoundingRectViewportUpdate</enum>
      </property>
@@ -72,9 +72,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>ExplorerView</class>
+   <class>ExplorerGraphicsView</class>
    <extends>QGraphicsView</extends>
-   <header>sakia.gui.views</header>
+   <header>sakia.gui.graphs.explorer.graphics_view</header>
   </customwidget>
   <customwidget>
    <class>SearchUserWidget</class>
@@ -84,7 +84,7 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../icons/icons.qrc"/>
+  <include location="../../../../../res/icons/icons.qrc"/>
  </resources>
  <connections/>
  <slots>

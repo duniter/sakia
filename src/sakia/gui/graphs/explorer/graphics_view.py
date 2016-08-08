@@ -1,14 +1,10 @@
-import logging
-
-import networkx
-from PyQt5.QtCore import Qt, QPoint, pyqtSignal
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter, QWheelEvent
-from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene
+from PyQt5.QtWidgets import QGraphicsView
+from .scene import ExplorerScene
 
-from .scenes import ExplorerScene
 
-
-class ExplorerView(QGraphicsView):
+class ExplorerGraphicsView(QGraphicsView):
     def __init__(self, parent=None):
         """
         Create View to display scene
@@ -44,4 +40,4 @@ class ExplorerView(QGraphicsView):
         #  act normally on scrollbar
         else:
             # transmit event to parent class wheelevent
-            super(QGraphicsView, self).wheelEvent(event)
+            super().wheelEvent(event)

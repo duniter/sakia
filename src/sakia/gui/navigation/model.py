@@ -69,6 +69,14 @@ class NavigationModel(ComponentModel):
                             'community': c,
                             'account': self.app.current_account
                         }
+                    },
+                    {
+                        'node': {
+                            'title': self.tr('Explorer'),
+                            'component': "Explorer",
+                            'community': c,
+                            'account': self.app.current_account
+                        }
                     }
                 ]
             })

@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import QGraphicsSimpleTextItem
 from PyQt5.QtCore import Qt, QPointF, QTimeLine, QTimer
 from PyQt5.QtGui import QTransform, QColor, QPen, QBrush, QRadialGradient
 from ....core.graph.constants import NodeStatus
-from .base_node import BaseNode
+from ..base.node import BaseNode
 import math
 
 

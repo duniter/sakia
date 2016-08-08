@@ -7,6 +7,7 @@ from ..network.controller import NetworkController
 from ..identities.controller import IdentitiesController
 from ..informations.controller import InformationsController
 from ..graphs.wot.controller import WotController
+from ..graphs.explorer.controller import ExplorerController
 
 
 class NavigationController(ComponentController):
@@ -28,7 +29,8 @@ class NavigationController(ComponentController):
             'Network': NetworkController,
             'Identities': IdentitiesController,
             'Informations': InformationsController,
-            'Wot': WotController
+            'Wot': WotController,
+            'Explorer': ExplorerController
         }
 
     @classmethod
