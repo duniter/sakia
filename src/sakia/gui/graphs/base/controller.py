@@ -2,9 +2,8 @@ from ...component.controller import ComponentController
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtGui import QCursor
 from sakia.tools.decorators import asyncify, once_at_a_time
-from .view import BaseGraphView
-from .model import BaseGraphModel
 from ...widgets.context_menu import ContextMenu
+import asyncio
 
 
 class BaseGraphController(ComponentController):
@@ -35,7 +34,7 @@ class BaseGraphController(ComponentController):
     @pyqtSlot(str, dict)
     def handle_node_click(self, pubkey, metadata):
         identity = self.model.get_identity_from_data(metadata, pubkey)
-        self.draw_graph(identity)
+        asyncio.ensure_future(self.draw_graph(identity))
 
     async def draw_graph(self, identity):
         """

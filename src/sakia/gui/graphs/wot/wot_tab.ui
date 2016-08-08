@@ -13,8 +13,8 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0" colspan="2">
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
     <widget class="WotGraphicsView" name="graphics_view">
      <property name="viewportUpdateMode">
       <enum>QGraphicsView::BoundingRectViewportUpdate</enum>

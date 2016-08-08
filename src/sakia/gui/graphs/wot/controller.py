@@ -2,6 +2,8 @@ from ..base.controller import BaseGraphController
 from sakia.tools.decorators import asyncify, once_at_a_time
 from .view import WotView
 from .model import WotModel
+from ...search_user.controller import SearchUserController
+import asyncio
 
 
 class WotController(BaseGraphController):
@@ -29,6 +31,10 @@ class WotController(BaseGraphController):
         model = WotModel(None, app, account, community)
         wot = cls(parent, view, model)
         model.setParent(wot)
+        search_user = SearchUserController.create(wot, app, **{'account': account,
+                                                                    'community': community})
+        wot.view.set_search_user(search_user.view)
+        search_user.identity_selected.connect(wot.center_on_identity)
         return wot
 
     @property
@@ -38,6 +44,14 @@ class WotController(BaseGraphController):
     @property
     def model(self) -> WotModel:
         return self._model
+
+    def center_on_identity(self, identity):
+        """
+        Draw community graph centered on the identity
+
+        :param sakia.core.registry.Identity identity: Center identity
+        """
+        asyncio.ensure_future(self.draw_graph(identity))
 
     async def draw_graph(self, identity):
         """

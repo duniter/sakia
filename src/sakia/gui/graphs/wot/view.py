@@ -1,4 +1,3 @@
-from PyQt5.QtCore import QEvent
 from ..base.view import BaseGraphView
 from .wot_tab_uic import Ui_WotWidget
 
@@ -14,6 +13,14 @@ class WotView(BaseGraphView, Ui_WotWidget):
         """
         super().__init__(parent)
         self.setupUi(self)
+
+    def set_search_user(self, search_user):
+        """
+        Set the search user view in the gui
+        :param sakia.gui.search_user.view.SearchUserView search_user: the view
+        :return:
+        """
+        self.layout().insertWidget(0, search_user)
 
     def scene(self):
         """
@@ -39,4 +46,4 @@ class WotView(BaseGraphView, Ui_WotWidget):
         :param path:
         :return:
         """
-        self.ui.graphicsView.scene().update_path(nx_graph, path)
+        self.graphicsView.scene().update_path(nx_graph, path)

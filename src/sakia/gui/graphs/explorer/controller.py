@@ -3,7 +3,7 @@ from sakia.tools.decorators import asyncify, once_at_a_time
 from .view import ExplorerView
 from .model import ExplorerModel
 from ...search_user.controller import SearchUserController
-
+import asyncio
 
 class ExplorerController(BaseGraphController):
     """
@@ -21,6 +21,14 @@ class ExplorerController(BaseGraphController):
         self.set_scene(view.scene())
         self.reset()
         self.view.button_go.clicked.connect(lambda checked: self.refresh())
+
+    def center_on_identity(self, identity):
+        """
+        Draw community graph centered on the identity
+
+        :param sakia.core.registry.Identity identity: Center identity
+        """
+        asyncio.ensure_future(self.draw_graph(identity))
 
     @property
     def view(self) -> ExplorerView:
@@ -42,7 +50,7 @@ class ExplorerController(BaseGraphController):
         search_user = SearchUserController.create(explorer, app, **{'account': account,
                                                                     'community': community})
         explorer.view.set_search_user(search_user.view)
-        search_user.identity_selected.connect(explorer.refresh)
+        search_user.identity_selected.connect(explorer.center_on_identity)
         return explorer
 
     async def draw_graph(self, identity):
@@ -60,12 +68,12 @@ class ExplorerController(BaseGraphController):
 
     @once_at_a_time
     @asyncify
-    async def refresh(self, identity=None):
+    async def refresh(self):
         """
         Refresh graph scene to current metadata
         """
         self.model.graph.stop_exploration()
-        await self.draw_graph(identity)
+        await self.draw_graph(self.model.identity)
         self.view.update_wot(self.model.graph.nx_graph, self.model.identity)
 
     @once_at_a_time
