@@ -15,6 +15,14 @@ class ExplorerView(BaseGraphView, Ui_ExplorerWidget):
         super().__init__(parent)
         self.setupUi(self)
 
+    def set_search_user(self, search_user):
+        """
+        Set the search user view in the gui
+        :param sakia.gui.search_user.view.SearchUserView search_user: the view
+        :return:
+        """
+        self.layout().insertWidget(0, search_user)
+
     def set_steps_max(self, maximum):
         """
         Set the steps slider max value

@@ -30,7 +30,7 @@ class SearchUserController(ComponentController):
         community = kwargs['community']
 
         view = SearchUserView(parent.view)
-        model = SearchUserModel(app, account, community)
+        model = SearchUserModel(parent, app, account, community)
         search_user = cls(parent, view, model)
         model.setParent(search_user)
         return search_user

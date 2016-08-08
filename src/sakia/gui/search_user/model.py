@@ -1,6 +1,6 @@
 from sakia.core.registry import BlockchainState
 from ..component.model import ComponentModel
-from duniterpy.api import errors
+from duniterpy.api import errors, bma
 from sakia.tools.exceptions import NoPeerAvailable
 
 import logging
@@ -38,7 +38,7 @@ class SearchUserModel(ComponentModel):
         Gets user nodes
         :return:
         """
-        return self._nodes
+        return [n['uid'] for n in self._nodes]
 
     async def find_user(self, text):
         """
@@ -71,10 +71,10 @@ class SearchUserModel(ComponentModel):
         :param index:
         :return:
         """
-        if index < 0 or index >= len(self.nodes):
+        if index < 0 or index >= len(self._nodes):
             self._current_identity = None
             return False
-        node = self.nodes[index]
+        node = self._nodes[index]
         metadata = {'id': node['pubkey'], 'text': node['uid']}
         self._current_identity = self.app.identities_registry.from_handled_data(
                 metadata['text'],

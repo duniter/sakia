@@ -2,6 +2,7 @@ from ..base.controller import BaseGraphController
 from sakia.tools.decorators import asyncify, once_at_a_time
 from .view import ExplorerView
 from .model import ExplorerModel
+from ...search_user.controller import SearchUserController
 
 
 class ExplorerController(BaseGraphController):
@@ -36,9 +37,13 @@ class ExplorerController(BaseGraphController):
 
         view = ExplorerView(parent.view)
         model = ExplorerModel(None, app, account, community)
-        wot = cls(parent, view, model)
-        model.setParent(wot)
-        return wot
+        explorer = cls(parent, view, model)
+        model.setParent(explorer)
+        search_user = SearchUserController.create(explorer, app, **{'account': account,
+                                                                    'community': community})
+        explorer.view.set_search_user(search_user.view)
+        search_user.identity_selected.connect(explorer.refresh)
+        return explorer
 
     async def draw_graph(self, identity):
         """
@@ -55,12 +60,12 @@ class ExplorerController(BaseGraphController):
 
     @once_at_a_time
     @asyncify
-    async def refresh(self):
+    async def refresh(self, identity=None):
         """
         Refresh graph scene to current metadata
         """
         self.model.graph.stop_exploration()
-        await self.draw_graph(self.model.identity)
+        await self.draw_graph(identity)
         self.view.update_wot(self.model.graph.nx_graph, self.model.identity)
 
     @once_at_a_time

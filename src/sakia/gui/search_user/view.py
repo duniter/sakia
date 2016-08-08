@@ -10,7 +10,7 @@ class SearchUserView(QWidget, Ui_SearchUserWidget):
     _search_placeholder = QT_TRANSLATE_NOOP("SearchUserWidget", "Research a pubkey, an uid...")
     search_requested = pyqtSignal(str)
     reset_requested = pyqtSignal()
-    node_selected = pyqtSignal()
+    node_selected = pyqtSignal(int)
 
     def __init__(self, parent):
         # construct from qtDesigner
