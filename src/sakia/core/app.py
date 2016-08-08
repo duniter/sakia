@@ -99,7 +99,8 @@ class Application(QObject):
                 app.save_preferences(app.preferences)
                 # open it
                 logging.debug("No default account in preferences. Set %s as default account." % names[0])
-
+        if app._current_account:
+            app._current_account.start_coroutines()
         return app
 
     def set_proxy(self):

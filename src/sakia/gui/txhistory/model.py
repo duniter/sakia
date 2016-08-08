@@ -76,7 +76,7 @@ class TxHistoryModel(ComponentModel):
     def stop_progress(self, community, received_list):
         if community == self.community:
             self.loading_progressed.emit(100, 100)
-            self.model.refresh_transfers()
+            self.table_model.sourceModel().refresh_transfers()
             self.parent().notification_reception(received_list)
 
     async def minimum_maximum_datetime(self):

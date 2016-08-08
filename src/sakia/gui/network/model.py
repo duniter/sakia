@@ -12,7 +12,7 @@ class NetworkModel(ComponentModel):
         """
         Constructor of an network model
 
-        :param sakia.gui.component.controller.NetworkController parent: the controller
+        :param sakia.gui.network.controller.NetworkController parent: the controller
         :param sakia.core.Application app: the app
         :param sakia.core.Account account: the account
         :param sakia.core.Community community: the community

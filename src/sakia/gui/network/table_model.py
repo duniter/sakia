@@ -163,6 +163,7 @@ class NetworkTableModel(QAbstractTableModel):
             Node.CORRUPTED: lambda: self.tr('Corrupted')
         }
         self.nodes_data = []
+        self.community.network.nodes_changed.connect(self.refresh_nodes)
 
     async def data_node(self, node: Node) -> tuple:
         """

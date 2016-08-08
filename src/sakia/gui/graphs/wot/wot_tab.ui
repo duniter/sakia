@@ -14,15 +14,12 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="1" column="0" colspan="2">
+   <item row="0" column="0" colspan="2">
     <widget class="WotGraphicsView" name="graphics_view">
      <property name="viewportUpdateMode">
       <enum>QGraphicsView::BoundingRectViewportUpdate</enum>
      </property>
     </widget>
-   </item>
-   <item row="0" column="0" colspan="2">
-    <widget class="SearchUserWidget" name="search_user_widget" native="true"/>
    </item>
   </layout>
  </widget>
@@ -31,12 +28,6 @@
    <class>WotGraphicsView</class>
    <extends>QGraphicsView</extends>
    <header>sakia.gui.graphs.wot.graphics_view</header>
-  </customwidget>
-  <customwidget>
-   <class>SearchUserWidget</class>
-   <extends>QWidget</extends>
-   <header>sakia.gui.widgets.search_user</header>
-   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>

@@ -194,19 +194,6 @@
             </property>
            </spacer>
           </item>
-          <item>
-           <widget class="SearchUserWidget" name="search_user" native="true">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-           </widget>
-          </item>
          </layout>
         </item>
        </layout>
@@ -226,14 +213,6 @@
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>SearchUserWidget</class>
-   <extends>QWidget</extends>
-   <header>sakia.gui.widgets.search_user</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
  <slots>

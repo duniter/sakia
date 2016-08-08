@@ -15,9 +15,6 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="SearchUserWidget" name="search_user_widget" native="true"/>
-   </item>
-   <item>
     <widget class="ExplorerGraphicsView" name="graphics_view">
      <property name="viewportUpdateMode">
       <enum>QGraphicsView::BoundingRectViewportUpdate</enum>
@@ -75,12 +72,6 @@
    <class>ExplorerGraphicsView</class>
    <extends>QGraphicsView</extends>
    <header>sakia.gui.graphs.explorer.graphics_view</header>
-  </customwidget>
-  <customwidget>
-   <class>SearchUserWidget</class>
-   <extends>QWidget</extends>
-   <header>sakia.gui.widgets.search_user</header>
-   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>

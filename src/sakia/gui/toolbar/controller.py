@@ -50,28 +50,6 @@ class ToolbarController(ComponentController):
     @property
     def model(self) -> ToolbarModel:
         return self._model
-    
-    def cancel_once_tasks(self):
-        cancel_once_task(self, self.refresh_block)
-        cancel_once_task(self, self.refresh_status)
-        logging.debug("Cancelled status")
-        cancel_once_task(self, self.refresh_quality_buttons)
-
-    def change_account(self, account, password_asker):
-        self.cancel_once_tasks()
-        self.account = account
-        self.password_asker = password_asker
-
-    def change_community(self, community):
-        self.cancel_once_tasks()
-
-        logging.debug("Changed community to {0}".format(community))
-        self.button_membership.setText(self.tr("Membership"))
-        self.button_membership.setEnabled(False)
-        self.button_certification.setEnabled(False)
-        self.action_publish_uid.setEnabled(False)
-        self.community = community
-        self.refresh_quality_buttons()
 
     @asyncify
     async def action_save_revokation(self, checked=False):

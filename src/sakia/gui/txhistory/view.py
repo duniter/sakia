@@ -71,9 +71,9 @@ class TxHistoryView(QWidget, Ui_TxHistoryWidget):
         if value >= maximum:
             self.progressbar.hide()
         else:
-            self.view.progressbar.show()
-            self.view.progressbar.setValue(value)
-            self.view.progressbar.setMaximum(maximum)
+            self.progressbar.show()
+            self.progressbar.setValue(value)
+            self.progressbar.setMaximum(maximum)
 
     def resizeEvent(self, event):
         self.busy_balance.resize(event.size())

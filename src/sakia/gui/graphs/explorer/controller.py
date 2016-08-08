@@ -19,7 +19,7 @@ class ExplorerController(BaseGraphController):
         super().__init__(parent, view, model, password_asker)
         self.set_scene(view.scene())
         self.reset()
-        self.view.button_go.clicked.connect(self.refresh)
+        self.view.button_go.clicked.connect(lambda checked: self.refresh())
 
     @property
     def view(self) -> ExplorerView:
@@ -60,7 +60,7 @@ class ExplorerController(BaseGraphController):
         Refresh graph scene to current metadata
         """
         self.model.graph.stop_exploration()
-        self.draw_graph(self.model.identity)
+        await self.draw_graph(self.model.identity)
         self.view.update_wot(self.model.graph.nx_graph, self.model.identity)
 
     @once_at_a_time
