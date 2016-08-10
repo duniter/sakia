@@ -41,6 +41,7 @@ class NavigationModel(ComponentModel):
                     {
                         'node': {
                             'title': self.tr('Transfers'),
+                            'icon': ':/icons/tx_icon',
                             'component': "TxHistory",
                             'community': c,
                             'account': self.app.current_account
@@ -49,6 +50,7 @@ class NavigationModel(ComponentModel):
                     {
                         'node': {
                             'title': self.tr('Network'),
+                            'icon': ':/icons/network_icon',
                             'component': "Network",
                             'community': c,
                             'account': self.app.current_account
@@ -57,6 +59,7 @@ class NavigationModel(ComponentModel):
                     {
                         'node': {
                             'title': self.tr('Identities'),
+                            'icon': ':/icons/members_icon',
                             'component': "Identities",
                             'community': c,
                             'account': self.app.current_account
@@ -65,6 +68,7 @@ class NavigationModel(ComponentModel):
                     {
                         'node': {
                             'title': self.tr('Web of Trust'),
+                            'icon': ':/icons/wot_icon',
                             'component': "Wot",
                             'community': c,
                             'account': self.app.current_account
@@ -73,6 +77,7 @@ class NavigationModel(ComponentModel):
                     {
                         'node': {
                             'title': self.tr('Explorer'),
+                            'icon': ':/icons/explorer_icon',
                             'component': "Explorer",
                             'community': c,
                             'account': self.app.current_account

@@ -99,9 +99,11 @@ class GenericTreeModel(QAbstractItemModel):
 
         item = index.internalPointer()
 
-        if role == Qt.DisplayRole and index.column() == 0:
-            return item.data(0, role)
-        elif role == GenericTreeModel.ROLE_RAW_DATA:
+        if role in (Qt.DisplayRole,
+                    Qt.DecorationRole,
+                    Qt.ToolTipRole,
+                    GenericTreeModel.ROLE_RAW_DATA) \
+            and index.column() == 0:
             return item.data(0, role)
 
         return None
