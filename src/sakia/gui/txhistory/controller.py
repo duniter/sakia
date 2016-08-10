@@ -76,7 +76,7 @@ class TxHistoryController(ComponentController):
             localized_amount = await self.model.received_amount(received_list)
             text = self.tr("Received {amount} from {number} transfers").format(amount=localized_amount,
                                                                            number=len(received_list))
-            if self.app.preferences['notifications']:
+            if self.model.notifications():
                 toast.display(self.tr("New transactions received"), text)
 
     @once_at_a_time

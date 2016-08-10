@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QWidget, QAbstractItemView, QHeaderView
-from PyQt5.QtCore import QDateTime, QEvent
+from PyQt5.QtCore import QDateTime, QEvent, Qt
 from .txhistory_uic import Ui_TxHistoryWidget
 
 
@@ -13,11 +13,6 @@ class TxHistoryView(QWidget, Ui_TxHistoryWidget):
         self.setupUi(self)
         self.busy_balance.hide()
         self.progressbar.hide()
-
-        self.table_history.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.table_history.setSortingEnabled(True)
-        self.table_history.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
-        self.table_history.resizeColumnsToContents()
 
     def get_time_frame(self):
         """
@@ -33,8 +28,12 @@ class TxHistoryView(QWidget, Ui_TxHistoryWidget):
         :return:
         """
         self.table_history.setModel(model)
+        self.table_history.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.table_history.setSortingEnabled(True)
+        self.table_history.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
         model.modelAboutToBeReset.connect(lambda: self.table_history.setEnabled(False))
         model.modelReset.connect(lambda: self.table_history.setEnabled(True))
+        model.modelReset.connect(self.table_history.resizeColumnsToContents)
 
     async def set_minimum_maximum_datetime(self, minimum, maximum):
         """

@@ -135,3 +135,6 @@ class TxHistoryModel(ComponentModel):
     @property
     def table_model(self):
         return self._proxy
+
+    def notifications(self):
+        return self.app.preferences['notifications']
