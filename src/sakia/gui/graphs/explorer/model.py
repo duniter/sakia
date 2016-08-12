@@ -23,17 +23,17 @@ class ExplorerModel(BaseGraphModel):
         """
         return self.explorer_graph
 
-    async def set_identity(self, identity=None):
+    async def set_identity(self, identity):
         """
         Change current identity
         If identity is None, it defaults to account identity
         :param sakia.core.registry.Identity identity: the new identity to show
         :return:
         """
-        identity_account = await self.account.identity(self.community)
         if identity:
             self.identity = identity
         else:
+            identity_account = await self.account.identity(self.community)
             self.identity = identity_account
 
     async def start_exploration(self, steps):

@@ -5,6 +5,7 @@ from .model import ExplorerModel
 from ...search_user.controller import SearchUserController
 import asyncio
 
+
 class ExplorerController(BaseGraphController):
     """
     The homescreen view
@@ -20,7 +21,9 @@ class ExplorerController(BaseGraphController):
         super().__init__(parent, view, model, password_asker)
         self.set_scene(view.scene())
         self.reset()
-        self.view.button_go.clicked.connect(lambda checked: self.refresh())
+        self.view.button_go.clicked.connect(self.start_exploration)
+        self.model.graph.graph_changed.connect(self.refresh)
+        self.model.graph.current_identity_changed.connect(self.view.update_current_identity)
 
     def center_on_identity(self, identity):
         """
@@ -29,6 +32,10 @@ class ExplorerController(BaseGraphController):
         :param sakia.core.registry.Identity identity: Center identity
         """
         asyncio.ensure_future(self.draw_graph(identity))
+
+    def start_exploration(self):
+        self.model.graph.stop_exploration()
+        self.model.graph.start_exploration(self.model.identity, self.view.steps())
 
     @property
     def view(self) -> ExplorerView:
@@ -59,12 +66,7 @@ class ExplorerController(BaseGraphController):
 
         :param sakia.core.registry.Identity identity: Center identity
         """
-        await self.model.set_identity(identity)
-        self.model.graph.start_exploration(self.model.identity, self.view.steps())
-
-        # draw graph in qt scene
-        self.view.scene().clear()
-        self.view.update_wot(self.model.graph.nx_graph, self.model.identity)
+        self.view.update_wot(self.model.graph.nx_graph, identity)
 
     @once_at_a_time
     @asyncify
@@ -72,7 +74,6 @@ class ExplorerController(BaseGraphController):
         """
         Refresh graph scene to current metadata
         """
-        self.model.graph.stop_exploration()
         await self.draw_graph(self.model.identity)
         self.view.update_wot(self.model.graph.nx_graph, self.model.identity)
 
@@ -82,7 +83,10 @@ class ExplorerController(BaseGraphController):
         """
         Reset graph scene to wallet identity
         """
+        # draw graph in qt scene
+        self.view.scene().clear()
         self.view.reset_steps()
         maximum_steps = await self.model.maximum_steps()
         self.view.set_steps_max(maximum_steps)
-        await self.draw_graph(None)
+        await self.model.set_identity(None)
+        await self.draw_graph(self.model.identity)

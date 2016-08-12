@@ -33,7 +33,7 @@ class ExplorerView(BaseGraphView, Ui_ExplorerWidget):
     def scene(self):
         """
         Get the scene of the underlying graphics view
-        :return:
+        :rtype: sakia.gui.graphs.explorer.scene.ExplorerScene
         """
         return self.graphics_view.scene()
 
@@ -60,3 +60,18 @@ class ExplorerView(BaseGraphView, Ui_ExplorerWidget):
         """
         # draw graph in qt scene
         self.scene().update_wot(nx_graph, identity, self.steps_slider.maximum())
+
+    async def draw_graph(self):
+        """
+        Draw community graph centered on the identity
+
+        :param sakia.core.registry.Identity identity: Center identity
+        """
+        self.view.update_wot(self.model.graph.nx_graph, self.model.identity)
+
+    def update_current_identity(self, pubkey):
+        """
+        Change currently blinking identity
+        :param str pubkey:
+        """
+        self.scene().update_current_identity(pubkey)
