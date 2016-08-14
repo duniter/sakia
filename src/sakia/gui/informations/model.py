@@ -43,12 +43,11 @@ class InformationsModel(ComponentModel):
             block_ud = await self.community.get_ud_block()
         except NoPeerAvailable as e:
             logging.debug('community get_ud_block error : ' + str(e))
-            return None
+
         try:
             block_ud_minus_1 = await self.community.get_ud_block(x=1)
         except NoPeerAvailable as e:
             logging.debug('community get_ud_block error : ' + str(e))
-            return None
 
         localized_data['units'] = self.account.current_ref.instance(0, self.community, self.app, None).units
         localized_data['diff_units'] = self.account.current_ref.instance(0, self.community, self.app, None).diff_units
@@ -105,17 +104,45 @@ class InformationsModel(ComponentModel):
                     QDateTime.fromTime_t(block_ud_minus_1['medianTime']),
                     QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
                 )
+        return localized_data
+
+    async def get_identity_data(self):
+        amount = await self.app.current_account.amount(self.community)
+        localized_amount = await self.app.current_account.current_ref.instance(amount,
+                                                                               self.community, self.app).localized(
+            units=True,
+            international_system=self.app.preferences['international_system_of_units'])
+        account_identity = await self.app.current_account.identity(self.community)
+
+        mstime_remaining_text = self.tr("Expired or never published")
+        outdistanced_text = self.tr("Outdistanced")
+
+        requirements = await account_identity.requirements(self.community)
+        mstime_remaining = 0
+        nb_certs = 0
+        if requirements:
+            mstime_remaining = requirements['membershipExpiresIn']
+            nb_certs = len(requirements['certifications'])
+            if not requirements['outdistanced']:
+                outdistanced_text = self.tr("In WoT range")
+
+        if mstime_remaining > 0:
+            days, remainder = divmod(mstime_remaining, 3600 * 24)
+            hours, remainder = divmod(remainder, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            mstime_remaining_text = self.tr("Expires in ")
+            if days > 0:
+                mstime_remaining_text += "{days} days".format(days=days)
             else:
-                localized_data['mass_minus_1_per_member'] = QLocale().toString(
-                    float(0), 'f', self.app.preferences['digits_after_comma']
-                )
-                localized_data['mass_minus_1'] = QLocale().toString(
-                    float(0), 'f', self.app.preferences['digits_after_comma']
-                )
-                localized_data['actual_growth'] = float(0)
-                localized_data['ud_median_time_minus_1'] = "####"
-            return localized_data
-        return None
+                mstime_remaining_text += "{hours} hours and {min} min.".format(hours=hours,
+                                                                               min=minutes)
+        return {
+            'amount': localized_amount,
+            'outdistanced': outdistanced_text,
+            'nb_certs': nb_certs,
+            'mstime': mstime_remaining_text,
+            'membership_state': mstime_remaining > 0
+        }
 
     async def parameters(self):
         """

@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import QEvent
 from .informations_uic import Ui_InformationsWidget
+from enum import Enum
 
 
 class InformationsView(QWidget, Ui_InformationsWidget):
@@ -8,9 +9,65 @@ class InformationsView(QWidget, Ui_InformationsWidget):
     The view of navigation panel
     """
 
+    class CommunityState(Enum):
+        NOT_INIT = 0
+        OFFLINE = 1
+        READY = 2
+
     def __init__(self, parent):
         super().__init__(parent)
         self.setupUi(self)
+        self.scrollarea.hide()
+        self.button_details.clicked.connect(self.handle_details_click)
+
+    def handle_details_click(self):
+        if self.button_details.isChecked():
+            self.scrollarea.show()
+        else:
+            self.scrollarea.hide()
+
+    def set_simple_informations(self, data, state):
+        if state in (InformationsView.CommunityState.NOT_INIT, InformationsView.CommunityState.OFFLINE):
+            self.label_simple.setText("""<html>
+                <body>
+                <p>
+                <span style=" font-size:16pt; font-weight:600;">{currency}</span>
+                </p>
+                <p>{message}</p>
+                </body>
+                </html>""".format(currency=data['currency'],
+                                  message=InformationsView.simple_message[state]))
+        else:
+            status_value = self.tr("Member") if data['membership_state'] else self.tr("Non-Member")
+            status_color = '#00AA00' if data['membership_state'] else self.tr('#FF0000')
+            description = """<html>
+                        <body>
+                        <p>
+                        <span style=" font-size:16pt; font-weight:600;">{currency}</span>
+                        </p>
+                        <p>{nb_members} {members_label}</p>
+                        <p><span style="font-weight:600;">{monetary_mass_label}</span> : {monetary_mass}</p>
+                        <p><span style="font-weight:600;">{status_label}</span> : <span style="color:{status_color};">{status}</span></p>
+                        <p><span style="font-weight:600;">{nb_certs_label}</span> : {nb_certs} ({outdistanced_text})</p>
+                        <p><span style="font-weight:600;">{mstime_remaining_label}</span> : {mstime_remaining}</p>
+                        <p><span style="font-weight:600;">{balance_label}</span> : {balance}</p>
+                        </body>
+                        </html>""".format(currency=data['units'],
+                                          nb_members=data['members_count'],
+                                          members_label=self.tr("members"),
+                                          monetary_mass_label=self.tr("Monetary mass"),
+                                          monetary_mass=data['mass'],
+                                          status_color=status_color,
+                                          status_label=self.tr("Status"),
+                                          status=status_value,
+                                          nb_certs_label=self.tr("Certs. received"),
+                                          nb_certs=data['nb_certs'],
+                                          outdistanced_text=data['outdistanced'],
+                                          mstime_remaining_label=self.tr("Membership"),
+                                          mstime_remaining=data['mstime'],
+                                          balance_label=self.tr("Balance"),
+                                          balance=data['amount'])
+            self.label_simple.setText(description)
 
     def set_general_text_no_dividend(self):
         """
@@ -37,25 +94,25 @@ class InformationsView(QWidget, Ui_InformationsWidget):
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             </table>
             """).format(
-                localized_data['ud'],
+                localized_data.get('ud', '####'),
                 self.tr('Universal Dividend UD(t) in'),
                 localized_data['diff_units'],
                 localized_data['mass_minus_1'],
                 self.tr('Monetary Mass M(t-1) in'),
                 localized_data['units'],
-                localized_data['members_count'],
+                localized_data.get('members_count', '####'),
                 self.tr('Members N(t)'),
-                localized_data['mass_minus_1_per_member'],
+                localized_data.get('mass_minus_1_per_member', '####'),
                 self.tr('Monetary Mass per member M(t-1)/N(t) in'),
                 localized_data['diff_units'],
-                localized_data['actual_growth'],
-                localized_data['days_per_dividend'],
+                localized_data.get('actual_growth', 0),
+                localized_data.get('days_per_dividend', '####'),
                 self.tr('Actual growth c = UD(t)/[M(t-1)/N(t)]'),
-                localized_data['ud_median_time_minus_1'],
+                localized_data.get('ud_median_time_minus_1', '####'),
                 self.tr('Penultimate UD date and time (t-1)'),
-                localized_data['ud_median_time'],
+                localized_data.get('ud_median_time', '####'),
                 self.tr('Last UD date and time (t)'),
-                localized_data['next_ud_median_time'],
+                localized_data.get('next_ud_median_time', '####'),
                 self.tr('Next UD date and time (t+1)')
             )
         )
@@ -86,13 +143,13 @@ class InformationsView(QWidget, Ui_InformationsWidget):
                 self.tr('UD(t+1) = MAX { UD(t) ; c &#215; M(t) / N(t+1) }'),
                 self.tr('Universal Dividend (formula)'),
                 self.tr('{:} = MAX {{ {:} {:} ; {:2.0%} &#215; {:} {:} / {:} }}').format(
-                    localized_data['ud_plus_1'],
-                    localized_data['ud'],
+                    localized_data.get('ud_plus_1', '####'),
+                    localized_data.get('ud', '####'),
                     localized_data['diff_units'],
-                    localized_data['growth'],
-                    localized_data['mass'],
+                    localized_data.get('growth', '####'),
+                    localized_data.get('mass', '####'),
                     localized_data['diff_units'],
-                    localized_data['members_count']
+                    localized_data.get('members_count', '####')
                 ),
                 self.tr('Universal Dividend (computed)')
             )

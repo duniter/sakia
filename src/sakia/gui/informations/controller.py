@@ -3,7 +3,9 @@ from .model import InformationsModel
 from .view import InformationsView
 from sakia.tools.decorators import asyncify
 from sakia.tools.exceptions import NoPeerAvailable
+from duniterpy.api import errors
 import logging
+
 
 class InformationsController(ComponentController):
     """
@@ -67,6 +69,19 @@ class InformationsController(ComponentController):
         Refresh localized data in view
         """
         localized_data = await self.model.get_localized_data()
-        if localized_data:
-            self.view.set_general_text(localized_data)
-            self.view.set_rules_text(localized_data)
+        try:
+            simple_data = await self.model.get_identity_data()
+            all_data = {**simple_data, **localized_data}
+            self.view.set_simple_informations(all_data, InformationsView.CommunityState.READY)
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
+            self.view.set_simple_informations(all_data, InformationsView.CommunityState.OFFLINE)
+        except errors.DuniterError as e:
+            if e.ucode == errors.BLOCK_NOT_FOUND:
+                self.view.set_simple_informations(all_data, InformationsView.CommunityState.NOT_INIT)
+            else:
+                raise
+
+        self.view.set_general_text(localized_data)
+        self.view.set_rules_text(localized_data)
+
