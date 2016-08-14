@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QMessageBox
-from PyQt5.QtCore import QT_TRANSLATE_NOOP
+from PyQt5.QtCore import QT_TRANSLATE_NOOP, pyqtSignal
 from .certification_uic import Ui_CertificationDialog
 from ..widgets import toast
 from ..widgets.dialogs import QAsyncMessageBox
@@ -32,9 +32,16 @@ class CertificationView(QDialog, Ui_CertificationDialog):
         ButtonBoxState.OK: (True, QT_TRANSLATE_NOOP("CertificationView", "&Ok"))
     }
 
-    def __init__(self, parent, search_user_view, communities_names, contacts_names):
+    pubkey_changed = pyqtSignal()
+
+    def __init__(self, parent, search_user_view, user_information_view, communities_names, contacts_names):
         """
-        Constructor
+
+        :param parent:
+        :param sakia.gui.search_user.view.SearchUserView search_user_view:
+        :param sakia.gui.user_information.view.UserInformationView user_information_view:
+        :param list[str] communities_names:
+        :param list[str] contacts_names:
         """
         super().__init__(parent)
         self.setupUi(self)
@@ -54,13 +61,13 @@ class CertificationView(QDialog, Ui_CertificationDialog):
             self.radio_contact.setEnabled(False)
 
         self.search_user = search_user_view
+        self.user_information_view = user_information_view
 
-        #self.combo_contact.currentIndexChanged.connect(self.refresh_member)
-        #self.edit_pubkey.textChanged.connect(self.refresh_member)
-        #self.search_user.identity_selected.connect(self.refresh_member)
-        #self.radio_contact.toggled.connect(self.refresh_member)
-        #self.radio_search.toggled.connect(self.refresh_member)
-        #self.radio_pubkey.toggled.connect(self.refresh_member)
+        self.combo_contact.currentIndexChanged.connect(self.pubkey_changed)
+        self.edit_pubkey.textChanged.connect(self.pubkey_changed)
+        self.radio_contact.toggled.connect(self.pubkey_changed)
+        self.radio_search.toggled.connect(self.pubkey_changed)
+        self.radio_pubkey.toggled.connect(self.pubkey_changed)
 
     def set_search_user(self, search_user_view):
         """
@@ -72,8 +79,9 @@ class CertificationView(QDialog, Ui_CertificationDialog):
         self.layout_mode_search.addWidget(search_user_view)
         self.search_user.button_reset.hide()
 
-    def set_member_widget(self, member_widget):
-        self.horizontalLayout_5.addWidget(member_widget)
+    def set_user_information(self, user_information_view):
+        self.user_information_view = user_information_view
+        self.layout_target_choice.addWidget(user_information_view)
 
     def recipient_mode(self):
         if self.radio_contact.isChecked():
@@ -129,6 +137,7 @@ class CertificationView(QDialog, Ui_CertificationDialog):
         else:
             remaining_localized = self.tr("{hours} hours and {min} min.").format(hours=remaining_hours,
                                                                             min=remaining_minutes)
+        cert_text += "\n"
         cert_text += self.tr("Remaining time before next certification validation : {0}".format(remaining_localized))
         self.label_cert_stock.setText(cert_text)
 
@@ -150,4 +159,3 @@ class CertificationView(QDialog, Ui_CertificationDialog):
         self.edit_pubkey.setEnabled(radio == CertificationView.RecipientMode.PUBKEY)
         self.combo_contact.setEnabled(radio == CertificationView.RecipientMode.CONTACT)
         self.search_user.setEnabled(radio == CertificationView.RecipientMode.SEARCH)
-

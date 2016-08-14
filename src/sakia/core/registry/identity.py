@@ -147,8 +147,6 @@ class Identity(QObject):
                 raise LookupFailureError(self.pubkey, community)
         except MalformedDocumentError:
             raise LookupFailureError(self.pubkey, community)
-        except NoPeerAvailable:
-            logging.debug("No peer available")
 
     async def get_join_date(self, community):
         """

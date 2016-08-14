@@ -55,6 +55,13 @@ class SearchUserController(ComponentController):
         user_nodes = self.model.user_nodes()
         self.view.set_search_result(text, user_nodes)
 
+    def current_identity(self):
+        """
+
+        :rtype: sakia.core.registry.Identity
+        """
+        return self.model.identity()
+
     def select_node(self, index):
         """
         Select node in graph when item is selected in combobox

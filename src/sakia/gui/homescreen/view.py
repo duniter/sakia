@@ -4,7 +4,7 @@ from .homescreen_uic import Ui_HomescreenWidget
 
 class HomeScreenView(QWidget, Ui_HomescreenWidget):
     """
-    classdocs
+    Home screen view
     """
 
     def __init__(self, parent):

@@ -2,6 +2,7 @@ from ..component.controller import ComponentController
 from .view import CertificationView
 from .model import CertificationModel
 from ..search_user.controller import SearchUserController
+from ..user_information.controller import UserInformationController
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import Qt
 from ...tools.decorators import asyncify, once_at_a_time
@@ -13,19 +14,21 @@ class CertificationController(ComponentController):
     The Certification view
     """
 
-    def __init__(self, parent, view, model, search_user):
+    def __init__(self, parent, view, model, search_user, user_information):
         """
         Constructor of the Certification component
 
-        :param sakia.gui.Certification.view.CertificationView: the view
-        :param sakia.gui.Certification.model.CertificationModel model: the model
-        :param sakia.gui.SearchUser.controller.SearchUserController search_user: the search user component
+        :param sakia.gui.certification.view.CertificationView: the view
+        :param sakia.gui.certification.model.CertificationModel model: the model
+        :param sakia.gui.search_user.controller.SearchUserController search_user: the search user component
+        :param sakia.gui.user_information.controller.UserInformationController search_user: the search user component
         """
         super().__init__(parent, view, model)
         self.view.button_box.accepted.connect(self.accept)
         self.view.button_box.rejected.connect(self.reject)
         self.view.combo_community.currentIndexChanged.connect(self.change_current_community)
         self.search_user = search_user
+        self.user_information = user_information
 
     @classmethod
     def create(cls, parent, app, **kwargs):
@@ -40,12 +43,20 @@ class CertificationController(ComponentController):
         communities_names = [c.name for c in account.communities]
         contacts_names = [c['name'] for c in account.contacts]
 
-        view = CertificationView(parent.view, None, communities_names, contacts_names)
+        view = CertificationView(parent.view, None, None, communities_names, contacts_names)
         model = CertificationModel(None, app, account, community)
-        certification = cls(parent, view, model, None)
+        certification = cls(parent, view, model, None, None)
 
-        search_user = SearchUserController.create(certification, app, account=model.account, community=model.community)
-        view.set_search_user(search_user.view)
+        search_user = SearchUserController.create(certification, app,
+                                                  account=model.account,
+                                                  community=model.community)
+        certification.set_search_user(search_user)
+
+        user_information = UserInformationController.create(certification, app,
+                                                            account=model.account,
+                                                            community=model.community,
+                                                            identity=None)
+        certification.set_user_information(user_information)
         model.setParent(certification)
         return certification
 
@@ -62,7 +73,7 @@ class CertificationController(ComponentController):
         """
         dialog = cls.create(parent, app, account=account, community=community, password_asker=password_asker)
         if community:
-            dialog.ui.combo_community.setCurrentText(community.name)
+            dialog.view.combo_community.setCurrentText(community.name)
         dialog.refresh()
         return dialog.exec()
 
@@ -92,6 +103,25 @@ class CertificationController(ComponentController):
     @property
     def model(self) -> CertificationModel:
         return self._model
+
+    def set_search_user(self, search_user):
+        """
+
+        :param search_user:
+        :return:
+        """
+        self.search_user = search_user
+        self.view.set_search_user(search_user.view)
+        search_user.identity_selected.connect(self.refresh_user_information)
+
+    def set_user_information(self, user_information):
+        """
+
+        :param user_information:
+        :return:
+        """
+        self.user_information = user_information
+        self.view.set_user_information(user_information.view)
 
     @asyncify
     async def accept(self):
@@ -160,10 +190,17 @@ class CertificationController(ComponentController):
         else:
             self.view.set_button_box(CertificationView.ButtonBoxState.NOT_A_MEMBER)
 
+    def refresh_user_information(self):
+        """
+        Refresh user information
+        """
+        pubkey = self.selected_pubkey()
+        self.user_information.search_identity(pubkey)
+
     def change_current_community(self, index):
         self.model.change_community(index)
         self.search_user.set_community(self.community)
-        #self.member_widget.change_community(self.community)
+        self.member_widget.change_community(self.community)
         self.refresh()
 
     def async_exec(self):

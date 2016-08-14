@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MemberView</class>
- <widget class="QWidget" name="MemberView">
+ <class>UserInformationWidget</class>
+ <widget class="QWidget" name="UserInformationWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QGroupBox" name="groupbox_member">
+    <widget class="QGroupBox" name="groupbox_user">
      <property name="styleSheet">
       <string notr="true">QGroupBox {
     border: 1px solid gray;
@@ -31,7 +31,7 @@ QGroupBox::title {
 }</string>
      </property>
      <property name="title">
-      <string>Member</string>
+      <string>User</string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
       <item row="0" column="1">
@@ -52,7 +52,7 @@ QGroupBox::title {
          <string/>
         </property>
         <property name="pixmap">
-         <pixmap resource="../icons/icons.qrc">:/icons/member_icon</pixmap>
+         <pixmap resource="../../../../res/icons/icons.qrc">:/icons/member_icon</pixmap>
         </property>
         <property name="scaledContents">
          <bool>true</bool>
@@ -95,7 +95,8 @@ QGroupBox::title {
   </layout>
  </widget>
  <resources>
-  <include location="../icons/icons.qrc"/>
+  <include location="../../../../res/icons/icons.qrc"/>
+  <include location="../../../../res/icons/icons.qrc"/>
  </resources>
  <connections/>
 </ui>

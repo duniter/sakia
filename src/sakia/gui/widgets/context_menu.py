@@ -3,7 +3,7 @@ from PyQt5.QtCore import QObject, pyqtSignal
 from duniterpy.documents import Block, Membership
 import logging
 
-from ..member import MemberDialog
+from ..user_information.controller import UserInformationController
 from ..contact import ConfigureContactDialog
 from ..transfer import TransferMoneyDialog
 from ..certification.controller import CertificationController
@@ -135,7 +135,7 @@ class ContextMenu(QObject):
         clipboard.setText(identity.pubkey)
 
     def informations(self, identity):
-        MemberDialog.open_dialog(self._app, self._account, self._community, identity)
+        UserInformationController.open_dialog(None, self._app, self._account, self._community, identity)
 
     def add_as_contact(self, identity):
         dialog = ConfigureContactDialog.from_identity(self._app, self.parent(), self._account, identity)
