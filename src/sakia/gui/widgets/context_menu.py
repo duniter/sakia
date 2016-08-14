@@ -6,7 +6,7 @@ import logging
 from ..member import MemberDialog
 from ..contact import ConfigureContactDialog
 from ..transfer import TransferMoneyDialog
-from ..certification import CertificationDialog
+from ..certification.controller import CertificationController
 from ...tools.decorators import asyncify
 from ...core.transfer import Transfer, TransferState
 from ...core.registry import Identity
@@ -152,7 +152,7 @@ class ContextMenu(QObject):
 
     @asyncify
     async def certify_identity(self, identity):
-        await CertificationDialog.certify_identity(self._app, self._account, self._password_asker,
+        await CertificationController.certify_identity(None, self._app, self._account, self._password_asker,
                                              self._community, identity)
 
     @asyncify

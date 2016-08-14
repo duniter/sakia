@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QFrame, QSizePolicy
-from PyQt5.QtCore import QModelIndex
+from PyQt5.QtCore import pyqtSignal
 from .navigation_uic import Ui_Navigation
 from ...models.generic_tree import GenericTreeModel
 
@@ -8,6 +8,7 @@ class NavigationView(QFrame, Ui_Navigation):
     """
     The view of navigation panel
     """
+    current_view_changed = pyqtSignal(dict)
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -41,3 +42,4 @@ class NavigationView(QFrame, Ui_Navigation):
                 widget = raw_data['widget']
                 if self.stacked_widget.indexOf(widget):
                     self.stacked_widget.setCurrentWidget(widget)
+                    self.current_view_changed.emit(raw_data)

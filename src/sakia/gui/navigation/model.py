@@ -18,17 +18,20 @@ class NavigationModel(ComponentModel):
         super().__init__(parent)
         self.app = app
         self.navigation = {}
+        self._current_data = None
 
     def init_navigation_data(self):
         self.navigation = [
             {
                 'node': {
                     'title': self.app.current_account.name,
-                    'component': "HomeScreen"
+                    'component': "HomeScreen",
+                    'account': self.app.current_account
                 },
                 'children': []
             }
         ]
+        self._current_data = self.navigation[0]
         for c in self.app.current_account.communities:
             self.navigation[0]['children'].append({
                 'node': {
@@ -89,3 +92,9 @@ class NavigationModel(ComponentModel):
 
     def generic_tree(self):
         return GenericTreeModel.create("Navigation", self.navigation)
+
+    def set_current_data(self, raw_data):
+        self._current_data = raw_data
+
+    def current_data(self, key):
+        return self._current_data.get(key, None)

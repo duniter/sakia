@@ -61,3 +61,11 @@ class SearchUserController(ComponentController):
         """
         self.model.select_identity(index)
         self.identity_selected.emit(self.model.identity())
+
+    def set_community(self, community):
+        """
+        Set community
+        :param sakia.core.Community community:
+        :return:
+        """
+        self.model.community = community

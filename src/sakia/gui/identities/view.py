@@ -12,8 +12,8 @@ class IdentitiesView(QWidget, Ui_IdentitiesWidget):
     search_by_text_requested = pyqtSignal(str)
     search_directly_connected_requested = pyqtSignal()
 
-    _direct_connections_text = QT_TRANSLATE_NOOP("IdentitiesTabWidget", "Search direct certifications")
-    _search_placeholder = QT_TRANSLATE_NOOP("IdentitiesTabWidget", "Research a pubkey, an uid...")
+    _direct_connections_text = QT_TRANSLATE_NOOP("IdentitiesView", "Search direct certifications")
+    _search_placeholder = QT_TRANSLATE_NOOP("IdentitiesView", "Research a pubkey, an uid...")
 
     def __init__(self, parent):
         super().__init__(parent)

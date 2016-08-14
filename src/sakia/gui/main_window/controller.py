@@ -61,11 +61,15 @@ class MainWindowController(ComponentController):
         main_window.status_bar = main_window.attach(StatusBarController.create(main_window, app))
         view.setStatusBar(main_window.status_bar._view)
 
-        main_window.toolbar = main_window.attach(ToolbarController.create(main_window, password_asker))
-        view.top_layout.addWidget(main_window.toolbar._view)
-
         main_window.navigation = main_window.attach(NavigationController.create(main_window, app))
         view.bottom_layout.insertWidget(0, main_window.navigation._view)
+        main_window.navigation.community_changed.connect(main_window.handle_community_change)
+        main_window.navigation.account_changed.connect(main_window.handle_community_change)
+
+        main_window.toolbar = main_window.attach(ToolbarController.create(main_window, app,
+                                                                          app.current_account, None,
+                                                                          password_asker))
+        view.top_layout.addWidget(main_window.toolbar._view)
 
         #app.version_requested.connect(main_window.latest_version_requested)
         #app.account_imported.connect(main_window.import_account_accepted)
@@ -106,6 +110,20 @@ class MainWindowController(ComponentController):
                 toast.display("sakia", """{version_info}""".format(
                 version_info=version_info,
                 version_url=version_url))
+
+    def handle_account_change(self, account):
+        """
+        Set current account
+        :param sakia.core.Account account:
+        """
+        self.toolbar.set_account(account)
+
+    def handle_community_change(self, community):
+        """
+        Set current community
+        :param sakia.core.Community community:
+        """
+        self.toolbar.set_community(community)
 
     def refresh(self):
         """

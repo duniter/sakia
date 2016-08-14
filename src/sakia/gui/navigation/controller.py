@@ -8,12 +8,16 @@ from ..identities.controller import IdentitiesController
 from ..informations.controller import InformationsController
 from ..graphs.wot.controller import WotController
 from ..graphs.explorer.controller import ExplorerController
+from sakia.core import Account, Community
+from PyQt5.QtCore import pyqtSignal
 
 
 class NavigationController(ComponentController):
     """
     The navigation panel
     """
+    community_changed = pyqtSignal(Community)
+    account_changed = pyqtSignal(Account)
 
     def __init__(self, parent, view, model):
         """
@@ -32,6 +36,7 @@ class NavigationController(ComponentController):
             'Wot': WotController,
             'Explorer': ExplorerController
         }
+        self.view.current_view_changed.connect(self.handle_view_change)
 
     @classmethod
     def create(cls, parent, app):
@@ -74,3 +79,16 @@ class NavigationController(ComponentController):
 
         self.view.set_model(self.model)
 
+    def handle_view_change(self, raw_data):
+        """
+        Handle view change
+        :param dict raw_data:
+        :return:
+        """
+        account = raw_data.get('account', None)
+        community = raw_data.get('community', None)
+        if account != self.model.current_data('account'):
+            self.account_changed.emit(account)
+        if community != self.model.current_data('community'):
+            self.community_changed.emit(community)
+        self.model.set_current_data(raw_data)

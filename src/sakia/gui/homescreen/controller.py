@@ -21,9 +21,10 @@ class HomeScreenController(ComponentController):
     def create(cls, parent, app, **kwargs):
         """
         Instanciate a homescreen component
-        :param sakia.gui.agent.controller.AgentController parent:
+        :param sakia.gui.component.controller.ComponentController parent:
+        :param sakia.core.Application app:
         :return: a new Homescreen controller
-        :rtype: NavigationController
+        :rtype: HomeScreenController
         """
         view = HomeScreenView(parent.view)
         model = HomeScreenModel(None, app)

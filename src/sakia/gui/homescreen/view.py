@@ -7,10 +7,9 @@ class HomeScreenView(QWidget, Ui_HomescreenWidget):
     classdocs
     """
 
-    def __init__(self, app):
+    def __init__(self, parent):
         """
         Constructor
         """
-        super().__init__()
+        super().__init__(parent)
         self.setupUi(self)
-        self.app = app

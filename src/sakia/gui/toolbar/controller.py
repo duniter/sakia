@@ -6,6 +6,7 @@ from .view import ToolbarView
 from ...tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from ..widgets.dialogs import QAsyncMessageBox, QAsyncFileDialog, dialog_async_exec
 from ..widgets import toast
+from ..certification.controller import CertificationController
 import logging
 
 
@@ -16,7 +17,7 @@ class ToolbarController(ComponentController):
 
     def __init__(self, parent, view, model, password_asker):
         """
-        :param sakia.gui.agent.controller.AgentController parent: the parent
+        :param sakia.gui.component.controller.ComponentController parent: the parent
         :param sakia.gui.toolbar.view.ToolbarView view:
         :param sakia.gui.toolbar.model.ToolbarModel model:
         """
@@ -30,7 +31,7 @@ class ToolbarController(ComponentController):
         self.view.button_membership.clicked.connect(self.send_membership_demand)
 
     @classmethod
-    def create(cls, parent, password_asker):
+    def create(cls, parent, app, account, community, password_asker):
         """
         Instanciate a navigation component
         :param sakia.gui.agent.controller.AgentController parent:
@@ -38,7 +39,7 @@ class ToolbarController(ComponentController):
         :rtype: ToolbarController
         """
         view = ToolbarView(parent.view)
-        model = ToolbarModel(None)
+        model = ToolbarModel(None, app, account, community)
         toolbar = cls(parent, view, model, password_asker)
         model.setParent(toolbar)
         return toolbar
@@ -173,10 +174,24 @@ The process to join back the community later will have to be done again.""")
                 self.button_certification.setEnabled(False)
                 self.action_publish_uid.setEnabled(False)
 
+    def set_account(self, account):
+        """
+        Set current account
+        :param sakia.core.Account account:
+        """
+        self.model.account = account
+
+    def set_community(self, community):
+        """
+        Set current community
+        :param sakia.core.Community community:
+        """
+        self.model.community = community
+
     def open_certification_dialog(self):
-        CertificationDialog.open_dialog(self.app,
-                                     self.account,
-                                     self.community_view.community,
+        CertificationController.open_dialog(self, self.model.app,
+                                     self.model.account,
+                                     self.model.community,
                                      self.password_asker)
 
     def open_revocation_dialog(self):
