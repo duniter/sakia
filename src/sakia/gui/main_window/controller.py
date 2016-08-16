@@ -14,13 +14,12 @@ from PyQt5.QtGui import QIcon
 from ..password_asker import PasswordAskerDialog
 from ...__init__ import __version__
 from ..widgets import toast
-from ..component.controller import ComponentController
+from sakia.gui.component.controller import ComponentController
 from .view import MainWindowView
 from .model import MainWindowModel
-from ..status_bar.controller import StatusBarController
-from ..toolbar.controller import ToolbarController
+from .status_bar.controller import StatusBarController
+from .toolbar.controller import ToolbarController
 from ..navigation.controller import NavigationController
-from ..txhistory.controller import TxHistoryController
 
 
 class MainWindowController(ComponentController):

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>WotWidget</class>
+ <widget class="QWidget" name="WotWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>522</width>
+    <height>442</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="WotGraphicsView" name="graphics_view">
+     <property name="viewportUpdateMode">
+      <enum>QGraphicsView::BoundingRectViewportUpdate</enum>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>WotGraphicsView</class>
+   <extends>QGraphicsView</extends>
+   <header>sakia.gui.navigation.graphs.wot.graphics_view</header>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="../../../../../../res/icons/icons.qrc"/>
+ </resources>
+ <connections/>
+ <slots>
+  <slot>reset()</slot>
+  <slot>search()</slot>
+  <slot>select_node()</slot>
+ </slots>
+</ui>

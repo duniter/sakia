@@ -1,4 +1,4 @@
-from ..component.model import ComponentModel
+from sakia.gui.component.model import ComponentModel
 from sakia.models.generic_tree import GenericTreeModel
 from PyQt5.QtCore import pyqtSignal
 

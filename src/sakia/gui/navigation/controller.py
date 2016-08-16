@@ -1,13 +1,13 @@
 from .model import NavigationModel
-from ..component.controller import ComponentController
+from sakia.gui.component.controller import ComponentController
 from .view import NavigationView
-from ..txhistory.controller import TxHistoryController
-from ..homescreen.controller import HomeScreenController
-from ..network.controller import NetworkController
-from ..identities.controller import IdentitiesController
-from ..informations.controller import InformationsController
-from ..graphs.wot.controller import WotController
-from ..graphs.explorer.controller import ExplorerController
+from .txhistory.controller import TxHistoryController
+from .homescreen.controller import HomeScreenController
+from .network.controller import NetworkController
+from .identities.controller import IdentitiesController
+from .informations.controller import InformationsController
+from .graphs.wot.controller import WotController
+from .graphs.explorer.controller import ExplorerController
 from sakia.core import Account, Community
 from PyQt5.QtCore import pyqtSignal
 

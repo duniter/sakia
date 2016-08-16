@@ -3,14 +3,14 @@ from PyQt5.QtCore import QObject, pyqtSignal
 from duniterpy.documents import Block, Membership
 import logging
 
-from ..user_information.controller import UserInformationController
-from ..contact import ConfigureContactDialog
-from ..transfer.controller import TransferController
-from ..certification.controller import CertificationController
-from ...tools.decorators import asyncify
-from ...core.transfer import Transfer, TransferState
-from ...core.registry import Identity
-from ...tools.exceptions import MembershipNotFoundError
+from sakia.gui.sub.user_information.controller import UserInformationController
+from sakia.gui.contact import ConfigureContactDialog
+from sakia.gui.dialogs.transfer.controller import TransferController
+from sakia.gui.dialogs.certification.controller import CertificationController
+from sakia.tools.decorators import asyncify
+from sakia.core.transfer import Transfer, TransferState
+from sakia.core.registry import Identity
+from sakia.tools.exceptions import MembershipNotFoundError
 
 
 class ContextMenu(QObject):

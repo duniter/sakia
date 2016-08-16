@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QFrame, QSizePolicy
 from PyQt5.QtCore import pyqtSignal
 from .navigation_uic import Ui_Navigation
-from ...models.generic_tree import GenericTreeModel
+from sakia.models.generic_tree import GenericTreeModel
 
 
 class NavigationView(QFrame, Ui_Navigation):
