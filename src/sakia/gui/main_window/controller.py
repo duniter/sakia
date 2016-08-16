@@ -64,7 +64,7 @@ class MainWindowController(ComponentController):
         main_window.navigation = main_window.attach(NavigationController.create(main_window, app))
         view.bottom_layout.insertWidget(0, main_window.navigation._view)
         main_window.navigation.community_changed.connect(main_window.handle_community_change)
-        main_window.navigation.account_changed.connect(main_window.handle_community_change)
+        main_window.navigation.account_changed.connect(main_window.handle_account_change)
 
         main_window.toolbar = main_window.attach(ToolbarController.create(main_window, app,
                                                                           app.current_account, None,
@@ -116,14 +116,15 @@ class MainWindowController(ComponentController):
         Set current account
         :param sakia.core.Account account:
         """
-        self.toolbar.set_account(account)
+        self.toolbar.account = account
+        self.password_asker.change_account(account)
 
     def handle_community_change(self, community):
         """
         Set current community
         :param sakia.core.Community community:
         """
-        self.toolbar.set_community(community)
+        self.toolbar.community = community
 
     def refresh(self):
         """

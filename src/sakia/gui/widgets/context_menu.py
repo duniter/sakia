@@ -5,7 +5,7 @@ import logging
 
 from ..user_information.controller import UserInformationController
 from ..contact import ConfigureContactDialog
-from ..transfer import TransferMoneyDialog
+from ..transfer.controller import TransferController
 from ..certification.controller import CertificationController
 from ...tools.decorators import asyncify
 from ...core.transfer import Transfer, TransferState
@@ -143,7 +143,7 @@ class ContextMenu(QObject):
 
     @asyncify
     async def send_money(self, identity):
-        await TransferMoneyDialog.send_money_to_identity(self._app, self._account, self._password_asker,
+        await TransferController.send_money_to_identity(None, self._app, self._account, self._password_asker,
                                                             self._community, identity)
         self._app.refresh_transfers.emit()
 
@@ -157,7 +157,7 @@ class ContextMenu(QObject):
 
     @asyncify
     async def send_again(self, transfer):
-        await TransferMoneyDialog.send_transfer_again(self._app, self._app.current_account,
+        await TransferController.send_transfer_again(None, self._app, self._app.current_account,
                                      self._password_asker, self._community, transfer)
         self._app.refresh_transfers.emit()
 

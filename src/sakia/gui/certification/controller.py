@@ -128,11 +128,12 @@ class CertificationController(ComponentController):
         """
         Validate the dialog
         """
+        self.view.button_box.setDisabled(True)
         pubkey = self.selected_pubkey()
         if pubkey:
             password = await self.password_asker.async_exec()
             if password == "":
-                self.view.enable_button_box()
+                self.view.button_box.setEnabled(True)
                 return
             QApplication.setOverrideCursor(Qt.WaitCursor)
             result = await self.account.certify(password, self.community, pubkey)
@@ -143,7 +144,7 @@ class CertificationController(ComponentController):
             else:
                 await self.view.show_error(result[1])
                 QApplication.restoreOverrideCursor()
-                self.view.enable_button_box()
+                self.view.button_box.setEnabled(True)
 
     def reject(self):
         self.view.reject()
@@ -200,7 +201,7 @@ class CertificationController(ComponentController):
     def change_current_community(self, index):
         self.model.change_community(index)
         self.search_user.set_community(self.community)
-        self.member_widget.change_community(self.community)
+        self.user_information.change_community(self.community)
         self.refresh()
 
     def async_exec(self):

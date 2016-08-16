@@ -195,15 +195,6 @@ class TransferMoneyDialog(QObject):
 
     @asyncify
     async def relative_amount_changed(self, value):
-        ud_block = await self.community.get_ud_block()
-        if ud_block:
-            dividend = ud_block['dividend']
-            base = ud_block['unitbase']
-        else:
-            dividend = 1
-            base = 0
-        amount = value * dividend * pow(10, base)
-        amount = int(pow(10, base) * round(float(amount) / pow(10, base)))
         self.ui.spinbox_amount.blockSignals(True)
         self.ui.spinbox_amount.setValue(amount)
         self.ui.spinbox_amount.blockSignals(False)

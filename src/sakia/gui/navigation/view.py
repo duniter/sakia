@@ -21,6 +21,7 @@ class NavigationView(QFrame, Ui_Navigation):
         :param sakia.gui.navigation.model.NavigationModel
         """
         self.tree_view.setModel(model.generic_tree())
+        self.tree_view.expandAll()
 
     def add_widget(self, widget):
         """

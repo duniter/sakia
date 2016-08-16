@@ -7,6 +7,7 @@ from ...tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from ..widgets.dialogs import QAsyncMessageBox, QAsyncFileDialog, dialog_async_exec
 from ..widgets import toast
 from ..certification.controller import CertificationController
+from ..transfer.controller import TransferController
 import logging
 
 
@@ -199,13 +200,10 @@ The process to join back the community later will have to be done again.""")
                                      self.account)
 
     def open_transfer_money_dialog(self):
-        dialog = TransferMoneyDialog(self.app,
-                                     self.account,
-                                     self.password_asker,
-                                     self.community_view.community,
-                                     None)
-        if dialog.exec() == QDialog.Accepted:
-            self.community_view.tab_history.table_history.model().sourceModel().refresh_transfers()
+        dialog = TransferController.open_dialog(self, self.model.app,
+                                                account=self.model.account,
+                                                password_asker=self.password_asker,
+                                                community=self.model.community)
 
     def retranslateUi(self, widget):
         """
