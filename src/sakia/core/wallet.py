@@ -206,7 +206,7 @@ class Wallet(QObject):
         """
         inputs = []
         for s in sources:
-            inputs.append(InputSource(s['type'], s['identifier'], s['noffset']))
+            inputs.append(InputSource(None, None, s['type'], s['identifier'], s['noffset']))
         return inputs
 
     def tx_unlocks(self, sources):
@@ -248,10 +248,11 @@ class Wallet(QObject):
             outputs.append(OutputSource(overhead, overhead_base, output.Condition.token(output.SIG.token(self.pubkey))))
         return outputs
 
-    def prepare_tx(self, pubkey, amount, message, community):
+    def prepare_tx(self, pubkey, blockstamp, amount, message, community):
         """
         Prepare a simple Transaction document
         :param str pubkey: the target of the transaction
+        :param duniterpy.documents.BlockUID blockstamp: the blockstamp
         :param int amount: the amount sent to the receiver
         :param Community community: the target community
         :return: the transaction document
@@ -266,7 +267,7 @@ class Wallet(QObject):
         unlocks = self.tx_unlocks(sources)
         outputs = self.tx_outputs(pubkey, amount, sources)
         logging.debug("Outputs : {0}".format(outputs))
-        tx = Transaction(PROTOCOL_VERSION, community.currency, 0,
+        tx = Transaction(PROTOCOL_VERSION, community.currency, blockstamp, 0,
                          [self.pubkey], inputs, unlocks,
                          outputs, message, None)
         return tx
@@ -324,7 +325,7 @@ class Wallet(QObject):
         transfer = Transfer.initiate(metadata)
         self.caches[community.currency]._transfers.append(transfer)
         try:
-            tx = self.prepare_tx(recipient, amount, message, community)
+            tx = self.prepare_tx(recipient, blockUID, amount, message, community)
             logging.debug("TX : {0}".format(tx.raw()))
 
             tx.sign([key])
