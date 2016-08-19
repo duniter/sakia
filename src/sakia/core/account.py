@@ -20,7 +20,7 @@ from . import money
 from .wallet import Wallet
 from .community import Community
 from .registry import LocalState
-from ..tools.exceptions import ContactAlreadyExists
+from ..tools.exceptions import ContactAlreadyExists, LookupFailureError
 from .. import __version__
 
 
@@ -509,8 +509,12 @@ class Account(QObject):
         """
         logging.debug("Certdata")
         blockUID = community.network.current_blockUID
-        identity = await self._identities_registry.future_find(pubkey, community)
-        selfcert = await identity.selfcert(community)
+        try:
+            identity = await self._identities_registry.future_find(pubkey, community)
+            selfcert = await identity.selfcert(community)
+        except LookupFailureError as e:
+            return False, str(e)
+
         if selfcert:
             certification = Certification(PROTOCOL_VERSION, community.currency,
                                           self.pubkey, pubkey, blockUID, None)
