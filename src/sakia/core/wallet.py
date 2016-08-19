@@ -206,7 +206,7 @@ class Wallet(QObject):
         """
         inputs = []
         for s in sources:
-            inputs.append(InputSource(None, None, s['type'], s['identifier'], s['noffset']))
+            inputs.append(InputSource(s['amount'], s['base'], s['type'], s['identifier'], s['noffset']))
         return inputs
 
     def tx_unlocks(self, sources):
