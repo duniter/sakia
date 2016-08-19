@@ -267,7 +267,9 @@ class Application(QObject):
         try:
             with open(account_notifications_path, 'r') as json_data:
                 data = json.load(json_data)
-                account.notifications = data
+                for notification in data:
+                    if notification in account.notifications:
+                        account.notifications[notification] = data[notification]
         except FileNotFoundError:
             logging.debug("Could not find notifications file")
             pass
