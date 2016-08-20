@@ -8,6 +8,7 @@ from sakia.gui.widgets.dialogs import QAsyncMessageBox, QAsyncFileDialog, dialog
 from sakia.gui.widgets import toast
 from sakia.gui.dialogs.certification.controller import CertificationController
 from sakia.gui.dialogs.transfer.controller import TransferController
+from sakia.gui.dialogs.account_cfg.controller import AccountConfigController
 import logging
 
 
@@ -30,6 +31,7 @@ class ToolbarController(ComponentController):
         self.view.action_gen_revokation.triggered.connect(self.action_save_revokation)
         self.view.action_publish_uid.triggered.connect(self.publish_uid)
         self.view.button_membership.clicked.connect(self.send_membership_demand)
+        self.view.action_create_account.triggered.connect(self.open_create_account_dialog)
 
     @classmethod
     def create(cls, parent, app, account, community, password_asker):
@@ -200,10 +202,13 @@ The process to join back the community later will have to be done again.""")
                                      self.account)
 
     def open_transfer_money_dialog(self):
-        dialog = TransferController.open_dialog(self, self.model.app,
-                                                account=self.model.account,
-                                                password_asker=self.password_asker,
-                                                community=self.model.community)
+        TransferController.open_dialog(self, self.model.app,
+                                       account=self.model.account,
+                                       password_asker=self.password_asker,
+                                       community=self.model.community)
+
+    def open_create_account_dialog(self):
+        AccountConfigController.create_account(self, self.model.app)
 
     def retranslateUi(self, widget):
         """

@@ -20,12 +20,18 @@ class ToolbarView(QFrame, Ui_SakiaToolbar):
 
         self.action_publish_uid = QAction(self.tr(ToolbarView._action_publish_uid_text), self)
         self.action_revoke_uid = QAction(self.tr(ToolbarView._action_revoke_uid_text), self)
+        tool_menu.addAction(self.action_publish_uid)
+        tool_menu.addAction(self.action_revoke_uid)
 
         menu_advanced = QMenu(self.tr("Advanced"), self.toolbutton_menu)
         self.action_gen_revokation = QAction(self.tr("Save revokation document"), menu_advanced)
         menu_advanced.addAction(self.action_gen_revokation)
         tool_menu.addMenu(menu_advanced)
-        tool_menu.addAction(self.action_publish_uid)
+
+        menu_options = QMenu(self.tr("Options"), self.toolbutton_menu)
+        self.action_create_account = QAction(self.tr("Create a new account"), menu_options)
+        menu_options.addAction(self.action_create_account)
+        tool_menu.addMenu(menu_options)
+
         self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Minimum)
         self.setMaximumHeight(60)
-

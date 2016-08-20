@@ -20,7 +20,7 @@
    <item>
     <widget class="QStackedWidget" name="stacked_pages">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="page_init">
       <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -207,7 +207,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="page__communities">
+     <widget class="QWidget" name="page_communities">
       <layout class="QVBoxLayout" name="verticalLayout_5">
        <item>
         <widget class="QGroupBox" name="groupBox_2">
@@ -287,184 +287,7 @@
   </layout>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>button_add_community</sender>
-   <signal>clicked()</signal>
-   <receiver>AccountConfigurationDialog</receiver>
-   <slot>open_process_add_community()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>109</x>
-     <y>237</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>149</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>button_remove_community</sender>
-   <signal>clicked()</signal>
-   <receiver>AccountConfigurationDialog</receiver>
-   <slot>action_remove_community()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>290</x>
-     <y>237</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>149</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>list_communities</sender>
-   <signal>doubleClicked(QModelIndex)</signal>
-   <receiver>AccountConfigurationDialog</receiver>
-   <slot>open_process_edit_community(QModelIndex)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>199</x>
-     <y>180</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>149</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>button_next</sender>
-   <signal>clicked()</signal>
-   <receiver>AccountConfigurationDialog</receiver>
-   <slot>next()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>349</x>
-     <y>278</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>149</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>button_previous</sender>
-   <signal>clicked()</signal>
-   <receiver>AccountConfigurationDialog</receiver>
-   <slot>previous()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>49</x>
-     <y>278</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>149</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>edit_salt</sender>
-   <signal>textChanged(QString)</signal>
-   <receiver>AccountConfigurationDialog</receiver>
-   <slot>action_edit_account_key()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>199</x>
-     <y>69</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>118</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>edit_password</sender>
-   <signal>textChanged(QString)</signal>
-   <receiver>AccountConfigurationDialog</receiver>
-   <slot>action_edit_account_key()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>199</x>
-     <y>98</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>118</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>edit_password_repeat</sender>
-   <signal>textChanged(QString)</signal>
-   <receiver>AccountConfigurationDialog</receiver>
-   <slot>action_edit_account_key()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>199</x>
-     <y>127</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>118</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>edit_account_name</sender>
-   <signal>textChanged(QString)</signal>
-   <receiver>AccountConfigurationDialog</receiver>
-   <slot>action_edit_account_parameters()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>240</x>
-     <y>110</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>118</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>button_generate</sender>
-   <signal>clicked()</signal>
-   <receiver>AccountConfigurationDialog</receiver>
-   <slot>action_show_pubkey()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>290</x>
-     <y>161</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>118</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>button_delete</sender>
-   <signal>clicked()</signal>
-   <receiver>AccountConfigurationDialog</receiver>
-   <slot>action_delete_account()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>325</x>
-     <y>146</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>118</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
  <slots>
   <slot>open_process_add_community()</slot>
   <slot>key_changed(int)</slot>

@@ -1,5 +1,5 @@
 from sakia.gui.component.model import ComponentModel
-
+from sakia.models.communities import CommunitiesListModel
 
 class AccountConfigModel(ComponentModel):
     """
@@ -30,3 +30,13 @@ class AccountConfigModel(ComponentModel):
         :param str name: the new name
         """
         self.account.name = name
+
+    def communities_list_model(self):
+        return CommunitiesListModel(self.account)
+
+    def add_account_to_app(self):
+        self.app.add_account(self.account)
+        if len(self.app.accounts) == 1:
+            self.app.preferences['account'] = self.account.name
+        self.app.save(self.account)
+        self.app.change_current_account(self.account)
