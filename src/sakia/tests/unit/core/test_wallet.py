@@ -3,6 +3,7 @@ import pypeg2
 from unittest.mock import MagicMock, PropertyMock
 from asynctest import CoroutineMock
 from duniterpy.grammars import output
+from duniterpy.documents import BlockUID
 from PyQt5.QtCore import QLocale
 from sakia.core.registry.identities import IdentitiesRegistry
 from sakia.core import Wallet
@@ -61,7 +62,10 @@ class TestWallet(unittest.TestCase, QuamashTest):
                         "Wallet 1", self.identities_registry)
         wallet.caches["test_currency"] = cache
         tx = wallet.prepare_tx("FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
+                               BlockUID(32, "000005E0F228038E4DDD4F6CA4ACB01EC88FBAF8"),
                                99, "", community)
+        self.assertEqual(tx.blockstamp.number, 32)
+        self.assertEqual(tx.blockstamp.sha_hash, "000005E0F228038E4DDD4F6CA4ACB01EC88FBAF8")
         self.assertEqual(len(tx.issuers), 1)
         self.assertEqual(tx.issuers[0], "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ")
         self.assertEqual(len(tx.inputs), 2)
@@ -134,7 +138,10 @@ Comment:""" + " \n")
                              "Wallet 1", self.identities_registry)
         wallet.caches["test_currency"] = cache
         tx = wallet.prepare_tx("FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
+                               BlockUID(32, "000005E0F228038E4DDD4F6CA4ACB01EC88FBAF8"),
                                100, "", community)
+        self.assertEqual(tx.blockstamp.number, 32)
+        self.assertEqual(tx.blockstamp.sha_hash, "000005E0F228038E4DDD4F6CA4ACB01EC88FBAF8")
         self.assertEqual(len(tx.issuers), 1)
         self.assertEqual(tx.issuers[0], "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ")
         self.assertEqual(len(tx.inputs), 1)
