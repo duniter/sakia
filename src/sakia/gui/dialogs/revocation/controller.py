@@ -24,12 +24,12 @@ class RevocationController(ComponentController):
         self.view.button_next.clicked.connect(lambda checked: self.handle_next_step(False))
         self._steps = (
             {
-                'page': self.ui.page_load_file,
+                'page': self.view.page_load_file,
                 'init': self.init_dialog,
                 'next': self.revocation_selected
             },
             {
-                'page': self.ui.page_destination,
+                'page': self.view.page_destination,
                 'init': self.init_publication_page,
                 'next': self.publish
             }
@@ -108,12 +108,12 @@ class RevocationController(ComponentController):
 
     @asyncify
     async def accept(self):
-        if self.ui.radio_community.isChecked():
+        if self.view.radio_community.isChecked():
             index = self.view.combo_community.currentIndex()
             result, error = await self.model.send_to_community(index)
         else:
-            server = self.ui.edit_address.text()
-            port = self.ui.spinbox_port.value()
+            server = self.view.edit_address.text()
+            port = self.view.spinbox_port.value()
             result, error = await self.model.send_to_node(server, port)
 
         if result:
