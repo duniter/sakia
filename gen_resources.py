@@ -5,7 +5,7 @@ import sys, os, multiprocessing, subprocess
 
 sakia = os.path.abspath(os.path.join(os.path.dirname(__file__)))
 resources = os.path.abspath(os.path.join(os.path.dirname(__file__), 'res'))
-gen_ui = os.path.abspath(os.path.join(os.path.dirname(__file__), 'src', 'sakia', 'presentation'))
+gen_ui = os.path.abspath(os.path.join(os.path.dirname(__file__), 'src', 'sakia', 'gen_resources'))
 gen_resources = os.path.abspath(os.path.join(os.path.dirname(__file__), 'src'))
 
 def convert_ui(args, **kwargs):
