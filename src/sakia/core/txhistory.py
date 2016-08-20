@@ -2,8 +2,7 @@ import asyncio
 import logging
 import hashlib
 import math
-from duniterpy.documents.transaction import SimpleTransaction
-from duniterpy.documents.block import Block
+from duniterpy.documents import SimpleTransaction, Block, MalformedDocumentError
 from duniterpy.api import  bma, errors
 from .transfer import Transfer, TransferState
 from .net.network import MAX_CONFIRMATIONS
@@ -300,7 +299,7 @@ class TxHistory:
             for transfer in [t for t in self._transfers if t.state == TransferState.AWAITING]:
                 transfer.run_state_transitions((False, block_to,
                                                 parameters['avgGenTime'], parameters['medianTimeBlocks']))
-        except NoPeerAvailable as e:
+        except (MalformedDocumentError, NoPeerAvailable) as e:
             logging.debug(str(e))
             self.wallet.refresh_finished.emit([])
             return

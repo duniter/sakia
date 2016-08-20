@@ -175,22 +175,52 @@ class Wallet(QObject):
 
         :return: The list of inputs to use in the transaction document
         """
+
+        # such a dirty algorithmm
+        # everything should be done again from scratch
+        # in future versions
+
+        def current_value(inputs, overhs):
+            i = 0
+            for s in inputs:
+                i += s['amount'] * (10**s['base'])
+            for o in overhs:
+                i -= o[0] * (10**o[1])
+            return i
+
         amount, amount_base = reduce_base(amount, 0)
         cache = self.caches[community.currency]
-        current_base = amount_base
+        current_base = max([src['base'] for src in cache.available_sources])
+        value = 0
+        sources = []
+        outputs = []
+        overheads = []
+        buf_sources = list(cache.available_sources)
         while current_base >= 0:
-            value = 0
-            sources = []
-            buf_sources = list(cache.available_sources)
             for s in [src for src in cache.available_sources if src['base'] == current_base]:
-                value += s['amount'] * pow(10, s['base'])
-                sources.append(s)
-                buf_sources.remove(s)
-                if value >= amount * pow(10, amount_base):
-                    overhead = value - int(amount) * pow(10, amount_base)
-                    overhead, overhead_max_base = reduce_base(overhead, 0)
-                    if overhead_max_base >= current_base:
-                        return (sources, buf_sources)
+                test_sources = sources + [s]
+                val = current_value(test_sources, overheads)
+                # if we have to compute an overhead
+                if current_value(test_sources, overheads) > amount * (10**amount_base):
+                    overhead = current_value(test_sources, overheads) - int(amount) * (10**amount_base)
+                    # we round the overhead in the current base
+                    # exemple : 12 in base 1 -> 1*10^1
+                    overhead = int(round(float(overhead) / (10**current_base)))
+                    source_value = s['amount'] * (10**s['base'])
+                    out = int((source_value - (overhead * (10**current_base)))/(10**current_base))
+                    if out * (10**current_base) <= amount * (10**amount_base):
+                        sources.append(s)
+                        buf_sources.remove(s)
+                        overheads.append((overhead, current_base))
+                        outputs.append((out, current_base))
+                # else just add the output
+                else:
+                    sources.append(s)
+                    buf_sources.remove(s)
+                    outputs.append((s['amount'] , s['base']))
+                if current_value(sources, overheads) == amount * (10 ** amount_base):
+                    return sources, outputs, overheads, buf_sources
+
             current_base -= 1
 
         raise NotEnoughMoneyError(value, community.currency,
@@ -206,7 +236,7 @@ class Wallet(QObject):
         """
         inputs = []
         for s in sources:
-            inputs.append(InputSource(None, None, s['type'], s['identifier'], s['noffset']))
+            inputs.append(InputSource(s['amount'], s['base'], s['type'], s['identifier'], s['noffset']))
         return inputs
 
     def tx_unlocks(self, sources):
@@ -222,31 +252,35 @@ class Wallet(QObject):
             unlocks.append(Unlock(i, [SIGParameter(0)]))
         return unlocks
 
-    def tx_outputs(self, pubkey, amount, inputs):
+    def tx_outputs(self, pubkey, outputs, overheads):
         """
         Get outputs to generate a transaction with a given amount of money
 
         :param str pubkey: The target pubkey of the transaction
-        :param int amount: The amount to send
+        :param list outputs: The amount to send
         :param list inputs: The inputs used to send the given amount of money
+        :param list overheads: The overheads used to send the given amount of money
 
         :return: The list of outputs to use in the transaction document
         """
-        outputs = []
-        inputs_value = 0
-        for i in inputs:
-            logging.debug(i)
-            inputs_value += i['amount'] * pow(10, i['base'])
-        inputs_max_base = max([i['base'] for i in inputs])
-        overhead = inputs_value - int(amount)
+        total = []
+        outputs_bases = set(o[1] for o in outputs)
+        for base in outputs_bases:
+            output_sum = 0
+            for o in outputs:
+                if o[1] == base:
+                    output_sum += o[0]
+            total.append(OutputSource(output_sum, base, output.Condition.token(output.SIG.token(pubkey))))
 
-        amount, amount_base = int(amount / pow(10, inputs_max_base)), inputs_max_base
-        overhead, overhead_base = int(overhead / pow(10, inputs_max_base)), inputs_max_base
+        overheads_bases = set(o[1] for o in overheads)
+        for base in overheads_bases:
+            overheads_sum = 0
+            for o in overheads:
+                if o[1] == base:
+                    overheads_sum += o[0]
+            total.append(OutputSource(overheads_sum, base, output.Condition.token(output.SIG.token(self.pubkey))))
 
-        outputs.append(OutputSource(amount, amount_base, output.Condition.token(output.SIG.token(pubkey))))
-        if overhead != 0:
-            outputs.append(OutputSource(overhead, overhead_base, output.Condition.token(output.SIG.token(self.pubkey))))
-        return outputs
+        return total
 
     def prepare_tx(self, pubkey, blockstamp, amount, message, community):
         """
@@ -260,12 +294,14 @@ class Wallet(QObject):
         """
         result = self.tx_sources(int(amount), community)
         sources = result[0]
-        self.caches[community.currency].available_sources = result[1][1:]
+        computed_outputs = result[1]
+        overheads = result[2]
+        self.caches[community.currency].available_sources = result[3][1:]
         logging.debug("Inputs : {0}".format(sources))
 
         inputs = self.tx_inputs(sources)
         unlocks = self.tx_unlocks(sources)
-        outputs = self.tx_outputs(pubkey, amount, sources)
+        outputs = self.tx_outputs(pubkey, computed_outputs, overheads)
         logging.debug("Outputs : {0}".format(outputs))
         tx = Transaction(PROTOCOL_VERSION, community.currency, blockstamp, 0,
                          [self.pubkey], inputs, unlocks,
