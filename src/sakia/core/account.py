@@ -370,7 +370,7 @@ class Account(QObject):
                 uids = result['uids']
                 for uid_data in uids:
                     if BlockUID.from_str(uid_data["meta"]["timestamp"]) >= timestamp:
-                        timestamp = uid_data["meta"]["timestamp"]
+                        timestamp = BlockUID.from_str(uid_data["meta"]["timestamp"])
                         found_uid = uid_data["uid"]
                 if found_uid == self.name:
                     found_result = result['pubkey'], found_uid

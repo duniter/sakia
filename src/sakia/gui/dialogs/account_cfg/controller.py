@@ -2,8 +2,12 @@ from PyQt5.QtWidgets import QDialog
 
 from sakia.gui.password_asker import PasswordAskerDialog, detect_non_printable
 from sakia.gui.component.controller import ComponentController
+from ..community_cfg.controller import CommunityConfigController
 from .view import AccountConfigView
 from .model import AccountConfigModel
+from sakia.tools.decorators import asyncify
+
+import logging
 
 
 class AccountConfigController(ComponentController):
@@ -15,8 +19,8 @@ class AccountConfigController(ComponentController):
         """
         Constructor of the AccountConfigController component
 
-        :param sakia.gui.AccountConfigController.view.AccountConfigControllerView: the view
-        :param sakia.gui.AccountConfigController.model.AccountConfigControllerModel model: the model
+        :param sakia.gui.account_cfg.view.AccountConfigCView: the view
+        :param sakia.gui.account_cfg.model.AccountConfigModel model: the model
         """
         super().__init__(parent, view, model)
 
@@ -53,7 +57,7 @@ class AccountConfigController(ComponentController):
         :param sakia.gui.component.controller.ComponentController parent:
         :param sakia.core.Application app:
         :return: a new AccountConfigController controller
-        :rtype: AccountConfigControllerController
+        :rtype: AccountConfigController
         """
         view = AccountConfigView(parent.view)
         model = AccountConfigModel(None, app, None)
@@ -157,6 +161,7 @@ class AccountConfigController(ComponentController):
         return True
 
     def init_communities(self):
+        self.view.button_add_community.clicked.connect(self.open_process_add_community)
         self.view.button_previous.setEnabled(False)
         self.view.button_next.setText("Ok")
         list_model = self.model.communities_list_model()
@@ -169,6 +174,16 @@ class AccountConfigController(ComponentController):
                 self._current_step += 1
             self._steps[self._current_step]['init']()
             self.view.stacked_pages.setCurrentWidget(self._steps[self._current_step]['page'])
+
+    @asyncify
+    async def open_process_add_community(self, checked=False):
+        logging.debug("Opening configure community dialog")
+        logging.debug(self.password_asker)
+        await CommunityConfigController.create_community(self,
+                                                         self.model.app,
+                                                         account=self.model.account,
+                                                         password_asker=self.password_asker)
+
 
     def accept(self):
         if self.password_asker.result() == QDialog.Rejected:

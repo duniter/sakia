@@ -167,7 +167,10 @@ class PeeringTreeModel(QAbstractItemModel):
             return True
 
     def refresh_tree(self):
+        self.beginResetModel()
         logging.debug("root : " + self.root_item.data(0))
+        self.root_item.node_items = []
         for node in self.nodes:
             node_item = NodeItem(node, self.root_item)
             self.root_item.appendChild(node_item)
+        self.endResetModel()
