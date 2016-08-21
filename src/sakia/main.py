@@ -21,6 +21,7 @@ from quamash import QSelectorEventLoop
 from PyQt5.QtWidgets import QApplication, QMessageBox
 from PyQt5.QtCore import Qt
 from sakia.gui.main_window.controller import MainWindowController
+from sakia.gui.dialogs.account_cfg.controller import AccountConfigController
 from sakia.core.app import Application
 
 
@@ -97,6 +98,8 @@ if __name__ == '__main__':
 
     with loop:
         app = Application.startup(sys.argv, sakia, loop)
+        if not app.current_account:
+            account_cfg = loop.run_until_complete(AccountConfigController.create_account(None, app))
         window = MainWindowController.startup(app)
         loop.run_forever()
         try:
@@ -107,5 +110,4 @@ if __name__ == '__main__':
             logging.info('CancelledError')
     logging.debug("Exiting")
     sys.exit()
-    logging.debug("Application stopped")
 

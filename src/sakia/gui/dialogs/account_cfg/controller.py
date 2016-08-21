@@ -8,6 +8,7 @@ from .model import AccountConfigModel
 from sakia.tools.decorators import asyncify
 
 import logging
+import asyncio
 
 
 class AccountConfigController(ComponentController):
@@ -59,13 +60,14 @@ class AccountConfigController(ComponentController):
         :return: a new AccountConfigController controller
         :rtype: AccountConfigController
         """
-        view = AccountConfigView(parent.view)
+        view = AccountConfigView(parent.view if parent else None)
         model = AccountConfigModel(None, app, None)
         account_cfg = cls(parent, view, model)
         model.setParent(account_cfg)
         return account_cfg
 
     @classmethod
+    @asyncify
     def create_account(cls, parent, app):
         """
         Open a dialog to create a new account
@@ -168,10 +170,10 @@ class AccountConfigController(ComponentController):
         self.view.set_communities_list_model(list_model)
 
     def handle_next_step(self, init=False):
-        if self._current_step < len(self._steps) - 1:
-            if not init:
-                self._steps[self._current_step]['next']()
-                self._current_step += 1
+        if not init:
+            self._steps[self._current_step]['next']()
+            self._current_step += 1
+        if self._current_step < len(self._steps):
             self._steps[self._current_step]['init']()
             self.view.stacked_pages.setCurrentWidget(self._steps[self._current_step]['page'])
 
@@ -184,12 +186,20 @@ class AccountConfigController(ComponentController):
                                                          account=self.model.account,
                                                          password_asker=self.password_asker)
 
-
-    def accept(self):
+    @asyncify
+    async def accept(self):
+        await self.password_asker.async_exec()
         if self.password_asker.result() == QDialog.Rejected:
             return
         self.model.add_account_to_app()
         self.view.accept()
+
+    def async_exec(self):
+        future = asyncio.Future()
+        self.view.finished.connect(lambda r: future.set_result(r))
+        self.view.open()
+        self.refresh()
+        return future
 
     @property
     def view(self) -> AccountConfigView:

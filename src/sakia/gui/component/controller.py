@@ -25,7 +25,6 @@ class ComponentController(QObject):
     def model(self):
         raise NotImplementedError("Model property not implemented")
 
-
     @classmethod
     def create(cls, parent, app, **kwargs):
         raise NotImplementedError("Create method not implemented")
@@ -39,6 +38,7 @@ class ComponentController(QObject):
         """
         if controller:
             controller.setParent(self)
+            #controller.view.setParent(self.view)
             return controller
         else:
             return None

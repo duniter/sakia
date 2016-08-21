@@ -10,7 +10,7 @@ import asyncio
 from PyQt5.QtCore import QEvent
 from PyQt5.QtWidgets import QDialog, QMessageBox
 
-from ..presentation.password_asker_uic import Ui_PasswordAskerDialog
+from ..gen_resources.password_asker_uic import Ui_PasswordAskerDialog
 
 
 class PasswordAskerDialog(QDialog, Ui_PasswordAskerDialog):

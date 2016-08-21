@@ -47,34 +47,52 @@ class MainWindowController(ComponentController):
         self.toolbar = self.attach(toolbar)
         self.navigation = self.attach(navigation)
         self.stacked_widgets = {}
+        self.navigation.community_changed.connect(self.handle_community_change)
+        self.navigation.account_changed.connect(self.handle_account_change)
+        self.view.bottom_layout.insertWidget(0, self.navigation.view)
+        self.view.top_layout.addWidget(self.toolbar.view)
+        self.view.setStatusBar(self.status_bar.view)
 
         QApplication.setWindowIcon(QIcon(":/icons/sakia_logo"))
 
     @classmethod
-    def startup(cls, app):
-        view = MainWindowView(None)
+    def create(cls, parent, app, **kwargs):
+        """
+        Instanciate a navigation component
+        :param sakia.gui.status_bar.controller.StatusBarController status_bar: the controller of the status bar component
+        :param sakia.gui.toolbar.controller.ToolbarController toolbar: the controller of the toolbar component
+        :param sakia.gui.navigation.contoller.NavigationController navigation: the controller of the navigation
+
+        :return: a new Navigation controller
+        :rtype: MainWindowController
+        """
+        password_asker = kwargs['password_asker']
+        status_bar = kwargs['status_bar']
+        toolbar = kwargs['toolbar']
+        navigation = kwargs['navigation']
+        view = MainWindowView()
         model = MainWindowModel(None, app)
+        main_window = cls(view, model, password_asker, status_bar, toolbar, navigation)
+        model.setParent(main_window)
+        main_window.navigation.init_navigation()
+        return main_window
+
+    @classmethod
+    def startup(cls, app):
         password_asker = PasswordAskerDialog(None)
-        main_window = cls(view, model, password_asker, None, None, None)
-
-        main_window.status_bar = main_window.attach(StatusBarController.create(main_window, app))
-        view.setStatusBar(main_window.status_bar._view)
-
-        main_window.navigation = main_window.attach(NavigationController.create(main_window, app))
-        view.bottom_layout.insertWidget(0, main_window.navigation._view)
-        main_window.navigation.community_changed.connect(main_window.handle_community_change)
-        main_window.navigation.account_changed.connect(main_window.handle_account_change)
-
-        main_window.toolbar = main_window.attach(ToolbarController.create(main_window, app,
-                                                                          app.current_account, None,
-                                                                          password_asker))
-        view.top_layout.addWidget(main_window.toolbar._view)
+        main_window = cls.create(None, app, password_asker=password_asker,
+                                 status_bar=StatusBarController.create(None, app),
+                                 navigation=NavigationController.create(None, app),
+                                 toolbar=ToolbarController.create(None, app,
+                                                          app.current_account, None,
+                                                          password_asker)
+                                 )
 
         #app.version_requested.connect(main_window.latest_version_requested)
         #app.account_imported.connect(main_window.import_account_accepted)
         #app.account_changed.connect(main_window.change_account)
 
-        view.showMaximized()
+        main_window.view.showMaximized()
         main_window.refresh()
         return main_window
 

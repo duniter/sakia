@@ -46,7 +46,7 @@ class NavigationController(ComponentController):
         :return: a new Navigation controller
         :rtype: NavigationController
         """
-        view = NavigationView(parent.view)
+        view = NavigationView(None)
         model = NavigationModel(None, app)
         navigation = cls(parent, view, model)
         model.setParent(navigation)

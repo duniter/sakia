@@ -41,7 +41,7 @@ class ToolbarController(ComponentController):
         :return: a new Toolbar controller
         :rtype: ToolbarController
         """
-        view = ToolbarView(parent.view)
+        view = ToolbarView(None)
         model = ToolbarModel(None, app, account, community)
         toolbar = cls(parent, view, model, password_asker)
         model.setParent(toolbar)

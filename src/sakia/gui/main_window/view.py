@@ -7,6 +7,6 @@ class MainWindowView(QMainWindow, Ui_MainWindow):
     The model of Navigation component
     """
 
-    def __init__(self, parent):
-        super().__init__(parent)
+    def __init__(self):
+        super().__init__(None)
         self.setupUi(self)

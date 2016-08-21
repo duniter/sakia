@@ -22,14 +22,14 @@ class StatusBarController(ComponentController):
         self.update_time()
 
     @classmethod
-    def create(cls, parent, app):
+    def create(cls, parent, app, **kwargs):
         """
         Instanciate a navigation component
         :param sakia.gui.main_window.controller.MainWindowController parent:
         :return: a new Navigation controller
         :rtype: NavigationController
         """
-        view = StatusBarView(parent._view)
+        view = StatusBarView(None)
 
         model = StatusBarModel(None, app)
         status_bar = cls(parent, view, model)
