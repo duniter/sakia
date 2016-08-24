@@ -1,0 +1,242 @@
+@startuml
+
+
+class Identity << (D,orchid) >> {
+    currency: str (FK)
+    uid: str
+    pubkey: str (PK)
+    blockstamp: BlockUID
+    timestamp: int
+    signature: str
+    member: bool
+    membership_buid: BlockUID
+    membership_timestamp: int
+}
+
+class Certification << (D,orchid) >> {
+    currency: str (FK)
+    certifier: str
+    certified: str
+    blockstamp: BlockUID
+    timestamp: int
+    signature: str
+}
+
+class Transaction  << (D,orchid) >> {
+    currency: str (FK)
+    blockstamp: str
+    locktime: int
+    issuer: str
+    recipient: str
+    amount: int
+    comment: str
+    sha_hash: str (PK)
+}
+
+class Community  << (D,orchid) >> {
+    profile: str (FK)
+    pubkey: str (FK)
+    currency: str (PK)
+    c: float
+    dt: int
+    ud0: int
+    sig_period: int
+    sig_stock: int
+    sig_window: int
+    sig_validity: int
+    sig_qty: int
+    xpercent: float
+    ms_validity: int
+    step_max: int
+    median_time_blocks: int
+    avg_gen_time: int
+    dt_diff_eval: int
+    blocks_rot: int
+    percent_rot: float
+}
+
+class Blockchain  << (D,orchid) >> {
+    currency: str (PK)
+    current_buid: BlockUID
+    nb_members: int
+    mass: int
+    median_time: int
+    last_ud: int
+    last_ud_base: int
+    mass_minus_1: int
+    ud_minus_1: int
+    ud_minus_1_base: int
+}
+
+class Node  << (D,orchid) >> {
+    currency: str (FK)
+    endpoints: str
+    uid: str
+    pubkey: str (PK)
+    current_buid: BlockUID
+    previous_buid: BlockUID
+    state: int
+    software: str
+    version: str
+    merkle_nodes: dict
+}
+
+class Key  << (D,orchid) >> {
+    pubkey: str (PK)
+    salt: str
+}
+
+class UserParameters  << (D,orchid) >> {
+    profile: str (PK)
+    lang: str
+    ref: 0
+    expert_mode: bool,
+    digits_after_comma: int
+    maximized: bool
+    notifications: bool
+    enable_proxy: bool
+    proxy_type: int
+    proxy_address: str
+    proxy_port: 8080: int
+    international_system_of_units: bool
+    auto_refresh: bool
+    forgetfulness: bool
+}
+
+
+
+
+
+
+
+
+class IdentitiesRepo  << (R,orange) >>  {
+    Commit()
+    Update()
+    Save()
+    Drop()
+}
+IdentitiesRepo "1" --* "*" Identity
+
+class CertificationRepo  << (R,orange) >> {
+    Commit()
+    Update()
+    Save()
+    Drop()
+}
+CertificationRepo "1" --* "*" Certification
+
+class TransactionRepo << (R,orange) >>  {
+    Commit()
+    Update()
+    Save()
+    Drop()
+}
+TransactionRepo "1" --* "*" Transaction
+
+class CommunityRepo << (R,orange) >>  {
+    Commit()
+    Update()
+    Save()
+    Drop()
+}
+CommunityRepo "1" --* "*" Community
+
+class BlockchainRepo << (R,orange) >>  {
+    Create()
+    Update()
+    Save()
+    Drop()
+}
+BlockchainRepo "1" --* "*" Blockchain
+
+class NodeRepo << (R,orange) >>   {
+    Create()
+    Update()
+    Save()
+    Drop()
+}
+NodeRepo "1" --* "*" Node
+
+class KeyRepo << (R,orange) >>  {
+    Create()
+    Update()
+    Save()
+    Drop()
+}
+KeyRepo "1" --* "*" Key
+
+class UserParametersRepo << (R,orange) >> {
+    Create()
+    Update()
+    Save()
+    Drop()
+}
+UserParametersRepo "1" --* "*" UserParameters
+
+
+
+
+
+
+
+
+
+class ProfileService << (S,cyan) >>  {
+    add_connection()
+    remove_connection()
+
+}
+ProfileService "1" --> "1" UserParameters
+ProfileService "*" --> "1" UserParametersRepo
+
+class AccountService << (S,cyan) >>  {
+    send_transaction()
+    send_certification()
+    send_membership()
+    send_identity()
+    send_revokation()
+}
+AccountService "1" --> "1" Key
+AccountService "*" --> "1" KeyRepo
+
+class TransactionsService << (S,cyan) >>  {
+    refresh_transactions()
+    rollback_transactions()
+}
+TransactionsService "1" --> "*" Transaction
+TransactionsService "*" --> "1" TransactionRepo
+
+class RegistryService << (S,cyan) >> {
+    get_identity()
+    get_certifiers_of()
+    get_certified_by()
+}
+RegistryService "1" --> "*" Identity
+RegistryService "1" --> "*" Certification
+RegistryService "*" --> "1" IdentitiesRepo
+RegistryService "*" --> "1" CertificationRepo
+
+class NetworkService << (S,cyan) >>  {
+    discover_network()
+}
+NetworkService "1" --> "*" Node
+NetworkService "*" --> "1" NodeRepo
+
+class BlockchainService  << (S,cyan) >>  {
+    receive_block()
+}
+BlockchainService "1" --> "1" Blockchain
+BlockchainService "1" --> "1" Community
+BlockchainService "*" --> "1" BlockchainRepo
+BlockchainService "*" --> "1" CommunityRepo
+
+package API {
+    class BMAService << (S,cyan) >>  {
+        get()
+        post()
+        broadcast()
+    }
+}
+
+@enduml
