@@ -15,8 +15,8 @@ then
     brew update
     brew install libsodium
     ## Ensure your brew QT version is up to date. (brew install qt -> qt 4.8)
-    brew install qt55
-    brew link --force qt55
+    brew install qt57
+    brew link --force qt57
     brew install pyenv-virtualenv
     pyenv update
 elif [ $TRAVIS_OS_NAME == "linux" ]
@@ -27,9 +27,9 @@ then
             libxcb-xfixes0-dev libxrender-dev libxcb-shape0-dev libxcb-randr0-dev libxcb-render-util0 \
             libxcb-render-util0-dev libxcb-glx0-dev libgl1-mesa-dri libegl1-mesa libpcre3-dev \
             curl libdbus-1-dev libdbus-glib-1-dev autoconf automake libtool libgstreamer-plugins-base0.10-0
-    wget https://download.qt.io/official_releases/qt/5.5/5.5.1/qt-opensource-linux-x64-5.5.1.run
-    chmod +x qt-opensource-linux-x64-5.5.1.run
-    ./qt-opensource-linux-x64-5.5.1.run --script $HOME/build/duniter/sakia/ci/travis/qt-installer-noninteractive.qs
+    wget https://download.qt.io/official_releases/qt/5.7/5.7.0/qt-opensource-linux-x64-5.7.0.run
+    chmod +x qt-opensource-linux-x64-5.7.0.run
+    ./qt-opensource-linux-x64-5.7.0.run --script $HOME/build/duniter/sakia/ci/travis/qt-installer-noninteractive.qs
 
     wget http://archive.ubuntu.com/ubuntu/pool/universe/libs/libsodium/libsodium13_1.0.1-1_amd64.deb
     sudo dpkg -i libsodium13_1.0.1-1_amd64.deb
@@ -54,53 +54,7 @@ fi
 
 pyenv shell $PYENV_PYTHON_VERSION
 
-cd $HOME
-
-wget http://ufpr.dl.sourceforge.net/project/pyqt/sip/sip-4.17/sip-4.17.tar.gz
-file sip-4.17.tar.gz
-gzip -t sip-4.17.tar.gz
-tar xzf sip-4.17.tar.gz
-cd sip-4.17/
-python configure.py
-make && make install
-pyenv rehash
-
-cd $HOME
-pyenv shell $PYENV_PYTHON_VERSION
-wget http://ufpr.dl.sourceforge.net/project/pyqt/PyQt5/PyQt-5.5.1/PyQt-gpl-5.5.1.tar.gz
-file PyQt-gpl-5.5.1.tar.gz
-gzip -t PyQt-gpl-5.5.1.tar.gz
-tar xzf PyQt-gpl-5.5.1.tar.gz
-cd PyQt-gpl-5.5.1/
-if [ $TRAVIS_OS_NAME == "osx" ]
-then
-    python configure.py --confirm-license \
-        --enable QtCore \
-        --enable QtWidgets \
-        --enable QtGui \
-        --enable QtSvg \
-        --enable QtWebChannel \
-        --enable QtWebEngineWidgets \
-        --enable QtNetwork \
-        --enable QtPrintSupport \
-        --enable QtTest \
-        --pyuic5-interpreter /Users/travis/.pyenv/versions/$PYENV_PYTHON_VERSION/bin/python3.5 \
-        --sip /Users/travis/.pyenv/versions/$PYENV_PYTHON_VERSION/Python.framework/Versions/3.5/bin/sip
-elif [ $TRAVIS_OS_NAME == "linux" ]
-then
-    python configure.py --qmake "/tmp/qt/5.5/5.5/gcc_64/bin/qmake" --confirm-license  \
-        --enable QtCore \
-        --enable QtWidgets \
-        --enable QtGui \
-        --enable QtSvg \
-        --enable QtWebChannel \
-        --enable QtWebEngineWidgets \
-        --enable QtNetwork \
-        --enable QtPrintSupport \
-        --enable QtTest \
-        --pyuic5-interpreter /home/travis/.pyenv/versions/$PYENV_PYTHON_VERSION/bin/python3.5 \
-        --sip /home/travis/.pyenv/versions/3.5.2/bin/sip
-fi
+pip install PyQt5
 
 make -j 2 && make install
 pyenv rehash
