@@ -64,6 +64,7 @@ class TestWallet(unittest.TestCase, QuamashTest):
         tx = wallet.prepare_tx("FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
                                BlockUID(32, "000005E0F228038E4DDD4F6CA4ACB01EC88FBAF8"),
                                99, "", community)
+        self.assertEqual(tx.version, 3)
         self.assertEqual(tx.blockstamp.number, 32)
         self.assertEqual(tx.blockstamp.sha_hash, "000005E0F228038E4DDD4F6CA4ACB01EC88FBAF8")
         self.assertEqual(len(tx.issuers), 1)
@@ -89,22 +90,6 @@ class TestWallet(unittest.TestCase, QuamashTest):
         self.assertEqual(tx.unlocks[0].parameters[0].index, 0)
         self.assertEqual(tx.unlocks[1].index, 1)
         self.assertEqual(tx.unlocks[0].parameters[0].index, 0)
-        self.assertEqual(tx.raw(), """Version: 3
-Type: Transaction
-Currency: test_currency
-Locktime: 0
-Issuers:
-7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ
-Inputs:
-D:FCAD5A388AC8A811B45A9334A375585E77071AA9F6E5B6896582961A6C66F365:2
-D:A0AC57E2E4B24D66F2D25E66D8501D8E881D9E6453D1789ED753D7D426537ED5:4
-Unlocks:
-0:SIG(0)
-1:SIG(0)
-Outputs:
-99:0:SIG(FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn)
-1:0:SIG(7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ)
-Comment:""" + " \n")
 
     def test_prepare_tx_base_1(self):
         community = MagicMock("sakia.core.Community")
@@ -140,6 +125,7 @@ Comment:""" + " \n")
         tx = wallet.prepare_tx("FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
                                BlockUID(32, "000005E0F228038E4DDD4F6CA4ACB01EC88FBAF8"),
                                100, "", community)
+        self.assertEqual(tx.version, 3)
         self.assertEqual(tx.blockstamp.number, 32)
         self.assertEqual(tx.blockstamp.sha_hash, "000005E0F228038E4DDD4F6CA4ACB01EC88FBAF8")
         self.assertEqual(len(tx.issuers), 1)
@@ -160,20 +146,6 @@ Comment:""" + " \n")
         self.assertEqual(len(tx.unlocks), 1)
         self.assertEqual(tx.unlocks[0].index, 0)
         self.assertEqual(tx.unlocks[0].parameters[0].index, 0)
-        self.assertEqual(tx.raw(), """Version: 3
-Type: Transaction
-Currency: test_currency
-Locktime: 0
-Issuers:
-7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ
-Inputs:
-T:7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67:4
-Unlocks:
-0:SIG(0)
-Outputs:
-10:1:SIG(FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn)
-1:1:SIG(7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ)
-Comment:""" + " \n")
 
     def test_prepare_tx_base_1_overheads(self):
         community = MagicMock("sakia.core.Community")
@@ -209,6 +181,7 @@ Comment:""" + " \n")
         tx = wallet.prepare_tx("FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
                                BlockUID(32, "000005E0F228038E4DDD4F6CA4ACB01EC88FBAF8"),
                                101, "", community)
+        self.assertEqual(tx.version, 3)
         self.assertEqual(tx.blockstamp.number, 32)
         self.assertEqual(tx.blockstamp.sha_hash, "000005E0F228038E4DDD4F6CA4ACB01EC88FBAF8")
         self.assertEqual(len(tx.issuers), 1)
@@ -242,21 +215,3 @@ Comment:""" + " \n")
         self.assertEqual(tx.unlocks[0].parameters[0].index, 0)
         self.assertEqual(tx.unlocks[1].index, 1)
         self.assertEqual(tx.unlocks[1].parameters[0].index, 0)
-        self.assertEqual(tx.raw(), """Version: 3
-Type: Transaction
-Currency: test_currency
-Locktime: 0
-Issuers:
-7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ
-Inputs:
-T:7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67:4
-D:FCAD5A388AC8A811B45A9334A375585E77071AA9F6E5B6896582961A6C66F365:2
-Unlocks:
-0:SIG(0)
-1:SIG(0)
-Outputs:
-1:0:SIG(FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn)
-10:1:SIG(FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn)
-14:0:SIG(7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ)
-1:1:SIG(7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ)
-Comment:""" + " \n")
