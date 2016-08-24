@@ -89,7 +89,7 @@ class TestWallet(unittest.TestCase, QuamashTest):
         self.assertEqual(tx.unlocks[0].parameters[0].index, 0)
         self.assertEqual(tx.unlocks[1].index, 1)
         self.assertEqual(tx.unlocks[0].parameters[0].index, 0)
-        self.assertEqual(tx.raw(), """Version: 2
+        self.assertEqual(tx.raw(), """Version: 3
 Type: Transaction
 Currency: test_currency
 Locktime: 0
@@ -160,7 +160,7 @@ Comment:""" + " \n")
         self.assertEqual(len(tx.unlocks), 1)
         self.assertEqual(tx.unlocks[0].index, 0)
         self.assertEqual(tx.unlocks[0].parameters[0].index, 0)
-        self.assertEqual(tx.raw(), """Version: 2
+        self.assertEqual(tx.raw(), """Version: 3
 Type: Transaction
 Currency: test_currency
 Locktime: 0
@@ -242,7 +242,7 @@ Comment:""" + " \n")
         self.assertEqual(tx.unlocks[0].parameters[0].index, 0)
         self.assertEqual(tx.unlocks[1].index, 1)
         self.assertEqual(tx.unlocks[1].parameters[0].index, 0)
-        self.assertEqual(tx.raw(), """Version: 2
+        self.assertEqual(tx.raw(), """Version: 3
 Type: Transaction
 Currency: test_currency
 Locktime: 0
