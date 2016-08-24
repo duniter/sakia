@@ -304,7 +304,7 @@ class Wallet(QObject):
         unlocks = self.tx_unlocks(sources)
         outputs = self.tx_outputs(pubkey, computed_outputs, overheads)
         logging.debug("Outputs : {0}".format(outputs))
-        tx = Transaction(PROTOCOL_VERSION, community.currency, blockstamp, 0,
+        tx = Transaction(3, community.currency, blockstamp, 0,
                          [self.pubkey], inputs, unlocks,
                          outputs, message, None)
         return tx
