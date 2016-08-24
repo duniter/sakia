@@ -169,9 +169,8 @@ class Community(QObject):
             else:
                 return None
         except errors.DuniterError as e:
-            if e.ucode == errors.BLOCK_NOT_FOUND:
-                logging.debug(str(e))
-                return None
+            logging.debug(str(e))
+            return None
         except NoPeerAvailable as e:
             logging.debug(str(e))
             return None
