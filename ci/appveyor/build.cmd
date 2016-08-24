@@ -11,6 +11,7 @@ pyrcc5 -version
 
 lrelease -version
 
+pip install PyQt5
 pip install -r requirements.txt
 pip install pyinstaller
 pip install six

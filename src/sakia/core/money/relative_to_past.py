@@ -96,6 +96,13 @@ class RelativeToPast(BaseReferential):
         from . import Relative
         value = await self.differential()
         block = await self.community.get_ud_block(0, self._block_number)
+        if block:
+            date = QLocale.toString(
+                        QLocale(),
+                        QDateTime.fromTime_t(block['medianTime']).date(),
+                        QLocale.dateFormat(QLocale(), QLocale.ShortFormat))
+        else:
+            date = "###"
         prefix = ""
         if international_system and value != 0:
             localized_value, prefix = Relative.to_si(value, self.app.preferences['digits_after_comma'])
@@ -104,13 +111,7 @@ class RelativeToPast(BaseReferential):
 
         if units or international_system:
             return QCoreApplication.translate("RelativeToPast", RelativeToPast._REF_STR_)\
-                .format(localized_value,
-                    prefix,
-                    QLocale.toString(
-                        QLocale(),
-                        QDateTime.fromTime_t(block['medianTime']).date(),
-                        QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
-                    ),
+                .format(localized_value,prefix,date,
                     self.community.short_currency if units else "")
         else:
             return localized_value

@@ -190,38 +190,39 @@ class Wallet(QObject):
 
         amount, amount_base = reduce_base(amount, 0)
         cache = self.caches[community.currency]
-        current_base = max([src['base'] for src in cache.available_sources])
-        value = 0
-        sources = []
-        outputs = []
-        overheads = []
-        buf_sources = list(cache.available_sources)
-        while current_base >= 0:
-            for s in [src for src in cache.available_sources if src['base'] == current_base]:
-                test_sources = sources + [s]
-                val = current_value(test_sources, overheads)
-                # if we have to compute an overhead
-                if current_value(test_sources, overheads) > amount * (10**amount_base):
-                    overhead = current_value(test_sources, overheads) - int(amount) * (10**amount_base)
-                    # we round the overhead in the current base
-                    # exemple : 12 in base 1 -> 1*10^1
-                    overhead = int(round(float(overhead) / (10**current_base)))
-                    source_value = s['amount'] * (10**s['base'])
-                    out = int((source_value - (overhead * (10**current_base)))/(10**current_base))
-                    if out * (10**current_base) <= amount * (10**amount_base):
+        if cache.available_sources:
+            current_base = max([src['base'] for src in cache.available_sources])
+            value = 0
+            sources = []
+            outputs = []
+            overheads = []
+            buf_sources = list(cache.available_sources)
+            while current_base >= 0:
+                for s in [src for src in cache.available_sources if src['base'] == current_base]:
+                    test_sources = sources + [s]
+                    val = current_value(test_sources, overheads)
+                    # if we have to compute an overhead
+                    if current_value(test_sources, overheads) > amount * (10**amount_base):
+                        overhead = current_value(test_sources, overheads) - int(amount) * (10**amount_base)
+                        # we round the overhead in the current base
+                        # exemple : 12 in base 1 -> 1*10^1
+                        overhead = int(round(float(overhead) / (10**current_base)))
+                        source_value = s['amount'] * (10**s['base'])
+                        out = int((source_value - (overhead * (10**current_base)))/(10**current_base))
+                        if out * (10**current_base) <= amount * (10**amount_base):
+                            sources.append(s)
+                            buf_sources.remove(s)
+                            overheads.append((overhead, current_base))
+                            outputs.append((out, current_base))
+                    # else just add the output
+                    else:
                         sources.append(s)
                         buf_sources.remove(s)
-                        overheads.append((overhead, current_base))
-                        outputs.append((out, current_base))
-                # else just add the output
-                else:
-                    sources.append(s)
-                    buf_sources.remove(s)
-                    outputs.append((s['amount'] , s['base']))
-                if current_value(sources, overheads) == amount * (10 ** amount_base):
-                    return sources, outputs, overheads, buf_sources
+                        outputs.append((s['amount'] , s['base']))
+                    if current_value(sources, overheads) == amount * (10 ** amount_base):
+                        return sources, outputs, overheads, buf_sources
 
-            current_base -= 1
+                current_base -= 1
 
         raise NotEnoughMoneyError(value, community.currency,
                                   len(sources), amount * pow(10, amount_base))
@@ -303,7 +304,7 @@ class Wallet(QObject):
         unlocks = self.tx_unlocks(sources)
         outputs = self.tx_outputs(pubkey, computed_outputs, overheads)
         logging.debug("Outputs : {0}".format(outputs))
-        tx = Transaction(PROTOCOL_VERSION, community.currency, blockstamp, 0,
+        tx = Transaction(3, community.currency, blockstamp, 0,
                          [self.pubkey], inputs, unlocks,
                          outputs, message, None)
         return tx
