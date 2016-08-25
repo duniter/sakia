@@ -1,15 +1,15 @@
 @startuml
 
 
-class IdentitiesAccess  << (A,green) >> {
+class IdentitiesAccess  << (A,lightgreen) >> {
 }
-class CertificationAccess  << (A,green) >> {
+class CertificationAccess  << (A,lightgreen) >> {
 }
-class TransactionAccess  << (A,green) >> {
+class TransactionAccess  << (A,lightgreen) >> {
 }
-class CommunityAccess  << (A,green) >> {
+class CommunityAccess  << (A,lightgreen) >> {
 }
-class BlockchainAccess  << (A,green) >> {
+class BlockchainAccess  << (A,lightgreen) >> {
 }
 
 @enduml

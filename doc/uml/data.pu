@@ -60,13 +60,11 @@ class Blockchain  << (D,orchid) >> {
     currency: str (PK)
     current_buid: BlockUID
     nb_members: int
-    mass: int
+    current_mass: int
     median_time: int
     last_ud: int
     last_ud_base: int
-    mass_minus_1: int
-    ud_minus_1: int
-    ud_minus_1_base: int
+    previous_mass: int
 }
 
 class Node  << (D,orchid) >> {
