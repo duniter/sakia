@@ -13,7 +13,3 @@ class Identity:
     member = attr.ib(validator=attr.validators.instance_of(bool))
     membership_buid = attr.ib(convert=block_uid)
     membership_timestamp = attr.ib(convert=int)
-    
-    def astuple(self):
-        return (self.currency, self.pubkey, self.uid, self.signature, self.blockstamp, self.timestamp,
-         self.member, self.membership_buid, self.membership_timestamp)

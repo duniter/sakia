@@ -1,4 +1,4 @@
-from sakia.data.repositories import IdentitiesRepo
+from sakia.data.repositories import IdentitiesRepo, MetaDatabase
 from sakia.data.entities import Identity
 from duniterpy.documents import BlockUID
 import unittest
@@ -16,8 +16,10 @@ class TestIdentitiesRepo(unittest.TestCase):
         self.con.close()
 
     def test_add_get_identity(self):
+        meta_repo = MetaDatabase(self.con)
+        meta_repo.prepare()
+        meta_repo.upgrade_database()
         identities_repo = IdentitiesRepo(self.con)
-        identities_repo.prepare()
         identities_repo.insert(Identity("testcurrency", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
                                         "john",
                                         "H41/8OGV2W4CLKbE35kk5t1HJQsb3jEM0/QGLUf80CwJvGZf3HvVCcNtHPUFoUBKEDQO9mPK3KJkqOoxHpqHCw==",

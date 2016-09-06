@@ -1,32 +1,12 @@
-import sqlite3
+import attr
 from ..entities import Identity
 
 
+@attr.s
 class IdentitiesRepo:
-    def __init__(self, conn):
-        """
-        :param sqlite3.Connection conn: the cursor
-        """
-        self._conn = conn
-
-    def prepare(self):
-        """
-        Prepares the database if the table is missing
-        """
-        with self._conn:
-            self._conn.execute("create table if not exists identities("
-                               "CURRENCY varchar(30), "
-                               "PUBKEY varchar(50),"
-                               "UID varchar(255),"
-                               "SIGNATURE varchar(100),"
-                               "BLOCKSTAMP varchar(100),"
-                               "TS int,"
-                               "MEMBER boolean,"
-                               "MS_BUID varchar(100),"
-                               "MS_TIMESTAMP int,"
-                               "PRIMARY KEY (CURRENCY, PUBKEY)"
-                               ")"
-                               )
+    """The repository for Identities entities.
+    """
+    _conn = attr.ib()  # :type sqlite3.Connection
 
     def insert(self, identity):
         """
@@ -34,7 +14,7 @@ class IdentitiesRepo:
         :param sakia.data.entities.Identity identity: the identity to commit
         """
         with self._conn:
-            self._conn.execute("INSERT INTO identities VALUES (?,?,?,?,?,?,?,?,?)", identity.astuple())
+            self._conn.execute("INSERT INTO identities VALUES (?,?,?,?,?,?,?,?,?)", attr.astuple(identity))
 
     def update(self, identity):
         """
@@ -50,7 +30,7 @@ class IdentitiesRepo:
                               "MEMBER=?,"
                               "MS_BUID=?,"
                               "MS_TIMESTAMP=?"
-                              "WHERE CURRENCY=? AND PUBKEY=?", identity.astuple()[2:] + (identity.currency,
+                              "WHERE CURRENCY=? AND PUBKEY=?", attr.astuple(identity)[2:] + (identity.currency,
                                                                                          identity.pubkey)
                               )
 
