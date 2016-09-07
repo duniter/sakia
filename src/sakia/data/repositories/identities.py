@@ -24,8 +24,8 @@ class IdentitiesRepo:
         with self._conn:
             self.conn.execute("UPDATE identities SET "
                               "UID=?, "
-                              "SIGNATURE=?, "
                               "BLOCKSTAMP=?,"
+                              "SIGNATURE=?, "
                               "TS=?,"
                               "MEMBER=?,"
                               "MS_BUID=?,"

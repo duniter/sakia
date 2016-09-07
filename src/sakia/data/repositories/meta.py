@@ -48,13 +48,13 @@ class MetaDatabase:
                                "CURRENCY varchar(30), "
                                "PUBKEY varchar(50),"
                                "UID varchar(255),"
-                               "SIGNATURE varchar(100),"
                                "BLOCKSTAMP varchar(100),"
+                               "SIGNATURE varchar(100),"
                                "TS int,"
                                "MEMBER boolean,"
                                "MS_BUID varchar(100),"
                                "MS_TIMESTAMP int,"
-                               "PRIMARY KEY (CURRENCY, PUBKEY)"
+                               "PRIMARY KEY (CURRENCY, PUBKEY, UID, BLOCKSTAMP)"
                                ")"
                                )
 
