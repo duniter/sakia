@@ -14,7 +14,7 @@ class IdentitiesRepo:
         :param sakia.data.entities.Identity identity: the identity to commit
         """
         with self._conn:
-            self._conn.execute("INSERT INTO identities VALUES (?,?,?,?,?,?,?,?,?)", attr.astuple(identity))
+            self._conn.execute("INSERT INTO identities VALUES (?,?,?,?,?,?,?,?,?,?)", attr.astuple(identity))
 
     def update(self, identity):
         """
@@ -22,30 +22,65 @@ class IdentitiesRepo:
         :param sakia.data.entities.Identity identity: the identity to update
         """
         with self._conn:
-            self.conn.execute("UPDATE identities SET "
-                              "UID=?, "
-                              "BLOCKSTAMP=?,"
-                              "SIGNATURE=?, "
-                              "TS=?,"
-                              "MEMBER=?,"
-                              "MS_BUID=?,"
-                              "MS_TIMESTAMP=?"
-                              "WHERE CURRENCY=? AND PUBKEY=?", attr.astuple(identity)[2:] + (identity.currency,
-                                                                                         identity.pubkey)
+            self._conn.execute("UPDATE identities SET "
+                              "signature=?, "
+                              "ts=?,"
+                              "revoked=?"
+                              "member=?,"
+                              "ms_buid=?,"
+                              "ms_timestamp=?"
+                              "WHERE "
+                              "currency=? AND "
+                              "pubkey=? AND "
+                              "uid=? AND "
+                              "blockstamp=?", attr.astuple(identity)[4:] + (identity.currency,
+                                                                               identity.pubkey,
+                                                                               identity.uid,
+                                                                               identity.blockstamp)
                               )
 
-    def get_one(self, currency, pubkey):
+    def get_one(self, **search):
         """
         Get an existing identity in the database
-        :param str currency:
-        :param str pubkey:
+        :param dict search: the criterions of the lookup
         :rtype: sakia.data.entities.Identity
         """
         with self._conn:
-            c = self._conn.execute("SELECT * FROM identities WHERE currency=? AND pubkey=?", (currency, pubkey))
+            filters = []
+            values = []
+            for k, v in search.items():
+                filters.append("{k}=?".format(k=k))
+                values.append(v)
+
+            request = "SELECT * FROM identities WHERE "
+            request += " AND ".join(filters)
+
+            c = self._conn.execute(request, tuple(values))
             data = c.fetchone()
             if data:
                 return Identity(*data)
+
+    def get_all(self, **search):
+        """
+        Get all existing identity in the database corresponding to the search
+        :param dict search: the criterions of the lookup
+        :rtype: sakia.data.entities.Identity
+        """
+        with self._conn:
+            filters = []
+            values = []
+            for k, v in search.items():
+                filters.append("{k}=?".format(k=k))
+                values.append(v)
+
+            request = "SELECT * FROM identities WHERE "
+            request += " AND ".join(filters)
+
+            c = self._conn.execute(request, tuple(values))
+            datas = c.fetchall()
+            if datas:
+                return [Identity(*data) for data in datas]
+        return []
 
     def drop(self, currency, pubkey):
         """
