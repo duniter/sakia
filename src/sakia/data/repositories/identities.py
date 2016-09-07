@@ -2,7 +2,7 @@ import attr
 from ..entities import Identity
 
 
-@attr.s
+@attr.s(frozen=True)
 class IdentitiesRepo:
     """The repository for Identities entities.
     """

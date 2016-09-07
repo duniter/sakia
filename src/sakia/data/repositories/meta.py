@@ -1,5 +1,4 @@
 import attr
-from ..entities import Identity
 
 
 @attr.s(frozen=True)
