@@ -270,14 +270,14 @@ class Network(QObject):
 
     def _check_nodes_unique(self):
         """
-        Check that all nodes are unique by them pubkeys
+        Check that all nodes are unique by they endpoints
         """
-        pubkeys = set()
+        endpoints = set()
         unique_nodes = []
         for n in self.nodes:
-            if n.pubkey not in pubkeys:
+            if n.endpoint not in endpoints:
                 unique_nodes.append(n)
-                pubkeys.add(n.pubkey)
+                endpoints.add(n.endpoint)
 
         self._nodes = unique_nodes
 
