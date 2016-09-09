@@ -1,0 +1,19 @@
+@startuml
+
+
+class IdentitiesProcessor  << (P,lightgreen) >> {
+    find_identities()
+    find_certifiers_of()
+    find_certified_by()
+}
+
+class CertificationProcessor  << (P,lightgreen) >> {
+}
+class TransactionProcessor  << (P,lightgreen) >> {
+}
+class CommunityProcessor  << (P,lightgreen) >> {
+}
+class BlockchainProcessor  << (P,lightgreen) >> {
+}
+
+@enduml

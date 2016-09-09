@@ -5,7 +5,6 @@
 class ProfileService << (S,cyan) >>  {
     add_connection()
     remove_connection()
-
 }
 
 class AccountService << (S,cyan) >>  {
@@ -15,15 +14,15 @@ class AccountService << (S,cyan) >>  {
     send_identity()
     send_revokation()
 }
+
 class TransactionsService << (S,cyan) >>  {
+    handle_new_block()
     refresh_transactions()
     rollback_transactions()
 }
 
-class RegistryService << (S,cyan) >> {
-    get_identity()
-    get_certifiers_of()
-    get_certified_by()
+class IdentitiesService << (S,cyan) >> {
+    handle_new_block()
 }
 
 class NetworkService << (S,cyan) >>  {

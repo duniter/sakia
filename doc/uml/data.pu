@@ -1,7 +1,6 @@
 @startuml
 
 
-
 class Identity << (D,orchid) >> {
     currency: str (FK)
     uid: str
@@ -9,6 +8,8 @@ class Identity << (D,orchid) >> {
     blockstamp: BlockUID
     timestamp: int
     signature: str
+    written: bool
+    revoked: bool
     member: bool
     membership_buid: BlockUID
     membership_timestamp: int
