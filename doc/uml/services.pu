@@ -21,7 +21,7 @@ class TransactionsService << (S,cyan) >>  {
     rollback_transactions()
 }
 
-class IdentitiesService << (S,cyan) >> {
+class RegistryService << (S,cyan) >> {
     handle_new_block()
 }
 
