@@ -7,6 +7,7 @@ class IdentitiesRepo:
     """The repository for Identities entities.
     """
     _conn = attr.ib()  # :type sqlite3.Connection
+    _primary_keys = (Identity.currency, Identity.pubkey, Identity.uid, Identity.blockstamp)
 
     def insert(self, identity):
         """
@@ -14,7 +15,10 @@ class IdentitiesRepo:
         :param sakia.data.entities.Identity identity: the identity to commit
         """
         with self._conn:
-            self._conn.execute("INSERT INTO identities VALUES (?,?,?,?,?,?,?,?,?,?)", attr.astuple(identity))
+            identity_tuple = attr.astuple(identity)
+            values = ",".join(['?']*len(identity_tuple))
+            self._conn.execute("INSERT INTO identities "
+                               "VALUES ({0})".format(values), identity_tuple)
 
     def update(self, identity):
         """
@@ -22,10 +26,13 @@ class IdentitiesRepo:
         :param sakia.data.entities.Identity identity: the identity to update
         """
         with self._conn:
+            updated_fields = attr.astuple(identity, filter=attr.filters.exclude(*IdentitiesRepo._primary_keys))
+            where_fields = attr.astuple(identity, filter=attr.filters.include(*IdentitiesRepo._primary_keys))
             self._conn.execute("UPDATE identities SET "
                               "signature=?, "
                               "ts=?,"
-                              "revoked=?"
+                              "written=?,"
+                              "revoked=?,"
                               "member=?,"
                               "ms_buid=?,"
                               "ms_timestamp=?"
@@ -33,10 +40,7 @@ class IdentitiesRepo:
                               "currency=? AND "
                               "pubkey=? AND "
                               "uid=? AND "
-                              "blockstamp=?", attr.astuple(identity)[4:] + (identity.currency,
-                                                                               identity.pubkey,
-                                                                               identity.uid,
-                                                                               identity.blockstamp)
+                              "blockstamp=?", updated_fields + where_fields
                               )
 
     def get_one(self, **search):
@@ -82,11 +86,15 @@ class IdentitiesRepo:
                 return [Identity(*data) for data in datas]
         return []
 
-    def drop(self, currency, pubkey):
+    def drop(self, identity):
         """
         Drop an existing identity from the database
-        :param str currency:
-        :param str pubkey:
+        :param sakia.data.entities.Identity identity: the identity to update
         """
         with self._conn:
-            self._conn.execute("DELETE FROM identities WHERE currency=? AND pubkey=?", (currency, pubkey))
+            where_fields = attr.astuple(identity, filter=attr.filters.include(*IdentitiesRepo._primary_keys))
+            self._conn.execute("DELETE FROM identities WHERE "
+                               "currency=? AND "
+                               "pubkey=? AND "
+                               "uid=? AND "
+                               "blockstamp=?", where_fields)

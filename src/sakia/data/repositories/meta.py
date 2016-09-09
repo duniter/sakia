@@ -50,6 +50,7 @@ class MetaDatabase:
                                "blockstamp varchar(100),"
                                "signature varchar(100),"
                                "ts int,"
+                               "written boolean,"
                                "revoked boolean,"
                                "member boolean,"
                                "ms_buid varchar(100),"

@@ -26,6 +26,8 @@ class TestIdentitiesRepo(unittest.TestCase):
                                         "H41/8OGV2W4CLKbE35kk5t1HJQsb3jEM0/QGLUf80CwJvGZf3HvVCcNtHPUFoUBKEDQO9mPK3KJkqOoxHpqHCw==",
                                         1473108382,
                                         False,
+                                        False,
+                                        False,
                                         None,
                                         0))
         identity = identities_repo.get_one(currency="testcurrency",
@@ -44,7 +46,7 @@ class TestIdentitiesRepo(unittest.TestCase):
         self.assertEqual(identity.member, False)
         self.assertEqual(identity.membership_buid, BlockUID.empty())
         self.assertEqual(identity.membership_timestamp, 0)
-        identities_repo.drop("testcurrency", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ")
+        identities_repo.drop(identity)
         identity = identities_repo.get_one(currency="testcurrency",
                                            pubkey="7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
                                            uid="john",
@@ -64,6 +66,8 @@ class TestIdentitiesRepo(unittest.TestCase):
                                         "H41/8OGV2W4CLKbE35kk5t1HJQsb3jEM0/QGLUf80CwJvGZf3HvVCcNtHPUFoUBKEDQO9mPK3KJkqOoxHpqHCw==",
                                         1473108382,
                                         False,
+                                        False,
+                                        False,
                                         None,
                                         0))
         identities_repo.insert(Identity("testcurrency", "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
@@ -71,6 +75,8 @@ class TestIdentitiesRepo(unittest.TestCase):
                                         "101-BAD49448A1AD73C978CEDCB8F137D20A5715EBAA739DAEF76B1E28EE67B2C00C",
                                         "H41/8OGV2W4CLKbE35kk5t1HJQsb3jEM0/QGLUf80CwJvGZf3HvVCcNtHPUFoUBKEDQO9mPK3KJkqOoxHpqHCw==",
                                         1455433535,
+                                        False,
+                                        False,
                                         False,
                                         None,
                                         0))
@@ -90,6 +96,8 @@ class TestIdentitiesRepo(unittest.TestCase):
                                         "H41/8OGV2W4CLKbE35kk5t1HJQsb3jEM0/QGLUf80CwJvGZf3HvVCcNtHPUFoUBKEDQO9mPK3KJkqOoxHpqHCw==",
                                         1473108382,
                                         False,
+                                        False,
+                                        False,
                                         None,
                                         0)
         identities_repo.insert(identity)
@@ -98,7 +106,3 @@ class TestIdentitiesRepo(unittest.TestCase):
         identity2 = identities_repo.get_one(currency="testcurrency",
                                             pubkey="7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ")
         self.assertTrue(identity2.member)
-
-
-
-
