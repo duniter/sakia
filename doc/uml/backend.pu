@@ -40,11 +40,11 @@ package Connectors {
     }
 }
 
-AccountService --> BMAProcessor
-BlockchainProcessor --> BMAProcessor
-CommunityProcessor --> BMAProcessor
-TransactionProcessor --> BMAProcessor
-IdentitiesProcessor --> BMAProcessor
-CertificationProcessor --> BMAProcessor
+AccountService --> BMAConnector
+BlockchainProcessor --> BMAConnector
+CommunityProcessor --> BMAConnector
+TransactionProcessor --> BMAConnector
+IdentitiesProcessor --> BMAConnector
+CertificationProcessor --> BMAConnector
 
 @enduml
