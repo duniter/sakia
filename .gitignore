@@ -46,3 +46,8 @@ res/i18n/lang-*
 out
 .directory
 temp
+
+# Vim swap files
+*~
+*.swp
+*.swo
