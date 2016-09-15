@@ -11,7 +11,7 @@ cd ~/projects/sakia_dev
 ### Install pip dependencies
 ```bash
 sudo pip3 install --upgrade pip
-sudo pip3 install requirements.txt
+sudo pip3 install -r requirements.txt
 ```
 
 ### Fix Qt link
