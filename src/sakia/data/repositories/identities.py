@@ -1,4 +1,5 @@
 import attr
+
 from ..entities import Identity
 
 
@@ -16,9 +17,8 @@ class IdentitiesRepo:
         """
         with self._conn:
             identity_tuple = attr.astuple(identity)
-            values = ",".join(['?']*len(identity_tuple))
-            self._conn.execute("INSERT INTO identities "
-                               "VALUES ({0})".format(values), identity_tuple)
+            values = ",".join(['?'] * len(identity_tuple))
+            self._conn.execute("INSERT INTO identities VALUES ({0})".format(values), identity_tuple)
 
     def update(self, identity):
         """
@@ -28,20 +28,20 @@ class IdentitiesRepo:
         with self._conn:
             updated_fields = attr.astuple(identity, filter=attr.filters.exclude(*IdentitiesRepo._primary_keys))
             where_fields = attr.astuple(identity, filter=attr.filters.include(*IdentitiesRepo._primary_keys))
-            self._conn.execute("UPDATE identities SET "
-                              "signature=?, "
-                              "ts=?,"
-                              "written=?,"
-                              "revoked=?,"
-                              "member=?,"
-                              "ms_buid=?,"
-                              "ms_timestamp=?"
-                              "WHERE "
-                              "currency=? AND "
-                              "pubkey=? AND "
-                              "uid=? AND "
-                              "blockstamp=?", updated_fields + where_fields
-                              )
+            self._conn.execute("""UPDATE identities SET
+                                  signature=?,
+                                  ts=?,
+                                  written=?,
+                                  revoked=?,
+                                  member=?,
+                                  ms_buid=?,
+                                  ms_timestamp=?
+                                  WHERE
+                                  currency=? AND
+                                  pubkey=? AND
+                                  uid=? AND
+                                  blockstamp=?""", updated_fields + where_fields
+                               )
 
     def get_one(self, **search):
         """
@@ -56,8 +56,7 @@ class IdentitiesRepo:
                 filters.append("{k}=?".format(k=k))
                 values.append(v)
 
-            request = "SELECT * FROM identities WHERE "
-            request += " AND ".join(filters)
+            request = "SELECT * FROM identities WHERE {filters}".format(filters=" AND ".join(filters))
 
             c = self._conn.execute(request, tuple(values))
             data = c.fetchone()
@@ -77,8 +76,7 @@ class IdentitiesRepo:
                 filters.append("{k}=?".format(k=k))
                 values.append(v)
 
-            request = "SELECT * FROM identities WHERE "
-            request += " AND ".join(filters)
+            request = "SELECT * FROM identities WHERE {filters}".format(filters=" AND ".join(filters))
 
             c = self._conn.execute(request, tuple(values))
             datas = c.fetchall()
@@ -93,8 +91,8 @@ class IdentitiesRepo:
         """
         with self._conn:
             where_fields = attr.astuple(identity, filter=attr.filters.include(*IdentitiesRepo._primary_keys))
-            self._conn.execute("DELETE FROM identities WHERE "
-                               "currency=? AND "
-                               "pubkey=? AND "
-                               "uid=? AND "
-                               "blockstamp=?", where_fields)
+            self._conn.execute("""DELETE FROM identities WHERE
+                               currency=? AND
+                               pubkey=? AND
+                               uid=? AND
+                               blockstamp=?""", where_fields)
