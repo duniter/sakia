@@ -1,4 +1,5 @@
 import attr
+import os
 
 
 @attr.s(frozen=True)
@@ -13,11 +14,11 @@ class MetaDatabase:
         Prepares the database if the table is missing
         """
         with self._conn:
-            self._conn.execute("create table if not exists meta("
-                               "id integer not null,"
-                               "version integer not null,"
-                               "primary key (id)"
-                               ")"
+            self._conn.execute("""CREATE TABLE IF NOT EXISTS meta(
+                               id INTEGER NOT NULL,
+                               version INTEGER NOT NULL,
+                               PRIMARY KEY (id)
+                               )"""
                                )
 
     @property
@@ -42,22 +43,9 @@ class MetaDatabase:
         Init all the tables
         :return:
         """
+        sql_file = open(os.path.join(os.path.dirname(__file__), 'meta.sql'), 'r')
         with self._conn:
-            self._conn.execute("create table if not exists identities("
-                               "currency varchar(30), "
-                               "pubkey varchar(50),"
-                               "uid varchar(255),"
-                               "blockstamp varchar(100),"
-                               "signature varchar(100),"
-                               "ts int,"
-                               "written boolean,"
-                               "revoked boolean,"
-                               "member boolean,"
-                               "ms_buid varchar(100),"
-                               "ms_timestamp int,"
-                               "PRIMARY KEY (currency, pubkey, uid, blockstamp)"
-                               ")"
-                               )
+            self._conn.executescript(sql_file.read())
 
     def version(self):
         with self._conn:
@@ -68,4 +56,3 @@ class MetaDatabase:
             else:
                 self._conn.execute("INSERT INTO meta VALUES (1, 0)")
                 return 0
-
