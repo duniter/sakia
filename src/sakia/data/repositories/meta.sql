@@ -37,7 +37,9 @@ CREATE TABLE IF NOT EXISTS communities(
                                currency VARCHAR(30),
                                PRIMARY KEY (currency)
                                );
--- IDENTITY TABLE
+
+
+-- CERTIFICATIONS TABLE
 CREATE TABLE IF NOT EXISTS certifications(
                                currency VARCHAR(30),
                                certifier VARCHAR(50),
@@ -47,4 +49,22 @@ CREATE TABLE IF NOT EXISTS certifications(
                                signature VARCHAR(100),
                                written_on VARCHAR(100),
                                PRIMARY KEY (currency, certifier, certified, blockstamp)
+                               );
+
+-- TRANSACTIONS TABLE
+
+CREATE TABLE IF NOT EXISTS transactions(
+                               currency VARCHAR(30),
+                               sha_hash VARCHAR(50),
+                               written_on VARCHAR(100),
+                               blockstamp VARCHAR(100),
+                               ts INT,
+                               signature VARCHAR(100),
+                               issuer VARCHAR(50),
+                               receiver VARCHAR(50),
+                               amount INT,
+                               amountbase INT,
+                               comment VARCHAR(255),
+                               txid INT,
+                               PRIMARY KEY (sha_hash)
                                );
