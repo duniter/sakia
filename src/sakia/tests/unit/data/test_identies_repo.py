@@ -25,11 +25,13 @@ class TestIdentitiesRepo(unittest.TestCase):
                                         "20-7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67",
                                         "H41/8OGV2W4CLKbE35kk5t1HJQsb3jEM0/QGLUf80CwJvGZf3HvVCcNtHPUFoUBKEDQO9mPK3KJkqOoxHpqHCw==",
                                         1473108382,
-                                        False,
-                                        False,
+                                        None,
+                                        None,
                                         False,
                                         None,
-                                        0))
+                                        0,
+                                        '',
+                                        None))
         identity = identities_repo.get_one(currency="testcurrency",
                                            pubkey="7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
                                            uid="john",
@@ -46,6 +48,7 @@ class TestIdentitiesRepo(unittest.TestCase):
         self.assertEqual(identity.member, False)
         self.assertEqual(identity.membership_buid, BlockUID.empty())
         self.assertEqual(identity.membership_timestamp, 0)
+        self.assertEqual(identity.membership_written_on, BlockUID.empty())
         identities_repo.drop(identity)
         identity = identities_repo.get_one(currency="testcurrency",
                                            pubkey="7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
@@ -65,21 +68,25 @@ class TestIdentitiesRepo(unittest.TestCase):
                                         "20-7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67",
                                         "H41/8OGV2W4CLKbE35kk5t1HJQsb3jEM0/QGLUf80CwJvGZf3HvVCcNtHPUFoUBKEDQO9mPK3KJkqOoxHpqHCw==",
                                         1473108382,
-                                        False,
-                                        False,
+                                        None,
+                                        None,
                                         False,
                                         None,
-                                        0))
+                                        0,
+                                        '',
+                                        None))
         identities_repo.insert(Identity("testcurrency", "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
                                         "doe",
                                         "101-BAD49448A1AD73C978CEDCB8F137D20A5715EBAA739DAEF76B1E28EE67B2C00C",
                                         "H41/8OGV2W4CLKbE35kk5t1HJQsb3jEM0/QGLUf80CwJvGZf3HvVCcNtHPUFoUBKEDQO9mPK3KJkqOoxHpqHCw==",
                                         1455433535,
-                                        False,
-                                        False,
+                                        None,
+                                        None,
                                         False,
                                         None,
-                                        0))
+                                        0,
+                                        '',
+                                        None))
         identities = identities_repo.get_all(currency="testcurrency")
         self.assertIn("testcurrency", [i.currency for i in identities])
         self.assertIn("john", [i.uid for i in identities])
@@ -95,11 +102,13 @@ class TestIdentitiesRepo(unittest.TestCase):
                                         "20-7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67",
                                         "H41/8OGV2W4CLKbE35kk5t1HJQsb3jEM0/QGLUf80CwJvGZf3HvVCcNtHPUFoUBKEDQO9mPK3KJkqOoxHpqHCw==",
                                         1473108382,
-                                        False,
-                                        False,
+                                        None,
+                                        None,
                                         False,
                                         None,
-                                        0)
+                                        0,
+                                        '',
+                                        None)
         identities_repo.insert(identity)
         identity.member = True
         identities_repo.update(identity)

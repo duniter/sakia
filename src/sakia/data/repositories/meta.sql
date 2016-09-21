@@ -6,11 +6,13 @@ CREATE TABLE IF NOT EXISTS identities(
                                blockstamp VARCHAR(100),
                                signature VARCHAR(100),
                                ts INT,
-                               written BOOLEAN,
-                               revoked BOOLEAN,
+                               written_on VARCHAR(100),
+                               revoked_on VARCHAR(100),
                                member BOOLEAN,
                                ms_buid VARCHAR(100),
                                ms_timestamp INT,
+                               ms_written_on VARCHAR(100),
+                               ms_type VARCHAR(5),
                                PRIMARY KEY (currency, pubkey, uid, blockstamp)
                                );
 

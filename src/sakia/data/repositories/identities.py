@@ -31,11 +31,13 @@ class IdentitiesRepo:
             self._conn.execute("""UPDATE identities SET
                                   signature=?,
                                   ts=?,
-                                  written=?,
-                                  revoked=?,
+                                  written_on=?,
+                                  revoked_on=?,
                                   member=?,
                                   ms_buid=?,
-                                  ms_timestamp=?
+                                  ms_timestamp=?,
+                                  ms_written_on=?,
+                                  ms_type=?
                                   WHERE
                                   currency=? AND
                                   pubkey=? AND
