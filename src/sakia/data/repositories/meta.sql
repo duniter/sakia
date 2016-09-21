@@ -35,3 +35,14 @@ CREATE TABLE IF NOT EXISTS communities(
                                currency VARCHAR(30),
                                PRIMARY KEY (currency)
                                );
+-- IDENTITY TABLE
+CREATE TABLE IF NOT EXISTS certifications(
+                               currency VARCHAR(30),
+                               certifier VARCHAR(50),
+                               certified VARCHAR(50),
+                               blockstamp VARCHAR(100),
+                               ts INT,
+                               signature VARCHAR(100),
+                               written_on VARCHAR(100),
+                               PRIMARY KEY (currency, certifier, certified, blockstamp)
+                               );
