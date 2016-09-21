@@ -8,20 +8,23 @@ class Identity << (D,orchid) >> {
     blockstamp: BlockUID
     timestamp: int
     signature: str
-    written: bool
-    revoked: bool
+    written_on: BlockUID
+    revoked_on: BlockUID
     member: bool
     membership_buid: BlockUID
     membership_timestamp: int
+    membership_type: str
+    membership_written_on: BlockUID
 }
 
 class Certification << (D,orchid) >> {
-    currency: str (FK)
-    certifier: str
-    certified: str
-    blockstamp: BlockUID
+    currency: str (PK)
+    certifier: str (PK)
+    certified: str (PK)
+    blockstamp: BlockUID (PK)
     timestamp: int
     signature: str
+    written_on: BlockUID
 }
 
 class Transaction  << (D,orchid) >> {
@@ -119,7 +122,7 @@ class KeyRepo << (R,orange) >>  {
 }
 
 
-class NodeRepo << (R,orange) >>   {
+class NodesRepo << (R,orange) >>   {
     Create()
     Update()
     Save()
@@ -167,7 +170,7 @@ CommunityRepo "1" --* "*" Community
 
 BlockchainRepo "1" --* "*" Blockchain
 
-NodeRepo "1" --* "*" Node
+NodesRepo "1" --* "*" Node
 
 KeyRepo "1" --* "*" Key
 

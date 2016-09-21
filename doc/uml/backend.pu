@@ -23,7 +23,8 @@ RegistryService "*" --> "1" CertificationProcessor
 CertificationProcessor "1" --> "1" CertificationRepo
 
 NetworkService "1" --> "*" Node
-NetworkService "*" --> "1" NodeRepo
+NetworkService "*" --> "1" NodesProcessor
+NodesProcessor "1" --> "1" NodesRepo
 
 BlockchainService "1" --> "1" Blockchain
 BlockchainService "1" --> "1" Community

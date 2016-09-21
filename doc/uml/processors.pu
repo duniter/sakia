@@ -15,5 +15,7 @@ class CommunityProcessor  << (P,lightgreen) >> {
 }
 class BlockchainProcessor  << (P,lightgreen) >> {
 }
+class NodesProcessor  << (P,lightgreen) >> {
+}
 
 @enduml
