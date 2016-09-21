@@ -52,7 +52,6 @@ CREATE TABLE IF NOT EXISTS certifications(
                                );
 
 -- TRANSACTIONS TABLE
-
 CREATE TABLE IF NOT EXISTS transactions(
                                currency VARCHAR(30),
                                sha_hash VARCHAR(50),
@@ -67,4 +66,18 @@ CREATE TABLE IF NOT EXISTS transactions(
                                comment VARCHAR(255),
                                txid INT,
                                PRIMARY KEY (sha_hash)
+                               );
+
+-- NODES TABLE
+CREATE TABLE IF NOT EXISTS nodes(
+                               currency       VARCHAR(30),
+                               pubkey         VARCHAR(50),
+                               endpoints      TEXT,
+                               current_buid   VARCHAR(100),
+                               previous_buid  VARCHAR(100),
+                               state          INT,
+                               software       VARCHAR(100),
+                               version        VARCHAR(50),
+                               merkle_nodes   TEXT,
+                               PRIMARY KEY (currency, pubkey)
                                );
