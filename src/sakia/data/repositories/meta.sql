@@ -16,8 +16,8 @@ CREATE TABLE IF NOT EXISTS identities(
                                PRIMARY KEY (currency, pubkey, uid, blockstamp)
                                );
 
--- COMMUNITIES TABLE
-CREATE TABLE IF NOT EXISTS communities (
+-- BLOCKCHAIN TABLE
+CREATE TABLE IF NOT EXISTS blockchains (
   c                  FLOAT(1, 6),
   dt                 INT,
   ud0                INT,
@@ -34,12 +34,6 @@ CREATE TABLE IF NOT EXISTS communities (
   dt_diff_eval       INT,
   blocks_rot         INT,
   percent_rot        FLOAT(1, 6),
-  currency           VARCHAR(30),
-  PRIMARY KEY (currency)
-);
-
--- BLOCKCHAIN TABLE
-CREATE TABLE IF NOT EXISTS blockchains (
   current_buid INT,
   nb_members    INT,
   current_mass  INT,
