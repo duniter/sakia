@@ -7,7 +7,7 @@ from sakia.data.entities import Community
 from sakia.data.repositories import CommunitiesRepo, MetaDatabase
 
 
-class TestIdentitiesRepo(unittest.TestCase):
+class TestCommunitiesRepo(unittest.TestCase):
     def setUp(self):
         sqlite3.register_adapter(BlockUID, str)
         sqlite3.register_adapter(bool, int)

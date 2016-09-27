@@ -16,27 +16,34 @@ CREATE TABLE IF NOT EXISTS identities(
                                PRIMARY KEY (currency, pubkey, uid, blockstamp)
                                );
 
--- COMMUNITY TABLE
-CREATE TABLE IF NOT EXISTS communities(
-                               c FLOAT(1,6),
-                               dt INT,
-                               ud0 INT,
-                               sig_period INT,
-                               sig_stock INT,
-                               sig_window INT,
-                               sig_validity INT,
-                               sig_qty INT,
-                               xpercent FLOAT(1,6),
-                               ms_validity INT,
-                               step_max INT,
-                               median_time_blocks INT,
-                               avg_gen_time INT,
-                               dt_diff_eval INT,
-                               blocks_rot INT,
-                               percent_rot FLOAT(1,6),
-                               currency VARCHAR(30),
-                               PRIMARY KEY (currency)
-                               );
+-- BLOCKCHAIN TABLE
+CREATE TABLE IF NOT EXISTS blockchains (
+  c                  FLOAT(1, 6),
+  dt                 INT,
+  ud0                INT,
+  sig_period         INT,
+  sig_stock          INT,
+  sig_window         INT,
+  sig_validity       INT,
+  sig_qty            INT,
+  xpercent           FLOAT(1, 6),
+  ms_validity        INT,
+  step_max           INT,
+  median_time_blocks INT,
+  avg_gen_time       INT,
+  dt_diff_eval       INT,
+  blocks_rot         INT,
+  percent_rot        FLOAT(1, 6),
+  current_buid INT,
+  nb_members    INT,
+  current_mass  INT,
+  median_time   INT,
+  last_ud       INT,
+  last_ud_base  INT,
+  previous_mass INT,
+  currency      VARCHAR(30),
+  PRIMARY KEY (currency)
+);
 
 
 -- CERTIFICATIONS TABLE
