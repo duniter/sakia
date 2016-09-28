@@ -77,14 +77,18 @@ CREATE TABLE IF NOT EXISTS transactions(
 
 -- NODES TABLE
 CREATE TABLE IF NOT EXISTS nodes(
-                               currency       VARCHAR(30),
-                               pubkey         VARCHAR(50),
-                               endpoints      TEXT,
-                               current_buid   VARCHAR(100),
-                               previous_buid  VARCHAR(100),
-                               state          INT,
-                               software       VARCHAR(100),
-                               version        VARCHAR(50),
-                               merkle_nodes   TEXT,
+                               currency             VARCHAR(30),
+                               pubkey               VARCHAR(50),
+                               endpoints            TEXT,
+                               peer_buid            VARCHAR(100),
+                               uid               VARCHAR(50),
+                               current_buid         VARCHAR(100),
+                               previous_buid        VARCHAR(100),
+                               state                INT,
+                               software             VARCHAR(100),
+                               version              VARCHAR(50),
+                               merkle_peers_root    VARCHAR(50),
+                               merkle_peers_leaves  TEXT,
+                               root                 BOOLEAN,
                                PRIMARY KEY (currency, pubkey)
                                );

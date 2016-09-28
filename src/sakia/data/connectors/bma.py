@@ -48,7 +48,7 @@ class BmaConnector:
         :param dict get_args: Arguments to pass to the request __get__ method
         :return: The returned data
         """
-        nodes = self.filter_nodes(request, self._network.synced_nodes)
+        nodes = self.filter_nodes(request, self._nodes_processor.synced_nodes)
         if len(nodes) > 0:
             tries = 0
             json_data = None
@@ -81,9 +81,9 @@ class BmaConnector:
         .. note:: If one node accept the requests (returns 200),
         the broadcast should be considered accepted by the network.
         """
-        nodes = random.sample(self._network.synced_nodes, 6) \
-            if len(self._network.synced_nodes) > 6 \
-            else self._network.synced_nodes
+        nodes = random.sample(self._nodes_processor.synced_nodes, 6) \
+            if len(self._nodes_processor.synced_nodes) > 6 \
+            else self._nodes_processor.synced_nodes
         replies = []
         if len(nodes) > 0:
             for node in nodes:
@@ -92,7 +92,6 @@ class BmaConnector:
                 req = request(conn_handler, **req_args)
                 reply = asyncio.ensure_future(req.post(**post_args, session=self._network.session))
                 replies.append(reply)
-            self._invalidate_cache(request)
         else:
             raise NoPeerAvailable("", len(nodes))
 

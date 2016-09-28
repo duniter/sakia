@@ -10,10 +10,10 @@ import math
 
 from PyQt5.QtCore import QObject
 
-from ..tools.exceptions import NoPeerAvailable
-from .net.network import Network
+from sakia.errors import NoPeerAvailable
+from sakia.data.processors import NodesProcessor
 from duniterpy.api import bma, errors
-from .net.api.bma.access import BmaAccess
+from sakia.data.connectors import BmaConnector
 
 
 class Community(QObject):
@@ -23,21 +23,21 @@ class Community(QObject):
     .. warning:: The currency name is supposed to be unique in sakia
     but nothing exists in duniter to assert that a currency name is unique.
     """
-    def __init__(self, currency, network, bma_access):
+    def __init__(self, currency, nodes_processor, bma_connector):
         """
         Initialize community attributes with a currency and a network.
 
         :param str currency: The currency name of the community.
-        :param sakia.core.net.network.Network network: The network of the community
-        :param sakia.core.net.api.bma.access.BmaAccess bma_access: The BMA Access object
+        :param sakia.data.processors.NodesProcessor nodes_processor: The network of the community
+        :param sakia.data.connectors.BmaConnector bma_connector: The BMA connector object
 
         .. warning:: The community object should be created using its factory
         class methods.
         """
         super().__init__()
         self.currency = currency
-        self._network = network
-        self._bma_access = bma_access
+        self._nodes_processor = nodes_processor
+        self._bma_connector = bma_connector
 
     @classmethod
     def create(cls, node):

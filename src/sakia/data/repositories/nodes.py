@@ -1,5 +1,4 @@
 import attr
-import json
 
 from ..entities import Node
 
@@ -18,8 +17,6 @@ class NodesRepo:
         """
         with self._conn:
             node_tuple = attr.astuple(node, tuple_factory=list)
-            node_tuple[2] = '\n'.join([e.inline() for e in node_tuple[2]])
-            node_tuple[8] = json.dumps(node_tuple[8])
             values = ",".join(['?'] * len(node_tuple))
             self._conn.execute("INSERT INTO nodes VALUES ({0})".format(values), node_tuple)
 
@@ -31,18 +28,20 @@ class NodesRepo:
         with self._conn:
             updated_fields = attr.astuple(node, tuple_factory=list,
                                           filter=attr.filters.exclude(*NodesRepo._primary_keys))
-            updated_fields[0] = '\n'.join([e.inline() for e in updated_fields[0]])
-            updated_fields[6] = json.dumps(updated_fields[6])
             where_fields = attr.astuple(node, tuple_factory=list,
                                         filter=attr.filters.include(*NodesRepo._primary_keys))
             self._conn.execute("""UPDATE nodes SET
                                         endpoints=?,
+                                        peer_buid=?,
+                                        uid=?,
                                         current_buid=?,
                                         previous_buid=?,
                                         state=?,
                                         software=?,
                                         version=?,
-                                        merkle_nodes=?
+                                        merkle_peers_root=?,
+                                        merkle_peers_leaves=?,
+                                        root=?
                                        WHERE
                                        currency=? AND
                                        pubkey=?""",
@@ -58,6 +57,8 @@ class NodesRepo:
             filters = []
             values = []
             for k, v in search.items():
+                if isinstance(v, bool):
+                    v = int(v)
                 filters.append("{k}=?".format(k=k))
                 values.append(v)
 
@@ -78,7 +79,10 @@ class NodesRepo:
             filters = []
             values = []
             for k, v in search.items():
-                value = v
+                if isinstance(v, bool):
+                    value = int(v)
+                else:
+                    value = v
                 filters.append("{key} = ?".format(key=k))
                 values.append(value)
 
