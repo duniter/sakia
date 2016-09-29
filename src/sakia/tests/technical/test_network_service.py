@@ -38,7 +38,7 @@ class TestNetworkService(unittest.TestCase, QuamashTest):
                 node_connector = NodeConnector.from_peer(peer_document.currency, peer_document, session)
 
                 processor = NodesProcessor(peer_document.currency, nodes_repo)
-                network_service = NetworkService.create(nodes_repo, processor, node_connector)
+                network_service = NetworkService.create(processor, node_connector)
 
                 network_service._must_crawl = True
                 asyncio.ensure_future(network_service.discovery_loop())

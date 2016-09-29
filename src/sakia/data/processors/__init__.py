@@ -1,3 +1,3 @@
 from .nodes import NodesProcessor
-from .communities import CommunityProcessor
-from .identities import IdentityProcessor
+from .identities import IdentitiesProcessor
+from .certifications import CertificationsProcessor

@@ -1,8 +1,3 @@
-"""
-Created on 24 févr. 2015
-
-@author: inso
-"""
 from sakia.data.connectors import NodeConnector
 from sakia.data.entities import Node
 from sakia.errors import InvalidNodeCurrency
@@ -11,10 +6,8 @@ import logging
 import time
 import asyncio
 from duniterpy.key import VerifyingKey
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 from collections import Counter
-
-MAX_CONFIRMATIONS = 6
 
 
 class NetworkService(QObject):
@@ -27,18 +20,16 @@ class NetworkService(QObject):
     new_block_mined = pyqtSignal(int)
     blockchain_rollback = pyqtSignal(int)
 
-    def __init__(self, currency, repo, processor, connectors, session):
+    def __init__(self, currency, processor, connectors, session):
         """
         Constructor of a network
 
         :param str currency: The currency name of the community
-        :param sakia.data.repositories.NodesRepository repo: the nodes repository
         :param sakia.data.processors.NodesProcessor processor: the nodes processor for given currency
         :param list connectors: The connectors to nodes of the network
         :param aiohttp.ClientSession session: The main aiohttp client session
         """
         super().__init__()
-        self._repo = repo
         self._processor = processor
         self._connectors = []
         for c in connectors:
@@ -50,17 +41,19 @@ class NetworkService(QObject):
         self._discovery_stack = []
 
     @classmethod
-    def create(cls, repo, processor, node_connector):
+    def create(cls, processor, node_connector):
         """
         Create a new network with one knew node
         Crawls the nodes from the first node to build the
         community network
 
-        :param node_connector: The first connector of the network service
+        :param sakia.data.processors.NodeProcessor processor: The nodes processor
+        :param sakia.data.connectors.NodeConnector node_connector: The first connector of the network service
+        :return:
         """
         connectors = [node_connector]
-        repo.insert(node_connector.node)
-        network = cls(node_connector.node.currency, repo, processor, connectors, node_connector.session)
+        processor.insert_node(node_connector.node)
+        network = cls(node_connector.node.currency, processor, connectors, node_connector.session)
         return network
 
     def start_coroutines(self):
@@ -177,12 +170,11 @@ class NetworkService(QObject):
             try:
                 await asyncio.sleep(1)
                 peer = self._discovery_stack.pop()
-                pubkeys = [n.pubkey for n in self._processor.nodes()]
-                if peer.pubkey not in pubkeys:
+                if self._processor.unknown_node(peer.pubkey):
                     logging.debug("New node found : {0}".format(peer.pubkey[:5]))
                     try:
                         connector = NodeConnector.from_peer(self.currency, peer, self.session)
-                        self._repo.insert(connector.node)
+                        self._processor.insert_node(connector.node)
                         connector.refresh(manual=True)
                         self.add_connector(connector)
                         self.nodes_changed.emit()
@@ -206,7 +198,7 @@ class NetworkService(QObject):
     @pyqtSlot()
     def handle_identity_change(self):
         connector = self.sender()
-        self._repo.update(connector.node)
+        self._processor.update_node(connector.node)
         self.nodes_changed.emit()
 
     @pyqtSlot()
@@ -225,7 +217,7 @@ class NetworkService(QObject):
         if node_connector.node.state in (Node.ONLINE, Node.DESYNCED):
             self._check_nodes_sync()
         self.nodes_changed.emit()
-        self._repo.update(node_connector.node)
+        self._processor.update_node(node_connector.node)
 
         if node_connector.node.state == Node.ONLINE:
             current_buid = self._processor.current_buid()

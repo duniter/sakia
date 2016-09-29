@@ -35,6 +35,23 @@ class NodesProcessor:
         else:
             self._repo.insert(node)
 
+    def insert_node(self, node):
+        """
+        Update node in the repository.
+        First involves basic checks about pubkey and primary key constraints.
+
+        :param sakia.data.entities.Node node: the node to update
+        """
+        self._repo.insert(node)
+
+    def unknown_node(self, pubkey):
+        """
+        Search for pubkey in the repository.
+        :param str pubkey: the pubkey to lookup
+        """
+        other_node = self._repo.get_one(**{'currency': self._currency, 'pubkey': pubkey})
+        return other_node is None
+
     def nodes(self):
         """
         Get all knew nodes.

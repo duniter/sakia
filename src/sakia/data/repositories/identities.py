@@ -1,5 +1,7 @@
 import attr
 
+from duniterpy.documents.block import BlockUID
+
 from ..entities import Identity
 
 
@@ -65,6 +67,40 @@ class IdentitiesRepo:
             if data:
                 return Identity(*data)
 
+    def get_written(self, offset=0, limit=1000, sort_by="currency", sort_order="ASC", **search):
+        """
+        Get an identity in the database written in the blockchain
+        and corresponding to the search
+
+        :param dict search: the criterions of the lookup
+        :rtype: List[sakia.data.entities.Identity]
+        """
+        with self._conn:
+            filters = []
+            values = []
+            for k, v in search.items():
+                if isinstance(v, bool):
+                    v = int(v)
+                filters.append("{k}=?".format(k=k))
+                values.append(v)
+
+            request = """SELECT * FROM identities WHERE {filters}
+                      AND ms_written_on!="{empty_buid}"
+                      ORDER BY {sort_by} {sort_order}
+                      LIMIT {limit} OFFSET {offset}""" \
+                        .format(filters=" AND ".join(filters),
+                                empty_buid=str(BlockUID.empty()),
+                                offset=offset,
+                                limit=limit,
+                                sort_by=sort_by,
+                                sort_order=sort_order
+                                )
+            c = self._conn.execute(request, tuple(values))
+            datas = c.fetchall()
+            if datas:
+                return [Identity(*data) for data in datas]
+        return []
+
     def get_all(self, **search):
         """
         Get all existing identity in the database corresponding to the search
@@ -75,6 +111,8 @@ class IdentitiesRepo:
             filters = []
             values = []
             for k, v in search.items():
+                if isinstance(v, bool):
+                    v = int(v)
                 filters.append("{k}=?".format(k=k))
                 values.append(v)
 

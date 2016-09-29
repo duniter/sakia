@@ -73,7 +73,7 @@ class NodeConnector(QObject):
             conn_handler = endpoint.conn_handler()
             data = await request(conn_handler, **req_args).get(self._session, **get_args)
             return data
-        except (ClientError, gaierror, TimeoutError, DisconnectedError, ValueError) as e:
+        except (ClientError, gaierror, TimeoutError, ConnectionRefusedError, DisconnectedError, ValueError) as e:
             logging.debug("{0} : {1}".format(str(e), self.node.pubkey[:5]))
             self.node.state = Node.OFFLINE
         except jsonschema.ValidationError as e:
