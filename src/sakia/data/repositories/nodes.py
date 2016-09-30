@@ -17,6 +17,8 @@ class NodesRepo:
         """
         with self._conn:
             node_tuple = attr.astuple(node, tuple_factory=list)
+            node_tuple[2] = "\n".join([str(n) for n in node_tuple[2]])
+            node_tuple[11] = "\n".join([str(n) for n in node_tuple[11]])
             values = ",".join(['?'] * len(node_tuple))
             self._conn.execute("INSERT INTO nodes VALUES ({0})".format(values), node_tuple)
 
@@ -28,6 +30,8 @@ class NodesRepo:
         with self._conn:
             updated_fields = attr.astuple(node, tuple_factory=list,
                                           filter=attr.filters.exclude(*NodesRepo._primary_keys))
+            updated_fields[0] = "\n".join([str(n) for n in updated_fields[0]])
+            updated_fields[9] = "\n".join([str(n) for n in updated_fields[9]])
             where_fields = attr.astuple(node, tuple_factory=list,
                                         filter=attr.filters.include(*NodesRepo._primary_keys))
             self._conn.execute("""UPDATE nodes SET

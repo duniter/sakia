@@ -1,13 +1,26 @@
 import attr
 import os
+import sqlite3
+from duniterpy.documents import BlockUID
 
 
 @attr.s(frozen=True)
 class MetaDatabase:
     """The repository for Identities entities.
     """
-
     _conn = attr.ib()  # :type sqlite3.Connection
+
+    @property
+    def conn(self):
+        return self._conn
+
+    @classmethod
+    def create(cls, dbpath):
+        sqlite3.register_adapter(BlockUID, str)
+        sqlite3.register_adapter(bool, int)
+        sqlite3.register_converter("BOOLEAN", lambda v: bool(int(v)))
+        con = sqlite3.connect(dbpath, detect_types=sqlite3.PARSE_DECLTYPES)
+        return MetaDatabase(con)
 
     def prepare(self):
         """

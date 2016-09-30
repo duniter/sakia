@@ -7,19 +7,16 @@ import sqlite3
 
 class TestIdentitiesRepo(unittest.TestCase):
     def setUp(self):
-        sqlite3.register_adapter(BlockUID, str)
-        sqlite3.register_adapter(bool, int)
-        sqlite3.register_converter("BOOLEAN", lambda v: bool(int(v)))
-        self.con = sqlite3.connect(":memory:", detect_types=sqlite3.PARSE_DECLTYPES)
+        self.meta_repo = MetaDatabase.create(":memory:")
+        self.meta_repo.prepare()
+        self.meta_repo.upgrade_database()
 
     def tearDown(self):
-        self.con.close()
+        pass
+
 
     def test_add_get_drop_identity(self):
-        meta_repo = MetaDatabase(self.con)
-        meta_repo.prepare()
-        meta_repo.upgrade_database()
-        identities_repo = IdentitiesRepo(self.con)
+        identities_repo = IdentitiesRepo(self.meta_repo.conn)
         identities_repo.insert(Identity("testcurrency", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
                                         "john",
                                         "20-7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67",
@@ -59,10 +56,7 @@ class TestIdentitiesRepo(unittest.TestCase):
         self.assertIsNone(identity)
 
     def test_add_get_multiple_identity(self):
-        meta_repo = MetaDatabase(self.con)
-        meta_repo.prepare()
-        meta_repo.upgrade_database()
-        identities_repo = IdentitiesRepo(self.con)
+        identities_repo = IdentitiesRepo(self.meta_repo.conn)
         identities_repo.insert(Identity("testcurrency", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
                                         "john",
                                         "20-7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67",
@@ -93,10 +87,7 @@ class TestIdentitiesRepo(unittest.TestCase):
         self.assertIn("doe", [i.uid for i in identities])
 
     def test_add_update_identity(self):
-        meta_repo = MetaDatabase(self.con)
-        meta_repo.prepare()
-        meta_repo.upgrade_database()
-        identities_repo = IdentitiesRepo(self.con)
+        identities_repo = IdentitiesRepo(self.meta_repo.conn)
         identity = Identity("testcurrency", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
                                         "john",
                                         "20-7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67",

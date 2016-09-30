@@ -7,19 +7,15 @@ import sqlite3
 
 class TestCertificationsRepo(unittest.TestCase):
     def setUp(self):
-        sqlite3.register_adapter(BlockUID, str)
-        sqlite3.register_adapter(bool, int)
-        sqlite3.register_converter("BOOLEAN", lambda v: bool(int(v)))
-        self.con = sqlite3.connect(":memory:", detect_types=sqlite3.PARSE_DECLTYPES)
+        self.meta_repo = MetaDatabase.create(":memory:")
+        self.meta_repo.prepare()
+        self.meta_repo.upgrade_database()
 
     def tearDown(self):
-        self.con.close()
+        pass
 
-    def test_add_get_drop_certification(self):
-        meta_repo = MetaDatabase(self.con)
-        meta_repo.prepare()
-        meta_repo.upgrade_database()
-        certifications_repo = CertificationsRepo(self.con)
+    def test_add_get_drop_blockchain(self):
+        certifications_repo = CertificationsRepo(self.meta_repo.conn)
         certifications_repo.insert(Certification("testcurrency",
                                                  "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
                                                  "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
@@ -51,10 +47,7 @@ class TestCertificationsRepo(unittest.TestCase):
         self.assertIsNone(certification)
 
     def test_add_get_multiple_certification(self):
-        meta_repo = MetaDatabase(self.con)
-        meta_repo.prepare()
-        meta_repo.upgrade_database()
-        certifications_repo = CertificationsRepo(self.con)
+        certifications_repo = CertificationsRepo(self.meta_repo.conn)
         certifications_repo.insert(Certification("testcurrency",
                                                  "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
                                                  "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
@@ -77,10 +70,7 @@ class TestCertificationsRepo(unittest.TestCase):
         self.assertIn("7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ", [i.certified for i in certifications])
 
     def test_add_update_certification(self):
-        meta_repo = MetaDatabase(self.con)
-        meta_repo.prepare()
-        meta_repo.upgrade_database()
-        certifications_repo = CertificationsRepo(self.con)
+        certifications_repo = CertificationsRepo(self.meta_repo.conn)
         certification = Certification("testcurrency",
                                  "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
                                  "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
