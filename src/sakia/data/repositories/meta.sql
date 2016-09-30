@@ -92,3 +92,11 @@ CREATE TABLE IF NOT EXISTS nodes(
                                root                 BOOLEAN,
                                PRIMARY KEY (currency, pubkey)
                                );
+
+-- Keys TABLE
+CREATE TABLE IF NOT EXISTS connections(
+                               currency           VARCHAR(30),
+                               pubkey             VARCHAR(50),
+                               salt               VARCHAR(50),
+                               PRIMARY KEY (currency, pubkey)
+                               );
