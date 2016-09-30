@@ -5,7 +5,7 @@ from duniterpy.api import bma
 
 class IdentitiesService(QObject):
     """
-    Identities service is managing new blocks received
+    Identities service is managing identities data received
     to update data locally
     """
     def __init__(self, currency, identities_processor, certs_processor, bma_connector):
@@ -121,15 +121,17 @@ class IdentitiesService(QObject):
         need_refresh += self._parse_certifications(block)
         return set(need_refresh)
 
-    async def handle_new_block(self, block):
+    async def handle_new_blocks(self, blocks):
         """
         Handle new block received and refresh local data
         :param duniterpy.documents.Block block: the received block
         """
-        need_refresh = self.parse_block(block)
+        need_refresh = []
+        for block in blocks:
+            need_refresh += self.parse_block(block)
         refresh_futures = []
         # for every identity for which we need a refresh, we gather
         # requirements requests
-        for identity in need_refresh:
+        for identity in set(need_refresh):
             refresh_futures.append(self.refresh_requirements(identity))
         await asyncio.gather(refresh_futures)

@@ -5,8 +5,7 @@ import math
 from duniterpy.documents import SimpleTransaction, Block, MalformedDocumentError
 from duniterpy.api import  bma, errors
 from .transfer import Transfer, TransferState
-from .net.network import MAX_CONFIRMATIONS
-from ..tools.exceptions import LookupFailureError, NoPeerAvailable
+from sakia.errors import NoPeerAvailable
 
 
 class TxHistory:

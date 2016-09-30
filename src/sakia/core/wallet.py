@@ -10,7 +10,7 @@ from duniterpy.key import SigningKey
 
 from duniterpy.api import bma
 from duniterpy.api.bma import PROTOCOL_VERSION
-from ..tools.exceptions import NotEnoughMoneyError, NoPeerAvailable, LookupFailureError
+from sakia.errors import NoPeerAvailable
 from .transfer import Transfer
 from .txhistory import TxHistory
 from .. import __version__
@@ -336,17 +336,11 @@ class Wallet(QObject):
             key = SigningKey("{0}{1}".format(salt, self.walletid), password)
         logging.debug("Sender pubkey:{0}".format(key.pubkey))
 
-        try:
-            issuer = await self._identities_registry.future_find(key.pubkey, community)
-            issuer_uid = issuer.uid
-        except LookupFailureError as e:
-            issuer_uid = ""
+        issuer = await self._identities_registry.future_find(key.pubkey, community)
+        issuer_uid = issuer.uid
 
-        try:
-            receiver = await self._identities_registry.future_find(recipient, community)
-            receiver_uid = receiver.uid
-        except LookupFailureError as e:
-            receiver_uid = ""
+        receiver = await self._identities_registry.future_find(recipient, community)
+        receiver_uid = receiver.uid
 
         metadata = {'block': None,
                     'time': time,

@@ -17,7 +17,7 @@ class NetworkService(QObject):
     """
     nodes_changed = pyqtSignal()
     root_nodes_changed = pyqtSignal()
-    new_block_mined = pyqtSignal(int)
+    blockchain_progress = pyqtSignal(int)
     blockchain_rollback = pyqtSignal(int)
 
     def __init__(self, currency, processor, connectors, session):
@@ -233,4 +233,4 @@ class NetworkService(QObject):
                     self.blockchain_rollback.emit(current_buid.number)
                 else:
                     self._block_found = current_buid
-                    self.new_block_mined.emit(current_buid.number)
+                    self.blockchain_progress.emit(current_buid.number)
