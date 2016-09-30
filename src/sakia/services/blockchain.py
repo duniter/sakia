@@ -28,7 +28,6 @@ class BlockchainService(QObject):
         Handle a new current block uid
         :param duniterpy.documents.BlockUID new_block_uid: the new current blockuid
         """
-        local_current_buid = self._blockchain_processor.current_buid()
         with_identities = await self._blockchain_processor.new_blocks_with_identities()
         with_money = await self._blockchain_processor.new_blocks_with_money()
         blocks = await self._blockchain_processor.blocks(with_identities + with_money)

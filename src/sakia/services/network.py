@@ -17,8 +17,6 @@ class NetworkService(QObject):
     """
     nodes_changed = pyqtSignal()
     root_nodes_changed = pyqtSignal()
-    blockchain_progress = pyqtSignal(int)
-    blockchain_rollback = pyqtSignal(int)
 
     def __init__(self, currency, processor, connectors, session):
         """

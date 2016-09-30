@@ -8,20 +8,42 @@ class IdentitiesService(QObject):
     Identities service is managing identities data received
     to update data locally
     """
-    def __init__(self, currency, identities_processor, certs_processor, bma_connector):
+    def __init__(self, currency, identities_processor, certs_processor, blockchain_processor, bma_connector):
         """
         Constructor the identities service
 
         :param str currency: The currency name of the community
         :param sakia.data.processors.IdentitiesProcessor identities_processor: the identities processor for given currency
         :param sakia.data.processors.CertificationsProcessor certs_processor: the certifications processor for given currency
+        :param sakia.data.processors.BlockchainProcessor certs_processor: the blockchain processor for given currency
         :param sakia.data.connectors.BmaConnector bma_connector: The connector to BMA API
         """
         super().__init__()
         self._identities_processor = identities_processor
         self._certs_processor = certs_processor
+        self._blockchain_processor = blockchain_processor
         self._bma_connector = bma_connector
         self.currency = currency
+
+    def certification_expired(self, cert_time):
+        """
+        Return True if the certificaton time is too old
+
+        :param int cert_time: the timestamp of the certification
+        """
+        parameters = self._blockchain_processor.parameters()
+        blockchain_time = self._blockchain_processor.median_time()
+        return blockchain_time - cert_time > parameters.sig_validity
+
+    def certification_writable(self, cert_time):
+        """
+        Return True if the certificaton time is too old
+
+        :param int cert_time: the timestamp of the certification
+        """
+        parameters = self._blockchain_processor.parameters()
+        blockchain_time = self._blockchain_processor.median_time()
+        return blockchain_time - cert_time < parameters.sig_window * parameters.avg_gen_time
 
     def _parse_revocations(self, block):
         """
