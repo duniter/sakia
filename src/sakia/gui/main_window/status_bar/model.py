@@ -1,6 +1,7 @@
-from sakia.gui.component.model import ComponentModel
-from sakia.core.money import Referentials
 import logging
+
+from sakia.gui.component.model import ComponentModel
+from sakia.money import Referentials
 
 
 class StatusBarModel(ComponentModel):

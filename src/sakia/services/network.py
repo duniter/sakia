@@ -1,13 +1,15 @@
-from sakia.data.connectors import NodeConnector
-from sakia.data.entities import Node
-from sakia.errors import InvalidNodeCurrency
-from sakia.tools.decorators import asyncify
+import asyncio
 import logging
 import time
-import asyncio
-from duniterpy.key import VerifyingKey
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 from collections import Counter
+
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
+
+from duniterpy.key import VerifyingKey
+from sakia.data.connectors import NodeConnector
+from sakia.data.entities import Node
+from sakia.decorators import asyncify
+from sakia.errors import InvalidNodeCurrency
 
 
 class NetworkService(QObject):

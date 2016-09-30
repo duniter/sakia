@@ -1,7 +1,9 @@
-from sakia.gui.component.model import ComponentModel
-from sakia.tools.exceptions import MembershipNotFoundError, LookupFailureError, NoPeerAvailable
-from sakia.core.graph import WoTGraph
 import logging
+
+from sakia.tools.exceptions import MembershipNotFoundError, LookupFailureError, NoPeerAvailable
+
+from sakia.data.graphs import WoTGraph
+from sakia.gui.component.model import ComponentModel
 
 
 class UserInformationModel(ComponentModel):

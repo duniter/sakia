@@ -1,9 +1,11 @@
-from PyQt5.QtWidgets import QGraphicsSimpleTextItem
+import math
+
 from PyQt5.QtCore import Qt, QPointF, QTimeLine, QTimer
 from PyQt5.QtGui import QTransform, QColor, QPen, QBrush, QRadialGradient
-from sakia.core.graph.constants import NodeStatus
+from PyQt5.QtWidgets import QGraphicsSimpleTextItem
+
+from sakia.data.graphs.constants import NodeStatus
 from ..base.node import BaseNode
-import math
 
 
 class ExplorerNode(BaseNode):

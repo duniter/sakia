@@ -1,8 +1,10 @@
-import unittest
 import asyncio
+import unittest
+
 from PyQt5.QtCore import QLocale
+
+from sakia.decorators import asyncify, once_at_a_time, cancel_once_task
 from sakia.tests import QuamashTest
-from sakia.tools.decorators import asyncify, once_at_a_time, cancel_once_task
 
 
 class TestDecorators(unittest.TestCase, QuamashTest):

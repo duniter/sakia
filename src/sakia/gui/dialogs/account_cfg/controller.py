@@ -1,14 +1,14 @@
+import asyncio
+import logging
+
 from PyQt5.QtWidgets import QDialog
 
-from sakia.gui.password_asker import PasswordAskerDialog, detect_non_printable
+from sakia.decorators import asyncify
 from sakia.gui.component.controller import ComponentController
-from ..community_cfg.controller import CommunityConfigController
-from .view import AccountConfigView
+from sakia.gui.password_asker import PasswordAskerDialog, detect_non_printable
 from .model import AccountConfigModel
-from sakia.tools.decorators import asyncify
-
-import logging
-import asyncio
+from .view import AccountConfigView
+from ..community_cfg.controller import CommunityConfigController
 
 
 class AccountConfigController(ComponentController):

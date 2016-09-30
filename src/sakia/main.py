@@ -3,26 +3,19 @@ Created on 1 févr. 2014
 
 @author: inso
 """
-import signal
-import sys
 import asyncio
 import logging
-import os
+import signal
+import sys
 import traceback
 
-# To debug missing spec
-import jsonschema
-import traceback
-
-# To force cx_freeze import
-import PyQt5.QtSvg
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication, QMessageBox
 
 from quamash import QSelectorEventLoop
-from PyQt5.QtWidgets import QApplication, QMessageBox
-from PyQt5.QtCore import Qt
-from sakia.gui.main_window.controller import MainWindowController
+from sakia.app import Application
 from sakia.gui.dialogs.account_cfg.controller import AccountConfigController
-from sakia.core.app import Application
+from sakia.gui.main_window.controller import MainWindowController
 
 
 def async_exception_handler(loop, context):

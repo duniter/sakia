@@ -4,15 +4,15 @@ Created on 5 févr. 2014
 @author: inso
 """
 
-import logging
 import asyncio
+import logging
 
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, QDateTime, QLocale
 from PyQt5.QtGui import QColor, QFont, QIcon
-
-from sakia.tools.exceptions import NoPeerAvailable
-from sakia.tools.decorators import asyncify, once_at_a_time, cancel_once_task
 from sakia.core.net.node import Node
+from sakia.tools.exceptions import NoPeerAvailable
+
+from sakia.decorators import asyncify, once_at_a_time
 
 
 class NetworkFilterProxyModel(QSortFilterProxyModel):

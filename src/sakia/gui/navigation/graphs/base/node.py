@@ -1,8 +1,9 @@
-from PyQt5.QtWidgets import QGraphicsEllipseItem, QGraphicsSceneHoverEvent, \
-    QGraphicsSceneContextMenuEvent
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QMouseEvent
-from sakia.core.graph.constants import NodeStatus
+from PyQt5.QtWidgets import QGraphicsEllipseItem, QGraphicsSceneHoverEvent, \
+    QGraphicsSceneContextMenuEvent
+
+from sakia.data.graphs.constants import NodeStatus
 
 
 class BaseNode(QGraphicsEllipseItem):

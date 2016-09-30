@@ -1,10 +1,12 @@
+import logging
+
+from sakia.tools.exceptions import NoPeerAvailable
+
+from duniterpy.api import errors
+from sakia.decorators import asyncify
 from sakia.gui.component.controller import ComponentController
 from .model import InformationsModel
 from .view import InformationsView
-from sakia.tools.decorators import asyncify
-from sakia.tools.exceptions import NoPeerAvailable
-from duniterpy.api import errors
-import logging
 
 
 class InformationsController(ComponentController):

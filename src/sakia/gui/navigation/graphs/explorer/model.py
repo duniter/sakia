@@ -1,6 +1,7 @@
-from ..base.model import BaseGraphModel
-from sakia.core.graph import ExplorerGraph
 from sakia.tools.exceptions import NoPeerAvailable
+
+from sakia.data.graphs import ExplorerGraph
+from ..base.model import BaseGraphModel
 
 
 class ExplorerModel(BaseGraphModel):

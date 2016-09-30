@@ -1,21 +1,20 @@
-import sys
-import unittest
 import asyncio
-import aiohttp
-import logging
 import time
+import unittest
+
+import aiohttp
 from PyQt5.QtCore import QLocale, Qt
 from PyQt5.QtTest import QTest
-
-from sakia.tests.mocks.bma import nice_blockchain
-from sakia.core.registry.identities import IdentitiesRegistry
-from sakia.gui.identities_tab import IdentitiesTabWidget
-from sakia.gui.password_asker import PasswordAskerDialog
-from sakia.core.app import Application
-from sakia.core import Account, Community, Wallet
 from sakia.core.net import Network, Node
 from sakia.core.net.api.bma.access import BmaAccess
+from sakia.gui.identities_tab import IdentitiesTabWidget
+
+from sakia.app import Application
+from sakia.core import Account, Community, Wallet
+from sakia.core.registry.identities import IdentitiesRegistry
+from sakia.gui.password_asker import PasswordAskerDialog
 from sakia.tests import QuamashTest
+from sakia.tests.mocks.bma import nice_blockchain
 
 
 class TestIdentitiesTable(unittest.TestCase, QuamashTest):

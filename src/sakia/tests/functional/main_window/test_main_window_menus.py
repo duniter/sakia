@@ -1,13 +1,12 @@
-import sys
 import unittest
-import os
-import asyncio
-import quamash
-from PyQt5.QtWidgets import QMenu
+
 from PyQt5.QtCore import QLocale
+from PyQt5.QtWidgets import QMenu
 from sakia.gui.mainwindow import MainWindow
-from sakia.core.app import Application
+
+from sakia.app import Application
 from sakia.tests import QuamashTest
+
 
 class MainWindowMenusTest(unittest.TestCase, QuamashTest):
     def setUp(self):

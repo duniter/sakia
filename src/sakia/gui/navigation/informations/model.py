@@ -1,10 +1,11 @@
-from sakia.gui.component.model import ComponentModel
-from sakia.tools.exceptions import NoPeerAvailable
-from PyQt5.QtCore import QLocale, QDateTime, pyqtSignal
-from sakia.core.money import Referentials
-
 import logging
 import math
+
+from PyQt5.QtCore import QLocale, QDateTime, pyqtSignal
+from sakia.tools.exceptions import NoPeerAvailable
+
+from sakia.gui.component.model import ComponentModel
+from sakia.money import Referentials
 
 
 class InformationsModel(ComponentModel):

@@ -1,7 +1,8 @@
-from PyQt5.QtWidgets import QGraphicsSimpleTextItem
 from PyQt5.QtCore import Qt, QPointF
 from PyQt5.QtGui import QTransform, QColor, QPen, QBrush, QRadialGradient
-from sakia.core.graph.constants import NodeStatus
+from PyQt5.QtWidgets import QGraphicsSimpleTextItem
+
+from sakia.data.graphs.constants import NodeStatus
 from ..base.node import BaseNode
 
 

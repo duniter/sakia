@@ -1,11 +1,13 @@
-import unittest
 import asyncio
+import unittest
+
+from PyQt5.QtCore import QLocale
 from PyQt5.QtWidgets import QDialog, QFileDialog
-from PyQt5.QtCore import QLocale, QTimer
 from sakia.gui.mainwindow import MainWindow
-from sakia.core.app import Application
-from sakia.tests import QuamashTest
+
+from sakia.app import Application
 from sakia.core.registry.identities import IdentitiesRegistry
+from sakia.tests import QuamashTest
 
 
 class MainWindowDialogsTest(unittest.TestCase, QuamashTest):

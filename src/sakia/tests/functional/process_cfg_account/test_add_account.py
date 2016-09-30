@@ -1,17 +1,16 @@
+import asyncio
+import logging
 import sys
 import unittest
-import asyncio
-import quamash
-import logging
-from PyQt5.QtWidgets import QDialog
+
 from PyQt5.QtCore import QLocale, Qt
 from PyQt5.QtTest import QTest
-from sakia.tests.mocks.bma import new_blockchain
-from sakia.core.registry.identities import IdentitiesRegistry
 from sakia.gui.process_cfg_account import ProcessConfigureAccount
-from sakia.gui.password_asker import PasswordAskerDialog
-from sakia.core.app import Application
+
+from sakia.app import Application
 from sakia.core.account import Account
+from sakia.core.registry.identities import IdentitiesRegistry
+from sakia.gui.password_asker import PasswordAskerDialog
 from sakia.tests import QuamashTest
 
 

@@ -1,9 +1,10 @@
-from sakia.gui.component.controller import ComponentController
-from .view import RevocationView
-from .model import RevocationModel
-from duniterpy.documents import MalformedDocumentError
-from sakia.tools.decorators import asyncify
 import asyncio
+
+from duniterpy.documents import MalformedDocumentError
+from sakia.decorators import asyncify
+from sakia.gui.component.controller import ComponentController
+from .model import RevocationModel
+from .view import RevocationView
 
 
 class RevocationController(ComponentController):

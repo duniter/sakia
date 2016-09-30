@@ -7,7 +7,7 @@ Created on 11 mai 2015
 from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtWidgets import QDialog
 
-from ..core import money
+from sakia import money
 from ..presentation.preferences_uic import Ui_PreferencesDialog
 
 

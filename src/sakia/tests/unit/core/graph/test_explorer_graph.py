@@ -1,10 +1,11 @@
-import sys
-import unittest
 import asyncio
-from asynctest.mock import Mock, CoroutineMock, patch
+import unittest
+
 from PyQt5.QtCore import QLocale
+from asynctest.mock import Mock, CoroutineMock, patch
+
+from sakia.data.graphs import ExplorerGraph
 from sakia.tests import QuamashTest
-from sakia.core.graph import ExplorerGraph
 
 
 class TestExplorerGraph(unittest.TestCase, QuamashTest):

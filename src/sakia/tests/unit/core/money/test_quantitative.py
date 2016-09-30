@@ -1,8 +1,10 @@
 import unittest
-from asynctest.mock import Mock, CoroutineMock, patch, PropertyMock
+
 from PyQt5.QtCore import QLocale
+from asynctest.mock import patch, PropertyMock
+
+from sakia.money import Quantitative
 from sakia.tests import QuamashTest
-from sakia.core.money import Quantitative
 
 
 class TestQuantitative(unittest.TestCase, QuamashTest):

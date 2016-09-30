@@ -1,8 +1,10 @@
 import unittest
-from asynctest.mock import Mock, CoroutineMock, patch, PropertyMock
+
 from PyQt5.QtCore import QLocale
+from asynctest.mock import CoroutineMock, patch, PropertyMock
+
+from sakia.money import RelativeZSum
 from sakia.tests import QuamashTest
-from sakia.core.money import RelativeZSum
 
 
 class TestRelativeZSum(unittest.TestCase, QuamashTest):

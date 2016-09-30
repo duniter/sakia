@@ -1,9 +1,10 @@
-from sakia.gui.component.controller import ComponentController
-from .view import UserInformationView
-from .model import UserInformationModel
-from sakia.tools.decorators import asyncify
-from sakia.core.registry import LocalState
 from PyQt5.QtWidgets import QDialog
+
+from sakia.core.registry import LocalState
+from sakia.decorators import asyncify
+from sakia.gui.component.controller import ComponentController
+from .model import UserInformationModel
+from .view import UserInformationView
 
 
 class UserInformationController(ComponentController):

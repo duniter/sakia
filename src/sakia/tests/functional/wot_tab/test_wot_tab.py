@@ -2,17 +2,17 @@ import asyncio
 import logging
 import sys
 import time
-import aiohttp
 import unittest
 
+import aiohttp
 from PyQt5.QtCore import QLocale
-
-from sakia.core import Account, Community, Wallet
-from sakia.core.app import Application
 from sakia.core.net import Network, Node
 from sakia.core.net.api.bma.access import BmaAccess
-from sakia.core.registry.identities import IdentitiesRegistry
 from sakia.gui.graphs.wot_tab import WotTabWidget
+
+from sakia.app import Application
+from sakia.core import Account, Community, Wallet
+from sakia.core.registry.identities import IdentitiesRegistry
 from sakia.gui.password_asker import PasswordAskerDialog
 from sakia.tests import QuamashTest
 from sakia.tests.mocks.bma import nice_blockchain

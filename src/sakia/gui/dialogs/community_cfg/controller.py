@@ -1,14 +1,15 @@
-from PyQt5.QtWidgets import QDialog, QApplication, QMenu
+import logging
+
 from PyQt5.QtGui import QCursor
-from sakia.gui.component.controller import ComponentController
-from .view import CommunityConfigView
-from .model import CommunityConfigModel
-from sakia.tools.decorators import asyncify
+from PyQt5.QtWidgets import QDialog, QApplication, QMenu
 from aiohttp.errors import DisconnectedError, ClientError, TimeoutError
-from duniterpy.documents import MalformedDocumentError
 from sakia.tools.exceptions import NoPeerAvailable
 
-import logging
+from duniterpy.documents import MalformedDocumentError
+from sakia.decorators import asyncify
+from sakia.gui.component.controller import ComponentController
+from .model import CommunityConfigModel
+from .view import CommunityConfigView
 
 
 class CommunityConfigController(ComponentController):

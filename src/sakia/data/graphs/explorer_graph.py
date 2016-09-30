@@ -3,7 +3,7 @@ import networkx
 import asyncio
 from PyQt5.QtCore import pyqtSignal
 from .base_graph import BaseGraph
-from ..graph.constants import EdgeStatus, NodeStatus
+from ..graphs.constants import EdgeStatus, NodeStatus
 
 
 class ExplorerGraph(BaseGraph):

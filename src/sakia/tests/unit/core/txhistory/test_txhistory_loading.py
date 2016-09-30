@@ -1,18 +1,17 @@
-import sys
-import unittest
-import asyncio
-import quamash
-import time
 import logging
-from PyQt5.QtCore import QLocale, Qt
-from sakia.tests.mocks.bma import nice_blockchain
-from sakia.core.registry.identities import IdentitiesRegistry
-from sakia.core.app import Application
-from sakia.core import Account, Community, Wallet
+import time
+import unittest
+
+from PyQt5.QtCore import QLocale
 from sakia.core.net import Network, Node
 from sakia.core.net.api.bma.access import BmaAccess
-from sakia.tests import QuamashTest
+
 from duniterpy.documents.peer import BMAEndpoint
+from sakia.app import Application
+from sakia.core import Account, Community, Wallet
+from sakia.core.registry.identities import IdentitiesRegistry
+from sakia.tests import QuamashTest
+from sakia.tests.mocks.bma import nice_blockchain
 
 
 class TestTxHistory(unittest.TestCase, QuamashTest):

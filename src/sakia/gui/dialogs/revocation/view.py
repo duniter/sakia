@@ -1,8 +1,10 @@
-from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox
-from .revocation_uic import Ui_RevocationDialog
 from enum import Enum
+
+from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox
+
+from sakia.decorators import asyncify
 from sakia.gui.widgets.dialogs import QAsyncMessageBox
-from sakia.tools.decorators import asyncify
+from .revocation_uic import Ui_RevocationDialog
 
 
 class RevocationView(QDialog, Ui_RevocationDialog):

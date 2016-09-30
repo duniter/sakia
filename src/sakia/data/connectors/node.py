@@ -1,19 +1,18 @@
-from duniterpy.documents.peer import Peer
-from duniterpy.documents import BlockUID, MalformedDocumentError, BMAEndpoint, block_uid
-from ...tools.decorators import asyncify
-from duniterpy.api import bma, errors
-
-from aiohttp.errors import WSClientDisconnectedError, WSServerHandshakeError, ClientResponseError
-from aiohttp.errors import ClientError, DisconnectedError
-from asyncio import TimeoutError
-import logging
-import jsonschema
 import asyncio
-import aiohttp
+import logging
+from asyncio import TimeoutError
 from socket import gaierror
 
+import aiohttp
+import jsonschema
 from PyQt5.QtCore import QObject, pyqtSignal
+from aiohttp.errors import ClientError, DisconnectedError
+from aiohttp.errors import WSClientDisconnectedError, WSServerHandshakeError, ClientResponseError
 
+from duniterpy.api import bma, errors
+from duniterpy.documents import BlockUID, MalformedDocumentError, BMAEndpoint
+from duniterpy.documents.peer import Peer
+from sakia.decorators import asyncify
 from sakia.errors import InvalidNodeCurrency
 from ..entities.node import Node
 

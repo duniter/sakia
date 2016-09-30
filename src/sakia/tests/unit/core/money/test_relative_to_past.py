@@ -1,8 +1,10 @@
 import unittest
-from asynctest.mock import Mock, CoroutineMock, patch, PropertyMock
+
 from PyQt5.QtCore import QLocale, QDateTime
+from asynctest.mock import CoroutineMock, patch, PropertyMock
+
+from sakia.money import RelativeToPast
 from sakia.tests import QuamashTest
-from sakia.core.money.relative_to_past import RelativeToPast
 
 
 class TestRelativeToPast(unittest.TestCase, QuamashTest):

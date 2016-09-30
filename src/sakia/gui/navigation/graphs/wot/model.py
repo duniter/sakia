@@ -1,5 +1,5 @@
+from sakia.data.graphs import WoTGraph
 from ..base.model import BaseGraphModel
-from sakia.core.graph import WoTGraph
 
 
 class WotModel(BaseGraphModel):

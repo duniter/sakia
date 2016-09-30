@@ -1,12 +1,14 @@
+import asyncio
+
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication
+
+from sakia.decorators import asyncify, once_at_a_time
 from sakia.gui.component.controller import ComponentController
-from .view import CertificationView
-from .model import CertificationModel
 from sakia.gui.sub.search_user.controller import SearchUserController
 from sakia.gui.sub.user_information.controller import UserInformationController
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import Qt
-from sakia.tools.decorators import asyncify, once_at_a_time
-import asyncio
+from .model import CertificationModel
+from .view import CertificationView
 
 
 class CertificationController(ComponentController):

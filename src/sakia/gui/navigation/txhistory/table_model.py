@@ -4,18 +4,19 @@ Created on 5 févr. 2014
 @author: inso
 """
 
+import asyncio
 import datetime
 import logging
-import asyncio
 import math
-from sakia.core.transfer import Transfer, TransferState
+
+from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, \
+    QDateTime, QLocale
+from PyQt5.QtGui import QFont, QColor, QIcon
 from sakia.core.net.network import MAX_CONFIRMATIONS
 from sakia.tools.exceptions import NoPeerAvailable
-from sakia.tools.decorators import asyncify, once_at_a_time, cancel_once_task
-from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, \
-    QDateTime, QLocale, QModelIndex
 
-from PyQt5.QtGui import QFont, QColor, QIcon
+from sakia.core.transfer import Transfer, TransferState
+from sakia.decorators import asyncify, once_at_a_time, cancel_once_task
 
 
 class TxFilterProxyModel(QSortFilterProxyModel):

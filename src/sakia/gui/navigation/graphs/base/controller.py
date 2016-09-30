@@ -1,9 +1,11 @@
-from sakia.gui.component.controller import ComponentController
+import asyncio
+
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtGui import QCursor
-from sakia.tools.decorators import asyncify, once_at_a_time
+
+from sakia.decorators import asyncify, once_at_a_time
+from sakia.gui.component.controller import ComponentController
 from sakia.gui.widgets.context_menu import ContextMenu
-import asyncio
 
 
 class BaseGraphController(ComponentController):

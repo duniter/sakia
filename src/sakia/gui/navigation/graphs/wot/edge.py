@@ -1,9 +1,11 @@
+import math
+
 from PyQt5.QtCore import Qt, QRectF, QLineF, QPointF, QSizeF, \
                         qFuzzyCompare
 from PyQt5.QtGui import QColor, QPen, QPolygonF
-import math
+
+from sakia.data.graphs.constants import EdgeStatus
 from ..base.edge import BaseEdge
-from sakia.core.graph.constants import EdgeStatus
 
 
 class WotEdge(BaseEdge):

@@ -4,26 +4,26 @@ Created on 1 févr. 2014
 @author: inso
 """
 
-import os
-import logging
-import tarfile
-import shutil
-import json
-import datetime
-import aiohttp
 import asyncio
+import datetime
+import json
+import logging
+import os
+import shutil
+import tarfile
+
+import aiohttp
+from PyQt5.QtCore import QObject, pyqtSignal, QTranslator, QCoreApplication, QLocale
+from aiohttp.connector import ProxyConnector
 from pkg_resources import parse_version
 
-from PyQt5.QtCore import QObject, pyqtSignal, QTranslator, QCoreApplication, QLocale
 from duniterpy.api.bma import API
-from aiohttp.connector import ProxyConnector
-from . import config
-from .account import Account
-from .registry import IdentitiesRegistry, Identity
-from .. import __version__
+from sakia.decorators import asyncify
+from sakia.core import config
+from sakia.core.account import Account
+from sakia.core.registry import IdentitiesRegistry, Identity
+from sakia import __version__
 from ..tools.exceptions import NameAlreadyExists, BadAccountFile
-from ..tools.decorators import asyncify
-import i18n_rc
 
 
 class Application(QObject):

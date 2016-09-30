@@ -1,14 +1,13 @@
+import logging
 import sys
 import unittest
-import asyncio
-import quamash
-import logging
+
 from PyQt5.QtCore import QLocale
+
+from sakia.app import Application
 from sakia.core.registry.identities import IdentitiesRegistry
 from sakia.gui.preferences import PreferencesDialog
-from sakia.core.app import Application
 from sakia.tests import QuamashTest
-from duniterpy.api import bma
 
 
 class TestPreferencesDialog(unittest.TestCase, QuamashTest):

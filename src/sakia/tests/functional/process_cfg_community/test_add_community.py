@@ -1,19 +1,18 @@
-import sys
-import unittest
 import asyncio
-import quamash
-import logging
 import time
-from PyQt5.QtWidgets import QDialog
+import unittest
+
 from PyQt5.QtCore import QLocale, Qt
 from PyQt5.QtTest import QTest
-from sakia.tests.mocks.bma import new_blockchain, nice_blockchain
-from sakia.core.registry.identities import IdentitiesRegistry
+from PyQt5.QtWidgets import QDialog
 from sakia.gui.process_cfg_community import ProcessConfigureCommunity
-from sakia.gui.password_asker import PasswordAskerDialog
-from sakia.core.app import Application
+
+from sakia.app import Application
 from sakia.core.account import Account
+from sakia.core.registry.identities import IdentitiesRegistry
+from sakia.gui.password_asker import PasswordAskerDialog
 from sakia.tests import QuamashTest
+from sakia.tests.mocks.bma import new_blockchain, nice_blockchain
 
 
 class ProcessAddCommunity(unittest.TestCase, QuamashTest):

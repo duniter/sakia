@@ -1,14 +1,16 @@
+import logging
+
+from PyQt5.QtGui import QCursor
+from sakia.tools.exceptions import NoPeerAvailable
+
+from duniterpy.api import bma, errors
+from duniterpy.documents.block import BlockUID
+from sakia.core.registry import Identity, BlockchainState
+from sakia.decorators import once_at_a_time, asyncify
 from sakia.gui.component.controller import ComponentController
+from sakia.gui.widgets.context_menu import ContextMenu
 from .model import IdentitiesModel
 from .view import IdentitiesView
-from sakia.tools.decorators import once_at_a_time, asyncify
-from sakia.gui.widgets.context_menu import ContextMenu
-from PyQt5.QtGui import QCursor
-from sakia.core.registry import Identity, BlockchainState
-from duniterpy.documents.block import BlockUID
-from duniterpy.api import bma, errors
-from sakia.tools.exceptions import NoPeerAvailable
-import logging
 
 
 class IdentitiesController(ComponentController):

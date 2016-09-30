@@ -6,12 +6,12 @@ Created on 5 févr. 2014
 
 import datetime
 import logging
-import asyncio
-from ..tools.decorators import asyncify, once_at_a_time, cancel_once_task
-from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, \
-    QDateTime, QLocale, QModelIndex
 
+from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, \
+    QDateTime, QLocale
 from PyQt5.QtGui import QFont, QColor
+
+from sakia.decorators import asyncify, once_at_a_time, cancel_once_task
 
 
 class CertsFilterProxyModel(QSortFilterProxyModel):

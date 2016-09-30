@@ -1,11 +1,10 @@
-import sys
 import unittest
-import logging
-from asynctest.mock import Mock, CoroutineMock, patch
+
 from PyQt5.QtCore import QLocale
-from sakia.tests import QuamashTest
+from asynctest.mock import Mock, CoroutineMock, patch
 from sakia.core.graph import WoTGraph
-from sakia.core.graph.constants import EdgeStatus, NodeStatus
+
+from sakia.tests import QuamashTest
 
 
 class TestWotGraph(unittest.TestCase, QuamashTest):

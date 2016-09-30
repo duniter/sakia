@@ -1,8 +1,6 @@
 from sakia.data.repositories import ConnectionsRepo, MetaDatabase
 from sakia.data.entities import Connection
-from duniterpy.documents import BlockUID
 import unittest
-import sqlite3
 
 
 class TestConnectionsRepo(unittest.TestCase):
