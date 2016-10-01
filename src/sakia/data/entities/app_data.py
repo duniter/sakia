@@ -3,4 +3,4 @@ import attr
 
 @attr.s()
 class AppData:
-    profiles = attr.ib(factory=list)
+    profiles = attr.ib(default=attr.Factory(list))
