@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS nodes(
                                pubkey               VARCHAR(50),
                                endpoints            TEXT,
                                peer_buid            VARCHAR(100),
-                               uid               VARCHAR(50),
+                               uid                  VARCHAR(50),
                                current_buid         VARCHAR(100),
                                previous_buid        VARCHAR(100),
                                state                INT,
@@ -93,10 +93,12 @@ CREATE TABLE IF NOT EXISTS nodes(
                                PRIMARY KEY (currency, pubkey)
                                );
 
--- Keys TABLE
+-- Cnnections TABLE
 CREATE TABLE IF NOT EXISTS connections(
                                currency           VARCHAR(30),
                                pubkey             VARCHAR(50),
                                salt               VARCHAR(50),
                                PRIMARY KEY (currency, pubkey)
                                );
+
+
