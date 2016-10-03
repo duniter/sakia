@@ -8,82 +8,53 @@ import asyncio
 
 @attr.s
 class BlockchainProcessor:
-    _currency = attr.ib()  # :type str
     _repo = attr.ib()  # :type sakia.data.repositories.CertificationsRepo
     _bma_connector = attr.ib()  # :type sakia.data.connectors.bma.BmaConnector
 
-    def current_buid(self):
+    def current_buid(self, currency):
         """
         Get the local current blockuid
         :rtype: duniterpy.documents.BlockUID
         """
-        return self._repo.get_one({'currency': self._currency}).current_buid
+        return self._repo.get_one({'currency': currency}).current_buid
 
-    def time(self):
+    def time(self, currency):
         """
         Get the local current median time
         :rtype: int
         """
-        return self._repo.get_one({'currency': self._currency}).median_time
+        return self._repo.get_one({'currency': currency}).median_time
 
-    def parameters(self):
+    def parameters(self, currency):
         """
         Get the parameters of the blockchain
         :rtype: sakia.data.entities.BlockchainParameters
         """
-        return self._repo.get_one({'currency': self._currency}).parameters
+        return self._repo.get_one({'currency': currency}).parameters
 
-    def monetary_mass(self):
+    def monetary_mass(self, currency):
         """
         Get the local current monetary mass
         :rtype: int
         """
-        return self._repo.get_one({'currency': self._currency}).monetary_mass
+        return self._repo.get_one({'currency': currency}).monetary_mass
 
-    def nb_members(self):
+    def nb_members(self, currency):
         """
         Get the number of members in the blockchain
         :rtype: int
         """
-        return self._repo.get_one({'currency': self._currency}).nb_members
+        return self._repo.get_one({'currency': currency}).nb_members
 
-    def last_ud(self):
+    def last_ud(self, currency):
         """
         Get the last ud value and base
         :rtype: int, int
         """
-        blockchain = self._repo.get_one({'currency': self._currency})
+        blockchain = self._repo.get_one({'currency': currency})
         return blockchain.last_ud, blockchain.last_ud_base
 
-    @property
-    def short_currency(self):
-        """
-        Format the currency name to a short one
-
-        :return: The currency name in a shot format.
-        """
-        words = re.split('[_\W]+', self.currency)
-        shortened = ""
-        if len(words) > 1:
-            shortened = ''.join([w[0] for w in words])
-        else:
-            vowels = ('a', 'e', 'i', 'o', 'u', 'y')
-            shortened = self.currency
-            shortened = ''.join([c for c in shortened if c not in vowels])
-        return shortened.upper()
-
-    @property
-    def currency_symbol(self):
-        """
-        Format the currency name to a symbol one.
-
-        :return: The currency name as a utf-8 circled symbol.
-        """
-        letter = self.currency[0]
-        u = ord('\u24B6') + ord(letter) - ord('A')
-        return chr(u)
-
-    async def new_blocks_with_identities(self):
+    async def new_blocks_with_identities(self, currency):
         """
         Get blocks more recent than local blockuid
         with identities
@@ -104,7 +75,7 @@ class BlockchainProcessor:
         local_current_buid = self.current_buid()
         return sorted([b for b in with_identities if b > local_current_buid.number])
 
-    async def new_blocks_with_money(self):
+    async def new_blocks_with_money(self, currency):
         """
         Get blocks more recent than local block uid
         with money data (tx and uds)
@@ -121,7 +92,7 @@ class BlockchainProcessor:
         local_current_buid = self.current_buid()
         return sorted([b for b in with_money if b > local_current_buid.number])
 
-    async def blocks(self, numbers):
+    async def blocks(self, numbers, currency):
         """
         Get blocks from the network
         :param List[int] numbers: list of blocks numbers to get

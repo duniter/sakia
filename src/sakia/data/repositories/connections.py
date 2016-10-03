@@ -55,13 +55,30 @@ class ConnectionsRepo:
                 filters.append("{connection} = ?".format(connection=k))
                 values.append(value)
 
-            request = "SELECT * FROM connections WHERE {filters}".format(filters=" AND ".join(filters))
+            request = "SELECT * FROM connections"
+            if filters:
+                request += "WHERE {filters}".format(filters=" AND ".join(filters))
 
             c = self._conn.execute(request, tuple(values))
             datas = c.fetchall()
             if datas:
                 return [Connection(*data) for data in datas]
         return []
+
+    def get_currencies(self):
+        """
+        Get all existing connection in the database corresponding to the search
+        :param dict search: the criterions of the lookup
+        :rtype: List[str]
+        """
+        with self._conn:
+            request = "SELECT UNIQUE currency FROM connections"
+            c = self._conn.execute(request)
+            datas = c.fetchall()
+            if datas:
+                return [Connection(*data) for data in datas]
+        return []
+
 
     def drop(self, connection):
         """

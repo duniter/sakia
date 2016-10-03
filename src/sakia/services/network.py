@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import time
+import aiohttp
 from collections import Counter
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
@@ -20,17 +21,18 @@ class NetworkService(QObject):
     nodes_changed = pyqtSignal()
     root_nodes_changed = pyqtSignal()
 
-    def __init__(self, currency, processor, connectors, session):
+    def __init__(self, currency, node_processor, connectors, session, blockchain_service):
         """
         Constructor of a network
 
         :param str currency: The currency name of the community
-        :param sakia.data.processors.NodesProcessor processor: the nodes processor for given currency
+        :param sakia.data.processors.NodesProcessor node_processor: the nodes processor for given currency
         :param list connectors: The connectors to nodes of the network
         :param aiohttp.ClientSession session: The main aiohttp client session
+        :param sakia.services.BlockchainService blockchain_service: the blockchain service
         """
         super().__init__()
-        self._processor = processor
+        self._processor = node_processor
         self._connectors = []
         for c in connectors:
             self.add_connector(c)
@@ -39,21 +41,39 @@ class NetworkService(QObject):
         self._block_found = self._processor.current_buid()
         self._client_session = session
         self._discovery_stack = []
+        self._blockchain_service = blockchain_service
+        self._logger = logging.getLogger('sakia')
 
     @classmethod
-    def create(cls, processor, node_connector):
+    def create(cls, node_processor, node_connector):
         """
         Create a new network with one knew node
         Crawls the nodes from the first node to build the
         community network
 
-        :param sakia.data.processors.NodeProcessor processor: The nodes processor
+        :param sakia.data.processors.NodeProcessor node_processor: The nodes processor
         :param sakia.data.connectors.NodeConnector node_connector: The first connector of the network service
         :return:
         """
         connectors = [node_connector]
-        processor.insert_node(node_connector.node)
-        network = cls(node_connector.node.currency, processor, connectors, node_connector.session)
+        node_processor.insert_node(node_connector.node)
+        network = cls(node_connector.node.currency, node_processor, connectors, node_connector.session)
+        return network
+
+    @classmethod
+    def load(cls, currency, node_processor, blockchain_service):
+        """
+        Create a new network with all known nodes
+
+        :param str currency: The currency of this service
+        :param sakia.data.processors.NodeProcessor node_processor: The nodes processor
+        :return:
+        """
+        connectors = []
+        session = aiohttp.ClientSession()
+        for node in node_processor.nodes():
+            connectors.append(NodeConnector(node, session))
+        network = cls(currency, node_processor, connectors, session)
         return network
 
     def start_coroutines(self):
@@ -69,16 +89,16 @@ class NetworkService(QObject):
         """
         self._must_crawl = False
         close_tasks = []
-        logging.debug("Start closing")
+        self._logger.debug("Start closing")
         for connector in self._connectors:
             close_tasks.append(asyncio.ensure_future(connector.close_ws()))
-        logging.debug("Closing {0} websockets".format(len(close_tasks)))
+        self._logger.debug("Closing {0} websockets".format(len(close_tasks)))
         if len(close_tasks) > 0:
             await asyncio.wait(close_tasks, timeout=15)
         if closing:
-            logging.debug("Closing client session")
+            self._logger.debug("Closing client session")
             await self._client_session.close()
-        logging.debug("Closed")
+        self._logger.debug("Closed")
 
     @property
     def session(self):
@@ -134,7 +154,7 @@ class NetworkService(QObject):
         node_connector.error.connect(self.handle_error)
         node_connector.identity_changed.connect(self.handle_identity_change)
         node_connector.neighbour_found.connect(self.handle_new_node)
-        logging.debug("{:} connected".format(node_connector.node.pubkey[:5]))
+        self._logger.debug("{:} connected".format(node_connector.node.pubkey[:5]))
 
     @asyncify
     async def refresh_once(self):
@@ -159,7 +179,7 @@ class NetworkService(QObject):
             first_loop = False
             await asyncio.sleep(15)
 
-        logging.debug("End of network discovery")
+        self._logger.debug("End of network discovery")
 
     async def discovery_loop(self):
         """
@@ -171,7 +191,7 @@ class NetworkService(QObject):
                 await asyncio.sleep(1)
                 peer = self._discovery_stack.pop()
                 if self._processor.unknown_node(peer.pubkey):
-                    logging.debug("New node found : {0}".format(peer.pubkey[:5]))
+                    self._logger.debug("New node found : {0}".format(peer.pubkey[:5]))
                     try:
                         connector = NodeConnector.from_peer(self.currency, peer, self.session)
                         self._processor.insert_node(connector.node)
@@ -179,7 +199,7 @@ class NetworkService(QObject):
                         self.add_connector(connector)
                         self.nodes_changed.emit()
                     except InvalidNodeCurrency as e:
-                        logging.debug(str(e))
+                        self._logger.debug(str(e))
                 else:
                     self._processor.update_peer(peer)
             except IndexError:
@@ -190,10 +210,10 @@ class NetworkService(QObject):
         if key.verify_document(peer):
             if len(self._discovery_stack) < 1000 \
             and peer.signatures[0] not in [p.signatures[0] for p in self._discovery_stack]:
-                logging.debug("Stacking new peer document : {0}".format(peer.pubkey))
+                self._logger.debug("Stacking new peer document : {0}".format(peer.pubkey))
                 self._discovery_stack.append(peer)
         else:
-            logging.debug("Wrong document received : {0}".format(peer.signed_raw()))
+            self._logger.debug("Wrong document received : {0}".format(peer.signed_raw()))
 
     @pyqtSlot()
     def handle_identity_change(self):
@@ -221,16 +241,16 @@ class NetworkService(QObject):
 
         if node_connector.node.state == Node.ONLINE:
             current_buid = self._processor.current_buid()
-            logging.debug("{0} -> {1}".format(self._block_found.sha_hash[:10], current_buid.sha_hash[:10]))
+            self._logger.debug("{0} -> {1}".format(self._block_found.sha_hash[:10], current_buid.sha_hash[:10]))
             if self._block_found.sha_hash != current_buid.sha_hash:
-                logging.debug("Latest block changed : {0}".format(current_buid.number))
+                self._logger.debug("Latest block changed : {0}".format(current_buid.number))
                 # If new latest block is lower than the previously found one
                 # or if the previously found block is different locally
                 # than in the main chain, we declare a rollback
                 if current_buid <= self._block_found \
                    or node_connector.node.previous_buid != self._block_found:
                     self._block_found = current_buid
-                    self.blockchain_rollback.emit(current_buid.number)
+                    #TODO: self._blockchain_service.rollback()
                 else:
                     self._block_found = current_buid
-                    self.blockchain_progress.emit(current_buid.number)
+                    self._blockchain_service.handle_blockchain_progress()

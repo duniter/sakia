@@ -1,6 +1,7 @@
 from PyQt5.QtCore import QObject
 from duniterpy.api import bma
 import asyncio
+import logging
 
 
 class BlockchainService(QObject):
@@ -22,8 +23,9 @@ class BlockchainService(QObject):
         self._bma_connector = bma_connector
         self.currency = currency
         self._identities_service = identities_service
+        self._logger = logging.getLogger('sakia')
 
-    async def handle_blockchain_progress(self, new_block_uid):
+    async def handle_blockchain_progress(self):
         """
         Handle a new current block uid
         :param duniterpy.documents.BlockUID new_block_uid: the new current blockuid

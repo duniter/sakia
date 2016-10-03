@@ -10,14 +10,11 @@ import attr
 from sakia.errors import NoPeerAvailable
 
 
-@attr.s
+@attr.s()
 class BmaConnector:
     """
     This class is used to access BMA API.
     """
-
-    __saved_requests = [str(bma.blockchain.Block), str(bma.blockchain.Parameters)]
-
     _nodes_processor = attr.ib()
 
     def filter_nodes(self, request, nodes):
@@ -39,7 +36,7 @@ class BmaConnector:
         else:
             return nodes
 
-    async def get(self, request, req_args={}, get_args={}):
+    async def get(self, currency, request, req_args={}, get_args={}):
         """
         Start a request to the network but don't cache its result.
 
@@ -48,7 +45,7 @@ class BmaConnector:
         :param dict get_args: Arguments to pass to the request __get__ method
         :return: The returned data
         """
-        nodes = self.filter_nodes(request, self._nodes_processor.synced_nodes)
+        nodes = self.filter_nodes(request, self._nodes_processor.synced_nodes(currency))
         if len(nodes) > 0:
             tries = 0
             json_data = None
@@ -67,7 +64,7 @@ class BmaConnector:
             raise NoPeerAvailable("", len(nodes))
         return json_data
 
-    async def broadcast(self, request, req_args={}, post_args={}):
+    async def broadcast(self, currency, request, req_args={}, post_args={}):
         """
         Broadcast data to a network.
         Sends the data to all knew nodes.
@@ -81,9 +78,9 @@ class BmaConnector:
         .. note:: If one node accept the requests (returns 200),
         the broadcast should be considered accepted by the network.
         """
-        nodes = random.sample(self._nodes_processor.synced_nodes, 6) \
-            if len(self._nodes_processor.synced_nodes) > 6 \
-            else self._nodes_processor.synced_nodes
+        nodes = random.sample(self._nodes_processor.synced_nodes(currency), 6) \
+            if len(self._nodes_processor.synced_nodes(currency)) > 6 \
+            else self._nodes_processor.synced_nodes(currency)
         replies = []
         if len(nodes) > 0:
             for node in nodes:

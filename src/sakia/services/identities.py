@@ -1,6 +1,7 @@
 from PyQt5.QtCore import QObject
 import asyncio
 from duniterpy.api import bma
+import logging
 
 
 class IdentitiesService(QObject):
@@ -15,7 +16,7 @@ class IdentitiesService(QObject):
         :param str currency: The currency name of the community
         :param sakia.data.processors.IdentitiesProcessor identities_processor: the identities processor for given currency
         :param sakia.data.processors.CertificationsProcessor certs_processor: the certifications processor for given currency
-        :param sakia.data.processors.BlockchainProcessor certs_processor: the blockchain processor for given currency
+        :param sakia.data.processors.BlockchainProcessor blockchain_processor: the blockchain processor for given currency
         :param sakia.data.connectors.BmaConnector bma_connector: The connector to BMA API
         """
         super().__init__()
@@ -24,6 +25,7 @@ class IdentitiesService(QObject):
         self._blockchain_processor = blockchain_processor
         self._bma_connector = bma_connector
         self.currency = currency
+        self._logger = logging.getLogger('sakia')
 
     def certification_expired(self, cert_time):
         """

@@ -8,11 +8,10 @@ from sakia.errors import NoPeerAvailable
 
 @attr.s
 class IdentitiesProcessor:
-    _currency = attr.ib()  # :type str
     _identities_repo = attr.ib()  # :type sakia.data.repositories.IdentitiesRepo
     _bma_connector = attr.ib()  # :type sakia.data.connectors.bma.BmaConnector
 
-    async def find_from_pubkey(self, pubkey):
+    async def find_from_pubkey(self, currency, pubkey):
         """
         Get the list of identities corresponding to a pubkey
         from the network and the local db
@@ -20,7 +19,7 @@ class IdentitiesProcessor:
         :param pubkey:
         :rtype: list[sakia.data.entities.Identity]
         """
-        identities = self._identities_repo.get_all(currency=self._currency, pubkey=pubkey)
+        identities = self._identities_repo.get_all(currency=currency, pubkey=pubkey)
         tries = 0
         while tries < 3:
             try:
@@ -30,7 +29,7 @@ class IdentitiesProcessor:
                     if result["pubkey"] == pubkey:
                         uids = result['uids']
                         for uid_data in uids:
-                            identity = Identity(self._currency, pubkey)
+                            identity = Identity(currency, pubkey)
                             identity.uid = uid_data['uid']
                             identity.blockstamp = data['sigDate']
                             identity.signature = data['self']
@@ -43,14 +42,15 @@ class IdentitiesProcessor:
                 return identities
         return identities
 
-    def get_written(self, pubkey):
+    def get_written(self, currency, pubkey):
         """
         Get identities from a given certification document
+        :param str currency: the currency in which to look for written identities
         :param str pubkey: the pubkey of the identity
 
         :rtype: sakia.data.entities.Identity
         """
-        return self._identities_repo.get_written(**{'currency': self._currency, 'pubkey': pubkey})
+        return self._identities_repo.get_written(**{'currency': currency, 'pubkey': pubkey})
 
     def update_identity(self, identity):
         """

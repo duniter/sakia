@@ -12,5 +12,5 @@ class TestAppDataFile(unittest.TestCase):
         app_data_file = AppDataFile(file)
         app_data.profiles.append("default")
         app_data_file.save(app_data)
-        app_data_2 = app_data_file.load()
+        app_data_2 = app_data_file.load_or_init()
         self.assertEqual(app_data, app_data_2)
