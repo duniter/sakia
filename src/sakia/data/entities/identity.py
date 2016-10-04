@@ -1,5 +1,6 @@
 import attr
-from duniterpy.documents import block_uid, BlockUID
+from duniterpy.documents import block_uid, BlockUID, SelfCertification
+from duniterpy import PROTOCOL_VERSION
 
 
 @attr.s()
@@ -17,3 +18,13 @@ class Identity:
     membership_timestamp = attr.ib(convert=int, default=0, cmp=False, hash=False)
     membership_type = attr.ib(convert=str, default='', validator=lambda s, a, t: t in ('', 'IN', 'OUT'), cmp=False, hash=False)
     membership_written_on = attr.ib(convert=block_uid, default=BlockUID.empty(), cmp=False, hash=False)
+
+    def self_certification(self):
+        """
+        Creates a self cert document for a given identity
+        :param sakia.data.entities.Identity identity:
+        :return: the document
+        :rtype: duniterpy.documents.SelfCertification
+        """
+        return SelfCertification(PROTOCOL_VERSION, self.currency, self.pubkey,
+                                 self.uid, self.blockstamp, self.signature)

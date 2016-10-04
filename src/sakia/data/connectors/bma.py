@@ -40,6 +40,7 @@ class BmaConnector:
         """
         Start a request to the network but don't cache its result.
 
+        :param str currency: the currency requested
         :param class request: A bma request class calling for data
         :param dict req_args: Arguments to pass to the request constructor
         :param dict get_args: Arguments to pass to the request __get__ method
@@ -48,7 +49,6 @@ class BmaConnector:
         nodes = self.filter_nodes(request, self._nodes_processor.synced_nodes(currency))
         if len(nodes) > 0:
             tries = 0
-            json_data = None
             while tries < 3:
                 node = random.choice(nodes)
                 nodes.pop(node)
@@ -60,15 +60,15 @@ class BmaConnector:
                         asyncio.TimeoutError, ValueError, jsonschema.ValidationError) as e:
                     logging.debug(str(e))
                     tries += 1
-        if len(nodes) == 0 or not json_data:
+        if len(nodes) == 0:
             raise NoPeerAvailable("", len(nodes))
-        return json_data
 
     async def broadcast(self, currency, request, req_args={}, post_args={}):
         """
         Broadcast data to a network.
         Sends the data to all knew nodes.
 
+        :param str currency: the currency target
         :param request: A duniterpy bma request class
         :param req_args: Arguments to pass to the request constructor
         :param post_args: Arguments to pass to the request __post__ method

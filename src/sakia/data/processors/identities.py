@@ -4,6 +4,8 @@ from duniterpy.api import bma, errors
 import asyncio
 from aiohttp.errors import ClientError
 from sakia.errors import NoPeerAvailable
+from duniterpy.documents import SelfCertification
+from duniterpy import PROTOCOL_VERSION
 
 
 @attr.s
@@ -55,7 +57,6 @@ class IdentitiesProcessor:
     def update_identity(self, identity):
         """
         Saves an identity state in the db
-        :param identity:
-        :return:
+        :param sakia.data.entities.Identity identity: the identity updated
         """
         self._identities_repo.update(identity)

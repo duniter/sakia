@@ -3,7 +3,7 @@ import logging
 from PyQt5.QtGui import QCursor
 from PyQt5.QtWidgets import QDialog, QApplication, QMenu
 from aiohttp.errors import DisconnectedError, ClientError, TimeoutError
-from sakia.tools.exceptions import NoPeerAvailable
+from sakia.errors import NoPeerAvailable
 
 from duniterpy.documents import MalformedDocumentError
 from sakia.decorators import asyncify
