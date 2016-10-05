@@ -19,21 +19,18 @@ class TestCertificationsRepo(unittest.TestCase):
         certifications_repo.insert(Certification("testcurrency",
                                                  "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
                                                  "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
-                                                 "20-7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67",
+                                                 20,
                                                  1473108382,
                                                  "H41/8OGV2W4CLKbE35kk5t1HJQsb3jEM0/QGLUf80CwJvGZf3HvVCcNtHPUFoUBKEDQO9mPK3KJkqOoxHpqHCw==",
                                                  None))
         certification = certifications_repo.get_one(currency="testcurrency",
-                                           certifier="7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
-                                           certified="FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
-                                           blockstamp=BlockUID(20,
-                                                    "7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67")
-                                           )
+                                                    certifier="7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
+                                                    certified="FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
+                                                    block=20)
         self.assertEqual(certification.currency, "testcurrency")
         self.assertEqual(certification.certifier, "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ")
         self.assertEqual(certification.certified, "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn")
-        self.assertEqual(certification.blockstamp.number, 20)
-        self.assertEqual(certification.blockstamp.sha_hash, "7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67")
+        self.assertEqual(certification.block, 20)
         self.assertEqual(certification.timestamp, 1473108382)
         self.assertEqual(certification.signature, "H41/8OGV2W4CLKbE35kk5t1HJQsb3jEM0/QGLUf80CwJvGZf3HvVCcNtHPUFoUBKEDQO9mPK3KJkqOoxHpqHCw==")
         self.assertEqual(certification.written_on, BlockUID.empty())
@@ -41,9 +38,7 @@ class TestCertificationsRepo(unittest.TestCase):
         certification = certifications_repo.get_one(currency="testcurrency",
                                            certifier="7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
                                            certified="FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
-                                           blockstamp=BlockUID(20,
-                                                    "7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67")
-                                            )
+                                           block=20)
         self.assertIsNone(certification)
 
     def test_add_get_multiple_certification(self):
@@ -51,15 +46,13 @@ class TestCertificationsRepo(unittest.TestCase):
         certifications_repo.insert(Certification("testcurrency",
                                                  "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
                                                  "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
-                                                 "20-7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67",
-                                                 1473108382,
+                                                 20, 1473108382,
                                                  "H41/8OGV2W4CLKbE35kk5t1HJQsb3jEM0/QGLUf80CwJvGZf3HvVCcNtHPUFoUBKEDQO9mPK3KJkqOoxHpqHCw==",
                                                  "22-7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67"))
         certifications_repo.insert(Certification("testcurrency",
                                                  "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
                                                  "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
-                                                 "101-BAD49448A1AD73C978CEDCB8F137D20A5715EBAA739DAEF76B1E28EE67B2C00C",
-                                                 1473108382,
+                                                 101, 1473108382,
                                                  "H41/8OGV2W4CLKbE35kk5t1HJQsb3jEM0/QGLUf80CwJvGZf3HvVCcNtHPUFoUBKEDQO9mPK3KJkqOoxHpqHCw==",
                                                  "105-7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67"))
         certifications = certifications_repo.get_all(currency="testcurrency")
@@ -85,5 +78,5 @@ class TestCertificationsRepo(unittest.TestCase):
         cert2 = certifications_repo.get_one(currency="testcurrency",
                                             certifier="7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
                                             certified="FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
-                                            blockstamp="20-7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67")
+                                            block=20)
         self.assertTrue(cert2.written_on)

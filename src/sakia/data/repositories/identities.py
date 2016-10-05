@@ -124,6 +124,21 @@ class IdentitiesRepo:
                 return [Identity(*data) for data in datas]
         return []
 
+    def find_all(self, text):
+        """
+        Get all existing identity in the database corresponding to the search
+        :param dict search: the criterions of the lookup
+        :rtype: sakia.data.entities.Identity
+        """
+        with self._conn:
+            request = "SELECT * FROM identities WHERE UID LIKE ? or PUBKEY LIKE ?"
+
+            c = self._conn.execute(request, tuple("%{0}%".format(text),))
+            datas = c.fetchall()
+            if datas:
+                return [Identity(*data) for data in datas]
+        return []
+
     def drop(self, identity):
         """
         Drop an existing identity from the database

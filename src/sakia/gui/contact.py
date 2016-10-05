@@ -7,9 +7,7 @@ import re
 import logging
 
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QMessageBox
-from ..core.registry import IdentitiesRegistry
-from ..tools.exceptions import ContactAlreadyExists
-from ..gen_resources.contact_uic import Ui_ConfigureContactDialog
+from .contact_uic import Ui_ConfigureContactDialog
 
 
 class ConfigureContactDialog(QDialog, Ui_ConfigureContactDialog):
@@ -74,13 +72,8 @@ class ConfigureContactDialog(QDialog, Ui_ConfigureContactDialog):
                           'pubkey': pubkey})
             logging.debug(self.contact)
         else:
-            try:
-                self.account.add_contact({'name': name,
-                                          'pubkey': pubkey})
-            except ContactAlreadyExists as e:
-                QMessageBox.critical(self, self.tr("Contact already exists"),
-                            str(e),
-                            QMessageBox.Ok)
+            self.account.add_contact({'name': name,
+                                      'pubkey': pubkey})
         self.app.save(self.account)
         super().accept()
 

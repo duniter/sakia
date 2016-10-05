@@ -1,5 +1,6 @@
 import attr
 from ..entities import Certification
+import sqlite3
 
 
 @attr.s
@@ -19,3 +20,14 @@ class CertificationsProcessor:
                              0, cert.signatures[0], blockstamp)
         self._repo.insert(cert)
         return cert
+
+    def commit_certification(self, cert):
+        """
+        Commits a certification to the DB
+        :param sakia.data.entities.Certification cert:
+        :return:
+        """
+        try:
+            self._repo.insert(cert)
+        except sqlite3.IntegrityError:
+            self._repo.update(cert)

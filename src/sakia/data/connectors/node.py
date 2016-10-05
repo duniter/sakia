@@ -11,7 +11,7 @@ from aiohttp.errors import WSClientDisconnectedError, WSServerHandshakeError, Cl
 
 from duniterpy.api import bma, errors
 from duniterpy.documents import BlockUID, MalformedDocumentError, BMAEndpoint
-from duniterpy.documents.peer import Peer
+from duniterpy.documents.peer import Peer, ConnectionHandler
 from sakia.decorators import asyncify
 from sakia.errors import InvalidNodeCurrency
 from ..entities.node import Node
@@ -49,6 +49,31 @@ class NodeConnector(QObject):
         return self._session
 
     @classmethod
+    async def from_address(cls, currency, address, port, session):
+        """
+        Factory method to get a node from a given address
+        :param str currency: The node currency. None if we don't know\
+         the currency it should have, for example if its the first one we add
+        :param str address: The node address
+        :param int port: The node port
+        :param aiohttp.ClientSession session: The client session
+        :return: A new node
+        :rtype: sakia.core.net.Node
+        """
+        peer_data = await bma.network.Peering(ConnectionHandler(address, port)).get(session)
+
+        peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],
+                                                      peer_data['signature']))
+
+        if currency and peer.currency != currency:
+            raise InvalidNodeCurrency(peer.currency, currency)
+
+        node = Node(peer.currency, peer.pubkey, peer.endpoints, peer.blockUID)
+        logging.debug("Node from address : {:}".format(str(node)))
+
+        return cls(node, session)
+
+    @classmethod
     def from_peer(cls, currency, peer, session):
         """
         Factory method to get a node from a peer document.
@@ -58,9 +83,8 @@ class NodeConnector(QObject):
         :return: A new node
         :rtype: sakia.core.net.Node
         """
-        if currency is not None:
-            if peer.currency != currency:
-                raise InvalidNodeCurrency(peer.currency, currency)
+        if currency and peer.currency != currency:
+            raise InvalidNodeCurrency(peer.currency, currency)
 
         node = Node(peer.currency, peer.pubkey, peer.endpoints, peer.blockUID)
         logging.debug("Node from peer : {:}".format(str(node)))

@@ -1,4 +1,4 @@
-from sakia.tools.exceptions import NoPeerAvailable
+from sakia.errors import NoPeerAvailable
 
 from sakia.data.graphs import ExplorerGraph
 from ..base.model import BaseGraphModel

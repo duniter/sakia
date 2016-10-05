@@ -23,99 +23,6 @@ class DocumentsService:
     _identities_processor = attr.ib()  # :type: sakia.data.processors.IdentitiesProcessor
     _logger = attr.ib(default=lambda: logging.getLogger('sakia'))
 
-    async def check_registered(self, currency):
-        """
-        Checks for the pubkey and the uid of an account in a community
-        :param str currency: The currency we check for registration
-        :return: (True if found, local value, network value)
-        """
-        def _parse_uid_certifiers(data):
-            return self.name == data['uid'], self.name, data['uid']
-
-        def _parse_uid_lookup(data):
-            timestamp = BlockUID.empty()
-            found_uid = ""
-            for result in data['results']:
-                if result["pubkey"] == self.pubkey:
-                    uids = result['uids']
-                    for uid_data in uids:
-                        if BlockUID.from_str(uid_data["meta"]["timestamp"]) >= timestamp:
-                            timestamp = uid_data["meta"]["timestamp"]
-                            found_uid = uid_data["uid"]
-            return self.name == found_uid, self.name, found_uid
-
-        def _parse_pubkey_certifiers(data):
-            return self.pubkey == data['pubkey'], self.pubkey, data['pubkey']
-
-        def _parse_pubkey_lookup(data):
-            timestamp = BlockUID.empty()
-            found_uid = ""
-            found_result = ["", ""]
-            for result in data['results']:
-                uids = result['uids']
-                for uid_data in uids:
-                    if BlockUID.from_str(uid_data["meta"]["timestamp"]) >= timestamp:
-                        timestamp = BlockUID.from_str(uid_data["meta"]["timestamp"])
-                        found_uid = uid_data["uid"]
-                if found_uid == self.name:
-                    found_result = result['pubkey'], found_uid
-            if found_result[1] == self.name:
-                return self.pubkey == found_result[0], self.pubkey, found_result[0]
-            else:
-                return False, self.pubkey, None
-
-        async def execute_requests(parsers, search):
-            tries = 0
-            request = bma.wot.CertifiersOf
-            nonlocal registered
-            #TODO: The algorithm is quite dirty
-            #Multiplying the tries without any reason...
-            while tries < 3 and not registered[0] and not registered[2]:
-                try:
-                    data = await self._bma_connector.get(currency, request, req_args={'search': search})
-                    if data:
-                        registered = parsers[request](data)
-                    tries += 1
-                except errors.DuniterError as e:
-                    if e.ucode in (errors.NO_MEMBER_MATCHING_PUB_OR_UID,
-                                   e.ucode == errors.NO_MATCHING_IDENTITY):
-                        if request == bma.wot.CertifiersOf:
-                            request = bma.wot.Lookup
-                            tries = 0
-                        else:
-                            tries += 1
-                    else:
-                        tries += 1
-                except asyncio.TimeoutError:
-                    tries += 1
-                except (ClientError, TimeoutError, ConnectionRefusedError, DisconnectedError, ValueError) as e:
-                    self._logger.debug("{0} : {1}".format(str(e), self.node.pubkey[:5]))
-                    self.node.state = Node.OFFLINE
-                except jsonschema.ValidationError as e:
-                    self._logger.debug(str(e))
-                    self._logger.debug("Validation error : {0}".format(self.node.pubkey[:5]))
-                    self.node.state = Node.CORRUPTED
-
-        registered = (False, self.name, None)
-        # We execute search based on pubkey
-        # And look for account UID
-        uid_parsers = {
-                    bma.wot.CertifiersOf: _parse_uid_certifiers,
-                    bma.wot.Lookup: _parse_uid_lookup
-                   }
-        await execute_requests(uid_parsers, self.pubkey)
-
-        # If the uid wasn't found when looking for the pubkey
-        # We look for the uid and check for the pubkey
-        if not registered[0] and not registered[2]:
-            pubkey_parsers = {
-                        bma.wot.CertifiersOf: _parse_pubkey_certifiers,
-                        bma.wot.Lookup: _parse_pubkey_lookup
-                       }
-            await execute_requests(pubkey_parsers, self.name)
-
-        return registered
-
     async def send_selfcert(self, currency, salt, password):
         """
         Send our self certification to a target community
@@ -140,7 +47,7 @@ class DocumentsService:
                                      self.name,
                                      block_uid,
                                      None)
-        key = SigningKey(self.salt, password)
+        key = SigningKey(salt, password)
         selfcert.sign([key])
         self._logger.debug("Key publish : {0}".format(selfcert.signed_raw()))
 
@@ -155,13 +62,14 @@ class DocumentsService:
                 await r.release()
         return result
 
-    async def send_membership(self, currency, identity, password, mstype):
+    async def send_membership(self, currency, identity, salt, password, mstype):
         """
         Send a membership document to a target community.
         Signal "document_broadcasted" is emitted at the end.
 
         :param str currency: the currency target
         :param sakia.data.entities.Identity identity: the identitiy data
+        :param str salt: The account SigningKey salt
         :param str password: The account SigningKey password
         :param str mstype: The type of membership demand. "IN" to join, "OUT" to leave
         """
@@ -171,7 +79,7 @@ class DocumentsService:
         membership = Membership(PROTOCOL_VERSION, currency,
                                 identity.pubkey, blockUID, mstype, identity.uid,
                                 identity.timestamp, None)
-        key = SigningKey(self.salt, password)
+        key = SigningKey(salt, password)
         membership.sign([key])
         self._logger.debug("Membership : {0}".format(membership.signed_raw()))
         responses = await self._bma_connector.broadcast(currency, bma.blockchain.Membership, {},

@@ -2,9 +2,9 @@ import logging
 import time
 import networkx
 from PyQt5.QtCore import QLocale, QDateTime, QObject
-from ...tools.exceptions import NoPeerAvailable
-from ..net.network import MAX_CONFIRMATIONS
+from sakia.errors import NoPeerAvailable
 from .constants import EdgeStatus, NodeStatus
+from sakia.constants import MAX_CONFIRMATIONS
 
 
 class BaseGraph(QObject):

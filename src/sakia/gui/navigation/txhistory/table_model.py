@@ -12,8 +12,7 @@ import math
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, \
     QDateTime, QLocale
 from PyQt5.QtGui import QFont, QColor, QIcon
-from sakia.core.net.network import MAX_CONFIRMATIONS
-from sakia.tools.exceptions import NoPeerAvailable
+from sakia.errors import NoPeerAvailable
 
 from sakia.core.transfer import Transfer, TransferState
 from sakia.decorators import asyncify, once_at_a_time, cancel_once_task
@@ -339,9 +338,6 @@ class HistoryTableModel(QAbstractTableModel):
                 transfers_data.append(data)
         self.transfers_data = transfers_data
         self.endResetModel()
-
-    def max_confirmations(self):
-        return MAX_CONFIRMATIONS
 
     def rowCount(self, parent):
         return len(self.transfers_data)

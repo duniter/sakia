@@ -1,7 +1,7 @@
 import logging
 
 from PyQt5.QtGui import QCursor
-from sakia.tools.exceptions import NoPeerAvailable
+from sakia.errors import NoPeerAvailable
 
 from duniterpy.api import bma, errors
 from duniterpy.documents.block import BlockUID

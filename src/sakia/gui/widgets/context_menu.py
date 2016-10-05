@@ -2,10 +2,9 @@ import logging
 
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtWidgets import QMenu, QAction, QApplication, QMessageBox
-from sakia.tools.exceptions import MembershipNotFoundError
 
 from duniterpy.documents import Block
-from sakia.core.registry import Identity
+from sakia.data.entities import Identity
 from sakia.core.transfer import Transfer, TransferState
 from sakia.decorators import asyncify
 from sakia.gui.contact import ConfigureContactDialog
@@ -194,17 +193,14 @@ QMessageBox.Ok | QMessageBox.Cancel)
         :return:
         """
         clipboard = QApplication.clipboard()
-        try:
-            membership = await identity.membership(self._community)
-            if membership:
-                block_number = membership['written']
-                block = await self._community.get_block(block_number)
-                block_doc = Block.from_signed_raw("{0}{1}\n".format(block['raw'], block['signature']))
-                for ms_doc in block_doc.joiners:
-                    if ms_doc.issuer == identity.pubkey:
-                        clipboard.setText(ms_doc.signed_raw())
-        except MembershipNotFoundError:
-            logging.debug("Could not find membership")
+        membership = await identity.membership(self._community)
+        if membership:
+            block_number = membership['written']
+            block = await self._community.get_block(block_number)
+            block_doc = Block.from_signed_raw("{0}{1}\n".format(block['raw'], block['signature']))
+            for ms_doc in block_doc.joiners:
+                if ms_doc.issuer == identity.pubkey:
+                    clipboard.setText(ms_doc.signed_raw())
 
     @asyncify
     async def copy_selfcert_to_clipboard(self, identity):

@@ -1,6 +1,6 @@
 from sakia.gui.component.model import ComponentModel
 from duniterpy.api import errors
-from sakia.tools.exceptions import NoPeerAvailable
+from sakia.errors import NoPeerAvailable
 
 import logging
 
@@ -10,13 +10,24 @@ class CertificationModel(ComponentModel):
     The model of Certification component
     """
 
-    def __init__(self, parent, app, account, community):
+    def __init__(self, parent, app, identity, currency,
+                 connections_repo, identities_processor, blockchain_processor):
+        """
+        The data model of the certification dialog
+        :param parent:
+        :param sakia.app.Application app:
+        :param sakia.data.entities.Identity identity: the identity of the certifier
+        :param str currency:
+        :param sakia.data.repositories.ConnectionsRepository connections_repo:
+        :param sakia.data.processors.IdentitiesProcessor identities_processor:
+        :param sakia.data.processors.BlockchainProcessor blockchain_processor:
+        """
         super().__init__(parent)
         self.app = app
-        self.account = account
-        self.community = community
-        if self.community is None:
-            self.community = self.account.communities[0]
+        self.currency = currency
+        self.connections_repo = connections_repo
+        self.identities_processor = identities_processor
+        self.blockchain_processor = blockchain_processor
 
     def contact_name_pubkey(self, name):
         """
@@ -29,21 +40,20 @@ class CertificationModel(ComponentModel):
             if contact['name'] == name:
                 return contact['pubkey']
 
-    def change_community(self, index):
+    def change_currency(self, index):
         """
-        Change current community
+        Change current currency
         :param int index: index of the community in the account list
         """
-        self.community = self.account.communities[index]
+        self.currency = self.connections_repo.get_currencies()[index]
 
-    async def get_cert_stock(self):
+    def get_cert_stock(self):
         """
 
         :return: the certifications stock
         :rtype: int
         """
-        params = await self.community.parameters()
-        return params['sigStock']
+        return self.blockchain_processor.parameters(self.currency).sig_stock
 
     async def remaining_time(self):
         """
@@ -51,8 +61,7 @@ class CertificationModel(ComponentModel):
         :return: a tuple containing (days, hours, minutes, seconds)
         :rtype: tuple[int]
         """
-        account_identity = await self.account.identity(self.community)
-        remaining_time = await account_identity.cert_issuance_delay(self.app.identities_registry, self.community)
+        remaining_time = await account_identity.cert_issuance_delay(self.app.identities_registry, self.currency)
 
         days, remainder = divmod(remaining_time, 3600 * 24)
         hours, remainder = divmod(remainder, 3600)
@@ -65,8 +74,8 @@ class CertificationModel(ComponentModel):
         :return: a tuple containing (written valid certifications, pending certifications)
         :rtype: tuple[int]
         """
-        account_identity = await self.account.identity(self.community)
-        certifications = await account_identity.unique_valid_certified_by(self.app.identities_registry, self.community)
+        account_identity = await self.account.identity(self.currency)
+        certifications = await account_identity.unique_valid_certified_by(self.app.identities_registry, self.currency)
         nb_certifications = len([c for c in certifications if c['block_number']])
         nb_cert_pending = len([c for c in certifications if not c['block_number']])
         return nb_certifications, nb_cert_pending

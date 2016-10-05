@@ -2,7 +2,7 @@ import logging
 import math
 
 from PyQt5.QtCore import QLocale, QDateTime, pyqtSignal
-from sakia.tools.exceptions import NoPeerAvailable
+from sakia.errors import NoPeerAvailable
 
 from sakia.gui.component.model import ComponentModel
 from sakia.money import Referentials

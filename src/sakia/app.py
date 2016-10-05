@@ -69,7 +69,7 @@ class Application(QObject):
     def startup(cls, argv, qapp, loop):
         options = SakiaOptions.from_arguments(argv)
         app_data = AppDataFile.in_config_path(options.config_path).load_or_init()
-        app = cls(qapp, loop, app_data, app_data.default, {}, {}, {})
+        app = cls(qapp, loop, app_data, app_data.default)
         app.switch_language()
         app.set_proxy()
         app.get_last_version()

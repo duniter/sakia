@@ -13,8 +13,7 @@ from duniterpy.documents import BlockUID, SelfCertification, MalformedDocumentEr
 from duniterpy.api import bma, errors
 from duniterpy.api.bma import PROTOCOL_VERSION
 
-from ...tools.exceptions import Error, NoPeerAvailable,\
-                                        MembershipNotFoundError, LookupFailureError
+from sakia.errors import NoPeerAvailable
 from PyQt5.QtCore import QObject, pyqtSignal
 
 
@@ -495,23 +494,6 @@ class Identity(QObject):
         expiration_date = join_date + parameters['sigValidity']
         current_time = time.time()
         return expiration_date - current_time
-
-    async def cert_issuance_delay(self, identities_registry, community):
-        """
-        Get the remaining time before being able to issue new certification.
-        :param sakia.core.Community community: the community
-        :return: the remaining time
-        :rtype: int
-        """
-        certified = await self.certified_by(identities_registry, community)
-        if len(certified) > 0:
-            latest_time = max([c['cert_time'] for c in certified if c['cert_time']])
-            parameters = await community.parameters()
-            if parameters and latest_time:
-                current_time = await community.time()
-                if current_time - latest_time < parameters['sigPeriod']:
-                    return parameters['sigPeriod'] - (current_time - latest_time)
-        return 0
 
     async def requirements(self, community):
         """

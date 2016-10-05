@@ -4,7 +4,7 @@ Created on 5 févr. 2014
 @author: inso
 """
 
-from sakia.tools.exceptions import NoPeerAvailable, MembershipNotFoundError
+from sakia.errors import NoPeerAvailable
 from PyQt5.QtCore import QAbstractTableModel, QSortFilterProxyModel, Qt, \
                         QDateTime, QModelIndex, QLocale, QEvent
 from PyQt5.QtGui import QColor, QIcon

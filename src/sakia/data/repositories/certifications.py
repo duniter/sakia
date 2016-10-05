@@ -9,7 +9,7 @@ class CertificationsRepo:
     """
     _conn = attr.ib()  # :type sqlite3.Connection
     _primary_keys = (Certification.currency, Certification.certified,
-                     Certification.certifier, Certification.blockstamp,)
+                     Certification.certifier, Certification.block,)
 
     def insert(self, certification):
         """

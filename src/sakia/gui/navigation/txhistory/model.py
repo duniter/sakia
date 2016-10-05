@@ -1,7 +1,7 @@
 from sakia.gui.component.model import ComponentModel
 from .table_model import HistoryTableModel, TxFilterProxyModel
 from PyQt5.QtCore import Qt, QDateTime, QTime, pyqtSignal, QModelIndex
-from sakia.tools.exceptions import NoPeerAvailable
+from sakia.errors import NoPeerAvailable
 from duniterpy.api import errors
 
 import logging

@@ -35,7 +35,7 @@ class SakiaOptions:
         options._parse_arguments(argv)
 
         if not path.exists(options.config_path):
-            cls.logger.info("Creating home directory")
+            cls._logger.info("Creating home directory")
             makedirs(options.config_path)
 
         return options
@@ -65,4 +65,4 @@ class SakiaOptions:
         self._logger.addHandler(file_handler)
         stream_handler = StreamHandler()
         stream_handler.setFormatter(formatter)
-        self.logger.addHandler(stream_handler)
+        self._logger.addHandler(stream_handler)

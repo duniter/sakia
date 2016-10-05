@@ -8,7 +8,7 @@ from .identities.controller import IdentitiesController
 from .informations.controller import InformationsController
 from .graphs.wot.controller import WotController
 from .graphs.explorer.controller import ExplorerController
-from sakia.core import Account, Community
+from sakia.data.repositories import ConnectionsRepo
 from PyQt5.QtCore import pyqtSignal
 
 
@@ -16,9 +16,6 @@ class NavigationController(ComponentController):
     """
     The navigation panel
     """
-    community_changed = pyqtSignal(Community)
-    account_changed = pyqtSignal(Account)
-
     def __init__(self, parent, view, model):
         """
         Constructor of the navigation component
@@ -85,10 +82,10 @@ class NavigationController(ComponentController):
         :param dict raw_data:
         :return:
         """
-        account = raw_data.get('account', None)
-        community = raw_data.get('community', None)
-        if account != self.model.current_data('account'):
-            self.account_changed.emit(account)
-        if community != self.model.current_data('community'):
-            self.community_changed.emit(community)
+        user_identity = raw_data.get('user_identity', None)
+        currency = raw_data.get('currency', None)
+        if user_identity != self.model.current_data('user_identity'):
+            self.account_changed.emit(user_identity)
+        if currency != self.model.current_data('currency'):
+            self.currency_changed.emit(currency)
         self.model.set_current_data(raw_data)

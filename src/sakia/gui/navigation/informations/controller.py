@@ -1,6 +1,6 @@
 import logging
 
-from sakia.tools.exceptions import NoPeerAvailable
+from sakia.errors import NoPeerAvailable
 
 from duniterpy.api import errors
 from sakia.decorators import asyncify

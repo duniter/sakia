@@ -1,7 +1,6 @@
-from sakia.core.registry import BlockchainState
 from sakia.gui.component.model import ComponentModel
 from duniterpy.api import errors, bma
-from sakia.tools.exceptions import NoPeerAvailable
+from sakia.errors import NoPeerAvailable
 
 import logging
 
@@ -11,18 +10,18 @@ class SearchUserModel(ComponentModel):
     The model of Navigation component
     """
 
-    def __init__(self, parent, app, account, community):
+    def __init__(self, parent, app, currency, identities_processor):
         """
 
         :param sakia.gui.search_user.controller.NetworkController parent: the controller
         :param sakia.core.Application app: the app
-        :param sakia.core.Account account: the account
-        :param sakia.core.Community community: the community
+        :param str currency: the currency
+        :param sakia.data.processors.IdentitiesProcessor identities_processor: the identities processor
         """
         super().__init__(parent)
         self.app = app
-        self.account = account
-        self.community = community
+        self.currency = currency
+        self.identities_processor = identities_processor
         self._nodes = list()
         self._current_identity = None
 
@@ -38,7 +37,7 @@ class SearchUserModel(ComponentModel):
         Gets user nodes
         :return:
         """
-        return [n['uid'] for n in self._nodes]
+        return [n.uid for n in self._nodes]
 
     async def find_user(self, text):
         """
@@ -47,16 +46,7 @@ class SearchUserModel(ComponentModel):
         :return:
         """
         try:
-            response = await self.community.bma_access.future_request(bma.wot.Lookup, {'search': text})
-
-            nodes = {}
-            for identity in response['results']:
-                nodes[identity['pubkey']] = identity['uids'][0]['uid']
-
-            if nodes:
-                self._nodes = list()
-                for pubkey, uid in nodes.items():
-                    self._nodes.append({'pubkey': pubkey, 'uid': uid})
+            self._nodes = await self.identities_processor.lookup(self.currency, text)
         except errors.DuniterError as e:
             if e.ucode == errors.NO_MATCHING_IDENTITY:
                 self._nodes = list()
@@ -74,12 +64,4 @@ class SearchUserModel(ComponentModel):
         if index < 0 or index >= len(self._nodes):
             self._current_identity = None
             return False
-        node = self._nodes[index]
-        metadata = {'id': node['pubkey'], 'text': node['uid']}
-        self._current_identity = self.app.identities_registry.from_handled_data(
-                metadata['text'],
-                metadata['id'],
-                None,
-                BlockchainState.VALIDATED,
-                self.community
-            )
+        self._current_identity = self._nodes[index]

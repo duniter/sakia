@@ -1,6 +1,6 @@
 from PyQt5.QtCore import pyqtSignal
 
-from sakia.core.registry import Identity
+from sakia.data.entities import Identity
 from sakia.decorators import asyncify
 from sakia.gui.component.controller import ComponentController
 from .model import SearchUserModel

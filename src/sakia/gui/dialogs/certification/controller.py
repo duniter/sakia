@@ -172,7 +172,7 @@ class CertificationController(ComponentController):
     @once_at_a_time
     @asyncify
     async def refresh(self):
-        stock = await self.model.get_cert_stock()
+        stock = self.model.get_cert_stock()
         written, pending = await self.model.nb_certifications()
         days, hours, minutes, seconds = await self.model.remaining_time()
         self.view.display_cert_stock(written, pending, stock, days, hours, minutes)
