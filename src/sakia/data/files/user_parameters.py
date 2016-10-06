@@ -15,8 +15,8 @@ class UserParametersFile:
     filename = "parameters.json"
 
     @classmethod
-    def in_config_path(cls, config_path):
-        return cls(os.path.join(config_path, UserParametersFile.filename))
+    def in_config_path(cls, config_path, profile_name):
+        return cls(os.path.join(config_path, profile_name, UserParametersFile.filename))
 
     def save(self, user_parameters):
         """

@@ -47,8 +47,6 @@ class MainWindowController(ComponentController):
         self.toolbar = self.attach(toolbar)
         self.navigation = self.attach(navigation)
         self.stacked_widgets = {}
-        self.navigation.community_changed.connect(self.handle_community_change)
-        self.navigation.account_changed.connect(self.handle_account_change)
         self.view.bottom_layout.insertWidget(0, self.navigation.view)
         self.view.top_layout.addWidget(self.toolbar.view)
         self.view.setStatusBar(self.status_bar.view)
@@ -84,8 +82,7 @@ class MainWindowController(ComponentController):
                                  status_bar=StatusBarController.create(None, app),
                                  navigation=NavigationController.create(None, app),
                                  toolbar=ToolbarController.create(None, app,
-                                                          app.current_account, None,
-                                                          password_asker)
+                                                                    app.parameters, None)
                                  )
 
         #app.version_requested.connect(main_window.latest_version_requested)
@@ -134,14 +131,14 @@ class MainWindowController(ComponentController):
         :param sakia.core.Account account:
         """
         self.toolbar.account = account
-        self.password_asker.change_account(account)
+        self.password_asker.change_connection(account)
 
-    def handle_community_change(self, community):
+    def handle_currency_change(self, currency):
         """
         Set current community
-        :param sakia.core.Community community:
+        :param str community:
         """
-        self.toolbar.community = community
+        self.toolbar.currency = currency
 
     def refresh(self):
         """

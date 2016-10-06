@@ -116,7 +116,6 @@ class IdentitiesService(QObject):
         except NoPeerAvailable as e:
             logging.debug(str(e))
 
-
     def _parse_revocations(self, block):
         """
         Parse revoked pubkeys found in a block and refresh local data

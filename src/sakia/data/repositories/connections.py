@@ -72,7 +72,7 @@ class ConnectionsRepo:
         :rtype: List[str]
         """
         with self._conn:
-            request = "SELECT UNIQUE currency FROM connections"
+            request = "SELECT DISTINCT currency FROM connections"
             c = self._conn.execute(request)
             datas = c.fetchall()
             if datas:

@@ -9,6 +9,7 @@ from .informations.controller import InformationsController
 from .graphs.wot.controller import WotController
 from .graphs.explorer.controller import ExplorerController
 from sakia.data.repositories import ConnectionsRepo
+from sakia.data.entities import Connection
 from PyQt5.QtCore import pyqtSignal
 
 
@@ -16,6 +17,9 @@ class NavigationController(ComponentController):
     """
     The navigation panel
     """
+    currency_changed = pyqtSignal(str)
+    connection_changed = pyqtSignal(Connection)
+
     def __init__(self, parent, view, model):
         """
         Constructor of the navigation component

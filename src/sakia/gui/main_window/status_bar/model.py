@@ -6,20 +6,20 @@ from sakia.money import Referentials
 
 class StatusBarModel(ComponentModel):
     """
-    The model of Navigation component
+    The model of status bar component
     """
 
     def __init__(self, parent, app):
+        """
+        The status bar model
+        :param parent:
+        :param sakia.app.Application app: the app
+        """
         super().__init__(parent)
         self.app = app
-
-    @property
-    def account(self):
-        return self.app.current_account
 
     def referentials(self):
         return Referentials
 
     def default_referential(self):
-        logging.debug(self.app.preferences)
-        return self.app.preferences['ref']
+        return self.app.parameters.referential

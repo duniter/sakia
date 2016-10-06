@@ -63,21 +63,11 @@ class StatusBarController(ComponentController):
         in the window have to be refreshed
         """
         logging.debug("Refresh started")
+        for ref in self.model.referentials():
+            self.view.combo_referential.addItem(ref.translated_name())
 
-        if self.model.account is None:
-            self.view.combo_referential.setEnabled(False)
-            self.view.status_label.setText(self.tr(""))
-        else:
-            self.view.combo_referential.blockSignals(True)
-            self.view.combo_referential.clear()
-            for ref in self.model.referentials():
-                self.view.combo_referential.addItem(ref.translated_name())
-
-            self.view.combo_referential.setEnabled(True)
-            self.view.combo_referential.blockSignals(False)
-            self.view.combo_referential.setCurrentIndex(self.model.default_referential())
+        self.view.combo_referential.setCurrentIndex(self.model.default_referential())
 
     @pyqtSlot(int)
     def referential_changed(self, index):
-        if self.model.account:
-            self.model.account.set_display_referential(index)
+        pass

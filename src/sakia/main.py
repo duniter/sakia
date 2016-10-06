@@ -91,8 +91,6 @@ if __name__ == '__main__':
 
     with loop:
         app = Application.startup(sys.argv, sakia, loop)
-        if not app.current_account:
-            account_cfg = loop.run_until_complete(AccountConfigController.create_account(None, app))
         window = MainWindowController.startup(app)
         loop.run_forever()
         try:

@@ -6,6 +6,7 @@ class UserParameters:
     """
     The user parameters entity
     """
+    profile_name = attr.ib(convert=str, default="Default Profile")
     lang = attr.ib(convert=str, default="en_US")
     referential = attr.ib(convert=int, default=0)
     expert_mode = attr.ib(convert=bool, default=False)

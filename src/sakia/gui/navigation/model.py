@@ -13,7 +13,7 @@ class NavigationModel(ComponentModel):
         """
 
         :param sakia.gui.component.controller.ComponentController parent:
-        :param sakia.core.app.Application app:
+        :param sakia.app.Application app:
         """
         super().__init__(parent)
         self.app = app
@@ -24,21 +24,20 @@ class NavigationModel(ComponentModel):
         self.navigation = [
             {
                 'node': {
-                    'title': self.app.current_account.name,
+                    'title': self.app.parameters.profile_name,
                     'component': "HomeScreen",
-                    'account': self.app.current_account
+                    'parameters': self.app.parameters
                 },
                 'children': []
             }
         ]
         self._current_data = self.navigation[0]
-        for c in self.app.current_account.communities:
+        for connection in self.app.connections_repo.get_all():
             self.navigation[0]['children'].append({
                 'node': {
-                    'title': c.currency,
+                    'title': connection.currency,
                     'component': "Informations",
-                    'community': c,
-                    'account': self.app.current_account
+                    'blockchain_service': self.app.blockchain_services[connection.currency],
                 },
                 'children': [
                     {
@@ -46,8 +45,6 @@ class NavigationModel(ComponentModel):
                             'title': self.tr('Transfers'),
                             'icon': ':/icons/tx_icon',
                             'component': "TxHistory",
-                            'community': c,
-                            'account': self.app.current_account
                         }
                     },
                     {
@@ -55,8 +52,6 @@ class NavigationModel(ComponentModel):
                             'title': self.tr('Network'),
                             'icon': ':/icons/network_icon',
                             'component': "Network",
-                            'community': c,
-                            'account': self.app.current_account
                         }
                     },
                     {
@@ -64,8 +59,6 @@ class NavigationModel(ComponentModel):
                             'title': self.tr('Identities'),
                             'icon': ':/icons/members_icon',
                             'component': "Identities",
-                            'community': c,
-                            'account': self.app.current_account
                         }
                     },
                     {
@@ -73,17 +66,6 @@ class NavigationModel(ComponentModel):
                             'title': self.tr('Web of Trust'),
                             'icon': ':/icons/wot_icon',
                             'component': "Wot",
-                            'community': c,
-                            'account': self.app.current_account
-                        }
-                    },
-                    {
-                        'node': {
-                            'title': self.tr('Explorer'),
-                            'icon': ':/icons/explorer_icon',
-                            'component': "Explorer",
-                            'community': c,
-                            'account': self.app.current_account
                         }
                     }
                 ]

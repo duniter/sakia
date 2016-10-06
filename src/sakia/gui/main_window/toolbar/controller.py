@@ -19,15 +19,13 @@ class ToolbarController(ComponentController):
     The navigation panel
     """
 
-    def __init__(self, parent, view, model, password_asker):
+    def __init__(self, parent, view, model):
         """
         :param sakia.gui.component.controller.ComponentController parent: the parent
         :param sakia.gui.toolbar.view.ToolbarView view:
         :param sakia.gui.toolbar.model.ToolbarModel model:
         """
         super().__init__(parent, view, model)
-        self.password_asker = password_asker
-
         self.view.button_certification.clicked.connect(self.open_certification_dialog)
         self.view.button_send_money.clicked.connect(self.open_transfer_money_dialog)
         self.view.action_gen_revokation.triggered.connect(self.action_save_revokation)
@@ -36,16 +34,19 @@ class ToolbarController(ComponentController):
         self.view.action_create_account.triggered.connect(self.open_create_account_dialog)
 
     @classmethod
-    def create(cls, parent, app, account, community, password_asker):
+    def create(cls, parent, app, parameters, currency):
         """
         Instanciate a navigation component
         :param sakia.gui.agent.controller.AgentController parent:
+        :param sakia.app.Application app:
+        :param sakia.entities.data.UserParameters parameters:
+        :param str currency:
         :return: a new Toolbar controller
         :rtype: ToolbarController
         """
         view = ToolbarView(None)
-        model = ToolbarModel(None, app, account, community)
-        toolbar = cls(parent, view, model, password_asker)
+        model = ToolbarModel(None, app, parameters, currency)
+        toolbar = cls(parent, view, model)
         model.setParent(toolbar)
         return toolbar
 
