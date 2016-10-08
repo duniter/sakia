@@ -6,7 +6,7 @@ from duniterpy.documents import BlockUID, Peer
 from sakia.tests import QuamashTest
 from sakia.services import DocumentsService
 from sakia.data.connectors import NodeConnector, BmaConnector
-from sakia.data.repositories import NodesRepo, MetaDatabase, BlockchainsRepo, IdentitiesRepo
+from sakia.data.repositories import NodesRepo, SakiaDatabase, BlockchainsRepo, IdentitiesRepo
 from sakia.data.processors import NodesProcessor, BlockchainProcessor, IdentitiesProcessor
 
 
@@ -24,7 +24,7 @@ class TestDocumentsService(unittest.TestCase, QuamashTest):
         self.tearDownQuamash()
 
     def test_certify(self):
-        meta_repo = MetaDatabase(self.con)
+        meta_repo = SakiaDatabase(self.con)
         meta_repo.prepare()
         meta_repo.upgrade_database()
         nodes_repo = NodesRepo(self.con)

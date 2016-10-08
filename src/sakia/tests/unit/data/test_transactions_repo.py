@@ -1,4 +1,4 @@
-from sakia.data.repositories import TransactionsRepo, MetaDatabase
+from sakia.data.repositories import TransactionsRepo, SakiaDatabase
 from sakia.data.entities import Transaction
 from duniterpy.documents import BlockUID
 import unittest
@@ -10,13 +10,13 @@ class TestTransactionsRepo(unittest.TestCase):
         sqlite3.register_adapter(BlockUID, str)
         sqlite3.register_adapter(bool, int)
         sqlite3.register_converter("BOOLEAN", lambda v: bool(int(v)))
-        self.con = sqlite3.connect(":memory:", detect_types=sqlite3.PARSE_DECLTYPES)
+        self.meta_repo = SakiaDatabase(sqlite3.connect(":memory:", detect_types=sqlite3.PARSE_DECLTYPES))
 
     def tearDown(self):
         self.con.close()
 
     def test_add_get_drop_transaction(self):
-        meta_repo = MetaDatabase(self.con)
+        meta_repo = SakiaDatabase(self.con)
         meta_repo.prepare()
         meta_repo.upgrade_database()
         transactions_repo = TransactionsRepo(self.con)
@@ -53,7 +53,7 @@ class TestTransactionsRepo(unittest.TestCase):
         self.assertIsNone(transaction)
 
     def test_add_get_multiple_transaction(self):
-        meta_repo = MetaDatabase(self.con)
+        meta_repo = SakiaDatabase(self.con)
         meta_repo.prepare()
         meta_repo.upgrade_database()
         transactions_repo = TransactionsRepo(self.con)
@@ -87,7 +87,7 @@ class TestTransactionsRepo(unittest.TestCase):
         self.assertIn("FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn", [t.issuer for t in transactions])
 
     def test_add_update_transaction(self):
-        meta_repo = MetaDatabase(self.con)
+        meta_repo = SakiaDatabase(self.con)
         meta_repo.prepare()
         meta_repo.upgrade_database()
         transactions_repo = TransactionsRepo(self.con)

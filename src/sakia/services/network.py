@@ -32,17 +32,17 @@ class NetworkService(QObject):
         :param sakia.services.BlockchainService blockchain_service: the blockchain service
         """
         super().__init__()
+        self._logger = logging.getLogger('sakia')
         self._processor = node_processor
         self._connectors = []
         for c in connectors:
             self.add_connector(c)
         self.currency = currency
         self._must_crawl = False
-        self._block_found = self._processor.current_buid()
+        self._block_found = self._processor.current_buid(self.currency)
         self._client_session = session
         self._discovery_stack = []
         self._blockchain_service = blockchain_service
-        self._logger = logging.getLogger('sakia')
 
     @classmethod
     def create(cls, node_processor, node_connector):
@@ -71,9 +71,9 @@ class NetworkService(QObject):
         """
         connectors = []
         session = aiohttp.ClientSession()
-        for node in node_processor.nodes():
+        for node in node_processor.nodes(currency):
             connectors.append(NodeConnector(node, session))
-        network = cls(currency, node_processor, connectors, session)
+        network = cls(currency, node_processor, connectors, session, blockchain_service)
         return network
 
     def start_coroutines(self):

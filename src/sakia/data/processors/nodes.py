@@ -1,4 +1,5 @@
 import attr
+import sqlite3
 from ..entities import Node
 from duniterpy.documents import BlockUID, endpoint
 import logging
@@ -42,6 +43,16 @@ class NodesProcessor:
         :param sakia.data.entities.Node node: the node to update
         """
         self._repo.insert(node)
+
+    def commit_node(self, node):
+        """
+        Saves a node state in the db
+        :param sakia.data.entities.Node node: the node updated
+        """
+        try:
+            self._repo.insert(node)
+        except sqlite3.IntegrityError:
+            self._repo.update(node)
 
     def unknown_node(self, currency, pubkey):
         """

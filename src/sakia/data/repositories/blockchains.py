@@ -39,6 +39,7 @@ class BlockchainsRepo:
                               median_time=?,
                               last_ud=?,
                               last_ud_base=?,
+                              last_ud_time=?,
                               previous_mass=?
                                WHERE
                               currency=?""",

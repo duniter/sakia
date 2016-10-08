@@ -4,7 +4,7 @@ from duniterpy.documents import BlockUID, Block
 from sakia.tests.mocks.bma.nice_blockchain import bma_blockchain_0
 from sakia.tests import QuamashTest
 from sakia.services import IdentitiesService
-from sakia.data.repositories import CertificationsRepo, IdentitiesRepo, MetaDatabase
+from sakia.data.repositories import CertificationsRepo, IdentitiesRepo, SakiaDatabase
 from sakia.data.processors import CertificationsProcessor, IdentitiesProcessor
 
 
@@ -22,7 +22,7 @@ class TestIdentitiesService(unittest.TestCase, QuamashTest):
         self.tearDownQuamash()
 
     def test_new_block_with_unknown_identities(self):
-        meta_repo = MetaDatabase(self.con)
+        meta_repo = SakiaDatabase(self.con)
         meta_repo.prepare()
         meta_repo.upgrade_database()
         identities_repo = IdentitiesRepo(self.con)

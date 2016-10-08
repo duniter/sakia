@@ -38,6 +38,7 @@ class NodeConnector(QObject):
                     'peer': False}
         self._session = session
         self._refresh_counter = 1
+        self._logger = logging.getLogger('sakia')
 
     def __del__(self):
         for ws in self._ws_tasks.values():
@@ -69,7 +70,7 @@ class NodeConnector(QObject):
             raise InvalidNodeCurrency(peer.currency, currency)
 
         node = Node(peer.currency, peer.pubkey, peer.endpoints, peer.blockUID)
-        logging.debug("Node from address : {:}".format(str(node)))
+        logging.getLogger('sakia').debug("Node from address : {:}".format(str(node)))
 
         return cls(node, session)
 
@@ -87,21 +88,21 @@ class NodeConnector(QObject):
             raise InvalidNodeCurrency(peer.currency, currency)
 
         node = Node(peer.currency, peer.pubkey, peer.endpoints, peer.blockUID)
-        logging.debug("Node from peer : {:}".format(str(node)))
+        logging.getLogger('sakia').debug("Node from peer : {:}".format(str(node)))
 
         return cls(node, session)
 
-    async def _safe_request(self, endpoint, request, req_args={}, get_args={}):
+    async def safe_request(self, endpoint, request, req_args={}, get_args={}):
         try:
             conn_handler = endpoint.conn_handler()
             data = await request(conn_handler, **req_args).get(self._session, **get_args)
             return data
         except (ClientError, gaierror, TimeoutError, ConnectionRefusedError, DisconnectedError, ValueError) as e:
-            logging.debug("{0} : {1}".format(str(e), self.node.pubkey[:5]))
+            self._logger.debug("{0} : {1}".format(str(e), self.node.pubkey[:5]))
             self.node.state = Node.OFFLINE
         except jsonschema.ValidationError as e:
-            logging.debug(str(e))
-            logging.debug("Validation error : {0}".format(self.node.pubkey[:5]))
+            self._logger.debug(str(e))
+            self._logger.debug("Validation error : {0}".format(self.node.pubkey[:5]))
             self.node.state = Node.CORRUPTED
 
     async def close_ws(self):
@@ -154,11 +155,11 @@ class NodeConnector(QObject):
                     ws_connection = block_websocket.connect(self._session)
                     async with ws_connection as ws:
                         self._connected['block'] = True
-                        logging.debug("Connected successfully to block ws : {0}"
+                        self._logger.debug("Connected successfully to block ws : {0}"
                                       .format(self.node.pubkey[:5]))
                         async for msg in ws:
                             if msg.tp == aiohttp.MsgType.text:
-                                logging.debug("Received a block : {0}".format(self.node.pubkey[:5]))
+                                self._logger.debug("Received a block : {0}".format(self.node.pubkey[:5]))
                                 block_data = block_websocket.parse_text(msg.data)
                                 await self.refresh_block(block_data)
                             elif msg.tp == aiohttp.MsgType.closed:
@@ -167,15 +168,15 @@ class NodeConnector(QObject):
                                 break
                 except (WSServerHandshakeError, WSClientDisconnectedError,
                         ClientResponseError, ValueError) as e:
-                    logging.debug("Websocket block {0} : {1} - {2}"
+                    self._logger.debug("Websocket block {0} : {1} - {2}"
                                   .format(type(e).__name__, str(e), self.node.pubkey[:5]))
                     await self.request_current_block()
                 except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
-                    logging.debug("{0} : {1}".format(str(e), self.node.pubkey[:5]))
+                    self._logger.debug("{0} : {1}".format(str(e), self.node.pubkey[:5]))
                     self.node.state = Node.OFFLINE
                 except jsonschema.ValidationError as e:
-                    logging.debug(str(e))
-                    logging.debug("Validation error : {0}".format(self.node.pubkey[:5]))
+                    self._logger.debug(str(e))
+                    self._logger.debug("Validation error : {0}".format(self.node.pubkey[:5]))
                     self.node.state = Node.CORRUPTED
                 finally:
                     self.changed.emit()
@@ -189,7 +190,7 @@ class NodeConnector(QObject):
         """
         for endpoint in [e for e in self.node.endpoints if isinstance(e, BMAEndpoint)]:
             try:
-                block_data = await self._safe_request(endpoint, bma.blockchain.Current, self._session)
+                block_data = await self.safe_request(endpoint, bma.blockchain.Current, self._session)
                 await self.refresh_block(block_data)
                 return  # Do not try any more endpoint
             except errors.DuniterError as e:
@@ -197,11 +198,11 @@ class NodeConnector(QObject):
                     self.node.previous_buid = BlockUID.empty()
                 else:
                     self.node.state = Node.OFFLINE
-                logging.debug("Error in block reply of {0} : {1}}".format(self.node.pubkey[:5], str(e)))
+                self._logger.debug("Error in block reply of {0} : {1}}".format(self.node.pubkey[:5], str(e)))
             finally:
                 self.changed.emit()
         else:
-            logging.debug("Could not connect to any BMA endpoint : {0}".format(self.node.pubkey[:5]))
+            self._logger.debug("Could not connect to any BMA endpoint : {0}".format(self.node.pubkey[:5]))
             self.node.state = Node.OFFLINE
             self.changed.emit()
 
@@ -214,10 +215,10 @@ class NodeConnector(QObject):
         if not self.node.current_buid or self.node.current_buid.sha_hash != block_data['hash']:
             for endpoint in [e for e in self.node.endpoints if isinstance(e, BMAEndpoint)]:
                 conn_handler = endpoint.conn_handler()
-                logging.debug("Requesting {0}".format(conn_handler))
+                self._logger.debug("Requesting {0}".format(conn_handler))
                 try:
-                    previous_block = await self._safe_request(endpoint, bma.blockchain.Block,
-                                                              req_args={'number': self.node.current_buid.number})
+                    previous_block = await self.safe_request(endpoint, bma.blockchain.Block,
+                                                             req_args={'number': self.node.current_buid.number})
                     self.node.previous_buid = BlockUID(previous_block['number'], previous_block['hash'])
                     return  # Do not try any more endpoint
                 except errors.DuniterError as e:
@@ -226,14 +227,14 @@ class NodeConnector(QObject):
                         self.node.current_buid = BlockUID.empty()
                     else:
                         self.node.state = Node.OFFLINE
-                    logging.debug("Error in previous block reply of {0} : {1}".format(self.node.pubkey[:5], str(e)))
+                    self._logger.debug("Error in previous block reply of {0} : {1}".format(self.node.pubkey[:5], str(e)))
                 finally:
                     self.node.current_buid = BlockUID(block_data['number'], block_data['hash'])
-                    logging.debug("Changed block {0} -> {1}".format(self.node.current_buid.number,
+                    self._logger.debug("Changed block {0} -> {1}".format(self.node.current_buid.number,
                                                                     block_data['number']))
                     self.changed.emit()
             else:
-                logging.debug("Could not connect to any BMA endpoint : {0}".format(self.node.pubkey[:5]))
+                self._logger.debug("Could not connect to any BMA endpoint : {0}".format(self.node.pubkey[:5]))
                 self.node.state = Node.OFFLINE
                 self.changed.emit()
 
@@ -244,18 +245,18 @@ class NodeConnector(QObject):
         """
         for endpoint in [e for e in self.node.endpoints if isinstance(e, BMAEndpoint)]:
             try:
-                summary_data = await self._safe_request(endpoint, bma.node.Summary)
+                summary_data = await self.safe_request(endpoint, bma.node.Summary)
                 self.node.software = summary_data["duniter"]["software"]
                 self.node.version = summary_data["duniter"]["version"]
                 self.node.state = Node.ONLINE
                 return  # Break endpoints loop
             except errors.DuniterError as e:
                 self.node.state = Node.OFFLINE
-                logging.debug("Error in summary of {0} : {1}".format(self.node.pubkey[:5], str(e)))
+                self._logger.debug("Error in summary of {0} : {1}".format(self.node.pubkey[:5], str(e)))
             finally:
                 self.changed.emit()
         else:
-            logging.debug("Could not connect to any BMA endpoint : {0}".format(self.node.pubkey[:5]))
+            self._logger.debug("Could not connect to any BMA endpoint : {0}".format(self.node.pubkey[:5]))
             self.node.state = Node.OFFLINE
             self.changed.emit()
 
@@ -266,9 +267,9 @@ class NodeConnector(QObject):
         """
         for endpoint in [e for e in self.node.endpoints if isinstance(e, BMAEndpoint)]:
             try:
-                data = await self._safe_request(endpoint, bma.wot.Lookup,
-                                                req_args={'search':self.node.pubkey},
-                                                get_args={})
+                data = await self.safe_request(endpoint, bma.wot.Lookup,
+                                               req_args={'search':self.node.pubkey},
+                                               get_args={})
                 self.node.state = Node.ONLINE
                 timestamp = BlockUID.empty()
                 uid = ""
@@ -284,13 +285,13 @@ class NodeConnector(QObject):
                     self.identity_changed.emit()
             except errors.DuniterError as e:
                 if e.ucode == errors.NO_MATCHING_IDENTITY:
-                    logging.debug("UID not found : {0}".format(self.node.pubkey[:5]))
+                    self._logger.debug("UID not found : {0}".format(self.node.pubkey[:5]))
                 else:
-                    logging.debug("error in uid reply : {0}".format(self.node.pubkey[:5]))
+                    self._logger.debug("error in uid reply : {0}".format(self.node.pubkey[:5]))
                     self.node.state = Node.OFFLINE
                     self.identity_changed.emit()
         else:
-            logging.debug("Could not connect to any BMA endpoint : {0}".format(self.node.pubkey[:5]))
+            self._logger.debug("Could not connect to any BMA endpoint : {0}".format(self.node.pubkey[:5]))
             self.node.state = Node.OFFLINE
             self.changed.emit()
 
@@ -307,10 +308,10 @@ class NodeConnector(QObject):
                     ws_connection = peer_websocket.connect(self._session)
                     async with ws_connection as ws:
                         self._connected['peer'] = True
-                        logging.debug("Connected successfully to peer ws : {0}".format(self.node.pubkey[:5]))
+                        self._logger.debug("Connected successfully to peer ws : {0}".format(self.node.pubkey[:5]))
                         async for msg in ws:
                             if msg.tp == aiohttp.MsgType.text:
-                                logging.debug("Received a peer : {0}".format(self.node.pubkey[:5]))
+                                self._logger.debug("Received a peer : {0}".format(self.node.pubkey[:5]))
                                 peer_data = peer_websocket.parse_text(msg.data)
                                 self.refresh_peer_data(peer_data)
                             elif msg.tp == aiohttp.MsgType.closed:
@@ -319,22 +320,22 @@ class NodeConnector(QObject):
                                 break
                 except (WSServerHandshakeError, WSClientDisconnectedError,
                         ClientResponseError, ValueError) as e:
-                    logging.debug("Websocket peer {0} : {1} - {2}"
+                    self._logger.debug("Websocket peer {0} : {1} - {2}"
                                   .format(type(e).__name__, str(e), self.node.pubkey[:5]))
                     await self.request_peers()
                 except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
-                    logging.debug("{0} : {1}".format(str(e), self.node.pubkey[:5]))
+                    self._logger.debug("{0} : {1}".format(str(e), self.node.pubkey[:5]))
                     self.node.state = Node.OFFLINE
                 except jsonschema.ValidationError as e:
-                    logging.debug(str(e))
-                    logging.debug("Validation error : {0}".format(self.node.pubkey[:5]))
+                    self._logger.debug(str(e))
+                    self._logger.debug("Validation error : {0}".format(self.node.pubkey[:5]))
                     self.node.state = Node.CORRUPTED
                 finally:
                     self._connected['peer'] = False
                     self._ws_tasks['peer'] = None
                     self.changed.emit()
         else:
-            logging.debug("Could not connect to any BMA endpoint : {0}".format(self.node.pubkey[:5]))
+            self._logger.debug("Could not connect to any BMA endpoint : {0}".format(self.node.pubkey[:5]))
             self.node.state = Node.OFFLINE
             self.changed.emit()
 
@@ -344,20 +345,20 @@ class NodeConnector(QObject):
         """
         for endpoint in [e for e in self.node.endpoints if isinstance(e, BMAEndpoint)]:
             try:
-                peers_data = await self._safe_request(endpoint, bma.network.peering.Peers,
-                                                      get_args={'leaves': 'true'})
+                peers_data = await self.safe_request(endpoint, bma.network.peering.Peers,
+                                                     get_args={'leaves': 'true'})
                 self.node.state = Node.ONLINE
                 if peers_data['root'] != self.node.merkle_peers_root:
                     leaves = [leaf for leaf in peers_data['leaves']
                               if leaf not in self.node.merkle_peers_leaves]
                     for leaf_hash in leaves:
                         try:
-                            leaf_data = await self._safe_request(endpoint,
-                                                                 bma.network.peering.Peers,
-                                                                 get_args={'leaf': leaf_hash})
+                            leaf_data = await self.safe_request(endpoint,
+                                                                bma.network.peering.Peers,
+                                                                get_args={'leaf': leaf_hash})
                             self.refresh_peer_data(leaf_data['leaf']['value'])
                         except (AttributeError, ValueError, errors.DuniterError) as e:
-                            logging.debug("{pubkey} : Incorrect peer data in {leaf}"
+                            self._logger.debug("{pubkey} : Incorrect peer data in {leaf}"
                                           .format(pubkey=self.node.pubkey[:5],
                                                   leaf=leaf_hash))
                             self.node.state = Node.OFFLINE
@@ -367,12 +368,12 @@ class NodeConnector(QObject):
                     self.node.merkle_peers_leaves = tuple(peers_data['leaves'])
                 return  # Break endpoints loop
             except errors.DuniterError as e:
-                logging.debug("Error in peers reply : {0}".format(str(e)))
+                self._logger.debug("Error in peers reply : {0}".format(str(e)))
                 self.node.state = Node.OFFLINE
             finally:
                 self.changed.emit()
         else:
-            logging.debug("Could not connect to any BMA endpoint : {0}".format(self.node.pubkey[:5]))
+            self._logger.debug("Could not connect to any BMA endpoint : {0}".format(self.node.pubkey[:5]))
             self.node.state = Node.OFFLINE
             self.changed.emit()
 
@@ -384,6 +385,6 @@ class NodeConnector(QObject):
                 peer_doc = Peer.from_signed_raw(str_doc)
                 self.neighbour_found.emit(peer_doc)
             except MalformedDocumentError as e:
-                logging.debug(str(e))
+                self._logger.debug(str(e))
         else:
-            logging.debug("Incorrect leaf reply")
+            self._logger.debug("Incorrect leaf reply")

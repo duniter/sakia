@@ -6,7 +6,7 @@ from duniterpy.documents import BlockUID, Peer
 from sakia.tests import QuamashTest
 from sakia.services import NetworkService
 from sakia.data.connectors import NodeConnector
-from sakia.data.repositories import NodesRepo, MetaDatabase
+from sakia.data.repositories import NodesRepo, SakiaDatabase
 from sakia.data.processors import NodesProcessor
 
 
@@ -24,7 +24,7 @@ class TestNetworkService(unittest.TestCase, QuamashTest):
         self.tearDownQuamash()
 
     def test_network_discovering(self):
-        meta_repo = MetaDatabase(self.con)
+        meta_repo = SakiaDatabase(self.con)
         meta_repo.prepare()
         meta_repo.upgrade_database()
         nodes_repo = NodesRepo(self.con)

@@ -34,12 +34,13 @@ CREATE TABLE IF NOT EXISTS blockchains (
   dt_diff_eval       INT,
   blocks_rot         INT,
   percent_rot        FLOAT(1, 6),
-  current_buid INT,
+  current_buid  INT,
   nb_members    INT,
   current_mass  INT,
   median_time   INT,
   last_ud       INT,
   last_ud_base  INT,
+  last_ud_time  INT,
   previous_mass INT,
   currency      VARCHAR(30),
   PRIMARY KEY (currency)
@@ -98,6 +99,8 @@ CREATE TABLE IF NOT EXISTS connections(
                                currency           VARCHAR(30),
                                pubkey             VARCHAR(50),
                                salt               VARCHAR(50),
+                               uid                VARCHAR(255),
+                               blockstamp         VARCHAR(100),
                                PRIMARY KEY (currency, pubkey)
                                );
 

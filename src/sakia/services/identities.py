@@ -60,10 +60,10 @@ class IdentitiesService(QObject):
             await self.update_certified_by(identity)
         if len(certified) > 0:
             latest_time = max([c['cert_time'] for c in certified if c['cert_time']])
-            sig_period = await self._blockchain_processor.parameters(currency).sig_period
+            sig_period = await self._blockchain_processor.parameters(self.currency).sig_period
             current_time = await self._blockchain_processor.time(self.currency)
-            if current_time - latest_time < parameters['sigPeriod']:
-                return parameters['sigPeriod'] - (current_time - latest_time)
+            if current_time - latest_time < sig_period:
+                return sig_period - (current_time - latest_time)
         return 0
 
     async def update_memberships(self, identity):

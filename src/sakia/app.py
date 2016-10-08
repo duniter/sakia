@@ -19,7 +19,7 @@ from . import __version__
 from .options import SakiaOptions
 from sakia.data.connectors import BmaConnector
 from sakia.services import NetworkService, BlockchainService, IdentitiesService
-from sakia.data.repositories import MetaDatabase, BlockchainsRepo, CertificationsRepo, \
+from sakia.data.repositories import SakiaDatabase, BlockchainsRepo, CertificationsRepo, \
     IdentitiesRepo, NodesRepo, TransactionsRepo, ConnectionsRepo
 from sakia.data.processors import BlockchainProcessor, NodesProcessor, IdentitiesProcessor, CertificationsProcessor
 from sakia.data.files import AppDataFile, UserParametersFile
@@ -34,7 +34,7 @@ class Application(QObject):
     Saving and loading the application state
     """
 
-    def __init__(self, qapp, loop, options, app_data, parameters, connections_repo,
+    def __init__(self, qapp, loop, options, app_data, parameters, db,
                  network_services, blockchain_services, identities_services):
         """
         Init a new "sakia" application
@@ -43,7 +43,7 @@ class Application(QObject):
         :param sakia.options.SakiaOptions options: the options
         :param sakia.data.entities.AppData app_data: the application data
         :param sakia.data.entities.UserParameters parameters: the application current user parameters
-        :param sakia.data.repositories.ConnectionsRepo connections_repo: The connections repository
+        :param sakia.data.repositories.SakiaDatabase db: The database
         :param dict network_services: All network services for current currency
         :param dict blockchain_services: All network services for current currency
         :param dict identities_services: All network services for current currency
@@ -59,7 +59,7 @@ class Application(QObject):
         self._translator = QTranslator(self.qapp)
         self._app_data = app_data
         self._parameters = parameters
-        self.connections_repo = connections_repo
+        self.db = db
         self.network_services = network_services
         self.blockchain_services = blockchain_services
         self.identities_services = identities_services
@@ -82,27 +82,23 @@ class Application(QObject):
         :return:
         """
         self._parameters = UserParametersFile.in_config_path(self.options.config_path, profile_name).load_or_init()
-        meta = MetaDatabase.load_or_init(self.options.config_path, profile_name)
-        self.connections_repo = ConnectionsRepo(meta.conn)
-        certifications_repo = CertificationsRepo(meta.conn)
-        nodes_repo = NodesRepo(meta.conn)
-        blockchain_repo = BlockchainsRepo(meta.conn)
-        identities_repo = IdentitiesRepo(meta.conn)
+        self.db = SakiaDatabase.load_or_init(self.options.config_path, profile_name)
 
-        nodes_processor = NodesProcessor(nodes_repo)
+        nodes_processor = NodesProcessor(self.db.nodes_repo)
         bma_connector = BmaConnector(nodes_processor)
-        identities_processor = IdentitiesProcessor(identities_repo, bma_connector)
-        certs_processor = CertificationsProcessor(certifications_repo, bma_connector)
-        blockchain_processor = BlockchainProcessor(blockchain_repo, bma_connector)
+        identities_processor = IdentitiesProcessor(self.db.identities_repo, self.db.blockchains_repo, bma_connector)
+        certs_processor = CertificationsProcessor(self.db.certifications_repo, bma_connector)
+        blockchain_processor = BlockchainProcessor(self.db.blockchains_repo, bma_connector)
 
         self.blockchain_services = {}
         self.network_services = {}
         self.identities_services = {}
-        for currency in self.connections_repo.get_currencies():
-            self.identities_services[currency] = IdentitiesService(currency, identities_processor, certs_processor,
-                                                                   blockchain_processor)
+        for currency in self.db.connections_repo.get_currencies():
+            self.identities_services[currency] = IdentitiesService(currency, identities_processor,
+                                                                   certs_processor, blockchain_processor,
+                                                                   bma_connector)
             self.blockchain_services[currency] = BlockchainService(currency, blockchain_processor, bma_connector,
-                                                                   self.identities_service[currency])
+                                                                   self.identities_services[currency])
             self.network_services[currency] = NetworkService.load(currency, nodes_processor,
                                                                   self.blockchain_services[currency])
 

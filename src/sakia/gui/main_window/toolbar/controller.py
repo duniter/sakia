@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QDialog, QMessageBox
 
 from sakia.decorators import asyncify, once_at_a_time
 from sakia.gui.component.controller import ComponentController
-from sakia.gui.dialogs.account_cfg.controller import AccountConfigController
+from sakia.gui.dialogs.connection_cfg.controller import ConnectionConfigController
 from sakia.gui.dialogs.certification.controller import CertificationController
 from sakia.gui.dialogs.transfer.controller import TransferController
 from sakia.gui.widgets import toast
@@ -211,7 +211,7 @@ The process to join back the community later will have to be done again.""")
                                        community=self.model.community)
 
     def open_create_account_dialog(self):
-        AccountConfigController.create_account(self, self.model.app)
+        ConnectionConfigController.create_connection(self, self.model.app)
 
     def retranslateUi(self, widget):
         """

@@ -4,14 +4,17 @@ import logging
 import asyncio
 from ..entities import Identity
 from duniterpy.api import bma, errors
+from duniterpy import PROTOCOL_VERSION
+from duniterpy.key import SigningKey
+from duniterpy.documents import SelfCertification
 from aiohttp.errors import ClientError
 from sakia.errors import NoPeerAvailable
-from duniterpy.documents import BlockUID
 
 
 @attr.s
 class IdentitiesProcessor:
     _identities_repo = attr.ib()  # :type sakia.data.repositories.IdentitiesRepo
+    _blockchain_repo = attr.ib()  # :type sakia.data.repositories.BlockchainRepo
     _bma_connector = attr.ib()  # :type sakia.data.connectors.bma.BmaConnector
     _logger = attr.ib(default=attr.Factory(lambda: logging.getLogger('sakia')))
 
@@ -95,88 +98,42 @@ class IdentitiesProcessor:
         except sqlite3.IntegrityError:
             self._identities_repo.update(identity)
 
-    async def check_registered(self, currency, identity):
+    async def publish_selfcert(self, currency, identity, salt, password):
         """
-        Checks for the pubkey and the uid of an account in a community
-        :param str currency: The currency we check for registration
-        :param sakia.data.entities.Identity identity: the identity we check for registration
-        :return: (True if found, local value, network value)
+        Send our self certification to a target community
+        :param sakia.data.entities.Identity identity: The identity broadcasted
+        :param str salt: The account SigningKey salt
+        :param str password: The account SigningKey password
+        :param str currency: The currency target of the self certification
         """
+        blockchain = self._blockchain_repo.get_one(currency=currency)
+        block_uid = blockchain.current_buid
+        timestamp = blockchain.median_time
+        selfcert = SelfCertification(2,
+                                     currency,
+                                     identity.pubkey,
+                                     identity.uid,
+                                     block_uid,
+                                     None)
+        key = SigningKey(salt, password)
+        selfcert.sign([key])
+        self._logger.debug("Key publish : {0}".format(selfcert.signed_raw()))
 
-        def _parse_uid_certifiers(data):
-            return identity.uid == data['uid'], identity.uid, data['uid']
-
-        def _parse_uid_lookup(data):
-            timestamp = BlockUID.empty()
-            found_uid = ""
-            for result in data['results']:
-                if result["pubkey"] == identity.pubkey:
-                    uids = result['uids']
-                    for uid_data in uids:
-                        if BlockUID.from_str(uid_data["meta"]["timestamp"]) >= timestamp:
-                            timestamp = uid_data["meta"]["timestamp"]
-                            found_uid = uid_data["uid"]
-            return identity.uid == found_uid, identity.uid, found_uid
-
-        def _parse_pubkey_certifiers(data):
-            return identity.pubkey == data['pubkey'], identity.pubkey, data['pubkey']
-
-        def _parse_pubkey_lookup(data):
-            timestamp = BlockUID.empty()
-            found_uid = ""
-            found_result = ["", ""]
-            for result in data['results']:
-                uids = result['uids']
-                for uid_data in uids:
-                    if BlockUID.from_str(uid_data["meta"]["timestamp"]) >= timestamp:
-                        timestamp = BlockUID.from_str(uid_data["meta"]["timestamp"])
-                        found_uid = uid_data["uid"]
-                if found_uid == identity.uid:
-                    found_result = result['pubkey'], found_uid
-            if found_result[1] == identity.uid:
-                return identity.pubkey == found_result[0], identity.pubkey, found_result[0]
+        responses = await self._bma_connector.broadcast(currency, bma.wot.Add, {}, {'identity': selfcert.signed_raw()})
+        result = (False, "")
+        for r in responses:
+            if r.status == 200:
+                result = (True, (await r.json()))
+            elif not result[0]:
+                result = (False, (await r.text()))
             else:
-                return False, identity.pubkey, None
+                await r.release()
 
-        async def execute_requests(parsers, search):
-            tries = 0
-            request = bma.wot.CertifiersOf
-            nonlocal registered
-            # TODO: The algorithm is quite dirty
-            # Multiplying the tries without any reason...
-            while tries < 3 and not registered[0] and not registered[2]:
-                try:
-                    data = await self._bma_connector.get(currency, request, req_args={'search': search})
-                    if data:
-                        registered = parsers[request](data)
-                    tries += 1
-                except errors.DuniterError as e:
-                    if e.ucode in (errors.NO_MEMBER_MATCHING_PUB_OR_UID,
-                                   e.ucode == errors.NO_MATCHING_IDENTITY):
-                        if request == bma.wot.CertifiersOf:
-                            request = bma.wot.Lookup
-                            tries = 0
-                        else:
-                            tries += 1
-                    else:
-                        tries += 1
+        if result[0]:
+            identity.blockstamp = block_uid
+            identity.signature = selfcert.signatures[0]
+            identity.timestamp = timestamp
 
-        registered = (False, identity.uid, None)
-        # We execute search based on pubkey
-        # And look for account UID
-        uid_parsers = {
-            bma.wot.CertifiersOf: _parse_uid_certifiers,
-            bma.wot.Lookup: _parse_uid_lookup
-        }
-        await execute_requests(uid_parsers, identity.pubkey)
+        self.commit_identity(identity)
 
-        # If the uid wasn't found when looking for the pubkey
-        # We look for the uid and check for the pubkey
-        if not registered[0] and not registered[2]:
-            pubkey_parsers = {
-                bma.wot.CertifiersOf: _parse_pubkey_certifiers,
-                bma.wot.Lookup: _parse_pubkey_lookup
-            }
-            await execute_requests(pubkey_parsers, identity.uid)
-
-        return registered
+        return result

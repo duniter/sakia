@@ -52,12 +52,12 @@ class SakiaOptions:
 
         (options, args) = parser.parse_args(argv)
 
-        formatter = logging.Formatter('%(levelname)s:%(message)s')
         if options.debug:
             self._logger.setLevel(logging.DEBUG)
             formatter = logging.Formatter('%(levelname)s:%(module)s:%(funcName)s:%(message)s')
         elif options.verbose:
             self._logger.setLevel(logging.INFO)
+            formatter = logging.Formatter('%(levelname)s:%(message)s')
 
         logging.getLogger('quamash').setLevel(logging.INFO)
         file_handler = RotatingFileHandler(path.join(self.config_path, 'sakia.log'), 'a', 1000000, 10)

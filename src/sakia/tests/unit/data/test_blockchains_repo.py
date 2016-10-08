@@ -4,12 +4,14 @@ import unittest
 from duniterpy.documents import BlockUID
 
 from sakia.data.entities import Blockchain, BlockchainParameters
-from sakia.data.repositories import BlockchainsRepo, MetaDatabase
+from sakia.data.repositories import BlockchainsRepo, SakiaDatabase
 
 
 class TestBlockchainsRepo(unittest.TestCase):
     def setUp(self):
-        self.meta_repo = MetaDatabase.create(":memory:")
+        sqlite3.register_adapter(BlockUID, str)
+        self.meta_repo = SakiaDatabase(sqlite3.connect(":memory:", detect_types=sqlite3.PARSE_DECLTYPES),
+                                       None, None, None, None, None, None)
         self.meta_repo.prepare()
         self.meta_repo.upgrade_database()
 
@@ -42,6 +44,7 @@ class TestBlockchainsRepo(unittest.TestCase):
             86400,
             100000,
             0,
+            86400,
             999999,
             "testcurrency"
         ))
@@ -99,6 +102,7 @@ class TestBlockchainsRepo(unittest.TestCase):
             86400,
             100000,
             0,
+            86400,
             999999,
             "testcurrency"
         ))
@@ -126,6 +130,7 @@ class TestBlockchainsRepo(unittest.TestCase):
             86400,
             100000,
             0,
+            86400,
             999999,
             "testcurrency2"
         ))
@@ -166,6 +171,7 @@ class TestBlockchainsRepo(unittest.TestCase):
             86400,
             100000,
             0,
+            86400,
             999999,
             "testcurrency"
         )

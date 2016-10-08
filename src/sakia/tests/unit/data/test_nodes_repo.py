@@ -1,4 +1,4 @@
-from sakia.data.repositories import NodesRepo, MetaDatabase
+from sakia.data.repositories import NodesRepo, SakiaDatabase
 from sakia.data.entities import Node
 from duniterpy.documents import BlockUID, BMAEndpoint, UnknownEndpoint, block_uid
 import unittest
@@ -7,7 +7,7 @@ import sqlite3
 
 class TestNodesRepo(unittest.TestCase):
     def setUp(self):
-        self.meta_repo = MetaDatabase.create(":memory:")
+        self.meta_repo = SakiaDatabase(sqlite3.connect(":memory:", detect_types=sqlite3.PARSE_DECLTYPES))
         self.meta_repo.prepare()
         self.meta_repo.upgrade_database()
 

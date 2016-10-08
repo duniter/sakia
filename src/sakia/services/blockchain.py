@@ -28,7 +28,6 @@ class BlockchainService(QObject):
     async def handle_blockchain_progress(self):
         """
         Handle a new current block uid
-        :param duniterpy.documents.BlockUID new_block_uid: the new current blockuid
         """
         with_identities = await self._blockchain_processor.new_blocks_with_identities()
         with_money = await self._blockchain_processor.new_blocks_with_money()

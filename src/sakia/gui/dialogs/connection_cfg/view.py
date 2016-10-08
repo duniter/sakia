@@ -1,12 +1,14 @@
 from PyQt5.QtWidgets import QDialog
 from PyQt5.QtCore import pyqtSignal
-from .account_cfg_uic import Ui_AccountConfigurationDialog
+from .connection_cfg_uic import Ui_ConnectionConfigurationDialog
 from duniterpy.key import SigningKey
+from ...widgets import toast
+from ...widgets.dialogs import QAsyncMessageBox
 
 
-class AccountConfigView(QDialog, Ui_AccountConfigurationDialog):
+class ConnectionConfigView(QDialog, Ui_ConnectionConfigurationDialog):
     """
-    Home screen view
+    Connection config view
     """
     values_changed = pyqtSignal()
 
@@ -21,6 +23,33 @@ class AccountConfigView(QDialog, Ui_AccountConfigurationDialog):
         self.edit_password_repeat.textChanged.connect(self.values_changed)
         self.edit_salt.textChanged.connect(self.values_changed)
         self.button_generate.clicked.connect(self.action_show_pubkey)
+
+    def display_info(self, info):
+        self.label_info.setText(info)
+
+    def set_currency(self, currency):
+        self.label_currency.setText(currency)
+
+    def add_node_parameters(self):
+        server = self.lineedit_add_address.text()
+        port = self.spinbox_add_port.value()
+        return server, port
+
+    async def show_success(self, notification):
+        if notification:
+            toast.display(self.tr("UID broadcast"), self.tr("Identity broadcasted to the network"))
+        else:
+            await QAsyncMessageBox.information(self, self.tr("UID broadcast"),
+                                               self.tr("Identity broadcasted to the network"))
+
+    def show_error(self, notification, error_txt):
+        if notification:
+            toast.display(self.tr("UID broadcast"), error_txt)
+        self.label_info.setText(self.tr("Error") + " " + error_txt)
+
+    def set_nodes_model(self, model):
+        self.tree_peers.setModel(model)
+
 
     def set_creation_layout(self):
         """
@@ -55,3 +84,10 @@ class AccountConfigView(QDialog, Ui_AccountConfigurationDialog):
         :param sakia.models.communities.CommunitiesListModel model:
         """
         self.list_communities.setModel(model)
+
+    def stream_log(self, log):
+        """
+        Add log to
+        :param str log:
+        """
+        self.plain_text_edit.insertPlainText("\n" + log)

@@ -32,7 +32,7 @@ class NavigationModel(ComponentModel):
             }
         ]
         self._current_data = self.navigation[0]
-        for connection in self.app.connections_repo.get_all():
+        for connection in self.app.db.connections_repo.get_all():
             self.navigation[0]['children'].append({
                 'node': {
                     'title': connection.currency,

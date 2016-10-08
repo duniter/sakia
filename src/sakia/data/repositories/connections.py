@@ -17,7 +17,7 @@ class ConnectionsRepo:
         :param sakia.data.entities.Connection connection: the connection to commit
         """
         with self._conn:
-            connection_tuple = attr.astuple(connection)
+            connection_tuple = attr.astuple(connection, filter=attr.filters.exclude(Connection.password))
             values = ",".join(['?'] * len(connection_tuple))
             self._conn.execute("INSERT INTO connections VALUES ({0})".format(values), connection_tuple)
 
@@ -76,9 +76,8 @@ class ConnectionsRepo:
             c = self._conn.execute(request)
             datas = c.fetchall()
             if datas:
-                return [Connection(*data) for data in datas]
+                return [data[0] for data in datas]
         return []
-
 
     def drop(self, connection):
         """

@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import QApplication, QMessageBox
 
 from quamash import QSelectorEventLoop
 from sakia.app import Application
-from sakia.gui.dialogs.account_cfg.controller import AccountConfigController
+from sakia.gui.dialogs.connection_cfg.controller import ConnectionConfigController
 from sakia.gui.main_window.controller import MainWindowController
 
 
@@ -95,7 +95,7 @@ if __name__ == '__main__':
         loop.run_forever()
         try:
             loop.set_exception_handler(None)
-            loop.run_until_complete(app.stop())
+            #loop.run_until_complete(app.stop())
             logging.debug("Application stopped")
         except asyncio.CancelledError:
             logging.info('CancelledError')
