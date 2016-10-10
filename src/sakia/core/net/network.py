@@ -288,7 +288,7 @@ class Network(QObject):
         :return: the number of confirmations of a data
         :rtype: int
         """
-        if block_number:
+        if block_number is not None:
             if block_number > self.current_blockUID.number:
                 raise ValueError("Could not compute confirmations : data block number is after current block")
             return self.current_blockUID.number - block_number + 1
