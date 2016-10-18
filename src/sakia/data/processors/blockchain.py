@@ -1,6 +1,8 @@
 import attr
 import re
 from ..entities import Blockchain
+from .nodes import NodesProcessor
+from ..connectors import BmaConnector
 from duniterpy.api import bma, errors
 from duniterpy.documents import Block, BMAEndpoint
 import asyncio
@@ -10,6 +12,15 @@ import asyncio
 class BlockchainProcessor:
     _repo = attr.ib()  # :type sakia.data.repositories.CertificationsRepo
     _bma_connector = attr.ib()  # :type sakia.data.connectors.bma.BmaConnector
+
+    @classmethod
+    def instanciate(cls, app):
+        """
+        Instanciate a blockchain processor
+        :param sakia.app.Application app: the app
+        """
+        return cls(app.db.blockchains_repo,
+                   BmaConnector(NodesProcessor(app.db.nodes_repo)))
 
     def current_buid(self, currency):
         """
@@ -39,12 +50,12 @@ class BlockchainProcessor:
         """
         return self._repo.get_one({'currency': currency}).monetary_mass
 
-    def nb_members(self, currency):
+    def members_count(self, currency):
         """
         Get the number of members in the blockchain
         :rtype: int
         """
-        return self._repo.get_one({'currency': currency}).nb_members
+        return self._repo.get_one({'currency': currency}).members_count
 
     def last_ud(self, currency):
         """
@@ -53,6 +64,44 @@ class BlockchainProcessor:
         """
         blockchain = self._repo.get_one({'currency': currency})
         return blockchain.last_ud, blockchain.last_ud_base
+
+    def last_ud_time(self, currency):
+        """
+        Get the last ud time
+        :rtype: int
+        """
+        blockchain = self._repo.get_one({'currency': currency})
+        return blockchain.last_ud_time
+
+    def previous_monetary_mass(self, currency):
+        """
+        Get the local current monetary mass
+        :rtype: int
+        """
+        return self._repo.get_one({'currency': currency}).previous_mass
+
+    def previous_members_count(self, currency):
+        """
+        Get the local current monetary mass
+        :rtype: int
+        """
+        return self._repo.get_one({'currency': currency}).previous_members_count
+
+    def previous_ud(self, currency):
+        """
+        Get the previous ud value and base
+        :rtype: int, int
+        """
+        blockchain = self._repo.get_one({'currency': currency})
+        return blockchain.previous_ud, blockchain.previous_ud_base
+
+    def previous_ud_time(self, currency):
+        """
+        Get the previous ud time
+        :rtype: int
+        """
+        blockchain = self._repo.get_one({'currency': currency})
+        return blockchain.previous_ud_time
 
     async def new_blocks_with_identities(self, currency):
         """
@@ -66,13 +115,13 @@ class BlockchainProcessor:
                     bma.blockchain.Actives,
                     bma.blockchain.Excluded,
                     bma.blockchain.Newcomers):
-            future_requests.append(self._bma_connector.get(req))
+            future_requests.append(self._bma_connector.get(currency, req))
         results = await asyncio.gather(future_requests)
 
         for res in results:
             with_identities += res["result"]["blocks"]
 
-        local_current_buid = self.current_buid()
+        local_current_buid = self.current_buid(currency)
         return sorted([b for b in with_identities if b > local_current_buid.number])
 
     async def new_blocks_with_money(self, currency):
@@ -83,13 +132,13 @@ class BlockchainProcessor:
         with_money = []
         future_requests = []
         for req in (bma.blockchain.UD, bma.blockchain.TX):
-            future_requests.append(self._bma_connector.get(req))
+            future_requests.append(self._bma_connector.get(currency, req))
         results = await asyncio.gather(future_requests)
 
         for res in results:
             with_money += res["result"]["blocks"]
 
-        local_current_buid = self.current_buid()
+        local_current_buid = self.current_buid(currency)
         return sorted([b for b in with_money if b > local_current_buid.number])
 
     async def blocks(self, numbers, currency):
@@ -103,7 +152,7 @@ class BlockchainProcessor:
         to_block = max(numbers)
         count = to_block - from_block
 
-        blocks_data = await self._bma_connector.get(bma.blockchain.Blocks, req_args={'count': count,
+        blocks_data = await self._bma_connector.get(currency, bma.blockchain.Blocks, req_args={'count': count,
                                                                                      'from_': from_block})
         blocks = []
         for data in blocks_data:

@@ -104,4 +104,17 @@ CREATE TABLE IF NOT EXISTS connections(
                                PRIMARY KEY (currency, pubkey)
                                );
 
+-- Cnnections TABLE
+CREATE TABLE IF NOT EXISTS sources(
+                               identifier         VARCHAR(255),
+                               currency           VARCHAR(30),
+                               pubkey             VARCHAR(50),
+                               type               VARCHAR(8),
+                               offset             INT,
+                               amount             INT,
+                               base               INT,
+                               PRIMARY KEY (identifier)
+                               );
+
+
 

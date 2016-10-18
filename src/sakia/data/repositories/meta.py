@@ -9,6 +9,7 @@ from .blockchains import BlockchainsRepo
 from .certifications import CertificationsRepo
 from .transactions import TransactionsRepo
 from .nodes import NodesRepo
+from .sources import SourcesRepo
 
 
 @attr.s(frozen=True)
@@ -16,12 +17,13 @@ class SakiaDatabase:
     """The repository for Identities entities.
     """
     conn = attr.ib()  # :type sqlite3.Connection
-    connections_repo = attr.ib()
-    identities_repo = attr.ib()
-    blockchains_repo = attr.ib()
-    certifications_repo = attr.ib()
-    transactions_repo = attr.ib()
-    nodes_repo = attr.ib()
+    connections_repo = attr.ib(default=None)
+    identities_repo = attr.ib(default=None)
+    blockchains_repo = attr.ib(default=None)
+    certifications_repo = attr.ib(default=None)
+    transactions_repo = attr.ib(default=None)
+    nodes_repo = attr.ib(default=None)
+    sources_repo = attr.ib(default=None)
     _logger = attr.ib(default=attr.Factory(lambda: logging.getLogger('sakia')))
     db_file = 'sakia.db'
 
@@ -34,7 +36,7 @@ class SakiaDatabase:
                               detect_types=sqlite3.PARSE_DECLTYPES)
         meta = SakiaDatabase(con, ConnectionsRepo(con), IdentitiesRepo(con),
                              BlockchainsRepo(con), CertificationsRepo(con), TransactionsRepo(con),
-                             NodesRepo(con))
+                             NodesRepo(con), SourcesRepo(con))
         meta.prepare()
         meta.upgrade_database()
         return meta

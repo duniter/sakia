@@ -6,3 +6,4 @@ from .node import Node
 from .connection import Connection
 from .user_parameters import UserParameters
 from .app_data import AppData
+from .source import Source

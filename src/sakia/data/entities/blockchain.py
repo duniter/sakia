@@ -45,7 +45,7 @@ class Blockchain:
     # block number and hash
     current_buid = attr.ib(convert=block_uid, default=BlockUID.empty())
     # Number of members
-    nb_members = attr.ib(convert=int, default=0, cmp=False, hash=False)
+    members_count = attr.ib(convert=int, default=0, cmp=False, hash=False)
     # Current monetary mass in units
     current_mass = attr.ib(convert=int, default=0, cmp=False, hash=False)
     # Median time in seconds
@@ -58,5 +58,13 @@ class Blockchain:
     last_ud_time = attr.ib(convert=int, default=0, cmp=False, hash=False)
     # Previous monetary mass in units
     previous_mass = attr.ib(convert=int, default=0, cmp=False, hash=False)
+    # Previous members count
+    previous_members_count = attr.ib(convert=int, default=0, cmp=False, hash=False)
+    # Previous UD amount in units (multiply by 10^base)
+    previous_ud = attr.ib(convert=int, default=0, cmp=False, hash=False)
+    # Previous UD base
+    previous_ud_base = attr.ib(convert=int, default=0, cmp=False, hash=False)
+    # Previous UD base
+    previous_ud_time = attr.ib(convert=int, default=0, cmp=False, hash=False)
     # Currency name
     currency = attr.ib(convert=str, default="", cmp=False, hash=False)
