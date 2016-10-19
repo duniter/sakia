@@ -16,11 +16,11 @@ class TestSourcesRepo(unittest.TestCase):
 
     def test_add_get_drop_source(self):
         sources_repo = SourcesRepo(self.meta_repo.conn)
-        sources_repo.insert(Source("0835CEE9B4766B3866DD942971B3EE2CF953599EB9D35BFD5F1345879498B843",
-                                   "testcurrency",
+        sources_repo.insert(Source("testcurrency",
                                    "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
-                                   "T",
+                                   "0835CEE9B4766B3866DD942971B3EE2CF953599EB9D35BFD5F1345879498B843",
                                    3,
+                                   "T",
                                    1565,
                                    1))
         source = sources_repo.get_one(identifier="0835CEE9B4766B3866DD942971B3EE2CF953599EB9D35BFD5F1345879498B843")
@@ -29,7 +29,7 @@ class TestSourcesRepo(unittest.TestCase):
         self.assertEqual(source.type, "T")
         self.assertEqual(source.amount, 1565)
         self.assertEqual(source.base, 1)
-        self.assertEqual(source.offset, 3)
+        self.assertEqual(source.noffset, 3)
 
         sources_repo.drop(source)
         source = sources_repo.get_one(identifier="0835CEE9B4766B3866DD942971B3EE2CF953599EB9D35BFD5F1345879498B843")
@@ -37,18 +37,18 @@ class TestSourcesRepo(unittest.TestCase):
 
     def test_add_get_multiple_source(self):
         sources_repo = SourcesRepo(self.meta_repo.conn)
-        sources_repo.insert(Source("0835CEE9B4766B3866DD942971B3EE2CF953599EB9D35BFD5F1345879498B843",
-                                   "testcurrency",
+        sources_repo.insert(Source("testcurrency",
                                    "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
-                                   "T",
+                                   "0835CEE9B4766B3866DD942971B3EE2CF953599EB9D35BFD5F1345879498B843",
                                    3,
+                                   "T",
                                    1565,
                                    1))
-        sources_repo.insert(Source("2pyPsXM8UCB88jP2NRM4rUHxb63qm89JMEWbpoRrhyDK",
-                                   "testcurrency",
+        sources_repo.insert(Source("testcurrency",
                                    "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
-                                   "D",
+                                   "2pyPsXM8UCB88jP2NRM4rUHxb63qm89JMEWbpoRrhyDK",
                                    22635,
+                                   "D",
                                    726946,
                                    1))
         sources = sources_repo.get_all(currency="testcurrency", pubkey="FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn")

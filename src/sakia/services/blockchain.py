@@ -1,6 +1,6 @@
 from PyQt5.QtCore import QObject
 from duniterpy.api import bma
-import asyncio
+import math
 import logging
 
 
@@ -34,3 +34,38 @@ class BlockchainService(QObject):
         blocks = await self._blockchain_processor.blocks(with_identities + with_money)
         self._identities_service.handle_new_blocks(blocks)
 
+    def parameters(self):
+        return self._blockchain_processor.parameters(self.currency)
+
+    def members_count(self):
+        return self._blockchain_processor.members_count(self.currency)
+
+    def monetary_mass(self):
+        return self._blockchain_processor.monetary_mass(self.currency)
+
+    def last_ud(self):
+        return self._blockchain_processor.last_ud(self.currency)
+
+    def last_ud_time(self):
+        return self._blockchain_processor.last_ud_time(self.currency)
+
+    def previous_members_count(self):
+        return self._blockchain_processor.previous_members_count(self.currency)
+
+    def previous_monetary_mass(self):
+        return self._blockchain_processor.previous_monetary_mass(self.currency)
+
+    def previous_ud_time(self):
+        return self._blockchain_processor.previous_ud_time(self.currency)
+
+    def previous_ud(self):
+        return self._blockchain_processor.previous_ud(self.currency)
+
+    def computed_dividend(self):
+        """
+        Computes next dividend value
+        :rtype: int
+        """
+        parameters = self.parameters()
+        next_ud = parameters.c * self.monetary_mass() / self.nb_members()
+        return math.ceil(next_ud)

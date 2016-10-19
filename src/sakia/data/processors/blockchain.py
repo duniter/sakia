@@ -163,7 +163,7 @@ class BlockchainProcessor:
 
     async def initialize_blockchain(self, currency, log_stream):
         """
-        Start blockchain service if it does not exists
+        Initialize blockchain for a given currency if no source exists locally
         """
         blockchain = self._repo.get_one(currency=currency)
         if not blockchain:

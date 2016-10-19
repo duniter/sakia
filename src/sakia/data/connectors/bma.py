@@ -9,7 +9,6 @@ import jsonschema
 from pkg_resources import parse_version
 import attr
 from sakia.errors import NoPeerAvailable
-from sakia.data.processors import NodesProcessor
 
 
 @attr.s()
@@ -17,7 +16,7 @@ class BmaConnector:
     """
     This class is used to access BMA API.
     """
-    _nodes_processor = attr.ib(validator=attr.validators.instance_of(NodesProcessor))
+    _nodes_processor = attr.ib()
     _logger = attr.ib(default=attr.Factory(lambda: logging.getLogger('sakia')))
 
     def filter_endpoints(self, request, nodes):

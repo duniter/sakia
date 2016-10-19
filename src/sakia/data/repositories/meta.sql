@@ -18,31 +18,35 @@ CREATE TABLE IF NOT EXISTS identities(
 
 -- BLOCKCHAIN TABLE
 CREATE TABLE IF NOT EXISTS blockchains (
-  c                  FLOAT(1, 6),
-  dt                 INT,
-  ud0                INT,
-  sig_period         INT,
-  sig_stock          INT,
-  sig_window         INT,
-  sig_validity       INT,
-  sig_qty            INT,
-  xpercent           FLOAT(1, 6),
-  ms_validity        INT,
-  step_max           INT,
-  median_time_blocks INT,
-  avg_gen_time       INT,
-  dt_diff_eval       INT,
-  blocks_rot         INT,
-  percent_rot        FLOAT(1, 6),
-  current_buid  INT,
-  nb_members    INT,
-  current_mass  INT,
-  median_time   INT,
-  last_ud       INT,
-  last_ud_base  INT,
-  last_ud_time  INT,
-  previous_mass INT,
-  currency      VARCHAR(30),
+  c                             FLOAT(1, 6),
+  dt                            INT,
+  ud0                           INT,
+  sig_period                    INT,
+  sig_stock                     INT,
+  sig_window                    INT,
+  sig_validity                  INT,
+  sig_qty                       INT,
+  xpercent                      FLOAT(1, 6),
+  ms_validity                   INT,
+  step_max                      INT,
+  median_time_blocks            INT,
+  avg_gen_time                  INT,
+  dt_diff_eval                  INT,
+  blocks_rot                    INT,
+  percent_rot                   FLOAT(1, 6),
+  current_buid            INT,
+  members_count           INT,
+  current_mass            INT,
+  median_time             INT,
+  last_ud                 INT,
+  last_ud_base            INT,
+  last_ud_time            INT,
+  previous_mass           INT,
+  previous_members_count  INT,
+  previous_ud             INT,
+  previous_ud_base        INT,
+  previous_ud_time        INT,
+  currency                VARCHAR(30),
   PRIMARY KEY (currency)
 );
 
@@ -106,14 +110,14 @@ CREATE TABLE IF NOT EXISTS connections(
 
 -- Cnnections TABLE
 CREATE TABLE IF NOT EXISTS sources(
-                               identifier         VARCHAR(255),
                                currency           VARCHAR(30),
                                pubkey             VARCHAR(50),
+                               identifier         VARCHAR(255),
+                               noffset             INT,
                                type               VARCHAR(8),
-                               offset             INT,
                                amount             INT,
                                base               INT,
-                               PRIMARY KEY (identifier)
+                               PRIMARY KEY (currency, pubkey, identifier, noffset)
                                );
 
 
