@@ -34,9 +34,10 @@ class BlockchainsRepo:
             where_fields = attr.astuple(blockchain, filter=attr.filters.include(*BlockchainsRepo._primary_keys))
             self._conn.execute("""UPDATE blockchains SET
                               current_buid=?,
-                              members_count=?,
+                              current_members_count=?,
                               current_mass=?,
                               median_time=?,
+                              last_members_count=?,
                               last_ud=?,
                               last_ud_base=?,
                               last_ud_time=?,
