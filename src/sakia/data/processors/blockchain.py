@@ -27,42 +27,49 @@ class BlockchainProcessor:
         Get the local current blockuid
         :rtype: duniterpy.documents.BlockUID
         """
-        return self._repo.get_one({'currency': currency}).current_buid
+        return self._repo.get_one(currency=currency).current_buid
 
     def time(self, currency):
         """
         Get the local current median time
         :rtype: int
         """
-        return self._repo.get_one({'currency': currency}).median_time
+        return self._repo.get_one(currency=currency).median_time
 
     def parameters(self, currency):
         """
         Get the parameters of the blockchain
         :rtype: sakia.data.entities.BlockchainParameters
         """
-        return self._repo.get_one({'currency': currency}).parameters
+        return self._repo.get_one(currency=currency).parameters
 
-    def monetary_mass(self, currency):
+    def current_mass(self, currency):
         """
         Get the local current monetary mass
         :rtype: int
         """
-        return self._repo.get_one({'currency': currency}).monetary_mass
+        return self._repo.get_one(currency=currency).current_mass
 
-    def members_count(self, currency):
+    def current_members_count(self, currency):
         """
         Get the number of members in the blockchain
         :rtype: int
         """
-        return self._repo.get_one({'currency': currency}).members_count
+        return self._repo.get_one(currency=currency).current_members_count
+
+    def last_members_count(self, currency):
+        """
+        Get the last ud value and base
+        :rtype: int, int
+        """
+        return self._repo.get_one(currency=currency).last_members_count
 
     def last_ud(self, currency):
         """
         Get the last ud value and base
         :rtype: int, int
         """
-        blockchain = self._repo.get_one({'currency': currency})
+        blockchain = self._repo.get_one(currency=currency)
         return blockchain.last_ud, blockchain.last_ud_base
 
     def last_ud_time(self, currency):
@@ -70,7 +77,7 @@ class BlockchainProcessor:
         Get the last ud time
         :rtype: int
         """
-        blockchain = self._repo.get_one({'currency': currency})
+        blockchain = self._repo.get_one(currency=currency)
         return blockchain.last_ud_time
 
     def previous_monetary_mass(self, currency):
@@ -78,21 +85,21 @@ class BlockchainProcessor:
         Get the local current monetary mass
         :rtype: int
         """
-        return self._repo.get_one({'currency': currency}).previous_mass
+        return self._repo.get_one(currency=currency).previous_mass
 
     def previous_members_count(self, currency):
         """
         Get the local current monetary mass
         :rtype: int
         """
-        return self._repo.get_one({'currency': currency}).previous_members_count
+        return self._repo.get_one(currency=currency).previous_members_count
 
     def previous_ud(self, currency):
         """
         Get the previous ud value and base
         :rtype: int, int
         """
-        blockchain = self._repo.get_one({'currency': currency})
+        blockchain = self._repo.get_one(currency=currency)
         return blockchain.previous_ud, blockchain.previous_ud_base
 
     def previous_ud_time(self, currency):
@@ -100,7 +107,7 @@ class BlockchainProcessor:
         Get the previous ud time
         :rtype: int
         """
-        blockchain = self._repo.get_one({'currency': currency})
+        blockchain = self._repo.get_one(currency=currency)
         return blockchain.previous_ud_time
 
     async def new_blocks_with_identities(self, currency):
@@ -175,6 +182,7 @@ class BlockchainProcessor:
                 block = Block.from_signed_raw(signed_raw)
                 blockchain.current_buid = block.blockUID
                 blockchain.median_time = block.mediantime
+                blockchain.current_members_count = block.members_count
             except errors.DuniterError as e:
                 if e.ucode != errors.NO_CURRENT_BLOCK:
                     raise
@@ -191,11 +199,11 @@ class BlockchainProcessor:
                     block_with_ud = await self._bma_connector.get(currency, bma.blockchain.Block,
                                                                   req_args={'number': block_number})
                     if block_with_ud:
+                        blockchain.last_members_count = block_with_ud['membersCount']
                         blockchain.last_ud = block_with_ud['dividend']
                         blockchain.last_ud_base = block_with_ud['unitbase']
                         blockchain.last_ud_time = block_with_ud['medianTime']
                         blockchain.current_mass = block_with_ud['monetaryMass']
-                        blockchain.nb_members = block_with_ud['membersCount']
                 except errors.DuniterError as e:
                     if e.ucode != errors.NO_CURRENT_BLOCK:
                         raise
@@ -207,6 +215,10 @@ class BlockchainProcessor:
                     block_with_ud = await self._bma_connector.get(currency, bma.blockchain.Block,
                                                                   req_args={'number': block_number})
                     blockchain.previous_mass = block_with_ud['monetaryMass']
+                    blockchain.previous_members_count = block_with_ud['membersCount']
+                    blockchain.previous_ud = block_with_ud['dividend']
+                    blockchain.previous_ud_base = block_with_ud['unitbase']
+                    blockchain.previous_ud_time = block_with_ud['medianTime']
                 except errors.DuniterError as e:
                     if e.ucode != errors.NO_CURRENT_BLOCK:
                         raise

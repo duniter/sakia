@@ -37,14 +37,17 @@ class BlockchainService(QObject):
     def parameters(self):
         return self._blockchain_processor.parameters(self.currency)
 
-    def members_count(self):
-        return self._blockchain_processor.members_count(self.currency)
+    def current_members_count(self):
+        return self._blockchain_processor.current_members_count(self.currency)
 
-    def monetary_mass(self):
-        return self._blockchain_processor.monetary_mass(self.currency)
+    def current_mass(self):
+        return self._blockchain_processor.current_mass(self.currency)
 
     def last_ud(self):
         return self._blockchain_processor.last_ud(self.currency)
+
+    def last_members_count(self):
+        return self._blockchain_processor.last_members_count(self.currency)
 
     def last_ud_time(self):
         return self._blockchain_processor.last_ud_time(self.currency)
@@ -67,5 +70,5 @@ class BlockchainService(QObject):
         :rtype: int
         """
         parameters = self.parameters()
-        next_ud = parameters.c * self.monetary_mass() / self.nb_members()
+        next_ud = parameters.c * self.current_mass() / self.last_members_count()
         return math.ceil(next_ud)

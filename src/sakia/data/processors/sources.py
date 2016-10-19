@@ -45,3 +45,13 @@ class SourcesProcessor:
                     log_stream("{0}/{1} sources".format(i, len(sources_data['sources'])))
             except errors.DuniterError as e:
                 raise
+
+    def amount(self, currency, pubkey):
+        """
+        Get the amount value of the sources for a given pubkey
+        :param str currency: the currency of the sources
+        :param str pubkey: the pubkey owning the sources
+        :return:
+        """
+        sources = self._repo.get_all(currency=currency, pubkey=pubkey)
+        return sum([s.amount * (10**s.base) for s in sources])

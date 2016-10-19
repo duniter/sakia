@@ -38,9 +38,10 @@ class TestBlockchainsRepo(unittest.TestCase):
                 10,
                 0.66),
             current_buid="20-7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67",
-            members_count = 10,
+            current_members_count = 10,
             current_mass = 1000000,
             median_time = 86400,
+            last_members_count = 5,
             last_ud = 100000,
             last_ud_base = 0,
             last_ud_time = 86400,
@@ -73,7 +74,7 @@ class TestBlockchainsRepo(unittest.TestCase):
         self.assertEqual(blockchain.current_buid, BlockUID(20,
                                                            "7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67")
                          )
-        self.assertEqual(blockchain.members_count, 10)
+        self.assertEqual(blockchain.current_members_count, 10)
 
         blockchains_repo.drop(blockchain)
         blockchain = blockchains_repo.get_one(currency="testcurrency")
@@ -101,9 +102,10 @@ class TestBlockchainsRepo(unittest.TestCase):
                 0.66),
 
             current_buid="20-7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67",
-            members_count = 10,
+            current_members_count = 10,
             current_mass = 1000000,
             median_time = 86400,
+            last_members_count = 5,
             last_ud = 100000,
             last_ud_base = 0,
             last_ud_time = 86400,
@@ -133,9 +135,10 @@ class TestBlockchainsRepo(unittest.TestCase):
                 10,
                 0.66),
             current_buid="20-7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67",
-            members_count = 20,
+            current_members_count = 20,
             current_mass = 1000000,
             median_time = 86400,
+            last_members_count = 5,
             last_ud = 100000,
             last_ud_base = 0,
             last_ud_time = 86400,
@@ -151,11 +154,11 @@ class TestBlockchainsRepo(unittest.TestCase):
         # result sorted by currency name by default
         self.assertEquals(86400, blockchains[0].parameters.dt)
         self.assertEquals("testcurrency", blockchains[0].currency)
-        self.assertEquals(10, blockchains[0].members_count)
+        self.assertEquals(10, blockchains[0].current_members_count)
 
         self.assertEquals(86400*365, blockchains[1].parameters.dt)
         self.assertEquals("testcurrency2", blockchains[1].currency)
-        self.assertEquals(20, blockchains[1].members_count)
+        self.assertEquals(20, blockchains[1].current_members_count)
 
     def test_add_update_blockchain(self):
         blockchains_repo = BlockchainsRepo(self.meta_repo.conn)
@@ -178,9 +181,10 @@ class TestBlockchainsRepo(unittest.TestCase):
                 10,
                 0.66),
             current_buid="20-7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67",
-            members_count = 10,
+            current_members_count = 10,
             current_mass = 1000000,
             median_time = 86400,
+            last_members_count = 5,
             last_ud = 100000,
             last_ud_base = 0,
             last_ud_time = 86400,
@@ -192,7 +196,7 @@ class TestBlockchainsRepo(unittest.TestCase):
             currency = "testcurrency"
         )
         blockchains_repo.insert(blockchain)
-        blockchain.members_count = 30
+        blockchain.current_members_count = 30
         blockchains_repo.update(blockchain)
         blockchain2 = blockchains_repo.get_one(currency="testcurrency")
-        self.assertEquals(30, blockchain2.members_count)
+        self.assertEquals(30, blockchain2.current_members_count)

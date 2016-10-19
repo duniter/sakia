@@ -15,9 +15,10 @@ from duniterpy.api.bma import API
 from . import __version__
 from .options import SakiaOptions
 from sakia.data.connectors import BmaConnector
-from sakia.services import NetworkService, BlockchainService, IdentitiesService
+from sakia.services import NetworkService, BlockchainService, IdentitiesService, SourcesServices
 from sakia.data.repositories import SakiaDatabase
-from sakia.data.processors import BlockchainProcessor, NodesProcessor, IdentitiesProcessor, CertificationsProcessor
+from sakia.data.processors import BlockchainProcessor, NodesProcessor, IdentitiesProcessor, \
+    CertificationsProcessor, SourcesProcessor
 from sakia.data.files import AppDataFile, UserParametersFile
 from sakia.decorators import asyncify
 from sakia.money import Relative
@@ -85,11 +86,13 @@ class Application(QObject):
         bma_connector = BmaConnector(nodes_processor)
         identities_processor = IdentitiesProcessor(self.db.identities_repo, self.db.blockchains_repo, bma_connector)
         certs_processor = CertificationsProcessor(self.db.certifications_repo, bma_connector)
-        blockchain_processor = BlockchainProcessor(self.db.blockchains_repo, bma_connector)
+        blockchain_processor = BlockchainProcessor.instanciate(self)
+        sources_processor = SourcesProcessor.instanciate(self)
 
         self.blockchain_services = {}
         self.network_services = {}
         self.identities_services = {}
+        self.sources_services = {}
         for currency in self.db.connections_repo.get_currencies():
             self.identities_services[currency] = IdentitiesService(currency, identities_processor,
                                                                    certs_processor, blockchain_processor,
@@ -98,6 +101,7 @@ class Application(QObject):
                                                                    self.identities_services[currency])
             self.network_services[currency] = NetworkService.load(currency, nodes_processor,
                                                                   self.blockchain_services[currency])
+            self.sources_services[currency] = SourcesServices(currency, sources_processor, bma_connector)
 
     def set_proxy(self):
         if self.preferences['enable_proxy'] is True:
