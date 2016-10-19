@@ -1,5 +1,7 @@
 from PyQt5.QtCore import QObject, QCoreApplication, QT_TRANSLATE_NOOP, QLocale, QDateTime
 from .base_referential import BaseReferential
+from .currency import shortened
+from ..data.processors import BlockchainProcessor
 
 
 class RelativeToPast(BaseReferential):
@@ -24,8 +26,9 @@ class RelativeToPast(BaseReferential):
                                           This referential is practical to remember what was the value at the Time.
                                           """.replace('\n', '<br >'))
 
-    def __init__(self, amount, community, app, block_number=None):
-        super().__init__(amount, community, app, block_number)
+    def __init__(self, amount, currency, app, block_number=None):
+        super().__init__(amount, currency, app, block_number)
+        self._blockchain_processor = BlockchainProcessor.instanciate(self.app)
 
     @classmethod
     def translated_name(cls):
@@ -34,7 +37,7 @@ class RelativeToPast(BaseReferential):
     @property
     def units(self):
         return QCoreApplication.translate("RelativeToPast", RelativeToPast._UNITS_STR_).format('t',
-                                                                                               self.community.short_currency)
+                                                                                               shortened(self.currency))
     @property
     def formula(self):
         return QCoreApplication.translate('RelativeToPast', RelativeToPast._FORMULA_STR_)
@@ -72,7 +75,7 @@ class RelativeToPast(BaseReferential):
     async def localized(self, units=False, international_system=False):
         from . import Relative
         value = await self.value()
-        block = await self.community.get_ud_block()
+        last_ud_time = self._blockchain_processor.last_ud_time(self.currency)
         prefix = ""
         if international_system:
             localized_value, prefix = Relative.to_si(value, self.app.preferences['digits_after_comma'])
@@ -85,10 +88,10 @@ class RelativeToPast(BaseReferential):
                         prefix,
                         QLocale.toString(
                             QLocale(),
-                            QDateTime.fromTime_t(block['medianTime']).date(),
+                            QDateTime.fromTime_t(last_ud_time).date(),
                             QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
                         ),
-                        self.community.short_currency if units else "")
+                        shortened(self.currency) if units else "")
         else:
             return localized_value
 
@@ -111,6 +114,6 @@ class RelativeToPast(BaseReferential):
                         QDateTime.fromTime_t(block['medianTime']).date(),
                         QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
                     ),
-                    self.community.short_currency if units else "")
+                    shortened(self.currency) if units else "")
         else:
             return localized_value

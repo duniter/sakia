@@ -5,10 +5,7 @@ Created on 1 févr. 2014
 """
 
 import datetime
-import json
 import logging
-import os
-import tarfile
 
 import aiohttp
 from PyQt5.QtCore import QObject, pyqtSignal, QTranslator, QCoreApplication, QLocale
@@ -19,11 +16,11 @@ from . import __version__
 from .options import SakiaOptions
 from sakia.data.connectors import BmaConnector
 from sakia.services import NetworkService, BlockchainService, IdentitiesService
-from sakia.data.repositories import SakiaDatabase, BlockchainsRepo, CertificationsRepo, \
-    IdentitiesRepo, NodesRepo, TransactionsRepo, ConnectionsRepo
+from sakia.data.repositories import SakiaDatabase
 from sakia.data.processors import BlockchainProcessor, NodesProcessor, IdentitiesProcessor, CertificationsProcessor
 from sakia.data.files import AppDataFile, UserParametersFile
 from sakia.decorators import asyncify
+from sakia.money import Relative
 
 
 class Application(QObject):
@@ -177,3 +174,7 @@ class Application(QObject):
             logging.debug("Could not connect to github : {0}".format(str(e)))
         except Exception as e:
             pass
+
+    @property
+    def current_ref(self):
+        return Relative

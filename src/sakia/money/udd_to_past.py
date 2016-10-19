@@ -1,5 +1,7 @@
 from PyQt5.QtCore import QObject, QCoreApplication, QT_TRANSLATE_NOOP, QLocale, QDateTime
 from .base_referential import BaseReferential
+from .currency import shortened
+from ..data.processors import BlockchainProcessor
 
 
 class UDDToPast(BaseReferential):
@@ -27,8 +29,9 @@ class UDDToPast(BaseReferential):
                                           Relative value R is calculated by dividing the quantitative value Q by the
                                           """.replace('\n', '<br >'))
 
-    def __init__(self, amount, community, app, block_number=None):
-        super().__init__(amount, community, app, block_number)
+    def __init__(self, amount, currency, app, block_number=None):
+        super().__init__(amount, currency, app, block_number)
+        self._blockchain_processor = BlockchainProcessor.instanciate(self.app)
 
     @classmethod
     def translated_name(cls):

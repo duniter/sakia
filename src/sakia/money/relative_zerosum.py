@@ -1,6 +1,8 @@
 from PyQt5.QtCore import QCoreApplication, QT_TRANSLATE_NOOP, QLocale
 from .relative import Relative
 from .base_referential import BaseReferential
+from .currency import shortened
+from ..data.processors import BlockchainProcessor
 
 
 class RelativeZSum(BaseReferential):
@@ -25,8 +27,9 @@ class RelativeZSum(BaseReferential):
                                             the value is under the average value.
                                            """.replace('\n', '<br >'))
 
-    def __init__(self, amount, community, app, block_number=None):
-        super().__init__(amount, community, app, block_number)
+    def __init__(self, amount, currency, app, block_number=None):
+        super().__init__(amount, currency, app, block_number)
+        self._blockchain_processor = BlockchainProcessor.instanciate(self.app)
 
     @classmethod
     def translated_name(cls):
@@ -34,7 +37,7 @@ class RelativeZSum(BaseReferential):
 
     @property
     def units(self):
-        return QCoreApplication.translate("RelativeZSum", RelativeZSum._UNITS_STR_).format(self.community.short_currency)
+        return QCoreApplication.translate("RelativeZSum", RelativeZSum._UNITS_STR_).format(shortened(self.currency))
 
     @property
     def formula(self):
@@ -46,7 +49,7 @@ class RelativeZSum(BaseReferential):
 
     @property
     def diff_units(self):
-        return QCoreApplication.translate("Relative", Relative._UNITS_STR_).format(self.community.short_currency)
+        return QCoreApplication.translate("Relative", Relative._UNITS_STR_).format(shortened(self.currency))
 
     async def value(self):
         """
@@ -75,22 +78,22 @@ class RelativeZSum(BaseReferential):
         return relative_value - relative_median
 
     async def differential(self):
-        return await Relative(self.amount, self.community, self.app).value()
+        return await Relative(self.amount, self.currency, self.app).value()
 
     async def localized(self, units=False, international_system=False):
         value = await self.value()
 
         prefix = ""
         if international_system:
-            localized_value, prefix = Relative.to_si(value, self.app.preferences['digits_after_comma'])
+            localized_value, prefix = Relative.to_si(value, self.app.parameters.digits_after_comma)
         else:
-            localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
+            localized_value = QLocale().toString(float(value), 'f', self.app.parameters.digits_after_comma)
 
         if units or international_system:
             return QCoreApplication.translate("RelativeZSum", RelativeZSum._REF_STR_)\
                 .format(localized_value,
                         prefix,
-                        self.community.short_currency if units else "")
+                        shortened(self.currency) if units else "")
         else:
             return localized_value
 
@@ -99,12 +102,12 @@ class RelativeZSum(BaseReferential):
 
         prefix = ""
         if international_system and value != 0:
-            localized_value, prefix = Relative.to_si(value, self.app.preferences['digits_after_comma'])
+            localized_value, prefix = Relative.to_si(value, self.app.parameters.digits_after_comma)
         else:
-            localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
+            localized_value = QLocale().toString(float(value), 'f', self.app.parameters.digits_after_comma)
 
         if units or international_system:
             return QCoreApplication.translate("Relative", Relative._REF_STR_)\
-                .format(localized_value, prefix, self.community.short_currency if units else "")
+                .format(localized_value, prefix, shortened(self.currency) if units else "")
         else:
             return localized_value

@@ -1,5 +1,7 @@
 from PyQt5.QtCore import QCoreApplication, QT_TRANSLATE_NOOP, QLocale
 from .base_referential import BaseReferential
+from .currency import shortened
+from ..data.processors import BlockchainProcessor
 
 
 class Quantitative(BaseReferential):
@@ -16,8 +18,9 @@ class Quantitative(BaseReferential):
                                       )
     _DESCRIPTION_STR_ = QT_TRANSLATE_NOOP('Quantitative', "Base referential of the money. Units values are used here.")
 
-    def __init__(self, amount, community, app, block_number=None):
-        super().__init__(amount, community, app, block_number)
+    def __init__(self, amount, currency, app, block_number=None):
+        super().__init__(amount, currency, app, block_number)
+        self._blockchain_processor = BlockchainProcessor.instanciate(self.app)
 
     @classmethod
     def translated_name(cls):
@@ -25,7 +28,7 @@ class Quantitative(BaseReferential):
 
     @property
     def units(self):
-        return QCoreApplication.translate("Quantitative", Quantitative._UNITS_STR_).format(self.community.short_currency)
+        return QCoreApplication.translate("Quantitative", Quantitative._UNITS_STR_).format(shortened(self.currency))
 
     @property
     def formula(self):
@@ -81,7 +84,7 @@ class Quantitative(BaseReferential):
         value = await self.value()
         prefix = ""
         if international_system:
-            localized_value, prefix = Quantitative.to_si(value, self.app.preferences['digits_after_comma'])
+            localized_value, prefix = Quantitative.to_si(value, self.app.parameters.digits_after_comma)
         else:
             localized_value = QLocale().toString(float(value), 'f', 0)
 
@@ -90,7 +93,7 @@ class Quantitative(BaseReferential):
                                               Quantitative._REF_STR_) \
                 .format(localized_value,
                         prefix,
-                        self.community.short_currency if units else "")
+                        shortened(self.currency) if units else "")
         else:
             return localized_value
 
@@ -98,7 +101,7 @@ class Quantitative(BaseReferential):
         value = await self.differential()
         prefix = ""
         if international_system:
-            localized_value, prefix = Quantitative.to_si(value, self.app.preferences['digits_after_comma'])
+            localized_value, prefix = Quantitative.to_si(value, self.app.parameters.digits_after_comma)
         else:
             localized_value = QLocale().toString(float(value), 'f', 0)
 
@@ -107,6 +110,6 @@ class Quantitative(BaseReferential):
                                               Quantitative._REF_STR_) \
                 .format(localized_value,
                         prefix,
-                        self.community.short_currency if units else "")
+                        shortened(self.currency) if units else "")
         else:
             return localized_value

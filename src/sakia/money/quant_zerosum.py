@@ -1,6 +1,8 @@
 from PyQt5.QtCore import QCoreApplication, QT_TRANSLATE_NOOP, QLocale
 from . import Quantitative
 from .base_referential import BaseReferential
+from .currency import shortened
+from ..data.processors import BlockchainProcessor
 
 
 class QuantitativeZSum(BaseReferential):
@@ -26,8 +28,9 @@ class QuantitativeZSum(BaseReferential):
                                             the value is under the average value.
                                            """.replace('\n', '<br >'))
 
-    def __init__(self, amount, community, app, block_number=None):
-        super().__init__(amount, community, app, block_number)
+    def __init__(self, amount, currency, app, block_number=None):
+        super().__init__(amount, currency, app, block_number)
+        self._blockchain_processor = BlockchainProcessor.instanciate(self.app)
 
     @classmethod
     def translated_name(cls):
@@ -35,7 +38,7 @@ class QuantitativeZSum(BaseReferential):
 
     @property
     def units(self):
-        return QCoreApplication.translate("QuantitativeZSum", QuantitativeZSum._UNITS_STR_).format(self.community.short_currency)
+        return QCoreApplication.translate("QuantitativeZSum", QuantitativeZSum._UNITS_STR_).format(shortened(self.currency))
 
     @property
     def formula(self):
@@ -47,7 +50,7 @@ class QuantitativeZSum(BaseReferential):
 
     @property
     def diff_units(self):
-        return QCoreApplication.translate("Quantitative", Quantitative._UNITS_STR_).format(self.community.short_currency)
+        return QCoreApplication.translate("Quantitative", Quantitative._UNITS_STR_).format(shortened(self.currency))
 
     async def value(self):
         """
@@ -66,16 +69,16 @@ class QuantitativeZSum(BaseReferential):
         :param sakia.core.community.Community community: Community instance
         :return: int
         """
-        ud_block = await self.community.get_ud_block()
-        if ud_block and ud_block['membersCount'] > 0:
-            monetary_mass = await self.community.monetary_mass()
-            average = int(monetary_mass / ud_block['membersCount'])
+        last_members_count = self._blockchain_processor.last_members_count(self.currency)
+        monetary_mass = self._blockchain_processor.monetary_mass(self.currency)
+        if last_members_count != 0:
+            average = int(monetary_mass / last_members_count)
         else:
             average = 0
         return self.amount - average
 
     async def differential(self):
-        return await Quantitative(self.amount, self.community, self.app).value()
+        return await Quantitative(self.amount, self.currency, self.app).value()
 
     async def localized(self, units=False, international_system=False):
         value = await self.value()
@@ -91,10 +94,11 @@ class QuantitativeZSum(BaseReferential):
                                               QuantitativeZSum._REF_STR_) \
                 .format(localized_value,
                         prefix,
-                        self.community.short_currency if units else "")
+                        shortened(self.currency) if units else "")
         else:
             return localized_value
 
     async def diff_localized(self, units=False, international_system=False):
-        localized = await Quantitative(self.amount, self.community, self.app).localized(units, international_system)
+        localized = await Quantitative(self.amount, shortened(self.currency), self.app).localized(units,
+                                                                                                  international_system)
         return localized

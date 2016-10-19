@@ -1,6 +1,7 @@
-from PyQt5.QtCore import QObject, QCoreApplication, QT_TRANSLATE_NOOP, QLocale
 from .base_referential import BaseReferential
 from .udd_to_past import UDDToPast
+from .currency import shortened
+from ..data.processors import BlockchainProcessor
 
 from PyQt5.QtCore import QCoreApplication, QT_TRANSLATE_NOOP, QLocale
 
@@ -26,15 +27,16 @@ class DividendPerDay(BaseReferential):
                                           100 UDD equal the Universal Dividend created per day.
                                           """.replace('\n', '<br >'))
 
-    def __init__(self, amount, community, app, block_number=None):
-        super().__init__(amount, community, app, block_number)
+    def __init__(self, amount, currency, app, block_number=None):
+        super().__init__(amount, currency, app, block_number)
+        self._blockchain_processor = BlockchainProcessor.instanciate(self.app)
 
     @classmethod
-    def instance(cls, amount, community, app, block_number=None):
+    def instance(cls, amount, currency, app, block_number=None):
         if app.preferences['forgetfulness']:
-            return cls(amount, community, app, block_number)
+            return cls(amount, currency, app, block_number)
         else:
-            return UDDToPast(amount, community, app, block_number)
+            return UDDToPast(amount, currency, app, block_number)
 
     @classmethod
     def translated_name(cls):
@@ -42,7 +44,7 @@ class DividendPerDay(BaseReferential):
 
     @property
     def units(self):
-        return QCoreApplication.translate("DividendPerDay", DividendPerDay._UNITS_STR_).format(self.community.short_currency)
+        return QCoreApplication.translate("DividendPerDay", DividendPerDay._UNITS_STR_).format(shortened(self.currency))
 
     @property
     def formula(self):
@@ -65,14 +67,13 @@ class DividendPerDay(BaseReferential):
         R = UD(t) of one day
         t = last UD block time
 
-        :param int amount:   Value
         :param sakia.core.community.Community community: Community instance
         :return: float
         """
-        dividend = await self.community.dividend()
-        params = await self.community.parameters()
+        dividend, base = self._blockchain_processor.last_ud(self.currency)
+        params = await self._blockchain_processor.parameters(self.currency)
         if dividend > 0:
-            return (self.amount * 100) / (float(dividend) / (params['dt'] / 86400))
+            return (self.amount * 100) / (float(dividend * (10**base)) / (params.dt / 86400))
         else:
             return self.amount
 
@@ -82,25 +83,25 @@ class DividendPerDay(BaseReferential):
     async def localized(self, units=False, international_system=False):
         value = await self.value()
         prefix = ""
-        localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
+        localized_value = QLocale().toString(float(value), 'f', self.app.parameters.digits_after_comma)
 
         if units or international_system:
             return QCoreApplication.translate("Relative", DividendPerDay._REF_STR_) \
                 .format(localized_value,
                         prefix,
-                        self.community.short_currency if units else "")
+                        shortened(self.currency) if units else "")
         else:
             return localized_value
 
     async def diff_localized(self, units=False, international_system=False):
         value = await self.differential()
         prefix = ""
-        localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
+        localized_value = QLocale().toString(float(value), 'f', self.app.parameters.digits_after_comma)
 
         if units or international_system:
             return QCoreApplication.translate("Relative", DividendPerDay._REF_STR_) \
                 .format(localized_value,
                         prefix,
-                        self.community.short_currency if units else "")
+                        shortened(self.currency) if units else "")
         else:
             return localized_value

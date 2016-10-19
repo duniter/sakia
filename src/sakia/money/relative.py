@@ -1,6 +1,7 @@
-from PyQt5.QtCore import QObject, QCoreApplication, QT_TRANSLATE_NOOP, QLocale
 from .base_referential import BaseReferential
 from .relative_to_past import RelativeToPast
+from .currency import shortened
+from ..data.processors import BlockchainProcessor
 
 from PyQt5.QtCore import QCoreApplication, QT_TRANSLATE_NOOP, QLocale
 
@@ -28,15 +29,24 @@ class Relative(BaseReferential):
                                            the average.
                                           """.replace('\n', '<br >'))
 
-    def __init__(self, amount, community, app, block_number=None):
-        super().__init__(amount, community, app, block_number)
+    def __init__(self, amount, currency, app, block_number=None):
+        super().__init__(amount, currency, app, block_number)
+        self._blockchain_processor = BlockchainProcessor.instanciate(self.app)
 
     @classmethod
-    def instance(cls, amount, community, app, block_number=None):
-        if app.preferences['forgetfulness']:
-            return cls(amount, community, app, block_number)
+    def instance(cls, amount, currency, app, block_number=None):
+        """
+
+        :param int amount:
+        :param str currency:
+        :param sakia.app.Application app:
+        :param int block_number:
+        :return:
+        """
+        if app.parameters.forgetfulness:
+            return cls(amount, currency, app, block_number)
         else:
-            return RelativeToPast(amount, community, app, block_number)
+            return RelativeToPast(amount, currency, app, block_number)
 
     @classmethod
     def translated_name(cls):
@@ -44,7 +54,7 @@ class Relative(BaseReferential):
 
     @property
     def units(self):
-            return QCoreApplication.translate("Relative", Relative._UNITS_STR_).format(self.community.short_currency)
+            return QCoreApplication.translate("Relative", Relative._UNITS_STR_).format(shortened(self.currency))
 
     @property
     def formula(self):
@@ -68,9 +78,9 @@ class Relative(BaseReferential):
         :param sakia.core.community.Community community: Community instance
         :return: float
         """
-        dividend = await self.community.dividend()
+        dividend, base = self._blockchain_processor.last_ud(self.currency)
         if dividend > 0:
-            return self.amount / float(dividend)
+            return self.amount / float(dividend * (10**base))
         else:
             return self.amount
 
@@ -105,15 +115,15 @@ class Relative(BaseReferential):
         value = await self.value()
         prefix = ""
         if international_system:
-            localized_value, prefix = Relative.to_si(value, self.app.preferences['digits_after_comma'])
+            localized_value, prefix = Relative.to_si(value, self.app.parameters.digits_after_comma)
         else:
-            localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
+            localized_value = QLocale().toString(float(value), 'f', self.app.parameters.digits_after_comma)
 
         if units or international_system:
             return QCoreApplication.translate("Relative", Relative._REF_STR_) \
                 .format(localized_value,
                         prefix,
-                        self.community.short_currency if units else "")
+                        shortened(self.currency) if units else "")
         else:
             return localized_value
 
@@ -121,14 +131,14 @@ class Relative(BaseReferential):
         value = await self.differential()
         prefix = ""
         if international_system and value != 0:
-            localized_value, prefix = Relative.to_si(value, self.app.preferences['digits_after_comma'])
+            localized_value, prefix = Relative.to_si(value, self.app.parameters.digits_after_comma)
         else:
-            localized_value = QLocale().toString(float(value), 'f', self.app.preferences['digits_after_comma'])
+            localized_value = QLocale().toString(float(value), 'f', self.app.parameters.digits_after_comma)
 
         if units or international_system:
             return QCoreApplication.translate("Relative", Relative._REF_STR_) \
                 .format(localized_value,
                         prefix,
-                        self.community.short_currency if units else "")
+                        shortened(self.currency) if units else "")
         else:
             return localized_value
