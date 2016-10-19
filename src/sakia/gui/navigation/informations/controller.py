@@ -22,7 +22,6 @@ class InformationsController(ComponentController):
         :param sakia.gui.informations.model.InformationsModel model: the model
         """
         super().__init__(parent, view, model)
-        self.init_view_text()
 
     @property
     def informations_view(self):
@@ -33,13 +32,15 @@ class InformationsController(ComponentController):
 
     @classmethod
     def create(cls, parent, app, **kwargs):
-        account = kwargs['account']
-        community = kwargs['community']
+        connection = kwargs['connection']
+        blockchain_service = kwargs['blockchain_service']
+        sources_service = kwargs['sources_service']
 
         view = InformationsView(parent.view)
-        model = InformationsModel(None, app, account, community)
+        model = InformationsModel(None, app, connection, blockchain_service, sources_service)
         informations = cls(parent, view, model)
         model.setParent(informations)
+        informations.init_view_text()
         return informations
 
     @property

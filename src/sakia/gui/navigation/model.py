@@ -38,36 +38,38 @@ class NavigationModel(ComponentModel):
                     'title': connection.currency,
                     'component': "Informations",
                     'blockchain_service': self.app.blockchain_services[connection.currency],
+                    'sources_service': self.app.sources_services[connection.currency],
+                    'connection':connection,
                 },
                 'children': [
-                    {
-                        'node': {
-                            'title': self.tr('Transfers'),
-                            'icon': ':/icons/tx_icon',
-                            'component': "TxHistory",
-                        }
-                    },
-                    {
-                        'node': {
-                            'title': self.tr('Network'),
-                            'icon': ':/icons/network_icon',
-                            'component': "Network",
-                        }
-                    },
-                    {
-                        'node': {
-                            'title': self.tr('Identities'),
-                            'icon': ':/icons/members_icon',
-                            'component': "Identities",
-                        }
-                    },
-                    {
-                        'node': {
-                            'title': self.tr('Web of Trust'),
-                            'icon': ':/icons/wot_icon',
-                            'component': "Wot",
-                        }
-                    }
+            #        {
+            #            'node': {
+            #                'title': self.tr('Transfers'),
+            #                'icon': ':/icons/tx_icon',
+            #                'component': "TxHistory",
+            #            }
+            #        },
+            #        {
+            #            'node': {
+            #                'title': self.tr('Network'),
+            #                'icon': ':/icons/network_icon',
+            #                'component': "Network",
+            #            }
+            #        },
+            #        {
+            #            'node': {
+            #                'title': self.tr('Identities'),
+            #                'icon': ':/icons/members_icon',
+            #                'component': "Identities",
+            #            }
+            #        },
+            #        {
+            #            'node': {
+            #                'title': self.tr('Web of Trust'),
+            #                'icon': ':/icons/wot_icon',
+            #                'component': "Wot",
+            #            }
+            #        }
                 ]
             })
         return self.navigation

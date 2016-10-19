@@ -186,7 +186,7 @@ class InformationsView(QWidget, Ui_InformationsWidget):
     def set_money_text(self, params, currency):
         """
         Set text from money parameters
-        :param dict params: Parameters of the currency
+        :param sakia.data.entities.BlockchainParameters params: Parameters of the currency
         :param str currency: The currency
         """
 
@@ -204,23 +204,23 @@ class InformationsView(QWidget, Ui_InformationsWidget):
             <tr><td align="right"><b>{:2.0%}</b></td><td>{:}</td></tr>
             </table>
             """).format(
-                        params['c'],
-                        params['dt'] / 86400,
+                        params.c,
+                        params.dt / 86400,
                         self.tr('Fundamental growth (c)'),
-                        params['ud0'],
+                        params.ud0,
                         self.tr('Initial Universal Dividend UD(0) in'),
                         currency,
-                        params['dt'] / 86400,
+                        params.dt / 86400,
                         self.tr('Time period (dt) in days (86400 seconds) between two UD'),
-                        params['medianTimeBlocks'],
+                        params.median_time_blocks,
                         self.tr('Number of blocks used for calculating median time'),
-                        params['avgGenTime'],
+                        params.avg_gen_time,
                         self.tr('The average time in seconds for writing 1 block (wished time)'),
-                        params['dtDiffEval'],
+                        params.dt_diff_eval,
                         self.tr('The number of blocks required to evaluate again PoWMin value'),
-                        params['blocksRot'],
+                        params.blocks_rot,
                         self.tr('The number of previous blocks to check for personalized difficulty'),
-                        params['percentRot'],
+                        params.percent_rot,
                         self.tr('The percent of previous issuers to reach for personalized difficulty')
                 )
         )
@@ -228,7 +228,7 @@ class InformationsView(QWidget, Ui_InformationsWidget):
     def set_wot_text(self, params):
         """
         Set wot text from currency parameters
-        :param dict parameters:
+        :param sakia.data.entities.BlockchainParameters params: Parameters of the currency
         :return:
         """
 
@@ -246,19 +246,19 @@ class InformationsView(QWidget, Ui_InformationsWidget):
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             </table>
             """).format(
-                        params['sigPeriod'] / 86400,
+                        params.sig_period / 86400,
                         self.tr('Minimum delay between 2 certifications (in days)'),
-                        params['sigValidity'] / 86400,
+                        params.sig_validity / 86400,
                         self.tr('Maximum age of a valid signature (in days)'),
-                        params['sigQty'],
+                        params.sig_qty,
                         self.tr('Minimum quantity of signatures to be part of the WoT'),
-                        params['sigStock'],
+                        params.sig_stock,
                         self.tr('Maximum quantity of active certifications made by member.'),
-                        params['sigWindow'],
+                        params.sig_window,
                         self.tr('Maximum delay a certification can wait before being expired for non-writing.'),
-                        params['xpercent'],
+                        params.xpercent,
                         self.tr('Minimum percent of sentries to reach to match the distance rule'),
-                        params['msValidity'] / 86400,
+                        params.ms / 86400,
                         self.tr('Maximum age of a valid membership (in days)'),
                         params['stepMax'],
                         self.tr('Maximum distance between each WoT member and a newcomer'),

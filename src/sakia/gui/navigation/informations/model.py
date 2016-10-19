@@ -4,6 +4,7 @@ import math
 from PyQt5.QtCore import QLocale, QDateTime, pyqtSignal
 from sakia.errors import NoPeerAvailable
 
+from sakia.money.currency import shortened
 from sakia.gui.component.model import ComponentModel
 from sakia.money import Referentials
 
@@ -14,111 +15,109 @@ class InformationsModel(ComponentModel):
     """
     localized_data_changed = pyqtSignal(dict)
 
-    def __init__(self, parent, app, account, community):
+    def __init__(self, parent, app, connection, blockchain_service, sources_service):
         """
         Constructor of an component
 
         :param sakia.gui.informations.controller.InformationsController parent: the controller
-        :param sakia.core.Application app: the app
-        :param sakia.core.Account account: the account
-        :param sakia.core.Community community: the community
+        :param sakia.app.Application app: the app
+        :param sakia.data.entities.Connection connection: the user connection of this node
+        :param sakia.services.BlockchainService blockchain_service: the service watching the blockchain state
+        :param sakia.services.SourcesService sources_service: the service watching the sources states
         """
         super().__init__(parent)
         self.app = app
-        self.account = account
-        self.community = community
+        self.connection = connection
+        self.blockchain_service = blockchain_service
+        self.sources_service = sources_service
 
     async def get_localized_data(self):
         localized_data = {}
         #  try to request money parameters
         try:
-            params = await self.community.parameters()
+            params = self.blockchain_service.parameters()
         except NoPeerAvailable as e:
             logging.debug('community parameters error : ' + str(e))
             return None
 
-        localized_data['growth'] = params['c']
-        localized_data['days_per_dividend'] = params['dt'] / 86400
+        localized_data['growth'] = params.c
+        localized_data['days_per_dividend'] = params.dt / 86400
 
-        try:
-            block_ud = await self.community.get_ud_block()
-        except NoPeerAvailable as e:
-            logging.debug('community get_ud_block error : ' + str(e))
+        last_ud, last_ud_base = self.blockchain_service.last_ud()
+        members_count = self.blockchain_service.last_members_count()
+        previous_ud, previous_ud_base = self.blockchain_service.previous_ud()
+        previous_ud_time = self.blockchain_service.previous_ud_time()
+        previous_monetary_mass = self.blockchain_service.previous_monetary_mass()
+        previous_members_count = self.blockchain_service.previous_members_count()
 
-        try:
-            block_ud_minus_1 = await self.community.get_ud_block(x=1)
-        except NoPeerAvailable as e:
-            logging.debug('community get_ud_block error : ' + str(e))
+        localized_data['units'] = self.app.current_ref.instance(0, self.connection.currency, self.app, None).units
+        localized_data['diff_units'] = self.app.current_ref.instance(0, self.connection.currency, self.app, None).diff_units
 
-        localized_data['units'] = self.account.current_ref.instance(0, self.community, self.app, None).units
-        localized_data['diff_units'] = self.account.current_ref.instance(0, self.community, self.app, None).diff_units
-
-        if block_ud:
+        if last_ud:
             # display float values
-            localized_data['ud'] = await self.account.current_ref.instance(block_ud['dividend'] * math.pow(10, block_ud['unitbase']),
-                                              self.community,
+            localized_data['ud'] = await self.app.current_ref.instance(last_ud * math.pow(10, last_ud_base),
+                                              self.connection.currency,
                                               self.app) \
-                .diff_localized(True, self.app.preferences['international_system_of_units'])
+                .diff_localized(True, self.app.parameters.international_system_of_units)
 
-            localized_data['members_count'] = block_ud['membersCount']
+            localized_data['members_count'] = self.blockchain_service.current_members_count()
 
-            computed_dividend = await self.community.computed_dividend()
+            computed_dividend = self.blockchain_service.computed_dividend()
             # display float values
-            localized_data['ud_plus_1'] = await self.account.current_ref.instance(computed_dividend,
-                                              self.community, self.app) \
-                .diff_localized(True, self.app.preferences['international_system_of_units'])
+            localized_data['ud_plus_1'] = await self.app.current_ref.instance(computed_dividend,
+                                              self.connection.currency, self.app) \
+                .diff_localized(True, self.app.parameters.international_system_of_units)
 
-            localized_data['mass'] = await self.account.current_ref.instance(block_ud['monetaryMass'],
-                                              self.community, self.app) \
-                .diff_localized(True, self.app.preferences['international_system_of_units'])
+            localized_data['mass'] = await self.app.current_ref.instance(self.blockchain_service.current_mass(),
+                                              self.connection.currency, self.app) \
+                .diff_localized(True, self.app.parameters.international_system_of_units)
 
             localized_data['ud_median_time'] = QLocale.toString(
                 QLocale(),
-                QDateTime.fromTime_t(block_ud['medianTime']),
+                QDateTime.fromTime_t(self.blockchain_service.last_ud_time()),
                 QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
             )
 
             localized_data['next_ud_median_time'] = QLocale.toString(
                 QLocale(),
-                QDateTime.fromTime_t(block_ud['medianTime'] + params['dt']),
+                QDateTime.fromTime_t(self.blockchain_service.last_ud_time() + params.dt),
                 QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
             )
 
-            if block_ud_minus_1:
-                mass_minus_1 = (float(0) if block_ud['membersCount'] == 0 else
-                                block_ud_minus_1['monetaryMass'] / block_ud['membersCount'])
-                localized_data['mass_minus_1_per_member'] = await self.account.current_ref.instance(mass_minus_1,
-                                                  self.community, self.app) \
-                                                .diff_localized(True, self.app.preferences['international_system_of_units'])
-                localized_data['mass_minus_1'] = await self.account.current_ref.instance(block_ud_minus_1['monetaryMass'],
-                                                  self.community, self.app) \
-                                                    .diff_localized(True, self.app.preferences['international_system_of_units'])
+            if previous_ud:
+                mass_minus_1_per_member = (float(0) if previous_ud == 0 else
+                                           previous_monetary_mass / previous_members_count)
+                localized_data['mass_minus_1_per_member'] = await self.app.current_ref.instance(mass_minus_1_per_member,
+                                                  self.connection.currency, self.app) \
+                                                .diff_localized(True, self.app.parameters.international_system_of_units)
+                localized_data['mass_minus_1'] = await self.app.current_ref.instance(previous_monetary_mass,
+                                                  self.connection.currency, self.app) \
+                                                    .diff_localized(True, self.app.parameters.international_system_of_units)
                 # avoid divide by zero !
-                if block_ud['membersCount'] == 0 or block_ud_minus_1['monetaryMass'] == 0:
+                if members_count == 0 or previous_members_count == 0:
                     localized_data['actual_growth'] = float(0)
                 else:
-                    localized_data['actual_growth'] = (block_ud['dividend'] * math.pow(10, block_ud['unitbase'])) / (
-                    block_ud_minus_1['monetaryMass'] / block_ud['membersCount'])
+                    localized_data['actual_growth'] = (last_ud * math.pow(10, last_ud_base)) / (
+                    previous_monetary_mass / members_count)
 
                 localized_data['ud_median_time_minus_1'] = QLocale.toString(
                     QLocale(),
-                    QDateTime.fromTime_t(block_ud_minus_1['medianTime']),
+                    QDateTime.fromTime_t(previous_ud_time),
                     QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
                 )
         return localized_data
 
     async def get_identity_data(self):
-        amount = await self.app.current_account.amount(self.community)
-        localized_amount = await self.app.current_account.current_ref.instance(amount,
-                                                                               self.community, self.app).localized(
-            units=True,
-            international_system=self.app.preferences['international_system_of_units'])
-        account_identity = await self.app.current_account.identity(self.community)
+        amount = self.sources_service.amount(self.connection.pubkey)
+        localized_amount = await self.app.current_ref.instance(amount, self.connection.currency, self.app)\
+                                                            .localized(units=True,
+                                                                       international_system=self.app.parameters.international_system_of_units)
+        account_identity = await self.app.current_account.identity(self.connection.currency)
 
         mstime_remaining_text = self.tr("Expired or never published")
         outdistanced_text = self.tr("Outdistanced")
 
-        requirements = await account_identity.requirements(self.community)
+        requirements = await account_identity.requirements(self.connection.currency)
         mstime_remaining = 0
         nb_certs = 0
         if requirements:
@@ -149,13 +148,7 @@ class InformationsModel(ComponentModel):
         """
         Get community parameters
         """
-        #  try to request money parameters
-        try:
-            params = await self.community.parameters()
-        except NoPeerAvailable as e:
-            logging.debug('community parameters error : ' + str(e))
-            return None
-        return params
+        return self.blockchain_service.parameters()
 
     def referentials(self):
         """
@@ -165,7 +158,7 @@ class InformationsModel(ComponentModel):
         """
         refs_instances = []
         for ref_class in Referentials:
-             refs_instances.append(ref_class(0, self.community, self.app, None))
+             refs_instances.append(ref_class(0, self.connection.currency, self.app, None))
         return refs_instances
 
     def short_currency(self):
@@ -173,4 +166,4 @@ class InformationsModel(ComponentModel):
         Get community currency
         :return: the community in short currency format
         """
-        return self.community.short_currency
+        return shortened(self.connection.currency)

@@ -148,14 +148,17 @@ class ConnectionConfigController(ComponentController):
         self.view.progress_bar.setMaximum(3)
         await self.model.initialize_blockchain(self.view.stream_log)
         self.view.progress_bar.setValue(1)
-        self.view.display_info(self.tr("Broadcasting identity..."))
-        self.view.stream_log("Broadcasting identity...")
-        password = await self.password_asker.async_exec()
-        result = await self.model.publish_selfcert(self.model.connection.salt, password)
-        if result[0]:
-            self.view.show_success(self.model.notification())
-        else:
-            self.view.show_error(self.model.notification(), result[1])
+        await self.model.initialize_sources(self.view.stream_log)
+        self.view.progress_bar.setValue(3)
+        if mode == ConnectionConfigController.REGISTER:
+            self.view.display_info(self.tr("Broadcasting identity..."))
+            self.view.stream_log("Broadcasting identity...")
+            password = await self.password_asker.async_exec()
+            result = await self.model.publish_selfcert(self.model.connection.salt, password)
+            if result[0]:
+                self.view.show_success(self.model.notification())
+            else:
+                self.view.show_error(self.model.notification(), result[1])
         self._logger.debug("Validate changes")
         self.accept()
 
@@ -191,7 +194,7 @@ class ConnectionConfigController(ComponentController):
     @asyncify
     async def check_connect(self, checked=False):
         self._logger.debug("Is valid ? ")
-        self.view.display_info.setText(self.tr("connecting..."))
+        self.view.display_info(self.tr("connecting..."))
         try:
             salt = self.view.edit_salt.text()
             password = self.view.edit_password.text()
@@ -226,7 +229,7 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
                 self.view.display_info(self.tr("""Your pubkey or UID was already found on the network.
 Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
             else:
-                self.display_info("Your account already exists on the network")
+                self.view.display_info("Your account already exists on the network")
         except NoPeerAvailable:
             self.view.display_info(self.tr("Could not connect. Check node peering entry"))
 

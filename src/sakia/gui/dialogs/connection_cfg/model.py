@@ -5,7 +5,7 @@ from duniterpy.api import bma, errors
 from duniterpy.key import SigningKey
 from sakia.data.entities import Connection, Identity, Blockchain, Node
 from sakia.data.connectors import NodeConnector, BmaConnector
-from sakia.data.processors import ConnectionsProcessor, NodesProcessor, BlockchainProcessor
+from sakia.data.processors import ConnectionsProcessor, NodesProcessor, BlockchainProcessor, SourcesProcessor
 from sakia.gui.component.model import ComponentModel
 
 
@@ -59,9 +59,17 @@ class ConnectionConfigModel(ComponentModel):
         :param function log_stream: a method to log data in the screen
         :return:
         """
-        blockchain_processor = BlockchainProcessor(self.app.db.blockchains_repo,
-                                                       BmaConnector(NodesProcessor(self.app.db.nodes_repo)))
+        blockchain_processor = BlockchainProcessor.instanciate(self.app)
         await blockchain_processor.initialize_blockchain(self.node_connector.node.currency, log_stream)
+
+    async def initialize_sources(self, log_stream):
+        """
+        Download sources information locally
+        :param function log_stream: a method to log data in the screen
+        :return:
+        """
+        sources_processor = SourcesProcessor.instanciate(self.app)
+        await sources_processor.initialize_sources(self.node_connector.node.currency, self.connection.pubkey, log_stream)
 
     async def publish_selfcert(self, salt, password):
         """"
