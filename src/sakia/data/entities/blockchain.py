@@ -14,12 +14,16 @@ class BlockchainParameters:
     sig_period = attr.ib(convert=int, default=0, cmp=False, hash=False)
     # Maximum quantity of active certifications made by member
     sig_stock = attr.ib(convert=int, default=0, cmp=False, hash=False)
-    # Maximum delay in seconds a certification can wait before being expired for non-writing
-    sig_window = attr.ib(convert=int, default=0, cmp=False, hash=False)
     # Maximum age of a active signature (in seconds)
     sig_validity = attr.ib(convert=int, default=0, cmp=False, hash=False)
     # Minimum quantity of signatures to be part of the WoT
     sig_qty = attr.ib(convert=int, default=0, cmp=False, hash=False)
+    # Maximum delay in seconds a certification can wait before being expired for non-writing
+    sig_window = attr.ib(convert=int, default=0, cmp=False, hash=False)
+    # Maximum delay in seconds an identity can wait before being expired for non-writing
+    idty_window = attr.ib(convert=int, default=0, cmp=False, hash=False)
+    # Maximum delay in seconds a membership can wait before being expired for non-writing
+    ms_window = attr.ib(convert=int, default=0, cmp=False, hash=False)
     # Minimum decimal percent of sentries to reach to match the distance rule
     xpercent = attr.ib(convert=float, default=0, cmp=False, hash=False)
     # Maximum age of an active membership( in seconds)

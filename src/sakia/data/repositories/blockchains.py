@@ -68,7 +68,7 @@ class BlockchainsRepo:
             c = self._conn.execute(request, tuple(values))
             data = c.fetchone()
             if data:
-                return Blockchain(BlockchainParameters(*data[:15]), *data[16:])
+                return Blockchain(BlockchainParameters(*data[:17]), *data[18:])
 
     def get_all(self, offset=0, limit=1000, sort_by="currency", sort_order="ASC", **search) -> List[Blockchain]:
         """
@@ -110,7 +110,7 @@ class BlockchainsRepo:
                 c = self._conn.execute(request)
             datas = c.fetchall()
             if datas:
-                return [Blockchain(BlockchainParameters(*data[:15]), *data[16:]) for data in datas]
+                return [Blockchain(BlockchainParameters(*data[:17]), *data[18:]) for data in datas]
         return []
 
     def drop(self, blockchain):

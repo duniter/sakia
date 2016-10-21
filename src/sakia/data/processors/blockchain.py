@@ -1,6 +1,6 @@
 import attr
 import re
-from ..entities import Blockchain
+from ..entities import Blockchain, BlockchainParameters
 from .nodes import NodesProcessor
 from ..connectors import BmaConnector
 from duniterpy.api import bma, errors
@@ -175,6 +175,32 @@ class BlockchainProcessor:
         blockchain = self._repo.get_one(currency=currency)
         if not blockchain:
             blockchain = Blockchain(currency=currency)
+            blockchain_parameters = BlockchainParameters()
+            log_stream("Requesting blockchain parameters")
+            try:
+                parameters = await self._bma_connector.get(currency, bma.blockchain.Parameters)
+                blockchain.parameters.ms_validity = parameters['msValidity']
+                blockchain.parameters.avg_gen_time = parameters['avgGenTime']
+                blockchain.parameters.blocks_rot = parameters['blocksRot']
+                blockchain.parameters.c = parameters['c']
+                blockchain.parameters.dt = parameters['dt']
+                blockchain.parameters.dt_diff_eval = parameters['dtDiffEval']
+                blockchain.parameters.median_time_blocks = parameters['medianTimeBlocks']
+                blockchain.parameters.percent_rot = parameters['percentRot']
+                blockchain.parameters.idty_window = parameters['idtyWindow']
+                blockchain.parameters.ms_window = parameters['msWindow']
+                blockchain.parameters.sig_window = parameters['sigWindow']
+                blockchain.parameters.sig_period = parameters['sigPeriod']
+                blockchain.parameters.sig_qty = parameters['sigQty']
+                blockchain.parameters.sig_stock = parameters['sigStock']
+                blockchain.parameters.sig_validity = parameters['sigValidity']
+                blockchain.parameters.sig_qty = parameters['sigQty']
+                blockchain.parameters.sig_period = parameters['sigPeriod']
+                blockchain.parameters.ud0 = parameters['ud0']
+                blockchain.parameters.xpercent = parameters['xpercent']
+            except errors.DuniterError as e:
+                raise
+
             log_stream("Requesting current block")
             try:
                 current_block = await self._bma_connector.get(currency, bma.blockchain.Current)

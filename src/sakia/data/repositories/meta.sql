@@ -24,6 +24,8 @@ CREATE TABLE IF NOT EXISTS blockchains (
   sig_period                    INT,
   sig_stock                     INT,
   sig_window                    INT,
+  idty_window                   INT,
+  ms_window                     INT,
   sig_validity                  INT,
   sig_qty                       INT,
   xpercent                      FLOAT(1, 6),
