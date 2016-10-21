@@ -15,7 +15,7 @@ class InformationsModel(ComponentModel):
     """
     localized_data_changed = pyqtSignal(dict)
 
-    def __init__(self, parent, app, connection, blockchain_service, sources_service):
+    def __init__(self, parent, app, connection, blockchain_service, identities_service, sources_service):
         """
         Constructor of an component
 
@@ -23,12 +23,14 @@ class InformationsModel(ComponentModel):
         :param sakia.app.Application app: the app
         :param sakia.data.entities.Connection connection: the user connection of this node
         :param sakia.services.BlockchainService blockchain_service: the service watching the blockchain state
+        :param sakia.services.IdentitiesService identities_service: the service watching the identities state
         :param sakia.services.SourcesService sources_service: the service watching the sources states
         """
         super().__init__(parent)
         self.app = app
         self.connection = connection
         self.blockchain_service = blockchain_service
+        self.identities_service = identities_service
         self.sources_service = sources_service
 
     async def get_localized_data(self):
@@ -110,14 +112,13 @@ class InformationsModel(ComponentModel):
     async def get_identity_data(self):
         amount = self.sources_service.amount(self.connection.pubkey)
         localized_amount = await self.app.current_ref.instance(amount, self.connection.currency, self.app)\
-                                                            .localized(units=True,
-                                                                       international_system=self.app.parameters.international_system_of_units)
-        account_identity = await self.app.current_account.identity(self.connection.currency)
-
+                                                     .localized(units=True,
+                                                                international_system=self.app.parameters.international_system_of_units)
         mstime_remaining_text = self.tr("Expired or never published")
         outdistanced_text = self.tr("Outdistanced")
 
-        requirements = await account_identity.requirements(self.connection.currency)
+        requirements = await self.identities_service.requirements(self.connection.currency, self.connection.pubkey,
+                                                                  self.connection.uid)
         mstime_remaining = 0
         nb_certs = 0
         if requirements:

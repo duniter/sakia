@@ -34,10 +34,11 @@ class InformationsController(ComponentController):
     def create(cls, parent, app, **kwargs):
         connection = kwargs['connection']
         blockchain_service = kwargs['blockchain_service']
+        identities_service = kwargs['identities_service']
         sources_service = kwargs['sources_service']
 
         view = InformationsView(parent.view)
-        model = InformationsModel(None, app, connection, blockchain_service, sources_service)
+        model = InformationsModel(None, app, connection, blockchain_service, identities_service, sources_service)
         informations = cls(parent, view, model)
         model.setParent(informations)
         informations.init_view_text()

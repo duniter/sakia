@@ -38,6 +38,7 @@ class NavigationModel(ComponentModel):
                     'title': connection.currency,
                     'component': "Informations",
                     'blockchain_service': self.app.blockchain_services[connection.currency],
+                    'identities_service': self.app.identities_services[connection.currency],
                     'sources_service': self.app.sources_services[connection.currency],
                     'connection':connection,
                 },

@@ -236,3 +236,18 @@ class IdentitiesService(QObject):
         for identity in set(need_refresh):
             refresh_futures.append(self.refresh_requirements(identity))
         await asyncio.gather(refresh_futures)
+
+    async def requirements(self, currency, pubkey, uid):
+        """
+        Get the requirements for a given currency and pubkey
+        :param str currency:
+        :param str pubkey:
+        :param str uid:
+
+        :rtype: dict
+        """
+        requirements_data = await self._bma_connector.get(currency, bma.wot.Requirements, req_args={'search': pubkey})
+        for req in requirements_data['identities']:
+            if req['uid'] == uid:
+                return req
+
