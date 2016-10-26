@@ -26,11 +26,10 @@ class NetworkController(ComponentController):
 
     @classmethod
     def create(cls, parent, app, **kwargs):
-        account = kwargs['account']
-        community = kwargs['community']
+        network_service = kwargs['network_service']
 
         view = NetworkView(parent.view)
-        model = NetworkModel(None, app, account, community)
+        model = NetworkModel(None, app, network_service)
         txhistory = cls(parent, view, model)
         model.setParent(txhistory)
         return txhistory

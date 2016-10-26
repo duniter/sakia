@@ -55,6 +55,7 @@ class NavigationModel(ComponentModel):
                             'title': self.tr('Network'),
                             'icon': ':/icons/network_icon',
                             'component': "Network",
+                            'network_service': self.app.network_services[connection.currency],
                         }
                     },
             #        {

@@ -230,6 +230,7 @@ class NodeConnector(QObject):
                     self._logger.debug("Error in previous block reply of {0} : {1}".format(self.node.pubkey[:5], str(e)))
                 finally:
                     self.node.current_buid = BlockUID(block_data['number'], block_data['hash'])
+                    self.node.current_time = block_data['medianTime']
                     self._logger.debug("Changed block {0} -> {1}".format(self.node.current_buid.number,
                                                                     block_data['number']))
                     self.changed.emit()

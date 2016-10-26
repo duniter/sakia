@@ -18,24 +18,9 @@ from sakia.decorators import asyncify, once_at_a_time
 class NetworkFilterProxyModel(QSortFilterProxyModel):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.community = None
 
     def columnCount(self, parent):
         return self.sourceModel().columnCount(None) - 2
-
-    def change_community(self, community):
-        """
-        Change current community and returns refresh task
-        :param sakia.core.Community community:
-        :return: the refresh task
-        :rtype: asyncio.Task
-        """
-        self.community = community
-        return self.sourceModel().change_community(community)
-
-    def setSourceModel(self, sourceModel):
-        self.community = sourceModel.community
-        super().setSourceModel(sourceModel)
 
     def lessThan(self, left, right):
         """
@@ -95,13 +80,6 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
             if index.column() == source_model.columns_types.index('current_hash') :
                 return source_data[:10]
 
-            if index.column() == source_model.columns_types.index('current_time') and source_data:
-                return QLocale.toString(
-                            QLocale(),
-                            QDateTime.fromTime_t(source_data),
-                            QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
-                        )
-
         if role == Qt.TextAlignmentRole:
             if source_index.column() == source_model.columns_types.index('address') or source_index.column() == self.sourceModel().columns_types.index('current_block'):
                 return Qt.AlignRight | Qt.AlignVCenter
@@ -124,18 +102,19 @@ class NetworkTableModel(QAbstractTableModel):
     A Qt abstract item model to display
     """
 
-    def __init__(self, community, parent=None):
+    def __init__(self, network_service, parent=None):
         """
-        Constructor
+        The table showing nodes
+        :param sakia.services.NetworkService network_service:
+        :param parent:
         """
         super().__init__(parent)
-        self.community = community
+        self.network_service = network_service
         self.columns_types = (
             'address',
             'port',
             'current_block',
             'current_hash',
-            'current_time',
             'uid',
             'is_member',
             'pubkey',
@@ -163,48 +142,44 @@ class NetworkTableModel(QAbstractTableModel):
             Node.CORRUPTED: lambda: self.tr('Corrupted')
         }
         self.nodes_data = []
-        self.community.network.nodes_changed.connect(self.refresh_nodes)
+        self.network_service.nodes_changed.connect(self.refresh_nodes)
 
-    async def data_node(self, node: Node) -> tuple:
+    def data_node(self, node: Node) -> tuple:
         """
         Return node data tuple
         :param ..core.net.node.Node node: Network node
         :return:
         """
-        try:
-            members_pubkey = await self.community.members_pubkeys()
-            is_member = node.pubkey in members_pubkey
-        except NoPeerAvailable as e:
-            logging.error(e)
-            is_member = None
+        is_member = False
 
-        address = ""
-        if node.endpoint.server:
-            address = node.endpoint.server
-        elif node.endpoint.ipv4:
-            address = node.endpoint.ipv4
-        elif node.endpoint.ipv6:
-            address = node.endpoint.ipv6
-        port = node.endpoint.port
+        addresses = []
+        ports = []
+        for e in node.endpoints:
+            if e.server:
+                addresses.append(e.server)
+            elif e.ipv4:
+                addresses.append(e.ipv4)
+            elif e.ipv6:
+                addresses.append(e.ipv6)
+            ports.append(str(e.port))
+        address = "\n".join(addresses)
+        port = "\n".join(ports)
 
-        is_root = self.community.network.is_root_node(node)
-        if node.block:
-            number, block_hash, block_time = node.block['number'], node.block['hash'], node.block['medianTime']
+        is_root = node.root
+        if node.current_buid:
+            number, block_hash = node.current_buid.number, node.current_buid.hash
         else:
-            number, block_hash, block_time = "", "", ""
-        return (address, port, number, block_hash, block_time, node.uid,
-                is_member, node.pubkey, node.software, node.version, is_root, node.state)
+            number, block_hash = "", ""
+        return (address, port, number, block_hash, node.uid,
+                is_member, node.pubkey, node.software, node.version, node.root, node.state)
 
-    @once_at_a_time
-    @asyncify
-    async def refresh_nodes(self):
+    def refresh_nodes(self):
         self.beginResetModel()
         self.nodes_data = []
         nodes_data = []
-        if self.community:
-            for node in self.community.network.nodes:
-                data = await self.data_node(node)
-                nodes_data.append(data)
+        for node in self.network_service.nodes():
+            data = self.data_node(node)
+            nodes_data.append(data)
         self.nodes_data = nodes_data
         self.endResetModel()
 

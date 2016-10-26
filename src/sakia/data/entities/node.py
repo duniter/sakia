@@ -59,6 +59,8 @@ class Node:
     uid = attr.ib(convert=str, cmp=False, default="")
     # The current block uid in /blockchain/current
     current_buid = attr.ib(convert=block_uid, cmp=False, default=None)
+    # The current block time in /blockchain/current
+    current_time = attr.ib(convert=int, cmp=False, default=0)
     # The previous block uid in /blockchain/current
     previous_buid = attr.ib(convert=block_uid, cmp=False, default=None)
     # The state of the node in Sakia

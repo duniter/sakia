@@ -83,6 +83,16 @@ class NetworkService(QObject):
         """
         asyncio.ensure_future(self.discover_network())
 
+    def nodes(self):
+        """
+        Get all nodes
+        :return:
+        """
+        return self._processor.nodes(self.currency)
+
+    def commit_node(self, node):
+        self._processor.commit_node(node)
+
     async def stop_coroutines(self, closing=False):
         """
         Stop network nodes crawling.
@@ -227,7 +237,7 @@ class NetworkService(QObject):
         if node.state in (Node.OFFLINE, Node.CORRUPTED) and \
                                 node.last_change + 3600 < time.time():
             node.disconnect()
-            self.nodes.remove(node)
+            self._processor.delete_node(node)
             self.nodes_changed.emit()
 
     @pyqtSlot()
