@@ -7,6 +7,7 @@ import sqlite3
 
 class TestCertificationsRepo(unittest.TestCase):
     def setUp(self):
+        sqlite3.register_adapter(BlockUID, str)
         self.meta_repo = SakiaDatabase(sqlite3.connect(":memory:", detect_types=sqlite3.PARSE_DECLTYPES))
         self.meta_repo.prepare()
         self.meta_repo.upgrade_database()
@@ -67,7 +68,7 @@ class TestCertificationsRepo(unittest.TestCase):
         certification = Certification("testcurrency",
                                  "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
                                  "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
-                                 "20-7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67",
+                                 20,
                                  1473108382,
                                  "H41/8OGV2W4CLKbE35kk5t1HJQsb3jEM0/QGLUf80CwJvGZf3HvVCcNtHPUFoUBKEDQO9mPK3KJkqOoxHpqHCw==",
                                  None)

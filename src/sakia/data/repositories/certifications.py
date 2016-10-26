@@ -37,7 +37,7 @@ class CertificationsRepo:
                                currency=? AND
                                certifier=? AND
                                certified=? AND
-                               blockstamp=?""",
+                               block=?""",
                                updated_fields + where_fields)
 
     def get_one(self, **search):
@@ -94,4 +94,4 @@ class CertificationsRepo:
                                   currency=? AND
                                   certifier=? AND
                                   certified=? AND
-                                  blockstamp=?""", where_fields)
+                                  block=?""", where_fields)

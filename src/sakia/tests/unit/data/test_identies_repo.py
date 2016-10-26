@@ -7,6 +7,9 @@ import sqlite3
 
 class TestIdentitiesRepo(unittest.TestCase):
     def setUp(self):
+        sqlite3.register_adapter(BlockUID, str)
+        sqlite3.register_adapter(bool, int)
+        sqlite3.register_converter("BOOLEAN", lambda v: bool(int(v)))
         self.meta_repo = SakiaDatabase(sqlite3.connect(":memory:", detect_types=sqlite3.PARSE_DECLTYPES))
         self.meta_repo.prepare()
         self.meta_repo.upgrade_database()

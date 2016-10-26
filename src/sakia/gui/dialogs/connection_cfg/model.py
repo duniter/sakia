@@ -1,11 +1,12 @@
 import aiohttp
 
-from duniterpy.documents import BlockUID, BMAEndpoint, Block
+from duniterpy.documents import BlockUID, BMAEndpoint
 from duniterpy.api import bma, errors
 from duniterpy.key import SigningKey
-from sakia.data.entities import Connection, Identity, Blockchain, Node
-from sakia.data.connectors import NodeConnector, BmaConnector
-from sakia.data.processors import ConnectionsProcessor, NodesProcessor, BlockchainProcessor, SourcesProcessor
+from sakia.data.entities import Connection, Identity, Node
+from sakia.data.connectors import NodeConnector
+from sakia.data.processors import ConnectionsProcessor, NodesProcessor, BlockchainProcessor, \
+    SourcesProcessor, CertificationsProcessor
 from sakia.gui.component.model import ComponentModel
 
 
@@ -53,6 +54,9 @@ class ConnectionConfigModel(ComponentModel):
         ConnectionsProcessor(self.app.db.connections_repo).commit_connection(self.connection)
         NodesProcessor(self.app.db.nodes_repo).commit_node(self.node_connector.node)
 
+    def commit_identity(self, identity):
+        self.identities_processor.commit_identity(identity)
+
     async def initialize_blockchain(self, log_stream):
         """
         Download blockchain information locally
@@ -71,15 +75,34 @@ class ConnectionConfigModel(ComponentModel):
         sources_processor = SourcesProcessor.instanciate(self.app)
         await sources_processor.initialize_sources(self.node_connector.node.currency, self.connection.pubkey, log_stream)
 
+    async def initialize_identity(self, identity, log_stream):
+        """
+        Download identity information locally
+        :param sakia.data.entities.Identity identity: the identity to initialize
+        :param function log_stream: a method to log data in the screen
+        :return:
+        """
+        await self.identities_processor.initialize_identity(identity, log_stream)
+
+    async def initialize_certifications(self, identity, log_stream):
+        """
+        Download certifications information locally
+        :param sakia.data.entities.Identity identity: the identity to initialize
+        :param function log_stream: a method to log data in the screen
+        :return:
+        """
+        certifications_processor = CertificationsProcessor.instanciate(self.app)
+        await certifications_processor.initialize_certifications(identity, log_stream)
+
     async def publish_selfcert(self, salt, password):
         """"
         Publish the self certification of the connection identity
         """
         return await self.identities_processor.publish_selfcert(self.node_connector.node.currency,
-                                                         Identity(self.connection.currency,
-                                                                  self.connection.pubkey,
-                                                                  self.connection.uid),
-                                                         salt, password)
+                                                                Identity(self.connection.currency,
+                                                                         self.connection.pubkey,
+                                                                         self.connection.uid),
+                                                                salt, password)
 
     async def check_registered(self):
         """
@@ -87,6 +110,7 @@ class ConnectionConfigModel(ComponentModel):
         :return: (True if found, local value, network value)
         """
         identity = Identity(self.connection.currency, self.connection.pubkey, self.connection.uid)
+        found_identity = Identity(self.connection.currency, self.connection.pubkey, self.connection.uid)
 
         def _parse_uid_certifiers(data):
             return identity.uid == data['uid'], identity.uid, data['uid']
@@ -101,6 +125,7 @@ class ConnectionConfigModel(ComponentModel):
                         if BlockUID.from_str(uid_data["meta"]["timestamp"]) >= timestamp:
                             timestamp = uid_data["meta"]["timestamp"]
                             found_uid = uid_data["uid"]
+                            found_identity.timestamp = timestamp  # We save the timestamp in the found identity
             return identity.uid == found_uid, identity.uid, found_uid
 
         def _parse_pubkey_certifiers(data):
@@ -116,6 +141,7 @@ class ConnectionConfigModel(ComponentModel):
                     if BlockUID.from_str(uid_data["meta"]["timestamp"]) >= timestamp:
                         timestamp = BlockUID.from_str(uid_data["meta"]["timestamp"])
                         found_uid = uid_data["uid"]
+                        found_identity.timestamp = timestamp  # We save the timestamp in the found identity
                 if found_uid == identity.uid:
                     found_result = result['pubkey'], found_uid
             if found_result[1] == identity.uid:
@@ -168,4 +194,5 @@ class ConnectionConfigModel(ComponentModel):
             }
             await execute_requests(pubkey_parsers, identity.uid)
 
-        return registered
+        return registered, found_identity
+

@@ -140,7 +140,7 @@ class ConnectionConfigController(ComponentController):
             self._logger.debug("Connect mode")
             self.view.button_next.clicked.connect(self.check_connect)
             self.view.stacked_pages.setCurrentWidget(self.view.page_connection)
-            await self.step_key
+            connection_identity = await self.step_key
 
         self.model.commit_connection()
         self.view.stacked_pages.setCurrentWidget(self.view.page_services)
@@ -148,17 +148,29 @@ class ConnectionConfigController(ComponentController):
         self.view.progress_bar.setMaximum(3)
         await self.model.initialize_blockchain(self.view.stream_log)
         self.view.progress_bar.setValue(1)
-        await self.model.initialize_sources(self.view.stream_log)
-        self.view.progress_bar.setValue(3)
+
+        if mode in (ConnectionConfigController.REGISTER, ConnectionConfigController.CONNECT):
+            self.view.stream_log("Saving identity...")
+            self.model.commit_identity(connection_identity)
+            self.view.stream_log("Initializing identity informations...")
+            await self.model.initialize_identity(connection_identity, log_stream=self.view.stream_log)
+            self.view.stream_log("Initializing certifications informations...")
+            await self.model.initialize_certifications(connection_identity, log_stream=self.view.stream_log)
+
+        self.view.progress_bar.setValue(2)
         if mode == ConnectionConfigController.REGISTER:
             self.view.display_info(self.tr("Broadcasting identity..."))
             self.view.stream_log("Broadcasting identity...")
             password = await self.password_asker.async_exec()
-            result = await self.model.publish_selfcert(self.model.connection.salt, password)
+            result, connection_identity = await self.model.publish_selfcert(self.model.connection.salt, password)
             if result[0]:
                 self.view.show_success(self.model.notification())
             else:
                 self.view.show_error(self.model.notification(), result[1])
+
+        self.view.progress_bar.setValue(3)
+        await self.model.initialize_sources(self.view.stream_log)
+
         self._logger.debug("Validate changes")
         self.accept()
 
@@ -200,7 +212,7 @@ class ConnectionConfigController(ComponentController):
             password = self.view.edit_password.text()
             self.model.set_scrypt_infos(salt, password)
             self.model.set_uid(self.view.edit_account_name.text())
-            registered = await self.model.check_registered()
+            registered, found_identity = await self.model.check_registered()
             self.view.button_connect.setEnabled(True)
             self.view.button_register.setEnabled(True)
             if registered[0] is False and registered[2] is None:
@@ -209,7 +221,7 @@ class ConnectionConfigController(ComponentController):
                 self.view.display_info(self.tr("""Your pubkey or UID is different on the network.
 Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
             else:
-                self.step_key.set_result(True)
+                self.step_key.set_result(found_identity)
         except NoPeerAvailable:
             self.config_dialog.label_error.setText(self.tr("Could not connect. Check node peering entry"))
 
@@ -222,9 +234,9 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
             password = self.view.edit_password.text()
             self.model.set_scrypt_infos(salt, password)
             self.model.set_uid(self.view.edit_account_name.text())
-            registered = await self.model.check_registered()
+            registered, found_identity = await self.model.check_registered()
             if registered[0] is False and registered[2] is None:
-                self.step_key.set_result(True)
+                self.step_key.set_result(None)
             elif registered[0] is False and registered[2]:
                 self.view.display_info(self.tr("""Your pubkey or UID was already found on the network.
 Yours : {0}, the network : {1}""".format(registered[1], registered[2])))

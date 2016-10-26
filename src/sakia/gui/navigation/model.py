@@ -50,13 +50,13 @@ class NavigationModel(ComponentModel):
             #                'component': "TxHistory",
             #            }
             #        },
-            #        {
-            #            'node': {
-            #                'title': self.tr('Network'),
-            #                'icon': ':/icons/network_icon',
-            #                'component': "Network",
-            #            }
-            #        },
+                    {
+                        'node': {
+                            'title': self.tr('Network'),
+                            'icon': ':/icons/network_icon',
+                            'component': "Network",
+                        }
+                    },
             #        {
             #            'node': {
             #                'title': self.tr('Identities'),

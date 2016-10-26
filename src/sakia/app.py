@@ -85,7 +85,7 @@ class Application(QObject):
         nodes_processor = NodesProcessor(self.db.nodes_repo)
         bma_connector = BmaConnector(nodes_processor)
         identities_processor = IdentitiesProcessor(self.db.identities_repo, self.db.blockchains_repo, bma_connector)
-        certs_processor = CertificationsProcessor(self.db.certifications_repo, bma_connector)
+        certs_processor = CertificationsProcessor(self.db.certifications_repo, self.db.identities_repo, bma_connector)
         blockchain_processor = BlockchainProcessor.instanciate(self)
         sources_processor = SourcesProcessor.instanciate(self)
 

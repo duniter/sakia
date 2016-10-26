@@ -3,10 +3,11 @@ import sqlite3
 import logging
 import asyncio
 from ..entities import Identity
+from ..connectors import BmaConnector
+from ..processors import NodesProcessor
 from duniterpy.api import bma, errors
-from duniterpy import PROTOCOL_VERSION
 from duniterpy.key import SigningKey
-from duniterpy.documents import SelfCertification, BlockUID
+from duniterpy.documents import SelfCertification, BlockUID, block_uid
 from aiohttp.errors import ClientError
 from sakia.errors import NoPeerAvailable
 
@@ -17,6 +18,15 @@ class IdentitiesProcessor:
     _blockchain_repo = attr.ib()  # :type sakia.data.repositories.BlockchainRepo
     _bma_connector = attr.ib()  # :type sakia.data.connectors.bma.BmaConnector
     _logger = attr.ib(default=attr.Factory(lambda: logging.getLogger('sakia')))
+
+    @classmethod
+    def instanciate(cls, app):
+        """
+        Instanciate a blockchain processor
+        :param sakia.app.Application app: the app
+        """
+        return cls(app.db.identities_repo, app.db.blockchains_repo,
+                   BmaConnector(NodesProcessor(app.db.nodes_repo)))
 
     async def find_from_pubkey(self, currency, pubkey):
         """
@@ -38,11 +48,10 @@ class IdentitiesProcessor:
                         for uid_data in uids:
                             identity = Identity(currency, pubkey)
                             identity.uid = uid_data['uid']
-                            identity.blockstamp = data['sigDate']
+                            identity.blockstamp = data['meta']['timestamp']
                             identity.signature = data['self']
                             if identity not in identities:
                                 identities.append(identity)
-                                self._identities_repo.insert(identity)
             except (errors.DuniterError, asyncio.TimeoutError, ClientError) as e:
                 tries += 1
                 self._logger.debug(str(e))
@@ -67,11 +76,12 @@ class IdentitiesProcessor:
                 for result in data['results']:
                     pubkey = result['pubkey']
                     for uid_data in result['uids']:
-                        identity = Identity(currency, pubkey, uid_data['uid'], uid_data['sigDate'])
-                        identity.signature = data['self']
-                        if identity not in identities:
-                            identities.append(identity)
-                            self._identities_repo.insert(identity)
+                        if not uid_data['revoked']:
+                            identity = Identity(currency, pubkey, uid_data['uid'], uid_data['sigDate'])
+                            identity.signature = data['self']
+                            identity.blockstamp = data['meta']['timestamp']
+                            if identity not in identities:
+                                identities.append(identity)
             except (errors.DuniterError, asyncio.TimeoutError, ClientError) as e:
                 tries += 1
             except NoPeerAvailable:
@@ -116,6 +126,36 @@ class IdentitiesProcessor:
         except sqlite3.IntegrityError:
             self._identities_repo.update(identity)
 
+    async def initialize_identity(self, identity, log_stream):
+        """
+        Initialize memberships and other data for given identity
+        :param sakia.data.entities.Identity identity:
+        :param function log_stream:
+        """
+        log_stream("Requesting membership data")
+        memberships_data = await self._bma_connector.get(identity.currency, bma.blockchain.Membership,
+                                                         req_args={'search': identity.pubkey})
+        if block_uid(memberships_data['sigDate']) == identity.blockstamp \
+           and memberships_data['uid'] == identity.uid:
+            for ms in memberships_data['memberships']:
+                if block_uid(ms['written']) > identity.membership_written_on:
+                    identity.membership_buid = BlockUID(ms['blockNumber'], ms['blockHash'])
+                    identity.membership_type = ms['membership']
+
+            if identity.membership_buid:
+                log_stream("Requesting membership timestamp")
+                ms_block_data = await self._bma_connector.get(identity.currency, bma.blockchain.Block,
+                                                              req_args={'number': identity.membership_buid.number})
+                if ms_block_data:
+                    identity.membership_timestamp = ms_block_data['medianTime']
+
+            if memberships_data['memberships']:
+                log_stream("Requesting identity requirements status")
+
+                requirements_data = await self._bma_connector.get(identity.currency, bma.wot.Requirements,
+                                                                  get_args={'search': identity.pubkey})
+                identity.member = requirements_data['membershipExpiresIn'] > 0 and not requirements_data['outdistanced']
+
     async def publish_selfcert(self, currency, identity, salt, password):
         """
         Send our self certification to a target community
@@ -152,6 +192,4 @@ class IdentitiesProcessor:
             identity.signature = selfcert.signatures[0]
             identity.timestamp = timestamp
 
-        self.commit_identity(identity)
-
-        return result
+        return result, identity
