@@ -80,6 +80,13 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
             if index.column() == source_model.columns_types.index('current_hash') :
                 return source_data[:10]
 
+            if index.column() == source_model.columns_types.index('current_time') and source_data:
+                return QLocale.toString(
+                            QLocale(),
+                            QDateTime.fromTime_t(source_data),
+                            QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
+                        )
+
         if role == Qt.TextAlignmentRole:
             if source_index.column() == source_model.columns_types.index('address') or source_index.column() == self.sourceModel().columns_types.index('current_block'):
                 return Qt.AlignRight | Qt.AlignVCenter
@@ -115,6 +122,7 @@ class NetworkTableModel(QAbstractTableModel):
             'port',
             'current_block',
             'current_hash',
+            'current_time',
             'uid',
             'is_member',
             'pubkey',
@@ -167,10 +175,10 @@ class NetworkTableModel(QAbstractTableModel):
 
         is_root = node.root
         if node.current_buid:
-            number, block_hash = node.current_buid.number, node.current_buid.hash
+            number, block_hash, block_time = node.current_buid.number, node.current_buid.sha_hash, node.current_ts
         else:
-            number, block_hash = "", ""
-        return (address, port, number, block_hash, node.uid,
+            number, block_hash, block_time = "", "", ""
+        return (address, port, number, block_hash, block_time, node.uid,
                 is_member, node.pubkey, node.software, node.version, node.root, node.state)
 
     def refresh_nodes(self):

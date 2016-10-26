@@ -230,7 +230,7 @@ class NodeConnector(QObject):
                     self._logger.debug("Error in previous block reply of {0} : {1}".format(self.node.pubkey[:5], str(e)))
                 finally:
                     self.node.current_buid = BlockUID(block_data['number'], block_data['hash'])
-                    self.node.current_time = block_data['medianTime']
+                    self.node.current_ts = block_data['medianTime']
                     self._logger.debug("Changed block {0} -> {1}".format(self.node.current_buid.number,
                                                                     block_data['number']))
                     self.changed.emit()
@@ -365,7 +365,7 @@ class NodeConnector(QObject):
                             self.node.state = Node.OFFLINE
                         finally:
                             self.changed.emit()
-                    self.node.merkle_peers_root = tuple(peers_data['root'])
+                    self.node.merkle_peers_root = peers_data['root']
                     self.node.merkle_peers_leaves = tuple(peers_data['leaves'])
                 return  # Break endpoints loop
             except errors.DuniterError as e:

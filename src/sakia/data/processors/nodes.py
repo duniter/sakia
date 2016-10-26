@@ -13,23 +13,23 @@ class NodesProcessor:
         """
         Get nodes which are in the ONLINE state.
         """
-        return self._repo.get_all(**{'currency': currency, 'state': Node.ONLINE})
+        return self._repo.get_all(currency=currency, state=Node.ONLINE)
 
     def online_nodes(self, currency):
         """
         Get nodes which are in the ONLINE state.
         """
-        return self._repo.get_all(**{'currency': currency, 'state': Node.ONLINE}) + \
-               self._repo.get_all(**{'currency': currency, 'state': Node.DESYNCED})
+        return self._repo.get_all(currency=currency, state=Node.ONLINE) + \
+               self._repo.get_all(currency=currency, state=Node.DESYNCED)
 
-    def update_node(self, currency, node):
+    def update_node(self, node):
         """
         Update node in the repository.
         First involves basic checks about pubkey and primary key constraints.
 
         :param sakia.data.entities.Node node: the node to update
         """
-        other_node = self._repo.get_one(**{'currency': currency, 'pubkey': node.pubkey})
+        other_node = self._repo.get_one(currency=node.currency, pubkey=node.pubkey)
         if other_node:
             self._repo.update(node)
         else:
@@ -59,20 +59,20 @@ class NodesProcessor:
         Search for pubkey in the repository.
         :param str pubkey: the pubkey to lookup
         """
-        other_node = self._repo.get_one(**{'currency': currency, 'pubkey': pubkey})
+        other_node = self._repo.get_one(currency=currency, pubkey=pubkey)
         return other_node is None
 
     def nodes(self, currency):
         """
         Get all knew nodes.
         """
-        return self._repo.get_all(**{'currency': currency})
+        return self._repo.get_all(currency=currency)
 
     def root_nodes(self, currency):
         """
         Get root nodes.
         """
-        return self._repo.get_all(**{'currency': currency, 'root': True})
+        return self._repo.get_all(currency=currency, root=True)
 
     def current_buid(self, currency):
         """
@@ -104,7 +104,7 @@ class NodesProcessor:
         :param peer:
         :return:
         """
-        node = self._repo.get_one(**{'pubkey': peer.pubkey, 'currency': currency})
+        node = self._repo.get_one(pubkey=peer.pubkey, currency=currency)
         if node.peer_blockstamp < peer.blockUID:
             logging.debug("Update node : {0}".format(peer.pubkey[:5]))
             node.endpoints = tuple(peer.endpoints)

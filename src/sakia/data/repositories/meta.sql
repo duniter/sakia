@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS nodes(
                                peer_buid            VARCHAR(100),
                                uid                  VARCHAR(50),
                                current_buid         VARCHAR(100),
-                               current_time         INT,
+                               current_ts           INT,
                                previous_buid        VARCHAR(100),
                                state                INT,
                                software             VARCHAR(100),

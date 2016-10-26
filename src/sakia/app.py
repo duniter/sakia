@@ -70,6 +70,7 @@ class Application(QObject):
         #app.set_proxy()
         #app.get_last_version()
         app.load_profile(app_data.default)
+        app.start_coroutines()
         #app.switch_language()
         return app
 
@@ -93,6 +94,7 @@ class Application(QObject):
         self.network_services = {}
         self.identities_services = {}
         self.sources_services = {}
+
         for currency in self.db.connections_repo.get_currencies():
             self.identities_services[currency] = IdentitiesService(currency, identities_processor,
                                                                    certs_processor, blockchain_processor,
@@ -133,7 +135,7 @@ class Application(QObject):
         return self._parameters
 
     def start_coroutines(self):
-        for currency in self.connections_repo.get_currencies():
+        for currency in self.db.connections_repo.get_currencies():
             self.network_services[currency].start_coroutines()
 
     async def stop_current_profile(self, closing=False):
@@ -141,7 +143,7 @@ class Application(QObject):
         Save the account to the cache
         and stop the coroutines
         """
-        for currency in self.connections_repo.get_currencies():
+        for currency in self.db.connections_repo.get_currencies():
             await self.network_services[currency].stop_coroutines(closing)
 
     @asyncify

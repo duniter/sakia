@@ -31,7 +31,7 @@ class NodesRepo:
             updated_fields = attr.astuple(node, tuple_factory=list,
                                           filter=attr.filters.exclude(*NodesRepo._primary_keys))
             updated_fields[0] = "\n".join([str(n) for n in updated_fields[0]])
-            updated_fields[9] = "\n".join([str(n) for n in updated_fields[9]])
+            updated_fields[10] = "\n".join([str(n) for n in updated_fields[9]])
             where_fields = attr.astuple(node, tuple_factory=list,
                                         filter=attr.filters.include(*NodesRepo._primary_keys))
             self._conn.execute("""UPDATE nodes SET
@@ -39,6 +39,7 @@ class NodesRepo:
                                         peer_buid=?,
                                         uid=?,
                                         current_buid=?,
+                                        current_ts=?,
                                         previous_buid=?,
                                         state=?,
                                         software=?,

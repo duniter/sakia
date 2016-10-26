@@ -1,4 +1,5 @@
 import attr
+import asyncio
 from duniterpy.api import bma, errors
 from duniterpy.documents import BlockUID
 from ..connectors import BmaConnector
@@ -120,6 +121,7 @@ class CertificationsProcessor:
         for i, cert in enumerate(certifiers + certified):
             log_stream('Certification {0}/{1}'.format(i, len(certifiers + certified)))
             self.commit_certification(cert)
+            await asyncio.sleep(0)
 
         log_stream('Commiting identities...')
         for i, idty in enumerate(identities):
@@ -128,3 +130,4 @@ class CertificationsProcessor:
                 self._identities_repo.insert(idty)
             except sqlite3.IntegrityError:
                 self._identities_repo.update(idty)
+            await asyncio.sleep(0)

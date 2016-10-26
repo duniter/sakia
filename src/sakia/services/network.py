@@ -43,6 +43,7 @@ class NetworkService(QObject):
         self._client_session = session
         self._discovery_stack = []
         self._blockchain_service = blockchain_service
+        self._discovery_loop_task = None
 
     @classmethod
     def create(cls, node_processor, node_connector):
@@ -81,7 +82,7 @@ class NetworkService(QObject):
         Start network nodes crawling
         :return:
         """
-        asyncio.ensure_future(self.discover_network())
+        self._discovery_loop_task = asyncio.ensure_future(self.discover_network())
 
     def nodes(self):
         """
@@ -125,7 +126,7 @@ class NetworkService(QObject):
         3 : The more difficulty
         4 : The biggest number or timestamp
         """
-        online_nodes = self._processor.online_nodes()
+        online_nodes = self._processor.online_nodes(self.currency)
         # rule number 1 : block of the majority
         blocks = [n.current_buid.sha_hash for n in online_nodes if n.current_buid.sha_hash]
         blocks_occurences = Counter(blocks)
@@ -200,7 +201,7 @@ class NetworkService(QObject):
             try:
                 await asyncio.sleep(1)
                 peer = self._discovery_stack.pop()
-                if self._processor.unknown_node(peer.pubkey):
+                if self._processor.unknown_node(self.currency, peer.pubkey):
                     self._logger.debug("New node found : {0}".format(peer.pubkey[:5]))
                     try:
                         connector = NodeConnector.from_peer(self.currency, peer, self.session)
@@ -211,7 +212,7 @@ class NetworkService(QObject):
                     except InvalidNodeCurrency as e:
                         self._logger.debug(str(e))
                 else:
-                    self._processor.update_peer(peer)
+                    self._processor.update_peer(self.currency, peer)
             except IndexError:
                 await asyncio.sleep(2)
 
@@ -250,7 +251,7 @@ class NetworkService(QObject):
         self._processor.update_node(node_connector.node)
 
         if node_connector.node.state == Node.ONLINE:
-            current_buid = self._processor.current_buid()
+            current_buid = self._processor.current_buid(self.currency)
             self._logger.debug("{0} -> {1}".format(self._block_found.sha_hash[:10], current_buid.sha_hash[:10]))
             if self._block_found.sha_hash != current_buid.sha_hash:
                 self._logger.debug("Latest block changed : {0}".format(current_buid.number))
@@ -263,4 +264,4 @@ class NetworkService(QObject):
                     #TODO: self._blockchain_service.rollback()
                 else:
                     self._block_found = current_buid
-                    self._blockchain_service.handle_blockchain_progress()
+                    asyncio.ensure_future(self._blockchain_service.handle_blockchain_progress())
