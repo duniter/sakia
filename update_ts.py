@@ -8,6 +8,7 @@ SOURCES = {1}
 TRANSLATIONS = {2}
 """
 
+
 def generate_pro():
     sources = []
     forms = []
