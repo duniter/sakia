@@ -124,16 +124,16 @@ class IdentitiesRepo:
                 return [Identity(*data) for data in datas]
         return []
 
-    def find_all(self, text):
+    def find_all(self, currency, text):
         """
         Get all existing identity in the database corresponding to the search
         :param dict search: the criterions of the lookup
         :rtype: sakia.data.entities.Identity
         """
         with self._conn:
-            request = "SELECT * FROM identities WHERE UID LIKE ? or PUBKEY LIKE ?"
+            request = "SELECT * FROM identities WHERE currency=? AND (UID LIKE ? or PUBKEY LIKE ?)"
 
-            c = self._conn.execute(request, tuple("%{0}%".format(text),))
+            c = self._conn.execute(request, (currency, "%{0}%".format(text), "%{0}%".format(text)))
             datas = c.fetchall()
             if datas:
                 return [Identity(*data) for data in datas]

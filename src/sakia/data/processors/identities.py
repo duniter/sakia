@@ -71,21 +71,20 @@ class IdentitiesProcessor:
         tries = 0
         while tries < 3:
             try:
-                data = await self._bma_connector.get(bma.wot.Lookup,
-                                                             req_args={'search': text})
+                data = await self._bma_connector.get(currency, bma.wot.Lookup, req_args={'search': text})
                 for result in data['results']:
                     pubkey = result['pubkey']
                     for uid_data in result['uids']:
                         if not uid_data['revoked']:
-                            identity = Identity(currency, pubkey, uid_data['uid'], uid_data['sigDate'])
-                            identity.signature = data['self']
-                            identity.blockstamp = data['meta']['timestamp']
+                            identity = Identity(currency, pubkey, uid_data['uid'],
+                                                uid_data['meta']['timestamp'], uid_data['self'])
                             if identity not in identities:
                                 identities.append(identity)
+                break
             except (errors.DuniterError, asyncio.TimeoutError, ClientError) as e:
                 tries += 1
-            except NoPeerAvailable:
-                return identities
+            except NoPeerAvailable as e:
+                self._logger.debug(str(e))
         return identities
 
     def get_written(self, currency, pubkey):

@@ -39,11 +39,11 @@ class IdentitiesView(QWidget, Ui_IdentitiesWidget):
         model.modelReset.connect(lambda: self.table_identities.setEnabled(True))
 
     def request_search_by_text(self):
-        text = self.ui.edit_textsearch.text()
+        text = self.edit_textsearch.text()
         if len(text) < 2:
             return
-        self.ui.edit_textsearch.clear()
-        self.ui.edit_textsearch.setPlaceholderText(text)
+        self.edit_textsearch.clear()
+        self.edit_textsearch.setPlaceholderText(text)
         self.search_by_text_requested.emit(text)
 
     def request_search_direct_connections(self):

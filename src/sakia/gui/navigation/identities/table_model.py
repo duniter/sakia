@@ -15,15 +15,6 @@ import asyncio
 class IdentitiesFilterProxyModel(QSortFilterProxyModel):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.community = None
-
-    def setSourceModel(self, sourceModel):
-        self.community = sourceModel.community
-        super().setSourceModel(sourceModel)
-
-    def change_community(self, community):
-        self.community = community
-        self.sourceModel().change_community(community)
 
     def lessThan(self, left, right):
         """
@@ -63,7 +54,7 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
             if role == Qt.DisplayRole:
                 if source_index.column() in (self.sourceModel().columns_ids.index('renewed'),
                                              self.sourceModel().columns_ids.index('expiration')):
-                    if source_data is not None:
+                    if source_data:
                         return QLocale.toString(
                             QLocale(),
                             QDateTime.fromTime_t(source_data).date(),
@@ -72,7 +63,7 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
                     else:
                         return ""
                 if source_index.column() == self.sourceModel().columns_ids.index('publication'):
-                    if source_data is not None:
+                    if source_data:
                         return QLocale.toString(
                             QLocale(),
                             QDateTime.fromTime_t(source_data),
@@ -107,19 +98,23 @@ class IdentitiesTableModel(QAbstractTableModel):
     A Qt abstract item model to display communities in a tree
     """
 
-    def __init__(self, parent, community):
+    def __init__(self, parent, blockchain_service, identities_service):
         """
         Constructor
+        :param parent:
+        :param sakia.services.BlockchainService blockchain_service: the blockchain service
+        :param sakia.services.IdentitiesService identities_service: the identities service
         """
         super().__init__(parent)
-        self.community = community
+        self.blockchain_service = blockchain_service
+        self.identities_service = identities_service
         self.columns_titles = {'uid': lambda: self.tr('UID'),
                                'pubkey': lambda: self.tr('Pubkey'),
                                'renewed': lambda: self.tr('Renewed'),
                                'expiration': lambda: self.tr('Expiration'),
                                'publication': lambda: self.tr('Publication Date'),
                                'block': lambda: self.tr('Publication Block'),}
-        self.columns_ids = ('uid', 'pubkey', 'renewed', 'expiration', 'publication', 'block')
+        self.columns_ids = ('uid', 'pubkey', 'renewed', 'expiration', 'publication', 'block', 'identity')
         self.identities_data = []
         self._sig_validity = 0
 
@@ -129,59 +124,40 @@ class IdentitiesTableModel(QAbstractTableModel):
     @property
     def pubkeys(self):
         """
-        Ge
-    def resizeEvent(self, event):
-        self.busy.resize(event.size())
-        super().resizeEvent(event)t pubkeys of displayed identities
+        Get pubkeys of displayed identities
         """
         return [i[1] for i in self.identities_data]
 
-    async def identity_data(self, identity):
+    def identity_data(self, identity):
         """
         Return the identity in the form a tuple to display
-        :param sakia.core.registry.Identity identity: The identity to get data from
+        :param sakia.data.entities.Identity identity: The identity to get data from
         :return: The identity data in the form of a tuple
         :rtype: tuple
         """
-        try:
-            join_date = await identity.get_join_date(self.community)
-            expiration_date = await identity.get_expiration_date(self.community)
-        except MembershipNotFoundError:
-            join_date = None
-            expiration_date = None
+        join_date = identity.membership_timestamp
+        expiration_date = self.identities_service.expiration_date(identity)
+        sigdate_ts = identity.timestamp
+        sigdate_block = identity.blockstamp.sha_hash[:7]
 
-        if identity.sigdate:
-            sigdate_ts = await self.community.time(identity.sigdate.number)
-            sigdate_block = identity.sigdate.sha_hash[:7]
-        else:
-            sigdate_ts = None
-            sigdate_block = None
+        return identity.uid, identity.pubkey, join_date, expiration_date, sigdate_ts, sigdate_block, identity
 
-        return identity.uid, identity.pubkey, join_date, expiration_date, sigdate_ts, sigdate_block
-
-    async def refresh_identities(self, identities):
+    def refresh_identities(self, identities):
         """
         Change the identities to display
 
-        :param sakia.core.registry.IdentitiesRegistry identities: The new identities to display
+        :param list[sakia.data.entities.Identity] identities: The new identities to display
         """
         logging.debug("Refresh {0} identities".format(len(identities)))
         self.beginResetModel()
-        self.identities_data = []
-        self.endResetModel()
-        self.beginResetModel()
         identities_data = []
-        requests_coro = []
         for identity in identities:
-            coro = asyncio.ensure_future(self.identity_data(identity))
-            requests_coro.append(coro)
-
-        identities_data = await asyncio.gather(*requests_coro)
+            identities_data.append(self.identity_data(identity))
 
         if len(identities) > 0:
             try:
-                parameters = await self.community.parameters()
-                self._sig_validity = parameters['sigValidity']
+                parameters = self.blockchain_service.parameters()
+                self._sig_validity = parameters.sig_validity
             except NoPeerAvailable as e:
                 logging.debug(str(e))
                 self._sig_validity = 0
@@ -192,7 +168,7 @@ class IdentitiesTableModel(QAbstractTableModel):
         return len(self.identities_data)
 
     def columnCount(self, parent):
-        return len(self.columns_ids)
+        return len(self.columns_ids) - 1
 
     def headerData(self, section, orientation, role):
         if role == Qt.DisplayRole:

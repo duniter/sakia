@@ -123,7 +123,7 @@ class BlockchainProcessor:
                     bma.blockchain.Excluded,
                     bma.blockchain.Newcomers):
             future_requests.append(self._bma_connector.get(currency, req))
-        results = await asyncio.gather(future_requests)
+        results = await asyncio.gather(*future_requests)
 
         for res in results:
             with_identities += res["result"]["blocks"]
@@ -140,7 +140,7 @@ class BlockchainProcessor:
         future_requests = []
         for req in (bma.blockchain.UD, bma.blockchain.TX):
             future_requests.append(self._bma_connector.get(currency, req))
-        results = await asyncio.gather(future_requests)
+        results = await asyncio.gather(*future_requests)
 
         for res in results:
             with_money += res["result"]["blocks"]

@@ -40,7 +40,7 @@ class NavigationModel(ComponentModel):
                     'blockchain_service': self.app.blockchain_services[connection.currency],
                     'identities_service': self.app.identities_services[connection.currency],
                     'sources_service': self.app.sources_services[connection.currency],
-                    'connection':connection,
+                    'connection': connection,
                 },
                 'children': [
             #        {
@@ -58,13 +58,16 @@ class NavigationModel(ComponentModel):
                             'network_service': self.app.network_services[connection.currency],
                         }
                     },
-            #        {
-            #            'node': {
-            #                'title': self.tr('Identities'),
-            #                'icon': ':/icons/members_icon',
-            #                'component': "Identities",
-            #            }
-            #        },
+                    {
+                        'node': {
+                            'title': self.tr('Identities'),
+                            'icon': ':/icons/members_icon',
+                            'component': "Identities",
+                            'connection': connection,
+                            'blockchain_service': self.app.blockchain_services[connection.currency],
+                            'identities_service': self.app.identities_services[connection.currency],
+                        }
+                    },
             #        {
             #            'node': {
             #                'title': self.tr('Web of Trust'),

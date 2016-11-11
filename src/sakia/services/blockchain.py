@@ -29,9 +29,9 @@ class BlockchainService(QObject):
         """
         Handle a new current block uid
         """
-        with_identities = await self._blockchain_processor.new_blocks_with_identities()
-        with_money = await self._blockchain_processor.new_blocks_with_money()
-        blocks = await self._blockchain_processor.blocks(with_identities + with_money)
+        with_identities = await self._blockchain_processor.new_blocks_with_identities(self.currency)
+        with_money = await self._blockchain_processor.new_blocks_with_money(self.currency)
+        blocks = await self._blockchain_processor.blocks(with_identities + with_money, self.currency)
         self._identities_service.handle_new_blocks(blocks)
 
     def parameters(self):

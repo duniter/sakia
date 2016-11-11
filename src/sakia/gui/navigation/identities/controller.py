@@ -55,20 +55,19 @@ class IdentitiesController(ComponentController):
 
     @classmethod
     def create(cls, parent, app, **kwargs):
-        account = kwargs['account']
-        community = kwargs['community']
+        connection = kwargs['connection']
+        blockchain_service = kwargs['blockchain_service']
+        identities_service = kwargs['identities_service']
 
         view = IdentitiesView(parent.view)
-        model = IdentitiesModel(None, app, account, community)
-        txhistory = cls(parent, view, model)
-        model.setParent(txhistory)
-        return txhistory
+        model = IdentitiesModel(None, app, connection, blockchain_service, identities_service)
+        identities = cls(parent, view, model)
+        model.setParent(identities)
+        return identities
 
-    @once_at_a_time
-    @asyncify
-    async def identity_context_menu(self, point):
+    def identity_context_menu(self, point):
         index = self.view.table_identities.indexAt(point)
-        valid, identity = await self.model.table_data(index)
+        valid, identity = self.model.table_data(index)
         if valid:
             menu = ContextMenu.from_data(self.view, self.app, self.account, self.community, self.password_asker,
                                          (identity,))
@@ -86,16 +85,8 @@ class IdentitiesController(ComponentController):
         :return:
         """
         try:
-            response = await self.community.bma_access.future_request(bma.wot.Lookup, {'search': text})
-            identities = []
-            for identity_data in response['results']:
-                for uid_data in identity_data['uids']:
-                    identity = Identity.from_handled_data(uid_data['uid'],
-                                                          identity_data['pubkey'],
-                                                          BlockUID.from_str(uid_data['meta']['timestamp']),
-                                                          BlockchainState.BUFFERED)
-                    identities.append(identity)
-            await self.model.refresh_identities(identities)
+            identities = await self.model.lookup_identities(text)
+            self.model.refresh_identities(identities)
         except errors.DuniterError as e:
             if e.ucode == errors.BLOCK_NOT_FOUND:
                 logging.debug(str(e))
@@ -121,4 +112,4 @@ class IdentitiesController(ComponentController):
         certified_by = [p for p in account_connections
                         if p.pubkey not in [i.pubkey for i in certifiers_of]]
         identities = certifiers_of + certified_by
-        await self.model.refresh_identities(identities)
+        self.model.refresh_identities(identities)

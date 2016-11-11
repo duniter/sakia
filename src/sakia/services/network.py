@@ -241,7 +241,6 @@ class NetworkService(QObject):
             self._processor.delete_node(node)
             self.nodes_changed.emit()
 
-    @pyqtSlot()
     def handle_change(self):
         node_connector = self.sender()
 

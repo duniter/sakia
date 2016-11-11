@@ -251,3 +251,21 @@ class IdentitiesService(QObject):
             if req['uid'] == uid:
                 return req
 
+    async def lookup(self, text):
+        """
+        Lookup for a given text in the network and in local db
+        :param str text: text contained in identity data
+        :rtype: list[sakia.data.entities.Identity]
+        :return: the list of identities found
+        """
+        return await self._identities_processor.lookup(self.currency, text)
+
+    def expiration_date(self, identity):
+        """
+        Get the expiration date of the identity
+        :param sakia.data.entities.Identity identity:
+        :return: the expiration timestamp
+        :rtype: int
+        """
+        validity = self._blockchain_processor.parameters(self.currency).ms_validity
+        return identity.membership_timestamp + validity

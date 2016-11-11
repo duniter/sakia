@@ -65,7 +65,7 @@ class BmaConnector:
                         asyncio.TimeoutError, ValueError, jsonschema.ValidationError) as e:
                     self._logger.debug(str(e))
                     tries += 1
-        raise NoPeerAvailable("", len(endpoint))
+        raise NoPeerAvailable("", len(endpoints))
 
     async def broadcast(self, currency, request, req_args={}, post_args={}):
         """

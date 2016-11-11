@@ -174,12 +174,13 @@ class NodeConnector(QObject):
                 except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
                     self._logger.debug("{0} : {1}".format(str(e), self.node.pubkey[:5]))
                     self.node.state = Node.OFFLINE
+                    self.changed.emit()
                 except jsonschema.ValidationError as e:
                     self._logger.debug(str(e))
                     self._logger.debug("Validation error : {0}".format(self.node.pubkey[:5]))
                     self.node.state = Node.CORRUPTED
-                finally:
                     self.changed.emit()
+                finally:
                     self._connected['block'] = False
                     self._ws_tasks['block'] = None
 
@@ -191,16 +192,18 @@ class NodeConnector(QObject):
         for endpoint in [e for e in self.node.endpoints if isinstance(e, BMAEndpoint)]:
             try:
                 block_data = await self.safe_request(endpoint, bma.blockchain.Current, self._session)
+                if not block_data:
+                    continue
                 await self.refresh_block(block_data)
                 return  # Do not try any more endpoint
             except errors.DuniterError as e:
                 if e.ucode == errors.BLOCK_NOT_FOUND:
                     self.node.previous_buid = BlockUID.empty()
+                    self.changed.emit()
                 else:
                     self.node.state = Node.OFFLINE
+                    self.changed.emit()
                 self._logger.debug("Error in block reply of {0} : {1}}".format(self.node.pubkey[:5], str(e)))
-            finally:
-                self.changed.emit()
         else:
             self._logger.debug("Could not connect to any BMA endpoint : {0}".format(self.node.pubkey[:5]))
             self.node.state = Node.OFFLINE
@@ -219,6 +222,8 @@ class NodeConnector(QObject):
                 try:
                     previous_block = await self.safe_request(endpoint, bma.blockchain.Block,
                                                              req_args={'number': self.node.current_buid.number})
+                    if not previous_block:
+                        continue
                     self.node.previous_buid = BlockUID(previous_block['number'], previous_block['hash'])
                     return  # Do not try any more endpoint
                 except errors.DuniterError as e:
@@ -229,11 +234,12 @@ class NodeConnector(QObject):
                         self.node.state = Node.OFFLINE
                     self._logger.debug("Error in previous block reply of {0} : {1}".format(self.node.pubkey[:5], str(e)))
                 finally:
-                    self.node.current_buid = BlockUID(block_data['number'], block_data['hash'])
-                    self.node.current_ts = block_data['medianTime']
-                    self._logger.debug("Changed block {0} -> {1}".format(self.node.current_buid.number,
-                                                                    block_data['number']))
-                    self.changed.emit()
+                    if self.node.current_buid != BlockUID(block_data['number'], block_data['hash']):
+                        self.node.current_buid = BlockUID(block_data['number'], block_data['hash'])
+                        self.node.current_ts = block_data['medianTime']
+                        self._logger.debug("Changed block {0} -> {1}".format(self.node.current_buid.number,
+                                                                        block_data['number']))
+                        self.changed.emit()
             else:
                 self._logger.debug("Could not connect to any BMA endpoint : {0}".format(self.node.pubkey[:5]))
                 self.node.state = Node.OFFLINE
@@ -247,14 +253,16 @@ class NodeConnector(QObject):
         for endpoint in [e for e in self.node.endpoints if isinstance(e, BMAEndpoint)]:
             try:
                 summary_data = await self.safe_request(endpoint, bma.node.Summary)
+                if not summary_data:
+                    continue
                 self.node.software = summary_data["duniter"]["software"]
                 self.node.version = summary_data["duniter"]["version"]
                 self.node.state = Node.ONLINE
+                self.changed.emit()
                 return  # Break endpoints loop
             except errors.DuniterError as e:
                 self.node.state = Node.OFFLINE
                 self._logger.debug("Error in summary of {0} : {1}".format(self.node.pubkey[:5], str(e)))
-            finally:
                 self.changed.emit()
         else:
             self._logger.debug("Could not connect to any BMA endpoint : {0}".format(self.node.pubkey[:5]))
@@ -271,6 +279,8 @@ class NodeConnector(QObject):
                 data = await self.safe_request(endpoint, bma.wot.Lookup,
                                                req_args={'search':self.node.pubkey},
                                                get_args={})
+                if not data:
+                    continue
                 self.node.state = Node.ONLINE
                 timestamp = BlockUID.empty()
                 uid = ""
@@ -327,14 +337,15 @@ class NodeConnector(QObject):
                 except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
                     self._logger.debug("{0} : {1}".format(str(e), self.node.pubkey[:5]))
                     self.node.state = Node.OFFLINE
+                    self.changed.emit()
                 except jsonschema.ValidationError as e:
                     self._logger.debug(str(e))
                     self._logger.debug("Validation error : {0}".format(self.node.pubkey[:5]))
                     self.node.state = Node.CORRUPTED
+                    self.changed.emit()
                 finally:
                     self._connected['peer'] = False
                     self._ws_tasks['peer'] = None
-                    self.changed.emit()
         else:
             self._logger.debug("Could not connect to any BMA endpoint : {0}".format(self.node.pubkey[:5]))
             self.node.state = Node.OFFLINE
@@ -348,6 +359,8 @@ class NodeConnector(QObject):
             try:
                 peers_data = await self.safe_request(endpoint, bma.network.peering.Peers,
                                                      get_args={'leaves': 'true'})
+                if not peers_data:
+                    continue
                 self.node.state = Node.ONLINE
                 if peers_data['root'] != self.node.merkle_peers_root:
                     leaves = [leaf for leaf in peers_data['leaves']
@@ -357,6 +370,8 @@ class NodeConnector(QObject):
                             leaf_data = await self.safe_request(endpoint,
                                                                 bma.network.peering.Peers,
                                                                 get_args={'leaf': leaf_hash})
+                            if not leaf_data:
+                                break
                             self.refresh_peer_data(leaf_data['leaf']['value'])
                         except (AttributeError, ValueError, errors.DuniterError) as e:
                             self._logger.debug("{pubkey} : Incorrect peer data in {leaf}"
@@ -365,13 +380,13 @@ class NodeConnector(QObject):
                             self.node.state = Node.OFFLINE
                         finally:
                             self.changed.emit()
-                    self.node.merkle_peers_root = peers_data['root']
-                    self.node.merkle_peers_leaves = tuple(peers_data['leaves'])
+                    else:
+                        self.node.merkle_peers_root = peers_data['root']
+                        self.node.merkle_peers_leaves = tuple(peers_data['leaves'])
                 return  # Break endpoints loop
             except errors.DuniterError as e:
                 self._logger.debug("Error in peers reply : {0}".format(str(e)))
                 self.node.state = Node.OFFLINE
-            finally:
                 self.changed.emit()
         else:
             self._logger.debug("Could not connect to any BMA endpoint : {0}".format(self.node.pubkey[:5]))

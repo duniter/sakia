@@ -9,6 +9,14 @@ import logging
 class NodesProcessor:
     _repo = attr.ib()  # :type sakia.data.repositories.NodesRepo
 
+    def current_buid(self, currency):
+        """
+        Get current buid
+        :param str currency:
+        """
+        synced_node = self._repo.get_one(currency=currency, state=Node.ONLINE)
+        return synced_node.current_buid
+
     def synced_nodes(self, currency):
         """
         Get nodes which are in the ONLINE state.
