@@ -15,10 +15,10 @@ from duniterpy.api.bma import API
 from . import __version__
 from .options import SakiaOptions
 from sakia.data.connectors import BmaConnector
-from sakia.services import NetworkService, BlockchainService, IdentitiesService, SourcesServices
+from sakia.services import NetworkService, BlockchainService, IdentitiesService, SourcesServices, TransactionsService
 from sakia.data.repositories import SakiaDatabase
 from sakia.data.processors import BlockchainProcessor, NodesProcessor, IdentitiesProcessor, \
-    CertificationsProcessor, SourcesProcessor
+    CertificationsProcessor, SourcesProcessor, TransactionsProcessor
 from sakia.data.files import AppDataFile, UserParametersFile
 from sakia.decorators import asyncify
 from sakia.money import Relative
@@ -33,7 +33,8 @@ class Application(QObject):
     """
 
     def __init__(self, qapp, loop, options, app_data, parameters, db,
-                 network_services, blockchain_services, identities_services):
+                 network_services, blockchain_services, identities_services,
+                 sources_services, transactions_services):
         """
         Init a new "sakia" application
         :param QCoreApplication qapp: Qt Application
@@ -43,8 +44,10 @@ class Application(QObject):
         :param sakia.data.entities.UserParameters parameters: the application current user parameters
         :param sakia.data.repositories.SakiaDatabase db: The database
         :param dict network_services: All network services for current currency
-        :param dict blockchain_services: All network services for current currency
-        :param dict identities_services: All network services for current currency
+        :param dict blockchain_services: All blockchain services for current currency
+        :param dict identities_services: All identities services for current currency
+        :param dict sources_services: All sources services for current currency
+        :param dict transactions_services: All transactions services for current currency
         :return:
         """
         super().__init__()
@@ -61,12 +64,14 @@ class Application(QObject):
         self.network_services = network_services
         self.blockchain_services = blockchain_services
         self.identities_services = identities_services
+        self.sources_services = sources_services
+        self.transactions_services = transactions_services
 
     @classmethod
     def startup(cls, argv, qapp, loop):
         options = SakiaOptions.from_arguments(argv)
         app_data = AppDataFile.in_config_path(options.config_path).load_or_init()
-        app = cls(qapp, loop, options, app_data, None, None, {}, {}, {})
+        app = cls(qapp, loop, options, app_data, None, None, {}, {}, {}, {}, {})
         #app.set_proxy()
         #app.get_last_version()
         app.load_profile(app_data.default)
@@ -89,18 +94,24 @@ class Application(QObject):
         certs_processor = CertificationsProcessor(self.db.certifications_repo, self.db.identities_repo, bma_connector)
         blockchain_processor = BlockchainProcessor.instanciate(self)
         sources_processor = SourcesProcessor.instanciate(self)
+        transactions_processor = TransactionsProcessor.instanciate(self)
 
         self.blockchain_services = {}
         self.network_services = {}
         self.identities_services = {}
         self.sources_services = {}
+        self.transactions_services = {}
 
         for currency in self.db.connections_repo.get_currencies():
             self.identities_services[currency] = IdentitiesService(currency, identities_processor,
                                                                    certs_processor, blockchain_processor,
                                                                    bma_connector)
+            self.transactions_services[currency] = TransactionsService(currency, transactions_processor,
+                                                                       identities_processor, bma_connector)
+
             self.blockchain_services[currency] = BlockchainService(currency, blockchain_processor, bma_connector,
-                                                                   self.identities_services[currency])
+                                                                   self.identities_services[currency],
+                                                                   self.transactions_services[currency])
             self.network_services[currency] = NetworkService.load(currency, nodes_processor,
                                                                   self.blockchain_services[currency])
             self.sources_services[currency] = SourcesServices(currency, sources_processor, bma_connector)

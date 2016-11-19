@@ -34,9 +34,9 @@ class CertificationsProcessor:
         :return: the instanciated certification
         :rtype: sakia.data.entities.Certification
         """
-        cert = Certification(currency, cert.pubkey_from, cert.pubkey_to, cert.timestamp,
+        cert = Certification(currency, cert.pubkey_from, cert.pubkey_to, cert.timestamp.number,
                              0, cert.signatures[0], blockstamp)
-        self._repo.insert(cert)
+        self._certifications_repo.insert(cert)
         return cert
 
     def commit_certification(self, cert):

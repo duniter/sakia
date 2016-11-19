@@ -9,7 +9,7 @@ class BlockchainService(QObject):
     Blockchain service is managing new blocks received
     to update data locally
     """
-    def __init__(self, currency, blockchain_processor, bma_connector, identities_service):
+    def __init__(self, currency, blockchain_processor, bma_connector, identities_service, transactions_service):
         """
         Constructor the identities service
 
@@ -17,12 +17,14 @@ class BlockchainService(QObject):
         :param sakia.data.processors.BlockchainProcessor blockchain_processor: the blockchain processor for given currency
         :param sakia.data.connectors.BmaConnector bma_connector: The connector to BMA API
         :param sakia.services.IdentitiesService identities_service: The identities service
+        :param sakia.services.TransactionsService transactions_service: The transactions service
         """
         super().__init__()
         self._blockchain_processor = blockchain_processor
         self._bma_connector = bma_connector
         self.currency = currency
         self._identities_service = identities_service
+        self._transactions_service = transactions_service
         self._logger = logging.getLogger('sakia')
 
     async def handle_blockchain_progress(self):
@@ -32,7 +34,8 @@ class BlockchainService(QObject):
         with_identities = await self._blockchain_processor.new_blocks_with_identities(self.currency)
         with_money = await self._blockchain_processor.new_blocks_with_money(self.currency)
         blocks = await self._blockchain_processor.blocks(with_identities + with_money, self.currency)
-        self._identities_service.handle_new_blocks(blocks)
+        await self._identities_service.handle_new_blocks(blocks)
+        await self._transactions_service.handle_new_blocks(blocks)
 
     def parameters(self):
         return self._blockchain_processor.parameters(self.currency)

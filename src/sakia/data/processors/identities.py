@@ -7,7 +7,7 @@ from ..connectors import BmaConnector
 from ..processors import NodesProcessor
 from duniterpy.api import bma, errors
 from duniterpy.key import SigningKey
-from duniterpy.documents import SelfCertification, BlockUID, block_uid
+from duniterpy.documents import Identity, BlockUID, block_uid
 from aiohttp.errors import ClientError
 from sakia.errors import NoPeerAvailable
 
@@ -97,23 +97,26 @@ class IdentitiesProcessor:
         """
         return self._identities_repo.get_written(currency=currency, pubkey=pubkey)
 
-    def get_identity(self, currency, pubkey, uid):
+    def get_identity(self, currency, pubkey, uid=""):
         """
         Return the identity corresponding to a given pubkey, uid and currency
         :param str currency:
         :param str pubkey:
-        :param str uid:
+        :param str uid: optionally, specify an uid to lookup
 
         :rtype: sakia.data.entities.Identity
         """
         written = self.get_written(currency=currency, pubkey=pubkey)
         if not written:
-            identities = self._identities_repo.get_all(currency=currency, pubkey=pubkey, uid=uid)
-            recent = identities[0]
-            for i in identities:
-                if i.blockstamp > recent.blockstamp:
-                    recent = i
-            return recent
+            identities = self._identities_repo.get_all(currency=currency, pubkey=pubkey)
+            if identities:
+                recent = identities[0]
+                for i in identities:
+                    if i.blockstamp > recent.blockstamp and i.uid == uid:
+                        recent = i
+                return recent
+        else:
+            return written[0]
 
     def commit_identity(self, identity):
         """
@@ -166,7 +169,7 @@ class IdentitiesProcessor:
         blockchain = self._blockchain_repo.get_one(currency=currency)
         block_uid = blockchain.current_buid
         timestamp = blockchain.median_time
-        selfcert = SelfCertification(2,
+        selfcert = Identity(2,
                                      currency,
                                      identity.pubkey,
                                      identity.uid,

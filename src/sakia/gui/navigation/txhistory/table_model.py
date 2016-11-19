@@ -13,8 +13,7 @@ from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyMode
     QDateTime, QLocale
 from PyQt5.QtGui import QFont, QColor, QIcon
 from sakia.errors import NoPeerAvailable
-
-from sakia.core.transfer import Transfer, TransferState
+from sakia.data.entities import Transaction
 from sakia.decorators import asyncify, once_at_a_time, cancel_once_task
 
 
@@ -121,20 +120,20 @@ class TxFilterProxyModel(QSortFilterProxyModel):
 
         if role == Qt.FontRole:
             font = QFont()
-            if state_data == TransferState.AWAITING or state_data == TransferState.VALIDATING:
+            if state_data == Transaction.AWAITING or state_data == Transaction.VALIDATING:
                 font.setItalic(True)
-            elif state_data == TransferState.REFUSED:
+            elif state_data == Transaction.REFUSED:
                 font.setItalic(True)
-            elif state_data == TransferState.TO_SEND:
+            elif state_data == Transaction.TO_SEND:
                 font.setBold(True)
             else:
                 font.setItalic(False)
             return font
 
         if role == Qt.ForegroundRole:
-            if state_data == TransferState.REFUSED:
+            if state_data == Transaction.REFUSED:
                 return QColor(Qt.red)
-            elif state_data == TransferState.TO_SEND:
+            elif state_data == Transaction.TO_SEND:
                 return QColor(Qt.blue)
 
         if role == Qt.TextAlignmentRole:
@@ -148,17 +147,17 @@ class TxFilterProxyModel(QSortFilterProxyModel):
             if source_index.column() == self.sourceModel().columns_types.index('date'):
                 return QDateTime.fromTime_t(source_data).toString(Qt.SystemLocaleLongDate)
 
-            if state_data == TransferState.VALIDATING or state_data == TransferState.AWAITING:
+            if state_data == Transaction.VALIDATING or state_data == Transaction.AWAITING:
                 block_col = model.columns_types.index('block_number')
                 block_index = model.index(source_index.row(), block_col)
                 block_data = model.data(block_index, Qt.DisplayRole)
 
                 current_confirmations = 0
-                if state_data == TransferState.VALIDATING:
+                if state_data == Transaction.VALIDATING:
                     current_blockUID_number = self.community.network.current_blockUID.number
                     if current_blockUID_number:
                         current_confirmations = current_blockUID_number - block_data
-                elif state_data == TransferState.AWAITING:
+                elif state_data == Transaction.AWAITING:
                     current_confirmations = 0
 
                 max_confirmations = self.sourceModel().max_confirmations()
@@ -317,7 +316,7 @@ class HistoryTableModel(QAbstractTableModel):
             for transfer in transfers:
                 coro = None
                 count += 1
-                if type(transfer) is Transfer:
+                if type(transfer) is Transaction:
                     if transfer.metadata['issuer'] == self.account.pubkey:
                         coro = asyncio.ensure_future(self.data_sent(transfer))
                     else:

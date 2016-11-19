@@ -61,7 +61,7 @@ class NodeConnector(QObject):
         :return: A new node
         :rtype: sakia.core.net.Node
         """
-        peer_data = await bma.network.Peering(ConnectionHandler(address, port)).get(session)
+        peer_data = await bma.network.peering(ConnectionHandler(address, port, session))
 
         peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],
                                                       peer_data['signature']))
@@ -92,10 +92,10 @@ class NodeConnector(QObject):
 
         return cls(node, session)
 
-    async def safe_request(self, endpoint, request, req_args={}, get_args={}):
+    async def safe_request(self, endpoint, request, req_args={}):
         try:
-            conn_handler = endpoint.conn_handler()
-            data = await request(conn_handler, **req_args).get(self._session, **get_args)
+            conn_handler = endpoint.conn_handler(self._session)
+            data = await request(conn_handler, **req_args)
             return data
         except (ClientError, gaierror, TimeoutError, ConnectionRefusedError, DisconnectedError, ValueError) as e:
             self._logger.debug("{0} : {1}".format(str(e), self.node.pubkey[:5]))
@@ -150,9 +150,8 @@ class NodeConnector(QObject):
         for endpoint in [e for e in self.node.endpoints if isinstance(e, BMAEndpoint)]:
             if not self._connected['block']:
                 try:
-                    conn_handler = endpoint.conn_handler()
-                    block_websocket = bma.ws.Block(conn_handler)
-                    ws_connection = block_websocket.connect(self._session)
+                    conn_handler = endpoint.conn_handler(self._session)
+                    ws_connection = bma.ws.block(conn_handler)
                     async with ws_connection as ws:
                         self._connected['block'] = True
                         self._logger.debug("Connected successfully to block ws : {0}"
@@ -160,7 +159,7 @@ class NodeConnector(QObject):
                         async for msg in ws:
                             if msg.tp == aiohttp.MsgType.text:
                                 self._logger.debug("Received a block : {0}".format(self.node.pubkey[:5]))
-                                block_data = block_websocket.parse_text(msg.data)
+                                block_data = bma.parse_text(msg.data)
                                 await self.refresh_block(block_data)
                             elif msg.tp == aiohttp.MsgType.closed:
                                 break
@@ -191,7 +190,7 @@ class NodeConnector(QObject):
         """
         for endpoint in [e for e in self.node.endpoints if isinstance(e, BMAEndpoint)]:
             try:
-                block_data = await self.safe_request(endpoint, bma.blockchain.Current, self._session)
+                block_data = await self.safe_request(endpoint, bma.blockchain.current)
                 if not block_data:
                     continue
                 await self.refresh_block(block_data)
@@ -220,7 +219,7 @@ class NodeConnector(QObject):
                 conn_handler = endpoint.conn_handler()
                 self._logger.debug("Requesting {0}".format(conn_handler))
                 try:
-                    previous_block = await self.safe_request(endpoint, bma.blockchain.Block,
+                    previous_block = await self.safe_request(endpoint, bma.blockchain.block,
                                                              req_args={'number': self.node.current_buid.number})
                     if not previous_block:
                         continue
@@ -252,7 +251,7 @@ class NodeConnector(QObject):
         """
         for endpoint in [e for e in self.node.endpoints if isinstance(e, BMAEndpoint)]:
             try:
-                summary_data = await self.safe_request(endpoint, bma.node.Summary)
+                summary_data = await self.safe_request(endpoint, bma.node.summary)
                 if not summary_data:
                     continue
                 self.node.software = summary_data["duniter"]["software"]
@@ -276,9 +275,8 @@ class NodeConnector(QObject):
         """
         for endpoint in [e for e in self.node.endpoints if isinstance(e, BMAEndpoint)]:
             try:
-                data = await self.safe_request(endpoint, bma.wot.Lookup,
-                                               req_args={'search':self.node.pubkey},
-                                               get_args={})
+                data = await self.safe_request(endpoint, bma.wot.lookup,
+                                               req_args={'search':self.node.pubkey})
                 if not data:
                     continue
                 self.node.state = Node.ONLINE
@@ -314,16 +312,15 @@ class NodeConnector(QObject):
         for endpoint in [e for e in self.node.endpoints if isinstance(e, BMAEndpoint)]:
             if not self._connected['peer']:
                 try:
-                    conn_handler = endpoint.conn_handler()
-                    peer_websocket = bma.ws.Peer(conn_handler)
-                    ws_connection = peer_websocket.connect(self._session)
+                    conn_handler = endpoint.conn_handler(self._session)
+                    ws_connection = bma.ws.peer(conn_handler)
                     async with ws_connection as ws:
                         self._connected['peer'] = True
                         self._logger.debug("Connected successfully to peer ws : {0}".format(self.node.pubkey[:5]))
                         async for msg in ws:
                             if msg.tp == aiohttp.MsgType.text:
                                 self._logger.debug("Received a peer : {0}".format(self.node.pubkey[:5]))
-                                peer_data = peer_websocket.parse_text(msg.data)
+                                peer_data = bma.parse_text(msg.data)
                                 self.refresh_peer_data(peer_data)
                             elif msg.tp == aiohttp.MsgType.closed:
                                 break
@@ -357,8 +354,8 @@ class NodeConnector(QObject):
         """
         for endpoint in [e for e in self.node.endpoints if isinstance(e, BMAEndpoint)]:
             try:
-                peers_data = await self.safe_request(endpoint, bma.network.peering.Peers,
-                                                     get_args={'leaves': 'true'})
+                peers_data = await self.safe_request(endpoint, bma.network.peers,
+                                                     req_args={'leaves': 'true'})
                 if not peers_data:
                     continue
                 self.node.state = Node.ONLINE
@@ -368,8 +365,8 @@ class NodeConnector(QObject):
                     for leaf_hash in leaves:
                         try:
                             leaf_data = await self.safe_request(endpoint,
-                                                                bma.network.peering.Peers,
-                                                                get_args={'leaf': leaf_hash})
+                                                                bma.network.peers,
+                                                                req_args={'leaf': leaf_hash})
                             if not leaf_data:
                                 break
                             self.refresh_peer_data(leaf_data['leaf']['value'])

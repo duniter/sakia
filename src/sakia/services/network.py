@@ -257,10 +257,12 @@ class NetworkService(QObject):
                 # If new latest block is lower than the previously found one
                 # or if the previously found block is different locally
                 # than in the main chain, we declare a rollback
-                if current_buid <= self._block_found \
+                if current_buid < self._block_found \
                    or node_connector.node.previous_buid != self._block_found:
+                    self._logger.debug("Start rollback")
                     self._block_found = current_buid
                     #TODO: self._blockchain_service.rollback()
                 else:
+                    self._logger.debug("Start refresh")
                     self._block_found = current_buid
                     asyncio.ensure_future(self._blockchain_service.handle_blockchain_progress())

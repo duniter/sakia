@@ -6,7 +6,7 @@ from collections import Counter
 
 from duniterpy.key import SigningKey
 from duniterpy import PROTOCOL_VERSION
-from duniterpy.documents import BlockUID, Block, SelfCertification, Certification, Membership, Revocation
+from duniterpy.documents import BlockUID, Block, Identity, Certification, Membership, Revocation
 from duniterpy.api import bma, errors
 from sakia.data.entities import Node
 from aiohttp.errors import ClientError, DisconnectedError
@@ -41,7 +41,7 @@ class DocumentsService:
                 block_uid = BlockUID.empty()
             else:
                 raise
-        selfcert = SelfCertification(PROTOCOL_VERSION,
+        selfcert = Identity(PROTOCOL_VERSION,
                                      currency,
                                      self.pubkey,
                                      self.name,

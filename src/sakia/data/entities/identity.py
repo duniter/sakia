@@ -1,5 +1,5 @@
 import attr
-from duniterpy.documents import block_uid, BlockUID, SelfCertification
+from duniterpy.documents import block_uid, BlockUID, Identity
 from duniterpy import PROTOCOL_VERSION
 
 
@@ -24,7 +24,7 @@ class Identity:
         Creates a self cert document for a given identity
         :param sakia.data.entities.Identity identity:
         :return: the document
-        :rtype: duniterpy.documents.SelfCertification
+        :rtype: duniterpy.documents.Identity
         """
-        return SelfCertification(PROTOCOL_VERSION, self.currency, self.pubkey,
+        return Identity(PROTOCOL_VERSION, self.currency, self.pubkey,
                                  self.uid, self.blockstamp, self.signature)

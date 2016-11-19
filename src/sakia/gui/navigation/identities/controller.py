@@ -3,9 +3,7 @@ import logging
 from PyQt5.QtGui import QCursor
 from sakia.errors import NoPeerAvailable
 
-from duniterpy.api import bma, errors
-from duniterpy.documents.block import BlockUID
-from sakia.core.registry import Identity, BlockchainState
+from duniterpy.api import errors
 from sakia.decorators import once_at_a_time, asyncify
 from sakia.gui.component.controller import ComponentController
 from sakia.gui.widgets.context_menu import ContextMenu

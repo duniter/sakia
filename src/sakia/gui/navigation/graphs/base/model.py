@@ -1,5 +1,4 @@
 from sakia.gui.component.model import ComponentModel
-from sakia.core.registry import BlockchainState
 
 
 class BaseGraphModel(ComponentModel):
@@ -20,12 +19,3 @@ class BaseGraphModel(ComponentModel):
         :rtype: sakia.core.registry.Identity
         """
         return await self.app.identities_registry.future_find(pubkey, self.community)
-
-    def get_identity_from_data(self, metadata, pubkey):
-        return self.app.identities_registry.from_handled_data(
-            metadata['text'],
-            pubkey,
-            None,
-            BlockchainState.VALIDATED,
-            self.community
-        )

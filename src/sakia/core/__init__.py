@@ -1,2 +1,0 @@
-from .wallet import Wallet
-

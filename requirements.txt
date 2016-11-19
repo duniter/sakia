@@ -2,4 +2,4 @@ git+https://github.com/Insoleet/quamash.git@master
 asynctest
 networkx
 git+https://github.com/hynek/attrs.git@master
-git+https://github.com/duniter/duniter-python-api.git@master
+git+https://github.com/duniter/duniter-python-api.git@dev

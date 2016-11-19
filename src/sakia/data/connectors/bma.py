@@ -29,9 +29,9 @@ class BmaConnector:
             else:
                 return True
         filters = {
-            bma.ud.History: lambda n: compare_versions(n, "0.11.0"),
-            bma.tx.History: lambda n: compare_versions(n, "0.11.0"),
-            bma.blockchain.Membership: lambda n: compare_versions(n, "0.14")
+            bma.ud.history: lambda n: compare_versions(n, "0.11.0"),
+            bma.tx.history: lambda n: compare_versions(n, "0.11.0"),
+            bma.blockchain.membership: lambda n: compare_versions(n, "0.14")
         }
         if request in filters:
             nodes = [n for n in nodes if filters[request](n)]
@@ -55,11 +55,10 @@ class BmaConnector:
             tries = 0
             while tries < 3:
                 endpoint = random.choice(endpoints)
-                req = request(endpoint.conn_handler(), **req_args)
                 try:
-                    self._logger.debug("Requesting {0} on endpoint {1}".format(str(req), str(endpoint)))
+                    self._logger.debug("Requesting {0} on endpoint {1}".format(str(request.__name__), str(endpoint)))
                     with aiohttp.ClientSession() as session:
-                        json_data = await req.get(**get_args, session=session)
+                        json_data = await request(endpoint.conn_handler(session), **req_args)
                         return json_data
                 except (ClientError, ServerDisconnectedError, gaierror,
                         asyncio.TimeoutError, ValueError, jsonschema.ValidationError) as e:

@@ -104,7 +104,7 @@ class IdentitiesService(QObject):
             for certified_data in data['certifications']:
                 cert = Certification(self.currency, data["pubkey"],
                                      certified_data["pubkey"], certified_data["sigDate"])
-                cert.block_number = certified_data["cert_time"]["number"]
+                cert.block = certified_data["cert_time"]["number"]
                 cert.timestamp = certified_data["cert_time"]["medianTime"]
                 if certified_data['written']:
                     cert.written_on = BlockUID(certified_data['written']['number'],
@@ -144,9 +144,10 @@ class IdentitiesService(QObject):
         """
         need_refresh = []
         for ms in block.joiners + block.actives:
-            written = self._identities_processor.get_written(self.currency, ms.issuer)
+            written_list = self._identities_processor.get_written(self.currency, ms.issuer)
             # we update every written identities known locally
-            if written:
+            if written_list:
+                written = written_list[0]
                 written.membership_written_on = block.blockUID
                 written.membership_type = "IN"
                 written.membership_buid = ms.membership_ts
@@ -157,9 +158,10 @@ class IdentitiesService(QObject):
                     need_refresh.append(written)
 
         for ms in block.leavers:
-            written = self._identities_processor.get_written(self.currency, ms.issuer)
+            written_list = self._identities_processor.get_written(self.currency, ms.issuer)
             # we update every written identities known locally
-            if written:
+            if written_list:
+                written = written_list[0]
                 written.membership_written_on = block.blockUID
                 written.membership_type = "OUT"
                 written.membership_buid = ms.membership_ts
@@ -182,15 +184,15 @@ class IdentitiesService(QObject):
         """
         need_refresh = set([])
         for cert in block.certifications:
-            written = self._identities_processor.get_written(self.currency, cert.pubkey_to)
+            written_list = self._identities_processor.get_written(self.currency, cert.pubkey_to)
             # if we have locally a written identity matching the certification
-            if written or self._identities_processor.get_written(self.currency, cert.pubkey_from):
+            if written_list or self._identities_processor.get_written(self.currency, cert.pubkey_from):
                 self._certs_processor.create_certification(self.currency, cert, block.blockUID)
             # we update every written identities known locally
-            if written:
+            if written_list:
                 # A certification can change the requirements state
                 # of an identity
-                need_refresh.add(written)
+                need_refresh += written_list
         return need_refresh
 
     async def refresh_requirements(self, identity):
@@ -246,10 +248,13 @@ class IdentitiesService(QObject):
 
         :rtype: dict
         """
-        requirements_data = await self._bma_connector.get(currency, bma.wot.Requirements, req_args={'search': pubkey})
-        for req in requirements_data['identities']:
-            if req['uid'] == uid:
-                return req
+        try:
+            requirements_data = await self._bma_connector.get(currency, bma.wot.requirements, req_args={'search': pubkey})
+            for req in requirements_data['identities']:
+                if req['uid'] == uid:
+                    return req
+        except NoPeerAvailable as e:
+            self._logger.debug(str(e))
 
     async def lookup(self, text):
         """

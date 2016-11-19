@@ -43,13 +43,14 @@ class NavigationModel(ComponentModel):
                     'connection': connection,
                 },
                 'children': [
-            #        {
-            #            'node': {
-            #                'title': self.tr('Transfers'),
-            #                'icon': ':/icons/tx_icon',
-            #                'component': "TxHistory",
-            #            }
-            #        },
+                   # {
+                   #     'node': {
+                   #         'title': self.tr('Transfers'),
+                   #         'icon': ':/icons/tx_icon',
+                   #         'component': "TxHistory",
+                   #         'transactions_service': self.app.transactions_services[connection.currency],
+                   #     }
+                   # },
                     {
                         'node': {
                             'title': self.tr('Network'),

@@ -80,6 +80,7 @@ CREATE TABLE IF NOT EXISTS transactions(
                                amountbase INT,
                                comment VARCHAR(255),
                                txid INT,
+                               state INT,
                                PRIMARY KEY (sha_hash)
                                );
 

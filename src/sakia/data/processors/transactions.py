@@ -1,0 +1,114 @@
+import attr
+import re
+from ..entities import Transaction
+from .nodes import NodesProcessor
+from . import tx_lifecycle
+from ..connectors import BmaConnector
+from duniterpy.api import bma, errors
+from duniterpy.documents import Block, BMAEndpoint
+import asyncio
+import time
+
+
+@attr.s
+class TransactionsProcessor:
+    _repo = attr.ib()  # :type sakia.data.repositories.SourcesRepo
+    _bma_connector = attr.ib()  # :type sakia.data.connectors.bma.BmaConnector
+    _table_states = attr.ib(default=attr.Factory(dict))
+
+    @classmethod
+    def instanciate(cls, app):
+        """
+        Instanciate a blockchain processor
+        :param sakia.app.Application app: the app
+        """
+        return cls(app.db.transactions_repo,
+                   BmaConnector(NodesProcessor(app.db.nodes_repo)))
+
+    def _try_transition(self, tx, transition_key, inputs):
+        """
+        Try the transition defined by the given transition_key
+        with inputs
+        :param sakia.data.entities.Transaction tx: the transaction
+        :param tuple transition_key: The transition key in the table states
+        :param tuple inputs: The inputs
+        :return: True if the transition was applied
+        :rtype: bool
+        """
+        if len(inputs) == len(transition_key[1]):
+            for i, input in enumerate(inputs):
+                if type(input) is not transition_key[1][i]:
+                    return False
+            for transition in tx_lifecycle.states[transition_key]:
+                if transition[0](*inputs):
+                    if tx.sha_hash:
+                        self._logger.debug("{0} : {1} --> {2}".format(tx.sha_hash[:5], tx.state,
+                                                                 transition[2].name))
+                    else:
+                        self._logger.debug("Unsent transfer : {0} --> {1}".format(tx.state,
+                                                                             transition[2].name))
+
+                    # If the transition changes data, apply changes
+                    if transition[1]:
+                        transition[1](tx, *inputs)
+                    tx.state = transition[2] | tx.local
+                    return True
+        return False
+
+    def find_by_hash(self, sha_hash):
+        return self._repo.find_one(sha_hash=sha_hash)
+
+    def awaiting(self):
+        return self._repo.find_all(state=Transaction.AWAITING) + \
+               self._repo.find_all(state=Transaction.AWAITING | Transaction.LOCAL)
+
+    def run_state_transitions(self, tx, *inputs):
+        """
+        Try all current state transitions with inputs
+        :param sakia.data.entities.Transaction tx: the transaction
+        :param tuple inputs: The inputs passed to the transitions
+        :return: True if the transaction changed state
+        :rtype: bool
+        """
+        transition_keys = [k for k in tx_lifecycle.states.keys() if k[0] | Transaction.LOCAL == tx.state]
+        for key in transition_keys:
+            if self._try_transition(tx, key, inputs):
+                return True
+        return False
+
+    def cancel(self, tx):
+        """
+        Cancel a local transaction
+        :param sakia.data.entities.Transaction tx: the transaction
+        """
+        self.run_state_transitions(tx, ())
+
+    async def send(self, tx, txdoc, community):
+        """
+        Send a transaction and update the transfer state to AWAITING if accepted.
+        If the transaction was refused (return code != 200), state becomes REFUSED
+        The txdoc is saved as the transfer txdoc.
+
+        :param sakia.data.entities.Transaction tx: the transaction
+        :param txdoc: A transaction duniterpy object
+        :param community: The community target of the transaction
+        """
+        tx.sha_hash = txdoc.sha_hash
+        responses = await community.bma_access.broadcast(bma.tx.Process,
+                                                         post_args={'transaction': txdoc.signed_raw()})
+        blockUID = community.network.current_blockUID
+        block = await community.bma_access.future_request(bma.blockchain.Block,
+                                                          req_args={'number': blockUID.number})
+        signed_raw = "{0}{1}\n".format(block['raw'], block['signature'])
+        block_doc = Block.from_signed_raw(signed_raw)
+        result = (False, "")
+        for r in responses:
+            if r.status == 200:
+                result = (True, (await r.json()))
+            elif not result[0]:
+                result = (False, (await r.text()))
+            else:
+                await r.text()
+        self.run_state_transitions(tx, ([r.status for r in responses], block_doc))
+        self.run_state_transitions(tx, ([r.status for r in responses],))
+        return result

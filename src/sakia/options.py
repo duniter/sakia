@@ -62,7 +62,7 @@ class SakiaOptions:
         logging.getLogger('quamash').setLevel(logging.INFO)
         file_handler = RotatingFileHandler(path.join(self.config_path, 'sakia.log'), 'a', 1000000, 10)
         file_handler.setFormatter(formatter)
-        self._logger.addHandler(file_handler)
         stream_handler = StreamHandler()
         stream_handler.setFormatter(formatter)
-        self._logger.addHandler(stream_handler)
+        self._logger.handlers = [file_handler, stream_handler]
+        self._logger.propagate = False

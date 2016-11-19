@@ -5,7 +5,6 @@ from PyQt5.QtWidgets import QMenu, QAction, QApplication, QMessageBox
 
 from duniterpy.documents import Block
 from sakia.data.entities import Identity
-from sakia.core.transfer import Transfer, TransferState
 from sakia.decorators import asyncify
 from sakia.gui.contact import ConfigureContactDialog
 from sakia.gui.dialogs.certification.controller import CertificationController
