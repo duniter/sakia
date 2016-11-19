@@ -62,13 +62,12 @@ class BaseGraphController(ComponentController):
         """
         raise NotImplementedError("refresh not implemented")
 
-    @asyncify
-    async def node_context_menu(self, pubkey):
+    def node_context_menu(self, pubkey):
         """
         Open the node context menu
         :param str pubkey: the pubkey of the node to open
         """
-        identity = await self.model.get_identity(pubkey)
+        identity = self.model.get_identity(pubkey)
         menu = ContextMenu.from_data(self.view, self.model.app, self.model.account, self.model.community, self.password_asker,
                                      (identity,))
         menu.view_identity_in_wot.connect(self.draw_graph)

@@ -54,7 +54,7 @@ class UserInformationController(ComponentController):
         if self.model.identity:
             self.view.show_busy()
             self.view.display_uid(self.model.identity.uid)
-            await self.model.update_identity()
+            await self.model.load_identity()
             self.view.display_identity_timestamps(self.model.identity.pubkey, self.model.identity.timestamp,
                                                   self.model.identity.membership_timestamp)
             self.view.hide_busy()

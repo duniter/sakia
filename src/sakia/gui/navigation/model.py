@@ -73,13 +73,16 @@ class NavigationModel(ComponentModel):
                             'identities_service': self.app.identities_services[connection.currency],
                         }
                     },
-            #        {
-            #            'node': {
-            #                'title': self.tr('Web of Trust'),
-            #                'icon': ':/icons/wot_icon',
-            #                'component': "Wot",
-            #            }
-            #        }
+                    {
+                        'node': {
+                            'title': self.tr('Web of Trust'),
+                            'icon': ':/icons/wot_icon',
+                            'component': "Wot",
+                            'connection': connection,
+                            'blockchain_service': self.app.blockchain_services[connection.currency],
+                            'identities_service': self.app.identities_services[connection.currency],
+                        }
+                    }
                 ]
             })
         return self.navigation

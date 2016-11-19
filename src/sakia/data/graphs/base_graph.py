@@ -8,32 +8,32 @@ from sakia.constants import MAX_CONFIRMATIONS
 
 
 class BaseGraph(QObject):
-    def __init__(self, app, community, nx_graph=None):
+    def __init__(self, app, blockchain_service, identities_service, nx_graph):
         """
         Init Graph instance
-        :param sakia.core.app.Application app: Application instance
-        :param sakia.core.community.Community community: Community instance
+        :param sakia.app.Application app: Application instance
+        :param sakia.services.BlockchainService blockchain_service: Blockchain service instance
+        :param sakia.services.IdentitiesService identities_service: Identities service instance
         :param networkx.Graph nx_graph: The networkx graph
         :return:
         """
         super().__init__()
         self.app = app
-        self.community = community
+        self.identities_service = identities_service
+        self.blockchain_service = blockchain_service
         # graph empty if None parameter
         self.nx_graph = nx_graph if nx_graph else networkx.DiGraph()
 
-    async def arc_status(self, cert_time):
+    def arc_status(self, cert_time):
         """
         Get arc status of a certification
         :param int cert_time: the timestamp of the certification
         :return: the certification time
         """
-        parameters = await self.community.parameters()
-        signature_validity = parameters['sigValidity']
+        parameters = self.blockchain_service.parameters()
         #  arc considered strong during 75% of signature validity time
-        arc_strong = int(signature_validity * 0.75)
+        arc_strong = int(parameters.sig_validity * 0.75)
         # display validity status
-        ts = time.time()
         if (time.time() - cert_time) > arc_strong:
             return EdgeStatus.WEAK
         else:
@@ -49,10 +49,10 @@ class BaseGraph(QObject):
         """
         # new node
         node_status = NodeStatus.NEUTRAL
-        is_member = await node_identity.is_member(self.community)
+        await self.identities_service.refresh_requirements(node_identity)
         if node_identity.pubkey == account_identity.pubkey:
             node_status += NodeStatus.HIGHLIGHTED
-        if is_member is False:
+        if node_identity.member is False:
             node_status += NodeStatus.OUT
         return node_status
 
@@ -64,12 +64,11 @@ class BaseGraph(QObject):
         :rtype: str
         """
         try:
-            current_confirmations = self.community.network.confirmations(block_number)
+            current_confirmations = min(max(block_number - self.blockchain_service.current_buid().number, 0), 6)
 
             if MAX_CONFIRMATIONS > current_confirmations:
-                if self.app.preferences['expert_mode']:
-                    return "{0}/{1}".format(current_confirmations,
-                                                              MAX_CONFIRMATIONS)
+                if self.app.parameters.expert_mode:
+                    return "{0}/{1}".format(current_confirmations, MAX_CONFIRMATIONS)
                 else:
                     confirmation = current_confirmations / MAX_CONFIRMATIONS * 100
                     return "{0} %".format(QLocale().toString(float(confirmation), 'f', 0))
@@ -99,79 +98,78 @@ class BaseGraph(QObject):
     async def add_certifier_list(self, certifier_list, identity, account_identity):
         """
         Add list of certifiers to graph
-        :param list certifier_list: List of certifiers from api
-        :param sakia.core.registry.Identity identity:   identity instance which is certified
-        :param sakia.core.registry.Identity account_identity:   Account identity instance
+        :param List[sakia.data.entities.Certification] certifier_list: List of certified from api
+        :param sakia.data.entities.Identity identity:   identity instance which is certified
+        :param sakia.data.entities.Identity account_identity:   Account identity instance
         :return:
         """
-        if self.community:
-            try:
-                #  add certifiers of uid
-                for certifier in tuple(certifier_list):
-                    node_status = await self.node_status(certifier['identity'], account_identity)
-                    metadata = {
-                        'text': certifier['identity'].uid,
-                        'tooltip': certifier['identity'].pubkey,
-                        'status': node_status
-                    }
-                    self.nx_graph.add_node(certifier['identity'].pubkey, attr_dict=metadata)
+        try:
+            #  add certifiers of uid
+            for certification in tuple(certifier_list):
+                certifier = self.identities_service.get_identity(certification.certifier)
+                node_status = await self.node_status(certifier, account_identity)
+                metadata = {
+                    'text': certifier.uid,
+                    'tooltip': certifier.pubkey,
+                    'status': node_status
+                }
+                self.nx_graph.add_node(certifier.pubkey, attr_dict=metadata)
 
-                    arc_status = await self.arc_status(certifier['cert_time'])
-                    sig_validity = (await self.community.parameters())['sigValidity']
-                    arc = {
-                        'status': arc_status,
-                        'tooltip': QLocale.toString(
-                            QLocale(),
-                            QDateTime.fromTime_t(certifier['cert_time'] + sig_validity).date(),
-                            QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
-                        ),
-                        'cert_time': certifier['cert_time'],
-                        'confirmation_text': self.confirmation_text(certifier['block_number'])
-                    }
+                arc_status = self.arc_status(certification.timestamp)
+                sig_validity = self.blockchain_service.parameters().sig_validity
+                arc = {
+                    'status': arc_status,
+                    'tooltip': QLocale.toString(
+                        QLocale(),
+                        QDateTime.fromTime_t(certification.timestamp + sig_validity).date(),
+                        QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
+                    ),
+                    'cert_time': certification.timestamp,
+                    'confirmation_text': self.confirmation_text(certification.block)
+                }
 
-                    self.nx_graph.add_edge(certifier['identity'].pubkey, identity.pubkey, attr_dict=arc, weight=len(certifier_list))
-            except NoPeerAvailable as e:
-                logging.debug(str(e))
+                self.nx_graph.add_edge(certifier.pubkey, identity.pubkey, attr_dict=arc, weight=len(certifier_list))
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
 
     async def add_certified_list(self, certified_list, identity, account_identity):
         """
         Add list of certified from api to graph
-        :param list certified_list: List of certified from api
+        :param List[sakia.data.entities.Certification] certified_list: List of certified from api
         :param identity identity:   identity instance which is certifier
         :param identity account_identity:   Account identity instance
         :return:
         """
+        try:
+            # add certified by uid
+            for certification in tuple(certified_list):
+                certified = self.identities_service.get_identity(certification.certified)
+                node_status = await self.node_status(certified, account_identity)
+                metadata = {
+                    'text': certified.uid,
+                    'tooltip': certified.pubkey,
+                    'status': node_status
+                }
+                self.nx_graph.add_node(certified.pubkey, attr_dict=metadata)
 
-        if self.community:
-            try:
-                # add certified by uid
-                for certified in tuple(certified_list):
-                    node_status = await self.node_status(certified['identity'], account_identity)
-                    metadata = {
-                        'text': certified['identity'].uid,
-                        'tooltip': certified['identity'].pubkey,
-                        'status': node_status
-                    }
-                    self.nx_graph.add_node(certified['identity'].pubkey, attr_dict=metadata)
+                arc_status = self.arc_status(certification.timestamp)
+                sig_validity = self.blockchain_service.parameters().sig_validity
+                arc = {
+                    'status': arc_status,
+                    'tooltip': QLocale.toString(
+                        QLocale(),
+                        QDateTime.fromTime_t(certification.timestamp + sig_validity).date(),
+                        QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
+                    ),
+                    'cert_time': certification.timestamp,
+                    'confirmation_text': self.confirmation_text(certification.block)
+                }
 
-                    arc_status = await self.arc_status(certified['cert_time'])
-                    sig_validity = (await self.community.parameters())['sigValidity']
-                    arc = {
-                        'status': arc_status,
-                        'tooltip': QLocale.toString(
-                            QLocale(),
-                            QDateTime.fromTime_t(certified['cert_time'] + sig_validity).date(),
-                            QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
-                        ),
-                        'cert_time': certified['cert_time'],
-                        'confirmation_text': self.confirmation_text(certified['block_number'])
-                    }
+                self.nx_graph.add_edge(identity.pubkey, certified.pubkey, attr_dict=arc,
+                                       weight=len(certified_list))
 
-                    self.nx_graph.add_edge(identity.pubkey, certified['identity'].pubkey, attr_dict=arc,
-                                           weight=len(certified_list))
-
-            except NoPeerAvailable as e:
-                logging.debug(str(e))
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
 
     def add_identity(self, identity, status):
         """

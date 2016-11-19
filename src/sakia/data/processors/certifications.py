@@ -26,6 +26,24 @@ class CertificationsProcessor:
         return cls(app.db.certifications_repo, app.db.identities_repo,
                    BmaConnector(NodesProcessor(app.db.nodes_repo)))
 
+    def certifications_sent(self, currency, pubkey):
+        """
+        Get the list of certifications sent for a given pubkey
+        :param str currency:
+        :param str pubkey:
+        :rtype: List[sakia.data.entities.Certification]
+        """
+        return self._certifications_repo.get_all(currency=currency, certifier=pubkey)
+
+    def certifications_received(self, currency, pubkey):
+        """
+        Get the list of certifications sent for a given pubkey
+        :param str currency:
+        :param str pubkey:
+        :rtype: List[sakia.data.entities.Certification]
+        """
+        return self._certifications_repo.get_all(currency=currency, certified=pubkey)
+
     def create_certification(self, currency, cert, blockstamp):
         """
         Creates a certification and insert it in the db

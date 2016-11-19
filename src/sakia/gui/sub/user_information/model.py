@@ -25,8 +25,10 @@ class UserInformationModel(ComponentModel):
         self.identity = identity
         self.identities_service = identities_service
 
-    async def update_identity(self):
+    async def load_identity(self):
         """
         Ask network service to request identity informations
         """
-        await self.network_service.update_memberships(self.identity)
+        await self.identities_service.load_memberships(self.identity)
+        await self.identities_service.load_certifiers_of(self.identity)
+        await self.identities_service.load_certified_by(self.identity)

@@ -6,16 +6,26 @@ class BaseGraphModel(ComponentModel):
     The model of Navigation component
     """
 
-    def __init__(self, parent, app, account, community):
+    def __init__(self, parent, app, connection, blockchain_service, identities_service):
+        """
+        Constructor of a model of WoT component
+
+        :param sakia.gui.identities.controller.IdentitiesController parent: the controller
+        :param sakia.app.Application app: the app
+        :param sakia.data.entities.Connection connection: the connection
+        :param sakia.services.BlockchainService blockchain_service: the blockchain service
+        :param sakia.services.IdentitiesService identities_service: the identities service
+        """
         super().__init__(parent)
         self.app = app
-        self.account = account
-        self.community = community
+        self.connection = connection
+        self.blockchain_service = blockchain_service
+        self.identities_service = identities_service
 
-    async def get_identity(self, pubkey):
+    def get_identity(self, pubkey):
         """
         Get identity from pubkey
         :param str pubkey: Identity pubkey
         :rtype: sakia.core.registry.Identity
         """
-        return await self.app.identities_registry.future_find(pubkey, self.community)
+        return self.identities_service.get_identity(pubkey, self.community)

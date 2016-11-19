@@ -25,17 +25,18 @@ class WotController(BaseGraphController):
 
     @classmethod
     def create(cls, parent, app, **kwargs):
-        account = kwargs['account']
-        community = kwargs['community']
+        connection = kwargs['connection']
+        blockchain_service = kwargs['blockchain_service']
+        identities_service = kwargs['identities_service']
 
         view = WotView(parent.view)
-        model = WotModel(None, app, account, community)
+        model = WotModel(None, app, connection, blockchain_service, identities_service)
         wot = cls(parent, view, model)
         model.setParent(wot)
-        search_user = SearchUserController.create(wot, app, **{'account': account,
-                                                                    'community': community})
-        wot.view.set_search_user(search_user.view)
-        search_user.identity_selected.connect(wot.center_on_identity)
+        #search_user = SearchUserController.create(wot, app, **{'account': account,
+        #                                                            'community': community})
+        #wot.view.set_search_user(search_user.view)
+        #search_user.identity_selected.connect(wot.center_on_identity)
         return wot
 
     @property
@@ -69,7 +70,7 @@ class WotController(BaseGraphController):
         """
         Refresh graph scene to current metadata
         """
-        nx_graph = await self.model.get_nx_graph()
+        nx_graph = self.model.get_nx_graph()
         self.view.display_wot(nx_graph, self.model.identity)
         path = await self.model.get_shortest_path()
         if path:

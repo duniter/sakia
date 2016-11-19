@@ -7,7 +7,6 @@ from .network.controller import NetworkController
 from .identities.controller import IdentitiesController
 from .informations.controller import InformationsController
 from .graphs.wot.controller import WotController
-from .graphs.explorer.controller import ExplorerController
 from sakia.data.repositories import ConnectionsRepo
 from sakia.data.entities import Connection
 from PyQt5.QtCore import pyqtSignal
@@ -34,8 +33,7 @@ class NavigationController(ComponentController):
             'Network': NetworkController,
             'Identities': IdentitiesController,
             'Informations': InformationsController,
-            'Wot': WotController,
-            'Explorer': ExplorerController
+            'Wot': WotController
         }
         self.view.current_view_changed.connect(self.handle_view_change)
 

@@ -66,9 +66,10 @@ class IdentitiesService(QObject):
                 return sig_period - (current_time - latest_time)
         return 0
 
-    async def update_memberships(self, identity):
+    async def load_memberships(self, identity):
         """
         Request the identity data and save it to written identities
+        It does nothing if the identity is already written and updated with blockchain lookups
         :param sakia.data.entities.Identity identity: the identity
         """
         if not identity.written_on:
@@ -94,27 +95,53 @@ class IdentitiesService(QObject):
             except NoPeerAvailable as e:
                 logging.debug(str(e))
 
-    async def update_certified_by(self, identity):
+    async def load_certifiers_of(self, identity):
         """
         Request the identity data and save it to written certifications
+        It does nothing if the identity is already written and updated with blockchain lookups
         :param sakia.data.entities.Identity identity: the identity
         """
-        try:
-            data = await self._bma_connector.get(self.currency, bma.wot.CertifiedBy, {'search': self.pubkey})
-            for certified_data in data['certifications']:
-                cert = Certification(self.currency, data["pubkey"],
-                                     certified_data["pubkey"], certified_data["sigDate"])
-                cert.block = certified_data["cert_time"]["number"]
-                cert.timestamp = certified_data["cert_time"]["medianTime"]
-                if certified_data['written']:
-                    cert.written_on = BlockUID(certified_data['written']['number'],
-                                               certified_data['written']['hash'])
-                self._certs_processor.commit_certification(cert)
-        except errors.DuniterError as e:
-            if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
-                logging.debug("Certified by error : {0}".format(str(e)))
-        except NoPeerAvailable as e:
-            logging.debug(str(e))
+        if not identity.written_on:
+            try:
+                data = await self._bma_connector.get(self.currency, bma.wot.certifiers_of, {'search': identity.pubkey})
+                for certified_data in data['certifications']:
+                    cert = Certification(self.currency, data["pubkey"],
+                                         certified_data["pubkey"], certified_data["sigDate"])
+                    cert.block = certified_data["cert_time"]["number"]
+                    cert.timestamp = certified_data["cert_time"]["medianTime"]
+                    if certified_data['written']:
+                        cert.written_on = BlockUID(certified_data['written']['number'],
+                                                   certified_data['written']['hash'])
+                    self._certs_processor.commit_certification(cert)
+            except errors.DuniterError as e:
+                if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
+                    logging.debug("Certified by error : {0}".format(str(e)))
+            except NoPeerAvailable as e:
+                logging.debug(str(e))
+
+    async def load_certified_by(self, identity):
+        """
+        Request the identity data and save it to written certifications
+        It does nothing if the identity is already written and updated with blockchain lookups
+        :param sakia.data.entities.Identity identity: the identity
+        """
+        if not identity.written_on:
+            try:
+                data = await self._bma_connector.get(self.currency, bma.wot.certified_by, {'search': identity.pubkey})
+                for certified_data in data['certifications']:
+                    cert = Certification(self.currency, data["pubkey"],
+                                         certified_data["pubkey"], certified_data["sigDate"])
+                    cert.block = certified_data["cert_time"]["number"]
+                    cert.timestamp = certified_data["cert_time"]["medianTime"]
+                    if certified_data['written']:
+                        cert.written_on = BlockUID(certified_data['written']['number'],
+                                                   certified_data['written']['hash'])
+                    self._certs_processor.commit_certification(cert)
+            except errors.DuniterError as e:
+                if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
+                    logging.debug("Certified by error : {0}".format(str(e)))
+            except NoPeerAvailable as e:
+                logging.debug(str(e))
 
     def _parse_revocations(self, block):
         """
@@ -201,16 +228,19 @@ class IdentitiesService(QObject):
         :param sakia.data.entities.Identity identity:
         :return:
         """
-        requirements = await self._bma_connector.get(self.currency, bma.wot.Requirements,
-                                                     get_args={'search': identity.pubkey})
-        identity_data = requirements['identities'][0]
-        identity.uid = identity_data["uid"]
-        identity.blockstamp = identity["meta"]["timestamp"]
-        identity.member = identity["membershipExpiresIn"] > 0 and identity["outdistanced"] is False
-        median_time = self._blockchain_processor.time(self.currency)
-        expiration_time = self._blockchain_processor.parameters(self.currency).ms_validity
-        identity.membership_timestamp = median_time - (expiration_time - identity["membershipExpiresIn"])
-        self._identities_processor.commit_identity(identity)
+        try:
+            requirements = await self._bma_connector.get(self.currency, bma.wot.requirements,
+                                                         req_args={'search': identity.pubkey})
+            identity_data = requirements['identities'][0]
+            identity.uid = identity_data["uid"]
+            identity.blockstamp = identity["meta"]["timestamp"]
+            identity.member = identity["membershipExpiresIn"] > 0 and identity["outdistanced"] is False
+            median_time = self._blockchain_processor.time(self.currency)
+            expiration_time = self._blockchain_processor.parameters(self.currency).ms_validity
+            identity.membership_timestamp = median_time - (expiration_time - identity["membershipExpiresIn"])
+            self._identities_processor.commit_identity(identity)
+        except NoPeerAvailable as e:
+            self._logger.debug(str(e))
 
     def parse_block(self, block):
         """
@@ -277,3 +307,19 @@ class IdentitiesService(QObject):
         """
         validity = self._blockchain_processor.parameters(self.currency).ms_validity
         return identity.membership_timestamp + validity
+
+    def certifications_received(self, pubkey):
+        """
+        Get the list of certifications received by a given identity
+        :param str pubkey: the pubkey
+        :rtype: List[sakia.data.entities.Certifications]
+        """
+        return self._certs_processor.certifications_received(self.currency, pubkey)
+
+    def certifications_sent(self, pubkey):
+        """
+        Get the list of certifications received by a given identity
+        :param str pubkey: the pubkey
+        :rtype: List[sakia.data.entities.Certifications]
+        """
+        return self._certs_processor.certifications_sent(self.currency, pubkey)

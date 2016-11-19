@@ -44,13 +44,9 @@ class IdentitiesModel(ComponentModel):
         """
         if index.isValid() and index.row() < self.table_model.rowCount():
             source_index = self.table_model.mapToSource(index)
-            pubkey_col = self.table_model.sourceModel().columns_ids.index('pubkey')
-            pubkey_index = self.table_model.sourceModel().index(source_index.row(),
-                                                   pubkey_col)
-            pubkey = self.table_model.sourceModel().data(pubkey_index, Qt.DisplayRole)
-            identity_col = self.table_model.sourceModel().columns_ids.index('pubkey')
+            identity_col = self.table_model.sourceModel().columns_ids.index('identity')
             identity_index = self.table_model.sourceModel().index(source_index.row(),
-                                                   pubkey_col)
+                                                                  identity_col)
             identity = self.table_model.sourceModel().data(identity_index, Qt.DisplayRole)
             return True, identity
         return False, None

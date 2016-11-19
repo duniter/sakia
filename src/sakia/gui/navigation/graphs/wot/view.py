@@ -46,4 +46,4 @@ class WotView(BaseGraphView, Ui_WotWidget):
         :param path:
         :return:
         """
-        self.graphics_view.scene().update_path(nx_graph, path)
+        #self.graphics_view.scene().update_path(nx_graph, path)

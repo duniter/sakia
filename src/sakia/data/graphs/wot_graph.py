@@ -6,35 +6,37 @@ from .constants import NodeStatus
 
 
 class WoTGraph(BaseGraph):
-    def __init__(self, app, community, nx_graph=None):
+    def __init__(self, app, blockchain_service, identities_service, nx_graph=None):
         """
         Init WoTGraph instance
-        :param sakia.core.app.Application app: Application instance
-        :param sakia.core.community.Community community: Community instance
+        :param sakia.app.Application app: the app
+        :param sakia.data.entities.Connection connection: the connection
+        :param sakia.services.BlockchainService blockchain_service: the blockchain service
+        :param sakia.services.IdentitiesService identities_service: the identities service
         :param networkx.Graph nx_graph: The networkx graph
         :return:
         """
-        super().__init__(app, community, nx_graph)
+        super().__init__(app, blockchain_service, identities_service, nx_graph)
 
-    async def initialize(self, center_identity, account_identity):
-        node_status = await self.node_status(center_identity, account_identity)
+    async def initialize(self, center_identity, connection_identity):
+        node_status = await self.node_status(center_identity, connection_identity)
 
         self.add_identity(center_identity, node_status)
 
         # create Identity from node metadata
-        certifier_coro = asyncio.ensure_future(center_identity.unique_valid_certifiers_of(self.app.identities_registry,
-                                                                        self.community))
-        certified_coro = asyncio.ensure_future(center_identity.unique_valid_certified_by(self.app.identities_registry,
-                                                                       self.community))
+        certifier_coro = asyncio.ensure_future(self.identities_service.load_certifiers_of(center_identity))
+        certified_coro = asyncio.ensure_future(self.identities_service.load_certified_by(center_identity))
 
-        certifier_list, certified_list = await asyncio.gather(certifier_coro, certified_coro)
+        await asyncio.gather(certifier_coro, certified_coro)
 
         # populate graph with certifiers-of
+        certifier_list = self.identities_service.certifications_received(center_identity.pubkey)
         certifier_coro = asyncio.ensure_future(self.add_certifier_list(certifier_list,
-                                                                       center_identity, account_identity))
+                                                                       center_identity, connection_identity))
         # populate graph with certified-by
+        certified_list = self.identities_service.certifications_sent(center_identity.pubkey)
         certified_coro = asyncio.ensure_future(self.add_certified_list(certified_list,
-                                                                       center_identity, account_identity))
+                                                                       center_identity, connection_identity))
 
         await asyncio.gather(certifier_coro, certified_coro)
 
@@ -61,21 +63,20 @@ class WoTGraph(BaseGraph):
 
         return path
 
-    async def explore_to_find_member(self, account_identity, to_identity):
+    async def explore_to_find_member(self, from_identity, to_identity):
         """
         Scan graph to find identity
-        :param sakia.core.registry.Identity from_identity: Scan starting point
-        :param sakia.core.registry.Identity to_identity: Scan goal
+        :param sakia.data.entities.Identity from_identity: Scan starting point
+        :param sakia.data.entities.Identity to_identity: Scan goal
         """
         explored = []
-        explorable = [account_identity]
+        explorable = [from_identity]
 
         while len(explorable) > 0:
             current = explorable.pop()
-            certified_list = await current.unique_valid_certified_by(self.app.identities_registry,
-                                                                                    self.community)
+            certified_list = await self.identities_service.certifications_sent(current.pubkey)
 
-            await self.add_certified_list(certified_list, current, account_identity)
+            await self.add_certified_list(certified_list, current, from_identity)
             if to_identity.pubkey in [data['identity'].pubkey for data in certified_list]:
                 return True
 
