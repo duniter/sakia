@@ -43,14 +43,18 @@ class NavigationModel(ComponentModel):
                     'connection': connection,
                 },
                 'children': [
-                   # {
-                   #     'node': {
-                   #         'title': self.tr('Transfers'),
-                   #         'icon': ':/icons/tx_icon',
-                   #         'component': "TxHistory",
-                   #         'transactions_service': self.app.transactions_services[connection.currency],
-                   #     }
-                   # },
+                   {
+                       'node': {
+                           'title': self.tr('Transfers'),
+                           'icon': ':/icons/tx_icon',
+                           'component': "TxHistory",
+                           'connection': connection,
+                           'identities_service': self.app.identities_services[connection.currency],
+                           'blockchain_service': self.app.blockchain_services[connection.currency],
+                           'transactions_service': self.app.transactions_services[connection.currency],
+                           "sources_service": self.app.sources_services[connection.currency]
+                       }
+                   },
                     {
                         'node': {
                             'title': self.tr('Network'),

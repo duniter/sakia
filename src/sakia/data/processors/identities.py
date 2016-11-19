@@ -100,6 +100,7 @@ class IdentitiesProcessor:
     def get_identity(self, currency, pubkey, uid=""):
         """
         Return the identity corresponding to a given pubkey, uid and currency
+        If no UID is given, o
         :param str currency:
         :param str pubkey:
         :param str uid: optionally, specify an uid to lookup
@@ -112,8 +113,11 @@ class IdentitiesProcessor:
             if identities:
                 recent = identities[0]
                 for i in identities:
-                    if i.blockstamp > recent.blockstamp and i.uid == uid:
-                        recent = i
+                    if i.blockstamp > recent.blockstamp:
+                        if uid and i.uid == uid:
+                            recent = i
+                        elif not uid:
+                            recent = i
                 return recent
         else:
             return written[0]

@@ -37,8 +37,14 @@ class BlockchainService(QObject):
         await self._identities_service.handle_new_blocks(blocks)
         await self._transactions_service.handle_new_blocks(blocks)
 
+    def current_buid(self):
+        return self._blockchain_processor.current_buid(self.currency)
+
     def parameters(self):
         return self._blockchain_processor.parameters(self.currency)
+
+    def time(self):
+        return self._blockchain_processor.time(self.currency)
 
     def current_members_count(self):
         return self._blockchain_processor.current_members_count(self.currency)

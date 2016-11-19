@@ -14,17 +14,27 @@ from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyMode
 from PyQt5.QtGui import QFont, QColor, QIcon
 from sakia.errors import NoPeerAvailable
 from sakia.data.entities import Transaction
+from sakia.constants import MAX_CONFIRMATIONS
 from sakia.decorators import asyncify, once_at_a_time, cancel_once_task
 
 
 class TxFilterProxyModel(QSortFilterProxyModel):
-    def __init__(self, ts_from, ts_to, parent=None):
+    def __init__(self, parent, ts_from, ts_to, blockchain_service):
+        """
+        History of all transactions
+        :param PyQt5.QtWidgets.QWidget parent: parent widget
+        :param int ts_from: the min timestamp of latest tx
+        :param in ts_to: the max timestamp of most recent tx
+        :param sakia.services.BlockchainService blockchain_service: the blockchain service
+        """
         super().__init__(parent)
         self.app = None
         self.ts_from = ts_from
         self.ts_to = ts_to
         self.payments = 0
         self.deposits = 0
+        self.blockchain_service = blockchain_service
+
 
     @property
     def account(self):
@@ -154,18 +164,14 @@ class TxFilterProxyModel(QSortFilterProxyModel):
 
                 current_confirmations = 0
                 if state_data == Transaction.VALIDATING:
-                    current_blockUID_number = self.community.network.current_blockUID.number
-                    if current_blockUID_number:
-                        current_confirmations = current_blockUID_number - block_data
+                    current_confirmations = self.blockchain_service.current_buid().number - block_data
                 elif state_data == Transaction.AWAITING:
                     current_confirmations = 0
 
-                max_confirmations = self.sourceModel().max_confirmations()
-
                 if self.app.preferences['expert_mode']:
-                    return self.tr("{0} / {1} confirmations").format(current_confirmations, max_confirmations)
+                    return self.tr("{0} / {1} confirmations").format(current_confirmations, MAX_CONFIRMATIONS)
                 else:
-                    confirmation = current_confirmations / max_confirmations * 100
+                    confirmation = current_confirmations / MAX_CONFIRMATIONS * 100
                     confirmation = 100 if confirmation > 100 else confirmation
                     return self.tr("Confirming... {0} %").format(QLocale().toString(float(confirmation), 'f', 0))
 
@@ -178,14 +184,20 @@ class HistoryTableModel(QAbstractTableModel):
     A Qt abstract item model to display communities in a tree
     """
 
-    def __init__(self, app, account, community, parent=None):
+    def __init__(self, parent, app, connection, identities_service, transactions_service):
         """
-        Constructor
+        History of all transactions
+        :param PyQt5.QtWidgets.QWidget parent: parent widget
+        :param sakia.app.Application app: the main application
+        :param sakia.data.entities.Connection connection: the connection
+        :param sakia.services.IdentitiesService identities_service: the identities service
+        :param sakia.services.TransactionsService transactions_service: the transactions service
         """
         super().__init__(parent)
         self.app = app
-        self.account = account
-        self.community = community
+        self.connection = connection
+        self.identities_service = identities_service
+        self.transactions_service = transactions_service
         self.transfers_data = []
         self.refresh_transfers()
 
@@ -214,124 +226,93 @@ class HistoryTableModel(QAbstractTableModel):
             lambda: 'Block Number'
         )
 
-    def change_account(self, account):
-        cancel_once_task(self, self.refresh_transfers)
-        self.account = account
-
-    def change_community(self, community):
-        cancel_once_task(self, self.refresh_transfers)
-        self.community = community
-
     def transfers(self):
-        if self.account:
-            return self.account.transfers(self.community) + self.account.dividends(self.community)
-        else:
-            return []
+        """
+        Transfer
+        :rtype: sakia.data.entities.Transfer
+        """
+        #TODO: Handle dividends
+        return self.transactions_service.transfers(self.connection.pubkey)
 
-    async def data_received(self, transfer):
-        amount = transfer.metadata['amount']
-        if transfer.blockUID:
-            block_number = transfer.blockUID.number
+    def data_received(self, transfer):
+        """
+        Converts a transaction to table data
+        :param sakia.data.entities.Transaction transfer: the transaction
+        :return: data as tuple
+        """
+        if transfer.blockstamp:
+            block_number = transfer.blockstamp.number
         else:
             block_number = None
+
+        amount = transfer.amount * 10**transfer.amount_base
         try:
-            deposit = await self.account.current_ref.instance(transfer.metadata['amount'], self.community,
-                                                     self.app, block_number)\
+            deposit = self.account.current_ref.instance(amount, self.connection.currency, self.app, block_number)\
                 .diff_localized(international_system=self.app.preferences['international_system_of_units'])
         except NoPeerAvailable:
             deposit = "Could not compute"
-        comment = ""
-        if transfer.metadata['comment'] != "":
-            comment = transfer.metadata['comment']
-        if transfer.metadata['issuer_uid'] != "":
-            sender = transfer.metadata['issuer_uid']
-        else:
-            sender = "pub:{0}".format(transfer.metadata['issuer'][:5])
 
-        date_ts = transfer.metadata['time']
-        txid = transfer.metadata['txid']
+        identity = self.identities_service.get_identity(transfer.receiver)
+        if identity:
+            sender = identity.uid
+        else:
+            sender = "pub:{0}".format(transfer.receiver[:5])
+
+        date_ts = transfer.timestamp
+        txid = transfer.txid
 
         return (date_ts, sender, "", deposit,
-                comment, transfer.state, txid,
+                transfer.comment, transfer.state, txid,
                 transfer.metadata['issuer'], block_number, amount)
 
     async def data_sent(self, transfer):
-        if transfer.blockUID:
-            block_number = transfer.blockUID.number
+        """
+        Converts a transaction to table data
+        :param sakia.data.entities.Transaction transfer: the transaction
+        :return: data as tuple
+        """
+        if transfer.blockstamp:
+            block_number = transfer.blockstamp.number
         else:
             block_number = None
 
-        amount = transfer.metadata['amount']
+        amount = transfer.amount * 10**transfer.amount_base
         try:
-            paiment = await self.account.current_ref.instance(transfer.metadata['amount'], self.community,
-                                                     self.app, block_number)\
-                .diff_localized(international_system=self.app.preferences['international_system_of_units'])
+            paiement = self.app.current_ref.instance(amount, self.connection.currency, self.app, block_number)\
+                            .diff_localized(international_system=self.app.parameters.international_system_of_units)
         except NoPeerAvailable:
-            paiment = "Could not compute"
-        comment = ""
-        if transfer.metadata['comment'] != "":
-            comment = transfer.metadata['comment']
-        if transfer.metadata['receiver_uid'] != "":
-            receiver = transfer.metadata['receiver_uid']
-        else:
-            receiver = "pub:{0}".format(transfer.metadata['receiver'][:5])
+            paiement = "Could not compute"
 
-        date_ts = transfer.metadata['time']
-        txid = transfer.metadata['txid']
-        return (date_ts, receiver, paiment,
-                "", comment, transfer.state, txid,
-                transfer.metadata['receiver'], block_number, amount)
+        identity = self.identities_service.get_identity(transfer.receiver)
+        if identity:
+            receiver = identity.uid
+        else:
+            receiver = "pub:{0}".format(transfer.receiver[:5])
+
+        date_ts = transfer.timestamp
+        txid = transfer.txid
+        return (date_ts, receiver, paiement,
+                "", transfer.comment, transfer.state, txid,
+                transfer.receiver, block_number, amount)
 
     async def data_dividend(self, dividend):
-        amount = dividend['amount'] * math.pow(10, dividend['base'])
-        try:
-            deposit = await self.account.current_ref.instance(amount, self.community, self.app, dividend['block_number'])\
-                .diff_localized(international_system=self.app.preferences['international_system_of_units'])
-        except NoPeerAvailable:
-            deposit = "Could not compute"
-        comment = ""
-        receiver = self.account.name
-        date_ts = dividend['time']
-        id = dividend['id']
-        block_number = dividend['block_number']
-        state = dividend['state']
+        pass
 
-        return (date_ts, receiver, "",
-                deposit, "", state, id,
-                self.account.pubkey, block_number, amount)
-
-    @once_at_a_time
-    @asyncify
-    async def refresh_transfers(self):
-        self.beginResetModel()
-        self.transfers_data = []
-        self.endResetModel()
+    def refresh_transfers(self):
         self.beginResetModel()
         transfers_data = []
-        if self.community:
-            requests_coro = []
-            data_list = []
-            count = 0
-            transfers = self.transfers()
-            for transfer in transfers:
-                coro = None
-                count += 1
-                if type(transfer) is Transaction:
-                    if transfer.metadata['issuer'] == self.account.pubkey:
-                        coro = asyncio.ensure_future(self.data_sent(transfer))
-                    else:
-                        coro = asyncio.ensure_future(self.data_received(transfer))
-                elif type(transfer) is dict:
-                    coro = asyncio.ensure_future(self.data_dividend(transfer))
-                if coro:
-                    requests_coro.append(coro)
-                if count % 25 == 0:
-                    gathered_list = await asyncio.gather(*requests_coro)
-                    requests_coro = []
-                    data_list.extend(gathered_list)
-            # One last gathering
-            gathered_list = await asyncio.gather(*requests_coro)
-            data_list.extend(gathered_list)
+        data_list = []
+        count = 0
+        transfers = self.transfers()
+        for transfer in transfers:
+            count += 1
+            if type(transfer) is Transaction:
+                if transfer.issuer == self.connection.pubkey:
+                    data_list += self.data_sent(transfer)
+                else:
+                    data_list += self.data_received(transfer)
+            elif type(transfer) is dict:
+                data_list += self.data_dividend(transfer)
 
             for data in data_list:
                 transfers_data.append(data)
@@ -345,15 +326,14 @@ class HistoryTableModel(QAbstractTableModel):
         return len(self.columns_types)
 
     def headerData(self, section, orientation, role):
-        if self.account and self.community:
-            if role == Qt.DisplayRole:
-                if self.columns_types[section] == 'payment' or self.columns_types[section] == 'deposit':
-                    return '{:}\n({:})'.format(
-                        self.column_headers[section](),
-                        self.account.current_ref.instance(0, self.community, self.app, None).diff_units
-                    )
+        if role == Qt.DisplayRole:
+            if self.columns_types[section] == 'payment' or self.columns_types[section] == 'deposit':
+                return '{:}\n({:})'.format(
+                    self.column_headers[section](),
+                    self.app.current_ref.instance(0, self.connection.currency, self.app, None).diff_units
+                )
 
-                return self.column_headers[section]()
+            return self.column_headers[section]()
 
     def data(self, index, role):
         row = index.row()

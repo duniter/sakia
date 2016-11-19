@@ -87,6 +87,29 @@ class TransactionsRepo:
                 return [Transaction(*data) for data in datas]
         return []
 
+    def get_transfers(self, currency, pubkey, offset=0, limit=1000, sort_by="currency", sort_order="ASC"):
+        """
+        Get all transfers in the database on a given currency from or to a pubkey
+
+        :param str pubkey: the criterions of the lookup
+        :rtype: List[sakia.data.entities.Transaction]
+        """
+        with self._conn:
+            request = """SELECT * FROM transactions
+                      WHERE currency=? AND (issuer=? or receiver=?)
+                      ORDER BY {sort_by} {sort_order}
+                      LIMIT {limit} OFFSET {offset}""" \
+                        .format(offset=offset,
+                                limit=limit,
+                                sort_by=sort_by,
+                                sort_order=sort_order
+                                )
+            c = self._conn.execute(request, (currency, pubkey, pubkey))
+            datas = c.fetchall()
+            if datas:
+                return [Transaction(*data) for data in datas]
+        return []
+
     def drop(self, transaction):
         """
         Drop an existing transaction from the database

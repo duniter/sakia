@@ -265,6 +265,9 @@ class IdentitiesService(QObject):
         """
         return await self._identities_processor.lookup(self.currency, text)
 
+    def get_identity(self, pubkey, uid=""):
+        return self._identities_processor.get_identity(self.currency, pubkey, uid)
+
     def expiration_date(self, identity):
         """
         Get the expiration date of the identity

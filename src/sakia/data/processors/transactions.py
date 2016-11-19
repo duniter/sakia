@@ -25,6 +25,16 @@ class TransactionsProcessor:
         return cls(app.db.transactions_repo,
                    BmaConnector(NodesProcessor(app.db.nodes_repo)))
 
+    def transfers(self, currency, pubkey):
+        """
+        Get all transfers from or to a given pubkey
+        :param str currency:
+        :param str pubkey:
+        :return: the list of Transaction entities
+        :rtype: List[sakia.data.entities.Transaction]
+        """
+        return self._repo.get_transfers(currency, pubkey)
+
     def _try_transition(self, tx, transition_key, inputs):
         """
         Try the transition defined by the given transition_key

@@ -1,9 +1,6 @@
 from PyQt5.QtCore import QObject
-from duniterpy.api import bma
-from duniterpy.grammars.output import Condition
 from duniterpy.documents.transaction import reduce_base
 from duniterpy.documents import Transaction, SimpleTransaction
-from duniterpy.api import errors
 from sakia.data.entities import Transaction
 import math
 import logging
@@ -21,7 +18,7 @@ class TransactionsService(QObject):
 
         :param str currency: The currency name of the community
         :param sakia.data.processors.IdentitiesProcessor identities_processor: the identities processor for given currency
-        :param sakia.data.processors.TransactionProcessor transactions_processor: the transactions processor for given currency
+        :param sakia.data.processors.TransactionsProcessor transactions_processor: the transactions processor for given currency
         :param sakia.data.connectors.BmaConnector bma_connector: The connector to BMA API
         """
         super().__init__()
@@ -106,10 +103,9 @@ class TransactionsService(QObject):
                                         block_doc.mediantime, txid+i)
                 if tx:
                     #logging.debug("Transfer amount : {0}".format(transfer.metadata['amount']))
-                    transfers.append(tx)
+                    self._transactions_processor.commit(tx)
                 else:
-                    pass
-                    #logging.debug("None transfer")
+                    logging.debug("Error during transfer parsing")
         return transfers
 
     async def handle_new_blocks(self, blocks):
@@ -123,3 +119,12 @@ class TransactionsService(QObject):
         for block in blocks:
             transfers = await self._parse_block(block, txid)
             txid += len(transfers)
+
+    def transfers(self, pubkey):
+        """
+        Get all transfers from or to a given pubkey
+        :param str pubkey:
+        :return: the list of Transaction entities
+        :rtype: List[sakia.data.entities.Transaction]
+        """
+        return self._transactions_processor.transfers(self.currency, pubkey)

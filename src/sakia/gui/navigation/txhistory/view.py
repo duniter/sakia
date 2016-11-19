@@ -12,7 +12,6 @@ class TxHistoryView(QWidget, Ui_TxHistoryWidget):
         super().__init__(parent)
         self.setupUi(self)
         self.busy_balance.hide()
-        self.progressbar.hide()
 
     def get_time_frame(self):
         """
@@ -35,7 +34,7 @@ class TxHistoryView(QWidget, Ui_TxHistoryWidget):
         model.modelReset.connect(lambda: self.table_history.setEnabled(True))
         model.modelReset.connect(self.table_history.resizeColumnsToContents)
 
-    async def set_minimum_maximum_datetime(self, minimum, maximum):
+    def set_minimum_maximum_datetime(self, minimum, maximum):
         """
         Configure minimum and maximum datetime in date filter
         :param PyQt5.QtCore.QDateTime minimum: the minimum
@@ -59,20 +58,6 @@ class TxHistoryView(QWidget, Ui_TxHistoryWidget):
         self.label_balance.setText(
             "{:}".format(balance)
         )
-
-    def set_progress_bar(self, value, maximum):
-        """
-        Set progress bar value
-        :param int value:
-        :param maximum:
-        :return:
-        """
-        if value >= maximum:
-            self.progressbar.hide()
-        else:
-            self.progressbar.show()
-            self.progressbar.setValue(value)
-            self.progressbar.setMaximum(maximum)
 
     def resizeEvent(self, event):
         self.busy_balance.resize(event.size())

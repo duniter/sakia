@@ -35,16 +35,19 @@ class TxHistoryController(ComponentController):
         self.view.date_from.dateChanged['QDate'].connect(self.dates_changed)
         self.view.date_to.dateChanged['QDate'].connect(self.dates_changed)
         self.view.table_history.customContextMenuRequested['QPoint'].connect(self.history_context_menu)
-        self.model.loading_progressed.connect(self.view.set_progress_bar)
         self.refresh()
 
     @classmethod
     def create(cls, parent, app, **kwargs):
-        account = kwargs['account']
-        community = kwargs['community']
+        connection = kwargs['connection']
+        identities_service = kwargs['identities_service']
+        blockchain_service = kwargs['blockchain_service']
+        transactions_service = kwargs['transactions_service']
+        sources_service = kwargs['sources_service']
 
         view = TxHistoryView(parent.view)
-        model = TxHistoryModel(None, app, account, community)
+        model = TxHistoryModel(None, app, connection, blockchain_service, identities_service,
+                               transactions_service, sources_service)
         txhistory = cls(parent, view, model)
         model.setParent(txhistory)
         return txhistory
@@ -56,15 +59,13 @@ class TxHistoryController(ComponentController):
     @property
     def model(self) -> TxHistoryModel:
         return self._model
-    
-    @once_at_a_time
-    @asyncify
-    async def refresh_minimum_maximum(self):
+
+    def refresh_minimum_maximum(self):
         """
         Refresh minimum and maximum datetime
         """
-        minimum, maximum = await self.model.minimum_maximum_datetime()
-        await self.view.set_minimum_maximum_datetime(minimum, maximum)
+        minimum, maximum = self.model.minimum_maximum_datetime()
+        self.view.set_minimum_maximum_datetime(minimum, maximum)
 
     def refresh(self):
         self.refresh_minimum_maximum()
