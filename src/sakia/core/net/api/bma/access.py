@@ -261,11 +261,11 @@ class BmaAccess(QObject):
         """
         nodes = self.filter_nodes(request, self._network.synced_nodes)
         if len(nodes) > 0:
-            node = random.choice(nodes)
-            req = request(node.endpoint.conn_handler(), **req_args)
             tries = 0
             json_data = None
             while tries < 3:
+                node = random.choice(nodes)
+                req = request(node.endpoint.conn_handler(), **req_args)
                 try:
                     json_data = await req.get(**get_args, session=self._network.session)
                     return json_data
