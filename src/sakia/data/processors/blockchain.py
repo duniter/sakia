@@ -155,18 +155,20 @@ class BlockchainProcessor:
         :return: the list of block documents
         :rtype: List[duniterpy.documents.Block]
         """
-        from_block = min(numbers)
-        to_block = max(numbers)
-        count = to_block - from_block
+        if numbers:
+            from_block = min(numbers)
+            to_block = max(numbers)
+            count = to_block - from_block
 
-        blocks_data = await self._bma_connector.get(currency, bma.blockchain.blocks, req_args={'count': count,
-                                                                                     'from_': from_block})
-        blocks = []
-        for data in blocks_data:
-            if data['number'] in numbers:
-                blocks.append(Block.from_signed_raw(data["raw"] + data["signature"] + "\n"))
+            blocks_data = await self._bma_connector.get(currency, bma.blockchain.blocks, req_args={'count': count,
+                                                                                         'from_': from_block})
+            blocks = []
+            for data in blocks_data:
+                if data['number'] in numbers:
+                    blocks.append(Block.from_signed_raw(data["raw"] + data["signature"] + "\n"))
 
-        return blocks
+            return blocks
+        return []
 
     async def initialize_blockchain(self, currency, log_stream):
         """

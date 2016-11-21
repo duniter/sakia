@@ -1,13 +1,10 @@
 import attr
-import re
 from ..entities import Transaction
 from .nodes import NodesProcessor
 from . import tx_lifecycle
 from ..connectors import BmaConnector
-from duniterpy.api import bma, errors
-from duniterpy.documents import Block, BMAEndpoint
-import asyncio
-import time
+from duniterpy.api import bma
+from duniterpy.documents import Block
 
 
 @attr.s
@@ -122,3 +119,11 @@ class TransactionsProcessor:
         self.run_state_transitions(tx, ([r.status for r in responses], block_doc))
         self.run_state_transitions(tx, ([r.status for r in responses],))
         return result
+
+    def initialize_transactions(self, currency, pubkey):
+        """
+        Request transactions from the network to initialize data for a given pubkey
+        :param str currency:
+        :param str pubkey:
+        """
+        history = await self._bma_connector.get()

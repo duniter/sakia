@@ -50,22 +50,6 @@ class IdentitiesService(QObject):
         blockchain_time = self._blockchain_processor.time(self.currency)
         return blockchain_time - cert_time < parameters.sig_window * parameters.avg_gen_time
 
-    async def cert_issuance_delay(self, identity):
-        """
-        Get the remaining time before being able to issue new certification.
-        :param sakia.data.entities.Identity identity: the identity
-        :return: the remaining time
-        """
-        if not identity.written_on:
-            await self.update_certified_by(identity)
-        if len(certified) > 0:
-            latest_time = max([c['cert_time'] for c in certified if c['cert_time']])
-            sig_period = await self._blockchain_processor.parameters(self.currency).sig_period
-            current_time = await self._blockchain_processor.time(self.currency)
-            if current_time - latest_time < sig_period:
-                return sig_period - (current_time - latest_time)
-        return 0
-
     async def load_memberships(self, identity):
         """
         Request the identity data and save it to written identities
@@ -271,7 +255,7 @@ class IdentitiesService(QObject):
         # requirements requests
         for identity in set(need_refresh):
             refresh_futures.append(self.refresh_requirements(identity))
-        await asyncio.gather(refresh_futures)
+        await asyncio.gather(*refresh_futures)
 
     async def requirements(self, currency, pubkey, uid):
         """
