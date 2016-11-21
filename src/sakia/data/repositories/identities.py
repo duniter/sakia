@@ -17,35 +17,33 @@ class IdentitiesRepo:
         Commit an identity to the database
         :param sakia.data.entities.Identity identity: the identity to commit
         """
-        with self._conn:
-            identity_tuple = attr.astuple(identity)
-            values = ",".join(['?'] * len(identity_tuple))
-            self._conn.execute("INSERT INTO identities VALUES ({0})".format(values), identity_tuple)
+        identity_tuple = attr.astuple(identity)
+        values = ",".join(['?'] * len(identity_tuple))
+        self._conn.execute("INSERT INTO identities VALUES ({0})".format(values), identity_tuple)
 
     def update(self, identity):
         """
         Update an existing identity in the database
         :param sakia.data.entities.Identity identity: the identity to update
         """
-        with self._conn:
-            updated_fields = attr.astuple(identity, filter=attr.filters.exclude(*IdentitiesRepo._primary_keys))
-            where_fields = attr.astuple(identity, filter=attr.filters.include(*IdentitiesRepo._primary_keys))
-            self._conn.execute("""UPDATE identities SET
-                                  signature=?,
-                                  ts=?,
-                                  written_on=?,
-                                  revoked_on=?,
-                                  member=?,
-                                  ms_buid=?,
-                                  ms_timestamp=?,
-                                  ms_written_on=?,
-                                  ms_type=?
-                                  WHERE
-                                  currency=? AND
-                                  pubkey=? AND
-                                  uid=? AND
-                                  blockstamp=?""", updated_fields + where_fields
-                               )
+        updated_fields = attr.astuple(identity, filter=attr.filters.exclude(*IdentitiesRepo._primary_keys))
+        where_fields = attr.astuple(identity, filter=attr.filters.include(*IdentitiesRepo._primary_keys))
+        self._conn.execute("""UPDATE identities SET
+                              signature=?,
+                              ts=?,
+                              written_on=?,
+                              revoked_on=?,
+                              member=?,
+                              ms_buid=?,
+                              ms_timestamp=?,
+                              ms_written_on=?,
+                              ms_type=?
+                              WHERE
+                              currency=? AND
+                              pubkey=? AND
+                              uid=? AND
+                              blockstamp=?""", updated_fields + where_fields
+                           )
 
     def get_one(self, **search):
         """
@@ -53,19 +51,18 @@ class IdentitiesRepo:
         :param dict search: the criterions of the lookup
         :rtype: sakia.data.entities.Identity
         """
-        with self._conn:
-            filters = []
-            values = []
-            for k, v in search.items():
-                filters.append("{k}=?".format(k=k))
-                values.append(v)
+        filters = []
+        values = []
+        for k, v in search.items():
+            filters.append("{k}=?".format(k=k))
+            values.append(v)
 
-            request = "SELECT * FROM identities WHERE {filters}".format(filters=" AND ".join(filters))
+        request = "SELECT * FROM identities WHERE {filters}".format(filters=" AND ".join(filters))
 
-            c = self._conn.execute(request, tuple(values))
-            data = c.fetchone()
-            if data:
-                return Identity(*data)
+        c = self._conn.execute(request, tuple(values))
+        data = c.fetchone()
+        if data:
+            return Identity(*data)
 
     def get_written(self, offset=0, limit=1000, sort_by="currency", sort_order="ASC", **search):
         """
@@ -75,30 +72,29 @@ class IdentitiesRepo:
         :param dict search: the criterions of the lookup
         :rtype: List[sakia.data.entities.Identity]
         """
-        with self._conn:
-            filters = []
-            values = []
-            for k, v in search.items():
-                if isinstance(v, bool):
-                    v = int(v)
-                filters.append("{k}=?".format(k=k))
-                values.append(v)
+        filters = []
+        values = []
+        for k, v in search.items():
+            if isinstance(v, bool):
+                v = int(v)
+            filters.append("{k}=?".format(k=k))
+            values.append(v)
 
-            request = """SELECT * FROM identities WHERE {filters}
-                      AND ms_written_on!="{empty_buid}"
-                      ORDER BY {sort_by} {sort_order}
-                      LIMIT {limit} OFFSET {offset}""" \
-                        .format(filters=" AND ".join(filters),
-                                empty_buid=str(BlockUID.empty()),
-                                offset=offset,
-                                limit=limit,
-                                sort_by=sort_by,
-                                sort_order=sort_order
-                                )
-            c = self._conn.execute(request, tuple(values))
-            datas = c.fetchall()
-            if datas:
-                return [Identity(*data) for data in datas]
+        request = """SELECT * FROM identities WHERE {filters}
+                  AND ms_written_on!="{empty_buid}"
+                  ORDER BY {sort_by} {sort_order}
+                  LIMIT {limit} OFFSET {offset}""" \
+                    .format(filters=" AND ".join(filters),
+                            empty_buid=str(BlockUID.empty()),
+                            offset=offset,
+                            limit=limit,
+                            sort_by=sort_by,
+                            sort_order=sort_order
+                            )
+        c = self._conn.execute(request, tuple(values))
+        datas = c.fetchall()
+        if datas:
+            return [Identity(*data) for data in datas]
         return []
 
     def get_all(self, **search):
@@ -107,21 +103,20 @@ class IdentitiesRepo:
         :param dict search: the criterions of the lookup
         :rtype: sakia.data.entities.Identity
         """
-        with self._conn:
-            filters = []
-            values = []
-            for k, v in search.items():
-                if isinstance(v, bool):
-                    v = int(v)
-                filters.append("{k}=?".format(k=k))
-                values.append(v)
+        filters = []
+        values = []
+        for k, v in search.items():
+            if isinstance(v, bool):
+                v = int(v)
+            filters.append("{k}=?".format(k=k))
+            values.append(v)
 
-            request = "SELECT * FROM identities WHERE {filters}".format(filters=" AND ".join(filters))
+        request = "SELECT * FROM identities WHERE {filters}".format(filters=" AND ".join(filters))
 
-            c = self._conn.execute(request, tuple(values))
-            datas = c.fetchall()
-            if datas:
-                return [Identity(*data) for data in datas]
+        c = self._conn.execute(request, tuple(values))
+        datas = c.fetchall()
+        if datas:
+            return [Identity(*data) for data in datas]
         return []
 
     def find_all(self, currency, text):
@@ -130,13 +125,12 @@ class IdentitiesRepo:
         :param dict search: the criterions of the lookup
         :rtype: sakia.data.entities.Identity
         """
-        with self._conn:
-            request = "SELECT * FROM identities WHERE currency=? AND (UID LIKE ? or PUBKEY LIKE ?)"
+        request = "SELECT * FROM identities WHERE currency=? AND (UID LIKE ? or PUBKEY LIKE ?)"
 
-            c = self._conn.execute(request, (currency, "%{0}%".format(text), "%{0}%".format(text)))
-            datas = c.fetchall()
-            if datas:
-                return [Identity(*data) for data in datas]
+        c = self._conn.execute(request, (currency, "%{0}%".format(text), "%{0}%".format(text)))
+        datas = c.fetchall()
+        if datas:
+            return [Identity(*data) for data in datas]
         return []
 
     def drop(self, identity):
@@ -144,10 +138,10 @@ class IdentitiesRepo:
         Drop an existing identity from the database
         :param sakia.data.entities.Identity identity: the identity to update
         """
-        with self._conn:
-            where_fields = attr.astuple(identity, filter=attr.filters.include(*IdentitiesRepo._primary_keys))
-            self._conn.execute("""DELETE FROM identities WHERE
-                               currency=? AND
-                               pubkey=? AND
-                               uid=? AND
-                               blockstamp=?""", where_fields)
+        where_fields = attr.astuple(identity, filter=attr.filters.include(*IdentitiesRepo._primary_keys))
+        self._conn.execute("""DELETE FROM identities WHERE
+                           currency=? AND
+                           pubkey=? AND
+                           uid=? AND
+                           blockstamp=?""", where_fields)
+

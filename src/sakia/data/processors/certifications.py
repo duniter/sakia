@@ -57,7 +57,7 @@ class CertificationsProcessor:
         self._certifications_repo.insert(cert)
         return cert
 
-    def commit_certification(self, cert):
+    def insert_or_update_certification(self, cert):
         """
         Commits a certification to the DB
         :param sakia.data.entities.Certification cert:
@@ -78,8 +78,8 @@ class CertificationsProcessor:
         identities = list()
         certifiers = list()
         try:
-            data = await self._bma_connector.get(identity.currency, bma.wot.CertifiersOf,
-                                                 {'search': identity.pubkey})
+            data = await self._bma_connector.get(identity.currency, bma.wot.certifiers_of,
+                                                 req_args={'search': identity.pubkey})
 
             for certifier_data in data['certifications']:
                 certification = Certification(currency=identity.currency,
@@ -110,7 +110,7 @@ class CertificationsProcessor:
         log_stream("Requesting certified by data")
         certified = list()
         try:
-            data = await self._bma_connector.get(identity.currency, bma.wot.CertifiedBy, {'search': identity.pubkey})
+            data = await self._bma_connector.get(identity.currency, bma.wot.certified_by, req_args={'search': identity.pubkey})
             for certified_data in data['certifications']:
                 certification = Certification(currency=identity.currency,
                                               certifier=identity.pubkey,
@@ -138,7 +138,7 @@ class CertificationsProcessor:
         log_stream('Commiting certifications...')
         for i, cert in enumerate(certifiers + certified):
             log_stream('Certification {0}/{1}'.format(i, len(certifiers + certified)))
-            self.commit_certification(cert)
+            self.insert_or_update_certification(cert)
             await asyncio.sleep(0)
 
         log_stream('Commiting identities...')

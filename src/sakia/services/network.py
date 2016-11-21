@@ -21,10 +21,11 @@ class NetworkService(QObject):
     nodes_changed = pyqtSignal()
     root_nodes_changed = pyqtSignal()
 
-    def __init__(self, currency, node_processor, connectors, session, blockchain_service):
+    def __init__(self, app, currency, node_processor, connectors, session, blockchain_service):
         """
         Constructor of a network
 
+        :param sakia.app.Application app: The application
         :param str currency: The currency name of the community
         :param sakia.data.processors.NodesProcessor node_processor: the nodes processor for given currency
         :param list connectors: The connectors to nodes of the network
@@ -32,6 +33,7 @@ class NetworkService(QObject):
         :param sakia.services.BlockchainService blockchain_service: the blockchain service
         """
         super().__init__()
+        self._app = app
         self._logger = logging.getLogger('sakia')
         self._processor = node_processor
         self._connectors = []
@@ -62,10 +64,11 @@ class NetworkService(QObject):
         return network
 
     @classmethod
-    def load(cls, currency, node_processor, blockchain_service):
+    def load(cls, app, currency, node_processor, blockchain_service):
         """
         Create a new network with all known nodes
 
+        :param sakia.app.Application app: Sakia application
         :param str currency: The currency of this service
         :param sakia.data.processors.NodeProcessor node_processor: The nodes processor
         :return:
@@ -74,7 +77,7 @@ class NetworkService(QObject):
         session = aiohttp.ClientSession()
         for node in node_processor.nodes(currency):
             connectors.append(NodeConnector(node, session))
-        network = cls(currency, node_processor, connectors, session, blockchain_service)
+        network = cls(app, currency, node_processor, connectors, session, blockchain_service)
         return network
 
     def start_coroutines(self):
@@ -213,6 +216,8 @@ class NetworkService(QObject):
                         self._logger.debug(str(e))
                 else:
                     self._processor.update_peer(self.currency, peer)
+
+                self._app.db.commit()
             except IndexError:
                 await asyncio.sleep(2)
 

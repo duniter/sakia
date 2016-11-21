@@ -2,6 +2,7 @@ import time
 from sakia.data.entities import Transaction
 from duniterpy.documents import Block
 
+
 def _not_found_in_blockchain(tx, rollback, block, mediantime_target, mediantime_blocks):
     """
     Check if the transaction could not be found in the blockchain

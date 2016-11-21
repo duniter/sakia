@@ -7,7 +7,7 @@ import aiohttp
 import jsonschema
 from PyQt5.QtCore import QObject, pyqtSignal
 from aiohttp.errors import ClientError, DisconnectedError
-from aiohttp.errors import WSClientDisconnectedError, WSServerHandshakeError, ClientResponseError
+from aiohttp.errors import WSServerHandshakeError, ClientResponseError
 
 from duniterpy.api import bma, errors
 from duniterpy.documents import BlockUID, MalformedDocumentError, BMAEndpoint
@@ -159,13 +159,13 @@ class NodeConnector(QObject):
                         async for msg in ws:
                             if msg.tp == aiohttp.MsgType.text:
                                 self._logger.debug("Received a block : {0}".format(self.node.pubkey[:5]))
-                                block_data = bma.parse_text(msg.data)
+                                block_data = bma.parse_text(msg.data, bma.ws.WS_BLOCk_SCHEMA)
                                 await self.refresh_block(block_data)
                             elif msg.tp == aiohttp.MsgType.closed:
                                 break
                             elif msg.tp == aiohttp.MsgType.error:
                                 break
-                except (WSServerHandshakeError, WSClientDisconnectedError,
+                except (WSServerHandshakeError,
                         ClientResponseError, ValueError) as e:
                     self._logger.debug("Websocket block {0} : {1} - {2}"
                                   .format(type(e).__name__, str(e), self.node.pubkey[:5]))
@@ -320,13 +320,13 @@ class NodeConnector(QObject):
                         async for msg in ws:
                             if msg.tp == aiohttp.MsgType.text:
                                 self._logger.debug("Received a peer : {0}".format(self.node.pubkey[:5]))
-                                peer_data = bma.parse_text(msg.data)
+                                peer_data = bma.parse_text(msg.data, bma.ws.WS_PEER_SCHEMA)
                                 self.refresh_peer_data(peer_data)
                             elif msg.tp == aiohttp.MsgType.closed:
                                 break
                             elif msg.tp == aiohttp.MsgType.error:
                                 break
-                except (WSServerHandshakeError, WSClientDisconnectedError,
+                except (WSServerHandshakeError,
                         ClientResponseError, ValueError) as e:
                     self._logger.debug("Websocket peer {0} : {1} - {2}"
                                   .format(type(e).__name__, str(e), self.node.pubkey[:5]))

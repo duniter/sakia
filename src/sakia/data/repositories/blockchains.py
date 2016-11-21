@@ -17,38 +17,36 @@ class BlockchainsRepo:
         Commit a blockchain to the database
         :param sakia.data.entities.Blockchain blockchain: the blockchain to commit
         """
-        with self._conn:
-            blockchain_tuple = attr.astuple(blockchain.parameters) \
-                               + attr.astuple(blockchain, filter=attr.filters.exclude(Blockchain.parameters))
-            values = ",".join(['?'] * len(blockchain_tuple))
-            self._conn.execute("INSERT INTO blockchains VALUES ({0})".format(values), blockchain_tuple)
+        blockchain_tuple = attr.astuple(blockchain.parameters) \
+                           + attr.astuple(blockchain, filter=attr.filters.exclude(Blockchain.parameters))
+        values = ",".join(['?'] * len(blockchain_tuple))
+        self._conn.execute("INSERT INTO blockchains VALUES ({0})".format(values), blockchain_tuple)
 
     def update(self, blockchain):
         """
         Update an existing blockchain in the database
         :param sakia.data.entities.Blockchain blockchain: the blockchain to update
         """
-        with self._conn:
-            updated_fields = attr.astuple(blockchain, filter=attr.filters.exclude(
-                Blockchain.parameters, *BlockchainsRepo._primary_keys))
-            where_fields = attr.astuple(blockchain, filter=attr.filters.include(*BlockchainsRepo._primary_keys))
-            self._conn.execute("""UPDATE blockchains SET
-                              current_buid=?,
-                              current_members_count=?,
-                              current_mass=?,
-                              median_time=?,
-                              last_members_count=?,
-                              last_ud=?,
-                              last_ud_base=?,
-                              last_ud_time=?,
-                              previous_mass=?,
-                              previous_members_count=?,
-                              previous_ud=?,
-                              previous_ud_base=?,
-                              previous_ud_time=?
-                               WHERE
-                              currency=?""",
-                               updated_fields + where_fields)
+        updated_fields = attr.astuple(blockchain, filter=attr.filters.exclude(
+            Blockchain.parameters, *BlockchainsRepo._primary_keys))
+        where_fields = attr.astuple(blockchain, filter=attr.filters.include(*BlockchainsRepo._primary_keys))
+        self._conn.execute("""UPDATE blockchains SET
+                          current_buid=?,
+                          current_members_count=?,
+                          current_mass=?,
+                          median_time=?,
+                          last_members_count=?,
+                          last_ud=?,
+                          last_ud_base=?,
+                          last_ud_time=?,
+                          previous_mass=?,
+                          previous_members_count=?,
+                          previous_ud=?,
+                          previous_ud_base=?,
+                          previous_ud_time=?
+                           WHERE
+                          currency=?""",
+                           updated_fields + where_fields)
 
     def get_one(self, **search):
         """
@@ -56,19 +54,18 @@ class BlockchainsRepo:
         :param dict search: the criterions of the lookup
         :rtype: sakia.data.entities.Blockchain
         """
-        with self._conn:
-            filters = []
-            values = []
-            for k, v in search.items():
-                filters.append("{k}=?".format(k=k))
-                values.append(v)
+        filters = []
+        values = []
+        for k, v in search.items():
+            filters.append("{k}=?".format(k=k))
+            values.append(v)
 
-            request = "SELECT * FROM blockchains WHERE {filters}".format(filters=" AND ".join(filters))
+        request = "SELECT * FROM blockchains WHERE {filters}".format(filters=" AND ".join(filters))
 
-            c = self._conn.execute(request, tuple(values))
-            data = c.fetchone()
-            if data:
-                return Blockchain(BlockchainParameters(*data[:17]), *data[18:])
+        c = self._conn.execute(request, tuple(values))
+        data = c.fetchone()
+        if data:
+            return Blockchain(BlockchainParameters(*data[:17]), *data[18:])
 
     def get_all(self, offset=0, limit=1000, sort_by="currency", sort_order="ASC", **search) -> List[Blockchain]:
         """
@@ -80,37 +77,36 @@ class BlockchainsRepo:
         :param dict search: the criterions of the lookup
         :rtype: [sakia.data.entities.Blockchain]
         """
-        with self._conn:
-            filters = []
-            values = []
-            if search:
-                for k, v in search.items():
-                    filters.append("{k}=?".format(k=k))
-                    values.append(v)
+        filters = []
+        values = []
+        if search:
+            for k, v in search.items():
+                filters.append("{k}=?".format(k=k))
+                values.append(v)
 
-                request = """SELECT * FROM blockchains WHERE {filters}
-                              ORDER BY {sort_by} {sort_order}
-                              LIMIT {limit} OFFSET {offset}""".format(
-                    filters=" AND ".join(filters),
-                    offset=offset,
-                    limit=limit,
-                    sort_by=sort_by,
-                    sort_order=sort_order
-                )
-                c = self._conn.execute(request, tuple(values))
-            else:
-                request = """SELECT * FROM blockchains
-                              ORDER BY {sort_by} {sort_order}
-                              LIMIT {limit} OFFSET {offset}""".format(
-                    offset=offset,
-                    limit=limit,
-                    sort_by=sort_by,
-                    sort_order=sort_order
-                )
-                c = self._conn.execute(request)
-            datas = c.fetchall()
-            if datas:
-                return [Blockchain(BlockchainParameters(*data[:17]), *data[18:]) for data in datas]
+            request = """SELECT * FROM blockchains WHERE {filters}
+                          ORDER BY {sort_by} {sort_order}
+                          LIMIT {limit} OFFSET {offset}""".format(
+                filters=" AND ".join(filters),
+                offset=offset,
+                limit=limit,
+                sort_by=sort_by,
+                sort_order=sort_order
+            )
+            c = self._conn.execute(request, tuple(values))
+        else:
+            request = """SELECT * FROM blockchains
+                          ORDER BY {sort_by} {sort_order}
+                          LIMIT {limit} OFFSET {offset}""".format(
+                offset=offset,
+                limit=limit,
+                sort_by=sort_by,
+                sort_order=sort_order
+            )
+            c = self._conn.execute(request)
+        datas = c.fetchall()
+        if datas:
+            return [Blockchain(BlockchainParameters(*data[:17]), *data[18:]) for data in datas]
         return []
 
     def drop(self, blockchain):
@@ -118,6 +114,5 @@ class BlockchainsRepo:
         Drop an existing blockchain from the database
         :param sakia.data.entities.Blockchain blockchain: the blockchain to update
         """
-        with self._conn:
-            where_fields = attr.astuple(blockchain, filter=attr.filters.include(*BlockchainsRepo._primary_keys))
-            self._conn.execute("DELETE FROM blockchains WHERE currency=?", where_fields)
+        where_fields = attr.astuple(blockchain, filter=attr.filters.include(*BlockchainsRepo._primary_keys))
+        self._conn.execute("DELETE FROM blockchains WHERE currency=?", where_fields)

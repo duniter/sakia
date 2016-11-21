@@ -122,7 +122,7 @@ class IdentitiesProcessor:
         else:
             return written[0]
 
-    def commit_identity(self, identity):
+    def insert_or_update_identity(self, identity):
         """
         Saves an identity state in the db
         :param sakia.data.entities.Identity identity: the identity updated
@@ -139,7 +139,7 @@ class IdentitiesProcessor:
         :param function log_stream:
         """
         log_stream("Requesting membership data")
-        memberships_data = await self._bma_connector.get(identity.currency, bma.blockchain.Membership,
+        memberships_data = await self._bma_connector.get(identity.currency, bma.blockchain.memberships,
                                                          req_args={'search': identity.pubkey})
         if block_uid(memberships_data['sigDate']) == identity.blockstamp \
            and memberships_data['uid'] == identity.uid:
@@ -150,7 +150,7 @@ class IdentitiesProcessor:
 
             if identity.membership_buid:
                 log_stream("Requesting membership timestamp")
-                ms_block_data = await self._bma_connector.get(identity.currency, bma.blockchain.Block,
+                ms_block_data = await self._bma_connector.get(identity.currency, bma.blockchain.block,
                                                               req_args={'number': identity.membership_buid.number})
                 if ms_block_data:
                     identity.membership_timestamp = ms_block_data['medianTime']
@@ -158,8 +158,8 @@ class IdentitiesProcessor:
             if memberships_data['memberships']:
                 log_stream("Requesting identity requirements status")
 
-                requirements_data = await self._bma_connector.get(identity.currency, bma.wot.Requirements,
-                                                                  get_args={'search': identity.pubkey})
+                requirements_data = await self._bma_connector.get(identity.currency, bma.wot.requirements,
+                                                                  req_args={'search': identity.pubkey})
                 identity.member = requirements_data['membershipExpiresIn'] > 0 and not requirements_data['outdistanced']
 
     async def publish_selfcert(self, currency, identity, salt, password):
@@ -183,7 +183,8 @@ class IdentitiesProcessor:
         selfcert.sign([key])
         self._logger.debug("Key publish : {0}".format(selfcert.signed_raw()))
 
-        responses = await self._bma_connector.broadcast(currency, bma.wot.Add, {}, {'identity': selfcert.signed_raw()})
+        responses = await self._bma_connector.broadcast(currency, bma.wot.add,
+                                                        req_args={'identity': selfcert.signed_raw()})
         result = (False, "")
         for r in responses:
             if r.status == 200:

@@ -14,7 +14,8 @@ from .sources import SourcesRepo
 
 @attr.s(frozen=True)
 class SakiaDatabase:
-    """The repository for Identities entities.
+    """
+    This is Sakia unique SQLite database.
     """
     conn = attr.ib()  # :type sqlite3.Connection
     connections_repo = attr.ib(default=None)
@@ -93,3 +94,6 @@ class SakiaDatabase:
             else:
                 self.conn.execute("INSERT INTO meta VALUES (1, 0)")
                 return 0
+
+    def commit(self):
+        self.conn.commit()

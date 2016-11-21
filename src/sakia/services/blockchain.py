@@ -1,5 +1,4 @@
 from PyQt5.QtCore import QObject
-from duniterpy.api import bma
 import math
 import logging
 
@@ -9,10 +8,11 @@ class BlockchainService(QObject):
     Blockchain service is managing new blocks received
     to update data locally
     """
-    def __init__(self, currency, blockchain_processor, bma_connector, identities_service, transactions_service):
+    def __init__(self, app, currency, blockchain_processor, bma_connector, identities_service, transactions_service):
         """
         Constructor the identities service
 
+        :param sakia.app.Application app: Sakia application
         :param str currency: The currency name of the community
         :param sakia.data.processors.BlockchainProcessor blockchain_processor: the blockchain processor for given currency
         :param sakia.data.connectors.BmaConnector bma_connector: The connector to BMA API
@@ -20,6 +20,7 @@ class BlockchainService(QObject):
         :param sakia.services.TransactionsService transactions_service: The transactions service
         """
         super().__init__()
+        self.app = app
         self._blockchain_processor = blockchain_processor
         self._bma_connector = bma_connector
         self.currency = currency
@@ -36,6 +37,7 @@ class BlockchainService(QObject):
         blocks = await self._blockchain_processor.blocks(with_identities + with_money, self.currency)
         await self._identities_service.handle_new_blocks(blocks)
         await self._transactions_service.handle_new_blocks(blocks)
+        self.app.db.commit()
 
     def current_buid(self):
         return self._blockchain_processor.current_buid(self.currency)

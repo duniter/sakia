@@ -104,10 +104,10 @@ class TransactionsProcessor:
         :param community: The community target of the transaction
         """
         tx.sha_hash = txdoc.sha_hash
-        responses = await community.bma_access.broadcast(bma.tx.Process,
+        responses = await community.bma_access.broadcast(bma.tx.process,
                                                          post_args={'transaction': txdoc.signed_raw()})
         blockUID = community.network.current_blockUID
-        block = await community.bma_access.future_request(bma.blockchain.Block,
+        block = await community.bma_access.future_request(bma.blockchain.block,
                                                           req_args={'number': blockUID.number})
         signed_raw = "{0}{1}\n".format(block['raw'], block['signature'])
         block_doc = Block.from_signed_raw(signed_raw)

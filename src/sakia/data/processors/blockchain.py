@@ -117,11 +117,11 @@ class BlockchainProcessor:
         """
         with_identities = []
         future_requests = []
-        for req in (bma.blockchain.Joiners,
-                    bma.blockchain.Leavers,
-                    bma.blockchain.Actives,
-                    bma.blockchain.Excluded,
-                    bma.blockchain.Newcomers):
+        for req in (bma.blockchain.joiners,
+                    bma.blockchain.leavers,
+                    bma.blockchain.actives,
+                    bma.blockchain.excluded,
+                    bma.blockchain.newcomers):
             future_requests.append(self._bma_connector.get(currency, req))
         results = await asyncio.gather(*future_requests)
 
@@ -138,7 +138,7 @@ class BlockchainProcessor:
         """
         with_money = []
         future_requests = []
-        for req in (bma.blockchain.UD, bma.blockchain.TX):
+        for req in (bma.blockchain.ud, bma.blockchain.tx):
             future_requests.append(self._bma_connector.get(currency, req))
         results = await asyncio.gather(*future_requests)
 
@@ -159,7 +159,7 @@ class BlockchainProcessor:
         to_block = max(numbers)
         count = to_block - from_block
 
-        blocks_data = await self._bma_connector.get(currency, bma.blockchain.Blocks, req_args={'count': count,
+        blocks_data = await self._bma_connector.get(currency, bma.blockchain.blocks, req_args={'count': count,
                                                                                      'from_': from_block})
         blocks = []
         for data in blocks_data:
@@ -175,10 +175,9 @@ class BlockchainProcessor:
         blockchain = self._repo.get_one(currency=currency)
         if not blockchain:
             blockchain = Blockchain(currency=currency)
-            blockchain_parameters = BlockchainParameters()
             log_stream("Requesting blockchain parameters")
             try:
-                parameters = await self._bma_connector.get(currency, bma.blockchain.Parameters)
+                parameters = await self._bma_connector.get(currency, bma.blockchain.parameters)
                 blockchain.parameters.ms_validity = parameters['msValidity']
                 blockchain.parameters.avg_gen_time = parameters['avgGenTime']
                 blockchain.parameters.blocks_rot = parameters['blocksRot']
@@ -203,7 +202,7 @@ class BlockchainProcessor:
 
             log_stream("Requesting current block")
             try:
-                current_block = await self._bma_connector.get(currency, bma.blockchain.Current)
+                current_block = await self._bma_connector.get(currency, bma.blockchain.current)
                 signed_raw = "{0}{1}\n".format(current_block['raw'], current_block['signature'])
                 block = Block.from_signed_raw(signed_raw)
                 blockchain.current_buid = block.blockUID
@@ -214,7 +213,7 @@ class BlockchainProcessor:
                     raise
 
             log_stream("Requesting blocks with dividend")
-            with_ud = await self._bma_connector.get(currency, bma.blockchain.UD)
+            with_ud = await self._bma_connector.get(currency, bma.blockchain.ud)
             blocks_with_ud = with_ud['result']['blocks']
 
             if len(blocks_with_ud) > 0:
@@ -222,7 +221,7 @@ class BlockchainProcessor:
                 try:
                     index = max(len(blocks_with_ud) - 1, 0)
                     block_number = blocks_with_ud[index]
-                    block_with_ud = await self._bma_connector.get(currency, bma.blockchain.Block,
+                    block_with_ud = await self._bma_connector.get(currency, bma.blockchain.block,
                                                                   req_args={'number': block_number})
                     if block_with_ud:
                         blockchain.last_members_count = block_with_ud['membersCount']
@@ -238,7 +237,7 @@ class BlockchainProcessor:
                 try:
                     index = max(len(blocks_with_ud) - 2, 0)
                     block_number = blocks_with_ud[index]
-                    block_with_ud = await self._bma_connector.get(currency, bma.blockchain.Block,
+                    block_with_ud = await self._bma_connector.get(currency, bma.blockchain.block,
                                                                   req_args={'number': block_number})
                     blockchain.previous_mass = block_with_ud['monetaryMass']
                     blockchain.previous_members_count = block_with_ud['membersCount']
@@ -250,4 +249,3 @@ class BlockchainProcessor:
                         raise
 
             self._repo.insert(blockchain)
-

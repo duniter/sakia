@@ -74,7 +74,7 @@ class IdentitiesService(QObject):
         """
         if not identity.written_on:
             try:
-                search = await self._bma_connector.get(self.currency, bma.blockchain.Membership,
+                search = await self._bma_connector.get(self.currency, bma.blockchain.membership,
                                                             {'search': self.pubkey})
                 blockstamp = BlockUID.empty()
                 membership_data = None
@@ -89,7 +89,7 @@ class IdentitiesService(QObject):
                     identity.membership_type = ms["type"]
                     identity.membership_written_on = ms["written"]
                     await self.refresh_requirements(identity)
-                    self._identities_processor.commit_identity(identity)
+                    self._identities_processor.insert_or_update_identity(identity)
             except errors.DuniterError as e:
                 logging.debug(str(e))
             except NoPeerAvailable as e:
@@ -104,15 +104,17 @@ class IdentitiesService(QObject):
         if not identity.written_on:
             try:
                 data = await self._bma_connector.get(self.currency, bma.wot.certifiers_of, {'search': identity.pubkey})
-                for certified_data in data['certifications']:
-                    cert = Certification(self.currency, data["pubkey"],
-                                         certified_data["pubkey"], certified_data["sigDate"])
-                    cert.block = certified_data["cert_time"]["number"]
-                    cert.timestamp = certified_data["cert_time"]["medianTime"]
-                    if certified_data['written']:
-                        cert.written_on = BlockUID(certified_data['written']['number'],
-                                                   certified_data['written']['hash'])
-                    self._certs_processor.commit_certification(cert)
+                for certifier_data in data['certifications']:
+                    cert = Certification(currency=self.currency,
+                                         certified=data["pubkey"],
+                                         certifier=certifier_data["pubkey"],
+                                         block=certifier_data["cert_time"]["block"],
+                                         timestamp=certifier_data["cert_time"]["medianTime"],
+                                         signature=certifier_data['signature'])
+                    if certifier_data['written']:
+                        cert.written_on = BlockUID(certifier_data['written']['number'],
+                                                   certifier_data['written']['hash'])
+                    self._certs_processor.insert_or_update_certification(cert)
             except errors.DuniterError as e:
                 if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
                     logging.debug("Certified by error : {0}".format(str(e)))
@@ -129,14 +131,16 @@ class IdentitiesService(QObject):
             try:
                 data = await self._bma_connector.get(self.currency, bma.wot.certified_by, {'search': identity.pubkey})
                 for certified_data in data['certifications']:
-                    cert = Certification(self.currency, data["pubkey"],
-                                         certified_data["pubkey"], certified_data["sigDate"])
-                    cert.block = certified_data["cert_time"]["number"]
-                    cert.timestamp = certified_data["cert_time"]["medianTime"]
+                    cert = Certification(currency=self.currency,
+                                         certifier=data["pubkey"],
+                                         certified=certified_data["pubkey"],
+                                         block=certified_data["cert_time"]["block"],
+                                         timestamp=certified_data["cert_time"]["medianTime"],
+                                         signature=certified_data['signature'])
                     if certified_data['written']:
                         cert.written_on = BlockUID(certified_data['written']['number'],
                                                    certified_data['written']['hash'])
-                    self._certs_processor.commit_certification(cert)
+                    self._certs_processor.insert_or_update_certification(cert)
             except errors.DuniterError as e:
                 if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
                     logging.debug("Certified by error : {0}".format(str(e)))
@@ -178,7 +182,7 @@ class IdentitiesService(QObject):
                 written.membership_written_on = block.blockUID
                 written.membership_type = "IN"
                 written.membership_buid = ms.membership_ts
-                self._identities_processor.commit_identity(written)
+                self._identities_processor.insert_or_update_identity(written)
                 # If the identity was not member
                 # it can become one
                 if not written.member:
@@ -192,7 +196,7 @@ class IdentitiesService(QObject):
                 written.membership_written_on = block.blockUID
                 written.membership_type = "OUT"
                 written.membership_buid = ms.membership_ts
-                self._identities_processor.commit_identity(written)
+                self._identities_processor.insert_or_update_identity(written)
                 # If the identity was not member
                 # it can stop to be one
                 if not written.member:
@@ -233,12 +237,12 @@ class IdentitiesService(QObject):
                                                          req_args={'search': identity.pubkey})
             identity_data = requirements['identities'][0]
             identity.uid = identity_data["uid"]
-            identity.blockstamp = identity["meta"]["timestamp"]
-            identity.member = identity["membershipExpiresIn"] > 0 and identity["outdistanced"] is False
+            identity.blockstamp = identity_data["meta"]["timestamp"]
+            identity.member = identity_data["membershipExpiresIn"] > 0 and identity_data["outdistanced"] is False
             median_time = self._blockchain_processor.time(self.currency)
             expiration_time = self._blockchain_processor.parameters(self.currency).ms_validity
-            identity.membership_timestamp = median_time - (expiration_time - identity["membershipExpiresIn"])
-            self._identities_processor.commit_identity(identity)
+            identity.membership_timestamp = median_time - (expiration_time - identity_data["membershipExpiresIn"])
+            self._identities_processor.insert_or_update_identity(identity)
         except NoPeerAvailable as e:
             self._logger.debug(str(e))
 

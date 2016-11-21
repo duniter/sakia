@@ -15,42 +15,40 @@ class NodesRepo:
         Commit a node to the database
         :param sakia.data.entities.Node node: the node to commit
         """
-        with self._conn:
-            node_tuple = attr.astuple(node, tuple_factory=list)
-            node_tuple[2] = "\n".join([str(n) for n in node_tuple[2]])
-            node_tuple[12] = "\n".join([str(n) for n in node_tuple[11]])
-            values = ",".join(['?'] * len(node_tuple))
-            self._conn.execute("INSERT INTO nodes VALUES ({0})".format(values), node_tuple)
+        node_tuple = attr.astuple(node, tuple_factory=list)
+        node_tuple[2] = "\n".join([str(n) for n in node_tuple[2]])
+        node_tuple[12] = "\n".join([str(n) for n in node_tuple[11]])
+        values = ",".join(['?'] * len(node_tuple))
+        self._conn.execute("INSERT INTO nodes VALUES ({0})".format(values), node_tuple)
 
     def update(self, node):
         """
         Update an existing node in the database
         :param sakia.data.entities.Node node: the node to update
         """
-        with self._conn:
-            updated_fields = attr.astuple(node, tuple_factory=list,
-                                          filter=attr.filters.exclude(*NodesRepo._primary_keys))
-            updated_fields[0] = "\n".join([str(n) for n in updated_fields[0]])
-            updated_fields[10] = "\n".join([str(n) for n in updated_fields[9]])
-            where_fields = attr.astuple(node, tuple_factory=list,
-                                        filter=attr.filters.include(*NodesRepo._primary_keys))
-            self._conn.execute("""UPDATE nodes SET
-                                        endpoints=?,
-                                        peer_buid=?,
-                                        uid=?,
-                                        current_buid=?,
-                                        current_ts=?,
-                                        previous_buid=?,
-                                        state=?,
-                                        software=?,
-                                        version=?,
-                                        merkle_peers_root=?,
-                                        merkle_peers_leaves=?,
-                                        root=?
-                                       WHERE
-                                       currency=? AND
-                                       pubkey=?""",
-                                       updated_fields + where_fields)
+        updated_fields = attr.astuple(node, tuple_factory=list,
+                                      filter=attr.filters.exclude(*NodesRepo._primary_keys))
+        updated_fields[0] = "\n".join([str(n) for n in updated_fields[0]])
+        updated_fields[10] = "\n".join([str(n) for n in updated_fields[9]])
+        where_fields = attr.astuple(node, tuple_factory=list,
+                                    filter=attr.filters.include(*NodesRepo._primary_keys))
+        self._conn.execute("""UPDATE nodes SET
+                                    endpoints=?,
+                                    peer_buid=?,
+                                    uid=?,
+                                    current_buid=?,
+                                    current_ts=?,
+                                    previous_buid=?,
+                                    state=?,
+                                    software=?,
+                                    version=?,
+                                    merkle_peers_root=?,
+                                    merkle_peers_leaves=?,
+                                    root=?
+                                   WHERE
+                                   currency=? AND
+                                   pubkey=?""",
+                                   updated_fields + where_fields)
 
     def get_one(self, **search):
         """
@@ -58,21 +56,20 @@ class NodesRepo:
         :param dict search: the criterions of the lookup
         :rtype: sakia.data.entities.Node
         """
-        with self._conn:
-            filters = []
-            values = []
-            for k, v in search.items():
-                if isinstance(v, bool):
-                    v = int(v)
-                filters.append("{k}=?".format(k=k))
-                values.append(v)
+        filters = []
+        values = []
+        for k, v in search.items():
+            if isinstance(v, bool):
+                v = int(v)
+            filters.append("{k}=?".format(k=k))
+            values.append(v)
 
-            request = "SELECT * FROM nodes WHERE {filters}".format(filters=" AND ".join(filters))
+        request = "SELECT * FROM nodes WHERE {filters}".format(filters=" AND ".join(filters))
 
-            c = self._conn.execute(request, tuple(values))
-            data = c.fetchone()
-            if data:
-                return Node(*data)
+        c = self._conn.execute(request, tuple(values))
+        data = c.fetchone()
+        if data:
+            return Node(*data)
 
     def get_all(self, **search):
         """
@@ -80,23 +77,22 @@ class NodesRepo:
         :param dict search: the criterions of the lookup
         :rtype: sakia.data.entities.Node
         """
-        with self._conn:
-            filters = []
-            values = []
-            for k, v in search.items():
-                if isinstance(v, bool):
-                    value = int(v)
-                else:
-                    value = v
-                filters.append("{key} = ?".format(key=k))
-                values.append(value)
+        filters = []
+        values = []
+        for k, v in search.items():
+            if isinstance(v, bool):
+                value = int(v)
+            else:
+                value = v
+            filters.append("{key} = ?".format(key=k))
+            values.append(value)
 
-            request = "SELECT * FROM nodes WHERE {filters}".format(filters=" AND ".join(filters))
+        request = "SELECT * FROM nodes WHERE {filters}".format(filters=" AND ".join(filters))
 
-            c = self._conn.execute(request, tuple(values))
-            datas = c.fetchall()
-            if datas:
-                return [Node(*data) for data in datas]
+        c = self._conn.execute(request, tuple(values))
+        datas = c.fetchall()
+        if datas:
+            return [Node(*data) for data in datas]
         return []
 
     def drop(self, node):
@@ -104,8 +100,7 @@ class NodesRepo:
         Drop an existing node from the database
         :param sakia.data.entities.Node node: the node to update
         """
-        with self._conn:
-            where_fields = attr.astuple(node, filter=attr.filters.include(*NodesRepo._primary_keys))
-            self._conn.execute("""DELETE FROM nodes
-                                  WHERE
-                                  currency=? AND pubkey=?""", where_fields)
+        where_fields = attr.astuple(node, filter=attr.filters.include(*NodesRepo._primary_keys))
+        self._conn.execute("""DELETE FROM nodes
+                              WHERE
+                              currency=? AND pubkey=?""", where_fields)

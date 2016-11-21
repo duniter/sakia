@@ -15,10 +15,9 @@ class SourcesRepo:
         Commit a source to the database
         :param sakia.data.entities.Source source: the source to commit
         """
-        with self._conn:
-            source_tuple = attr.astuple(source)
-            values = ",".join(['?'] * len(source_tuple))
-            self._conn.execute("INSERT INTO sources VALUES ({0})".format(values), source_tuple)
+        source_tuple = attr.astuple(source)
+        values = ",".join(['?'] * len(source_tuple))
+        self._conn.execute("INSERT INTO sources VALUES ({0})".format(values), source_tuple)
 
     def get_one(self, **search):
         """
@@ -26,19 +25,18 @@ class SourcesRepo:
         :param dict search: the criterions of the lookup
         :rtype: sakia.data.entities.Source
         """
-        with self._conn:
-            filters = []
-            values = []
-            for k, v in search.items():
-                filters.append("{k}=?".format(k=k))
-                values.append(v)
+        filters = []
+        values = []
+        for k, v in search.items():
+            filters.append("{k}=?".format(k=k))
+            values.append(v)
 
-            request = "SELECT * FROM sources WHERE {filters}".format(filters=" AND ".join(filters))
+        request = "SELECT * FROM sources WHERE {filters}".format(filters=" AND ".join(filters))
 
-            c = self._conn.execute(request, tuple(values))
-            data = c.fetchone()
-            if data:
-                return Source(*data)
+        c = self._conn.execute(request, tuple(values))
+        data = c.fetchone()
+        if data:
+            return Source(*data)
 
     def get_all(self, **search):
         """
@@ -46,20 +44,19 @@ class SourcesRepo:
         :param dict search: the criterions of the lookup
         :rtype: sakia.data.entities.Source
         """
-        with self._conn:
-            filters = []
-            values = []
-            for k, v in search.items():
-                value = v
-                filters.append("{key} = ?".format(key=k))
-                values.append(value)
+        filters = []
+        values = []
+        for k, v in search.items():
+            value = v
+            filters.append("{key} = ?".format(key=k))
+            values.append(value)
 
-            request = "SELECT * FROM sources WHERE {filters}".format(filters=" AND ".join(filters))
+        request = "SELECT * FROM sources WHERE {filters}".format(filters=" AND ".join(filters))
 
-            c = self._conn.execute(request, tuple(values))
-            datas = c.fetchall()
-            if datas:
-                return [Source(*data) for data in datas]
+        c = self._conn.execute(request, tuple(values))
+        datas = c.fetchall()
+        if datas:
+            return [Source(*data) for data in datas]
         return []
 
     def drop(self, source):
@@ -67,8 +64,8 @@ class SourcesRepo:
         Drop an existing source from the database
         :param sakia.data.entities.Source source: the source to update
         """
-        with self._conn:
-            where_fields = attr.astuple(source, filter=attr.filters.include(*SourcesRepo._primary_keys))
-            self._conn.execute("""DELETE FROM sources
-                                  WHERE
-                                  identifier=?""", where_fields)
+        where_fields = attr.astuple(source, filter=attr.filters.include(*SourcesRepo._primary_keys))
+        self._conn.execute("""DELETE FROM sources
+                              WHERE
+                              identifier=?""", where_fields)
+

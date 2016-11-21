@@ -1,8 +1,6 @@
 import asyncio
 import logging
 
-from PyQt5.QtGui import QCursor
-from PyQt5.QtWidgets import QDialog, QApplication, QMenu
 from aiohttp.errors import DisconnectedError, ClientError, TimeoutError
 
 from duniterpy.documents import MalformedDocumentError
@@ -142,7 +140,7 @@ class ConnectionConfigController(ComponentController):
             self.view.stacked_pages.setCurrentWidget(self.view.page_connection)
             connection_identity = await self.step_key
 
-        self.model.commit_connection()
+        self.model.insert_or_update_connection()
         self.view.stacked_pages.setCurrentWidget(self.view.page_services)
         self.view.progress_bar.setValue(0)
         self.view.progress_bar.setMaximum(3)
@@ -151,7 +149,7 @@ class ConnectionConfigController(ComponentController):
 
         if mode in (ConnectionConfigController.REGISTER, ConnectionConfigController.CONNECT):
             self.view.stream_log("Saving identity...")
-            self.model.commit_identity(connection_identity)
+            self.model.insert_or_update_identity(connection_identity)
             self.view.stream_log("Initializing identity informations...")
             await self.model.initialize_identity(connection_identity, log_stream=self.view.stream_log)
             self.view.stream_log("Initializing certifications informations...")
@@ -172,6 +170,7 @@ class ConnectionConfigController(ComponentController):
         await self.model.initialize_sources(self.view.stream_log)
 
         self._logger.debug("Validate changes")
+        self.model.app.db.commit()
         self.accept()
 
     def check_key(self):

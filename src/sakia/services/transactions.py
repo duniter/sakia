@@ -31,7 +31,6 @@ class TransactionsService(QObject):
     async def _parse_transaction(self, tx_doc, blockUID, mediantime, txid):
         """
         Parse a transaction
-        :param sakia.core.Community community: The community
         :param duniterpy.documents.Transaction tx_doc: The tx json data
         :param duniterpy.documents.BlockUID blockUID: The block id where we found the tx
         :param int mediantime: Median time on the network

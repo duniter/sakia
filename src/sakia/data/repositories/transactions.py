@@ -15,35 +15,33 @@ class TransactionsRepo:
         Commit a transaction to the database
         :param sakia.data.entities.Transaction transaction: the transaction to commit
         """
-        with self._conn:
-            transaction_tuple = attr.astuple(transaction)
-            values = ",".join(['?'] * len(transaction_tuple))
-            self._conn.execute("INSERT INTO transactions VALUES ({0})".format(values), transaction_tuple)
+        transaction_tuple = attr.astuple(transaction)
+        values = ",".join(['?'] * len(transaction_tuple))
+        self._conn.execute("INSERT INTO transactions VALUES ({0})".format(values), transaction_tuple)
 
     def update(self, transaction):
         """
         Update an existing transaction in the database
         :param sakia.data.entities.Transaction transaction: the transaction to update
         """
-        with self._conn:
-            updated_fields = attr.astuple(transaction, filter=attr.filters.exclude(*TransactionsRepo._primary_keys))
-            where_fields = attr.astuple(transaction, filter=attr.filters.include(*TransactionsRepo._primary_keys))
-            self._conn.execute("""UPDATE transactions SET
-                               currency=?,
-                               written_on=?,
-                               blockstamp=?,
-                               ts=?,
-                               signature=?,
-                               issuer = ?,
-                               receiver = ?,
-                               amount = ?,
-                               amountbase = ?,
-                               comment = ?,
-                               txid = ?,
-                               state = ?
-                               WHERE
-                               sha_hash=?""",
-                               updated_fields + where_fields)
+        updated_fields = attr.astuple(transaction, filter=attr.filters.exclude(*TransactionsRepo._primary_keys))
+        where_fields = attr.astuple(transaction, filter=attr.filters.include(*TransactionsRepo._primary_keys))
+        self._conn.execute("""UPDATE transactions SET
+                           currency=?,
+                           written_on=?,
+                           blockstamp=?,
+                           ts=?,
+                           signature=?,
+                           issuer = ?,
+                           receiver = ?,
+                           amount = ?,
+                           amountbase = ?,
+                           comment = ?,
+                           txid = ?,
+                           state = ?
+                           WHERE
+                           sha_hash=?""",
+                           updated_fields + where_fields)
 
     def get_one(self, **search):
         """
@@ -51,19 +49,18 @@ class TransactionsRepo:
         :param dict search: the criterions of the lookup
         :rtype: sakia.data.entities.Transaction
         """
-        with self._conn:
-            filters = []
-            values = []
-            for k, v in search.items():
-                filters.append("{k}=?".format(k=k))
-                values.append(v)
+        filters = []
+        values = []
+        for k, v in search.items():
+            filters.append("{k}=?".format(k=k))
+            values.append(v)
 
-            request = "SELECT * FROM transactions WHERE {filters}".format(filters=" AND ".join(filters))
+        request = "SELECT * FROM transactions WHERE {filters}".format(filters=" AND ".join(filters))
 
-            c = self._conn.execute(request, tuple(values))
-            data = c.fetchone()
-            if data:
-                return Transaction(*data)
+        c = self._conn.execute(request, tuple(values))
+        data = c.fetchone()
+        if data:
+            return Transaction(*data)
 
     def get_all(self, **search):
         """
@@ -71,20 +68,19 @@ class TransactionsRepo:
         :param dict search: the criterions of the lookup
         :rtype: sakia.data.entities.Transaction
         """
-        with self._conn:
-            filters = []
-            values = []
-            for k, v in search.items():
-                value = v
-                filters.append("{key} = ?".format(key=k))
-                values.append(value)
+        filters = []
+        values = []
+        for k, v in search.items():
+            value = v
+            filters.append("{key} = ?".format(key=k))
+            values.append(value)
 
-            request = "SELECT * FROM transactions WHERE {filters}".format(filters=" AND ".join(filters))
+        request = "SELECT * FROM transactions WHERE {filters}".format(filters=" AND ".join(filters))
 
-            c = self._conn.execute(request, tuple(values))
-            datas = c.fetchall()
-            if datas:
-                return [Transaction(*data) for data in datas]
+        c = self._conn.execute(request, tuple(values))
+        datas = c.fetchall()
+        if datas:
+            return [Transaction(*data) for data in datas]
         return []
 
     def get_transfers(self, currency, pubkey, offset=0, limit=1000, sort_by="currency", sort_order="ASC"):
@@ -94,20 +90,19 @@ class TransactionsRepo:
         :param str pubkey: the criterions of the lookup
         :rtype: List[sakia.data.entities.Transaction]
         """
-        with self._conn:
-            request = """SELECT * FROM transactions
-                      WHERE currency=? AND (issuer=? or receiver=?)
-                      ORDER BY {sort_by} {sort_order}
-                      LIMIT {limit} OFFSET {offset}""" \
-                        .format(offset=offset,
-                                limit=limit,
-                                sort_by=sort_by,
-                                sort_order=sort_order
-                                )
-            c = self._conn.execute(request, (currency, pubkey, pubkey))
-            datas = c.fetchall()
-            if datas:
-                return [Transaction(*data) for data in datas]
+        request = """SELECT * FROM transactions
+                  WHERE currency=? AND (issuer=? or receiver=?)
+                  ORDER BY {sort_by} {sort_order}
+                  LIMIT {limit} OFFSET {offset}""" \
+                    .format(offset=offset,
+                            limit=limit,
+                            sort_by=sort_by,
+                            sort_order=sort_order
+                            )
+        c = self._conn.execute(request, (currency, pubkey, pubkey))
+        datas = c.fetchall()
+        if datas:
+            return [Transaction(*data) for data in datas]
         return []
 
     def drop(self, transaction):
@@ -115,8 +110,7 @@ class TransactionsRepo:
         Drop an existing transaction from the database
         :param sakia.data.entities.Transaction transaction: the transaction to update
         """
-        with self._conn:
-            where_fields = attr.astuple(transaction, filter=attr.filters.include(*TransactionsRepo._primary_keys))
-            self._conn.execute("""DELETE FROM transactions
-                                  WHERE
-                                  sha_hash=?""", where_fields)
+        where_fields = attr.astuple(transaction, filter=attr.filters.include(*TransactionsRepo._primary_keys))
+        self._conn.execute("""DELETE FROM transactions
+                              WHERE
+                              sha_hash=?""", where_fields)

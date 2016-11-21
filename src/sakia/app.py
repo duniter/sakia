@@ -109,10 +109,10 @@ class Application(QObject):
             self.transactions_services[currency] = TransactionsService(currency, transactions_processor,
                                                                        identities_processor, bma_connector)
 
-            self.blockchain_services[currency] = BlockchainService(currency, blockchain_processor, bma_connector,
+            self.blockchain_services[currency] = BlockchainService(self, currency, blockchain_processor, bma_connector,
                                                                    self.identities_services[currency],
                                                                    self.transactions_services[currency])
-            self.network_services[currency] = NetworkService.load(currency, nodes_processor,
+            self.network_services[currency] = NetworkService.load(self, currency, nodes_processor,
                                                                   self.blockchain_services[currency])
             self.sources_services[currency] = SourcesServices(currency, sources_processor, bma_connector)
 

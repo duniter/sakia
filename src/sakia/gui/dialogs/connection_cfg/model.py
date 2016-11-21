@@ -50,12 +50,12 @@ class ConnectionConfigModel(ComponentModel):
         self.connection.salt = salt
         self.connection.pubkey = SigningKey(self.connection.salt, password).pubkey
 
-    def commit_connection(self):
+    def insert_or_update_connection(self):
         ConnectionsProcessor(self.app.db.connections_repo).commit_connection(self.connection)
         NodesProcessor(self.app.db.nodes_repo).commit_node(self.node_connector.node)
 
-    def commit_identity(self, identity):
-        self.identities_processor.commit_identity(identity)
+    def insert_or_update_identity(self, identity):
+        self.identities_processor.insert_or_update_identity(identity)
 
     async def initialize_blockchain(self, log_stream):
         """
@@ -151,7 +151,7 @@ class ConnectionConfigModel(ComponentModel):
 
         async def execute_requests(parsers, search):
             tries = 0
-            request = bma.wot.CertifiersOf
+            request = bma.wot.certifiers_of
             nonlocal registered
             for endpoint in [e for e in self.node_connector.node.endpoints if isinstance(e, BMAEndpoint)]:
                 if not registered[0] and not registered[2]:
@@ -163,8 +163,8 @@ class ConnectionConfigModel(ComponentModel):
                     except errors.DuniterError as e:
                         if e.ucode in (errors.NO_MEMBER_MATCHING_PUB_OR_UID,
                                        e.ucode == errors.NO_MATCHING_IDENTITY):
-                            if request == bma.wot.CertifiersOf:
-                                request = bma.wot.Lookup
+                            if request == bma.wot.certifiers_of:
+                                request = bma.wot.lookup
                                 tries = 0
                             else:
                                 tries += 1
@@ -180,8 +180,8 @@ class ConnectionConfigModel(ComponentModel):
         # We execute search based on pubkey
         # And look for account UID
         uid_parsers = {
-            bma.wot.CertifiersOf: _parse_uid_certifiers,
-            bma.wot.Lookup: _parse_uid_lookup
+            bma.wot.certifiers_of: _parse_uid_certifiers,
+            bma.wot.lookup: _parse_uid_lookup
         }
         await execute_requests(uid_parsers, identity.pubkey)
 
@@ -189,8 +189,8 @@ class ConnectionConfigModel(ComponentModel):
         # We look for the uid and check for the pubkey
         if not registered[0] and not registered[2]:
             pubkey_parsers = {
-                bma.wot.CertifiersOf: _parse_pubkey_certifiers,
-                bma.wot.Lookup: _parse_pubkey_lookup
+                bma.wot.certifiers_of: _parse_pubkey_certifiers,
+                bma.wot.lookup: _parse_pubkey_lookup
             }
             await execute_requests(pubkey_parsers, identity.uid)
 

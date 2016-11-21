@@ -30,7 +30,8 @@ class SourcesProcessor:
         if not one_source:
             log_stream("Requesting sources")
             try:
-                sources_data = await self._bma_connector.get(currency, bma.tx.Sources, req_args={'pubkey': pubkey})
+                sources_data = await self._bma_connector.get(currency, bma.tx.sources,
+                                                             req_args={'pubkey': pubkey})
 
                 log_stream("Found {0} sources".format(len(sources_data['sources'])))
                 for i, s in enumerate(sources_data['sources']):
