@@ -10,6 +10,7 @@ class QuamashTest:
     def setUpQuamash(self):
         self.qapplication = get_application()
         self.lp = quamash.QSelectorEventLoop(self.qapplication)
+        self.qapplication.setQuitOnLastWindowClosed(False)
         asyncio.set_event_loop(self.lp)
         self.lp.set_exception_handler(lambda l, c: unitttest_exception_handler(self, l, c))
         self.exceptions = []

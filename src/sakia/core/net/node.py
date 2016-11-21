@@ -11,7 +11,7 @@ from ...tools.decorators import asyncify
 from duniterpy.api import bma, errors
 from duniterpy.api.bma import ConnectionHandler
 
-from aiohttp.errors import WSClientDisconnectedError, WSServerHandshakeError, ClientResponseError
+from aiohttp.errors import WSServerHandshakeError, ClientResponseError
 from aiohttp.errors import ClientError, DisconnectedError
 from asyncio import TimeoutError
 import logging
@@ -367,7 +367,7 @@ class Node(QObject):
                             break
                         elif msg.tp == aiohttp.MsgType.error:
                             break
-            except (WSServerHandshakeError, WSClientDisconnectedError, ClientResponseError, ValueError) as e:
+            except (WSServerHandshakeError, ClientResponseError, ValueError) as e:
                 logging.debug("Websocket block {0} : {1} - {2}".format(type(e).__name__, str(e), self.pubkey[:5]))
                 await self.request_current_block()
             except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
@@ -566,7 +566,7 @@ class Node(QObject):
                             break
                         elif msg.tp == aiohttp.MsgType.error:
                             break
-            except (WSServerHandshakeError, WSClientDisconnectedError, ClientResponseError, ValueError) as e:
+            except (WSServerHandshakeError, ClientResponseError, ValueError) as e:
                 logging.debug("Websocket peer {0} : {1} - {2}".format(type(e).__name__, str(e), self.pubkey[:5]))
                 await self.request_peers()
             except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:

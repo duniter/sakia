@@ -44,12 +44,7 @@ class MockServer():
         self.requests = []
         self.app = web.Application(loop=self.lp,
                                    middlewares=[self.middleware_factory])
-
-        self.handler = self.app.make_handler(
-            keep_alive_on=False,
-            access_log=log.access_logger,
-        )
-
+        self.handler = None
         self.port = self.find_unused_port()
 
     def get_request(self, i):
@@ -90,12 +85,17 @@ class MockServer():
         return peer_document_generator(self.port)
 
     async def create_server(self, ssl_ctx=None):
-        srv = await self.lp.create_server(self.handler, '127.0.0.1', self.port)
         protocol = "https" if ssl_ctx else "http"
         url = "{}://127.0.0.1:{}".format(protocol, self.port)
 
         self.add_route('GET', '/network/peering', bma_peering_generator(self.port))
 
+        self.handler = self.app.make_handler(
+            keep_alive_on=False,
+            access_log=log.access_logger,
+        )
+
+        srv = await self.lp.create_server(self.handler, '127.0.0.1', self.port)
         return srv, self.port, url
 
     async def close(self):
