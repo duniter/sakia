@@ -37,13 +37,10 @@ class CertificationController(ComponentController):
         """
         Instanciate a Certification component
         :param sakia.gui.component.controller.ComponentController parent:
+        :param sakia.app.Application app: sakia application
         :return: a new Certification controller
         :rtype: CertificationController
         """
-        account = kwargs['account']
-        community = kwargs['community']
-        communities_names = [c.name for c in account.communities]
-        contacts_names = [c['name'] for c in account.contacts]
 
         view = CertificationView(parent.view, None, None, communities_names, contacts_names)
         model = CertificationModel(None, app, account, community)

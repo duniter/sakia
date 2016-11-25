@@ -27,11 +27,10 @@ class SearchUserController(ComponentController):
 
     @classmethod
     def create(cls, parent, app, **kwargs):
-        account = kwargs['account']
-        community = kwargs['community']
+        connection = kwargs['connection']
 
         view = SearchUserView(parent.view)
-        model = SearchUserModel(parent, app, account, community)
+        model = SearchUserModel(parent, app, connection)
         search_user = cls(parent, view, model)
         model.setParent(search_user)
         return search_user
@@ -70,10 +69,10 @@ class SearchUserController(ComponentController):
         self.model.select_identity(index)
         self.identity_selected.emit(self.model.identity())
 
-    def set_community(self, community):
+    def set_connection(self, connection):
         """
         Set community
-        :param sakia.core.Community community:
+        :param sakia.data.entities.Connection connection
         :return:
         """
-        self.model.community = community
+        self.model.connection = connection

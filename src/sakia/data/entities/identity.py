@@ -19,7 +19,7 @@ class Identity:
     membership_type = attr.ib(convert=str, default='', validator=lambda s, a, t: t in ('', 'IN', 'OUT'), cmp=False, hash=False)
     membership_written_on = attr.ib(convert=block_uid, default=BlockUID.empty(), cmp=False, hash=False)
 
-    def self_certification(self):
+    def document(self):
         """
         Creates a self cert document for a given identity
         :param sakia.data.entities.Identity identity:
@@ -27,4 +27,4 @@ class Identity:
         :rtype: duniterpy.documents.Identity
         """
         return Identity(PROTOCOL_VERSION, self.currency, self.pubkey,
-                                 self.uid, self.blockstamp, self.signature)
+                        self.uid, self.blockstamp, self.signature)

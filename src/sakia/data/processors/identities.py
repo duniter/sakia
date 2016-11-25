@@ -7,7 +7,7 @@ from ..connectors import BmaConnector
 from ..processors import NodesProcessor
 from duniterpy.api import bma, errors
 from duniterpy.key import SigningKey
-from duniterpy.documents import Identity, BlockUID, block_uid
+from duniterpy.documents import BlockUID, block_uid
 from aiohttp.errors import ClientError
 from sakia.errors import NoPeerAvailable
 
@@ -71,18 +71,22 @@ class IdentitiesProcessor:
         tries = 0
         while tries < 3:
             try:
-                data = await self._bma_connector.get(currency, bma.wot.Lookup, req_args={'search': text})
+                data = await self._bma_connector.get(currency, bma.wot.lookup, req_args={'search': text})
                 for result in data['results']:
                     pubkey = result['pubkey']
                     for uid_data in result['uids']:
                         if not uid_data['revoked']:
-                            identity = Identity(currency, pubkey, uid_data['uid'],
-                                                uid_data['meta']['timestamp'], uid_data['self'])
+                            identity = Identity(currency=currency,
+                                                pubkey=pubkey,
+                                                uid=uid_data['uid'],
+                                                blockstamp=uid_data['meta']['timestamp'],
+                                                signature=uid_data['self'])
                             if identity not in identities:
                                 identities.append(identity)
                 break
             except (errors.DuniterError, asyncio.TimeoutError, ClientError) as e:
                 tries += 1
+                self._logger.debug(str(e))
             except NoPeerAvailable as e:
                 self._logger.debug(str(e))
         return identities

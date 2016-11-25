@@ -34,7 +34,7 @@ class CertificationView(QDialog, Ui_CertificationDialog):
 
     pubkey_changed = pyqtSignal()
 
-    def __init__(self, parent, search_user_view, user_information_view, communities_names, contacts_names):
+    def __init__(self, parent, search_user_view, user_information_view):
         """
 
         :param parent:

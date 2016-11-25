@@ -329,7 +329,7 @@ class NodeConnector(QObject):
                 except (WSServerHandshakeError,
                         ClientResponseError, ValueError) as e:
                     self._logger.debug("Websocket peer {0} : {1} - {2}"
-                                  .format(type(e).__name__, str(e), self.node.pubkey[:5]))
+                                       .format(type(e).__name__, str(e), self.node.pubkey[:5]))
                     await self.request_peers()
                 except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
                     self._logger.debug("{0} : {1}".format(str(e), self.node.pubkey[:5]))

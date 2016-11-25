@@ -1,6 +1,7 @@
 from sakia.gui.component.model import ComponentModel
 from duniterpy.api import errors, bma
 from sakia.errors import NoPeerAvailable
+from sakia.data.processors import IdentitiesProcessor
 
 import logging
 
@@ -10,18 +11,17 @@ class SearchUserModel(ComponentModel):
     The model of Navigation component
     """
 
-    def __init__(self, parent, app, currency, identities_processor):
+    def __init__(self, parent, app, connection):
         """
 
         :param sakia.gui.search_user.controller.NetworkController parent: the controller
-        :param sakia.core.Application app: the app
-        :param str currency: the currency
-        :param sakia.data.processors.IdentitiesProcessor identities_processor: the identities processor
+        :param sakia.app.Application app: the app
+        :param sakia.data.entities.Connection connection: the connection
         """
         super().__init__(parent)
         self.app = app
-        self.currency = currency
-        self.identities_processor = identities_processor
+        self.identities_processor = IdentitiesProcessor.instanciate(app)
+        self.connection = connection
         self._nodes = list()
         self._current_identity = None
 
@@ -46,7 +46,7 @@ class SearchUserModel(ComponentModel):
         :return:
         """
         try:
-            self._nodes = await self.identities_processor.lookup(self.currency, text)
+            self._nodes = await self.identities_processor.lookup(self.connection.currency, text)
         except errors.DuniterError as e:
             if e.ucode == errors.NO_MATCHING_IDENTITY:
                 self._nodes = list()

@@ -33,10 +33,9 @@ class WotController(BaseGraphController):
         model = WotModel(None, app, connection, blockchain_service, identities_service)
         wot = cls(parent, view, model)
         model.setParent(wot)
-        #search_user = SearchUserController.create(wot, app, **{'account': account,
-        #                                                            'community': community})
-        #wot.view.set_search_user(search_user.view)
-        #search_user.identity_selected.connect(wot.center_on_identity)
+        search_user = SearchUserController.create(wot, app, **{'connection': connection})
+        wot.view.set_search_user(search_user.view)
+        search_user.identity_selected.connect(wot.center_on_identity)
         return wot
 
     @property

@@ -110,8 +110,8 @@ class DocumentsService:
                                       self.pubkey, identity.pubkey, blockUID, None)
 
         key = SigningKey(salt, password)
-        certification.sign(identity.self_certification(), [key])
-        signed_cert = certification.signed_raw(identity.self_certification())
+        certification.sign(identity.document(), [key])
+        signed_cert = certification.signed_raw(identity.document())
         self._logger.debug("Certification : {0}".format(signed_cert))
 
         responses = await self._bma_connector.bma_access.broadcast(currency, bma.wot.Certify, {},
@@ -138,7 +138,7 @@ class DocumentsService:
         :param str password: The account SigningKey password
         """
         revocation = Revocation(PROTOCOL_VERSION, currency, None)
-        self_cert = identity.self_certification()
+        self_cert = identity.document()
 
         key = SigningKey(salt, password)
         revocation.sign(self_cert, [key])
@@ -173,7 +173,7 @@ class DocumentsService:
         :param str password: The account SigningKey password
         """
         document = Revocation(PROTOCOL_VERSION, currency, identity.pubkey, "")
-        self_cert = identity.self_certification()
+        self_cert = identity.document()
 
         key = SigningKey(salt, password)
 
