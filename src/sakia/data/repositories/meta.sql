@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS certifications(
 CREATE TABLE IF NOT EXISTS transactions(
                                currency VARCHAR(30),
                                sha_hash VARCHAR(50),
-                               written_on VARCHAR(100),
+                               written_on INT,
                                blockstamp VARCHAR(100),
                                ts INT,
                                signature VARCHAR(100),

@@ -58,7 +58,7 @@ class DividendPerDay(BaseReferential):
     def diff_units(self):
         return self.units
 
-    async def value(self):
+    def value(self):
         """
         Return relative value of amount
 
@@ -71,17 +71,17 @@ class DividendPerDay(BaseReferential):
         :return: float
         """
         dividend, base = self._blockchain_processor.last_ud(self.currency)
-        params = await self._blockchain_processor.parameters(self.currency)
+        params = self._blockchain_processor.parameters(self.currency)
         if dividend > 0:
             return (self.amount * 100) / (float(dividend * (10**base)) / (params.dt / 86400))
         else:
             return self.amount
 
-    async def differential(self):
-        return await self.value()
+    def differential(self):
+        return self.value()
 
-    async def localized(self, units=False, international_system=False):
-        value = await self.value()
+    def localized(self, units=False, international_system=False):
+        value = self.value()
         prefix = ""
         localized_value = QLocale().toString(float(value), 'f', self.app.parameters.digits_after_comma)
 
@@ -93,8 +93,8 @@ class DividendPerDay(BaseReferential):
         else:
             return localized_value
 
-    async def diff_localized(self, units=False, international_system=False):
-        value = await self.differential()
+    def diff_localized(self, units=False, international_system=False):
+        value = self.differential()
         prefix = ""
         localized_value = QLocale().toString(float(value), 'f', self.app.parameters.digits_after_comma)
 

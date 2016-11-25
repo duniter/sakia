@@ -57,7 +57,7 @@ class InformationsModel(ComponentModel):
 
         if last_ud:
             # display float values
-            localized_data['ud'] = await self.app.current_ref.instance(last_ud * math.pow(10, last_ud_base),
+            localized_data['ud'] = self.app.current_ref.instance(last_ud * math.pow(10, last_ud_base),
                                               self.connection.currency,
                                               self.app) \
                 .diff_localized(True, self.app.parameters.international_system_of_units)
@@ -66,11 +66,11 @@ class InformationsModel(ComponentModel):
 
             computed_dividend = self.blockchain_service.computed_dividend()
             # display float values
-            localized_data['ud_plus_1'] = await self.app.current_ref.instance(computed_dividend,
+            localized_data['ud_plus_1'] = self.app.current_ref.instance(computed_dividend,
                                               self.connection.currency, self.app) \
                 .diff_localized(True, self.app.parameters.international_system_of_units)
 
-            localized_data['mass'] = await self.app.current_ref.instance(self.blockchain_service.current_mass(),
+            localized_data['mass'] = self.app.current_ref.instance(self.blockchain_service.current_mass(),
                                               self.connection.currency, self.app) \
                 .diff_localized(True, self.app.parameters.international_system_of_units)
 
@@ -89,10 +89,10 @@ class InformationsModel(ComponentModel):
             if previous_ud:
                 mass_minus_1_per_member = (float(0) if previous_ud == 0 else
                                            previous_monetary_mass / previous_members_count)
-                localized_data['mass_minus_1_per_member'] = await self.app.current_ref.instance(mass_minus_1_per_member,
+                localized_data['mass_minus_1_per_member'] = self.app.current_ref.instance(mass_minus_1_per_member,
                                                   self.connection.currency, self.app) \
                                                 .diff_localized(True, self.app.parameters.international_system_of_units)
-                localized_data['mass_minus_1'] = await self.app.current_ref.instance(previous_monetary_mass,
+                localized_data['mass_minus_1'] = self.app.current_ref.instance(previous_monetary_mass,
                                                   self.connection.currency, self.app) \
                                                     .diff_localized(True, self.app.parameters.international_system_of_units)
                 # avoid divide by zero !
@@ -111,7 +111,7 @@ class InformationsModel(ComponentModel):
 
     async def get_identity_data(self):
         amount = self.sources_service.amount(self.connection.pubkey)
-        localized_amount = await self.app.current_ref.instance(amount, self.connection.currency, self.app)\
+        localized_amount = self.app.current_ref.instance(amount, self.connection.currency, self.app)\
                                                      .localized(units=True,
                                                                 international_system=self.app.parameters.international_system_of_units)
         mstime_remaining_text = self.tr("Expired or never published")

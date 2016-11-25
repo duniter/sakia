@@ -52,7 +52,7 @@ class UDDToPast(BaseReferential):
     def diff_units(self):
         return self.units
 
-    async def value(self):
+    def value(self):
         """
         Return relative value of amount
 
@@ -65,14 +65,14 @@ class UDDToPast(BaseReferential):
         :param sakia.core.community.Community community: Community instance
         :return: float
         """
-        dividend = await self.community.dividend()
-        params = await self.community.parameters()
+        dividend = self.community.dividend()
+        params = self.community.parameters()
         if dividend > 0:
             return (self.amount * 100) / (float(dividend) / (params['dt'] / 86400))
         else:
             return self.amount
 
-    async def differential(self):
+    def differential(self):
         """
         Return relative value of amount
 
@@ -85,17 +85,17 @@ class UDDToPast(BaseReferential):
         :param sakia.core.community.Community community: Community instance
         :return: float
         """
-        dividend = await self.community.dividend(self._block_number)
-        params = await self.community.parameters()
+        dividend = self.community.dividend(self._block_number)
+        params = self.community.parameters()
         if dividend > 0:
             return (self.amount * 100) / (float(dividend) / (params['dt'] / 86400))
         else:
             return self.amount
 
-    async def localized(self, units=False, international_system=False):
+    def localized(self, units=False, international_system=False):
         from . import Relative
-        value = await self.value()
-        block = await self.community.get_block()
+        value = self.value()
+        block = self.community.get_block()
         prefix = ""
         if international_system:
             localized_value, prefix = Relative.to_si(value, self.app.preferences['digits_after_comma'])
@@ -115,10 +115,10 @@ class UDDToPast(BaseReferential):
         else:
             return localized_value
 
-    async def diff_localized(self, units=False, international_system=False):
+    def diff_localized(self, units=False, international_system=False):
         from . import Relative
-        value = await self.differential()
-        block = await self.community.get_block(self._block_number)
+        value = self.differential()
+        block = self.community.get_block(self._block_number)
         prefix = ""
         if international_system and value != 0:
             localized_value, prefix = Relative.to_si(value, self.app.preferences['digits_after_comma'])

@@ -154,6 +154,8 @@ class ConnectionConfigController(ComponentController):
             await self.model.initialize_identity(connection_identity, log_stream=self.view.stream_log)
             self.view.stream_log("Initializing certifications informations...")
             await self.model.initialize_certifications(connection_identity, log_stream=self.view.stream_log)
+            self.view.stream_log("Initializing transactions history...")
+            await self.model.initialize_transactions(connection_identity, log_stream=self.view.stream_log)
 
         self.view.progress_bar.setValue(2)
         if mode == ConnectionConfigController.REGISTER:

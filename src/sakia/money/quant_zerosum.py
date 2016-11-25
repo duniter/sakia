@@ -52,7 +52,7 @@ class QuantitativeZSum(BaseReferential):
     def diff_units(self):
         return QCoreApplication.translate("Quantitative", Quantitative._UNITS_STR_).format(shortened(self.currency))
 
-    async def value(self):
+    def value(self):
         """
         Return quantitative value of amount minus the average value
 
@@ -77,11 +77,11 @@ class QuantitativeZSum(BaseReferential):
             average = 0
         return self.amount - average
 
-    async def differential(self):
-        return await Quantitative(self.amount, self.currency, self.app).value()
+    def differential(self):
+        return Quantitative(self.amount, self.currency, self.app).value()
 
-    async def localized(self, units=False, international_system=False):
-        value = await self.value()
+    def localized(self, units=False, international_system=False):
+        value = self.value()
 
         prefix = ""
         if international_system:
@@ -98,7 +98,7 @@ class QuantitativeZSum(BaseReferential):
         else:
             return localized_value
 
-    async def diff_localized(self, units=False, international_system=False):
-        localized = await Quantitative(self.amount, shortened(self.currency), self.app).localized(units,
+    def diff_localized(self, units=False, international_system=False):
+        localized = Quantitative(self.amount, shortened(self.currency), self.app).localized(units,
                                                                                                   international_system)
         return localized

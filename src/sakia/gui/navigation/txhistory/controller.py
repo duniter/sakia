@@ -84,7 +84,7 @@ class TxHistoryController(ComponentController):
     @asyncify
     async def refresh_balance(self):
         self.view.busy_balance.show()
-        localized_amount = await self.model.localized_balance()
+        localized_amount = self.model.localized_balance()
         self.view.set_balance(localized_amount)
         self.view.busy_balance.hide()
 

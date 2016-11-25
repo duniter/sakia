@@ -6,7 +6,7 @@ from duniterpy.key import SigningKey
 from sakia.data.entities import Connection, Identity, Node
 from sakia.data.connectors import NodeConnector
 from sakia.data.processors import ConnectionsProcessor, NodesProcessor, BlockchainProcessor, \
-    SourcesProcessor, CertificationsProcessor
+    SourcesProcessor, CertificationsProcessor, TransactionsProcessor
 from sakia.gui.component.model import ComponentModel
 
 
@@ -93,6 +93,16 @@ class ConnectionConfigModel(ComponentModel):
         """
         certifications_processor = CertificationsProcessor.instanciate(self.app)
         await certifications_processor.initialize_certifications(identity, log_stream)
+
+    async def initialize_transactions(self, identity, log_stream):
+        """
+        Download certifications information locally
+        :param sakia.data.entities.Identity identity: the identity to initialize
+        :param function log_stream: a method to log data in the screen
+        :return:
+        """
+        transactions_processor = TransactionsProcessor.instanciate(self.app)
+        await transactions_processor.initialize_transactions(identity, log_stream)
 
     async def publish_selfcert(self, salt, password):
         """"

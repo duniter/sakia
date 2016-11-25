@@ -51,7 +51,7 @@ class RelativeZSum(BaseReferential):
     def diff_units(self):
         return QCoreApplication.translate("Relative", Relative._UNITS_STR_).format(shortened(self.currency))
 
-    async def value(self):
+    def value(self):
         """
         Return relative value of amount minus the average value
 
@@ -66,8 +66,8 @@ class RelativeZSum(BaseReferential):
         :param sakia.core.community.Community community: Community instance
         :return: float
         """
-        ud_block = await self.community.get_ud_block()
-        ud_block_minus_1 = await self.community.get_ud_block(x=1)
+        ud_block = self.community.get_ud_block()
+        ud_block_minus_1 = self.community.get_ud_block(x=1)
         if ud_block_minus_1 and ud_block['membersCount'] > 0:
             median = ud_block_minus_1['monetaryMass'] / ud_block['membersCount']
             relative_value = self.amount / float(ud_block['dividend'])
@@ -77,11 +77,11 @@ class RelativeZSum(BaseReferential):
             relative_median = 0
         return relative_value - relative_median
 
-    async def differential(self):
-        return await Relative(self.amount, self.currency, self.app).value()
+    def differential(self):
+        return Relative(self.amount, self.currency, self.app).value()
 
-    async def localized(self, units=False, international_system=False):
-        value = await self.value()
+    def localized(self, units=False, international_system=False):
+        value = self.value()
 
         prefix = ""
         if international_system:
@@ -97,8 +97,8 @@ class RelativeZSum(BaseReferential):
         else:
             return localized_value
 
-    async def diff_localized(self, units=False, international_system=False):
-        value = await self.differential()
+    def diff_localized(self, units=False, international_system=False):
+        value = self.differential()
 
         prefix = ""
         if international_system and value != 0:

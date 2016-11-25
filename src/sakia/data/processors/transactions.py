@@ -1,10 +1,14 @@
 import attr
+import asyncio
+import sqlite3
 from ..entities import Transaction
+from ..entities.transaction import parse_transaction_doc
 from .nodes import NodesProcessor
 from . import tx_lifecycle
 from ..connectors import BmaConnector
 from duniterpy.api import bma
 from duniterpy.documents import Block
+from duniterpy.documents import Transaction as TransactionDoc
 
 
 @attr.s
@@ -120,10 +124,24 @@ class TransactionsProcessor:
         self.run_state_transitions(tx, ([r.status for r in responses],))
         return result
 
-    def initialize_transactions(self, currency, pubkey):
+    async def initialize_transactions(self, identity, log_stream):
         """
         Request transactions from the network to initialize data for a given pubkey
-        :param str currency:
-        :param str pubkey:
+        :param sakia.data.entities.Identity pubkey:
+        :param function log_stream:
         """
-        history = await self._bma_connector.get()
+        history_data = await self._bma_connector.get(identity.currency, bma.tx.history,
+                                                     req_args={'pubkey': identity.pubkey})
+        txid = 0
+        nb_tx = len(history_data["history"]["sent"]) + len(history_data["history"]["received"])
+        log_stream("Found {0} transactions".format(nb_tx))
+        for sent_data in history_data["history"]["sent"] + history_data["history"]["received"]:
+            sent = TransactionDoc.from_bma_history(history_data["currency"], sent_data)
+            log_stream("{0}/{1} transactions".format(txid, nb_tx))
+            try:
+                self._repo.insert(parse_transaction_doc(sent, identity.pubkey, sent_data["block_number"],
+                                                        sent_data["time"], txid))
+            except sqlite3.IntegrityError:
+                log_stream("Transaction already registered in database")
+            await asyncio.sleep(0)
+            txid += 1

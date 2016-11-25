@@ -68,7 +68,7 @@ class Relative(BaseReferential):
     def diff_units(self):
         return self.units
 
-    async def value(self):
+    def value(self):
         """
         Return relative value of amount
 
@@ -84,8 +84,8 @@ class Relative(BaseReferential):
         else:
             return self.amount
 
-    async def differential(self):
-        return await self.value()
+    def differential(self):
+        return self.value()
 
     @staticmethod
     def to_si(value, digits):
@@ -111,8 +111,8 @@ class Relative(BaseReferential):
 
         return localized_value, prefix
 
-    async def localized(self, units=False, international_system=False):
-        value = await self.value()
+    def localized(self, units=False, international_system=False):
+        value = self.value()
         prefix = ""
         if international_system:
             localized_value, prefix = Relative.to_si(value, self.app.parameters.digits_after_comma)
@@ -127,8 +127,8 @@ class Relative(BaseReferential):
         else:
             return localized_value
 
-    async def diff_localized(self, units=False, international_system=False):
-        value = await self.differential()
+    def diff_localized(self, units=False, international_system=False):
+        value = self.differential()
         prefix = ""
         if international_system and value != 0:
             localized_value, prefix = Relative.to_si(value, self.app.parameters.digits_after_comma)

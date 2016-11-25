@@ -75,18 +75,10 @@ class TxHistoryModel(ComponentModel):
         :rtype: Tuple[PyQt5.QtCore.QDateTime, PyQt5.QtCore.QDateTime]
         :return: minimum and maximum datetime
         """
-        try:
-            blockchain_time = self.blockchain_service.time()
-            minimum_datetime = QDateTime()
-            minimum_datetime.setTime_t(blockchain_time)
-            minimum_datetime.setTime(QTime(0, 0))
-            tomorrow_datetime = QDateTime().currentDateTime().addDays(1)
-            return minimum_datetime, tomorrow_datetime
-        except NoPeerAvailable as e:
-            logging.debug(str(e))
-        except errors.DuniterError as e:
-            logging.debug(str(e))
-        return QDateTime().currentDateTime(), QDateTime.currentDateTime().addDays(1)
+        minimum_datetime = QDateTime()
+        minimum_datetime.setTime_t(0)
+        tomorrow_datetime = QDateTime().currentDateTime().addDays(1)
+        return minimum_datetime, tomorrow_datetime
 
     async def received_amount(self, received_list):
         """

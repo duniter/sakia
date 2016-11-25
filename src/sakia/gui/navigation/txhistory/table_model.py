@@ -247,8 +247,8 @@ class HistoryTableModel(QAbstractTableModel):
 
         amount = transfer.amount * 10**transfer.amount_base
         try:
-            deposit = self.account.current_ref.instance(amount, self.connection.currency, self.app, block_number)\
-                .diff_localized(international_system=self.app.preferences['international_system_of_units'])
+            deposit = self.app.current_ref.instance(amount, self.connection.currency, self.app, block_number)\
+                .diff_localized(international_system=self.app.parameters.international_system_of_units)
         except NoPeerAvailable:
             deposit = "Could not compute"
 
@@ -263,9 +263,9 @@ class HistoryTableModel(QAbstractTableModel):
 
         return (date_ts, sender, "", deposit,
                 transfer.comment, transfer.state, txid,
-                transfer.metadata['issuer'], block_number, amount)
+                transfer.issuer, block_number, amount)
 
-    async def data_sent(self, transfer):
+    def data_sent(self, transfer):
         """
         Converts a transaction to table data
         :param sakia.data.entities.Transaction transfer: the transaction
@@ -300,23 +300,16 @@ class HistoryTableModel(QAbstractTableModel):
 
     def refresh_transfers(self):
         self.beginResetModel()
-        transfers_data = []
-        data_list = []
+        self.transfers_data = []
         count = 0
         transfers = self.transfers()
         for transfer in transfers:
             count += 1
             if type(transfer) is Transaction:
                 if transfer.issuer == self.connection.pubkey:
-                    data_list += self.data_sent(transfer)
+                    self.transfers_data.append(self.data_sent(transfer))
                 else:
-                    data_list += self.data_received(transfer)
-            elif type(transfer) is dict:
-                data_list += self.data_dividend(transfer)
-
-            for data in data_list:
-                transfers_data.append(data)
-        self.transfers_data = transfers_data
+                    self.transfers_data.append(self.data_received(transfer))
         self.endResetModel()
 
     def rowCount(self, parent):
@@ -352,8 +345,6 @@ class HistoryTableModel(QAbstractTableModel):
             transfer = self.transfers_data[row]
             if transfer[self.columns_types.index('payment')] != "":
                 return QIcon(":/icons/sent")
-            elif transfer[self.columns_types.index('uid')] == self.account.name:
-                return QIcon(":/icons/dividend")
             else:
                 return QIcon(":/icons/received")
 

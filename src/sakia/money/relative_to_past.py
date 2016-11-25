@@ -50,31 +50,31 @@ class RelativeToPast(BaseReferential):
     def diff_units(self):
         return self.units
 
-    async def value(self):
+    def value(self):
         """
         Return relative to past value of amount
         :return: float
         """
-        dividend = await self.community.dividend()
+        dividend = self.community.dividend()
         if dividend > 0:
             return self.amount / float(dividend)
         else:
             return self.amount
 
-    async def differential(self):
+    def differential(self):
         """
         Return relative to past differential value of amount
         :return: float
         """
-        dividend = await self.community.dividend(self._block_number)
+        dividend = self.community.dividend(self._block_number)
         if dividend > 0:
             return self.amount / float(dividend)
         else:
             return self.amount
 
-    async def localized(self, units=False, international_system=False):
+    def localized(self, units=False, international_system=False):
         from . import Relative
-        value = await self.value()
+        value = self.value()
         last_ud_time = self._blockchain_processor.last_ud_time(self.currency)
         prefix = ""
         if international_system:
@@ -95,10 +95,10 @@ class RelativeToPast(BaseReferential):
         else:
             return localized_value
 
-    async def diff_localized(self, units=False, international_system=False):
+    def diff_localized(self, units=False, international_system=False):
         from . import Relative
-        value = await self.differential()
-        block = await self.community.get_ud_block(0, self._block_number)
+        value = self.differential()
+        block = self.community.get_ud_block(0, self._block_number)
         prefix = ""
         if international_system and value != 0:
             localized_value, prefix = Relative.to_si(value, self.app.preferences['digits_after_comma'])

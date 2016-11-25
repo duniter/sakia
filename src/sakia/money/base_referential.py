@@ -33,18 +33,18 @@ class BaseReferential:
     def diff_units(self):
         pass
 
-    async def value(self):
+    def value(self):
         pass
 
-    async def differential(self):
+    def differential(self):
         pass
 
     @staticmethod
     def to_si(value, digits):
         pass
 
-    async def localized(self, units=False, international_system=False):
+    def localized(self, units=False, international_system=False):
         pass
 
-    async def diff_localized(self, units=False, international_system=False):
+    def diff_localized(self, units=False, international_system=False):
         pass
