@@ -46,19 +46,20 @@ class Wallet(QObject):
         self.caches = {}
 
     @classmethod
-    def create(cls, walletid, salt, password, name, identities_registry):
+    def create(cls, walletid, salt, password, scrypt_params, name, identities_registry):
         """
         Factory method to create a new wallet
 
         :param int walletid: The wallet number, unique between all wallets
         :param str salt: The account salt
         :param str password: The account password
+        :param duniterpy.key.ScryptParams scrypt_params: the scrypt params
         :param str name: The account name
         """
         if walletid == 0:
-            key = SigningKey(salt, password)
+            key = SigningKey(salt, password, scrypt_params)
         else:
-            key = SigningKey(b"{0}{1}".format(salt, walletid), password)
+            key = SigningKey(b"{0}{1}".format(salt, walletid), password, scrypt_params)
         return cls(walletid, key.pubkey, name, identities_registry)
 
     @classmethod
@@ -124,22 +125,6 @@ class Wallet(QObject):
         """
         logging.debug("Refresh transactions for {0}".format(self.pubkey))
         asyncio.ensure_future(self.caches[community.currency].rollback(community, received_list))
-
-    def check_password(self, salt, password):
-        """
-        Check if wallet password is ok.
-
-        :param salt: The account salt
-        :param password: The given password
-        :return: True if (salt, password) generates the good public key
-        .. warning:: Generates a new temporary SigningKey from salt and password
-        """
-        key = None
-        if self.walletid == 0:
-            key = SigningKey(salt, password)
-        else:
-            key = SigningKey("{0}{1}".format(salt, self.walletid), password)
-        return (key.pubkey == self.pubkey)
 
     async def relative_value(self, community):
         """
@@ -309,7 +294,7 @@ class Wallet(QObject):
                          outputs, message, None)
         return tx
 
-    async def send_money(self, salt, password, community,
+    async def send_money(self, salt, password, scrypt_params, community,
                    recipient, amount, message):
         """
         Send money to a given recipient in a specified community
@@ -332,9 +317,9 @@ class Wallet(QObject):
         time = block['medianTime']
         txid = len(block['transactions'])
         if self.walletid == 0:
-            key = SigningKey(salt, password)
+            key = SigningKey(salt, password, scrypt_params)
         else:
-            key = SigningKey("{0}{1}".format(salt, self.walletid), password)
+            key = SigningKey("{0}{1}".format(salt, self.walletid), password, scrypt_params)
         logging.debug("Sender pubkey:{0}".format(key.pubkey))
 
         try:

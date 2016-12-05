@@ -16,6 +16,7 @@ from sakia.core import Account, Community, Wallet
 from sakia.core.net import Network, Node
 from sakia.core.net.api.bma.access import BmaAccess
 from sakia.tests import QuamashTest
+from duniterpy.key import ScryptParams
 
 
 class TestIdentitiesTable(unittest.TestCase, QuamashTest):
@@ -42,6 +43,7 @@ class TestIdentitiesTable(unittest.TestCase, QuamashTest):
         # Salt/password : "testsakia/testsakia"
         # Pubkey : 7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ
         self.account = Account("testsakia", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
+                               ScryptParams(4096, 16, 1),
                                "john", [self.community], [self.wallet], [], self.identities_registry)
 
         self.password_asker = PasswordAskerDialog(self.account)

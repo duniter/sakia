@@ -5,7 +5,7 @@ Created on 1 févr. 2014
 """
 
 from duniterpy.documents import Membership, SelfCertification, Certification, Revocation, BlockUID, Block
-from duniterpy.key import SigningKey
+from duniterpy.key import SigningKey, ScryptParams
 from duniterpy.api import bma
 from duniterpy.api.bma import PROTOCOL_VERSION
 from duniterpy.api import errors
@@ -36,7 +36,7 @@ class Account(QObject):
     certification_accepted = pyqtSignal()
     contacts_changed = pyqtSignal()
 
-    def __init__(self, salt, pubkey, name, communities, wallets, contacts, identities_registry):
+    def __init__(self, salt, pubkey, scrypt_params, name, communities, wallets, contacts, identities_registry):
         """
         Create an account
 
@@ -44,6 +44,7 @@ class Account(QObject):
         :param str pubkey: Known account pubkey. Used to check that password \
          is OK by comparing (salt, given_passwd) = (pubkey, privkey) \
          with known pubkey
+        :param duniterpy.key.ScryptParams scrypt_params: the scrypt params of the key
         :param str name: The account name, same as network identity uid
         :param list of sakia.core.Community communities: Community objects referenced by this account
         :param list of sakia.core.Wallet wallets: Wallet objects owned by this account
@@ -55,6 +56,7 @@ class Account(QObject):
         super().__init__()
         self.salt = salt
         self.pubkey = pubkey
+        self.scrypt_params = scrypt_params
         self.name = name
         self.communities = communities
         self.wallets = wallets
@@ -93,7 +95,7 @@ class Account(QObject):
         :param str name: The account name, same as network identity uid
         :return: A new empty account object
         """
-        account = cls(None, None, name, [], [], [], identities_registry)
+        account = cls(None, None, None, name, [], [], [], identities_registry)
         return account
 
     @classmethod
@@ -113,6 +115,13 @@ class Account(QObject):
         else:
             file_version = parse_version('0.11.5')
 
+        if file_version <= parse_version('0.20.11'):
+            scrypt_params = ScryptParams(4096, 16, 1)
+        else:
+            scrypt_params = ScryptParams(json_data['scrypt_params']['N'],
+                                         json_data['scrypt_params']['r'],
+                                         json_data['scrypt_params']['p'])
+
         name = json_data['name']
         contacts = []
 
@@ -128,7 +137,7 @@ class Account(QObject):
             community = Community.load(data, file_version)
             communities.append(community)
 
-        account = cls(salt, pubkey, name, communities, wallets,
+        account = cls(salt, pubkey, scrypt_params, name, communities, wallets,
                       contacts, identities_registry)
         return account
 
@@ -149,7 +158,7 @@ class Account(QObject):
         :return: True if the generated pubkey is the same as the account
         .. warnings:: Generates a new temporary SigningKey
         """
-        key = SigningKey(self.salt, password)
+        key = SigningKey(self.salt, password, self.scrypt_params)
         return (key.pubkey == self.pubkey)
 
     def add_contact(self, new_contact):
@@ -259,15 +268,17 @@ class Account(QObject):
     def set_display_referential(self, index):
         self._current_ref = index
 
-    def set_scrypt_infos(self, salt, password):
+    def set_scrypt_infos(self, salt, password, scrypt_params):
         """
         Change the size of the wallet pool
         :param int size: The new size of the wallet pool
         :param str password: The password of the account, same for all wallets
+        :param duniterpy.key.ScryptParams scrypt_params: The scrypt parameters
         """
         self.salt = salt
-        self.pubkey = SigningKey(self.salt, password).pubkey
-        wallet = Wallet.create(0, self.salt, password,
+        self.scrypt_params = scrypt_params
+        self.pubkey = SigningKey(self.salt, password, scrypt_params).pubkey
+        wallet = Wallet.create(0, self.salt, password, scrypt_params,
                                "Wallet", self._identities_registry)
         self.wallets.append(wallet)
 
@@ -449,7 +460,7 @@ class Account(QObject):
                                      self.name,
                                      block_uid,
                                      None)
-        key = SigningKey(self.salt, password)
+        key = SigningKey(self.salt, password, self.scrypt_params)
         selfcert.sign([key])
         logging.debug("Key publish : {0}".format(selfcert.signed_raw()))
 
@@ -484,7 +495,7 @@ class Account(QObject):
         membership = Membership(PROTOCOL_VERSION, community.currency,
                                 selfcert.pubkey, blockUID, mstype, selfcert.uid,
                                 selfcert.timestamp, None)
-        key = SigningKey(self.salt, password)
+        key = SigningKey(self.salt, password, self.scrypt_params)
         membership.sign([key])
         logging.debug("Membership : {0}".format(membership.signed_raw()))
         responses = await community.bma_access.broadcast(bma.blockchain.Membership, {},
@@ -519,7 +530,7 @@ class Account(QObject):
             certification = Certification(PROTOCOL_VERSION, community.currency,
                                           self.pubkey, pubkey, blockUID, None)
 
-            key = SigningKey(self.salt, password)
+            key = SigningKey(self.salt, password, self.scrypt_params)
             certification.sign(selfcert, [key])
             signed_cert = certification.signed_raw(selfcert)
             logging.debug("Certification : {0}".format(signed_cert))
@@ -553,7 +564,7 @@ class Account(QObject):
         revokation = Revocation(PROTOCOL_VERSION, community.currency, None)
         selfcert = await revoked.selfcert(community)
 
-        key = SigningKey(self.salt, password)
+        key = SigningKey(self.salt, password, self.scrypt_params)
         revokation.sign(selfcert, [key])
 
         logging.debug("Self-Revokation Document : \n{0}".format(revokation.raw(selfcert)))
@@ -588,7 +599,7 @@ class Account(QObject):
         identity = await self.identity(community)
         selfcert = await identity.selfcert(community)
 
-        key = SigningKey(self.salt, password)
+        key = SigningKey(self.salt, password, self.scrypt_params)
 
         document.sign(selfcert, [key])
         return document.signed_raw(selfcert)
@@ -624,6 +635,11 @@ class Account(QObject):
         data = {'name': self.name,
                 'salt': self.salt,
                 'pubkey': self.pubkey,
+                'scrypt_params': {
+                    'N': self.scrypt_params.N,
+                    'r': self.scrypt_params.N,
+                    'p': self.scrypt_params.N,
+                },
                 'communities': data_communities,
                 'wallets': data_wallets,
                 'contacts': self.contacts,

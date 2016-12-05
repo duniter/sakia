@@ -5,6 +5,7 @@ from sakia.core.registry.identities import IdentitiesRegistry, Identity
 from sakia.core import Account
 from sakia.tests import QuamashTest
 from duniterpy.documents import BlockUID, SelfCertification
+from duniterpy.key import ScryptParams
 
 
 class TestAccount(unittest.TestCase, QuamashTest):
@@ -18,6 +19,7 @@ class TestAccount(unittest.TestCase, QuamashTest):
 
     def test_load_save_account(self):
         account = Account("test_salt", "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk",
+                           ScryptParams(4096, 16, 1),
                           "test_uid", [], [], [], self.identities_registry)
         json_data = account.jsonify()
         account_from_json = Account.load(json_data, self.identities_registry)
@@ -34,6 +36,7 @@ class TestAccount(unittest.TestCase, QuamashTest):
             nonlocal called
             called = True
         account = Account("test_salt", "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk",
+                           ScryptParams(4096, 16, 1),
                           "test_uid", [], [], [], self.identities_registry)
         account.contacts_changed.connect(signal_called)
         account.add_contact({"uid":"friend", "pubkey":"FFFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk"})
@@ -50,6 +53,7 @@ class TestAccount(unittest.TestCase, QuamashTest):
             called = True
         contact = {"uid":"friend", "pubkey":"FFFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk"}
         account = Account("test_salt", "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk",
+                          ScryptParams(4096, 16, 1),
                           "test_uid", [], [], [contact],
                           self.identities_registry)
         account.contacts_changed.connect(signal_called)
@@ -65,6 +69,7 @@ class TestAccount(unittest.TestCase, QuamashTest):
             called = True
         contact = {"uid":"friend", "pubkey":"FFFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk"}
         account = Account("test_salt", "HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk",
+                           ScryptParams(4096, 16, 1),
                           "test_uid", [], [], [contact],
                           self.identities_registry)
         account.contacts_changed.connect(signal_called)
@@ -76,6 +81,7 @@ class TestAccount(unittest.TestCase, QuamashTest):
 
     def test_send_membership(self):
         account = Account("test_salt", "H8uYXvyF6GWeCr8cwFJ6V5B8tNprwRdjepFNJBqivrzr",
+                           ScryptParams(4096, 16, 1),
                           "test_account", [], [], [],
                           self.identities_registry)
         account_identity = MagicMock(autospec='sakia.core.registry.Identity')
@@ -112,6 +118,7 @@ class TestAccount(unittest.TestCase, QuamashTest):
             cert_signal_sent = True
 
         account = Account("test_salt", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
+                           ScryptParams(4096, 16, 1),
                           "test_account", [], [], [],
                           self.identities_registry)
         account.certification_accepted.connect(check_certification_accepted)

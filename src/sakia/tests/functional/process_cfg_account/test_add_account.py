@@ -1,12 +1,10 @@
 import sys
 import unittest
 import asyncio
-import quamash
 import logging
-from PyQt5.QtWidgets import QDialog
+from duniterpy.key import ScryptParams
 from PyQt5.QtCore import QLocale, Qt
 from PyQt5.QtTest import QTest
-from sakia.tests.mocks.bma import new_blockchain
 from sakia.core.registry.identities import IdentitiesRegistry
 from sakia.gui.process_cfg_account import ProcessConfigureAccount
 from sakia.gui.password_asker import PasswordAskerDialog
@@ -26,6 +24,7 @@ class ProcessAddCommunity(unittest.TestCase, QuamashTest):
         # Salt/password : "testsakia/testsakia"
         # Pubkey : 7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ
         self.account = Account("testsakia", "B7J4sopyfqzi3uh4Gzsdnp1XHc87NaxY7rqW2exgivCa",
+                               ScryptParams(4096, 16, 1),
                                "test", [], [], [], self.identities_registry)
         self.password_asker = PasswordAskerDialog(self.account)
         self.password_asker.password = "testsakia"

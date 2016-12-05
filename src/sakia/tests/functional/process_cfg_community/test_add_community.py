@@ -14,6 +14,7 @@ from sakia.gui.password_asker import PasswordAskerDialog
 from sakia.core.app import Application
 from sakia.core.account import Account
 from sakia.tests import QuamashTest
+from duniterpy.key import ScryptParams
 
 
 class ProcessAddCommunity(unittest.TestCase, QuamashTest):
@@ -27,6 +28,7 @@ class ProcessAddCommunity(unittest.TestCase, QuamashTest):
         # Salt/password : "testsakia/testsakia"
         # Pubkey : 7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ
         self.account = Account("testsakia", "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
+                               ScryptParams(4096, 16, 1),
                                "john", [], [], [], self.identities_registry)
         self.password_asker = PasswordAskerDialog(self.account)
         self.password_asker.password = "testsakia"

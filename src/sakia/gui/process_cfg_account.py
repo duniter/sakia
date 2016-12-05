@@ -5,7 +5,8 @@ Created on 6 mars 2014
 """
 import logging
 import asyncio
-from duniterpy.key import SigningKey
+from math import sqrt, ceil, log, frexp
+from duniterpy.key import SigningKey, ScryptParams
 from ..gen_resources.account_cfg_uic import Ui_AccountConfigurationDialog
 from ..gui.process_cfg_community import ProcessConfigureCommunity
 from ..gui.password_asker import PasswordAskerDialog, detect_non_printable
@@ -15,7 +16,7 @@ from ..tools.exceptions import KeyAlreadyUsed, Error, NoPeerAvailable
 from ..tools.decorators import asyncify
 
 from PyQt5.QtWidgets import QDialog, QMessageBox
-from PyQt5.QtCore import QRegExp
+from PyQt5.QtCore import QRegExp, pyqtSlot
 from PyQt5.QtGui import QRegExpValidator
 
 
@@ -99,7 +100,7 @@ class StepPageKey(Step):
     def process_next(self):
         salt = self.config_dialog.edit_salt.text()
         password = self.config_dialog.edit_password.text()
-        self.config_dialog.account.set_scrypt_infos(salt, password)
+        self.config_dialog.account.set_scrypt_infos(salt, password, self.config_dialog.scrypt_params)
         self.config_dialog.password_asker = PasswordAskerDialog(self.config_dialog.account)
         model = CommunitiesListModel(self.config_dialog.account)
         self.config_dialog.list_communities.setModel(model)
@@ -162,6 +163,17 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
         step_communities = StepPageCommunities(self)
         step_init.next_step = step_key
         step_key.next_step = step_communities
+        self.combo_scrypt.currentIndexChanged.connect(self.handle_combo_change)
+        self.scrypt_params = ScryptParams(4096, 16, 1)
+        self.spin_N.setMaximum(2 ** 20)
+        self.spin_N.setValue(self.scrypt_params.N)
+        self.spin_N.valueChanged.connect(self.handle_N_change)
+        self.spin_r.setMaximum(128)
+        self.spin_r.setValue(self.scrypt_params.r)
+        self.spin_r.valueChanged.connect(self.handle_r_change)
+        self.spin_p.setMaximum(128)
+        self.spin_p.setValue(self.scrypt_params.p)
+        self.spin_p.valueChanged.connect(self.handle_p_change)
         self.step = step_init
         self.step.display_page()
         if self.account is None:
@@ -176,6 +188,44 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
             self.stacked_pages.currentWidget()
 
             self.setWindowTitle(self.tr("Configure {0}".format(self.account.name)))
+
+    def handle_combo_change(self, index):
+        strengths = [
+            (2**12, 16, 1),
+            (2**14, 32, 2),
+            (2**16, 32, 4),
+            (2**18, 64, 8),
+        ]
+        self.spin_N.setValue(strengths[index][0])
+        self.spin_r.setValue(strengths[index][1])
+        self.spin_p.setValue(strengths[index][2])
+
+    def handle_N_change(self, value):
+        spinbox = self.sender()
+        self.scrypt_params.N = self.compute_power_of_2(spinbox, value, self.scrypt_params.N)
+
+    def handle_r_change(self, value):
+        spinbox = self.sender()
+        self.scrypt_params.r = self.compute_power_of_2(spinbox, value, self.scrypt_params.r)
+
+    def handle_p_change(self, value):
+        spinbox = self.sender()
+        self.scrypt_params.p = self.compute_power_of_2(spinbox, value, self.scrypt_params.p)
+
+    def compute_power_of_2(self, spinbox, value, param):
+        if value > 1:
+            if value > param:
+                value = pow(2, ceil(log(value) / log(2)))
+            else:
+                value -= 1
+                value = 2 ** int(log(value, 2))
+        else:
+            value = 1
+
+        spinbox.blockSignals(True)
+        spinbox.setValue(value)
+        spinbox.blockSignals(False)
+        return value
 
     def open_process_add_community(self):
         logging.debug("Opening configure community dialog")
@@ -208,7 +258,10 @@ class ProcessConfigureAccount(QDialog, Ui_AccountConfigurationDialog):
     def action_show_pubkey(self):
         salt = self.edit_salt.text()
         password = self.edit_password.text()
-        pubkey = SigningKey(salt, password).pubkey
+        N = self.spin_N.value()
+        r = self.spin_r.value()
+        p = self.spin_p.value()
+        pubkey = SigningKey(salt, password, ScryptParams(N, r, p)).pubkey
         self.label_info.setText(pubkey)
 
     def action_edit_account_parameters(self):

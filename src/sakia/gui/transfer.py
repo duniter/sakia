@@ -149,8 +149,8 @@ class TransferMoneyDialog(QObject):
         QApplication.setOverrideCursor(Qt.WaitCursor)
 
         logging.debug("Send money...")
-        result = await self.wallet.send_money(self.account.salt, password, self.community,
-                                   recipient, amount, comment)
+        result = await self.wallet.send_money(self.account.salt, password, self.account.scrypt_params,
+                                              self.community, recipient, amount, comment)
         if result[0]:
             logging.debug("Checking result to display...")
             if self.app.preferences['notifications']:
