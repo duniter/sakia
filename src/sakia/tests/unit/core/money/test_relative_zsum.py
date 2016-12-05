@@ -33,8 +33,10 @@ class TestRelativeZSum(unittest.TestCase, QuamashTest):
         referential = RelativeZSum(110, community, app, None)
         community.dividend = CoroutineMock(return_value=100)
         community.get_ud_block = CoroutineMock(side_effect=lambda *args, **kwargs: \
-                                                            {'membersCount': 5, "monetaryMass": 500, "dividend": 100} if 'x' in kwargs \
-                                                            else {'membersCount': 5, "monetaryMass": 1050, "dividend": 100} )
+                                                            {'membersCount': 5, "monetaryMass": 500,
+                                                             "dividend": 100, 'unitbase': 0} if 'x' in kwargs \
+                                                            else {'membersCount': 5, "monetaryMass": 1050,
+                                                                  "dividend": 100, 'unitbase': 0} )
         async def exec_test():
             value = await referential.value()
             self.assertAlmostEqual(value, 0.10)
@@ -45,8 +47,10 @@ class TestRelativeZSum(unittest.TestCase, QuamashTest):
     def test_differential(self, app, community):
         community.dividend = CoroutineMock(return_value=100)
         community.get_ud_block = CoroutineMock(side_effect=lambda *args, **kwargs: \
-                                                            {'membersCount': 5, "monetaryMass": 500, "dividend": 100} if 'x' in kwargs \
-                                                            else {'membersCount': 5, "monetaryMass": 1050, "dividend": 100} )
+                                                            {'membersCount': 5, "monetaryMass": 500,
+                                                             "dividend": 100, 'unitbase': 0} if 'x' in kwargs \
+                                                            else {'membersCount': 5, "monetaryMass": 1050,
+                                                                  "dividend": 100, 'unitbase': 0} )
         referential = RelativeZSum(110, community, app, None)
         async def exec_test():
             value = await referential.value()
@@ -59,8 +63,10 @@ class TestRelativeZSum(unittest.TestCase, QuamashTest):
         type(community).short_currency = PropertyMock(return_value="TC")
         community.dividend = CoroutineMock(return_value=100)
         community.get_ud_block = CoroutineMock(side_effect=lambda *args, **kwargs: \
-                                                            {'membersCount': 5, "monetaryMass": 500, "dividend": 100} if 'x' in kwargs \
-                                                            else {'membersCount': 5, "monetaryMass": 1050, "dividend": 100} )
+                                                            {'membersCount': 5, "monetaryMass": 500,
+                                                             "dividend": 100, 'unitbase': 0} if 'x' in kwargs \
+                                                            else {'membersCount': 5, "monetaryMass": 1050,
+                                                                  "dividend": 100, 'unitbase': 0} )
         referential = RelativeZSum(110, community, app, None)
         async def exec_test():
             value = await referential.localized(units=True)
@@ -73,8 +79,10 @@ class TestRelativeZSum(unittest.TestCase, QuamashTest):
         type(community).short_currency = PropertyMock(return_value="TC")
         community.dividend = CoroutineMock(return_value=100)
         community.get_ud_block = CoroutineMock(side_effect=lambda *args, **kwargs: \
-                                                            {'membersCount': 5, "monetaryMass": 500, "dividend": 100} if 'x' in kwargs \
-                                                            else {'membersCount': 5, "monetaryMass": 1050, "dividend": 100} )
+                                                            {'membersCount': 5, "monetaryMass": 500,
+                                                             "dividend": 100, 'unitbase': 0} if 'x' in kwargs \
+                                                            else {'membersCount': 5, "monetaryMass": 1050,
+                                                                  "dividend": 100, 'unitbase': 0} )
         app.preferences = {
             'digits_after_comma': 6
         }
@@ -90,8 +98,10 @@ class TestRelativeZSum(unittest.TestCase, QuamashTest):
         type(community).short_currency = PropertyMock(return_value="TC")
         community.dividend = CoroutineMock(return_value=100)
         community.get_ud_block = CoroutineMock(side_effect=lambda *args, **kwargs: \
-                                                            {'membersCount': 5, "monetaryMass": 500, "dividend": 100} if 'x' in kwargs \
-                                                            else {'membersCount': 5, "monetaryMass": 1050, "dividend": 100} )
+                                                            {'membersCount': 5, "monetaryMass": 500,
+                                                             "dividend": 100, 'unitbase': 0} if 'x' in kwargs \
+                                                            else {'membersCount': 5, "monetaryMass": 1050,
+                                                                  "dividend": 100, 'unitbase': 0} )
         app.preferences = {
             'digits_after_comma': 6
         }
@@ -107,8 +117,10 @@ class TestRelativeZSum(unittest.TestCase, QuamashTest):
         type(community).short_currency = PropertyMock(return_value="TC")
         community.dividend = CoroutineMock(return_value=100)
         community.get_ud_block = CoroutineMock(side_effect=lambda *args, **kwargs: \
-                                                            {'membersCount': 5, "monetaryMass": 500, "dividend": 100} if 'x' in kwargs \
-                                                            else {'membersCount': 5, "monetaryMass": 1050, "dividend": 100} )
+                                                            {'membersCount': 5, "monetaryMass": 500,
+                                                             "dividend": 100, 'unitbase': 0} if 'x' in kwargs \
+                                                            else {'membersCount': 5, "monetaryMass": 1050,
+                                                                  "dividend": 100, 'unitbase': 0} )
         app.preferences = {
             'digits_after_comma': 6
         }
@@ -124,8 +136,10 @@ class TestRelativeZSum(unittest.TestCase, QuamashTest):
         type(community).short_currency = PropertyMock(return_value="TC")
         community.dividend = CoroutineMock(return_value=100)
         community.get_ud_block = CoroutineMock(side_effect=lambda *args, **kwargs: \
-                                                            {'membersCount': 5, "monetaryMass": 500, "dividend": 100} if 'x' in kwargs \
-                                                            else {'membersCount': 5, "monetaryMass": 1050, "dividend": 100} )
+                                                            {'membersCount': 5, "monetaryMass": 500,
+                                                             "dividend": 100, 'unitbase': 0} if 'x' in kwargs \
+                                                            else {'membersCount': 5, "monetaryMass": 1050,
+                                                                  "dividend": 100, 'unitbase': 0} )
         referential = RelativeZSum(90, community, app, None)
         async def exec_test():
             value = await referential.diff_localized(units=True)
@@ -138,8 +152,10 @@ class TestRelativeZSum(unittest.TestCase, QuamashTest):
         type(community).short_currency = PropertyMock(return_value="TC")
         community.dividend = CoroutineMock(return_value=100)
         community.get_ud_block = CoroutineMock(side_effect=lambda *args, **kwargs: \
-                                                            {'membersCount': 5, "monetaryMass": 500, "dividend": 100} if 'x' in kwargs \
-                                                            else {'membersCount': 5, "monetaryMass": 1050, "dividend": 100} )
+                                                            {'membersCount': 5, "monetaryMass": 500,
+                                                             "dividend": 100, 'unitbase': 0} if 'x' in kwargs \
+                                                            else {'membersCount': 5, "monetaryMass": 1050,
+                                                                  "dividend": 100, 'unitbase': 0} )
         app.preferences = {
             'digits_after_comma': 6
         }
@@ -155,8 +171,10 @@ class TestRelativeZSum(unittest.TestCase, QuamashTest):
         type(community).short_currency = PropertyMock(return_value="TC")
         community.dividend = CoroutineMock(return_value=100)
         community.get_ud_block = CoroutineMock(side_effect=lambda *args, **kwargs: \
-                                                            {'membersCount': 5, "monetaryMass": 500, "dividend": 100} if 'x' in kwargs \
-                                                            else {'membersCount': 5, "monetaryMass": 1050, "dividend": 100} )
+                                                            {'membersCount': 5, "monetaryMass": 500,
+                                                             "dividend": 100, 'unitbase': 0} if 'x' in kwargs \
+                                                            else {'membersCount': 5, "monetaryMass": 1050,
+                                                                  "dividend": 100, 'unitbase': 0} )
         app.preferences = {
             'digits_after_comma': 6
         }
@@ -172,8 +190,10 @@ class TestRelativeZSum(unittest.TestCase, QuamashTest):
         type(community).short_currency = PropertyMock(return_value="TC")
         community.dividend = CoroutineMock(return_value=100)
         community.get_ud_block = CoroutineMock(side_effect=lambda *args, **kwargs: \
-                                                            {'membersCount': 5, "monetaryMass": 500, "dividend": 100} if 'x' in kwargs \
-                                                            else {'membersCount': 5, "monetaryMass": 1050, "dividend": 100} )
+                                                            {'membersCount': 5, "monetaryMass": 500,
+                                                             "dividend": 100, 'unitbase': 0} if 'x' in kwargs \
+                                                            else {'membersCount': 5, "monetaryMass": 1050,
+                                                                  "dividend": 100, 'unitbase': 0} )
         app.preferences = {
             'digits_after_comma': 6
         }
