@@ -637,8 +637,8 @@ class Account(QObject):
                 'pubkey': self.pubkey,
                 'scrypt_params': {
                     'N': self.scrypt_params.N,
-                    'r': self.scrypt_params.N,
-                    'p': self.scrypt_params.N,
+                    'r': self.scrypt_params.r,
+                    'p': self.scrypt_params.p,
                 },
                 'communities': data_communities,
                 'wallets': data_wallets,
