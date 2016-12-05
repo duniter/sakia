@@ -1,3 +1,4 @@
+import math
 from PyQt5.QtCore import QCoreApplication, QT_TRANSLATE_NOOP, QLocale
 from .relative import Relative
 from .base_referential import BaseReferential
@@ -8,11 +9,11 @@ class RelativeZSum(BaseReferential):
     _REF_STR_ = QT_TRANSLATE_NOOP('RelativeZSum', "{0} {1}R0 {2}")
     _UNITS_STR_ = QT_TRANSLATE_NOOP('RelativeZSum', "R0 {0}")
     _FORMULA_STR_ = QT_TRANSLATE_NOOP('RelativeZSum',
-                                      """R0 = (R / UD(t)) - (( M(t-1) / N(t) ) / UD(t))
+                                      """R0 = (Q / UD(t)) - (( M(t-1) / N(t) ) / UD(t))
                                         <br >
                                         <table>
                                         <tr><td>R0</td><td>Relative value at zero sum</td></tr>
-                                        <tr><td>R</td><td>Relative value</td></tr>
+                                        <tr><td>Q</td><td>Quantitative value</td></tr>
                                         <tr><td>M</td><td>Monetary mass</td></tr>
                                         <tr><td>N</td><td>Members count</td></tr>
                                         <tr><td>t</td><td>Last UD time</td></tr>
@@ -67,8 +68,8 @@ class RelativeZSum(BaseReferential):
         ud_block_minus_1 = await self.community.get_ud_block(x=1)
         if ud_block_minus_1 and ud_block['membersCount'] > 0:
             median = ud_block_minus_1['monetaryMass'] / ud_block['membersCount']
-            relative_value = self.amount / float(ud_block['dividend'])
-            relative_median = median / ud_block['dividend']
+            relative_value = self.amount / float(ud_block['dividend'] * math.pow(10, ud_block['unitbase']))
+            relative_median = median / (ud_block['dividend'] * math.pow(10, ud_block['unitbase']))
         else:
             relative_value = self.amount
             relative_median = 0
