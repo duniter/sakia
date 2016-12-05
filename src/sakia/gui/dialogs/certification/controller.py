@@ -42,13 +42,11 @@ class CertificationController(ComponentController):
         :rtype: CertificationController
         """
 
-        view = CertificationView(parent.view, None, None, communities_names, contacts_names)
-        model = CertificationModel(None, app, account, community)
+        view = CertificationView(parent.view, None, None)
+        model = CertificationModel(None, app)
         certification = cls(parent, view, model, None, None)
 
-        search_user = SearchUserController.create(certification, app,
-                                                  account=model.account,
-                                                  community=model.community)
+        search_user = SearchUserController.create(certification, app)
         certification.set_search_user(search_user)
 
         user_information = UserInformationController.create(certification, app,
@@ -156,25 +154,20 @@ class CertificationController(ComponentController):
         """
         pubkey = None
 
-        if self.view.recipient_mode() == CertificationView.RecipientMode.CONTACT:
-            contact_name = self.view.selected_contact()
-            pubkey = self.model.contact_name_pubkey(contact_name)
-        elif self.view.recipient_mode() == CertificationView.RecipientMode.SEARCH:
+        if self.view.recipient_mode() == CertificationView.RecipientMode.SEARCH:
             if self.search_user.current_identity():
                 pubkey = self.search_user.current_identity().pubkey
         else:
             pubkey = self.view.pubkey_value()
         return pubkey
 
-    @once_at_a_time
-    @asyncify
-    async def refresh(self):
+    def refresh(self):
         stock = self.model.get_cert_stock()
-        written, pending = await self.model.nb_certifications()
-        days, hours, minutes, seconds = await self.model.remaining_time()
+        written, pending = self.model.nb_certifications()
+        days, hours, minutes, seconds = self.model.remaining_time()
         self.view.display_cert_stock(written, pending, stock, days, hours, minutes)
 
-        if await self.model.could_certify():
+        if self.model.could_certify():
             if written < stock or stock == 0:
                 if days+hours+minutes > 0:
                     if days > 0:
@@ -197,10 +190,10 @@ class CertificationController(ComponentController):
         pubkey = self.selected_pubkey()
         self.user_information.search_identity(pubkey)
 
-    def change_current_community(self, index):
-        self.model.change_community(index)
-        self.search_user.set_community(self.community)
-        self.user_information.change_community(self.community)
+    def change_current_connection(self, index):
+        self.model.change_connection(index)
+        self.search_user.set_connection(self.model.connection)
+        self.user_information.change_connection(self.model.connection)
         self.refresh()
 
     def async_exec(self):

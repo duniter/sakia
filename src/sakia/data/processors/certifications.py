@@ -44,6 +44,21 @@ class CertificationsProcessor:
         """
         return self._certifications_repo.get_all(currency=currency, certified=pubkey)
 
+    def cert_issuance_delay(self, currency, pubkey, parameters, blockchain_time):
+        """
+        Get the remaining time before being able to issue new certification.
+        :param str currency: the currency of the certifications
+        :param str pubkey: the pubkey of the certifications
+        :param sakia.data.entities.BlockchainParameters parameters: the parameters of the blockchain
+        :param int blockchain_time: the current time of the blockchain
+        :return: the remaining time
+        :rtype: int
+        """
+        certified = self._certifications_repo.get_latest_sent(currency=currency, certifier=pubkey)
+        if certified and blockchain_time - certified.timestamp < parameters.sig_period:
+            return parameters.sig_period - (blockchain_time - certified.timestamp)
+        return 0
+
     def create_certification(self, currency, cert, blockstamp):
         """
         Creates a certification and insert it in the db

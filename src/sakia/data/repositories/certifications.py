@@ -78,6 +78,23 @@ class CertificationsRepo:
             return [Certification(*data) for data in datas]
         return []
 
+    def get_latest_sent(self, currency, pubkey):
+        """
+        Get latest sent certification
+        :param str currency:
+        :param str pubkey:
+        :return:
+        :rtype: sakia.data.entities.Certification
+        """
+        request = """SELECT * FROM certifications
+                  WHERE currency=? AND certifier=?
+                  ORDER BY timestamp DESC
+                  LIMIT 1"""
+        c = self._conn.execute(request, (currency, pubkey))
+        data = c.fetchone()
+        if data:
+            return Certification(*data)
+
     def drop(self, certification):
         """
         Drop an existing certification from the database

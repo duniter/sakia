@@ -4,7 +4,6 @@ from ..entities import Source
 from .nodes import NodesProcessor
 from ..connectors import BmaConnector
 from duniterpy.api import bma, errors
-from duniterpy.documents import Block, BMAEndpoint
 import asyncio
 
 
