@@ -17,3 +17,6 @@ class ConnectionsProcessor:
             self._connections_repo.insert(connection)
         except sqlite3.IntegrityError:
             self._connections_repo.update(connection)
+
+    def pubkeys(self, currency):
+        return self._connections_repo.get_pubkeys(currency)

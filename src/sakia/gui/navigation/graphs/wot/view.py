@@ -38,12 +38,3 @@ class WotView(BaseGraphView, Ui_WotWidget):
         """
         # draw graph in qt scene
         self.graphics_view.scene().update_wot(nx_graph, identity)
-
-    def display_path(self, nx_graph, path):
-        """
-        Display given path
-        :param nx_graph:
-        :param path:
-        :return:
-        """
-        #self.graphics_view.scene().update_path(nx_graph, path)

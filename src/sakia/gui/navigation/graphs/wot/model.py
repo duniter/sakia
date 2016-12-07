@@ -33,13 +33,14 @@ class WotModel(BaseGraphModel):
         :return:
         """
         connection_identity = self.identities_service.get_identity(self.connection.pubkey)
+        # create empty graph instance
         if identity:
             self.identity = identity
+            await self.wot_graph.initialize(self.identity, connection_identity)
         else:
             self.identity = connection_identity
-
-        # create empty graph instance
-        await self.wot_graph.initialize(self.identity, connection_identity)
+            # create empty graph instance
+            self.wot_graph.offline_init(connection_identity, connection_identity)
 
     def get_nx_graph(self):
         """
@@ -47,15 +48,3 @@ class WotModel(BaseGraphModel):
         :rtype: sakia.core.registry.Identity
         """
         return self.wot_graph.nx_graph
-
-    async def get_shortest_path(self):
-        """
-        Get shortest path between current identity and account
-        :rtype: list[str]
-        """
-        identity_account = self.identities_service.get_identity(self.connection.pubkey)
-        # if selected member is not the account member...
-        if self.identity.pubkey != identity_account.pubkey:
-            path = await self.wot_graph.get_shortest_path_to_identity(self.identity, identity_account)
-            return path
-        return []

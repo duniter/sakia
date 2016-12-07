@@ -50,6 +50,13 @@ class IdentitiesService(QObject):
         blockchain_time = self._blockchain_processor.time(self.currency)
         return blockchain_time - cert_time < parameters.sig_window * parameters.avg_gen_time
 
+    def _get_connections_identities(self):
+        pubkeys = self._connections_processor.pubkeys(self.currency)
+        identities = set([])
+        for p in pubkeys:
+            identities += self._connections_processor.get_identities(self.currency, p)
+        return identities
+
     async def load_memberships(self, identity):
         """
         Request the identity data and save it to written identities
@@ -143,11 +150,10 @@ class IdentitiesService(QObject):
             revoked.add(rev.pubkey)
 
         for pubkey in revoked:
-            written = self._identities_processor.get_written(self.currency, pubkey)
+            written = self._identities_processor.get_identity(self.currency, pubkey)
             # we update every written identities known locally
             if written:
                 written.revoked_on = block.blockUID
-                written.member = False
         return revoked
 
     def _parse_memberships(self, block):
@@ -158,33 +164,32 @@ class IdentitiesService(QObject):
         :return: list of pubkeys requiring a refresh of requirements
         """
         need_refresh = []
+        connections_identities = self._get_connections_identities()
         for ms in block.joiners + block.actives:
-            written_list = self._identities_processor.get_written(self.currency, ms.issuer)
             # we update every written identities known locally
-            if written_list:
-                written = written_list[0]
-                written.membership_written_on = block.blockUID
-                written.membership_type = "IN"
-                written.membership_buid = ms.membership_ts
-                self._identities_processor.insert_or_update_identity(written)
-                # If the identity was not member
-                # it can become one
-                if not written.member:
-                    need_refresh.append(written)
+            for identity in connections_identities:
+                if ms.issuer == identity:
+                    identity.membership_written_on = block.blockUID
+                    identity.membership_type = "IN"
+                    identity.membership_buid = ms.membership_ts
+                    self._identities_processor.insert_or_update_identity(identity)
+                    # If the identity was not member
+                    # it can become one
+                    if not identity.member:
+                        need_refresh.append(identity)
 
         for ms in block.leavers:
-            written_list = self._identities_processor.get_written(self.currency, ms.issuer)
             # we update every written identities known locally
-            if written_list:
-                written = written_list[0]
-                written.membership_written_on = block.blockUID
-                written.membership_type = "OUT"
-                written.membership_buid = ms.membership_ts
-                self._identities_processor.insert_or_update_identity(written)
-                # If the identity was not member
+            for identity in connections_identities:
+                identity.membership_written_on = block.blockUID
+                identity.membership_type = "OUT"
+                identity.membership_buid = ms.membership_ts
+                self._identities_processor.insert_or_update_identity(identity)
+                # If the identity was a member
                 # it can stop to be one
-                if not written.member:
-                    need_refresh.append(written)
+                if identity.member:
+                    need_refresh.append(identity)
+
         return need_refresh
 
     def _parse_certifications(self, block):
@@ -197,17 +202,14 @@ class IdentitiesService(QObject):
         :param duniterpy.documents.Block block:
         :return:
         """
-        need_refresh = set([])
+        connections_identities = self._get_connections_identities()
+        need_refresh = []
         for cert in block.certifications:
-            written_list = self._identities_processor.get_written(self.currency, cert.pubkey_to)
-            # if we have locally a written identity matching the certification
-            if written_list or self._identities_processor.get_written(self.currency, cert.pubkey_from):
-                self._certs_processor.create_certification(self.currency, cert, block.blockUID)
-            # we update every written identities known locally
-            if written_list:
-                # A certification can change the requirements state
-                # of an identity
-                need_refresh += written_list
+            # if we have are a target or a source of the certification
+            for identity in connections_identities:
+                if cert.pubkey_from == identity.pubkey or cert.pubkey_to in identity.pubkey:
+                    self._certs_processor.create_certification(self.currency, cert, block.blockUID)
+                    need_refresh.append(identity)
         return need_refresh
 
     async def refresh_requirements(self, identity):
@@ -226,9 +228,12 @@ class IdentitiesService(QObject):
             median_time = self._blockchain_processor.time(self.currency)
             expiration_time = self._blockchain_processor.parameters(self.currency).ms_validity
             identity.membership_timestamp = median_time - (expiration_time - identity_data["membershipExpiresIn"])
-            self._identities_processor.insert_or_update_identity(identity)
+            # We save connections pubkeys
+            if identity.pubkey in self._connections_processor.pubkeys():
+                self._identities_processor.insert_or_update_identity(identity)
         except NoPeerAvailable as e:
             self._logger.debug(str(e))
+        return identity
 
     def parse_block(self, block):
         """

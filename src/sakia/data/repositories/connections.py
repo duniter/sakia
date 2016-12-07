@@ -75,6 +75,19 @@ class ConnectionsRepo:
             return [data[0] for data in datas]
         return []
 
+    def get_pubkeys(self):
+        """
+        Get all existing connection in the database corresponding to the search
+        :param dict search: the criterions of the lookup
+        :rtype: List[str]
+        """
+        request = "SELECT DISTINCT pubkey FROM connections"
+        c = self._conn.execute(request)
+        datas = c.fetchall()
+        if datas:
+            return [data[0] for data in datas]
+        return []
+
     def drop(self, connection):
         """
         Drop an existing connection from the database

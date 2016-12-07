@@ -178,11 +178,11 @@ class IdentitiesProcessor:
         block_uid = blockchain.current_buid
         timestamp = blockchain.median_time
         selfcert = Identity(2,
-                                     currency,
-                                     identity.pubkey,
-                                     identity.uid,
-                                     block_uid,
-                                     None)
+                            currency,
+                            identity.pubkey,
+                            identity.uid,
+                            block_uid,
+                            None)
         key = SigningKey(salt, password)
         selfcert.sign([key])
         self._logger.debug("Key publish : {0}".format(selfcert.signed_raw()))

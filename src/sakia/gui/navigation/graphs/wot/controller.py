@@ -71,9 +71,6 @@ class WotController(BaseGraphController):
         """
         nx_graph = self.model.get_nx_graph()
         self.view.display_wot(nx_graph, self.model.identity)
-        path = await self.model.get_shortest_path()
-        if path:
-            self.view.display_path(nx_graph, path)
 
     @once_at_a_time
     @asyncify
