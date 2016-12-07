@@ -161,7 +161,7 @@ class BlockchainProcessor:
             count = to_block - from_block
 
             blocks_data = await self._bma_connector.get(currency, bma.blockchain.blocks, req_args={'count': count,
-                                                                                         'from_': from_block})
+                                                                                         'start': from_block})
             blocks = []
             for data in blocks_data:
                 if data['number'] in numbers:
