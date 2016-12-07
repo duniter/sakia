@@ -107,4 +107,3 @@ class CertificationsRepo:
                               certifier=? AND
                               certified=? AND
                               block=?""", where_fields)
-

@@ -10,6 +10,7 @@ import logging
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, QDateTime, QLocale
 from PyQt5.QtGui import QColor, QFont, QIcon
 from sakia.data.entities import Node
+from duniterpy.documents import BMAEndpoint, SecuredBMAEndpoint
 from sakia.errors import NoPeerAvailable
 
 from sakia.decorators import asyncify, once_at_a_time
@@ -163,13 +164,14 @@ class NetworkTableModel(QAbstractTableModel):
         addresses = []
         ports = []
         for e in node.endpoints:
-            if e.server:
-                addresses.append(e.server)
-            elif e.ipv4:
-                addresses.append(e.ipv4)
-            elif e.ipv6:
-                addresses.append(e.ipv6)
-            ports.append(str(e.port))
+            if type(e) in (BMAEndpoint, SecuredBMAEndpoint):
+                if e.server:
+                    addresses.append(e.server)
+                elif e.ipv4:
+                    addresses.append(e.ipv4)
+                elif e.ipv6:
+                    addresses.append(e.ipv6)
+                ports.append(str(e.port))
         address = "\n".join(addresses)
         port = "\n".join(ports)
 

@@ -1,14 +1,15 @@
-from duniterpy.api import bma
 import logging
 import aiohttp
 from aiohttp.errors import ClientError, ServerDisconnectedError
+from duniterpy.api import bma
+from duniterpy.documents import BMAEndpoint, SecuredBMAEndpoint
+from sakia.errors import NoPeerAvailable
+from pkg_resources import parse_version
+from socket import gaierror
 import asyncio
 import random
-from socket import gaierror
 import jsonschema
-from pkg_resources import parse_version
 import attr
-from sakia.errors import NoPeerAvailable
 
 
 @attr.s()
@@ -37,7 +38,7 @@ class BmaConnector:
             nodes = [n for n in nodes if filters[request](n)]
         endpoints = []
         for n in nodes:
-            endpoints += n.endpoints
+            endpoints += [e for e in n.endpoints if type(e) in (BMAEndpoint, SecuredBMAEndpoint)]
         return endpoints
 
     async def get(self, currency, request, req_args={}, get_args={}):

@@ -109,6 +109,9 @@ CREATE TABLE IF NOT EXISTS connections(
                                pubkey             VARCHAR(50),
                                salt               VARCHAR(50),
                                uid                VARCHAR(255),
+                               scrypt_N           INT,
+                               scrypt_p           INT,
+                               scrypt_r           INT,
                                blockstamp         VARCHAR(100),
                                PRIMARY KEY (currency, pubkey)
                                );

@@ -50,18 +50,21 @@ class NodeConnector(QObject):
         return self._session
 
     @classmethod
-    async def from_address(cls, currency, address, port, session):
+    async def from_address(cls, currency, secured, address, port, session):
         """
         Factory method to get a node from a given address
         :param str currency: The node currency. None if we don't know\
          the currency it should have, for example if its the first one we add
+        :param bool secured: True if the node uses https
         :param str address: The node address
         :param int port: The node port
         :param aiohttp.ClientSession session: The client session
         :return: A new node
         :rtype: sakia.core.net.Node
         """
-        peer_data = await bma.network.peering(ConnectionHandler(address, port, session))
+        http_scheme = "https" if secured else "http"
+        ws_scheme = "ws" if secured else "wss"
+        peer_data = await bma.network.peering(ConnectionHandler(http_scheme, ws_scheme, address, port, session))
 
         peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],
                                                       peer_data['signature']))

@@ -30,10 +30,10 @@ class ConnectionConfigModel(ComponentModel):
         self.node_connector = node_connector
         self.identities_processor = identities_processor
 
-    async def create_connection(self, server, port):
+    async def create_connection(self, server, port, secured):
         session = aiohttp.ClientSession()
         try:
-            self.node_connector = await NodeConnector.from_address(None, server, port, session)
+            self.node_connector = await NodeConnector.from_address(None, secured, server, port, session)
             self.connection = Connection(self.node_connector.node.currency, "", "")
             self.node_connector.node.state = Node.ONLINE
         except:
@@ -46,9 +46,12 @@ class ConnectionConfigModel(ComponentModel):
     def set_uid(self, uid):
         self.connection.uid = uid
 
-    def set_scrypt_infos(self, salt, password):
+    def set_scrypt_infos(self, salt, password, scrypt_params):
         self.connection.salt = salt
-        self.connection.pubkey = SigningKey(self.connection.salt, password).pubkey
+        self.connection.N = scrypt_params.N
+        self.connection.r = scrypt_params.r
+        self.connection.p = scrypt_params.p
+        self.connection.pubkey = SigningKey(self.connection.salt, password, scrypt_params).pubkey
 
     def insert_or_update_connection(self):
         ConnectionsProcessor(self.app.db.connections_repo).commit_connection(self.connection)

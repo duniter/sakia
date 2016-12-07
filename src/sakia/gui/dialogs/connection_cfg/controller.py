@@ -118,7 +118,8 @@ class ConnectionConfigController(ComponentController):
                 self.view.button_connect.setEnabled(False)
                 self.view.button_register.setEnabled(False)
                 await self.model.create_connection(self.view.lineedit_server.text(),
-                                                   self.view.spinbox_port.value())
+                                                   self.view.spinbox_port.value(),
+                                                   self.view.checkbox_secured.isChecked())
                 self.password_asker = PasswordAskerDialog(self.model.connection)
             except (DisconnectedError, ClientError, MalformedDocumentError, ValueError, TimeoutError) as e:
                 self._logger.debug(str(e))
@@ -201,6 +202,11 @@ class ConnectionConfigController(ComponentController):
             self.view.label_info.setText(self.tr("Error : passwords are different"))
             return False
 
+        if self.view.edit_salt.text() != \
+                self.view.edit_salt_bis.text():
+            self.view.label_info.setText(self.tr("Error : secret keys are different"))
+            return False
+
         self.view.label_info.setText("")
         return True
 
@@ -211,7 +217,7 @@ class ConnectionConfigController(ComponentController):
         try:
             salt = self.view.edit_salt.text()
             password = self.view.edit_password.text()
-            self.model.set_scrypt_infos(salt, password)
+            self.model.set_scrypt_infos(salt, password, self.view.scrypt_params)
             self.model.set_uid(self.view.edit_account_name.text())
             registered, found_identity = await self.model.check_registered()
             self.view.button_connect.setEnabled(True)
@@ -233,7 +239,7 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
         try:
             salt = self.view.edit_salt.text()
             password = self.view.edit_password.text()
-            self.model.set_scrypt_infos(salt, password)
+            self.model.set_scrypt_infos(salt, password, self.view.scrypt_params)
             self.model.set_uid(self.view.edit_account_name.text())
             registered, found_identity = await self.model.check_registered()
             if registered[0] is False and registered[2] is None:

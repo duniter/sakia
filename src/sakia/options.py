@@ -32,11 +32,11 @@ class SakiaOptions:
     @classmethod
     def from_arguments(cls, argv):
         options = cls()
-        options._parse_arguments(argv)
 
         if not path.exists(options.config_path):
-            cls._logger.info("Creating home directory")
             makedirs(options.config_path)
+
+        options._parse_arguments(argv)
 
         return options
 
