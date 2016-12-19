@@ -88,6 +88,9 @@ class Application(QObject):
         self._parameters = UserParametersFile.in_config_path(self.options.config_path, profile_name).load_or_init()
         self.db = SakiaDatabase.load_or_init(self.options.config_path, profile_name)
 
+        self.instanciate_services()
+
+    def instanciate_services(self):
         nodes_processor = NodesProcessor(self.db.nodes_repo)
         bma_connector = BmaConnector(nodes_processor)
         connections_processor = ConnectionsProcessor(self.db.connections_repo)
@@ -104,19 +107,26 @@ class Application(QObject):
         self.transactions_services = {}
 
         for currency in self.db.connections_repo.get_currencies():
-            self.identities_services[currency] = IdentitiesService(currency, connections_processor,
+            if currency not in self.identities_services:
+                self.identities_services[currency] = IdentitiesService(currency, connections_processor,
                                                                    identities_processor,
                                                                    certs_processor, blockchain_processor,
                                                                    bma_connector)
-            self.transactions_services[currency] = TransactionsService(currency, transactions_processor,
+
+            if currency not in self.transactions_services:
+                self.transactions_services[currency] = TransactionsService(currency, transactions_processor,
                                                                        identities_processor, bma_connector)
 
-            self.blockchain_services[currency] = BlockchainService(self, currency, blockchain_processor, bma_connector,
+            if currency not in self.blockchain_services:
+                self.blockchain_services[currency] = BlockchainService(self, currency, blockchain_processor, bma_connector,
                                                                    self.identities_services[currency],
                                                                    self.transactions_services[currency])
-            self.network_services[currency] = NetworkService.load(self, currency, nodes_processor,
+
+            if currency not in self.network_services:
+                self.network_services[currency] = NetworkService.load(self, currency, nodes_processor,
                                                                   self.blockchain_services[currency])
-            self.sources_services[currency] = SourcesServices(currency, sources_processor, bma_connector)
+            if currency not in self.sources_services:
+                self.sources_services[currency] = SourcesServices(currency, sources_processor, bma_connector)
 
     def set_proxy(self):
         if self.preferences['enable_proxy'] is True:

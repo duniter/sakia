@@ -17,7 +17,7 @@ class NodesRepo:
         """
         node_tuple = attr.astuple(node, tuple_factory=list)
         node_tuple[2] = "\n".join([str(n) for n in node_tuple[2]])
-        node_tuple[12] = "\n".join([str(n) for n in node_tuple[11]])
+        node_tuple[12] = "\n".join([str(n) for n in node_tuple[12]])
         values = ",".join(['?'] * len(node_tuple))
         self._conn.execute("INSERT INTO nodes VALUES ({0})".format(values), node_tuple)
 

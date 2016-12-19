@@ -26,10 +26,12 @@ class ConnectionConfigController(QObject):
         """
         Constructor of the AccountConfigController component
 
-        :param sakia.gui.account_cfg.view.AccountConfigCView: the view
-        :param sakia.gui.account_cfg.model.AccountConfigModel model: the model
+        :param sakia.gui.dialogs.connection_cfg.view.ConnectionConfigView: the view
+        :param sakia.gui.dialogs.connection_cfg.model.ConnectionConfigView model: the model
         """
         super().__init__(parent)
+        self.view = view
+        self.model = model
 
         self.step_node = asyncio.Future()
         self.step_key = asyncio.Future()
@@ -40,7 +42,8 @@ class ConnectionConfigController(QObject):
         self.view.button_guest.clicked.connect(
             lambda: self.step_node.set_result(ConnectionConfigController.GUEST))
         self.password_asker = None
-        self.view.values_changed.connect(self.check_key)
+        self.view.values_changed.connect(lambda: self.view.button_next.setEnabled(self.check_key()))
+        self.view.values_changed.connect(lambda: self.view.button_generate.setEnabled(self.check_key()))
         self._logger = logging.getLogger('sakia')
 
     @classmethod
@@ -68,10 +71,10 @@ class ConnectionConfigController(QObject):
         :param app:
         :return:
         """
-        connection_cfg = cls.create(parent, app, account=None)
+        connection_cfg = cls.create(parent, app)
         connection_cfg.view.set_creation_layout()
         asyncio.ensure_future(connection_cfg.process())
-        connection_cfg.view.exec()
+        return connection_cfg
 
     @classmethod
     def modify_connection(cls, parent, app, connection):
@@ -133,7 +136,7 @@ class ConnectionConfigController(QObject):
             self._logger.debug("Registering mode")
             self.view.button_next.clicked.connect(self.check_register)
             self.view.stacked_pages.setCurrentWidget(self.view.page_connection)
-            await self.step_key
+            connection_identity = await self.step_key
         elif mode == ConnectionConfigController.CONNECT:
             self._logger.debug("Connect mode")
             self.view.button_next.clicked.connect(self.check_connect)
@@ -144,35 +147,46 @@ class ConnectionConfigController(QObject):
         self.view.stacked_pages.setCurrentWidget(self.view.page_services)
         self.view.progress_bar.setValue(0)
         self.view.progress_bar.setMaximum(3)
-        await self.model.initialize_blockchain(self.view.stream_log)
-        self.view.progress_bar.setValue(1)
+        try:
+            await self.model.initialize_blockchain(self.view.stream_log)
+            self.view.progress_bar.setValue(1)
 
-        if mode in (ConnectionConfigController.REGISTER, ConnectionConfigController.CONNECT):
-            self.view.stream_log("Saving identity...")
-            self.model.insert_or_update_identity(connection_identity)
-            self.view.stream_log("Initializing identity informations...")
-            await self.model.initialize_identity(connection_identity, log_stream=self.view.stream_log)
-            self.view.stream_log("Initializing certifications informations...")
-            await self.model.initialize_certifications(connection_identity, log_stream=self.view.stream_log)
-            self.view.stream_log("Initializing transactions history...")
-            await self.model.initialize_transactions(connection_identity, log_stream=self.view.stream_log)
+            if mode == ConnectionConfigController.REGISTER:
+                self.view.display_info(self.tr("Broadcasting identity..."))
+                self.view.stream_log("Broadcasting identity...")
+                password = await self.password_asker.async_exec()
+                result, connection_identity = await self.model.publish_selfcert(self.model.connection.salt, password)
+                if result[0]:
+                    self.view.show_success(self.model.notification())
+                else:
+                    self.view.show_error(self.model.notification(), result[1])
 
-        self.view.progress_bar.setValue(2)
-        if mode == ConnectionConfigController.REGISTER:
-            self.view.display_info(self.tr("Broadcasting identity..."))
-            self.view.stream_log("Broadcasting identity...")
-            password = await self.password_asker.async_exec()
-            result, connection_identity = await self.model.publish_selfcert(self.model.connection.salt, password)
-            if result[0]:
-                self.view.show_success(self.model.notification())
-            else:
-                self.view.show_error(self.model.notification(), result[1])
+            self.view.progress_bar.setValue(2)
 
-        self.view.progress_bar.setValue(3)
-        await self.model.initialize_sources(self.view.stream_log)
+            if mode in (ConnectionConfigController.REGISTER, ConnectionConfigController.CONNECT):
+                self.view.stream_log("Saving identity...")
+                self.model.insert_or_update_identity(connection_identity)
+                self.view.stream_log("Initializing identity informations...")
+                await self.model.initialize_identity(connection_identity, log_stream=self.view.stream_log)
+                self.view.stream_log("Initializing certifications informations...")
+                await self.model.initialize_certifications(connection_identity, log_stream=self.view.stream_log)
+                self.view.stream_log("Initializing transactions history...")
+                await self.model.initialize_transactions(connection_identity, log_stream=self.view.stream_log)
 
-        self._logger.debug("Validate changes")
-        self.model.app.db.commit()
+
+            self.view.progress_bar.setValue(3)
+            await self.model.initialize_sources(self.view.stream_log)
+
+            self._logger.debug("Validate changes")
+            self.model.app.db.commit()
+        except NoPeerAvailable as e:
+            self._logger.debug(str(e))
+            self.view.stacked_pages.setCurrentWidget(self.view.page_connection)
+            self.step_node = asyncio.Future()
+            self.step_node.set_result(True)
+            self.step_key = asyncio.Future()
+            asyncio.ensure_future(self.process())
+            return
         self.accept()
 
     def check_key(self):
@@ -259,13 +273,4 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
         future = asyncio.Future()
         self.view.finished.connect(lambda r: future.set_result(r))
         self.view.open()
-        self.refresh()
         return future
-
-    @property
-    def view(self) -> ConnectionConfigView:
-        return self._view
-
-    @property
-    def model(self) -> ConnectionConfigModel:
-        return self._model

@@ -195,7 +195,7 @@ The process to join back the community later will have to be done again.""")
                                        password_asker=self.password_asker)
 
     def open_create_account_dialog(self):
-        ConnectionConfigController.create_connection(self, self.model.app)
+        ConnectionConfigController.create_connection(self, self.model.app).exec()
 
     def retranslateUi(self, widget):
         """
