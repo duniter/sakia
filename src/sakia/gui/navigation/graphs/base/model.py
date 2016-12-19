@@ -1,7 +1,6 @@
-from sakia.gui.component.model import ComponentModel
+from PyQt5.QtCore import QObject
 
-
-class BaseGraphModel(ComponentModel):
+class BaseGraphModel(QObject):
     """
     The model of Navigation component
     """

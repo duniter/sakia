@@ -1,18 +1,17 @@
 import asyncio
 import logging
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QObject
 from PyQt5.QtWidgets import QApplication
 
 from sakia.decorators import asyncify
-from sakia.gui.component.controller import ComponentController
 from sakia.gui.sub.search_user.controller import SearchUserController
 from sakia.gui.sub.user_information.controller import UserInformationController
 from .model import TransferModel
 from .view import TransferView
 
 
-class TransferController(ComponentController):
+class TransferController(QObject):
     """
     The transfer component controller
     """
@@ -24,7 +23,7 @@ class TransferController(ComponentController):
         :param sakia.gui.transfer.view.TransferView: the view
         :param sakia.gui.transfer.model.TransferModel model: the model
         """
-        super().__init__(parent, view, model)
+        super().__init__(parent)
         self.password_asker = password_asker
         self.search_user = search_user
         self.user_information = user_information
@@ -36,7 +35,7 @@ class TransferController(ComponentController):
         self.view.spinbox_relative.valueChanged.connect(self.handle_relative_change)
 
     @classmethod
-    def create(cls, parent, app, **kwargs):
+    def create(cls, parent, app, account, community, transfer, password_asker):
         """
         Instanciate a transfer component
         :param sakia.gui.component.controller.ComponentController parent:
@@ -44,10 +43,6 @@ class TransferController(ComponentController):
         :return: a new Transfer controller
         :rtype: TransferController
         """
-        account = kwargs['account']
-        community = kwargs['community']
-        transfer = kwargs['transfer']
-        password_asker = kwargs['password_asker']
         communities_names = [c.name for c in account.communities]
         wallets_names = [w.name for w in account.wallets]
         contacts_names = [c['name'] for c in account.contacts]

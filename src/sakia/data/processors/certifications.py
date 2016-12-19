@@ -54,7 +54,7 @@ class CertificationsProcessor:
         :return: the remaining time
         :rtype: int
         """
-        certified = self._certifications_repo.get_latest_sent(currency=currency, certifier=pubkey)
+        certified = self._certifications_repo.get_latest_sent(currency=currency, pubkey=pubkey)
         if certified and blockchain_time - certified.timestamp < parameters.sig_period:
             return parameters.sig_period - (blockchain_time - certified.timestamp)
         return 0

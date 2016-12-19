@@ -69,9 +69,9 @@ class TransactionsProcessor:
     def find_by_hash(self, sha_hash):
         return self._repo.find_one(sha_hash=sha_hash)
 
-    def awaiting(self):
-        return self._repo.find_all(state=Transaction.AWAITING) + \
-               self._repo.find_all(state=Transaction.AWAITING | Transaction.LOCAL)
+    def awaiting(self, currency):
+        return self._repo.get_all(currency=currency, state=Transaction.AWAITING) + \
+               self._repo.get_all(currency=currency, state=Transaction.AWAITING | Transaction.LOCAL)
 
     def run_state_transitions(self, tx, *inputs):
         """

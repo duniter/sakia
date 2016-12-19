@@ -1,16 +1,13 @@
-import logging
-
-from sakia.errors import NoPeerAvailable
-
-from sakia.gui.component.model import ComponentModel
+from PyQt5.QtCore import QObject
+from sakia.data.processors import CertificationsProcessor
 
 
-class UserInformationModel(ComponentModel):
+class UserInformationModel(QObject):
     """
     The model of HomeScreen component
     """
 
-    def __init__(self, parent, app, currency, identity, identities_service):
+    def __init__(self, parent, app, currency, identity):
         """
 
         :param sakia.gui.user_information.controller.UserInformationController parent:
@@ -20,15 +17,22 @@ class UserInformationModel(ComponentModel):
         :param sakia.services.IdentitiesService identities_service: the identities service of current currency
         """
         super().__init__(parent)
+        self._certifications_processor = CertificationsProcessor.instanciate(app)
         self.app = app
         self.currency = currency
         self.identity = identity
-        self.identities_service = identities_service
+        if identity:
+            self.certs_sent = self._certifications_processor.certifications_sent(currency, identity.pubkey)
+            self.certs_received = self._certifications_processor.certifications_received(currency, identity.pubkey)
+        self.identities_service = self.app.identities_services[self.currency]
 
-    async def load_identity(self):
+    async def load_identity(self, identity):
         """
         Ask network service to request identity informations
         """
-        await self.identities_service.load_memberships(self.identity)
-        await self.identities_service.load_certifiers_of(self.identity)
-        await self.identities_service.load_certified_by(self.identity)
+        self.identity = identity
+        self.identity = await self.identities_service.load_memberships(self.identity)
+
+    def set_currency(self, currency):
+        self.currency = currency
+        self.identities_service = self.app.identities_services[self.currency]

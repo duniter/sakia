@@ -18,9 +18,8 @@ class CertificationView(QDialog, Ui_CertificationDialog):
         OK = 3
 
     class RecipientMode(Enum):
-        CONTACT = 0
-        PUBKEY = 1
-        SEARCH = 2
+        PUBKEY = 0
+        SEARCH = 1
 
     _button_box_values = {
         ButtonBoxState.NO_MORE_CERTIFICATION: (False,
@@ -40,34 +39,38 @@ class CertificationView(QDialog, Ui_CertificationDialog):
         :param parent:
         :param sakia.gui.search_user.view.SearchUserView search_user_view:
         :param sakia.gui.user_information.view.UserInformationView user_information_view:
-        :param list[str] communities_names:
-        :param list[str] contacts_names:
+        :param list[sakia.data.entities.Connection] connections:
         """
         super().__init__(parent)
         self.setupUi(self)
 
-        self.radio_contact.toggled.connect(lambda c, radio=CertificationView.RecipientMode.CONTACT: self.recipient_mode_changed(radio))
-        self.radio_pubkey.toggled.connect(lambda c, radio=CertificationView.RecipientMode.PUBKEY: self.recipient_mode_changed(radio))
-        self.radio_search.toggled.connect(lambda c, radio=CertificationView.RecipientMode.SEARCH: self.recipient_mode_changed(radio))
-
-        for name in communities_names:
-            self.combo_community.addItem(name)
-
-        for name in sorted(contacts_names):
-            self.combo_contact.addItem(name)
-
-        if len(contacts_names) == 0:
-            self.radio_pubkey.setChecked(True)
-            self.radio_contact.setEnabled(False)
+        self.radio_pubkey.toggled.connect(lambda c, radio=CertificationView.RecipientMode.PUBKEY:
+                                          self.recipient_mode_changed(radio))
+        self.radio_search.toggled.connect(lambda c, radio=CertificationView.RecipientMode.SEARCH:
+                                          self.recipient_mode_changed(radio))
 
         self.search_user = search_user_view
         self.user_information_view = user_information_view
 
-        self.combo_contact.currentIndexChanged.connect(self.pubkey_changed)
         self.edit_pubkey.textChanged.connect(self.pubkey_changed)
-        self.radio_contact.toggled.connect(self.pubkey_changed)
         self.radio_search.toggled.connect(self.pubkey_changed)
         self.radio_pubkey.toggled.connect(self.pubkey_changed)
+
+    def set_keys(self, connections):
+        self.combo_pubkey.clear()
+        for c in connections:
+            self.combo_pubkey.addItem(c.title())
+
+    def set_selected_key(self, connection):
+        """
+        :param sakia.data.entities.Connection connection:
+        """
+        self.combo_pubkey.setCurrentText(connection.title())
+
+    def set_currencies(self, currencies):
+        self.combo_currency.clear()
+        for c in currencies:
+            self.combo_currency.addItem(c)
 
     def set_search_user(self, search_user_view):
         """
@@ -84,15 +87,10 @@ class CertificationView(QDialog, Ui_CertificationDialog):
         self.layout_target_choice.addWidget(user_information_view)
 
     def recipient_mode(self):
-        if self.radio_contact.isChecked():
-            return CertificationView.RecipientMode.CONTACT
-        elif self.radio_search.isChecked():
+        if self.radio_search.isChecked():
             return CertificationView.RecipientMode.SEARCH
         else:
             return CertificationView.RecipientMode.PUBKEY
-
-    def selected_contact(self):
-        return self.combo_contact.currentText()
 
     def pubkey_value(self):
         return self.edit_pubkey.text()
@@ -157,5 +155,4 @@ class CertificationView(QDialog, Ui_CertificationDialog):
         :param str radio:
         """
         self.edit_pubkey.setEnabled(radio == CertificationView.RecipientMode.PUBKEY)
-        self.combo_contact.setEnabled(radio == CertificationView.RecipientMode.CONTACT)
         self.search_user.setEnabled(radio == CertificationView.RecipientMode.SEARCH)

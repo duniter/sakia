@@ -18,7 +18,7 @@ from sakia.data.connectors import BmaConnector
 from sakia.services import NetworkService, BlockchainService, IdentitiesService, SourcesServices, TransactionsService
 from sakia.data.repositories import SakiaDatabase
 from sakia.data.processors import BlockchainProcessor, NodesProcessor, IdentitiesProcessor, \
-    CertificationsProcessor, SourcesProcessor, TransactionsProcessor
+    CertificationsProcessor, SourcesProcessor, TransactionsProcessor, ConnectionsProcessor
 from sakia.data.files import AppDataFile, UserParametersFile
 from sakia.decorators import asyncify
 from sakia.money import Relative
@@ -90,6 +90,7 @@ class Application(QObject):
 
         nodes_processor = NodesProcessor(self.db.nodes_repo)
         bma_connector = BmaConnector(nodes_processor)
+        connections_processor = ConnectionsProcessor(self.db.connections_repo)
         identities_processor = IdentitiesProcessor(self.db.identities_repo, self.db.blockchains_repo, bma_connector)
         certs_processor = CertificationsProcessor(self.db.certifications_repo, self.db.identities_repo, bma_connector)
         blockchain_processor = BlockchainProcessor.instanciate(self)
@@ -103,7 +104,8 @@ class Application(QObject):
         self.transactions_services = {}
 
         for currency in self.db.connections_repo.get_currencies():
-            self.identities_services[currency] = IdentitiesService(currency, identities_processor,
+            self.identities_services[currency] = IdentitiesService(currency, connections_processor,
+                                                                   identities_processor,
                                                                    certs_processor, blockchain_processor,
                                                                    bma_connector)
             self.transactions_services[currency] = TransactionsService(currency, transactions_processor,

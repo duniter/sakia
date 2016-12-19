@@ -12,7 +12,8 @@ class IdentitiesService(QObject):
     Identities service is managing identities data received
     to update data locally
     """
-    def __init__(self, currency, identities_processor, certs_processor, blockchain_processor, bma_connector):
+    def __init__(self, currency, connections_processor, identities_processor, certs_processor,
+                 blockchain_processor, bma_connector):
         """
         Constructor the identities service
 
@@ -23,6 +24,7 @@ class IdentitiesService(QObject):
         :param sakia.data.connectors.BmaConnector bma_connector: The connector to BMA API
         """
         super().__init__()
+        self._connections_processor = connections_processor
         self._identities_processor = identities_processor
         self._certs_processor = certs_processor
         self._blockchain_processor = blockchain_processor
@@ -51,10 +53,10 @@ class IdentitiesService(QObject):
         return blockchain_time - cert_time < parameters.sig_window * parameters.avg_gen_time
 
     def _get_connections_identities(self):
-        pubkeys = self._connections_processor.pubkeys(self.currency)
-        identities = set([])
-        for p in pubkeys:
-            identities += self._connections_processor.get_identities(self.currency, p)
+        connections = self._connections_processor.connections(self.currency)
+        identities = []
+        for c in connections:
+            identities.append(self._identities_processor.get_identity(self.currency, c.pubkey))
         return identities
 
     async def load_memberships(self, identity):
@@ -63,28 +65,30 @@ class IdentitiesService(QObject):
         It does nothing if the identity is already written and updated with blockchain lookups
         :param sakia.data.entities.Identity identity: the identity
         """
-        if not identity.written_on:
-            try:
-                search = await self._bma_connector.get(self.currency, bma.blockchain.membership,
-                                                            {'search': self.pubkey})
-                blockstamp = BlockUID.empty()
-                membership_data = None
+        try:
+            search = await self._bma_connector.get(self.currency, bma.blockchain.memberships,
+                                                        {'search': identity.pubkey})
+            blockstamp = BlockUID.empty()
+            membership_data = None
 
-                for ms in search['memberships']:
-                    if ms['blockNumber'] > blockstamp.number:
-                        blockstamp = BlockUID(ms["blockNumber"], ms['blockHash'])
-                        membership_data = ms
-                if membership_data:
-                    identity.membership_timestamp = await self._blockchain_processor.timestamp(blockstamp)
-                    identity.membership_buid = blockstamp
-                    identity.membership_type = ms["type"]
-                    identity.membership_written_on = ms["written"]
-                    await self.refresh_requirements(identity)
-                    self._identities_processor.insert_or_update_identity(identity)
-            except errors.DuniterError as e:
-                logging.debug(str(e))
-            except NoPeerAvailable as e:
-                logging.debug(str(e))
+            for ms in search['memberships']:
+                if ms['blockNumber'] > blockstamp.number:
+                    blockstamp = BlockUID(ms["blockNumber"], ms['blockHash'])
+                    membership_data = ms
+            if membership_data:
+                identity.membership_timestamp = await self._blockchain_processor.timestamp(self.currency, blockstamp)
+                identity.membership_buid = blockstamp
+                identity.membership_type = ms["membership"]
+                identity.membership_written_on = ms["written"]
+                identity = await self.refresh_requirements(identity)
+            # We save connections pubkeys
+            if identity.pubkey in self._connections_processor.pubkeys():
+                self._identities_processor.insert_or_update_identity(identity)
+        except errors.DuniterError as e:
+            logging.debug(str(e))
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
+        return identity
 
     async def load_certifiers_of(self, identity):
         """
@@ -92,25 +96,31 @@ class IdentitiesService(QObject):
         It does nothing if the identity is already written and updated with blockchain lookups
         :param sakia.data.entities.Identity identity: the identity
         """
-        if not identity.written_on:
-            try:
-                data = await self._bma_connector.get(self.currency, bma.wot.certifiers_of, {'search': identity.pubkey})
-                for certifier_data in data['certifications']:
-                    cert = Certification(currency=self.currency,
-                                         certified=data["pubkey"],
-                                         certifier=certifier_data["pubkey"],
-                                         block=certifier_data["cert_time"]["block"],
-                                         timestamp=certifier_data["cert_time"]["medianTime"],
-                                         signature=certifier_data['signature'])
-                    if certifier_data['written']:
-                        cert.written_on = BlockUID(certifier_data['written']['number'],
-                                                   certifier_data['written']['hash'])
+        try:
+            certifications = []
+            data = await self._bma_connector.get(self.currency, bma.wot.certifiers_of, {'search': identity.pubkey})
+            for certifier_data in data['certifications']:
+                cert = Certification(currency=self.currency,
+                                     certified=data["pubkey"],
+                                     certifier=certifier_data["pubkey"],
+                                     block=certifier_data["cert_time"]["block"],
+                                     timestamp=certifier_data["cert_time"]["medianTime"],
+                                     signature=certifier_data['signature'])
+                if certifier_data['written']:
+                    cert.written_on = BlockUID(certifier_data['written']['number'],
+                                               certifier_data['written']['hash'])
+                certifications.append(cert)
+                # We save connections pubkeys
+                if identity.pubkey in self._connections_processor.pubkeys():
                     self._certs_processor.insert_or_update_certification(cert)
-            except errors.DuniterError as e:
-                if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
-                    logging.debug("Certified by error : {0}".format(str(e)))
-            except NoPeerAvailable as e:
-                logging.debug(str(e))
+                return certifications
+        except errors.DuniterError as e:
+            if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
+                logging.debug("Certified by error : {0}".format(str(e)))
+                return []
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
+            return []
 
     async def load_certified_by(self, identity):
         """
@@ -118,25 +128,31 @@ class IdentitiesService(QObject):
         It does nothing if the identity is already written and updated with blockchain lookups
         :param sakia.data.entities.Identity identity: the identity
         """
-        if not identity.written_on:
-            try:
-                data = await self._bma_connector.get(self.currency, bma.wot.certified_by, {'search': identity.pubkey})
-                for certified_data in data['certifications']:
-                    cert = Certification(currency=self.currency,
-                                         certifier=data["pubkey"],
-                                         certified=certified_data["pubkey"],
-                                         block=certified_data["cert_time"]["block"],
-                                         timestamp=certified_data["cert_time"]["medianTime"],
-                                         signature=certified_data['signature'])
-                    if certified_data['written']:
-                        cert.written_on = BlockUID(certified_data['written']['number'],
-                                                   certified_data['written']['hash'])
+        try:
+            certifications = []
+            data = await self._bma_connector.get(self.currency, bma.wot.certified_by, {'search': identity.pubkey})
+            for certified_data in data['certifications']:
+                cert = Certification(currency=self.currency,
+                                     certifier=data["pubkey"],
+                                     certified=certified_data["pubkey"],
+                                     block=certified_data["cert_time"]["block"],
+                                     timestamp=certified_data["cert_time"]["medianTime"],
+                                     signature=certified_data['signature'])
+                if certified_data['written']:
+                    cert.written_on = BlockUID(certified_data['written']['number'],
+                                               certified_data['written']['hash'])
+                certifications.append(cert)
+                # We save connections pubkeys
+                if identity.pubkey in self._connections_processor.pubkeys():
                     self._certs_processor.insert_or_update_certification(cert)
-            except errors.DuniterError as e:
-                if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
-                    logging.debug("Certified by error : {0}".format(str(e)))
-            except NoPeerAvailable as e:
-                logging.debug(str(e))
+                return certifications
+        except errors.DuniterError as e:
+            if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
+                logging.debug("Certified by error : {0}".format(str(e)))
+                return []
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
+            return []
 
     def _parse_revocations(self, block):
         """

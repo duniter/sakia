@@ -1,17 +1,17 @@
 import logging
 
 from PyQt5.QtGui import QCursor
+from PyQt5.QtCore import QObject
 from sakia.errors import NoPeerAvailable
 
 from duniterpy.api import errors
 from sakia.decorators import once_at_a_time, asyncify
-from sakia.gui.component.controller import ComponentController
 from sakia.gui.widgets.context_menu import ContextMenu
 from .model import IdentitiesModel
 from .view import IdentitiesView
 
 
-class IdentitiesController(ComponentController):
+class IdentitiesController(QObject):
     """
     The navigation panel
     """
@@ -23,21 +23,15 @@ class IdentitiesController(ComponentController):
         :param sakia.gui.identities.view.IdentitiesView view: the view
         :param sakia.gui.identities.model.IdentitiesModel model: the model
         """
-        super().__init__(parent, view, model)
+        super().__init__(parent)
+        self.view = view
+        self.model = model
         self.password_asker = password_asker
         self.view.search_by_text_requested.connect(self.search_text)
         self.view.search_directly_connected_requested.connect(self.search_direct_connections)
         self.view.table_identities.customContextMenuRequested.connect(self.identity_context_menu)
         table_model = self.model.init_table_model()
         self.view.set_table_identities_model(table_model)
-
-    @property
-    def view(self) -> IdentitiesView:
-        return self._view
-
-    @property
-    def model(self) -> IdentitiesModel:
-        return self._model
 
     @property
     def app(self):
@@ -52,11 +46,7 @@ class IdentitiesController(ComponentController):
         return self.model.account
 
     @classmethod
-    def create(cls, parent, app, **kwargs):
-        connection = kwargs['connection']
-        blockchain_service = kwargs['blockchain_service']
-        identities_service = kwargs['identities_service']
-
+    def create(cls, parent, app, connection, blockchain_service, identities_service):
         view = IdentitiesView(parent.view)
         model = IdentitiesModel(None, app, connection, blockchain_service, identities_service)
         identities = cls(parent, view, model)

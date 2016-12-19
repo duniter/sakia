@@ -1,33 +1,35 @@
 import logging
 
-from PyQt5.QtCore import QTime, pyqtSignal
+from PyQt5.QtCore import QTime, pyqtSignal, QObject
 from PyQt5.QtGui import QCursor
 
 from sakia.decorators import asyncify, once_at_a_time
-from sakia.gui.component.controller import ComponentController
 from sakia.gui.widgets import toast
 from sakia.gui.widgets.context_menu import ContextMenu
 from .model import TxHistoryModel
 from .view import TxHistoryView
+import attr
 
 
-class TxHistoryController(ComponentController):
+@attr.s()
+class TxHistoryController(QObject):
     """
     Transfer history component controller
     """
     view_in_wot = pyqtSignal(object)
 
-    def __init__(self, parent, view, model, password_asker=None):
+    view = attr.ib()
+    model = attr.ib()
+    password_asker = attr.ib()
+
+    def __attrs_post_init__(self):
         """
         Init
         :param sakia.gui.txhistory.view.TxHistoryView view:
         :param sakia.gui.txhistory.model.TxHistoryModel model:
         :param password_asker:
         """
-
-        super().__init__(parent, view, model)
-        self.password_asker = password_asker
-
+        super().__init__()
         ts_from, ts_to = self.view.get_time_frame()
         model = self.model.init_history_table_model(ts_from, ts_to)
         self.view.set_table_history_model(model)
@@ -38,27 +40,15 @@ class TxHistoryController(ComponentController):
         self.refresh()
 
     @classmethod
-    def create(cls, parent, app, **kwargs):
-        connection = kwargs['connection']
-        identities_service = kwargs['identities_service']
-        blockchain_service = kwargs['blockchain_service']
-        transactions_service = kwargs['transactions_service']
-        sources_service = kwargs['sources_service']
+    def create(cls, parent, app, connection,
+               identities_service, blockchain_service, transactions_service, sources_service):
 
         view = TxHistoryView(parent.view)
         model = TxHistoryModel(None, app, connection, blockchain_service, identities_service,
                                transactions_service, sources_service)
-        txhistory = cls(parent, view, model)
+        txhistory = cls(view, model, None)
         model.setParent(txhistory)
         return txhistory
-
-    @property
-    def view(self) -> TxHistoryView:
-        return self._view
-
-    @property
-    def model(self) -> TxHistoryModel:
-        return self._model
 
     def refresh_minimum_maximum(self):
         """

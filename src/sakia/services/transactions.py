@@ -33,7 +33,7 @@ class TransactionsService(QObject):
         :return: The list of transfers sent
         """
         transfers = []
-        for tx in [t for t in self._transactions_processor.awaiting()]:
+        for tx in [t for t in self._transactions_processor.awaiting(self.currency)]:
             self._transactions_processor.run_state_transitions(tx, (False, block_doc))
 
             new_transactions = [t for t in block_doc.transactions

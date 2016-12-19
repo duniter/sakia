@@ -24,27 +24,15 @@ class WotController(BaseGraphController):
         self.reset()
 
     @classmethod
-    def create(cls, parent, app, **kwargs):
-        connection = kwargs['connection']
-        blockchain_service = kwargs['blockchain_service']
-        identities_service = kwargs['identities_service']
-
+    def create(cls, parent, app, connection, blockchain_service, identities_service):
         view = WotView(parent.view)
         model = WotModel(None, app, connection, blockchain_service, identities_service)
         wot = cls(parent, view, model)
         model.setParent(wot)
-        search_user = SearchUserController.create(wot, app, **{'connection': connection})
+        search_user = SearchUserController.create(wot, app, currency=connection.currency)
         wot.view.set_search_user(search_user.view)
         search_user.identity_selected.connect(wot.center_on_identity)
         return wot
-
-    @property
-    def view(self) -> WotView:
-        return self._view
-
-    @property
-    def model(self) -> WotModel:
-        return self._model
 
     def center_on_identity(self, identity):
         """

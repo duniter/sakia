@@ -5,7 +5,7 @@ from sakia.core.net import Node
 import aiohttp
 
 
-class RevocationModel(ComponentModel):
+class RevocationModel(QObject):
     """
     The model of HomeScreen component
     """

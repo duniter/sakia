@@ -1,7 +1,7 @@
-from sakia.gui.component.model import ComponentModel
+from PyQt5.QtCore import QObject
 
 
-class MainWindowModel(ComponentModel):
+class MainWindowModel(QObject):
     """
     The model of Navigation component
     """

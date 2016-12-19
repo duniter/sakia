@@ -14,7 +14,6 @@ from PyQt5.QtGui import QIcon
 from ..password_asker import PasswordAskerDialog
 from ...__init__ import __version__
 from ..widgets import toast
-from sakia.gui.component.controller import ComponentController
 from .view import MainWindowView
 from .model import MainWindowModel
 from .status_bar.controller import StatusBarController
@@ -22,7 +21,7 @@ from .toolbar.controller import ToolbarController
 from ..navigation.controller import NavigationController
 
 
-class MainWindowController(ComponentController):
+class MainWindowController(QObject):
     """
     classdocs
     """
@@ -40,12 +39,14 @@ class MainWindowController(ComponentController):
         :type: sakia.core.app.Application
         """
         # Set up the user interface from Designer.
-        super().__init__(None, view, model)
+        super().__init__()
+        self.view = view
+        self.model = model
         self.initialized = False
         self.password_asker = password_asker
-        self.status_bar = self.attach(status_bar)
-        self.toolbar = self.attach(toolbar)
-        self.navigation = self.attach(navigation)
+        self.status_bar = status_bar
+        self.toolbar = toolbar
+        self.navigation = navigation
         self.stacked_widgets = {}
         self.view.bottom_layout.insertWidget(0, self.navigation.view)
         self.view.top_layout.addWidget(self.toolbar.view)
@@ -54,7 +55,7 @@ class MainWindowController(ComponentController):
         QApplication.setWindowIcon(QIcon(":/icons/sakia_logo"))
 
     @classmethod
-    def create(cls, parent, app, **kwargs):
+    def create(cls, app, password_asker, status_bar, toolbar, navigation):
         """
         Instanciate a navigation component
         :param sakia.gui.status_bar.controller.StatusBarController status_bar: the controller of the status bar component
@@ -64,10 +65,6 @@ class MainWindowController(ComponentController):
         :return: a new Navigation controller
         :rtype: MainWindowController
         """
-        password_asker = kwargs['password_asker']
-        status_bar = kwargs['status_bar']
-        toolbar = kwargs['toolbar']
-        navigation = kwargs['navigation']
         view = MainWindowView()
         model = MainWindowModel(None, app)
         main_window = cls(view, model, password_asker, status_bar, toolbar, navigation)
@@ -78,11 +75,12 @@ class MainWindowController(ComponentController):
     @classmethod
     def startup(cls, app):
         password_asker = PasswordAskerDialog(None)
-        main_window = cls.create(None, app, password_asker=password_asker,
-                                 status_bar=StatusBarController.create(None, app),
-                                 navigation=NavigationController.create(None, app),
-                                 toolbar=ToolbarController.create(None, app,
-                                                                    app.parameters, None)
+        navigation = NavigationController.create(None, app)
+        toolbar = ToolbarController.create(app, navigation)
+        main_window = cls.create(app, password_asker=password_asker,
+                                 status_bar=StatusBarController.create(app),
+                                 navigation=navigation,
+                                 toolbar=toolbar
                                  )
 
         #app.version_requested.connect(main_window.latest_version_requested)
@@ -92,14 +90,6 @@ class MainWindowController(ComponentController):
         main_window.view.showMaximized()
         main_window.refresh()
         return main_window
-
-    @property
-    def view(self) -> MainWindowView:
-        return self._view
-
-    @property
-    def model(self) -> MainWindowModel:
-        return self._model
 
     @pyqtSlot(str)
     def display_error(self, error):

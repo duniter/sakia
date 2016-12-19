@@ -2,19 +2,18 @@ import asyncio
 import logging
 
 from aiohttp.errors import DisconnectedError, ClientError, TimeoutError
-
 from duniterpy.documents import MalformedDocumentError
 from sakia.errors import NoPeerAvailable
 from sakia.decorators import asyncify
 from sakia.data.processors import IdentitiesProcessor, NodesProcessor
 from sakia.data.connectors import BmaConnector
-from sakia.gui.component.controller import ComponentController
 from sakia.gui.password_asker import PasswordAskerDialog, detect_non_printable
 from .model import ConnectionConfigModel
 from .view import ConnectionConfigView
+from PyQt5.QtCore import QObject
 
 
-class ConnectionConfigController(ComponentController):
+class ConnectionConfigController(QObject):
     """
     The AccountConfigController view
     """
@@ -30,7 +29,7 @@ class ConnectionConfigController(ComponentController):
         :param sakia.gui.account_cfg.view.AccountConfigCView: the view
         :param sakia.gui.account_cfg.model.AccountConfigModel model: the model
         """
-        super().__init__(parent, view, model)
+        super().__init__(parent)
 
         self.step_node = asyncio.Future()
         self.step_key = asyncio.Future()
@@ -45,7 +44,7 @@ class ConnectionConfigController(ComponentController):
         self._logger = logging.getLogger('sakia')
 
     @classmethod
-    def create(cls, parent, app, **kwargs):
+    def create(cls, parent, app):
         """
         Instanciate a AccountConfigController component
         :param sakia.gui.component.controller.ComponentController parent:

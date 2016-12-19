@@ -1,4 +1,4 @@
-from sakia.gui.component.model import ComponentModel
+from PyQt5.QtCore import QObject
 from .table_model import HistoryTableModel, TxFilterProxyModel
 from PyQt5.QtCore import Qt, QDateTime, QTime, pyqtSignal, QModelIndex
 from sakia.errors import NoPeerAvailable
@@ -7,7 +7,7 @@ from duniterpy.api import errors
 import logging
 
 
-class TxHistoryModel(ComponentModel):
+class TxHistoryModel(QObject):
     """
     The model of Navigation component
     """

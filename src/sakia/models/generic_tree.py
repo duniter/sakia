@@ -76,7 +76,7 @@ class GenericTreeModel(QAbstractItemModel):
     @classmethod
     def create(cls, title, data):
         def parse_node(node_data, parent_item):
-            node = NodeItem(node_data['node'], parent_item)
+            node = NodeItem(node_data, parent_item)
             if parent_item:
                 parent_item.appendChild(node)
             if 'children' in node_data:

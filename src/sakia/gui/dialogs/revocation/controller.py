@@ -1,13 +1,13 @@
 import asyncio
 
+from PyQt5.QtCore import QObject
 from duniterpy.documents import MalformedDocumentError
 from sakia.decorators import asyncify
-from sakia.gui.component.controller import ComponentController
 from .model import RevocationModel
 from .view import RevocationView
 
 
-class RevocationController(ComponentController):
+class RevocationController(QObject):
     """
     The revocation view
     """
@@ -19,7 +19,7 @@ class RevocationController(ComponentController):
         :param sakia.gui.revocation.view.revocationView: the view
         :param sakia.gui.revocation.model.revocationModel model: the model
         """
-        super().__init__(parent, view, model)
+        super().__init__(parent)
 
         self.handle_next_step(init=True)
         self.view.button_next.clicked.connect(lambda checked: self.handle_next_step(False))
@@ -38,7 +38,7 @@ class RevocationController(ComponentController):
         self._current_step = 0
 
     @classmethod
-    def create(cls, parent, app, **kwargs):
+    def create(cls, parent, app, account):
         """
         Instanciate a revocation component
         :param sakia.gui.component.controller.ComponentController parent:
@@ -46,7 +46,6 @@ class RevocationController(ComponentController):
         :return: a new revocation controller
         :rtype: revocationController
         """
-        account = kwargs['account']
         view = RevocationView(parent.view)
         model = RevocationModel(None, app, account)
         revocation = cls(parent, view, model)

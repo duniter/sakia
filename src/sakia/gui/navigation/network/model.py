@@ -1,9 +1,8 @@
-from sakia.gui.component.model import ComponentModel
 from .table_model import NetworkTableModel, NetworkFilterProxyModel
-from PyQt5.QtCore import QModelIndex, Qt
+from PyQt5.QtCore import QModelIndex, Qt, QObject
 
 
-class NetworkModel(ComponentModel):
+class NetworkModel(QObject):
     """
     A network model
     """

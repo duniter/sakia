@@ -1,12 +1,11 @@
 from PyQt5.QtWidgets import QDialog
-
+from PyQt5.QtCore import QObject
 from sakia.decorators import asyncify
-from sakia.gui.component.controller import ComponentController
 from .model import UserInformationModel
 from .view import UserInformationView
 
 
-class UserInformationController(ComponentController):
+class UserInformationController(QObject):
     """
     The homescreen view
     """
@@ -18,19 +17,12 @@ class UserInformationController(ComponentController):
         :param sakia.gui.homescreen.view.HomeScreenView: the view
         :param sakia.gui.homescreen.model.HomeScreenModel model: the model
         """
-        super().__init__(parent, view, model)
+        super().__init__(parent)
+        self.view = view
+        self.model = model
 
     @classmethod
-    def create(cls, parent, app, **kwargs):
-        """
-        Instanciate a homescreen component
-        :param sakia.gui.component.controller.ComponentController parent:
-        :param sakia.core.Application app:
-        :return: a new Homescreen controller
-        :rtype: UserInformationController
-        """
-        currency = kwargs['currency']
-        identity = kwargs['identity']
+    def create(cls, parent, app, currency, identity):
         view = UserInformationView(parent.view)
         model = UserInformationModel(None, app, currency, identity)
         homescreen = cls(parent, view, model)
@@ -40,32 +32,24 @@ class UserInformationController(ComponentController):
     @classmethod
     def open_dialog(cls, parent, app, currency, identity):
         dialog = QDialog()
-        user_info = cls.create(parent, app, currency=currency, identity=identity)
+        user_info = cls.create(parent, app, currency, identity)
         user_info.view.setParent(dialog)
         user_info.refresh()
         dialog.exec()
-
-    @classmethod
-    def as_widget(cls, parent, app, currency, identity):
-        return cls(app, currency, identity)
 
     @asyncify
     async def refresh(self):
         if self.model.identity:
             self.view.show_busy()
             self.view.display_uid(self.model.identity.uid)
-            await self.model.load_identity()
+            await self.model.load_identity(self.model.identity)
             self.view.display_identity_timestamps(self.model.identity.pubkey, self.model.identity.timestamp,
                                                   self.model.identity.membership_timestamp)
             self.view.hide_busy()
 
     @asyncify
-    async def search_identity(self, pubkey):
-        """
-        Set identity
-        :param str pubkey: the pubkey
-        """
-        await self.model.search_identity(pubkey)
+    async def search_identity(self, identity):
+        await self.model.load_identity(identity)
         self.refresh()
 
     def change_identity(self, identity):
@@ -76,10 +60,6 @@ class UserInformationController(ComponentController):
         self.model.identity = identity
         self.refresh()
 
-    @property
-    def view(self) -> UserInformationView:
-        return self._view
-
-    @property
-    def model(self) -> UserInformationModel:
-        return self._model
+    def set_currency(self, currency):
+        self.model.set_currency(currency)
+        self.refresh()

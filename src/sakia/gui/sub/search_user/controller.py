@@ -1,13 +1,12 @@
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal, QObject
 
 from sakia.data.entities import Identity
 from sakia.decorators import asyncify
-from sakia.gui.component.controller import ComponentController
 from .model import SearchUserModel
 from .view import SearchUserView
 
 
-class SearchUserController(ComponentController):
+class SearchUserController(QObject):
     """
     The navigation panel
     """
@@ -21,27 +20,19 @@ class SearchUserController(ComponentController):
         :param sakia.gui.search_user.view.SearchUserView view:
         :param sakia.gui.search_user.model.SearchUserModel model:
         """
-        super().__init__(parent, view, model)
+        super().__init__(parent)
+        self.view = view
+        self.model = model
         self.view.search_requested.connect(self.search)
         self.view.node_selected.connect(self.select_node)
 
     @classmethod
-    def create(cls, parent, app, **kwargs):
-        connection = kwargs['connection']
-
+    def create(cls, parent, app, currency):
         view = SearchUserView(parent.view)
-        model = SearchUserModel(parent, app, connection)
+        model = SearchUserModel(parent, app, currency)
         search_user = cls(parent, view, model)
         model.setParent(search_user)
         return search_user
-
-    @property
-    def view(self) -> SearchUserView:
-        return self._view
-
-    @property
-    def model(self) -> SearchUserModel:
-        return self._model
 
     @asyncify
     async def search(self, text):
@@ -69,10 +60,5 @@ class SearchUserController(ComponentController):
         self.model.select_identity(index)
         self.identity_selected.emit(self.model.identity())
 
-    def set_connection(self, connection):
-        """
-        Set community
-        :param sakia.data.entities.Connection connection
-        :return:
-        """
-        self.model.connection = connection
+    def set_currency(self, currency):
+        self.model.currency = currency

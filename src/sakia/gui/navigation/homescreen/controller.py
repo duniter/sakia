@@ -1,9 +1,9 @@
-from sakia.gui.component.controller import ComponentController
+from PyQt5.QtCore import QObject
 from .view import HomeScreenView
 from .model import HomeScreenModel
 
 
-class HomeScreenController(ComponentController):
+class HomeScreenController(QObject):
     """
     The homescreen view
     """
@@ -15,7 +15,9 @@ class HomeScreenController(ComponentController):
         :param sakia.gui.homescreen.view.HomeScreenView: the view
         :param sakia.gui.homescreen.model.HomeScreenModel model: the model
         """
-        super().__init__(parent, view, model)
+        super().__init__(parent)
+        self.view = view
+        self.model = model
 
     @classmethod
     def create(cls, parent, app, **kwargs):
@@ -31,11 +33,3 @@ class HomeScreenController(ComponentController):
         homescreen = cls(parent, view, model)
         model.setParent(homescreen)
         return homescreen
-
-    @property
-    def view(self) -> HomeScreenView:
-        return self._view
-
-    @property
-    def model(self) -> HomeScreenModel:
-        return self._model

@@ -1,13 +1,15 @@
-from sakia.gui.component.model import ComponentModel
+from PyQt5.QtCore import QObject
+import attr
 
 
-class ToolbarModel(ComponentModel):
+@attr.s()
+class ToolbarModel(QObject):
     """
     The model of Navigation component
     """
 
-    def __init__(self, parent, app, account, community):
-        super().__init__(parent)
-        self.app = app
-        self.account = account
-        self.community = community
+    app = attr.ib()
+    navigation_model = attr.ib()
+
+    def __attrs_post_init__(self):
+        super().__init__()

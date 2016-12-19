@@ -1,28 +1,29 @@
-from PyQt5.QtCore import QLocale, pyqtSlot, QDateTime, QTimer
-from sakia.gui.component.controller import ComponentController
+from PyQt5.QtCore import QLocale, pyqtSlot, QDateTime, QTimer, QObject
 from .model import StatusBarModel
 from .view import StatusBarView
 import logging
 
 
-class StatusBarController(ComponentController):
+class StatusBarController(QObject):
     """
     The navigation panel
     """
 
-    def __init__(self, parent, view, model):
+    def __init__(self, view, model):
         """
         Constructor of the navigation component
 
         :param sakia.gui.status_bar.view.StatusBarView view: the presentation
         :param sakia.core.status_bar.model.StatusBarModel model: the model
         """
-        super().__init__(parent, view, model)
+        super().__init__()
+        self.view = view
+        self.model = model
         view.combo_referential.currentIndexChanged[int].connect(self.referential_changed)
         self.update_time()
 
     @classmethod
-    def create(cls, parent, app, **kwargs):
+    def create(cls, app, **kwargs):
         """
         Instanciate a navigation component
         :param sakia.gui.main_window.controller.MainWindowController parent:
@@ -32,17 +33,8 @@ class StatusBarController(ComponentController):
         view = StatusBarView(None)
 
         model = StatusBarModel(None, app)
-        status_bar = cls(parent, view, model)
-        model.setParent(status_bar)
+        status_bar = cls(view, model)
         return status_bar
-
-    @property
-    def view(self) -> StatusBarView:
-        return self._view
-
-    @property
-    def model(self) -> StatusBarModel:
-        return self._model
 
     @pyqtSlot()
     def update_time(self):

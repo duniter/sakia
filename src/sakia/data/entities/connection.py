@@ -1,5 +1,6 @@
 import attr
 from duniterpy.documents import block_uid, BlockUID
+from duniterpy.key import ScryptParams
 
 
 @attr.s()
@@ -17,5 +18,11 @@ class Connection:
     scrypt_r = attr.ib(convert=int, default=16)
     scrypt_p = attr.ib(convert=int, default=1)
     blockstamp = attr.ib(convert=block_uid, default=BlockUID.empty(), cmp=False, hash=False)
-    password = attr.ib(convert=str, default="", cmp=False, hash=False)
+    password = attr.ib(init=False, convert=str, default="", cmp=False, hash=False)
 
+    def title(self):
+        return self.uid + " - " + self.pubkey[:5]
+
+    @property
+    def scrypt_params(self):
+        return ScryptParams(self.scrypt_N, self.scrypt_r, self.scrypt_p)

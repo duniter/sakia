@@ -88,7 +88,7 @@ class CertificationsRepo:
         """
         request = """SELECT * FROM certifications
                   WHERE currency=? AND certifier=?
-                  ORDER BY timestamp DESC
+                  ORDER BY ts DESC
                   LIMIT 1"""
         c = self._conn.execute(request, (currency, pubkey))
         data = c.fetchone()

@@ -1,7 +1,7 @@
-from sakia.gui.component.model import ComponentModel
+from PyQt5.QtCore import QObject
 
 
-class TransferModel(ComponentModel):
+class TransferModel(QObject):
     """
     The model of transfer component
     """

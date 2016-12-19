@@ -1,7 +1,7 @@
-from sakia.gui.component.model import ComponentModel
+from PyQt5.QtCore import QObject
 
 
-class HomeScreenModel(ComponentModel):
+class HomeScreenModel(QObject):
     """
     The model of HomeScreen component
     """

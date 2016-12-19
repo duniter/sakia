@@ -1,5 +1,4 @@
 from .model import NavigationModel
-from sakia.gui.component.controller import ComponentController
 from .view import NavigationView
 from .txhistory.controller import TxHistoryController
 from .homescreen.controller import HomeScreenController
@@ -7,12 +6,11 @@ from .network.controller import NetworkController
 from .identities.controller import IdentitiesController
 from .informations.controller import InformationsController
 from .graphs.wot.controller import WotController
-from sakia.data.repositories import ConnectionsRepo
 from sakia.data.entities import Connection
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal, QObject
 
 
-class NavigationController(ComponentController):
+class NavigationController(QObject):
     """
     The navigation panel
     """
@@ -26,7 +24,9 @@ class NavigationController(ComponentController):
         :param sakia.gui.navigation.view view: the view
         :param sakia.gui.navigation.model.NavigationModel model: the model
         """
-        super().__init__(parent, view, model)
+        super().__init__(parent)
+        self.view = view
+        self.model = model
         self.components = {
             'TxHistory': TxHistoryController,
             'HomeScreen': HomeScreenController,
@@ -52,21 +52,13 @@ class NavigationController(ComponentController):
         navigation.init_navigation()
         return navigation
 
-    @property
-    def view(self) -> NavigationView:
-        return self._view
-
-    @property
-    def model(self) -> NavigationModel:
-        return self._model
-
     def init_navigation(self):
         def parse_node(node_data):
-            if 'component' in node_data['node']:
-                component_class = self.components[node_data['node']['component']]
-                component = component_class.create(self, self.model.app, **node_data['node'])
+            if 'component' in node_data:
+                component_class = self.components[node_data['component']]
+                component = component_class.create(self, self.model.app, **node_data['dependencies'])
                 widget = self.view.add_widget(component.view)
-                node_data['node']['widget'] = widget
+                node_data['widget'] = widget
             if 'children' in node_data:
                 for child in node_data['children']:
                     parse_node(child)

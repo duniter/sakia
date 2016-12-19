@@ -1,10 +1,8 @@
-import logging
-
-from sakia.gui.component.model import ComponentModel
+from PyQt5.QtCore import QObject
 from sakia.money import Referentials
 
 
-class StatusBarModel(ComponentModel):
+class StatusBarModel(QObject):
     """
     The model of status bar component
     """

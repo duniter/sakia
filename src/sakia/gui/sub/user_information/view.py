@@ -70,25 +70,6 @@ class UserInformationView(QWidget, Ui_UserInformationWidget):
         """
         self.label_uid.setText(uid)
 
-    def display_path(self, path):
-        """
-        Display path to identity
-        :param list[str] path:
-        """
-
-        text = """<tr><td align="right"><b>{:}</b></div></td><td>{:}</td></tr>"""\
-            .format(self.tr('Distance'), len(path))
-        if len(path) > 1:
-            for index, uid in enumerate(path):
-                if index == 0:
-                    text += self.tr("""<tr><td align="right"><b>{:}</b></div></td><td>{:}</td></tr>""") \
-                        .format(self.tr('Path'), uid)
-                else:
-                    text += self.tr("""<tr><td align="right"><b>{:}</b></div></td><td>{:}</td></tr>""") \
-                        .format('', uid)
-
-        self.label_path.setText(text)
-
     def show_busy(self):
         self.busy.show()
 

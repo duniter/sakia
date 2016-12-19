@@ -1,39 +1,38 @@
 import asyncio
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QObject
 from PyQt5.QtWidgets import QApplication
 
-from sakia.decorators import asyncify, once_at_a_time
-from sakia.gui.component.controller import ComponentController
+from sakia.data.entities import Identity
+from sakia.decorators import asyncify
 from sakia.gui.sub.search_user.controller import SearchUserController
 from sakia.gui.sub.user_information.controller import UserInformationController
+from sakia.gui.password_asker import PasswordAskerDialog
 from .model import CertificationModel
 from .view import CertificationView
+import attr
 
 
-class CertificationController(ComponentController):
+@attr.s()
+class CertificationController(QObject):
     """
     The Certification view
     """
 
-    def __init__(self, parent, view, model, search_user, user_information):
-        """
-        Constructor of the Certification component
+    view = attr.ib()
+    model = attr.ib()
+    search_user = attr.ib(default=None)
+    user_information = attr.ib(default=None)
 
-        :param sakia.gui.certification.view.CertificationView: the view
-        :param sakia.gui.certification.model.CertificationModel model: the model
-        :param sakia.gui.search_user.controller.SearchUserController search_user: the search user component
-        :param sakia.gui.user_information.controller.UserInformationController search_user: the search user component
-        """
-        super().__init__(parent, view, model)
+    def __attrs_post_init__(self):
+        super().__init__()
         self.view.button_box.accepted.connect(self.accept)
         self.view.button_box.rejected.connect(self.reject)
-        self.view.combo_community.currentIndexChanged.connect(self.change_current_community)
-        self.search_user = search_user
-        self.user_information = user_information
+        self.view.combo_currency.currentIndexChanged.connect(self.change_currency)
+        self.view.combo_pubkey.currentIndexChanged.connect(self.change_connection)
 
     @classmethod
-    def create(cls, parent, app, **kwargs):
+    def create(cls, parent, app):
         """
         Instanciate a Certification component
         :param sakia.gui.component.controller.ComponentController parent:
@@ -41,65 +40,54 @@ class CertificationController(ComponentController):
         :return: a new Certification controller
         :rtype: CertificationController
         """
-
         view = CertificationView(parent.view, None, None)
-        model = CertificationModel(None, app)
-        certification = cls(parent, view, model, None, None)
+        model = CertificationModel(app)
+        certification = cls(view, model, None, None)
 
-        search_user = SearchUserController.create(certification, app)
+        search_user = SearchUserController.create(certification, app, model.available_currencies()[0])
         certification.set_search_user(search_user)
 
         user_information = UserInformationController.create(certification, app,
-                                                            account=model.account,
-                                                            community=model.community,
-                                                            identity=None)
+                                                            model.available_currencies()[0], None)
         certification.set_user_information(user_information)
-        model.setParent(certification)
+
+        view.set_currencies(certification.model.available_currencies())
+        view.set_keys(certification.model.available_connections(certification.model.available_currencies()[0]))
         return certification
 
     @classmethod
-    def open_dialog(cls, parent, app, account, community, password_asker):
+    def open_dialog(cls, parent, app, connection):
         """
         Certify and identity
         :param sakia.gui.component.controller.ComponentController parent: the parent
         :param sakia.core.Application app: the application
         :param sakia.core.Account account: the account certifying the identity
         :param sakia.core.Community community: the community
-        :param sakia.gui.password_asker.PasswordAsker password_asker: the password asker
         :return:
         """
-        dialog = cls.create(parent, app, account=account, community=community, password_asker=password_asker)
-        if community:
-            dialog.view.combo_community.setCurrentText(community.name)
+        dialog = cls.create(parent, app)
+        if connection:
+            dialog.view.combo_currency.setCurrentText(connection.currency)
         dialog.refresh()
         return dialog.exec()
 
     @classmethod
-    async def certify_identity(cls, parent, app, account, password_asker, community, identity):
+    async def certify_identity(cls, parent, app, connection, identity):
         """
         Certify and identity
         :param sakia.gui.component.controller.ComponentController parent: the parent
         :param sakia.core.Application app: the application
         :param sakia.core.Account account: the account certifying the identity
-        :param sakia.gui.password_asker.PasswordAsker password_asker: the password asker
         :param sakia.core.Community community: the community
         :param sakia.core.registry.Identity identity: the identity certified
         :return:
         """
-        dialog = cls.create(parent, app, account=account, community=community, password_asker=password_asker)
-        dialog.view.combo_community.setCurrentText(community.name)
+        dialog = cls.create(parent, app)
+        dialog.view.combo_community.setCurrentText(connection.currency)
         dialog.view.edit_pubkey.setText(identity.pubkey)
         dialog.view.radio_pubkey.setChecked(True)
         dialog.refresh()
         return await dialog.async_exec()
-
-    @property
-    def view(self) -> CertificationView:
-        return self._view
-
-    @property
-    def model(self) -> CertificationModel:
-        return self._model
 
     def set_search_user(self, search_user):
         """
@@ -126,40 +114,27 @@ class CertificationController(ComponentController):
         Validate the dialog
         """
         self.view.button_box.setDisabled(True)
-        pubkey = self.selected_pubkey()
-        if pubkey:
-            password = await self.password_asker.async_exec()
-            if password == "":
-                self.view.button_box.setEnabled(True)
-                return
-            QApplication.setOverrideCursor(Qt.WaitCursor)
-            result = await self.account.certify(password, self.community, pubkey)
-            if result[0]:
-                QApplication.restoreOverrideCursor()
-                await self.view.show_success()
-                self.view.accept()
-            else:
-                await self.view.show_error(result[1])
-                QApplication.restoreOverrideCursor()
-                self.view.button_box.setEnabled(True)
+        password = await PasswordAskerDialog(self.model.connection).async_exec()
+        if password:
+            self.view.button_box.setEnabled(True)
+            return
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        if self.view.radio_pubkey.isChecked():
+            result = await self.model.certify_pubkey(password, self.view.edit_pubkey.text())
+        else:
+            result = await self.model.certify_identity(password, self.user_information.model.identity)
+
+        if result[0]:
+            QApplication.restoreOverrideCursor()
+            await self.view.show_success()
+            self.view.accept()
+        else:
+            await self.view.show_error(result[1])
+            QApplication.restoreOverrideCursor()
+            self.view.button_box.setEnabled(True)
 
     def reject(self):
         self.view.reject()
-
-    def selected_pubkey(self):
-        """
-        Get selected pubkey in the widgets of the window
-        :return: the current pubkey
-        :rtype: str
-        """
-        pubkey = None
-
-        if self.view.recipient_mode() == CertificationView.RecipientMode.SEARCH:
-            if self.search_user.current_identity():
-                pubkey = self.search_user.current_identity().pubkey
-        else:
-            pubkey = self.view.pubkey_value()
-        return pubkey
 
     def refresh(self):
         stock = self.model.get_cert_stock()
@@ -188,12 +163,21 @@ class CertificationController(ComponentController):
         Refresh user information
         """
         pubkey = self.selected_pubkey()
-        self.user_information.search_identity(pubkey)
+        if self.search_user.identity_selected:
+            self.user_information.search_identity(self.search_user.model.identity())
+        else:
+            self.user_information.search_identity(Identity(self.model.connection.currency, pubkey))
 
-    def change_current_connection(self, index):
-        self.model.change_connection(index)
-        self.search_user.set_connection(self.model.connection)
-        self.user_information.change_connection(self.model.connection)
+    def change_currency(self, index):
+        currency = self.model.available_currencies()[index]
+        connections = self.model.available_connections(currency)
+        self.view.set_selected_key(connections[0])
+        self.search_user.set_currency(currency)
+        self.user_information.set_currency(currency)
+
+    def change_connection(self, index):
+        currency = self.model.available_currencies()[index]
+        self.model.set_connection(currency, index)
         self.refresh()
 
     def async_exec(self):

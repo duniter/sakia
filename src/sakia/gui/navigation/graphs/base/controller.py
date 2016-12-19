@@ -1,14 +1,13 @@
 import asyncio
 
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, QObject
 from PyQt5.QtGui import QCursor
 
 from sakia.decorators import asyncify, once_at_a_time
-from sakia.gui.component.controller import ComponentController
 from sakia.gui.widgets.context_menu import ContextMenu
 
 
-class BaseGraphController(ComponentController):
+class BaseGraphController(QObject):
     """
     The homescreen view
     """
@@ -20,7 +19,9 @@ class BaseGraphController(ComponentController):
         :param sakia.gui.homescreen.view.HomeScreenView: the view
         :param sakia.gui.homescreen.model.HomeScreenModel model: the model
         """
-        super().__init__(parent, view, model)
+        super().__init__(parent)
+        self.view = view
+        self.model = model
         self.password_asker = password_asker
 
     def set_scene(self, scene):

@@ -1,15 +1,15 @@
 import logging
 
+from PyQt5.QtCore import QObject
 from sakia.errors import NoPeerAvailable
 
 from duniterpy.api import errors
 from sakia.decorators import asyncify
-from sakia.gui.component.controller import ComponentController
 from .model import InformationsModel
 from .view import InformationsView
 
 
-class InformationsController(ComponentController):
+class InformationsController(QObject):
     """
     The informations component
     """
@@ -21,7 +21,9 @@ class InformationsController(ComponentController):
         :param sakia.gui.informations.view.InformationsView view: the view
         :param sakia.gui.informations.model.InformationsModel model: the model
         """
-        super().__init__(parent, view, model)
+        super().__init__(parent)
+        self.view = view
+        self.model = model
 
     @property
     def informations_view(self):
@@ -31,26 +33,13 @@ class InformationsController(ComponentController):
         return self.view
 
     @classmethod
-    def create(cls, parent, app, **kwargs):
-        connection = kwargs['connection']
-        blockchain_service = kwargs['blockchain_service']
-        identities_service = kwargs['identities_service']
-        sources_service = kwargs['sources_service']
-
+    def create(cls, parent, app, connection, blockchain_service, identities_service, sources_service):
         view = InformationsView(parent.view)
         model = InformationsModel(None, app, connection, blockchain_service, identities_service, sources_service)
         informations = cls(parent, view, model)
         model.setParent(informations)
         informations.init_view_text()
         return informations
-
-    @property
-    def view(self) -> InformationsView:
-        return self._view
-
-    @property
-    def model(self) -> InformationsModel:
-        return self._model
 
     @asyncify
     async def init_view_text(self):

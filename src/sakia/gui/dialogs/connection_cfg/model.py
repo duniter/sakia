@@ -1,5 +1,5 @@
 import aiohttp
-
+from PyQt5.QtCore import QObject
 from duniterpy.documents import BlockUID, BMAEndpoint
 from duniterpy.api import bma, errors
 from duniterpy.key import SigningKey
@@ -7,10 +7,9 @@ from sakia.data.entities import Connection, Identity, Node
 from sakia.data.connectors import NodeConnector
 from sakia.data.processors import ConnectionsProcessor, NodesProcessor, BlockchainProcessor, \
     SourcesProcessor, CertificationsProcessor, TransactionsProcessor
-from sakia.gui.component.model import ComponentModel
 
 
-class ConnectionConfigModel(ComponentModel):
+class ConnectionConfigModel(QObject):
     """
     The model of AccountConfig component
     """

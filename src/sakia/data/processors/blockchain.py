@@ -1,5 +1,6 @@
 import attr
-import re
+import logging
+from sakia.errors import NoPeerAvailable
 from ..entities import Blockchain, BlockchainParameters
 from .nodes import NodesProcessor
 from ..connectors import BmaConnector
@@ -12,6 +13,7 @@ import asyncio
 class BlockchainProcessor:
     _repo = attr.ib()  # :type sakia.data.repositories.CertificationsRepo
     _bma_connector = attr.ib()  # :type sakia.data.connectors.bma.BmaConnector
+    _logger = attr.ib(default=attr.Factory(lambda: logging.getLogger('sakia')))
 
     @classmethod
     def instanciate(cls, app):
@@ -21,6 +23,14 @@ class BlockchainProcessor:
         """
         return cls(app.db.blockchains_repo,
                    BmaConnector(NodesProcessor(app.db.nodes_repo)))
+
+    async def timestamp(self, currency, blockstamp):
+        try:
+            block = await self._bma_connector.get(currency, bma.blockchain.block, {'number': blockstamp.number})
+            if block:
+                return block['medianTime']
+        except NoPeerAvailable as e:
+            self._logger.debug(str(e))
 
     def current_buid(self, currency):
         """

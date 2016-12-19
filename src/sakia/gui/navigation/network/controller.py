@@ -1,13 +1,13 @@
-from sakia.gui.component.controller import ComponentController
 from .model import NetworkModel
 from .view import NetworkView
 from PyQt5.QtWidgets import QAction, QMenu
 from PyQt5.QtGui import QCursor, QDesktopServices
-from PyQt5.QtCore import pyqtSlot, QUrl
+from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 from duniterpy.api import bma
+from sakia.data.processors import ConnectionsProcessor
 
 
-class NetworkController(ComponentController):
+class NetworkController(QObject):
     """
     The network panel
     """
@@ -19,28 +19,28 @@ class NetworkController(ComponentController):
         :param sakia.gui.network.view.NetworkView: the view
         :param sakia.gui.network.model.NetworkModel model: the model
         """
-        super().__init__(parent, view, model)
+        super().__init__(parent)
+        self.view = view
+        self.model = model
         table_model = self.model.init_network_table_model()
         self.view.set_network_table_model(table_model)
         self.view.manual_refresh_clicked.connect(self.refresh_nodes_manually)
 
     @classmethod
-    def create(cls, parent, app, **kwargs):
-        network_service = kwargs['network_service']
+    def create(cls, parent, app, network_service):
+        """
 
-        view = NetworkView(parent.view)
+        :param PyQt5.QObject parent:
+        :param sakia.app.Application app:
+        :param sakia.services.NetworkService network_service:
+        :param sakia.data.entities.Connection connection:
+        :return:
+        """
+        view = NetworkView(parent.view,)
         model = NetworkModel(None, app, network_service)
         txhistory = cls(parent, view, model)
         model.setParent(txhistory)
         return txhistory
-
-    @property
-    def view(self) -> NetworkView:
-        return self._view
-
-    @property
-    def model(self) -> NetworkModel:
-        return self._model
     
     def refresh_nodes_manually(self):
         self.model.refresh_nodes_once()

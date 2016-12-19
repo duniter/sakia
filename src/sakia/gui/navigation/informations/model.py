@@ -1,15 +1,14 @@
 import logging
 import math
 
-from PyQt5.QtCore import QLocale, QDateTime, pyqtSignal
+from PyQt5.QtCore import QLocale, QDateTime, pyqtSignal, QObject
 from sakia.errors import NoPeerAvailable
 
 from sakia.money.currency import shortened
-from sakia.gui.component.model import ComponentModel
 from sakia.money import Referentials
 
 
-class InformationsModel(ComponentModel):
+class InformationsModel(QObject):
     """
     An component
     """

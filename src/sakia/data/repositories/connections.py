@@ -54,7 +54,7 @@ class ConnectionsRepo:
 
         request = "SELECT * FROM connections"
         if filters:
-            request += "WHERE {filters}".format(filters=" AND ".join(filters))
+            request += " WHERE {filters}".format(filters=" AND ".join(filters))
 
         c = self._conn.execute(request, tuple(values))
         datas = c.fetchall()

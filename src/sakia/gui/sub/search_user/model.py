@@ -1,27 +1,27 @@
-from sakia.gui.component.model import ComponentModel
-from duniterpy.api import errors, bma
+from PyQt5.QtCore import QObject
+from duniterpy.api import errors
 from sakia.errors import NoPeerAvailable
 from sakia.data.processors import IdentitiesProcessor
 
 import logging
 
 
-class SearchUserModel(ComponentModel):
+class SearchUserModel(QObject):
     """
     The model of Navigation component
     """
 
-    def __init__(self, parent, app, connection):
+    def __init__(self, parent, app, currency):
         """
 
         :param sakia.gui.search_user.controller.NetworkController parent: the controller
         :param sakia.app.Application app: the app
-        :param sakia.data.entities.Connection connection: the connection
+        :param str currency: the currency network to look for users
         """
         super().__init__(parent)
         self.app = app
         self.identities_processor = IdentitiesProcessor.instanciate(app)
-        self.connection = connection
+        self.currency = currency
         self._nodes = list()
         self._current_identity = None
 
@@ -46,7 +46,7 @@ class SearchUserModel(ComponentModel):
         :return:
         """
         try:
-            self._nodes = await self.identities_processor.lookup(self.connection.currency, text)
+            self._nodes = await self.identities_processor.lookup(self.currency, text)
         except errors.DuniterError as e:
             if e.ucode == errors.NO_MATCHING_IDENTITY:
                 self._nodes = list()

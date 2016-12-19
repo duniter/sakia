@@ -1,9 +1,8 @@
-from PyQt5.QtCore import Qt
-from sakia.gui.component.model import ComponentModel
+from PyQt5.QtCore import Qt, QObject
 from .table_model import IdentitiesFilterProxyModel, IdentitiesTableModel
 
 
-class IdentitiesModel(ComponentModel):
+class IdentitiesModel(QObject):
     """
     The model of the identities component
     """

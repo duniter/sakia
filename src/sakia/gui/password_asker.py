@@ -68,7 +68,7 @@ class PasswordAskerDialog(QDialog, Ui_PasswordAskerDialog):
                                 QMessageBox.Ok)
             return False
 
-        if SigningKey(self.connection.salt, password).pubkey != self.connection.pubkey:
+        if SigningKey(self.connection.salt, password, self.connection.scrypt_params).pubkey != self.connection.pubkey:
             QMessageBox.warning(self, self.tr("Failed to get private key"),
                                 self.tr("Wrong password typed. Cannot open the private key"),
                                 QMessageBox.Ok)

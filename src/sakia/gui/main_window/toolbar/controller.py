@@ -1,10 +1,9 @@
 import logging
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QObject
 from PyQt5.QtWidgets import QDialog, QMessageBox
 
-from sakia.decorators import asyncify, once_at_a_time
-from sakia.gui.component.controller import ComponentController
+from sakia.decorators import asyncify
 from sakia.gui.dialogs.connection_cfg.controller import ConnectionConfigController
 from sakia.gui.dialogs.certification.controller import CertificationController
 from sakia.gui.dialogs.transfer.controller import TransferController
@@ -14,18 +13,20 @@ from .model import ToolbarModel
 from .view import ToolbarView
 
 
-class ToolbarController(ComponentController):
+class ToolbarController(QObject):
     """
     The navigation panel
     """
 
-    def __init__(self, parent, view, model):
+    def __init__(self, view, model):
         """
         :param sakia.gui.component.controller.ComponentController parent: the parent
         :param sakia.gui.toolbar.view.ToolbarView view:
         :param sakia.gui.toolbar.model.ToolbarModel model:
         """
-        super().__init__(parent, view, model)
+        super().__init__()
+        self.view = view
+        self.model = model
         self.view.button_certification.clicked.connect(self.open_certification_dialog)
         self.view.button_send_money.clicked.connect(self.open_transfer_money_dialog)
         self.view.action_gen_revokation.triggered.connect(self.action_save_revokation)
@@ -34,29 +35,18 @@ class ToolbarController(ComponentController):
         self.view.action_create_account.triggered.connect(self.open_create_account_dialog)
 
     @classmethod
-    def create(cls, parent, app, parameters, currency):
+    def create(cls, app, navigation):
         """
         Instanciate a navigation component
-        :param sakia.gui.agent.controller.AgentController parent:
         :param sakia.app.Application app:
-        :param sakia.entities.data.UserParameters parameters:
-        :param str currency:
-        :return: a new Toolbar controller
-        :rtype: ToolbarController
+        :param sakia.gui.navigation.controller.NavigationController navigation:
+        :return: a new Navigation controller
+        :rtype: NavigationController
         """
         view = ToolbarView(None)
-        model = ToolbarModel(None, app, parameters, currency)
-        toolbar = cls(parent, view, model)
-        model.setParent(toolbar)
+        model = ToolbarModel(app, navigation.model)
+        toolbar = cls(view, model)
         return toolbar
-
-    @property
-    def view(self) -> ToolbarView:
-        return self._view
-
-    @property
-    def model(self) -> ToolbarModel:
-        return self._model
 
     @asyncify
     async def action_save_revokation(self, checked=False):
@@ -146,39 +136,36 @@ The process to join back the community later will have to be done again.""")
                 await QAsyncMessageBox.critical(self, self.tr("UID"),
                                                         result[1])
 
-    @once_at_a_time
-    @asyncify
     async def refresh_quality_buttons(self):
-        if self.account and self.community:
-            try:
-                account_identity = await self.account.identity(self.community)
-                published_uid = await account_identity.published_uid(self.community)
-                uid_is_revokable = await account_identity.uid_is_revokable(self.community)
-                if published_uid:
-                    logging.debug("UID Published")
-                    self.action_revoke_uid.setEnabled(uid_is_revokable)
-                    is_member = await account_identity.is_member(self.community)
-                    if is_member:
-                        self.button_membership.setText(self.tr("Renew membership"))
-                        self.button_membership.setEnabled(True)
-                        self.button_certification.setEnabled(True)
-                        self.action_publish_uid.setEnabled(False)
-                    else:
-                        logging.debug("Not a member")
-                        self.button_membership.setText(self.tr("Send membership demand"))
-                        self.button_membership.setEnabled(True)
-                        self.action_publish_uid.setEnabled(False)
-                        if await self.community.get_block(0) is not None:
-                            self.button_certification.setEnabled(False)
+        try:
+            account_identity = self.app.identity(self.community)
+            published_uid = await account_identity.published_uid(self.community)
+            uid_is_revokable = await account_identity.uid_is_revokable(self.community)
+            if published_uid:
+                logging.debug("UID Published")
+                self.action_revoke_uid.setEnabled(uid_is_revokable)
+                is_member = await account_identity.is_member(self.community)
+                if is_member:
+                    self.button_membership.setText(self.tr("Renew membership"))
+                    self.button_membership.setEnabled(True)
+                    self.button_certification.setEnabled(True)
+                    self.action_publish_uid.setEnabled(False)
                 else:
-                    logging.debug("UID not published")
-                    self.button_membership.setEnabled(False)
-                    self.button_certification.setEnabled(False)
-                    self.action_publish_uid.setEnabled(True)
-            except LookupFailureError:
+                    logging.debug("Not a member")
+                    self.button_membership.setText(self.tr("Send membership demand"))
+                    self.button_membership.setEnabled(True)
+                    self.action_publish_uid.setEnabled(False)
+                    if await self.community.get_block(0) is not None:
+                        self.button_certification.setEnabled(False)
+            else:
+                logging.debug("UID not published")
                 self.button_membership.setEnabled(False)
                 self.button_certification.setEnabled(False)
-                self.action_publish_uid.setEnabled(False)
+                self.action_publish_uid.setEnabled(True)
+        except LookupFailureError:
+            self.button_membership.setEnabled(False)
+            self.button_certification.setEnabled(False)
+            self.action_publish_uid.setEnabled(False)
 
     def set_account(self, account):
         """
@@ -196,9 +183,7 @@ The process to join back the community later will have to be done again.""")
 
     def open_certification_dialog(self):
         CertificationController.open_dialog(self, self.model.app,
-                                     self.model.account,
-                                     self.model.community,
-                                     self.password_asker)
+                                            self.model.navigation_model.current_connection())
 
     def open_revocation_dialog(self):
         RevocationDialog.open_dialog(self.app,
@@ -207,8 +192,7 @@ The process to join back the community later will have to be done again.""")
     def open_transfer_money_dialog(self):
         TransferController.open_dialog(self, self.model.app,
                                        account=self.model.account,
-                                       password_asker=self.password_asker,
-                                       community=self.model.community)
+                                       password_asker=self.password_asker)
 
     def open_create_account_dialog(self):
         ConnectionConfigController.create_connection(self, self.model.app)
