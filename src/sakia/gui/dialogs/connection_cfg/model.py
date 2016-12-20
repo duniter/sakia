@@ -106,7 +106,7 @@ class ConnectionConfigModel(QObject):
         transactions_processor = TransactionsProcessor.instanciate(self.app)
         await transactions_processor.initialize_transactions(identity, log_stream)
 
-    async def publish_selfcert(self, salt, password):
+    async def publish_selfcert(self, salt, password, scrypt_params):
         """"
         Publish the self certification of the connection identity
         """
@@ -114,7 +114,7 @@ class ConnectionConfigModel(QObject):
                                                                 Identity(self.connection.currency,
                                                                          self.connection.pubkey,
                                                                          self.connection.uid),
-                                                                salt, password)
+                                                                         salt, password, scrypt_params)
 
     async def check_registered(self):
         """

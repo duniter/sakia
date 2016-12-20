@@ -90,9 +90,7 @@ class BmaConnector:
             with aiohttp.ClientSession() as session:
                 for endpoint in endpoints:
                     self._logger.debug("Trying to connect to : " + str(endpoint))
-                    conn_handler = endpoint.conn_handler()
-                    req = request(conn_handler, **req_args)
-                    reply = asyncio.ensure_future(req.post(**post_args, session=session))
+                    reply = asyncio.ensure_future(request(endpoint.conn_handler(session), **req_args))
                     replies.append(reply)
 
                 try:

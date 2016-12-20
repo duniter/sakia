@@ -156,7 +156,8 @@ class ConnectionConfigController(QObject):
                 self.view.display_info(self.tr("Broadcasting identity..."))
                 self.view.stream_log("Broadcasting identity...")
                 password = await self.password_asker.async_exec()
-                result, connection_identity = await self.model.publish_selfcert(self.model.connection.salt, password)
+                result, connection_identity = await self.model.publish_selfcert(self.model.connection.salt, password,
+                                                                                self.view.scrypt_params)
                 if result[0]:
                     self.view.show_success(self.model.notification())
                 else:

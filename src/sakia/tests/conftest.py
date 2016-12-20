@@ -68,7 +68,6 @@ def connection(bob):
                       blockstamp=bob.blockstamp,
                       password="bobpassword")
 
-
 @pytest.fixture
 def application(event_loop, meta_repo, sakia_options, app_data, user_parameters):
     return Application(get_application(), event_loop, sakia_options, app_data, user_parameters, meta_repo, {}, {}, {}, {}, {})
@@ -145,6 +144,7 @@ def get_application():
         if not application:
             import sys
             application = QApplication(sys.argv)
-        _application_.append( application )
+        application.setQuitOnLastWindowClosed(False)
+        _application_.append(application)
     return _application_[0]
 

@@ -8,6 +8,7 @@ from ..processors import NodesProcessor
 from duniterpy.api import bma, errors
 from duniterpy.key import SigningKey
 from duniterpy.documents import BlockUID, block_uid
+from duniterpy.documents import Identity as IdentityDoc
 from aiohttp.errors import ClientError
 from sakia.errors import NoPeerAvailable
 
@@ -143,47 +144,54 @@ class IdentitiesProcessor:
         :param function log_stream:
         """
         log_stream("Requesting membership data")
-        memberships_data = await self._bma_connector.get(identity.currency, bma.blockchain.memberships,
-                                                         req_args={'search': identity.pubkey})
-        if block_uid(memberships_data['sigDate']) == identity.blockstamp \
-           and memberships_data['uid'] == identity.uid:
-            for ms in memberships_data['memberships']:
-                if block_uid(ms['written']) > identity.membership_written_on:
-                    identity.membership_buid = BlockUID(ms['blockNumber'], ms['blockHash'])
-                    identity.membership_type = ms['membership']
+        try:
+            memberships_data = await self._bma_connector.get(identity.currency, bma.blockchain.memberships,
+                                                             req_args={'search': identity.pubkey})
+            if block_uid(memberships_data['sigDate']) == identity.blockstamp \
+               and memberships_data['uid'] == identity.uid:
+                for ms in memberships_data['memberships']:
+                    if block_uid(ms['written']) > identity.membership_written_on:
+                        identity.membership_buid = BlockUID(ms['blockNumber'], ms['blockHash'])
+                        identity.membership_type = ms['membership']
 
-            if identity.membership_buid:
-                log_stream("Requesting membership timestamp")
-                ms_block_data = await self._bma_connector.get(identity.currency, bma.blockchain.block,
-                                                              req_args={'number': identity.membership_buid.number})
-                if ms_block_data:
-                    identity.membership_timestamp = ms_block_data['medianTime']
+                if identity.membership_buid:
+                    log_stream("Requesting membership timestamp")
+                    ms_block_data = await self._bma_connector.get(identity.currency, bma.blockchain.block,
+                                                                  req_args={'number': identity.membership_buid.number})
+                    if ms_block_data:
+                        identity.membership_timestamp = ms_block_data['medianTime']
 
-            if memberships_data['memberships']:
-                log_stream("Requesting identity requirements status")
+                if memberships_data['memberships']:
+                    log_stream("Requesting identity requirements status")
 
-                requirements_data = await self._bma_connector.get(identity.currency, bma.wot.requirements,
-                                                                  req_args={'search': identity.pubkey})
-                identity.member = requirements_data['membershipExpiresIn'] > 0 and not requirements_data['outdistanced']
+                    requirements_data = await self._bma_connector.get(identity.currency, bma.wot.requirements,
+                                                                      req_args={'search': identity.pubkey})
+                    identity.member = requirements_data['membershipExpiresIn'] > 0 and not requirements_data['outdistanced']
+        except errors.DuniterError as e:
+            if e.ucode == errors.NO_MEMBER_MATCHING_PUB_OR_UID:
+                pass
+            else:
+                raise
 
-    async def publish_selfcert(self, currency, identity, salt, password):
+    async def publish_selfcert(self, currency, identity, salt, password, scrypt_params):
         """
         Send our self certification to a target community
         :param sakia.data.entities.Identity identity: The identity broadcasted
         :param str salt: The account SigningKey salt
         :param str password: The account SigningKey password
         :param str currency: The currency target of the self certification
+        :param duniterpy.key.ScryptParams scrypt_params: The scrypt parameters of the key
         """
         blockchain = self._blockchain_repo.get_one(currency=currency)
         block_uid = blockchain.current_buid
         timestamp = blockchain.median_time
-        selfcert = Identity(2,
-                            currency,
-                            identity.pubkey,
-                            identity.uid,
-                            block_uid,
-                            None)
-        key = SigningKey(salt, password)
+        selfcert = IdentityDoc(2,
+                               currency,
+                               identity.pubkey,
+                               identity.uid,
+                               block_uid,
+                               None)
+        key = SigningKey(salt, password, scrypt_params)
         selfcert.sign([key])
         self._logger.debug("Key publish : {0}".format(selfcert.signed_raw()))
 
