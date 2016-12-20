@@ -37,8 +37,8 @@ class TransactionsService(QObject):
             self._transactions_processor.run_state_transitions(tx, (False, block_doc))
 
             new_transactions = [t for t in block_doc.transactions
-                      if not self._transactions_processor.find_by_hash(t.sha_hash)
-                       and SimpleTransaction.is_simple(t)]
+                                    if not self._transactions_processor.find_by_hash(t.sha_hash)
+                                    and SimpleTransaction.is_simple(t)]
 
             for (i, tx_doc) in enumerate(new_transactions):
                 tx = parse_transaction_doc(tx_doc, block_doc.blockUID.number,  block_doc.mediantime, txid+i)

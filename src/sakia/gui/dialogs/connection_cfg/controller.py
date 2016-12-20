@@ -3,6 +3,7 @@ import logging
 
 from aiohttp.errors import DisconnectedError, ClientError, TimeoutError
 from duniterpy.documents import MalformedDocumentError
+from duniterpy.api.errors import DuniterError
 from sakia.errors import NoPeerAvailable
 from sakia.decorators import asyncify
 from sakia.data.processors import IdentitiesProcessor, NodesProcessor
@@ -173,13 +174,13 @@ class ConnectionConfigController(QObject):
                 self.view.stream_log("Initializing transactions history...")
                 await self.model.initialize_transactions(connection_identity, log_stream=self.view.stream_log)
 
-
             self.view.progress_bar.setValue(3)
             await self.model.initialize_sources(self.view.stream_log)
 
             self._logger.debug("Validate changes")
             self.model.app.db.commit()
-        except NoPeerAvailable as e:
+        except (NoPeerAvailable, DuniterError) as e:
+            raise
             self._logger.debug(str(e))
             self.view.stacked_pages.setCurrentWidget(self.view.page_connection)
             self.step_node = asyncio.Future()
@@ -231,7 +232,7 @@ class ConnectionConfigController(QObject):
             salt = self.view.edit_salt.text()
             password = self.view.edit_password.text()
             self.model.set_scrypt_infos(salt, password, self.view.scrypt_params)
-            self.model.set_uid(self.view.edit_account_name.text())
+            self.model.set_uid(self.view.edit_uid.text())
             registered, found_identity = await self.model.check_registered()
             self.view.button_connect.setEnabled(True)
             self.view.button_register.setEnabled(True)

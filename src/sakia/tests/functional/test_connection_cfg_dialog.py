@@ -9,7 +9,7 @@ from sakia.gui.dialogs.connection_cfg import ConnectionConfigController
 
 
 @pytest.mark.asyncio
-async def test_create_account(application, simple_fake_server, bob):
+async def test_connect(application, simple_fake_server, bob):
     connection_config_dialog = ConnectionConfigController.create_connection(None, application)
 
     def close_dialog():
@@ -20,7 +20,7 @@ async def test_create_account(application, simple_fake_server, bob):
         QTest.keyClicks(connection_config_dialog.view.edit_server, simple_fake_server.peer_doc().endpoints[0].ipv4)
         connection_config_dialog.view.spinbox_port.setValue(simple_fake_server.peer_doc().endpoints[0].port)
         assert connection_config_dialog.view.stacked_pages.currentWidget() == connection_config_dialog.view.page_node
-        QTest.mouseClick(connection_config_dialog.view.button_register, Qt.LeftButton)
+        QTest.mouseClick(connection_config_dialog.view.button_connect, Qt.LeftButton)
         await asyncio.sleep(1)
 
         assert connection_config_dialog.view.stacked_pages.currentWidget() == connection_config_dialog.view.page_connection
