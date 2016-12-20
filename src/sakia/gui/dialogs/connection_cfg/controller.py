@@ -119,7 +119,7 @@ class ConnectionConfigController(QObject):
             try:
                 self.view.button_connect.setEnabled(False)
                 self.view.button_register.setEnabled(False)
-                await self.model.create_connection(self.view.lineedit_server.text(),
+                await self.model.create_connection(self.view.edit_server.text(),
                                                    self.view.spinbox_port.value(),
                                                    self.view.checkbox_secured.isChecked())
                 self.password_asker = PasswordAskerDialog(self.model.connection)
@@ -253,7 +253,7 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
             salt = self.view.edit_salt.text()
             password = self.view.edit_password.text()
             self.model.set_scrypt_infos(salt, password, self.view.scrypt_params)
-            self.model.set_uid(self.view.edit_account_name.text())
+            self.model.set_uid(self.view.edit_uid.text())
             registered, found_identity = await self.model.check_registered()
             if registered[0] is False and registered[2] is None:
                 self.step_key.set_result(None)

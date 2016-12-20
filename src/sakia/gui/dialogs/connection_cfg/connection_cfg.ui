@@ -37,7 +37,7 @@
           <number>5</number>
          </property>
          <item>
-          <widget class="QLineEdit" name="lineedit_server"/>
+          <widget class="QLineEdit" name="edit_server"/>
          </item>
          <item>
           <widget class="QLabel" name="label_double_dot">
@@ -169,7 +169,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="edit_account_name"/>
+             <widget class="QLineEdit" name="edit_uid"/>
             </item>
            </layout>
           </item>

@@ -19,7 +19,7 @@ class ConnectionConfigView(QDialog, Ui_ConnectionConfigurationDialog):
         """
         super().__init__(parent)
         self.setupUi(self)
-        self.edit_account_name.textChanged.connect(self.values_changed)
+        self.edit_uid.textChanged.connect(self.values_changed)
         self.edit_password.textChanged.connect(self.values_changed)
         self.edit_password_repeat.textChanged.connect(self.values_changed)
         self.edit_salt.textChanged.connect(self.values_changed)

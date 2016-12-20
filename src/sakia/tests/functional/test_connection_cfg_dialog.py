@@ -17,13 +17,14 @@ async def test_create_account(application, simple_fake_server, bob):
             connection_config_dialog.view.close()
 
     async def exec_test():
-        QTest.keyClicks(connection_config_dialog.view.lineedit_server, simple_fake_server.peer_doc().endpoints[0].ipv4)
+        QTest.keyClicks(connection_config_dialog.view.edit_server, simple_fake_server.peer_doc().endpoints[0].ipv4)
         connection_config_dialog.view.spinbox_port.setValue(simple_fake_server.peer_doc().endpoints[0].port)
         assert connection_config_dialog.view.stacked_pages.currentWidget() == connection_config_dialog.view.page_node
         QTest.mouseClick(connection_config_dialog.view.button_register, Qt.LeftButton)
         await asyncio.sleep(1)
 
         assert connection_config_dialog.view.stacked_pages.currentWidget() == connection_config_dialog.view.page_connection
+        QTest.keyClicks(connection_config_dialog.view.edit_uid, bob.uid)
         QTest.keyClicks(connection_config_dialog.view.edit_salt, bob.salt)
         QTest.keyClicks(connection_config_dialog.view.edit_salt_bis, bob.salt)
         assert connection_config_dialog.view.button_next.isEnabled() is False
