@@ -5,3 +5,4 @@ git+https://github.com/hynek/attrs.git@master
 git+https://github.com/duniter/duniter-python-api.git@dev
 pytest
 pytest-asyncio
+git+https://github.com/Insoleet/mirage@master
