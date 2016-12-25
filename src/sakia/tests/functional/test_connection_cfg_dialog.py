@@ -49,15 +49,13 @@ async def test_register_empty_blockchain(application, fake_server, bob):
         QTest.mouseClick(connection_config_dialog.view.button_next, Qt.LeftButton)
         connection_config_dialog.model.connection.password = bob.password
         await asyncio.sleep(1)
-
         assert connection_config_dialog.view.stacked_pages.currentWidget() == connection_config_dialog.view.page_services
-        await asyncio.sleep(1)
         assert len(ConnectionsProcessor.instanciate(application).connections(fake_server.currency)) == 1
 
     application.loop.call_later(10, close_dialog)
     asyncio.ensure_future(exec_test())
     await connection_config_dialog.async_exec()
-    await asyncio.sleep(1)
+    await fake_server.close()
 
 
 @pytest.mark.asyncio
@@ -81,11 +79,9 @@ async def test_connect(application, simple_fake_server, bob):
         await asyncio.sleep(1)
 
         assert connection_config_dialog.view.stacked_pages.currentWidget() == connection_config_dialog.view.page_services
-        await asyncio.sleep(1)
         assert len(ConnectionsProcessor.instanciate(application).connections(simple_fake_server.currency)) == 1
 
     application.loop.call_later(10, close_dialog)
     asyncio.ensure_future(exec_test())
     await connection_config_dialog.async_exec()
-    await asyncio.sleep(1)
-
+    await simple_fake_server.close()
