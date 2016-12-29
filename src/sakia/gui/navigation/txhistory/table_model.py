@@ -252,11 +252,11 @@ class HistoryTableModel(QAbstractTableModel):
         except NoPeerAvailable:
             deposit = "Could not compute"
 
-        identity = self.identities_service.get_identity(transfer.receiver)
+        identity = self.identities_service.get_identity(transfer.issuer)
         if identity:
             sender = identity.uid
         else:
-            sender = "pub:{0}".format(transfer.receiver[:5])
+            sender = "pub:{0}".format(transfer.issuer[:5])
 
         date_ts = transfer.timestamp
         txid = transfer.txid

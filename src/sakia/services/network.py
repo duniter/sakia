@@ -84,7 +84,8 @@ class NetworkService(QObject):
         Start network nodes crawling
         :return:
         """
-        self._discovery_loop_task = asyncio.ensure_future(self.discover_network())
+        if not self._discovery_loop_task:
+            self._discovery_loop_task = asyncio.ensure_future(self.discover_network())
 
     def nodes(self):
         """

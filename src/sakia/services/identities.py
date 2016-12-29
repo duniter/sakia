@@ -107,8 +107,7 @@ class IdentitiesService(QObject):
                                      timestamp=certifier_data["cert_time"]["medianTime"],
                                      signature=certifier_data['signature'])
                 if certifier_data['written']:
-                    cert.written_on = BlockUID(certifier_data['written']['number'],
-                                               certifier_data['written']['hash'])
+                    cert.written_on = certifier_data['written']['number']
                 certifications.append(cert)
                 # We save connections pubkeys
                 if identity.pubkey in self._connections_processor.pubkeys():
@@ -139,8 +138,7 @@ class IdentitiesService(QObject):
                                      timestamp=certified_data["cert_time"]["medianTime"],
                                      signature=certified_data['signature'])
                 if certified_data['written']:
-                    cert.written_on = BlockUID(certified_data['written']['number'],
-                                               certified_data['written']['hash'])
+                    cert.written_on = certified_data['written']['number']
                 certifications.append(cert)
                 # We save connections pubkeys
                 if identity.pubkey in self._connections_processor.pubkeys():
@@ -185,7 +183,7 @@ class IdentitiesService(QObject):
             # we update every written identities known locally
             for identity in connections_identities:
                 if ms.issuer == identity:
-                    identity.membership_written_on = block.blockUID
+                    identity.membership_written_on = block.number
                     identity.membership_type = "IN"
                     identity.membership_buid = ms.membership_ts
                     self._identities_processor.insert_or_update_identity(identity)
@@ -197,7 +195,7 @@ class IdentitiesService(QObject):
         for ms in block.leavers:
             # we update every written identities known locally
             for identity in connections_identities:
-                identity.membership_written_on = block.blockUID
+                identity.membership_written_on = block.number
                 identity.membership_type = "OUT"
                 identity.membership_buid = ms.membership_ts
                 self._identities_processor.insert_or_update_identity(identity)

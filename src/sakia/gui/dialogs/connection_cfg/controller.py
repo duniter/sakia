@@ -180,11 +180,10 @@ class ConnectionConfigController(QObject):
             self._logger.debug("Validate changes")
             self.model.app.db.commit()
         except (NoPeerAvailable, DuniterError) as e:
-            raise
             self._logger.debug(str(e))
             self.view.stacked_pages.setCurrentWidget(self.view.page_connection)
             self.step_node = asyncio.Future()
-            self.step_node.set_result(True)
+            self.step_node.set_result(mode)
             self.step_key = asyncio.Future()
             asyncio.ensure_future(self.process())
             return
@@ -275,3 +274,6 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
         self.view.finished.connect(lambda r: future.set_result(r))
         self.view.open()
         return future
+
+    def exec(self):
+        return self.view.exec()

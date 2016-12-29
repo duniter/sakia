@@ -136,37 +136,6 @@ The process to join back the community later will have to be done again.""")
                 await QAsyncMessageBox.critical(self, self.tr("UID"),
                                                         result[1])
 
-    async def refresh_quality_buttons(self):
-        try:
-            account_identity = self.app.identity(self.community)
-            published_uid = await account_identity.published_uid(self.community)
-            uid_is_revokable = await account_identity.uid_is_revokable(self.community)
-            if published_uid:
-                logging.debug("UID Published")
-                self.action_revoke_uid.setEnabled(uid_is_revokable)
-                is_member = await account_identity.is_member(self.community)
-                if is_member:
-                    self.button_membership.setText(self.tr("Renew membership"))
-                    self.button_membership.setEnabled(True)
-                    self.button_certification.setEnabled(True)
-                    self.action_publish_uid.setEnabled(False)
-                else:
-                    logging.debug("Not a member")
-                    self.button_membership.setText(self.tr("Send membership demand"))
-                    self.button_membership.setEnabled(True)
-                    self.action_publish_uid.setEnabled(False)
-                    if await self.community.get_block(0) is not None:
-                        self.button_certification.setEnabled(False)
-            else:
-                logging.debug("UID not published")
-                self.button_membership.setEnabled(False)
-                self.button_certification.setEnabled(False)
-                self.action_publish_uid.setEnabled(True)
-        except LookupFailureError:
-            self.button_membership.setEnabled(False)
-            self.button_certification.setEnabled(False)
-            self.action_publish_uid.setEnabled(False)
-
     def set_account(self, account):
         """
         Set current account
@@ -196,6 +165,8 @@ The process to join back the community later will have to be done again.""")
 
     def open_create_account_dialog(self):
         ConnectionConfigController.create_connection(self, self.model.app).exec()
+        self.model.app.instanciate_services()
+        self.model.app.start_coroutines()
 
     def retranslateUi(self, widget):
         """

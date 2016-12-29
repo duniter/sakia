@@ -11,7 +11,7 @@ def test_add_get_drop_blockchain(meta_repo):
                                              20,
                                              1473108382,
                                              "H41/8OGV2W4CLKbE35kk5t1HJQsb3jEM0/QGLUf80CwJvGZf3HvVCcNtHPUFoUBKEDQO9mPK3KJkqOoxHpqHCw==",
-                                             None))
+                                             0))
     certification = certifications_repo.get_one(currency="testcurrency",
                                                 certifier="7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
                                                 certified="FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
@@ -22,7 +22,7 @@ def test_add_get_drop_blockchain(meta_repo):
     assert certification.block == 20
     assert certification.timestamp == 1473108382
     assert certification.signature == "H41/8OGV2W4CLKbE35kk5t1HJQsb3jEM0/QGLUf80CwJvGZf3HvVCcNtHPUFoUBKEDQO9mPK3KJkqOoxHpqHCw=="
-    assert certification.written_on == BlockUID.empty()
+    assert certification.written_on == 0
     certifications_repo.drop(certification)
     certification = certifications_repo.get_one(currency="testcurrency",
                                        certifier="7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
@@ -38,13 +38,13 @@ def test_add_get_multiple_certification(meta_repo):
                                              "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
                                              20, 1473108382,
                                              "H41/8OGV2W4CLKbE35kk5t1HJQsb3jEM0/QGLUf80CwJvGZf3HvVCcNtHPUFoUBKEDQO9mPK3KJkqOoxHpqHCw==",
-                                             "22-7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67"))
+                                             22))
     certifications_repo.insert(Certification("testcurrency",
                                              "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
                                              "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
                                              101, 1473108382,
                                              "H41/8OGV2W4CLKbE35kk5t1HJQsb3jEM0/QGLUf80CwJvGZf3HvVCcNtHPUFoUBKEDQO9mPK3KJkqOoxHpqHCw==",
-                                             "105-7518C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67"))
+                                             105))
     certifications = certifications_repo.get_all(currency="testcurrency")
     assert "testcurrency" in [i.currency for i in certifications]
     assert "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn" in [i.certifier for i in certifications]
@@ -61,14 +61,14 @@ def test_add_update_certification(meta_repo):
                              20,
                              1473108382,
                              "H41/8OGV2W4CLKbE35kk5t1HJQsb3jEM0/QGLUf80CwJvGZf3HvVCcNtHPUFoUBKEDQO9mPK3KJkqOoxHpqHCw==",
-                             None)
+                             0)
 
     certifications_repo.insert(certification)
-    certification.written_on = BlockUID(22, "148C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67")
+    certification.written_on = 22
     certifications_repo.update(certification)
     cert2 = certifications_repo.get_one(currency="testcurrency",
                                         certifier="7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
                                         certified="FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn",
                                         block=20)
-    assert cert2.written_on == BlockUID(22, "148C700E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67")
+    assert cert2.written_on == 22
 

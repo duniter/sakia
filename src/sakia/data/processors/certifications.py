@@ -109,8 +109,7 @@ class CertificationsProcessor:
                                           blockstamp=certifier_data['sigDate'],
                                           member=certifier_data['isMember'])
                 if certifier_data['written']:
-                    certification.written_on = BlockUID(certifier_data['written']['number'],
-                                                        certifier_data['written']['hash'])
+                    certification.written_on = certifier_data['written']['number']
 
                 certifiers.append(certification)
                 identities.append(other_identity)
@@ -139,8 +138,7 @@ class CertificationsProcessor:
                                           blockstamp=certified_data['sigDate'],
                                           member=certified_data['isMember'])
                 if certified_data['written']:
-                    certification.written_on = BlockUID(certified_data['written']['number'],
-                                                        certified_data['written']['hash'])
+                    certification.written_on = certified_data['written']['number']
 
                 certified.append(certification)
                 identities.append(other_identity)
