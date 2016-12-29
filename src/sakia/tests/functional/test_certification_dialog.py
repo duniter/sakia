@@ -20,6 +20,7 @@ async def test_certification_init_community(application_with_one_connection, fak
         certification_dialog.view.radio_pubkey.setChecked(True)
         assert certification_dialog.view.edit_pubkey.isEnabled() is True
         QTest.keyClicks(certification_dialog.view.edit_pubkey, alice.key.pubkey)
+        await asyncio.sleep(0.1)
         QTest.mouseClick(certification_dialog.view.button_box.button(QDialogButtonBox.Ok), Qt.LeftButton)
         await asyncio.sleep(0.1)
         assert Certification is type(fake_server.forge.pool[0])

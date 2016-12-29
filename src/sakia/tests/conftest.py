@@ -9,6 +9,7 @@ from sakia.options import SakiaOptions
 from sakia.data.files import AppDataFile
 from sakia.data.entities import *
 from sakia.data.repositories import *
+from sakia.services import DocumentsService
 
 
 _application_ = []
@@ -61,7 +62,14 @@ def user_parameters():
 
 @pytest.fixture
 def application(event_loop, meta_repo, sakia_options, app_data, user_parameters):
-    return Application(get_application(), event_loop, sakia_options, app_data, user_parameters, meta_repo, {}, {}, {}, {}, {})
+    app = Application(qapp=get_application(),
+                       loop=event_loop,
+                       options=sakia_options,
+                       app_data=app_data,
+                       parameters=user_parameters,
+                       db=meta_repo)
+    app.documents_service = DocumentsService.instanciate(app)
+    return app
 
 
 @pytest.fixture

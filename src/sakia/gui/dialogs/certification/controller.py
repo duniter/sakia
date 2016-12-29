@@ -115,7 +115,7 @@ class CertificationController(QObject):
         """
         self.view.button_box.setDisabled(True)
         password = await PasswordAskerDialog(self.model.connection).async_exec()
-        if password:
+        if not password:
             self.view.button_box.setEnabled(True)
             return
         QApplication.setOverrideCursor(Qt.WaitCursor)

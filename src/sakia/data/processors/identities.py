@@ -184,33 +184,3 @@ class IdentitiesProcessor:
         :param str currency: The currency target of the self certification
         :param duniterpy.key.ScryptParams scrypt_params: The scrypt parameters of the key
         """
-        blockchain = self._blockchain_repo.get_one(currency=currency)
-        block_uid = blockchain.current_buid
-        timestamp = blockchain.median_time
-        selfcert = IdentityDoc(2,
-                               currency,
-                               identity.pubkey,
-                               identity.uid,
-                               block_uid,
-                               None)
-        key = SigningKey(salt, password, scrypt_params)
-        selfcert.sign([key])
-        self._logger.debug("Key publish : {0}".format(selfcert.signed_raw()))
-
-        responses = await self._bma_connector.broadcast(currency, bma.wot.add,
-                                                        req_args={'identity': selfcert.signed_raw()})
-        result = (False, "")
-        for r in responses:
-            if r.status == 200:
-                result = (True, (await r.json()))
-            elif not result[0]:
-                result = (False, (await r.text()))
-            else:
-                await r.release()
-
-        if result[0]:
-            identity.blockstamp = block_uid
-            identity.signature = selfcert.signatures[0]
-            identity.timestamp = timestamp
-
-        return result, identity

@@ -1,9 +1,4 @@
-"""
-Created on 1 févr. 2014
-
-@author: inso
-"""
-
+import attr
 import datetime
 import logging
 
@@ -15,7 +10,8 @@ from duniterpy.api.bma import API
 from . import __version__
 from .options import SakiaOptions
 from sakia.data.connectors import BmaConnector
-from sakia.services import NetworkService, BlockchainService, IdentitiesService, SourcesServices, TransactionsService
+from sakia.services import NetworkService, BlockchainService, IdentitiesService, \
+    SourcesServices, TransactionsService, DocumentsService
 from sakia.data.repositories import SakiaDatabase
 from sakia.data.processors import BlockchainProcessor, NodesProcessor, IdentitiesProcessor, \
     CertificationsProcessor, SourcesProcessor, TransactionsProcessor, ConnectionsProcessor
@@ -24,58 +20,59 @@ from sakia.decorators import asyncify
 from sakia.money import Relative
 
 
+@attr.s()
 class Application(QObject):
 
     """
     Managing core application datas :
     Accounts list and general configuration
     Saving and loading the application state
+
+
+    :param QCoreApplication qapp: Qt Application
+    :param quamash.QEventLoop loop: quamash.QEventLoop instance
+    :param sakia.options.SakiaOptions options: the options
+    :param sakia.data.entities.AppData app_data: the application data
+    :param sakia.data.entities.UserParameters parameters: the application current user parameters
+    :param sakia.data.repositories.SakiaDatabase db: The database
+    :param dict network_services: All network services for current currency
+    :param dict blockchain_services: All blockchain services for current currency
+    :param dict identities_services: All identities services for current currency
+    :param dict sources_services: All sources services for current currency
+    :param dict transactions_services: All transactions services for current currency
+    :param sakia.services.DocumentsService documents_service: A service to broadcast documents
     """
 
-    def __init__(self, qapp, loop, options, app_data, parameters, db,
-                 network_services, blockchain_services, identities_services,
-                 sources_services, transactions_services):
-        """
-        Init a new "sakia" application
-        :param QCoreApplication qapp: Qt Application
-        :param quamash.QEventLoop loop: quamash.QEventLoop instance
-        :param sakia.options.SakiaOptions options: the options
-        :param sakia.data.entities.AppData app_data: the application data
-        :param sakia.data.entities.UserParameters parameters: the application current user parameters
-        :param sakia.data.repositories.SakiaDatabase db: The database
-        :param dict network_services: All network services for current currency
-        :param dict blockchain_services: All blockchain services for current currency
-        :param dict identities_services: All identities services for current currency
-        :param dict sources_services: All sources services for current currency
-        :param dict transactions_services: All transactions services for current currency
-        :return:
-        """
+    qapp = attr.ib()
+    loop = attr.ib()
+    options = attr.ib()
+    app_data = attr.ib()
+    parameters = attr.ib()
+    db = attr.ib()
+    network_services = attr.ib(default=attr.Factory(dict))
+    blockchain_services = attr.ib(default=attr.Factory(dict))
+    identities_services = attr.ib(default=attr.Factory(dict))
+    sources_services = attr.ib(default=attr.Factory(dict))
+    transactions_services = attr.ib(default=attr.Factory(dict))
+    documents_service = attr.ib(default=None)
+    available_version = attr.ib(init=False)
+    _translator = attr.ib(init=False)
+
+    def __attrs_post_init__(self):
         super().__init__()
-        self.qapp = qapp
-        self.loop = loop
-        self.options = options
-        self.available_version = (True,
-                                  __version__,
-                                  "")
         self._translator = QTranslator(self.qapp)
-        self._app_data = app_data
-        self._parameters = parameters
-        self.db = db
-        self.network_services = network_services
-        self.blockchain_services = blockchain_services
-        self.identities_services = identities_services
-        self.sources_services = sources_services
-        self.transactions_services = transactions_services
+        self.available_version = True, __version__, ""
 
     @classmethod
     def startup(cls, argv, qapp, loop):
         options = SakiaOptions.from_arguments(argv)
         app_data = AppDataFile.in_config_path(options.config_path).load_or_init()
-        app = cls(qapp, loop, options, app_data, None, None, {}, {}, {}, {}, {})
+        app = cls(qapp, loop, options, app_data, None, None)
         #app.set_proxy()
         #app.get_last_version()
         app.load_profile(app_data.default)
         app.start_coroutines()
+        app.documents_service = DocumentsService.instanciate(app)
         #app.switch_language()
         return app
 
@@ -105,6 +102,7 @@ class Application(QObject):
         self.identities_services = {}
         self.sources_services = {}
         self.transactions_services = {}
+        self.documents_service = DocumentsService(bma_connector, blockchain_processor, identities_processor)
 
         for currency in self.db.connections_repo.get_currencies():
             if currency not in self.identities_services:
@@ -128,14 +126,6 @@ class Application(QObject):
             if currency not in self.sources_services:
                 self.sources_services[currency] = SourcesServices(currency, sources_processor, bma_connector)
 
-    def set_proxy(self):
-        if self.preferences['enable_proxy'] is True:
-            API.aiohttp_connector = ProxyConnector("http://{0}:{1}".format(
-                                    self.preferences['proxy_address'],
-                                    self.preferences['proxy_port']))
-        else:
-            API.aiohttp_connector = None
-
     def switch_language(self):
         logging.debug("Loading translations")
         locale = self.preferences['lang']
@@ -149,13 +139,6 @@ class Application(QObject):
                 logging.debug("Loaded i18n/{0}".format(locale))
             else:
                 logging.debug("Couldn't load translation")
-
-    @property
-    def parameters(self):
-        """
-        :rtype: sakia.data.entities.UserParameters
-        """
-        return self._parameters
 
     def start_coroutines(self):
         for currency in self.db.connections_repo.get_currencies():

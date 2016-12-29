@@ -16,6 +16,7 @@ class CertificationModel(QObject):
     _certifications_processor = attr.ib(default=None)
     _identities_processor = attr.ib(default=None)
     _blockchain_processor = attr.ib(default=None)
+    _documents_service = attr.ib(default=None)
 
     def __attrs_post_init__(self):
         super().__init__()
@@ -90,5 +91,8 @@ class CertificationModel(QObject):
         connections = self._connections_processor.connections(currency=currency)
         self.connection = connections[index]
 
-    def certify(self, password, pubkey):
+    def certify_pubkey(self, password, pubkey):
+        self._documents_service.certify(self.connection, password, pubkey)
+
+    def certify_identity(self, password, pubkey):
         self._certifications_processor.certify(self.connection, password, pubkey)

@@ -6,9 +6,12 @@ from collections import Counter
 
 from duniterpy.key import SigningKey
 from duniterpy import PROTOCOL_VERSION
-from duniterpy.documents import BlockUID, Block, Identity, Certification, Membership, Revocation
+from duniterpy.documents import BlockUID, Block, Certification, Membership, Revocation
+from duniterpy.documents import Identity as IdentityDoc
 from duniterpy.api import bma, errors
-from sakia.data.entities import Node
+from sakia.data.entities import Identity
+from sakia.data.processors import BlockchainProcessor, IdentitiesProcessor, NodesProcessor
+from sakia.data.connectors import BmaConnector
 from aiohttp.errors import ClientError, DisconnectedError
 
 
@@ -21,37 +24,38 @@ class DocumentsService:
     _bma_connector = attr.ib()  # :type: sakia.data.connectors.BmaConnector
     _blockchain_processor = attr.ib()  # :type: sakia.data.processors.BlockchainProcessor
     _identities_processor = attr.ib()  # :type: sakia.data.processors.IdentitiesProcessor
-    _logger = attr.ib(default=lambda: logging.getLogger('sakia'))
+    _logger = attr.ib(default=attr.Factory(lambda: logging.getLogger('sakia')))
 
-    async def send_selfcert(self, currency, salt, password):
+    @classmethod
+    def instanciate(cls, app):
+        """
+        Instanciate a blockchain processor
+        :param sakia.app.Application app: the app
+        """
+        return cls(BmaConnector(NodesProcessor(app.db.nodes_repo)),
+                   BlockchainProcessor.instanciate(app),
+                   IdentitiesProcessor.instanciate(app))
+
+    async def broadcast_identity(self, connection, password):
         """
         Send our self certification to a target community
 
-        :param str currency: The currency of the identity
-        :param sakia.data.entities.Identity identity: The certified identity
-        :param str salt: The account SigningKey salt
-        :param str password: The account SigningKey password
+        :param sakia.data.entities.Connection connection: the connection published
         """
-        try:
-            block_data = await self._bma_connector.get(currency, bma.blockchain.Current)
-            signed_raw = "{0}{1}\n".format(block_data['raw'], block_data['signature'])
-            block_uid = Block.from_signed_raw(signed_raw).blockUID
-        except errors.DuniterError as e:
-            if e.ucode == errors.NO_CURRENT_BLOCK:
-                block_uid = BlockUID.empty()
-            else:
-                raise
-        selfcert = Identity(PROTOCOL_VERSION,
-                                     currency,
-                                     self.pubkey,
-                                     self.name,
-                                     block_uid,
-                                     None)
-        key = SigningKey(salt, password)
+        block_uid = self._blockchain_processor.current_buid(connection.currency)
+        timestamp = self._blockchain_processor.time(connection.currency)
+        selfcert = IdentityDoc(2,
+                               connection.currency,
+                               connection.pubkey,
+                               connection.uid,
+                               block_uid,
+                               None)
+        key = SigningKey(connection.salt, password, connection.scrypt_params)
         selfcert.sign([key])
         self._logger.debug("Key publish : {0}".format(selfcert.signed_raw()))
 
-        responses = await self._bma_connector.broadcast(currency, bma.wot.Add, {}, {'identity': selfcert.signed_raw()})
+        responses = await self._bma_connector.broadcast(connection.currency, bma.wot.add,
+                                                        req_args={'identity': selfcert.signed_raw()})
         result = (False, "")
         for r in responses:
             if r.status == 200:
@@ -60,7 +64,16 @@ class DocumentsService:
                 result = (False, (await r.text()))
             else:
                 await r.release()
-        return result
+
+        if result[0]:
+            identity = self._identities_processor.get_identity(connection.currency, connection.pubkey, connection.uid)
+            if not identity:
+                identity = Identity(connection.currency, connection.pubkey, connection.uid)
+            identity.blockstamp = block_uid
+            identity.signature = selfcert.signatures[0]
+            identity.timestamp = timestamp
+
+        return result, identity
 
     async def send_membership(self, currency, identity, salt, password, mstype):
         """
@@ -68,7 +81,7 @@ class DocumentsService:
         Signal "document_broadcasted" is emitted at the end.
 
         :param str currency: the currency target
-        :param sakia.data.entities.Identity identity: the identitiy data
+        :param sakia.data.entities.IdentityDoc identity: the identitiy data
         :param str salt: The account SigningKey salt
         :param str password: The account SigningKey password
         :param str mstype: The type of membership demand. "IN" to join, "OUT" to leave
@@ -99,7 +112,7 @@ class DocumentsService:
         Certify an other identity
 
         :param str currency: The currency of the identity
-        :param sakia.data.entities.Identity identity: The certified identity
+        :param sakia.data.entities.IdentityDoc identity: The certified identity
         :param str salt: The account SigningKey salt
         :param str password: The account SigningKey password
         """
@@ -133,7 +146,7 @@ class DocumentsService:
         Revoke self-identity on server, not in blockchain
 
         :param str currency: The currency of the identity
-        :param sakia.data.entities.Identity identity: The certified identity
+        :param sakia.data.entities.IdentityDoc identity: The certified identity
         :param str salt: The account SigningKey salt
         :param str password: The account SigningKey password
         """
@@ -168,7 +181,7 @@ class DocumentsService:
         Generate account revokation document for given community
 
         :param str currency: The currency of the identity
-        :param sakia.data.entities.Identity identity: The certified identity
+        :param sakia.data.entities.IdentityDoc identity: The certified identity
         :param str salt: The account SigningKey salt
         :param str password: The account SigningKey password
         """
