@@ -74,10 +74,9 @@ class NetworkService(QObject):
         :return:
         """
         connectors = []
-        session = aiohttp.ClientSession()
         for node in node_processor.nodes(currency):
-            connectors.append(NodeConnector(node, session))
-        network = cls(app, currency, node_processor, connectors, session, blockchain_service)
+            connectors.append(NodeConnector(node, None))
+        network = cls(app, currency, node_processor, connectors, None, blockchain_service)
         return network
 
     def start_coroutines(self):
@@ -181,6 +180,10 @@ class NetworkService(QObject):
         Start crawling which never stops.
         To stop this crawling, call "stop_crawling" method.
         """
+        session = aiohttp.ClientSession()
+        for connector in self._connectors:
+            connector.session = session
+
         self._must_crawl = True
         first_loop = True
         asyncio.ensure_future(self.discovery_loop())

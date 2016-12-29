@@ -40,7 +40,7 @@ class CertificationController(QObject):
         :return: a new Certification controller
         :rtype: CertificationController
         """
-        view = CertificationView(parent.view, None, None)
+        view = CertificationView(parent.view if parent else None, None, None)
         model = CertificationModel(app)
         certification = cls(view, model, None, None)
 

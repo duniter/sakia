@@ -150,7 +150,7 @@ class IdentitiesProcessor:
             if block_uid(memberships_data['sigDate']) == identity.blockstamp \
                and memberships_data['uid'] == identity.uid:
                 for ms in memberships_data['memberships']:
-                    if block_uid(ms['written']) > identity.membership_written_on:
+                    if ms['written'] > identity.membership_written_on:
                         identity.membership_buid = BlockUID(ms['blockNumber'], ms['blockHash'])
                         identity.membership_type = ms['membership']
 
@@ -166,7 +166,9 @@ class IdentitiesProcessor:
 
                     requirements_data = await self._bma_connector.get(identity.currency, bma.wot.requirements,
                                                                       req_args={'search': identity.pubkey})
-                    identity.member = requirements_data['membershipExpiresIn'] > 0 and not requirements_data['outdistanced']
+                    identity_data = next((data for data in requirements_data["identities"]
+                                          if data["pubkey"] == identity.pubkey))
+                    identity.member = identity_data['membershipExpiresIn'] > 0 and not identity_data['outdistanced']
         except errors.DuniterError as e:
             if e.ucode == errors.NO_MEMBER_MATCHING_PUB_OR_UID:
                 pass

@@ -6,12 +6,12 @@ CREATE TABLE IF NOT EXISTS identities(
                                blockstamp VARCHAR(100),
                                signature VARCHAR(100),
                                ts INT,
-                               written_on VARCHAR(100),
-                               revoked_on VARCHAR(100),
+                               written_on INT,
+                               revoked_on INT,
                                member BOOLEAN,
                                ms_buid VARCHAR(100),
                                ms_timestamp INT,
-                               ms_written_on VARCHAR(100),
+                               ms_written_on INT,
                                ms_type VARCHAR(5),
                                PRIMARY KEY (currency, pubkey, uid, blockstamp)
                                );
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS certifications(
                                block INT,
                                ts INT,
                                signature VARCHAR(100),
-                               written_on VARCHAR(100),
+                               written_on INT,
                                PRIMARY KEY (currency, certifier, certified, block)
                                );
 

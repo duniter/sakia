@@ -1,8 +1,6 @@
 import asyncio
-import logging
-import sys
 import pytest
-from PyQt5.QtCore import QLocale, Qt
+from PyQt5.QtCore import Qt
 from PyQt5.QtTest import QTest
 from sakia.data.processors import ConnectionsProcessor
 from sakia.gui.dialogs.connection_cfg import ConnectionConfigController
@@ -85,3 +83,60 @@ async def test_connect(application, simple_fake_server, bob):
     asyncio.ensure_future(exec_test())
     await connection_config_dialog.async_exec()
     await simple_fake_server.close()
+
+
+@pytest.mark.asyncio
+async def test_connect_wrong_uid(application, simple_fake_server, wrong_bob_uid, bob):
+    connection_config_dialog = ConnectionConfigController.create_connection(None, application)
+
+    def close_dialog():
+        if connection_config_dialog.view.isVisible():
+            connection_config_dialog.view.close()
+
+    async def exec_test():
+        await asyncio.sleep(1)
+        QTest.keyClicks(connection_config_dialog.view.edit_server, simple_fake_server.peer_doc().endpoints[0].ipv4)
+        connection_config_dialog.view.spinbox_port.setValue(simple_fake_server.peer_doc().endpoints[0].port)
+        assert connection_config_dialog.view.stacked_pages.currentWidget() == connection_config_dialog.view.page_node
+        QTest.mouseClick(connection_config_dialog.view.button_connect, Qt.LeftButton)
+        await asyncio.sleep(1)
+        assert connection_config_dialog.view.stacked_pages.currentWidget() == connection_config_dialog.view.page_connection
+        assert_key_parameters_behaviour(connection_config_dialog, wrong_bob_uid)
+        QTest.mouseClick(connection_config_dialog.view.button_next, Qt.LeftButton)
+        assert connection_config_dialog.view.label_info.text(), """Your pubkey or UID is different on the network.
+Yours : {0}, the network : {1}""".format(wrong_bob_uid.uid, bob.uid)
+        connection_config_dialog.view.close()
+
+    application.loop.call_later(10, close_dialog)
+    asyncio.ensure_future(exec_test())
+    await connection_config_dialog.async_exec()
+    await simple_fake_server.close()
+
+
+@pytest.mark.asyncio
+async def test_connect_wrong_pubkey(application, simple_fake_server, wrong_bob_pubkey, bob):
+    connection_config_dialog = ConnectionConfigController.create_connection(None, application)
+
+    def close_dialog():
+        if connection_config_dialog.view.isVisible():
+            connection_config_dialog.view.close()
+
+    async def exec_test():
+        await asyncio.sleep(1)
+        QTest.keyClicks(connection_config_dialog.view.edit_server, simple_fake_server.peer_doc().endpoints[0].ipv4)
+        connection_config_dialog.view.spinbox_port.setValue(simple_fake_server.peer_doc().endpoints[0].port)
+        assert connection_config_dialog.view.stacked_pages.currentWidget() == connection_config_dialog.view.page_node
+        QTest.mouseClick(connection_config_dialog.view.button_connect, Qt.LeftButton)
+        await asyncio.sleep(1)
+        assert connection_config_dialog.view.stacked_pages.currentWidget() == connection_config_dialog.view.page_connection
+        assert_key_parameters_behaviour(connection_config_dialog, wrong_bob_pubkey)
+        QTest.mouseClick(connection_config_dialog.view.button_next, Qt.LeftButton)
+        assert connection_config_dialog.view.label_info.text(), """Your pubkey or UID is different on the network.
+Yours : {0}, the network : {1}""".format(wrong_bob_pubkey.pubkey, bob.pubkey)
+        connection_config_dialog.view.close()
+
+    application.loop.call_later(10, close_dialog)
+    asyncio.ensure_future(exec_test())
+    await connection_config_dialog.async_exec()
+    await simple_fake_server.close()
+

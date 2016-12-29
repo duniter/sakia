@@ -159,7 +159,7 @@ class ConnectionConfigController(QObject):
                 result, connection_identity = await self.model.publish_selfcert(self.model.connection.salt, password,
                                                                                 self.view.scrypt_params)
                 if result[0]:
-                    self.view.show_success(self.model.notification())
+                    await self.view.show_success(self.model.notification())
                 else:
                     self.view.show_error(self.model.notification(), result[1])
 
