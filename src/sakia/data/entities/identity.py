@@ -1,5 +1,6 @@
 import attr
-from duniterpy.documents import block_uid, BlockUID, Identity
+from duniterpy.documents import block_uid, BlockUID
+from duniterpy.documents import Identity as IdentityDoc
 from duniterpy import PROTOCOL_VERSION
 
 
@@ -27,5 +28,5 @@ class Identity:
         :return: the document
         :rtype: duniterpy.documents.Identity
         """
-        return Identity(PROTOCOL_VERSION, self.currency, self.pubkey,
+        return IdentityDoc(3, self.currency, self.pubkey,
                         self.uid, self.blockstamp, self.signature)

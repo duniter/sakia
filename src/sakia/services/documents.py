@@ -41,6 +41,7 @@ class DocumentsService:
         Send our self certification to a target community
 
         :param sakia.data.entities.Connection connection: the connection published
+        :param str password: the private key password
         """
         block_uid = self._blockchain_processor.current_buid(connection.currency)
         timestamp = self._blockchain_processor.time(connection.currency)
@@ -107,34 +108,30 @@ class DocumentsService:
                 await r.release()
         return result
 
-    async def certify(self, currency, identity, salt, password):
+    async def certify(self, connection, password, identity):
         """
         Certify an other identity
 
-        :param str currency: The currency of the identity
-        :param sakia.data.entities.IdentityDoc identity: The certified identity
-        :param str salt: The account SigningKey salt
-        :param str password: The account SigningKey password
+        :param sakia.data.entities.Connection connection: the connection published
+        :param str password: the private key password
+        :param sakia.data.entities.Identity identity: the identity certified
         """
         self._logger.debug("Certdata")
-        blockUID = self._blockchain_processor.current_buid(currency)
+        blockUID = self._blockchain_processor.current_buid(connection.currency)
 
-        certification = Certification(PROTOCOL_VERSION, currency,
-                                      self.pubkey, identity.pubkey, blockUID, None)
+        certification = Certification(6, connection.currency,
+                                      connection.pubkey, identity.pubkey, blockUID, None)
 
-        key = SigningKey(salt, password)
+        key = SigningKey(connection.salt, connection.password, connection.scrypt_params)
         certification.sign(identity.document(), [key])
         signed_cert = certification.signed_raw(identity.document())
         self._logger.debug("Certification : {0}".format(signed_cert))
 
-        responses = await self._bma_connector.bma_access.broadcast(currency, bma.wot.Certify, {},
-                                                                   {'cert': signed_cert})
+        responses = await self._bma_connector.broadcast(connection.currency, bma.wot.certify, req_args={'cert': signed_cert})
         result = (False, "")
         for r in responses:
             if r.status == 200:
                 result = (True, (await r.json()))
-                # signal certification to all listeners
-                self.certification_accepted.emit()
             elif not result[0]:
                 result = (False, (await r.text()))
             else:

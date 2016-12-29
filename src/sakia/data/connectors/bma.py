@@ -41,7 +41,7 @@ class BmaConnector:
             endpoints += [e for e in n.endpoints if type(e) in (BMAEndpoint, SecuredBMAEndpoint)]
         return endpoints
 
-    async def get(self, currency, request, req_args={}, get_args={}):
+    async def get(self, currency, request, req_args={}):
         """
         Start a request to the network but don't cache its result.
 
@@ -58,7 +58,7 @@ class BmaConnector:
                 endpoint = random.choice(endpoints)
                 try:
                     self._logger.debug("Requesting {0} on endpoint {1}".format(str(request.__name__), str(endpoint)))
-                    with aiohttp.ClientSession() as session:
+                    async with aiohttp.ClientSession() as session:
                         json_data = await request(endpoint.conn_handler(session), **req_args)
                         return json_data
                 except (ClientError, ServerDisconnectedError, gaierror,
@@ -67,7 +67,7 @@ class BmaConnector:
                     tries += 1
         raise NoPeerAvailable("", len(endpoints))
 
-    async def broadcast(self, currency, request, req_args={}, post_args={}):
+    async def broadcast(self, currency, request, req_args={}):
         """
         Broadcast data to a network.
         Sends the data to all knew nodes.
@@ -75,7 +75,6 @@ class BmaConnector:
         :param str currency: the currency target
         :param request: A duniterpy bma request class
         :param req_args: Arguments to pass to the request constructor
-        :param post_args: Arguments to pass to the request __post__ method
         :return: All nodes replies
         :rtype: tuple of aiohttp replies
 

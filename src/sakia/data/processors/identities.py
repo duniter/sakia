@@ -41,8 +41,7 @@ class IdentitiesProcessor:
         tries = 0
         while tries < 3:
             try:
-                data = await self._bma_connector.get(bma.wot.Lookup,
-                                                             req_args={'search': pubkey})
+                data = await self._bma_connector.get(currency, bma.wot.lookup, req_args={'search': pubkey})
                 for result in data['results']:
                     if result["pubkey"] == pubkey:
                         uids = result['uids']
@@ -174,13 +173,3 @@ class IdentitiesProcessor:
                 pass
             else:
                 raise
-
-    async def publish_selfcert(self, currency, identity, salt, password, scrypt_params):
-        """
-        Send our self certification to a target community
-        :param sakia.data.entities.Identity identity: The identity broadcasted
-        :param str salt: The account SigningKey salt
-        :param str password: The account SigningKey password
-        :param str currency: The currency target of the self certification
-        :param duniterpy.key.ScryptParams scrypt_params: The scrypt parameters of the key
-        """

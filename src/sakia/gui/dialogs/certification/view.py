@@ -16,22 +16,18 @@ class CertificationView(QDialog, Ui_CertificationDialog):
         NOT_A_MEMBER = 1
         REMAINING_TIME_BEFORE_VALIDATION = 2
         OK = 3
-
-    class RecipientMode(Enum):
-        PUBKEY = 0
-        SEARCH = 1
+        SELECT_IDENTITY = 4
 
     _button_box_values = {
         ButtonBoxState.NO_MORE_CERTIFICATION: (False,
                                                QT_TRANSLATE_NOOP("CertificationView", "No more certifications")),
         ButtonBoxState.NOT_A_MEMBER: (False, QT_TRANSLATE_NOOP("CertificationView", "Not a member")),
+        ButtonBoxState.SELECT_IDENTITY: (False, QT_TRANSLATE_NOOP("CertificationView", "Please select an identity")),
         ButtonBoxState.REMAINING_TIME_BEFORE_VALIDATION: (True,
                                                           QT_TRANSLATE_NOOP("CertificationView",
                                                                             "&Ok (Not validated before {remaining})")),
         ButtonBoxState.OK: (True, QT_TRANSLATE_NOOP("CertificationView", "&Ok"))
     }
-
-    pubkey_changed = pyqtSignal()
 
     def __init__(self, parent, search_user_view, user_information_view):
         """
@@ -44,17 +40,8 @@ class CertificationView(QDialog, Ui_CertificationDialog):
         super().__init__(parent)
         self.setupUi(self)
 
-        self.radio_pubkey.toggled.connect(lambda c, radio=CertificationView.RecipientMode.PUBKEY:
-                                          self.recipient_mode_changed(radio))
-        self.radio_search.toggled.connect(lambda c, radio=CertificationView.RecipientMode.SEARCH:
-                                          self.recipient_mode_changed(radio))
-
         self.search_user = search_user_view
         self.user_information_view = user_information_view
-
-        self.edit_pubkey.textChanged.connect(self.pubkey_changed)
-        self.radio_search.toggled.connect(self.pubkey_changed)
-        self.radio_pubkey.toggled.connect(self.pubkey_changed)
 
     def set_keys(self, connections):
         self.combo_pubkey.clear()
@@ -79,33 +66,27 @@ class CertificationView(QDialog, Ui_CertificationDialog):
         :return:
         """
         self.search_user = search_user_view
-        self.layout_mode_search.addWidget(search_user_view)
+        self.groupbox_certified.layout().addWidget(search_user_view)
         self.search_user.button_reset.hide()
 
     def set_user_information(self, user_information_view):
         self.user_information_view = user_information_view
-        self.layout_target_choice.addWidget(user_information_view)
-
-    def recipient_mode(self):
-        if self.radio_search.isChecked():
-            return CertificationView.RecipientMode.SEARCH
-        else:
-            return CertificationView.RecipientMode.PUBKEY
+        self.groupbox_certified.layout().addWidget(user_information_view)
 
     def pubkey_value(self):
         return self.edit_pubkey.text()
 
-    async def show_success(self):
-        if self.app.preferences['notifications']:
+    async def show_success(self, notification):
+        if notification:
             toast.display(self.tr("Certification"),
                           self.tr("Success sending certification"))
         else:
             await QAsyncMessageBox.information(self.widget, self.tr("Certification"),
                                          self.tr("Success sending certification"))
 
-    async def show_error(self, error_txt):
+    async def show_error(self, notification, error_txt):
 
-        if self.app.preferences['notifications']:
+        if notification:
             toast.display(self.tr("Certification"), self.tr("Could not broadcast certification : {0}"
                                                             .format(error_txt)))
         else:
@@ -149,10 +130,3 @@ class CertificationView(QDialog, Ui_CertificationDialog):
         button_box_state = CertificationView._button_box_values[state]
         self.button_box.button(QDialogButtonBox.Ok).setEnabled(button_box_state[0])
         self.button_box.button(QDialogButtonBox.Ok).setText(button_box_state[1].format(**kwargs))
-
-    def recipient_mode_changed(self, radio):
-        """
-        :param str radio:
-        """
-        self.edit_pubkey.setEnabled(radio == CertificationView.RecipientMode.PUBKEY)
-        self.search_user.setEnabled(radio == CertificationView.RecipientMode.SEARCH)

@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QDialog
-from PyQt5.QtCore import QObject
+from PyQt5.QtCore import QObject, pyqtSignal
 from sakia.decorators import asyncify
 from .model import UserInformationModel
 from .view import UserInformationView
@@ -9,6 +9,7 @@ class UserInformationController(QObject):
     """
     The homescreen view
     """
+    identity_loaded = pyqtSignal()
 
     def __init__(self, parent, view, model):
         """
@@ -46,6 +47,7 @@ class UserInformationController(QObject):
             self.view.display_identity_timestamps(self.model.identity.pubkey, self.model.identity.timestamp,
                                                   self.model.identity.membership_timestamp)
             self.view.hide_busy()
+            self.identity_loaded.emit()
 
     @asyncify
     async def search_identity(self, identity):

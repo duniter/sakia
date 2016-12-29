@@ -84,8 +84,6 @@ class CertificationController(QObject):
         """
         dialog = cls.create(parent, app)
         dialog.view.combo_community.setCurrentText(connection.currency)
-        dialog.view.edit_pubkey.setText(identity.pubkey)
-        dialog.view.radio_pubkey.setChecked(True)
         dialog.refresh()
         return await dialog.async_exec()
 
@@ -107,6 +105,7 @@ class CertificationController(QObject):
         """
         self.user_information = user_information
         self.view.set_user_information(user_information.view)
+        self.user_information.identity_loaded.connect(self.refresh)
 
     @asyncify
     async def accept(self):
@@ -119,17 +118,14 @@ class CertificationController(QObject):
             self.view.button_box.setEnabled(True)
             return
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        if self.view.radio_pubkey.isChecked():
-            result = await self.model.certify_pubkey(password, self.view.edit_pubkey.text())
-        else:
-            result = await self.model.certify_identity(password, self.user_information.model.identity)
+        result = await self.model.certify_identity(password, self.user_information.model.identity)
 
         if result[0]:
             QApplication.restoreOverrideCursor()
-            await self.view.show_success()
+            await self.view.show_success(self.model.notification())
             self.view.accept()
         else:
-            await self.view.show_error(result[1])
+            await self.view.show_error(self.model.notification(), result[1])
             QApplication.restoreOverrideCursor()
             self.view.button_box.setEnabled(True)
 
@@ -144,7 +140,9 @@ class CertificationController(QObject):
 
         if self.model.could_certify():
             if written < stock or stock == 0:
-                if days+hours+minutes > 0:
+                if not self.user_information.model.identity:
+                    self.view.set_button_box(CertificationView.ButtonBoxState.SELECT_IDENTITY)
+                elif days+hours+minutes > 0:
                     if days > 0:
                         remaining_localized = self.tr("{days} days").format(days=days)
                     else:
@@ -162,11 +160,7 @@ class CertificationController(QObject):
         """
         Refresh user information
         """
-        pubkey = self.selected_pubkey()
-        if self.search_user.identity_selected:
-            self.user_information.search_identity(self.search_user.model.identity())
-        else:
-            self.user_information.search_identity(Identity(self.model.connection.currency, pubkey))
+        self.user_information.search_identity(self.search_user.model.identity())
 
     def change_currency(self, index):
         currency = self.model.available_currencies()[index]
