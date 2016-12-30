@@ -25,6 +25,7 @@ class UserParametersFile:
         """
         with open(self._file, 'w') as outfile:
             json.dump(attr.asdict(user_parameters), outfile, indent=4)
+        return user_parameters
 
     def load_or_init(self):
         """

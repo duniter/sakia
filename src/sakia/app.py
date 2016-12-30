@@ -193,3 +193,8 @@ class Application(QObject):
     @property
     def current_ref(self):
         return Relative
+
+    def save_parameters(self, parameters):
+        self.parameters = UserParametersFile\
+            .in_config_path(self.options.config_path, parameters.profile_name)\
+            .save(parameters)
