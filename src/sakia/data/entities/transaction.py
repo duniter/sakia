@@ -55,7 +55,8 @@ def parse_transaction_doc(tx_doc, pubkey, block_number, mediantime, txid):
                                   amount_base=amount_base,
                                   comment=tx_doc.comment,
                                   txid=txid,
-                                  state=Transaction.VALIDATED)
+                                  state=Transaction.VALIDATED,
+                                  raw=tx_doc.signed_raw())
         return transaction
     return None
 
@@ -100,6 +101,8 @@ class Transaction:
     comment       = attr.ib(convert=str, cmp=False)
     txid          = attr.ib(convert=int, cmp=False)
     state         = attr.ib(convert=int, cmp=False)
+    raw           = attr.ib(convert=str, cmp=False, default="")
+
 
     @property
     def local(self):

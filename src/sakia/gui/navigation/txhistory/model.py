@@ -50,7 +50,7 @@ class TxHistoryModel(QObject):
 
         return self._proxy
 
-    async def table_data(self, index):
+    def table_data(self, index):
         """
         Gets available table data at given index
         :param index:
@@ -63,7 +63,7 @@ class TxHistoryModel(QObject):
             pubkey_index = self.table_model.sourceModel().index(source_index.row(), pubkey_col)
             pubkey = self.table_model.sourceModel().data(pubkey_index, Qt.DisplayRole)
 
-            identity = await self.app.identities_registry.future_find(pubkey, self.community)
+            identity = self.identities_service.get_identity(pubkey)
 
             transfer = self.table_model.sourceModel().transfers()[source_index.row()]
             return True, identity, transfer

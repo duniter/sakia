@@ -4,9 +4,8 @@ from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtWidgets import QMenu, QAction, QApplication, QMessageBox
 
 from duniterpy.documents import Block
-from sakia.data.entities import Identity
+from sakia.data.entities import Identity, Transaction
 from sakia.decorators import asyncify
-from sakia.gui.contact import ConfigureContactDialog
 from sakia.gui.dialogs.certification.controller import CertificationController
 from sakia.gui.dialogs.transfer.controller import TransferController
 from sakia.gui.sub.user_information.controller import UserInformationController
@@ -15,20 +14,16 @@ from sakia.gui.sub.user_information.controller import UserInformationController
 class ContextMenu(QObject):
     view_identity_in_wot = pyqtSignal(object)
 
-    def __init__(self, qmenu, app, account, community, password_asker):
+    def __init__(self, qmenu, app, connection):
         """
         :param PyQt5.QtWidgets.QMenu: the qmenu widget
-        :param sakia.core.Application app: Application instance
-        :param sakia.core.Account account: The current account instance
-        :param sakia.core.Community community: The community instance
-        :param sakia.gui.PasswordAsker password_asker: The password dialog
+        :param sakia.app.Application app: Application instance
+        :param sakia.data.entities.Connection connection: The current connection instance
         """
         super().__init__()
         self.qmenu = qmenu
         self._app = app
-        self._community = community
-        self._account = account
-        self._password_asker = password_asker
+        self._connection = connection
 
     @staticmethod
     def _add_identity_actions(menu, identity):
@@ -41,11 +36,6 @@ class ContextMenu(QObject):
         informations = QAction(menu.qmenu.tr("Informations"), menu.qmenu.parent())
         informations.triggered.connect(lambda checked, i=identity: menu.informations(i))
         menu.qmenu.addAction(informations)
-
-        if menu._account.pubkey != identity.pubkey:
-            add_as_contact = QAction(menu.qmenu.tr("Add as contact"), menu.qmenu.parent())
-            add_as_contact.triggered.connect(lambda checked, i=identity: menu.add_as_contact(i))
-            menu.qmenu.addAction(add_as_contact)
 
         if menu._account.pubkey != identity.pubkey:
             send_money = QAction(menu.qmenu.tr("Send money"), menu.qmenu.parent())
@@ -81,7 +71,7 @@ class ContextMenu(QObject):
         :param Transfer transfer: the transfer
         """
         menu.qmenu.addSeparator().setText(menu.qmenu.tr("Transfer"))
-        if transfer.state in (TransferState.REFUSED, TransferState.TO_SEND):
+        if transfer.state in (Transaction.REFUSED, Transaction.TO_SEND):
             send_back = QAction(menu.qmenu.tr("Send again"), menu.qmenu.parent())
             send_back.triggered.connect(lambda checked, tr=transfer: menu.send_again(tr))
             menu.qmenu.addAction(send_back)
@@ -101,26 +91,22 @@ class ContextMenu(QObject):
                                            menu.copy_block_to_clipboard(number))
                 menu.qmenu.addAction(copy_doc)
 
-
     @classmethod
-    def from_data(cls, parent, app, account, community, password_asker, data):
+    def from_data(cls, parent, app, connection, data):
         """
         Builds a QMenu from data passed as parameters
         Data can be Identity or Transfer
 
         :param PyQt5.QtWidgets.QWidget parent: the parent widget
-        :param sakia.core.Application app: the application
-        :param sakia.core.Application app: Application instance
-        :param sakia.core.Account account: The current account instance
-        :param sakia.core.Community community: The community instance
-        :param sakia.gui.PasswordAsker password_asker: The password dialog
+        :param sakia.app.Application app: Application instance
+        :param sakia.data.entities.Connection connection: the current connection
         :param tuple data: a tuple of data to add to the menu
         :rtype: ContextMenu
         """
-        menu = cls(QMenu(parent), app, account, community, password_asker)
+        menu = cls(QMenu(parent), app, connection)
         build_actions = {
             Identity: ContextMenu._add_identity_actions,
-            Transfer: ContextMenu._add_transfers_actions,
+            Transaction: ContextMenu._add_transfers_actions,
             dict: lambda m, d: None
         }
         for d in data:
@@ -134,16 +120,11 @@ class ContextMenu(QObject):
         clipboard.setText(identity.pubkey)
 
     def informations(self, identity):
-        UserInformationController.open_dialog(None, self._app, self._account, self._community, identity)
-
-    def add_as_contact(self, identity):
-        dialog = ConfigureContactDialog.from_identity(self._app, self.parent(), self._account, identity)
-        dialog.exec_()
+        UserInformationController.open_dialog(None, self._app, self._connection, identity)
 
     @asyncify
     async def send_money(self, identity):
-        await TransferController.send_money_to_identity(None, self._app, self._account, self._password_asker,
-                                                            self._community, identity)
+        await TransferController.send_money_to_identity(None, self._app, self._connection, identity)
         self._app.refresh_transfers.emit()
 
     def view_wot(self, identity):
@@ -151,13 +132,11 @@ class ContextMenu(QObject):
 
     @asyncify
     async def certify_identity(self, identity):
-        await CertificationController.certify_identity(None, self._app, self._account, self._password_asker,
-                                             self._community, identity)
+        await CertificationController.certify_identity(None, self._app, self._connection, identity)
 
     @asyncify
     async def send_again(self, transfer):
-        await TransferController.send_transfer_again(None, self._app, self._app.current_account,
-                                     self._password_asker, self._community, transfer)
+        await TransferController.send_transfer_again(None, self._app, self._connection, transfer)
         self._app.refresh_transfers.emit()
 
     def cancel_transfer(self, transfer):
@@ -169,10 +148,9 @@ QMessageBox.Ok | QMessageBox.Cancel)
             transfer.cancel()
         self._app.refresh_transfers.emit()
 
-    @asyncify
-    async def copy_transaction_to_clipboard(self, tx):
+    def copy_transaction_to_clipboard(self, tx):
         clipboard = QApplication.clipboard()
-        raw_doc = await tx.get_raw_document(self._community)
+        raw_doc = tx.get_raw_document(self._community)
         if raw_doc:
             clipboard.setText(raw_doc.signed_raw())
 

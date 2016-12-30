@@ -78,11 +78,9 @@ class TxHistoryController(QObject):
         self.view.set_balance(localized_amount)
         self.view.busy_balance.hide()
 
-    @once_at_a_time
-    @asyncify
-    async def history_context_menu(self, point):
+    def history_context_menu(self, point):
         index = self.view.table_history.indexAt(point)
-        valid, identity, transfer = await self.model.table_data(index)
+        valid, identity, transfer = self.model.table_data(index)
         if valid:
             menu = ContextMenu.from_data(self.view, self.model.app, self.model.account, self.model.community,
                                          self.password_asker,

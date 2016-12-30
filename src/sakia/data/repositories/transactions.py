@@ -38,7 +38,8 @@ class TransactionsRepo:
                            amountbase = ?,
                            comment = ?,
                            txid = ?,
-                           state = ?
+                           state = ?,
+                           raw = ?
                            WHERE
                            sha_hash=?""",
                            updated_fields + where_fields)
