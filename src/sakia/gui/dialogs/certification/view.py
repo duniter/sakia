@@ -54,11 +54,6 @@ class CertificationView(QDialog, Ui_CertificationDialog):
         """
         self.combo_pubkey.setCurrentText(connection.title())
 
-    def set_currencies(self, currencies):
-        self.combo_currency.clear()
-        for c in currencies:
-            self.combo_currency.addItem(c)
-
     def set_search_user(self, search_user_view):
         """
 

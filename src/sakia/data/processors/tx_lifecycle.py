@@ -129,18 +129,6 @@ def _is_locally_created(tx):
     """
     return tx.local
 
-
-def _wait(tx, current_block):
-    """
-    Set the transfer as AWAITING confrmation.
-
-    :param sakia.data.entities.Transaction tx: the transaction
-    :param duniterpy.documents.Block current_block: Current block of the main blockchain
-    """
-    tx.blockstamp = current_block.blockUID
-    tx.timestamp = int(time.time())
-
-
 def _be_validating(tx, block):
     """
     Action when the transfer ins found in a block
@@ -166,10 +154,10 @@ def _drop(tx):
 # keys are a tuple containg (current_state, transition_parameters)
 # values are tuples containing (transition_test, transition_success, new_state)
 states = {
-            (Transaction.TO_SEND, (list, Block)):
+            (Transaction.TO_SEND, (list,)):
                 (
-                    (_broadcast_success, lambda tx, l, b: _wait(tx, b), Transaction.AWAITING),
-                    (lambda tx, l, b: _broadcast_failure(tx, l), None, Transaction.REFUSED),
+                    (_broadcast_success, None, Transaction.AWAITING),
+                    (lambda tx, l: _broadcast_failure(tx, l), None, Transaction.REFUSED),
                 ),
             (Transaction.TO_SEND, ()):
                 ((_is_locally_created, _drop, Transaction.DROPPED),),
@@ -187,10 +175,10 @@ states = {
             (Transaction.VALIDATED, (bool, Block, int)):
                 ((_rollback_in_fork_window, lambda tx, r, b, i: _be_validating(tx, b), Transaction.VALIDATING),),
 
-            (Transaction.VALIDATED, (bool, Block)):
+            (Transaction.VALIDATED, (bool,)):
                 (
-                    (_rollback_and_removed, lambda tx, r, b: _drop(tx), Transaction.DROPPED),
-                    (_rollback_and_local, lambda tx, r, b: _wait(tx, b), Transaction.AWAITING),
+                    (_rollback_and_removed, lambda tx, r: _drop(tx), Transaction.DROPPED),
+                    (_rollback_and_local, None, Transaction.AWAITING),
                 ),
 
             (Transaction.REFUSED, ()):

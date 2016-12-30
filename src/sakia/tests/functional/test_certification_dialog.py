@@ -35,7 +35,7 @@ async def test_certification_init_community(application_with_one_connection, fak
         assert certification_dialog.view.button_box.button(QDialogButtonBox.Ok).isEnabled()
         QTest.mouseClick(certification_dialog.view.button_box.button(QDialogButtonBox.Ok), Qt.LeftButton)
         await asyncio.sleep(0.1)
-        assert Certification is type(fake_server.forge.pool[0])
+        assert isinstance(fake_server.forge.pool[0], Certification)
 
     application_with_one_connection.loop.call_later(10, close_dialog)
     asyncio.ensure_future(exec_test())

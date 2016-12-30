@@ -5,6 +5,7 @@ from PyQt5.QtCore import Qt, QObject
 from PyQt5.QtWidgets import QApplication
 
 from sakia.decorators import asyncify
+from sakia.gui.password_asker import PasswordAskerDialog
 from sakia.gui.sub.search_user.controller import SearchUserController
 from sakia.gui.sub.user_information.controller import UserInformationController
 from .model import TransferModel
@@ -16,26 +17,26 @@ class TransferController(QObject):
     The transfer component controller
     """
 
-    def __init__(self, parent, view, model, search_user, user_information, password_asker):
+    def __init__(self, view, model, search_user, user_information):
         """
         Constructor of the transfer component
 
         :param sakia.gui.transfer.view.TransferView: the view
         :param sakia.gui.transfer.model.TransferModel model: the model
         """
-        super().__init__(parent)
-        self.password_asker = password_asker
+        super().__init__()
+        self.view = view
+        self.model = model
         self.search_user = search_user
         self.user_information = user_information
         self.view.button_box.accepted.connect(self.accept)
         self.view.button_box.rejected.connect(self.reject)
-        self.view.combo_community.currentIndexChanged.connect(self.change_current_community)
-        self.view.combo_wallets.currentIndexChanged.connect(self.change_current_wallet)
+        self.view.combo_connections.currentIndexChanged.connect(self.change_current_connection)
         self.view.spinbox_amount.valueChanged.connect(self.handle_amount_change)
         self.view.spinbox_relative.valueChanged.connect(self.handle_relative_change)
 
     @classmethod
-    def create(cls, parent, app, account, community, transfer, password_asker):
+    def create(cls, parent, app):
         """
         Instanciate a transfer component
         :param sakia.gui.component.controller.ComponentController parent:
@@ -43,54 +44,48 @@ class TransferController(QObject):
         :return: a new Transfer controller
         :rtype: TransferController
         """
-        communities_names = [c.name for c in account.communities]
-        wallets_names = [w.name for w in account.wallets]
-        contacts_names = [c['name'] for c in account.contacts]
+        view = TransferView(parent.view if parent else None, None, None)
+        model = TransferModel(app)
+        transfer = cls(view, model, None, None)
 
-        view = TransferView(parent.view, None, None, communities_names, contacts_names, wallets_names)
-        model = TransferModel(None, app, account=account, community=community, resent_transfer=transfer)
-        transfer = cls(parent, view, model, None, None, password_asker)
-
-        search_user = SearchUserController.create(transfer, app,
-                                                  account=model.account,
-                                                  community=model.community)
+        search_user = SearchUserController.create(transfer, app, "")
         transfer.set_search_user(search_user)
 
-        user_information = UserInformationController.create(transfer, app,
-                                                            account=model.account,
-                                                            community=model.community,
-                                                            identity=None)
+        user_information = UserInformationController.create(transfer, app, "", None)
         transfer.set_user_information(user_information)
-        model.setParent(transfer)
+
+        view.set_keys(transfer.model.available_connections())
         return transfer
 
     @classmethod
-    def open_dialog(cls, parent, app, account, password_asker, community):
-        dialog = cls.create(parent, app,
-                     account=account,
-                     password_asker=password_asker,
-                     community=community,
-                     transfer=None)
+    def open_dialog(cls, parent, app, connection):
+        dialog = cls.create(parent, app)
+        if connection:
+            dialog.view.combo_currency.setCurrentText(connection.currency)
+            dialog.view.combo_wallets.setCurrentText(connection.title())
+        dialog.refresh()
         return dialog.exec()
 
     @classmethod
-    async def send_money_to_identity(cls, parent, app, account, password_asker, community, identity):
-        dialog = cls.create(parent, app,
-                     account=account,
-                     password_asker=password_asker,
-                     community=community,
-                     transfer=None)
+    async def send_money_to_identity(cls, parent, app, connection, identity):
+        dialog = cls.create(parent, app)
+        dialog.view.combo_currency.setCurrentText(identity.currency)
+        dialog.view.combo_wallets.setCurrentText(connection.title())
         dialog.view.edit_pubkey.setText(identity.pubkey)
         dialog.view.radio_pubkey.setChecked(True)
+
+        dialog.refresh()
         return await dialog.async_exec()
 
     @classmethod
-    async def send_transfer_again(cls, parent, app, account, password_asker, community, resent_transfer):
-        dialog = cls.create(parent, app,
-                            account=account,
-                            password_asker=password_asker,
-                            community=community,
-                            resent_transfer=resent_transfer)
+    async def send_transfer_again(cls, parent, app, connection, resent_transfer):
+        dialog = cls.create(parent, app)
+        dialog.view.combo_currency.setCurrentText(resent_transfer.currency)
+        dialog.view.combo_wallets.setCurrentText(connection.title())
+        dialog.view.edit_pubkey.setText(resent_transfer.receiver)
+        dialog.view.radio_pubkey.setChecked(True)
+
+        dialog.refresh()
         relative = await dialog.model.quant_to_rel(resent_transfer.metadata['amount'])
         dialog.view.set_spinboxes_parameters(1, resent_transfer.metadata['amount'], relative)
         dialog.view.change_relative_amount(relative)
@@ -104,14 +99,6 @@ class TransferController(QObject):
         dialog.view.edit_message.setText(resent_transfer.metadata['comment'])
 
         return await dialog.async_exec()
-
-    @property
-    def view(self) -> TransferView:
-        return self._view
-
-    @property
-    def model(self) -> TransferModel:
-        return self._model
 
     def set_search_user(self, search_user):
         """
@@ -147,10 +134,7 @@ class TransferController(QObject):
         """
         pubkey = None
 
-        if self.view.recipient_mode() == TransferView.RecipientMode.CONTACT:
-            contact_name = self.view.selected_contact()
-            pubkey = self.model.contact_name_pubkey(contact_name)
-        elif self.view.recipient_mode() == TransferView.RecipientMode.SEARCH:
+        if self.view.recipient_mode() == TransferView.RecipientMode.SEARCH:
             if self.search_user.current_identity():
                 pubkey = self.search_user.current_identity().pubkey
         else:
@@ -166,9 +150,11 @@ class TransferController(QObject):
         logging.debug("checking recipient mode...")
         recipient = self.selected_pubkey()
         amount = self.view.spinbox_amount.value()
+        #TODO: Handle other amount base than 0
+        amount_base = 0
 
         logging.debug("Showing password dialog...")
-        password = await self.password_asker.async_exec()
+        password = await PasswordAskerDialog(self.model.connection).async_exec()
         if password == "":
             self.view.button_box.setEnabled(True)
             return
@@ -177,18 +163,18 @@ class TransferController(QObject):
         QApplication.setOverrideCursor(Qt.WaitCursor)
 
         logging.debug("Send money...")
-        result = await self.model.send_money(recipient, amount, comment, password)
+        result, transaction = await self.model.send_money(recipient, password, amount, amount_base, comment)
         if result[0]:
-            await self.view.show_success(self.model.app.preferences['notifications'], recipient)
+            await self.view.show_success(self.model.notifications(), recipient)
             logging.debug("Restore cursor...")
             QApplication.restoreOverrideCursor()
 
             # If we sent back a transaction we cancel the first one
             self.model.cancel_previous()
-            self.model.app.refresh_transfers.emit()
+            self.model.app.new_transfer.emit(transaction)
             self.view.accept()
         else:
-            await self.view.show_error(self.model.app.preferences['notifications'], result[1])
+            await self.view.show_error(self.model.notifications(), result[1])
 
             QApplication.restoreOverrideCursor()
             self.view.button_box.setEnabled(True)
@@ -196,40 +182,48 @@ class TransferController(QObject):
     def reject(self):
         self.view.reject()
 
-    @asyncify
-    async def refresh(self):
-        amount = await self.model.wallet_value()
-        total_text = await self.model.localized_amount(amount)
-        self.view.refresh_labels(total_text, self.model.community.currency)
+    def refresh(self):
+        amount = self.model.wallet_value()
+        total_text = self.model.localized_amount(amount)
+        self.view.refresh_labels(total_text)
 
         if amount == 0:
             self.view.set_button_box(TransferView.ButtonBoxState.NO_AMOUNT)
         else:
             self.view.set_button_box(TransferView.ButtonBoxState.OK)
 
-        max_relative = await self.model.quant_to_rel(amount)
-        current_base = await self.model.current_base()
+        max_relative = self.model.quant_to_rel(amount)
+        current_base = self.model.current_base()
 
         self.view.set_spinboxes_parameters(pow(10, current_base), amount, max_relative)
 
-    @asyncify
-    async def handle_amount_change(self, value):
-        relative = await self.model.quant_to_rel(value)
+    def handle_amount_change(self, value):
+        relative = self.model.quant_to_rel(value)
         self.view.change_relative_amount(relative)
+        self.refresh_amount_suffix()
 
-    @asyncify
-    async def handle_relative_change(self, value):
-        amount = await self.model.rel_to_quant(value)
+    def refresh_amount_suffix(self):
+        #TODO: Handle other exponents than 0 (using a custom spinbox ?)
+        unicodes = {
+            '0': ord('\u2070'),
+            '1': ord('\u00B9'),
+            '2': ord('\u00B2'),
+            '3': ord('\u00B3'),
+        }
+        for n in range(4, 10):
+            unicodes[str(n)] = ord('\u2070') + n
+
+        exponent = ""
+        for n in str('0'):
+            exponent += chr(unicodes[n])
+        self.view.spinbox_amount.setSuffix(" x10" + exponent + " " + self.model.connection.currency)
+
+    def handle_relative_change(self, value):
+        amount = self.model.rel_to_quant(value)
         self.view.change_quantitative_amount(amount)
 
-    def change_current_community(self, index):
-        self.model.change_community(index)
-        self.search_user.set_community(self.community)
-        self.user_information.change_community(self.community)
-        self.refresh()
-
-    def change_current_wallet(self, index):
-        self.model.change_wallet(index)
+    def change_current_connection(self, index):
+        self.model.set_connection(index)
         self.refresh()
 
     def async_exec(self):

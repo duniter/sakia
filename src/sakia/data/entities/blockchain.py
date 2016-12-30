@@ -57,7 +57,7 @@ class Blockchain:
     # Last members count
     last_members_count = attr.ib(convert=int, default=0, cmp=False, hash=False)
     # Last UD amount in units (multiply by 10^base)
-    last_ud = attr.ib(convert=int, default=0, cmp=False, hash=False)
+    last_ud = attr.ib(convert=int, default=1, cmp=False, hash=False)
     # Last UD base
     last_ud_base = attr.ib(convert=int, default=0, cmp=False, hash=False)
     # Last UD base

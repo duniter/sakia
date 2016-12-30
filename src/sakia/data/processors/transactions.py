@@ -26,6 +26,15 @@ class TransactionsProcessor:
         return cls(app.db.transactions_repo,
                    BmaConnector(NodesProcessor(app.db.nodes_repo)))
 
+    def next_txid(self, currency, block_number):
+        """
+        :param str currency:
+        :param str block_number:
+        :rtype: int
+        """
+        transfers = self._repo.get_all(currency=currency, written_on=block_number)
+        return max([tx.txid for tx in transfers]) if transfers else 0
+
     def transfers(self, currency, pubkey):
         """
         Get all transfers from or to a given pubkey
@@ -94,7 +103,7 @@ class TransactionsProcessor:
         """
         self.run_state_transitions(tx, ())
 
-    async def send(self, tx, txdoc, community):
+    async def send(self, tx, txdoc, currency):
         """
         Send a transaction and update the transfer state to AWAITING if accepted.
         If the transaction was refused (return code != 200), state becomes REFUSED
@@ -102,16 +111,9 @@ class TransactionsProcessor:
 
         :param sakia.data.entities.Transaction tx: the transaction
         :param txdoc: A transaction duniterpy object
-        :param community: The community target of the transaction
+        :param currency: The community target of the transaction
         """
-        tx.sha_hash = txdoc.sha_hash
-        responses = await community.bma_access.broadcast(bma.tx.process,
-                                                         post_args={'transaction': txdoc.signed_raw()})
-        blockUID = community.network.current_blockUID
-        block = await community.bma_access.future_request(bma.blockchain.block,
-                                                          req_args={'number': blockUID.number})
-        signed_raw = "{0}{1}\n".format(block['raw'], block['signature'])
-        block_doc = Block.from_signed_raw(signed_raw)
+        responses = await self._bma_connector.broadcast(currency, bma.tx.process, req_args={'transaction': txdoc.signed_raw()})
         result = (False, "")
         for r in responses:
             if r.status == 200:
@@ -120,9 +122,8 @@ class TransactionsProcessor:
                 result = (False, (await r.text()))
             else:
                 await r.text()
-        self.run_state_transitions(tx, ([r.status for r in responses], block_doc))
         self.run_state_transitions(tx, ([r.status for r in responses],))
-        return result
+        return result, tx
 
     async def initialize_transactions(self, identity, log_stream):
         """

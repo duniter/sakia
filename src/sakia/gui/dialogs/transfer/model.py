@@ -1,29 +1,30 @@
+import attr
 from PyQt5.QtCore import QObject
+from sakia.data.processors import BlockchainProcessor, SourcesProcessor, ConnectionsProcessor
 
 
+@attr.s()
 class TransferModel(QObject):
     """
     The model of transfer component
+
+    :param sakia.app.Application app:
+    :param sakia.data.entities.Connection connection:
+    :param sakia.data.processors.BlockchainProcessor _blockchain_processor:
     """
 
-    def __init__(self, parent, app, account, community, resent_transfer):
-        super().__init__(parent)
-        self.app = app
-        self.account = account
-        self.resent_transfer = resent_transfer
-        self.community = community if community else self.account.communities[0]
-        self.wallet = self.account.wallets[0]
+    app = attr.ib()
+    connection = attr.ib(default=None)
+    resent_transfer = attr.ib(default=None)
+    _blockchain_processor = attr.ib(default=None)
+    _sources_processor = attr.ib(default=None)
+    _connections_processor = attr.ib(default=None)
 
-    def contact_name_pubkey(self, name):
-        """
-        Get the pubkey of a contact from its name
-        :param str name:
-        :return:
-        :rtype: str
-        """
-        for contact in self.account.contacts:
-            if contact['name'] == name:
-                return contact['pubkey']
+    def __attrs_post_init__(self):
+        super().__init__()
+        self._blockchain_processor = BlockchainProcessor.instanciate(self.app)
+        self._sources_processor = SourcesProcessor.instanciate(self.app)
+        self._connections_processor = ConnectionsProcessor.instanciate(self.app)
 
     async def rel_to_quant(self, rel_value):
         """
@@ -31,88 +32,69 @@ class TransferModel(QObject):
         :param float rel_value:
         :rtype: int
         """
-        ud_block = await self.community.get_ud_block()
-        if ud_block:
-            dividend = ud_block['dividend']
-            base = ud_block['unitbase']
-        else:
-            dividend = 1
-            base = 0
+        dividend, base = await self._blockchain_processor.last_ud(self.connection.currency)
         amount = rel_value * dividend * pow(10, base)
         # amount is rounded to the nearest power of 10 depending of last ud base
         rounded = int(pow(10, base) * round(float(amount) / pow(10, base)))
         return rounded
 
-    async def quant_to_rel(self, amount):
+    def quant_to_rel(self, amount):
         """
         Get the relative value of a given amount
         :param int amount:
         :rtype: float
         """
-
-        ud_block = await self.community.get_ud_block()
-        if ud_block:
-            dividend = ud_block['dividend']
-            base = ud_block['unitbase']
-        else:
-            dividend = 1
-            base = 0
+        dividend, base = self._blockchain_processor.last_ud(self.connection.currency)
         relative = amount / (dividend * pow(10, base))
         return relative
 
-    async def wallet_value(self):
+    def wallet_value(self):
         """
         Get the value of the current wallet in the current community
         """
-        return await self.wallet.value(self.community)
+        return self._sources_processor.amount(self.connection.currency, self.connection.pubkey)
 
-    async def current_base(self):
+    def current_base(self):
         """
         Get the current base of the network
         """
-        ud_block = await self.community.get_ud_block()
-        if ud_block:
-            base = ud_block['unitbase']
-        else:
-            base = 0
+        dividend, base = self._blockchain_processor.last_ud(self.connection.currency)
         return base
 
-    async def localized_amount(self, amount):
+    def localized_amount(self, amount):
         """
         Get the value of the current referential
         """
-        localized = await self.account.current_ref.instance(amount, self.community, self.app) \
+
+        localized = self.app.current_ref.instance(amount, self.connection.currency, self.app) \
             .diff_localized(units=True,
-                            international_system=self.app.preferences['international_system_of_units'])
+                            international_system=self.app.parameters.international_system_of_units)
         return localized
-
-    def change_community(self, index):
-        """
-        Change the current community
-        :param int index: index in the list of communities
-        """
-        self.community = self.account.communities[index]
-
-    def change_wallet(self, index):
-        """
-        Change the current wallet
-        :param int index: index in the list of wallets
-        """
-        self.wallet = self.account.wallets[index]
 
     def cancel_previous(self):
         if self.resent_transfer:
             self.resent_transfer.cancel()
 
-    async def send_money(self, recipient, amount, comment, password):
+    def available_connections(self):
+        return self._connections_processor.connections()
+
+    def set_connection(self, index):
+        connections = self._connections_processor.connections()
+        self.connection = connections[index]
+
+    async def send_money(self, recipient, password, amount, amount_base, comment):
         """
         Send money to given recipient using the account
         :param str recipient:
         :param int amount:
+        :param int amount_base:
         :param str comment:
         :param str password:
         :return: the result of the send
         """
 
-        return await self.wallet.send_money(self.account.salt, password, self.community,
-                                   recipient, amount, comment)
+        return await self.app.documents_service.send_money(self.connection, password,
+                                                           recipient, amount, amount_base, comment)
+
+    def notifications(self):
+        return self.app.parameters.notifications

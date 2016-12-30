@@ -59,9 +59,26 @@ def parse_transaction_doc(tx_doc, pubkey, block_number, mediantime, txid):
         return transaction
     return None
 
+
 @attr.s()
 class Transaction:
+    """
+    Transaction entity
 
+    :param str currency: the currency of the transaction
+    :param str sha_hash: the hash of the transaction
+    :param int written_block: the number of the block
+    :param str blockstamp: the blockstamp of the transaction
+    :param int timestamp: the timestamp of the transaction
+    :param str signature: the signature
+    :param str issuer: the pubkey of the issuer
+    :param str receiver: the pubkey of the receiver
+    :param int amount: the amount
+    :param str amount_base: the amount base
+    :param str comment: a comment
+    :param str txid: the transaction id to sort transctions
+    :param str state: the state of the transaction
+    """
     TO_SEND = 0
     AWAITING = 1
     VALIDATING = 2
@@ -70,19 +87,19 @@ class Transaction:
     DROPPED = 16
     LOCAL = 128
 
-    currency = attr.ib(convert=str, cmp=False)
-    sha_hash = attr.ib(convert=str)
+    currency      = attr.ib(convert=str, cmp=False)
+    sha_hash      = attr.ib(convert=str)
     written_block = attr.ib(convert=int, cmp=False)
-    blockstamp = attr.ib(convert=block_uid, cmp=False)
-    timestamp = attr.ib(convert=int, cmp=False)
-    signature = attr.ib(convert=str, cmp=False)
-    issuer = attr.ib(convert=str, cmp=False)
-    receiver = attr.ib(convert=str, cmp=False)
-    amount = attr.ib(convert=int, cmp=False)
-    amount_base = attr.ib(convert=int, cmp=False)
-    comment = attr.ib(convert=str, cmp=False)
-    txid = attr.ib(convert=int, cmp=False)
-    state = attr.ib(convert=int, cmp=False)
+    blockstamp    = attr.ib(convert=block_uid, cmp=False)
+    timestamp     = attr.ib(convert=int, cmp=False)
+    signature     = attr.ib(convert=str, cmp=False)
+    issuer        = attr.ib(convert=str, cmp=False)
+    receiver      = attr.ib(convert=str, cmp=False)
+    amount        = attr.ib(convert=int, cmp=False)
+    amount_base   = attr.ib(convert=int, cmp=False)
+    comment       = attr.ib(convert=str, cmp=False)
+    txid          = attr.ib(convert=int, cmp=False)
+    state         = attr.ib(convert=int, cmp=False)
 
     @property
     def local(self):

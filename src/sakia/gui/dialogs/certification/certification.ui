@@ -23,22 +23,9 @@
       </sizepolicy>
      </property>
      <property name="title">
-      <string>Send to currency network :</string>
+      <string>Select your identity</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
-      <item>
-       <widget class="QComboBox" name="combo_currency"/>
-      </item>
-      <item>
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>With the following identity : </string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
       <item>
        <widget class="QComboBox" name="combo_pubkey"/>
       </item>

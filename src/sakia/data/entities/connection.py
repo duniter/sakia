@@ -21,7 +21,7 @@ class Connection:
     password = attr.ib(init=False, convert=str, default="", cmp=False, hash=False)
 
     def title(self):
-        return self.uid + " - " + self.pubkey[:5]
+        return self.uid + "[" + self.pubkey[:7] + "]@" + self.currency
 
     @property
     def scrypt_params(self):

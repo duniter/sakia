@@ -9,8 +9,12 @@ import asyncio
 
 @attr.s
 class SourcesProcessor:
-    _repo = attr.ib()  # :type sakia.data.repositories.SourcesRepo
-    _bma_connector = attr.ib()  # :type sakia.data.connectors.bma.BmaConnector
+    """
+    :param sakia.data.repositories.SourcesRepo _repo: the repository of the sources
+    :param sakia.data.connectors.bma.BmaConnector _bma_connector: the bma connector
+    """
+    _repo = attr.ib()
+    _bma_connector = attr.ib()
 
     @classmethod
     def instanciate(cls, app):
@@ -55,3 +59,20 @@ class SourcesProcessor:
         """
         sources = self._repo.get_all(currency=currency, pubkey=pubkey)
         return sum([s.amount * (10**s.base) for s in sources])
+
+    def available(self, currency):
+        """"
+        :param str currency: the currency of the sources
+        :rtype: list[sakia.data.entities.Source]
+        """
+        return self._repo.get_all(currency=currency)
+
+    def consume(self, sources):
+        """
+
+        :param currency:
+        :param sources:
+        :return:
+        """
+        for s in sources:
+            self._repo.drop(s)

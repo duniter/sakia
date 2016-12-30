@@ -146,6 +146,14 @@ def application_with_one_connection(application, simple_fake_server, bob):
                             previous_ud_time=previous_ud_block.mediantime,
                             currency=simple_fake_server.forge.currency)
     application.db.blockchains_repo.insert(blockchain)
+    for s in simple_fake_server.forge.user_identities[bob.key.pubkey].sources:
+        application.db.sources_repo.insert(Source(currency=simple_fake_server.forge.currency,
+                                                  pubkey=bob.key.pubkey,
+                                                  identifier=s.origin_id,
+                                                  noffset=s.index,
+                                                  type=s.source,
+                                                  amount=s.amount,
+                                                  base=s.base))
     bob_blockstamp = simple_fake_server.forge.user_identities[bob.key.pubkey].blockstamp
     bob_user_identity = simple_fake_server.forge.user_identities[bob.key.pubkey]
     bob_ms = bob_user_identity.memberships[-1]
@@ -155,8 +163,8 @@ def application_with_one_connection(application, simple_fake_server, bob):
                             blockstamp=bob_blockstamp,
                             signature=bob_user_identity.signature,
                             timestamp=simple_fake_server.forge.blocks[bob_blockstamp.number].mediantime,
-                            written_on=None,
-                            revoked_on=bob_user_identity.revoked_on,
+                            written_on=0,
+                            revoked_on=0,
                             member=bob_user_identity.member,
                             membership_buid=bob_ms.blockstamp,
                             membership_timestamp=simple_fake_server.forge.blocks[bob_ms.blockstamp.number].mediantime,

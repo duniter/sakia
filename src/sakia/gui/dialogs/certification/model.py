@@ -16,7 +16,6 @@ class CertificationModel(QObject):
     _certifications_processor = attr.ib(default=None)
     _identities_processor = attr.ib(default=None)
     _blockchain_processor = attr.ib(default=None)
-    _documents_service = attr.ib(default=None)
 
     def __attrs_post_init__(self):
         super().__init__()
@@ -81,14 +80,11 @@ class CertificationModel(QObject):
 
         return is_member and self._blockchain_processor.current_buid(self.connection.currency)
 
-    def available_connections(self, currency):
-        return self._connections_processor.connections(currency=currency)
+    def available_connections(self):
+        return self._connections_processor.connections()
 
-    def available_currencies(self):
-        return self._connections_processor.currencies()
-
-    def set_connection(self, currency, index):
-        connections = self._connections_processor.connections(currency=currency)
+    def set_connection(self,  index):
+        connections = self._connections_processor.connections()
         self.connection = connections[index]
 
     def notification(self):

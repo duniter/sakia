@@ -17,7 +17,6 @@ class TransferView(QDialog, Ui_TransferMoneyDialog):
         OK = 1
 
     class RecipientMode(Enum):
-        CONTACT = 0
         PUBKEY = 1
         SEARCH = 2
 
@@ -27,21 +26,16 @@ class TransferView(QDialog, Ui_TransferMoneyDialog):
         ButtonBoxState.OK: (True, QT_TRANSLATE_NOOP("CertificationView", "&Ok"))
     }
 
-    def __init__(self, parent, search_user_view, user_information_view,
-                 communities_names, contacts_names, wallets_names):
+    def __init__(self, parent, search_user_view, user_information_view):
         """
 
         :param parent:
         :param sakia.gui.search_user.view.SearchUserView search_user_view:
         :param sakia.gui.user_information.view.UserInformationView user_information_view:
-        :param list[str] communities_names:
-        :param list[str] contacts_names:
-        :param list[str] wallets_names:
         """
         super().__init__(parent)
         self.setupUi(self)
 
-        self.radio_contact.toggled.connect(lambda c, radio=TransferView.RecipientMode.CONTACT: self.recipient_mode_changed(radio))
         self.radio_pubkey.toggled.connect(lambda c, radio=TransferView.RecipientMode.PUBKEY: self.recipient_mode_changed(radio))
         self.radio_search.toggled.connect(lambda c, radio=TransferView.RecipientMode.SEARCH: self.recipient_mode_changed(radio))
 
@@ -49,33 +43,20 @@ class TransferView(QDialog, Ui_TransferMoneyDialog):
         validator = QRegExpValidator(regexp)
         self.edit_message.setValidator(validator)
 
-        for name in communities_names:
-            self.combo_community.addItem(name)
-
-        for name in sorted(contacts_names):
-            self.combo_contact.addItem(name)
-
-        for name in wallets_names:
-            self.combo_wallets.addItem(name)
-
-        if len(contacts_names) == 0:
-            self.combo_contact.setEnabled(False)
-            self.radio_pubkey.setChecked(True)
-            self.radio_contact.setEnabled(False)
-
         self.search_user = search_user_view
         self.user_information_view = user_information_view
+        self._amount_base = 0
+        self._currency = ""
 
     def recipient_mode(self):
-        if self.radio_contact.isChecked():
-            return TransferView.RecipientMode.CONTACT
-        elif self.radio_search.isChecked():
+        if self.radio_search.isChecked():
             return TransferView.RecipientMode.SEARCH
         else:
             return TransferView.RecipientMode.PUBKEY
 
-    def selected_contact(self):
-        return self.combo_contact.currentText()
+    def set_keys(self, connections):
+        for conn in connections:
+            self.combo_connections.addItem(conn.title())
 
     def set_search_user(self, search_user_view):
         """
@@ -96,7 +77,6 @@ class TransferView(QDialog, Ui_TransferMoneyDialog):
         :param str radio:
         """
         self.edit_pubkey.setEnabled(radio == TransferView.RecipientMode.PUBKEY)
-        self.combo_contact.setEnabled(radio == TransferView.RecipientMode.CONTACT)
         self.search_user.setEnabled(radio == TransferView.RecipientMode.SEARCH)
 
     def change_quantitative_amount(self, amount):
@@ -129,14 +109,13 @@ class TransferView(QDialog, Ui_TransferMoneyDialog):
         self.spinbox_relative.setMaximum(max_rel)
         self.spinbox_amount.setSingleStep(tick_quant)
 
-    def refresh_labels(self, total_text, currency):
+    def refresh_labels(self, total_text):
         """
         Refresh displayed texts
         :param str total_text:
         :param str currency:
         """
         self.label_total.setText("{0}".format(total_text))
-        self.spinbox_amount.setSuffix(" " + currency)
 
     def set_button_box(self, state, **kwargs):
         """
@@ -162,3 +141,6 @@ class TransferView(QDialog, Ui_TransferMoneyDialog):
             toast.display(self.tr("Transfer"), "Error : {0}".format(error_txt))
         else:
             await QAsyncMessageBox.critical(self.widget, self.tr("Transfer"), error_txt)
+
+    def pubkey_value(self):
+        return self.edit_pubkey.text()

@@ -69,7 +69,7 @@ class TestIdentitiesTable(unittest.TestCase, QuamashTest):
             self.addCleanup(srv.close)
 
             identities_tab.change_account(self.account, self.password_asker)
-            identities_tab.change_community(self.community)
+            identities_tab.change_currency(self.community)
             await asyncio.sleep(1)
 
             QTest.keyClicks(identities_tab.ui.edit_textsearch, "doe")

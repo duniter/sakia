@@ -13,6 +13,7 @@ from sakia.data.connectors import BmaConnector
 from sakia.services import NetworkService, BlockchainService, IdentitiesService, \
     SourcesServices, TransactionsService, DocumentsService
 from sakia.data.repositories import SakiaDatabase
+from sakia.data.entities import Transaction
 from sakia.data.processors import BlockchainProcessor, NodesProcessor, IdentitiesProcessor, \
     CertificationsProcessor, SourcesProcessor, TransactionsProcessor, ConnectionsProcessor
 from sakia.data.files import AppDataFile, UserParametersFile
@@ -42,6 +43,8 @@ class Application(QObject):
     :param dict transactions_services: All transactions services for current currency
     :param sakia.services.DocumentsService documents_service: A service to broadcast documents
     """
+
+    new_transfer = pyqtSignal(Transaction)
 
     qapp = attr.ib()
     loop = attr.ib()
@@ -102,7 +105,7 @@ class Application(QObject):
         self.identities_services = {}
         self.sources_services = {}
         self.transactions_services = {}
-        self.documents_service = DocumentsService(bma_connector, blockchain_processor, identities_processor)
+        self.documents_service = DocumentsService.instanciate(self)
 
         for currency in self.db.connections_repo.get_currencies():
             if currency not in self.identities_services:

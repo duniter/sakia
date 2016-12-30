@@ -29,8 +29,8 @@ class ConnectionsProcessor:
     def pubkeys(self):
         return self._connections_repo.get_pubkeys()
 
-    def connections(self, currency):
-        return self._connections_repo.get_all(currency=currency)
+    def connections(self):
+        return self._connections_repo.get_all()
 
     def currencies(self):
         return self._connections_repo.get_currencies()

@@ -28,7 +28,6 @@ class CertificationController(QObject):
         super().__init__()
         self.view.button_box.accepted.connect(self.accept)
         self.view.button_box.rejected.connect(self.reject)
-        self.view.combo_currency.currentIndexChanged.connect(self.change_currency)
         self.view.combo_pubkey.currentIndexChanged.connect(self.change_connection)
 
     @classmethod
@@ -44,15 +43,13 @@ class CertificationController(QObject):
         model = CertificationModel(app)
         certification = cls(view, model, None, None)
 
-        search_user = SearchUserController.create(certification, app, model.available_currencies()[0])
+        search_user = SearchUserController.create(certification, app, "")
         certification.set_search_user(search_user)
 
-        user_information = UserInformationController.create(certification, app,
-                                                            model.available_currencies()[0], None)
+        user_information = UserInformationController.create(certification, app, "", None)
         certification.set_user_information(user_information)
 
-        view.set_currencies(certification.model.available_currencies())
-        view.set_keys(certification.model.available_connections(certification.model.available_currencies()[0]))
+        view.set_keys(certification.model.available_connections())
         return certification
 
     @classmethod
@@ -67,7 +64,7 @@ class CertificationController(QObject):
         """
         dialog = cls.create(parent, app)
         if connection:
-            dialog.view.combo_currency.setCurrentText(connection.currency)
+            dialog.view.combo_pubkey.setCurrentText(connection.title())
         dialog.refresh()
         return dialog.exec()
 
@@ -77,13 +74,12 @@ class CertificationController(QObject):
         Certify and identity
         :param sakia.gui.component.controller.ComponentController parent: the parent
         :param sakia.core.Application app: the application
-        :param sakia.core.Account account: the account certifying the identity
-        :param sakia.core.Community community: the community
-        :param sakia.core.registry.Identity identity: the identity certified
+        :param sakia.data.entities.Connection connection: the connection
+        :param sakia.data.entities.Identity identity: the identity certified
         :return:
         """
         dialog = cls.create(parent, app)
-        dialog.view.combo_community.setCurrentText(connection.currency)
+        dialog.view.combo_pubkey.setCurrentText(connection.title())
         dialog.refresh()
         return await dialog.async_exec()
 
@@ -162,16 +158,10 @@ class CertificationController(QObject):
         """
         self.user_information.search_identity(self.search_user.model.identity())
 
-    def change_currency(self, index):
-        currency = self.model.available_currencies()[index]
-        connections = self.model.available_connections(currency)
-        self.view.set_selected_key(connections[0])
-        self.search_user.set_currency(currency)
-        self.user_information.set_currency(currency)
-
     def change_connection(self, index):
-        currency = self.model.available_currencies()[index]
-        self.model.set_connection(currency, index)
+        self.model.set_connection(index)
+        self.search_user.set_currency(self.model.connection.currency)
+        self.user_information.set_currency(self.model.connection.currency)
         self.refresh()
 
     def async_exec(self):

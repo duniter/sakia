@@ -61,7 +61,7 @@ class TransferMoneyDialog(QObject):
         self.ui.search_user.button_reset.hide()
         self.ui.search_user.init(self.app)
         self.ui.search_user.change_account(self.account)
-        self.ui.search_user.change_community(self.community)
+        self.ui.search_user.change_currency(self.community)
         self.ui.search_user.search_started.connect(lambda: self.ui.button_box.setEnabled(False))
         self.ui.search_user.search_completed.connect(lambda: self.ui.button_box.setEnabled(True))
 
