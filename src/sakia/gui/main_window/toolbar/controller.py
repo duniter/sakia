@@ -48,6 +48,11 @@ class ToolbarController(QObject):
         toolbar = cls(view, model)
         return toolbar
 
+    def enable_actions(self, enabled):
+        self.view.button_certification.setEnabled(enabled)
+        self.view.button_send_money.setEnabled(enabled)
+        self.view.button_membership.setEnabled(enabled)
+
     @asyncify
     async def action_save_revokation(self, checked=False):
         password = await self.password_asker.async_exec()
@@ -135,20 +140,6 @@ The process to join back the community later will have to be done again.""")
             else:
                 await QAsyncMessageBox.critical(self, self.tr("UID"),
                                                         result[1])
-
-    def set_account(self, account):
-        """
-        Set current account
-        :param sakia.core.Account account:
-        """
-        self.model.account = account
-
-    def set_community(self, community):
-        """
-        Set current community
-        :param sakia.core.Community community:
-        """
-        self.model.community = community
 
     def open_certification_dialog(self):
         CertificationController.open_dialog(self, self.model.app,

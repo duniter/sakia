@@ -115,21 +115,6 @@ class MainWindowController(QObject):
                 version_info=version_info,
                 version_url=version_url))
 
-    def handle_account_change(self, account):
-        """
-        Set current account
-        :param sakia.core.Account account:
-        """
-        self.toolbar.account = account
-        self.password_asker.change_connection(account)
-
-    def handle_currency_change(self, currency):
-        """
-        Set current community
-        :param str community:
-        """
-        self.toolbar.currency = currency
-
     def refresh(self):
         """
         Refresh main window
@@ -137,6 +122,7 @@ class MainWindowController(QObject):
         in the window have to be refreshed
         """
         self.status_bar.refresh()
+        self.toolbar.enable_actions(len(self.navigation.model.navigation[0]['children']) > 0)
         self.view.setWindowTitle(self.tr("sakia {0}").format(__version__))
 
     def eventFilter(self, target, event):

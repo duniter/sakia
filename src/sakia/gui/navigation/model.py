@@ -17,7 +17,7 @@ class NavigationModel(QObject):
         """
         super().__init__(parent)
         self.app = app
-        self.navigation = {}
+        self.navigation = []
         self._current_data = None
 
     def init_navigation_data(self):
