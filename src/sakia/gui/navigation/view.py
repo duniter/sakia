@@ -44,3 +44,7 @@ class NavigationView(QFrame, Ui_Navigation):
                 if self.stacked_widget.indexOf(widget):
                     self.stacked_widget.setCurrentWidget(widget)
                     self.current_view_changed.emit(raw_data)
+
+    def add_connection(self, raw_data):
+        self.tree_view.model().insert_node(raw_data)
+        self.tree_view.expandAll()

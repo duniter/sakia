@@ -29,8 +29,8 @@ class ToolbarView(QFrame, Ui_SakiaToolbar):
         tool_menu.addMenu(menu_advanced)
 
         menu_options = QMenu(self.tr("Options"), self.toolbutton_menu)
-        self.action_create_account = QAction(self.tr("Create a new account"), menu_options)
-        menu_options.addAction(self.action_create_account)
+        self.action_add_connection = QAction(self.tr("Add a connection"), menu_options)
+        menu_options.addAction(self.action_add_connection)
         tool_menu.addMenu(menu_options)
 
         self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Minimum)

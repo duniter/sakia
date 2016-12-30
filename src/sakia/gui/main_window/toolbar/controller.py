@@ -21,8 +21,8 @@ class ToolbarController(QObject):
     def __init__(self, view, model):
         """
         :param sakia.gui.component.controller.ComponentController parent: the parent
-        :param sakia.gui.toolbar.view.ToolbarView view:
-        :param sakia.gui.toolbar.model.ToolbarModel model:
+        :param sakia.gui.main_window.toolbar.view.ToolbarView view:
+        :param sakia.gui.main_window.toolbar.model.ToolbarModel model:
         """
         super().__init__()
         self.view = view
@@ -32,7 +32,7 @@ class ToolbarController(QObject):
         self.view.action_gen_revokation.triggered.connect(self.action_save_revokation)
         self.view.action_publish_uid.triggered.connect(self.publish_uid)
         self.view.button_membership.clicked.connect(self.send_membership_demand)
-        self.view.action_create_account.triggered.connect(self.open_create_account_dialog)
+        self.view.action_add_connection.triggered.connect(self.open_add_connection_dialog)
 
     @classmethod
     def create(cls, app, navigation):
@@ -150,14 +150,14 @@ The process to join back the community later will have to be done again.""")
                                      self.account)
 
     def open_transfer_money_dialog(self):
-        TransferController.open_dialog(self, self.model.app,
-                                       account=self.model.account,
-                                       password_asker=self.password_asker)
+        TransferController.open_dialog(self, self.model.app, self.model.navigation_model.current_connection())
 
-    def open_create_account_dialog(self):
-        ConnectionConfigController.create_connection(self, self.model.app).exec()
+    def open_add_connection_dialog(self):
+        connection_config = ConnectionConfigController.create_connection(self, self.model.app)
+        connection_config.exec()
         self.model.app.instanciate_services()
         self.model.app.start_coroutines()
+        self.model.app.new_connection.emit(connection_config.model.connection)
 
     def retranslateUi(self, widget):
         """

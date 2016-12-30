@@ -9,6 +9,16 @@ from PyQt5.QtGui import QIcon
 import logging
 
 
+def parse_node(node_data, parent_item):
+    node = NodeItem(node_data, parent_item)
+    if parent_item:
+        parent_item.appendChild(node)
+    if 'children' in node_data:
+        for child in node_data['children']:
+            parse_node(child, node)
+    return node
+
+
 class NodeItem(QAbstractItemModel):
     def __init__(self, node, parent_item):
         super().__init__(parent_item)
@@ -46,6 +56,9 @@ class NodeItem(QAbstractItemModel):
             return self.parent_item.row() + self.parent_item.children.index(self)
         return 0
 
+    def column(self):
+        return 0
+
 
 class GenericTreeModel(QAbstractItemModel):
 
@@ -64,7 +77,6 @@ class GenericTreeModel(QAbstractItemModel):
 
     ROLE_RAW_DATA = 101
 
-
     def __init__(self, title, root_item):
         """
         Constructor
@@ -75,15 +87,6 @@ class GenericTreeModel(QAbstractItemModel):
 
     @classmethod
     def create(cls, title, data):
-        def parse_node(node_data, parent_item):
-            node = NodeItem(node_data, parent_item)
-            if parent_item:
-                parent_item.appendChild(node)
-            if 'children' in node_data:
-                for child in node_data['children']:
-                    parse_node(child, node)
-            return node
-
         root_item = NodeItem({}, None)
         for node in data:
             parse_node(node, root_item)
@@ -148,17 +151,22 @@ class GenericTreeModel(QAbstractItemModel):
 
         return self.createIndex(parent_item.row(), 0, parent_item)
 
-    def rowCount(self, parent):
-        if parent.column() > 0:
-            return 0
-
-        if not parent.isValid():
+    def rowCount(self, parent_index):
+        if not parent_index.isValid():
             parent_item = self.root_item
         else:
-            parent_item = parent.internalPointer()
+            parent_item = parent_index.internalPointer()
+
+        if parent_index.column() > 0:
+            return 0
 
         return parent_item.childCount()
 
     def setData(self, index, value, role=Qt.EditRole):
         if index.column() == 0:
             return True
+
+    def insert_node(self, raw_data):
+        self.beginInsertRows(QModelIndex(), self.rowCount(QModelIndex()), 0)
+        parse_node(raw_data, self.root_item)
+        self.endInsertRows()

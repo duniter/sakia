@@ -128,10 +128,10 @@ class CertificationsProcessor:
             for certified_data in data['certifications']:
                 certification = Certification(currency=identity.currency,
                                               certifier=identity.pubkey,
-                                              certified=certifier_data['pubkey'],
-                                              block=certifier_data['cert_time']['block'],
-                                              timestamp=certifier_data['cert_time']['medianTime'],
-                                              signature=certifier_data['signature'])
+                                              certified=certified_data['pubkey'],
+                                              block=certified_data['cert_time']['block'],
+                                              timestamp=certified_data['cert_time']['medianTime'],
+                                              signature=certified_data['signature'])
                 other_identity = Identity(currency=identity.currency,
                                           pubkey=certified_data['pubkey'],
                                           uid=certified_data['uid'],

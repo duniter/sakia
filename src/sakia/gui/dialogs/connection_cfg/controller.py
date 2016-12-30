@@ -114,22 +114,25 @@ class ConnectionConfigController(QObject):
 
     async def process(self):
         self._logger.debug("Begin process")
-        while not self.model.connection:
+        if self.model.connection:
             mode = await self.step_node
-            self._logger.debug("Create connection")
-            try:
-                self.view.button_connect.setEnabled(False)
-                self.view.button_register.setEnabled(False)
-                await self.model.create_connection(self.view.edit_server.text(),
-                                                   self.view.spinbox_port.value(),
-                                                   self.view.checkbox_secured.isChecked())
-                self.password_asker = PasswordAskerDialog(self.model.connection)
-            except (DisconnectedError, ClientError, MalformedDocumentError, ValueError, TimeoutError) as e:
-                self._logger.debug(str(e))
-                self.view.display_info(self.tr("Could not connect. Check hostname, ip address or port : </br>str(e)"))
-                self.step_node = asyncio.Future()
-                self.view.button_connect.setEnabled(True)
-                self.view.button_register.setEnabled(True)
+        else:
+            while not self.model.connection:
+                mode = await self.step_node
+                self._logger.debug("Create connection")
+                try:
+                    self.view.button_connect.setEnabled(False)
+                    self.view.button_register.setEnabled(False)
+                    await self.model.create_connection(self.view.edit_server.text(),
+                                                       self.view.spinbox_port.value(),
+                                                       self.view.checkbox_secured.isChecked())
+                    self.password_asker = PasswordAskerDialog(self.model.connection)
+                except (DisconnectedError, ClientError, MalformedDocumentError, ValueError, TimeoutError) as e:
+                    self._logger.debug(str(e))
+                    self.view.display_info(self.tr("Could not connect. Check hostname, ip address or port : </br>str(e)"))
+                    self.step_node = asyncio.Future()
+                    self.view.button_connect.setEnabled(True)
+                    self.view.button_register.setEnabled(True)
 
         self._logger.debug("Key step")
         self.view.set_currency(self.model.connection.currency)
@@ -185,6 +188,7 @@ class ConnectionConfigController(QObject):
             self.step_node = asyncio.Future()
             self.step_node.set_result(mode)
             self.step_key = asyncio.Future()
+            self.view.button_next.disconnect()
             asyncio.ensure_future(self.process())
             return
         self.accept()

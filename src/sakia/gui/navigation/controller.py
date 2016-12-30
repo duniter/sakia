@@ -21,7 +21,7 @@ class NavigationController(QObject):
         """
         Constructor of the navigation component
 
-        :param sakia.gui.navigation.view view: the view
+        :param sakia.gui.navigation.view.NavigationView view: the view
         :param sakia.gui.navigation.model.NavigationModel model: the model
         """
         super().__init__(parent)
@@ -41,7 +41,7 @@ class NavigationController(QObject):
     def create(cls, parent, app):
         """
         Instanciate a navigation component
-        :param sakia.gui.agent.controller.AgentController parent:
+        :param sakia.app.Application app: the application
         :return: a new Navigation controller
         :rtype: NavigationController
         """
@@ -50,23 +50,24 @@ class NavigationController(QObject):
         navigation = cls(parent, view, model)
         model.setParent(navigation)
         navigation.init_navigation()
+        app.new_connection.connect(navigation.add_connection)
         return navigation
 
+    def parse_node(self, node_data):
+        if 'component' in node_data:
+            component_class = self.components[node_data['component']]
+            component = component_class.create(self, self.model.app, **node_data['dependencies'])
+            widget = self.view.add_widget(component.view)
+            node_data['widget'] = widget
+        if 'children' in node_data:
+            for child in node_data['children']:
+                self.parse_node(child)
+
     def init_navigation(self):
-        def parse_node(node_data):
-            if 'component' in node_data:
-                component_class = self.components[node_data['component']]
-                component = component_class.create(self, self.model.app, **node_data['dependencies'])
-                widget = self.view.add_widget(component.view)
-                node_data['widget'] = widget
-            if 'children' in node_data:
-                for child in node_data['children']:
-                    parse_node(child)
-            return node
         self.model.init_navigation_data()
 
         for node in self.model.navigation:
-            parse_node(node)
+            self.parse_node(node)
 
         self.view.set_model(self.model)
 
@@ -83,3 +84,8 @@ class NavigationController(QObject):
         if currency != self.model.current_data('currency'):
             self.currency_changed.emit(currency)
         self.model.set_current_data(raw_data)
+
+    def add_connection(self, connection):
+        raw_node = self.model.add_connection(connection)
+        self.view.add_connection(raw_node)
+        self.parse_node(raw_node)
