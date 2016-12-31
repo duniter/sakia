@@ -42,7 +42,6 @@ class NetworkService(QObject):
         self.currency = currency
         self._must_crawl = False
         self._block_found = self._processor.current_buid(self.currency)
-        self._client_session = session
         self._discovery_stack = []
         self._blockchain_service = blockchain_service
         self._discovery_loop_task = None
@@ -109,14 +108,7 @@ class NetworkService(QObject):
         self._logger.debug("Closing {0} websockets".format(len(close_tasks)))
         if len(close_tasks) > 0:
             await asyncio.wait(close_tasks, timeout=15)
-        if closing:
-            self._logger.debug("Closing client session")
-            await self._client_session.close()
         self._logger.debug("Closed")
-
-    @property
-    def session(self):
-        return self._client_session
 
     def continue_crawling(self):
         return self._must_crawl
@@ -174,6 +166,7 @@ class NetworkService(QObject):
     async def refresh_once(self):
         for connector in self._connectors:
             await asyncio.sleep(1)
+            await connector.init_session()
             connector.refresh(manual=True)
 
     async def discover_network(self):
@@ -181,16 +174,13 @@ class NetworkService(QObject):
         Start crawling which never stops.
         To stop this crawling, call "stop_crawling" method.
         """
-        session = aiohttp.ClientSession()
-        for connector in self._connectors:
-            connector.session = session
-
         self._must_crawl = True
         first_loop = True
         asyncio.ensure_future(self.discovery_loop())
         while self.continue_crawling():
             for connector in self._connectors:
                 if self.continue_crawling():
+                    await connector.init_session()
                     connector.refresh()
                     if not first_loop:
                         await asyncio.sleep(15)
@@ -211,8 +201,9 @@ class NetworkService(QObject):
                 if self._processor.unknown_node(self.currency, peer.pubkey):
                     self._logger.debug("New node found : {0}".format(peer.pubkey[:5]))
                     try:
-                        connector = NodeConnector.from_peer(self.currency, peer, self.session)
+                        connector = NodeConnector.from_peer(self.currency, peer)
                         self._processor.insert_node(connector.node)
+                        await connector.init_session()
                         connector.refresh(manual=True)
                         self.add_connector(connector)
                         self.nodes_changed.emit()

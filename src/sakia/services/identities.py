@@ -53,7 +53,7 @@ class IdentitiesService(QObject):
         return blockchain_time - cert_time < parameters.sig_window * parameters.avg_gen_time
 
     def _get_connections_identities(self):
-        connections = self._connections_processor.connections(self.currency)
+        connections = self._connections_processor.connections_to(self.currency)
         identities = []
         for c in connections:
             identities.append(self._identities_processor.get_identity(self.currency, c.pubkey))

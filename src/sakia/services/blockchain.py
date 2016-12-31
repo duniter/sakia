@@ -1,6 +1,8 @@
 from PyQt5.QtCore import QObject
 import math
 import logging
+from duniterpy.api.errors import DuniterError
+from sakia.errors import NoPeerAvailable
 
 
 class BlockchainService(QObject):
@@ -32,12 +34,15 @@ class BlockchainService(QObject):
         """
         Handle a new current block uid
         """
-        with_identities = await self._blockchain_processor.new_blocks_with_identities(self.currency)
-        with_money = await self._blockchain_processor.new_blocks_with_money(self.currency)
-        blocks = await self._blockchain_processor.blocks(with_identities + with_money, self.currency)
-        await self._identities_service.handle_new_blocks(blocks)
-        await self._transactions_service.handle_new_blocks(blocks)
-        self.app.db.commit()
+        try:
+            with_identities = await self._blockchain_processor.new_blocks_with_identities(self.currency)
+            with_money = await self._blockchain_processor.new_blocks_with_money(self.currency)
+            blocks = await self._blockchain_processor.blocks(with_identities + with_money, self.currency)
+            await self._identities_service.handle_new_blocks(blocks)
+            await self._transactions_service.handle_new_blocks(blocks)
+            self.app.db.commit()
+        except (NoPeerAvailable, DuniterError) as e:
+            self._logger.debug(str(e))
 
     def current_buid(self):
         return self._blockchain_processor.current_buid(self.currency)

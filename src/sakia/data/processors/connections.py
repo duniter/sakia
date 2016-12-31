@@ -32,5 +32,8 @@ class ConnectionsProcessor:
     def connections(self):
         return self._connections_repo.get_all()
 
+    def connections_to(self, currency):
+        return self._connections_repo.get_all(currency=currency)
+
     def currencies(self):
         return self._connections_repo.get_currencies()
