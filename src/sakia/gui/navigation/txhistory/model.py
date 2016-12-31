@@ -47,6 +47,7 @@ class TxHistoryModel(QObject):
         self._proxy.setDynamicSortFilter(True)
         self._proxy.setSortRole(Qt.DisplayRole)
         self._model.refresh_transfers()
+        self.app.new_transfer.connect(self._model.add_transfer)
 
         return self._proxy
 

@@ -113,6 +113,7 @@ class TransactionsProcessor:
         :param txdoc: A transaction duniterpy object
         :param currency: The community target of the transaction
         """
+        self._repo.insert(tx)
         responses = await self._bma_connector.broadcast(currency, bma.tx.process, req_args={'transaction': txdoc.signed_raw()})
         result = (False, "")
         for r in responses:

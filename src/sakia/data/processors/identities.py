@@ -87,8 +87,6 @@ class IdentitiesProcessor:
             except (errors.DuniterError, asyncio.TimeoutError, ClientError) as e:
                 tries += 1
                 self._logger.debug(str(e))
-            except NoPeerAvailable as e:
-                self._logger.debug(str(e))
         return identities
 
     def get_written(self, currency, pubkey):

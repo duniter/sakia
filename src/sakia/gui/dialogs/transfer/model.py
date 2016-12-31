@@ -26,13 +26,13 @@ class TransferModel(QObject):
         self._sources_processor = SourcesProcessor.instanciate(self.app)
         self._connections_processor = ConnectionsProcessor.instanciate(self.app)
 
-    async def rel_to_quant(self, rel_value):
+    def rel_to_quant(self, rel_value):
         """
         Get the quantitative value of a relative amount
         :param float rel_value:
         :rtype: int
         """
-        dividend, base = await self._blockchain_processor.last_ud(self.connection.currency)
+        dividend, base = self._blockchain_processor.last_ud(self.connection.currency)
         amount = rel_value * dividend * pow(10, base)
         # amount is rounded to the nearest power of 10 depending of last ud base
         rounded = int(pow(10, base) * round(float(amount) / pow(10, base)))
@@ -93,8 +93,10 @@ class TransferModel(QObject):
         :return: the result of the send
         """
 
-        return await self.app.documents_service.send_money(self.connection, password,
+        result = await self.app.documents_service.send_money(self.connection, password,
                                                            recipient, amount, amount_base, comment)
+        self.app.db.commit()
+        return result
 
     def notifications(self):
         return self.app.parameters.notifications

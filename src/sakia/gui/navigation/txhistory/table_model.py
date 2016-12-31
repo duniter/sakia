@@ -10,7 +10,7 @@ import logging
 import math
 
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, \
-    QDateTime, QLocale
+    QDateTime, QLocale, QModelIndex
 from PyQt5.QtGui import QFont, QColor, QIcon
 from sakia.errors import NoPeerAvailable
 from sakia.data.entities import Transaction
@@ -233,6 +233,15 @@ class HistoryTableModel(QAbstractTableModel):
         """
         #TODO: Handle dividends
         return self.transactions_service.transfers(self.connection.pubkey)
+
+    def add_transfer(self, transfer):
+        self.beginInsertRows(QModelIndex(), 0, 0)
+        if type(transfer) is Transaction:
+            if transfer.issuer == self.connection.pubkey:
+                self.transfers_data.append(self.data_sent(transfer))
+            else:
+                self.transfers_data.append(self.data_received(transfer))
+        self.endInsertRows()
 
     def data_received(self, transfer):
         """

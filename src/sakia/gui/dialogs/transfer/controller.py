@@ -21,8 +21,8 @@ class TransferController(QObject):
         """
         Constructor of the transfer component
 
-        :param sakia.gui.transfer.view.TransferView: the view
-        :param sakia.gui.transfer.model.TransferModel model: the model
+        :param sakia.gui.dialogs.transfer.view.TransferView: the view
+        :param sakia.gui.dialogs.transfer.model.TransferModel model: the model
         """
         super().__init__()
         self.view = view
@@ -54,6 +54,8 @@ class TransferController(QObject):
         user_information = UserInformationController.create(transfer, app, "", None)
         transfer.set_user_information(user_information)
 
+        search_user.identity_selected.connect(user_information.search_identity)
+
         view.set_keys(transfer.model.available_connections())
         return transfer
 
@@ -61,16 +63,14 @@ class TransferController(QObject):
     def open_dialog(cls, parent, app, connection):
         dialog = cls.create(parent, app)
         if connection:
-            dialog.view.combo_currency.setCurrentText(connection.currency)
-            dialog.view.combo_wallets.setCurrentText(connection.title())
+            dialog.view.combo_connections.setCurrentText(connection.title())
         dialog.refresh()
         return dialog.exec()
 
     @classmethod
     async def send_money_to_identity(cls, parent, app, connection, identity):
         dialog = cls.create(parent, app)
-        dialog.view.combo_currency.setCurrentText(identity.currency)
-        dialog.view.combo_wallets.setCurrentText(connection.title())
+        dialog.view.combo_connections.setCurrentText(connection.title())
         dialog.view.edit_pubkey.setText(identity.pubkey)
         dialog.view.radio_pubkey.setChecked(True)
 
@@ -80,8 +80,7 @@ class TransferController(QObject):
     @classmethod
     async def send_transfer_again(cls, parent, app, connection, resent_transfer):
         dialog = cls.create(parent, app)
-        dialog.view.combo_currency.setCurrentText(resent_transfer.currency)
-        dialog.view.combo_wallets.setCurrentText(connection.title())
+        dialog.view.combo_connections.setCurrentText(connection.title())
         dialog.view.edit_pubkey.setText(resent_transfer.receiver)
         dialog.view.radio_pubkey.setChecked(True)
 
@@ -93,7 +92,7 @@ class TransferController(QObject):
 
         account = resent_transfer.metadata['issuer']
         wallet_index = [w.pubkey for w in app.current_account.wallets].index(account)
-        dialog.view.combo_wallets.setCurrentIndex(wallet_index)
+        dialog.view.combo_connections.setCurrentIndex(wallet_index)
         dialog.view.edit_pubkey.setText(resent_transfer.metadata['receiver'])
         dialog.view.radio_pubkey.setChecked(True)
         dialog.view.edit_message.setText(resent_transfer.metadata['comment'])
@@ -108,7 +107,6 @@ class TransferController(QObject):
         """
         self.search_user = search_user
         self.view.set_search_user(search_user.view)
-        search_user.identity_selected.connect(self.refresh_user_information)
 
     def set_user_information(self, user_information):
         """
@@ -118,13 +116,6 @@ class TransferController(QObject):
         """
         self.user_information = user_information
         self.view.set_user_information(user_information.view)
-
-    def refresh_user_information(self):
-        """
-        Refresh user information
-        """
-        pubkey = self.selected_pubkey()
-        self.user_information.search_identity(pubkey)
 
     def selected_pubkey(self):
         """
@@ -224,6 +215,8 @@ class TransferController(QObject):
 
     def change_current_connection(self, index):
         self.model.set_connection(index)
+        self.search_user.set_currency(self.model.connection.currency)
+        self.user_information.set_currency(self.model.connection.currency)
         self.refresh()
 
     def async_exec(self):
