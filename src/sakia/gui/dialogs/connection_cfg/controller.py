@@ -158,8 +158,7 @@ class ConnectionConfigController(QObject):
             if mode == ConnectionConfigController.REGISTER:
                 self.view.display_info(self.tr("Broadcasting identity..."))
                 self.view.stream_log("Broadcasting identity...")
-                password = await self.password_asker.async_exec()
-                result, connection_identity = await self.model.publish_selfcert(password)
+                result, connection_identity = await self.model.publish_selfcert()
                 if result[0]:
                     await self.view.show_success(self.model.notification())
                 else:
@@ -191,6 +190,9 @@ class ConnectionConfigController(QObject):
             self.view.button_next.disconnect()
             asyncio.ensure_future(self.process())
             return
+        finally:
+            if self.model.node_connector:
+                await self.model.node_connector.session.close()
         self.accept()
 
     def check_key(self):

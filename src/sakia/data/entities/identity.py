@@ -28,5 +28,4 @@ class Identity:
         :return: the document
         :rtype: duniterpy.documents.Identity
         """
-        return IdentityDoc(3, self.currency, self.pubkey,
-                        self.uid, self.blockstamp, self.signature)
+        return IdentityDoc(3, self.currency, self.pubkey, self.uid, self.blockstamp, self.signature)

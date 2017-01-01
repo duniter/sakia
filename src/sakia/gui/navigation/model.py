@@ -38,7 +38,7 @@ class NavigationModel(QObject):
 
     def create_node(self, connection):
         return {
-            'title': connection.currency,
+            'title': connection.title(),
             'component': "Informations",
             'dependencies': {
                 'blockchain_service': self.app.blockchain_services[connection.currency],
@@ -124,3 +124,6 @@ class NavigationModel(QObject):
             return self._current_data['misc'].get('connection', None)
         else:
             return None
+
+    def generate_revokation(self, connection, password):
+        return self.app.documents_service.generate_revokation(connection, password)

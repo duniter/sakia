@@ -1,5 +1,3 @@
-import logging
-
 from PyQt5.QtCore import Qt, QObject
 from PyQt5.QtWidgets import QDialog, QMessageBox
 
@@ -9,6 +7,7 @@ from sakia.gui.dialogs.certification.controller import CertificationController
 from sakia.gui.dialogs.transfer.controller import TransferController
 from sakia.gui.widgets import toast
 from sakia.gui.widgets.dialogs import QAsyncMessageBox, QAsyncFileDialog, dialog_async_exec
+from sakia.gui.password_asker import PasswordAskerDialog
 from .model import ToolbarModel
 from .view import ToolbarView
 
@@ -29,7 +28,6 @@ class ToolbarController(QObject):
         self.model = model
         self.view.button_certification.clicked.connect(self.open_certification_dialog)
         self.view.button_send_money.clicked.connect(self.open_transfer_money_dialog)
-        self.view.action_gen_revokation.triggered.connect(self.action_save_revokation)
         self.view.action_publish_uid.triggered.connect(self.publish_uid)
         self.view.button_membership.clicked.connect(self.send_membership_demand)
         self.view.action_add_connection.triggered.connect(self.open_add_connection_dialog)
@@ -52,31 +50,6 @@ class ToolbarController(QObject):
         self.view.button_certification.setEnabled(enabled)
         self.view.button_send_money.setEnabled(enabled)
         self.view.button_membership.setEnabled(enabled)
-
-    @asyncify
-    async def action_save_revokation(self, checked=False):
-        password = await self.password_asker.async_exec()
-        if self.password_asker.result() == QDialog.Rejected:
-            return
-
-        raw_document = await self.account.generate_revokation(self.community, password)
-        # Testable way of using a QFileDialog
-        selected_files = await QAsyncFileDialog.get_save_filename(self, self.tr("Save a revokation document"),
-                                                                  "", self.tr("All text files (*.txt)"))
-        if selected_files:
-            path = selected_files[0]
-            if not path.endswith('.txt'):
-                path = "{0}.txt".format(path)
-            with open(path, 'w') as save_file:
-                save_file.write(raw_document)
-
-        dialog = QMessageBox(QMessageBox.Information, self.tr("Revokation file"),
-                             self.tr("""<div>Your revokation document has been saved.</div>
-<div><b>Please keep it in a safe place.</b></div>
-The publication of this document will remove your identity from the network.</p>"""), QMessageBox.Ok,
-                             self)
-        dialog.setTextFormat(Qt.RichText)
-        await dialog_async_exec(dialog)
 
     @asyncify
     async def send_membership_demand(self, checked=False):

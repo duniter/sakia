@@ -30,14 +30,9 @@ class ConnectionConfigModel(QObject):
         self.identities_processor = identities_processor
 
     async def create_connection(self, server, port, secured):
-        session = aiohttp.ClientSession()
-        try:
-            self.node_connector = await NodeConnector.from_address(None, secured, server, port, session)
-            self.connection = Connection(self.node_connector.node.currency, "", "")
-            self.node_connector.node.state = Node.ONLINE
-        except:
-            session.close()
-            raise
+        self.node_connector = await NodeConnector.from_address(None, secured, server, port)
+        self.connection = Connection(self.node_connector.node.currency, "", "")
+        self.node_connector.node.state = Node.ONLINE
 
     def notification(self):
         return self.app.parameters.notifications
@@ -50,11 +45,13 @@ class ConnectionConfigModel(QObject):
         self.connection.N = scrypt_params.N
         self.connection.r = scrypt_params.r
         self.connection.p = scrypt_params.p
+        self.connection.password = password
         self.connection.pubkey = SigningKey(self.connection.salt, password, scrypt_params).pubkey
 
     def insert_or_update_connection(self):
         ConnectionsProcessor(self.app.db.connections_repo).commit_connection(self.connection)
         NodesProcessor(self.app.db.nodes_repo).commit_node(self.node_connector.node)
+        self.node_connector.session.close()
 
     def insert_or_update_identity(self, identity):
         self.identities_processor.insert_or_update_identity(identity)
@@ -106,11 +103,11 @@ class ConnectionConfigModel(QObject):
         transactions_processor = TransactionsProcessor.instanciate(self.app)
         await transactions_processor.initialize_transactions(identity, log_stream)
 
-    async def publish_selfcert(self, password):
+    async def publish_selfcert(self):
         """"
         Publish the self certification of the connection identity
         """
-        return await self.app.documents_service.broadcast_identity(self.connection, password)
+        return await self.app.documents_service.broadcast_identity(self.connection, self.connection.password)
 
     async def check_registered(self):
         """
@@ -119,9 +116,6 @@ class ConnectionConfigModel(QObject):
         """
         identity = Identity(self.connection.currency, self.connection.pubkey, self.connection.uid)
         found_identity = Identity(self.connection.currency, self.connection.pubkey, self.connection.uid)
-
-        def _parse_uid_certifiers(data):
-            return identity.uid == data['uid'], identity.uid, data['uid']
 
         def _parse_uid_lookup(data):
             timestamp = BlockUID.empty()
@@ -134,10 +128,8 @@ class ConnectionConfigModel(QObject):
                             timestamp = uid_data["meta"]["timestamp"]
                             found_uid = uid_data["uid"]
                             found_identity.timestamp = timestamp  # We save the timestamp in the found identity
+                            found_identity.signature = uid_data["self"]
             return identity.uid == found_uid, identity.uid, found_uid
-
-        def _parse_pubkey_certifiers(data):
-            return identity.pubkey == data['pubkey'], identity.pubkey, data['pubkey']
 
         def _parse_pubkey_lookup(data):
             timestamp = BlockUID.empty()
@@ -150,6 +142,7 @@ class ConnectionConfigModel(QObject):
                         timestamp = BlockUID.from_str(uid_data["meta"]["timestamp"])
                         found_uid = uid_data["uid"]
                         found_identity.timestamp = timestamp  # We save the timestamp in the found identity
+                        found_identity.signature = uid_data["self"]
                 if found_uid == identity.uid:
                     found_result = result['pubkey'], found_uid
             if found_result[1] == identity.uid:
@@ -157,27 +150,23 @@ class ConnectionConfigModel(QObject):
             else:
                 return False, identity.pubkey, None
 
-        async def execute_requests(parsers, search):
+        async def execute_requests(parser, search):
             tries = 0
-            request = bma.wot.certifiers_of
             nonlocal registered
             for endpoint in [e for e in self.node_connector.node.endpoints if isinstance(e, BMAEndpoint)]:
                 if not registered[0] and not registered[2]:
                     try:
-                        data = await self.node_connector.safe_request(endpoint, request, req_args={'search': search})
+                        data = await self.node_connector.safe_request(endpoint, bma.wot.lookup,
+                                                                      req_args={'search': search})
                         if data:
-                            registered = parsers[request](data)
+                            registered = parser(data)
                         tries += 1
                     except errors.DuniterError as e:
                         if e.ucode in (errors.NO_MEMBER_MATCHING_PUB_OR_UID,
                                        e.ucode == errors.NO_MATCHING_IDENTITY):
-                            if request == bma.wot.certifiers_of:
-                                request = bma.wot.lookup
-                                tries = 0
-                            else:
                                 tries += 1
                         else:
-                            tries += 1
+                            raise
                 else:
                     break
 
@@ -187,20 +176,12 @@ class ConnectionConfigModel(QObject):
         registered = (False, identity.uid, None)
         # We execute search based on pubkey
         # And look for account UID
-        uid_parsers = {
-            bma.wot.certifiers_of: _parse_uid_certifiers,
-            bma.wot.lookup: _parse_uid_lookup
-        }
-        await execute_requests(uid_parsers, identity.pubkey)
+        await execute_requests(_parse_uid_lookup, identity.pubkey)
 
         # If the uid wasn't found when looking for the pubkey
         # We look for the uid and check for the pubkey
         if not registered[0] and not registered[2]:
-            pubkey_parsers = {
-                bma.wot.certifiers_of: _parse_pubkey_certifiers,
-                bma.wot.lookup: _parse_pubkey_lookup
-            }
-            await execute_requests(pubkey_parsers, identity.uid)
+            await execute_requests(_parse_pubkey_lookup, identity.uid)
 
         return registered, found_identity
 

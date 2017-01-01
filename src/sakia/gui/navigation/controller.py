@@ -1,5 +1,6 @@
 from .model import NavigationModel
 from .view import NavigationView
+from sakia.models.generic_tree import GenericTreeModel
 from .txhistory.controller import TxHistoryController
 from .homescreen.controller import HomeScreenController
 from .network.controller import NetworkController
@@ -7,7 +8,12 @@ from .identities.controller import IdentitiesController
 from .informations.controller import InformationsController
 from .graphs.wot.controller import WotController
 from sakia.data.entities import Connection
-from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtCore import pyqtSignal, QObject, Qt
+from PyQt5.QtWidgets import QMenu, QAction, QMessageBox, QDialog
+from PyQt5.QtGui import QCursor
+from sakia.decorators import asyncify
+from sakia.gui.password_asker import PasswordAskerDialog
+from sakia.gui.widgets.dialogs import QAsyncFileDialog, dialog_async_exec
 
 
 class NavigationController(QObject):
@@ -36,6 +42,8 @@ class NavigationController(QObject):
             'Wot': WotController
         }
         self.view.current_view_changed.connect(self.handle_view_change)
+        self.view.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.view.customContextMenuRequested.connect(self.tree_context_menu)
 
     @classmethod
     def create(cls, parent, app):
@@ -89,3 +97,41 @@ class NavigationController(QObject):
         raw_node = self.model.add_connection(connection)
         self.view.add_connection(raw_node)
         self.parse_node(raw_node)
+
+    def tree_context_menu(self, point):
+        mapped = self.view.tree_view.mapFromParent(point)
+        index = self.view.tree_view.indexAt(mapped)
+        raw_data = self.view.tree_view.model().data(index, GenericTreeModel.ROLE_RAW_DATA)
+        if raw_data and raw_data["component"] == "Informations":
+            menu = QMenu(self.view)
+            action_gen_revokation = QAction(self.tr("Save revokation document"), menu)
+            menu.addAction(action_gen_revokation)
+            action_gen_revokation.triggered.connect(lambda c:
+                                                    self.action_save_revokation(raw_data['misc']['connection']))
+
+            # Show the context menu.
+            menu.popup(QCursor.pos())
+
+    def action_save_revokation(self, connection):
+        password = PasswordAskerDialog(connection).exec()
+        if not password:
+            return
+
+        raw_document = self.model.generate_revokation(connection, password)
+        # Testable way of using a QFileDialog
+        selected_files = QAsyncFileDialog.get_save_filename(self, self.tr("Save a revokation document"),
+                                                            "", self.tr("All text files (*.txt)"))
+        if selected_files:
+            path = selected_files[0]
+            if not path.endswith('.txt'):
+                path = "{0}.txt".format(path)
+            with open(path, 'w') as save_file:
+                save_file.write(raw_document)
+
+        dialog = QMessageBox(QMessageBox.Information, self.tr("Revokation file"),
+                             self.tr("""<div>Your revokation document has been saved.</div>
+<div><b>Please keep it in a safe place.</b></div>
+The publication of this document will remove your identity from the network.</p>"""), QMessageBox.Ok,
+                             self)
+        dialog.setTextFormat(Qt.RichText)
+        dialog.exec()

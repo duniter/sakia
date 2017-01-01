@@ -23,11 +23,6 @@ class ToolbarView(QFrame, Ui_SakiaToolbar):
         tool_menu.addAction(self.action_publish_uid)
         tool_menu.addAction(self.action_revoke_uid)
 
-        menu_advanced = QMenu(self.tr("Advanced"), self.toolbutton_menu)
-        self.action_gen_revokation = QAction(self.tr("Save revokation document"), menu_advanced)
-        menu_advanced.addAction(self.action_gen_revokation)
-        tool_menu.addMenu(menu_advanced)
-
         menu_options = QMenu(self.tr("Options"), self.toolbutton_menu)
         self.action_add_connection = QAction(self.tr("Add a connection"), menu_options)
         menu_options.addAction(self.action_add_connection)

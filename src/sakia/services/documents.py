@@ -139,7 +139,7 @@ class DocumentsService:
         certification = Certification(6, connection.currency,
                                       connection.pubkey, identity.pubkey, blockUID, None)
 
-        key = SigningKey(connection.salt, connection.password, connection.scrypt_params)
+        key = SigningKey(connection.salt, password, connection.scrypt_params)
         certification.sign(identity.document(), [key])
         signed_cert = certification.signed_raw(identity.document())
         self._logger.debug("Certification : {0}".format(signed_cert))
@@ -190,19 +190,18 @@ class DocumentsService:
                 await r.release()
         return result
 
-    async def generate_revokation(self, currency, identity, salt, password):
+    def generate_revokation(self, connection, password):
         """
         Generate account revokation document for given community
 
-        :param str currency: The currency of the identity
-        :param sakia.data.entities.IdentityDoc identity: The certified identity
-        :param str salt: The account SigningKey salt
+        :param sakia.data.entities.Connection connection: The connection of the identity
         :param str password: The account SigningKey password
         """
-        document = Revocation(PROTOCOL_VERSION, currency, identity.pubkey, "")
-        self_cert = identity.document()
+        document = Revocation(2, connection.currency, connection.pubkey, "")
+        identity = self._identities_processor.get_written(connection.currency, connection.pubkey)
+        self_cert = identity[0].document()
 
-        key = SigningKey(salt, password)
+        key = SigningKey(connection.salt, password, connection.scrypt_params)
 
         document.sign(self_cert, [key])
         return document.signed_raw(self_cert)
