@@ -80,7 +80,7 @@ class BaseGraph(QObject):
         :rtype: str
         """
         try:
-            current_confirmations = min(max(block_number - self.blockchain_service.current_buid().number, 0), 6)
+            current_confirmations = min(max(self.blockchain_service.current_buid().number - block_number, 0), 6)
 
             if MAX_CONFIRMATIONS > current_confirmations:
                 if self.app.parameters.expert_mode:

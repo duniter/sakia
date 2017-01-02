@@ -1,7 +1,6 @@
-from sakia.gui.component.model import ComponentModel
 from duniterpy.documents.certification import Revocation
 from duniterpy.api import bma, errors
-from sakia.core.net import Node
+from PyQt5.QtCore import QObject
 import aiohttp
 
 

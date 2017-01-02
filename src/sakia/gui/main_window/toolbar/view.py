@@ -18,15 +18,14 @@ class ToolbarView(QFrame, Ui_SakiaToolbar):
         tool_menu = QMenu(self.tr("Tools"), self.toolbutton_menu)
         self.toolbutton_menu.setMenu(tool_menu)
 
-        self.action_publish_uid = QAction(self.tr(ToolbarView._action_publish_uid_text), self)
         self.action_revoke_uid = QAction(self.tr(ToolbarView._action_revoke_uid_text), self)
-        tool_menu.addAction(self.action_publish_uid)
         tool_menu.addAction(self.action_revoke_uid)
 
-        menu_options = QMenu(self.tr("Options"), self.toolbutton_menu)
-        self.action_add_connection = QAction(self.tr("Add a connection"), menu_options)
-        menu_options.addAction(self.action_add_connection)
-        tool_menu.addMenu(menu_options)
+        self.action_add_connection = QAction(self.tr("Add a connection"), tool_menu)
+        tool_menu.addAction(self.action_add_connection)
+
+        self.action_parameters = QAction(self.tr("Settings"), tool_menu)
+        tool_menu.addAction(self.action_parameters)
 
         self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Minimum)
         self.setMaximumHeight(60)

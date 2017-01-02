@@ -13,7 +13,8 @@ from PyQt5.QtWidgets import QMenu, QAction, QMessageBox, QDialog
 from PyQt5.QtGui import QCursor
 from sakia.decorators import asyncify
 from sakia.gui.password_asker import PasswordAskerDialog
-from sakia.gui.widgets.dialogs import QAsyncFileDialog, dialog_async_exec
+from sakia.gui.widgets.dialogs import QAsyncFileDialog, QAsyncMessageBox
+from sakia.gui.widgets import toast
 
 
 class NavigationController(QObject):
@@ -109,8 +110,65 @@ class NavigationController(QObject):
             action_gen_revokation.triggered.connect(lambda c:
                                                     self.action_save_revokation(raw_data['misc']['connection']))
 
+            action_publish_uid = QAction(self.tr("Publish UID"), menu)
+            menu.addAction(action_publish_uid)
+            action_publish_uid.triggered.connect(lambda c:
+                                                    self.publish_uid(raw_data['misc']['connection']))
+            action_publish_uid.setEnabled(self.model.identity_published(raw_data['misc']['connection']))
+
             # Show the context menu.
+            action_publish_uid = QAction(self.tr("Leave the currency"), menu)
+            menu.addAction(action_publish_uid)
+            action_publish_uid.triggered.connect(lambda c:
+                                                    self.leave_currency(raw_data['misc']['connection']))
+            action_publish_uid.setEnabled(self.model.identity_is_member(raw_data['misc']['connection']))
+            # Show the context menu.
+
             menu.popup(QCursor.pos())
+
+    @asyncify
+    async def publish_uid(self, connection):
+        password = await self.password_asker.async_exec()
+        if self.password_asker.result() == QDialog.Rejected:
+            return
+        result = await self.account.send_selfcert(password, self.community)
+        if result[0]:
+            if self.app.preferences['notifications']:
+                toast.display(self.tr("UID"), self.tr("Success publishing your UID"))
+            else:
+                await QAsyncMessageBox.information(self, self.tr("Membership"),
+                                                        self.tr("Success publishing your UID"))
+        else:
+            if self.app.preferences['notifications']:
+                toast.display(self.tr("UID"), result[1])
+            else:
+                await QAsyncMessageBox.critical(self, self.tr("UID"),
+                                                        result[1])
+
+    @asyncify
+    async def send_leave(self):
+        reply = await QAsyncMessageBox.warning(self, self.tr("Warning"),
+                                               self.tr("""Are you sure ?
+Sending a leaving demand  cannot be canceled.
+The process to join back the community later will have to be done again.""")
+                                               .format(self.account.pubkey), QMessageBox.Ok | QMessageBox.Cancel)
+        if reply == QMessageBox.Ok:
+            password = PasswordAskerDialog(self.model.navigation_model.navigation.current_connection()).async_exec()
+            if not password:
+                return
+            result = await self.model.send_leave(password)
+            if result[0]:
+                if self.app.preferences['notifications']:
+                    toast.display(self.tr("Revoke"), self.tr("Success sending Revoke demand"))
+                else:
+                    await QAsyncMessageBox.information(self, self.tr("Revoke"),
+                                                       self.tr("Success sending Revoke demand"))
+            else:
+                if self.app.preferences['notifications']:
+                    toast.display(self.tr("Revoke"), result[1])
+                else:
+                    await QAsyncMessageBox.critical(self, self.tr("Revoke"),
+                                                    result[1])
 
     def action_save_revokation(self, connection):
         password = PasswordAskerDialog(connection).exec()

@@ -4,10 +4,12 @@ from PyQt5.QtWidgets import QDialog, QMessageBox
 from sakia.decorators import asyncify
 from sakia.gui.dialogs.connection_cfg.controller import ConnectionConfigController
 from sakia.gui.dialogs.certification.controller import CertificationController
+from sakia.gui.dialogs.revocation.controller import RevocationController
 from sakia.gui.dialogs.transfer.controller import TransferController
 from sakia.gui.widgets import toast
 from sakia.gui.widgets.dialogs import QAsyncMessageBox, QAsyncFileDialog, dialog_async_exec
 from sakia.gui.password_asker import PasswordAskerDialog
+from sakia.gui.preferences import PreferencesDialog
 from .model import ToolbarModel
 from .view import ToolbarView
 
@@ -28,9 +30,9 @@ class ToolbarController(QObject):
         self.model = model
         self.view.button_certification.clicked.connect(self.open_certification_dialog)
         self.view.button_send_money.clicked.connect(self.open_transfer_money_dialog)
-        self.view.action_publish_uid.triggered.connect(self.publish_uid)
-        self.view.button_membership.clicked.connect(self.send_membership_demand)
+        self.view.button_membership.clicked.connect(self.send_join_demand)
         self.view.action_add_connection.triggered.connect(self.open_add_connection_dialog)
+        self.view.action_parameters.triggered.connect(self.open_settings_dialog)
 
     @classmethod
     def create(cls, app, navigation):
@@ -52,11 +54,12 @@ class ToolbarController(QObject):
         self.view.button_membership.setEnabled(enabled)
 
     @asyncify
-    async def send_membership_demand(self, checked=False):
-        password = await self.password_asker.async_exec()
-        if self.password_asker.result() == QDialog.Rejected:
+    async def send_join_demand(self, checked=False):
+        connection = self.model.navigation_model.navigation.current_connection()
+        password = PasswordAskerDialog(connection).async_exec()
+        if not password:
             return
-        result = await self.account.send_membership(password, self.community, 'IN')
+        result = await self.model.send_join(connection, password)
         if result[0]:
             if self.app.preferences['notifications']:
                 toast.display(self.tr("Membership"), self.tr("Success sending Membership demand"))
@@ -70,60 +73,18 @@ class ToolbarController(QObject):
                 await QAsyncMessageBox.critical(self, self.tr("Membership"),
                                                         result[1])
 
-    @asyncify
-    async def send_membership_leaving(self):
-        reply = await QAsyncMessageBox.warning(self, self.tr("Warning"),
-                             self.tr("""Are you sure ?
-Sending a leaving demand  cannot be canceled.
-The process to join back the community later will have to be done again.""")
-.format(self.account.pubkey), QMessageBox.Ok | QMessageBox.Cancel)
-        if reply == QMessageBox.Ok:
-            password = self.password_asker.exec_()
-            if self.password_asker.result() == QDialog.Rejected:
-                return
-            result = await self.account.send_membership(password, self.community, 'OUT')
-            if result[0]:
-                if self.app.preferences['notifications']:
-                    toast.display(self.tr("Revoke"), self.tr("Success sending Revoke demand"))
-                else:
-                    await QAsyncMessageBox.information(self, self.tr("Revoke"),
-                                                            self.tr("Success sending Revoke demand"))
-            else:
-                if self.app.preferences['notifications']:
-                    toast.display(self.tr("Revoke"), result[1])
-                else:
-                    await QAsyncMessageBox.critical(self, self.tr("Revoke"),
-                                                         result[1])
-
-    @asyncify
-    async def publish_uid(self, checked=False):
-        password = await self.password_asker.async_exec()
-        if self.password_asker.result() == QDialog.Rejected:
-            return
-        result = await self.account.send_selfcert(password, self.community)
-        if result[0]:
-            if self.app.preferences['notifications']:
-                toast.display(self.tr("UID"), self.tr("Success publishing your UID"))
-            else:
-                await QAsyncMessageBox.information(self, self.tr("Membership"),
-                                                        self.tr("Success publishing your UID"))
-        else:
-            if self.app.preferences['notifications']:
-                toast.display(self.tr("UID"), result[1])
-            else:
-                await QAsyncMessageBox.critical(self, self.tr("UID"),
-                                                        result[1])
-
     def open_certification_dialog(self):
         CertificationController.open_dialog(self, self.model.app,
                                             self.model.navigation_model.current_connection())
 
     def open_revocation_dialog(self):
-        RevocationDialog.open_dialog(self.app,
-                                     self.account)
+        RevocationController.open_dialog(self.app, self.model.navigation_model.current_connection())
 
     def open_transfer_money_dialog(self):
         TransferController.open_dialog(self, self.model.app, self.model.navigation_model.current_connection())
+
+    def open_settings_dialog(self):
+        PreferencesDialog(self.model.app).exec()
 
     def open_add_connection_dialog(self):
         connection_config = ConnectionConfigController.create_connection(self, self.model.app)

@@ -97,7 +97,7 @@ class IdentitiesProcessor:
 
         :rtype: sakia.data.entities.Identity
         """
-        return self._identities_repo.get_written(currency=currency, pubkey=pubkey)
+        return self._identities_repo.get_all(currency=currency, pubkey=pubkey, ms_written_on=0)
 
     def get_identity(self, currency, pubkey, uid=""):
         """

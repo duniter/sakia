@@ -127,3 +127,14 @@ class NavigationModel(QObject):
 
     def generate_revokation(self, connection, password):
         return self.app.documents_service.generate_revokation(connection, password)
+
+    def identity_published(self, connection):
+        identities_services = self.app.identities_services[connection.currency]
+        return identities_services.get_identity(connection.pubkey, connection.uid).written_on != 0
+
+    def identity_is_member(self, connection):
+        identities_services = self.app.identities_services[connection.currency]
+        return identities_services.get_identity(connection.pubkey, connection.uid).member
+
+    async def send_leave(self, connection, password):
+        return await self.app.documents_service.send_membership(connection, password, "OUT")

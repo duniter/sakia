@@ -93,7 +93,7 @@ class DocumentsService:
 
         return result, identity
 
-    async def send_membership(self, currency, identity, salt, password, mstype):
+    async def send_membership(self, connection, password, mstype):
         """
         Send a membership document to a target community.
         Signal "document_broadcasted" is emitted at the end.
