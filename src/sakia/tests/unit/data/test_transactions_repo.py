@@ -1,6 +1,5 @@
 from sakia.data.repositories import TransactionsRepo
 from sakia.data.entities import Transaction
-from duniterpy.documents import BlockUID
 
 
 def test_add_get_drop_transaction(meta_repo):
@@ -17,7 +16,7 @@ def test_add_get_drop_transaction(meta_repo):
                                          1,
                                          "",
                                          0,
-                                         Transaction.LOCAL))
+                                         Transaction.TO_SEND))
     transaction = transactions_repo.get_one(sha_hash="FCAD5A388AC8A811B45A9334A375585E77071AA9F6E5B6896582961A6C66F365")
     assert transaction.currency == "testcurrency"
     assert transaction.sha_hash == "FCAD5A388AC8A811B45A9334A375585E77071AA9F6E5B6896582961A6C66F365"
@@ -51,7 +50,7 @@ def test_add_get_multiple_transaction(meta_repo):
                                          2,
                                          "Test",
                                          2,
-                                         Transaction.LOCAL))
+                                         Transaction.TO_SEND))
     transactions_repo.insert(Transaction("testcurrency",
                                          "FCAD5A388AC8A811B45A9334A375585E77071AA9F6E5B6896582961A6C66F365",
                                          20,
@@ -64,7 +63,7 @@ def test_add_get_multiple_transaction(meta_repo):
                                          1,
                                          "",
                                          0,
-                                         Transaction.LOCAL))
+                                         Transaction.TO_SEND))
     transactions = transactions_repo.get_all(currency="testcurrency")
     assert "testcurrency" in [t.currency for t in transactions]
     assert "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ" in [t.receiver for t in transactions]
@@ -85,7 +84,7 @@ def test_add_update_transaction(meta_repo):
                               1,
                               "",
                               0,
-                              Transaction.LOCAL)
+                              Transaction.TO_SEND)
     transactions_repo.insert(transaction)
     transaction.written_on = None
     transactions_repo.update(transaction)

@@ -78,15 +78,13 @@ class Transaction:
     :param str amount_base: the amount base
     :param str comment: a comment
     :param str txid: the transaction id to sort transctions
-    :param str state: the state of the transaction
+    :param int state: the state of the transaction
     """
     TO_SEND = 0
     AWAITING = 1
-    VALIDATING = 2
     VALIDATED = 4
     REFUSED = 8
     DROPPED = 16
-    LOCAL = 128
 
     currency      = attr.ib(convert=str, cmp=False)
     sha_hash      = attr.ib(convert=str)
@@ -102,8 +100,3 @@ class Transaction:
     txid          = attr.ib(convert=int, cmp=False)
     state         = attr.ib(convert=int, cmp=False)
     raw           = attr.ib(convert=str, cmp=False, default="")
-
-
-    @property
-    def local(self):
-        return self.state & Transaction.LOCAL == Transaction.LOCAL

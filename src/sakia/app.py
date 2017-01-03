@@ -117,7 +117,8 @@ class Application(QObject):
 
             if currency not in self.transactions_services:
                 self.transactions_services[currency] = TransactionsService(currency, transactions_processor,
-                                                                       identities_processor, bma_connector)
+                                                                       identities_processor, connections_processor,
+                                                                       bma_connector)
 
             if currency not in self.blockchain_services:
                 self.blockchain_services[currency] = BlockchainService(self, currency, blockchain_processor, bma_connector,

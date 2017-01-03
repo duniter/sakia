@@ -157,18 +157,20 @@ class TxFilterProxyModel(QSortFilterProxyModel):
             if source_index.column() == self.sourceModel().columns_types.index('date'):
                 return QDateTime.fromTime_t(source_data).toString(Qt.SystemLocaleLongDate)
 
-            if state_data == Transaction.VALIDATING or state_data == Transaction.AWAITING:
+            if state_data == Transaction.VALIDATED or state_data == Transaction.AWAITING:
                 block_col = model.columns_types.index('block_number')
                 block_index = model.index(source_index.row(), block_col)
                 block_data = model.data(block_index, Qt.DisplayRole)
 
                 current_confirmations = 0
-                if state_data == Transaction.VALIDATING:
+                if state_data == Transaction.VALIDATED:
                     current_confirmations = self.blockchain_service.current_buid().number - block_data
                 elif state_data == Transaction.AWAITING:
                     current_confirmations = 0
 
-                if self.app.preferences['expert_mode']:
+                if current_confirmations >= MAX_CONFIRMATIONS:
+                    return None
+                elif self.app.preferences['expert_mode']:
                     return self.tr("{0} / {1} confirmations").format(current_confirmations, MAX_CONFIRMATIONS)
                 else:
                     confirmation = current_confirmations / MAX_CONFIRMATIONS * 100

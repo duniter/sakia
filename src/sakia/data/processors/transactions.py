@@ -1,3 +1,4 @@
+import logging
 import attr
 import asyncio
 import sqlite3
@@ -16,6 +17,7 @@ class TransactionsProcessor:
     _repo = attr.ib()  # :type sakia.data.repositories.SourcesRepo
     _bma_connector = attr.ib()  # :type sakia.data.connectors.bma.BmaConnector
     _table_states = attr.ib(default=attr.Factory(dict))
+    _logger = attr.ib(default=attr.Factory(lambda: logging.getLogger('sakia')))
 
     @classmethod
     def instanciate(cls, app):
@@ -57,30 +59,35 @@ class TransactionsProcessor:
         """
         if len(inputs) == len(transition_key[1]):
             for i, input in enumerate(inputs):
-                if type(input) is not transition_key[1][i]:
+                if not isinstance(input, transition_key[1][i]):
                     return False
             for transition in tx_lifecycle.states[transition_key]:
-                if transition[0](*inputs):
+                if transition[0](tx, *inputs):
                     if tx.sha_hash:
                         self._logger.debug("{0} : {1} --> {2}".format(tx.sha_hash[:5], tx.state,
-                                                                 transition[2].name))
+                                                                      transition[2]))
                     else:
                         self._logger.debug("Unsent transfer : {0} --> {1}".format(tx.state,
-                                                                             transition[2].name))
+                                                                                  transition[2]))
 
                     # If the transition changes data, apply changes
                     if transition[1]:
                         transition[1](tx, *inputs)
-                    tx.state = transition[2] | tx.local
+                    tx.state = transition[2]
                     return True
         return False
 
+    def commit(self, tx):
+        try:
+            self._repo.insert(tx)
+        except sqlite3.IntegrityError:
+            self._repo.update(tx)
+
     def find_by_hash(self, sha_hash):
-        return self._repo.find_one(sha_hash=sha_hash)
+        return self._repo.get_one(sha_hash=sha_hash)
 
     def awaiting(self, currency):
-        return self._repo.get_all(currency=currency, state=Transaction.AWAITING) + \
-               self._repo.get_all(currency=currency, state=Transaction.AWAITING | Transaction.LOCAL)
+        return self._repo.get_all(currency=currency, state=Transaction.AWAITING)
 
     def run_state_transitions(self, tx, *inputs):
         """
@@ -90,9 +97,10 @@ class TransactionsProcessor:
         :return: True if the transaction changed state
         :rtype: bool
         """
-        transition_keys = [k for k in tx_lifecycle.states.keys() if k[0] | Transaction.LOCAL == tx.state]
+        transition_keys = [k for k in tx_lifecycle.states.keys() if k[0] == tx.state]
         for key in transition_keys:
             if self._try_transition(tx, key, inputs):
+                self._repo.update(tx)
                 return True
         return False
 
@@ -123,7 +131,7 @@ class TransactionsProcessor:
                 result = (False, (await r.text()))
             else:
                 await r.text()
-        self.run_state_transitions(tx, ([r.status for r in responses],))
+        self.run_state_transitions(tx, [r.status for r in responses])
         return result, tx
 
     async def initialize_transactions(self, identity, log_stream):
