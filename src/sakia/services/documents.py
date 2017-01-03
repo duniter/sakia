@@ -380,6 +380,7 @@ class DocumentsService:
                              comment=message,
                              txid=txid,
                              state=Transaction.TO_SEND,
+                             local=True,
                              raw=txdoc.signed_raw())
             return await self._transactions_processor.send(tx, txdoc, connection.currency)
         except NotEnoughChangeError as e:

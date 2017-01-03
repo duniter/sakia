@@ -39,6 +39,7 @@ class TransactionsRepo:
                            comment = ?,
                            txid = ?,
                            state = ?,
+                           local = ?,
                            raw = ?
                            WHERE
                            sha_hash=?""",

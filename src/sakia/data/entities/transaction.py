@@ -99,4 +99,5 @@ class Transaction:
     comment       = attr.ib(convert=str, cmp=False)
     txid          = attr.ib(convert=int, cmp=False)
     state         = attr.ib(convert=int, cmp=False)
+    local         = attr.ib(convert=bool, cmp=False, default=False)
     raw           = attr.ib(convert=str, cmp=False, default="")
