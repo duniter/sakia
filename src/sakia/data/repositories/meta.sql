@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS identities(
                                uid VARCHAR(255),
                                blockstamp VARCHAR(100),
                                signature VARCHAR(100),
-                               ts INT,
+                               timestamp INT,
                                written_on INT,
                                revoked_on INT,
                                member BOOLEAN,

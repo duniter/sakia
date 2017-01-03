@@ -30,7 +30,7 @@ class IdentitiesRepo:
         where_fields = attr.astuple(identity, filter=attr.filters.include(*IdentitiesRepo._primary_keys))
         self._conn.execute("""UPDATE identities SET
                               signature=?,
-                              ts=?,
+                              timestamp=?,
                               written_on=?,
                               revoked_on=?,
                               member=?,

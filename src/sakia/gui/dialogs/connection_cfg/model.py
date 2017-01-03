@@ -51,7 +51,6 @@ class ConnectionConfigModel(QObject):
     def insert_or_update_connection(self):
         ConnectionsProcessor(self.app.db.connections_repo).commit_connection(self.connection)
         NodesProcessor(self.app.db.nodes_repo).commit_node(self.node_connector.node)
-        self.node_connector.session.close()
 
     def insert_or_update_identity(self, identity):
         self.identities_processor.insert_or_update_identity(identity)
@@ -125,9 +124,8 @@ class ConnectionConfigModel(QObject):
                     uids = result['uids']
                     for uid_data in uids:
                         if BlockUID.from_str(uid_data["meta"]["timestamp"]) >= timestamp:
-                            timestamp = uid_data["meta"]["timestamp"]
+                            timestamp = BlockUID.from_str(uid_data["meta"]["timestamp"])
                             found_uid = uid_data["uid"]
-                            found_identity.timestamp = timestamp  # We save the timestamp in the found identity
                             found_identity.signature = uid_data["self"]
             return identity.uid == found_uid, identity.uid, found_uid
 
@@ -141,7 +139,6 @@ class ConnectionConfigModel(QObject):
                     if BlockUID.from_str(uid_data["meta"]["timestamp"]) >= timestamp:
                         timestamp = BlockUID.from_str(uid_data["meta"]["timestamp"])
                         found_uid = uid_data["uid"]
-                        found_identity.timestamp = timestamp  # We save the timestamp in the found identity
                         found_identity.signature = uid_data["self"]
                 if found_uid == identity.uid:
                     found_result = result['pubkey'], found_uid

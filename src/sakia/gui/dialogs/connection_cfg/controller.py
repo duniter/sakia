@@ -181,6 +181,8 @@ class ConnectionConfigController(QObject):
 
             self._logger.debug("Validate changes")
             self.model.app.db.commit()
+            if self.model.node_connector:
+                await self.model.node_connector.session.close()
         except (NoPeerAvailable, DuniterError) as e:
             self._logger.debug(str(e))
             self.view.stacked_pages.setCurrentWidget(self.view.page_connection)
@@ -190,9 +192,6 @@ class ConnectionConfigController(QObject):
             self.view.button_next.disconnect()
             asyncio.ensure_future(self.process())
             return
-        finally:
-            if self.model.node_connector:
-                await self.model.node_connector.session.close()
         self.accept()
 
     def check_key(self):

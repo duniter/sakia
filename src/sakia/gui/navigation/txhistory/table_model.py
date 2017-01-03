@@ -115,6 +115,16 @@ class TxFilterProxyModel(QSortFilterProxyModel):
         state_col = model.columns_types.index('state')
         state_index = model.index(source_index.row(), state_col)
         state_data = model.data(state_index, Qt.DisplayRole)
+
+        block_col = model.columns_types.index('block_number')
+        block_index = model.index(source_index.row(), block_col)
+        block_data = model.data(block_index, Qt.DisplayRole)
+
+        if state_data == Transaction.VALIDATED:
+            current_confirmations = self.blockchain_service.current_buid().number - block_data
+        else:
+            current_confirmations = 0
+
         if role == Qt.DisplayRole:
             if source_index.column() == model.columns_types.index('uid'):
                 return source_data
@@ -130,7 +140,8 @@ class TxFilterProxyModel(QSortFilterProxyModel):
 
         if role == Qt.FontRole:
             font = QFont()
-            if state_data == Transaction.AWAITING or state_data == Transaction.VALIDATING:
+            if state_data == Transaction.AWAITING or \
+                    (state_data == Transaction.VALIDATED and current_confirmations < MAX_CONFIRMATIONS):
                 font.setItalic(True)
             elif state_data == Transaction.REFUSED:
                 font.setItalic(True)
@@ -158,16 +169,6 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                 return QDateTime.fromTime_t(source_data).toString(Qt.SystemLocaleLongDate)
 
             if state_data == Transaction.VALIDATED or state_data == Transaction.AWAITING:
-                block_col = model.columns_types.index('block_number')
-                block_index = model.index(source_index.row(), block_col)
-                block_data = model.data(block_index, Qt.DisplayRole)
-
-                current_confirmations = 0
-                if state_data == Transaction.VALIDATED:
-                    current_confirmations = self.blockchain_service.current_buid().number - block_data
-                elif state_data == Transaction.AWAITING:
-                    current_confirmations = 0
-
                 if current_confirmations >= MAX_CONFIRMATIONS:
                     return None
                 elif self.app.preferences['expert_mode']:
@@ -251,10 +252,7 @@ class HistoryTableModel(QAbstractTableModel):
         :param sakia.data.entities.Transaction transfer: the transaction
         :return: data as tuple
         """
-        if transfer.blockstamp:
-            block_number = transfer.blockstamp.number
-        else:
-            block_number = None
+        block_number = transfer.written_block
 
         amount = transfer.amount * 10**transfer.amount_base
         try:
@@ -282,10 +280,7 @@ class HistoryTableModel(QAbstractTableModel):
         :param sakia.data.entities.Transaction transfer: the transaction
         :return: data as tuple
         """
-        if transfer.blockstamp:
-            block_number = transfer.blockstamp.number
-        else:
-            block_number = None
+        block_number = transfer.written_block
 
         amount = transfer.amount * 10**transfer.amount_base
         try:
