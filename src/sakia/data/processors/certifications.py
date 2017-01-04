@@ -117,9 +117,7 @@ class CertificationsProcessor:
             if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
                 logging.debug("Certifiers of error : {0}".format(str(e)))
             else:
-                logging.debug(str(e))
-        except NoPeerAvailable as e:
-            logging.debug(str(e))
+                raise
 
         log_stream("Requesting certified by data")
         certified = list()
@@ -145,8 +143,8 @@ class CertificationsProcessor:
         except errors.DuniterError as e:
             if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
                 logging.debug("Certified by error : {0}".format(str(e)))
-        except NoPeerAvailable as e:
-            logging.debug(str(e))
+            else:
+                raise
 
         log_stream('Commiting certifications...')
         for i, cert in enumerate(certifiers + certified):

@@ -80,7 +80,7 @@ class ContextMenu(QObject):
             cancel.triggered.connect(lambda checked, tr=transfer: menu.cancel_transfer(tr))
             menu.qmenu.addAction(cancel)
 
-        if menu._app.preferences['expert_mode']:
+        if menu._app.parameters.expert_mode:
             copy_doc = QAction(menu.qmenu.tr("Copy raw transaction to clipboard"), menu.qmenu.parent())
             copy_doc.triggered.connect(lambda checked, tx=transfer: menu.copy_transaction_to_clipboard(tx))
             menu.qmenu.addAction(copy_doc)
@@ -107,7 +107,8 @@ class ContextMenu(QObject):
         build_actions = {
             Identity: ContextMenu._add_identity_actions,
             Transaction: ContextMenu._add_transfers_actions,
-            dict: lambda m, d: None
+            dict: lambda m, d: None,
+            type(None): lambda m, d: None
         }
         for d in data:
             build_actions[type(d)](menu, d)

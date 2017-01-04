@@ -82,9 +82,7 @@ class TxHistoryController(QObject):
         index = self.view.table_history.indexAt(point)
         valid, identity, transfer = self.model.table_data(index)
         if valid:
-            menu = ContextMenu.from_data(self.view, self.model.app, self.model.account, self.model.community,
-                                         self.password_asker,
-                                         (identity, transfer))
+            menu = ContextMenu.from_data(self.view, self.model.app, self.model.connection, (identity, transfer))
             menu.view_identity_in_wot.connect(self.view_in_wot)
 
             # Show the context menu.
