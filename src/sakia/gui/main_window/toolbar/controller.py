@@ -89,9 +89,10 @@ class ToolbarController(QObject):
     def open_add_connection_dialog(self):
         connection_config = ConnectionConfigController.create_connection(self, self.model.app)
         connection_config.exec()
-        self.model.app.instanciate_services()
-        self.model.app.start_coroutines()
-        self.model.app.new_connection.emit(connection_config.model.connection)
+        if connection_config.result() == QDialog.Accepted:
+            self.model.app.instanciate_services()
+            self.model.app.start_coroutines()
+            self.model.app.new_connection.emit(connection_config.model.connection)
 
     def retranslateUi(self, widget):
         """

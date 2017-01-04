@@ -34,9 +34,11 @@ class TransactionsService(QObject):
         :param int txid: Latest tx id
         :return: The list of transfers sent
         """
-        transfers = []
+        transfers_changed = []
+        new_transfers = []
         for tx in [t for t in self._transactions_processor.awaiting(self.currency)]:
-            self._transactions_processor.run_state_transitions(tx, block_doc)
+            if self._transactions_processor.run_state_transitions(tx, block_doc):
+                transfers_changed.append(tx)
 
         new_transactions = [t for t in block_doc.transactions
                             if not self._transactions_processor.find_by_hash(t.sha_hash)
@@ -46,11 +48,11 @@ class TransactionsService(QObject):
             for pubkey in connections_pubkeys:
                 tx = parse_transaction_doc(tx_doc, pubkey, block_doc.blockUID.number,  block_doc.mediantime, txid+i)
                 if tx:
-                    transfers.append(tx)
+                    new_transfers.append(tx)
                     self._transactions_processor.commit(tx)
                 else:
                     logging.debug("Error during transfer parsing")
-        return transfers
+        return transfers_changed, new_transfers
 
     def handle_new_blocks(self, blocks):
         """
@@ -59,10 +61,15 @@ class TransactionsService(QObject):
         :param list[duniterpy.documents.Block] blocks: The blocks containing data to parse
         """
         self._logger.debug("Refresh transactions")
+        transfers_changed = []
+        new_transfers = []
         txid = 0
         for block in blocks:
-            transfers = self._parse_block(block, txid)
-            txid += len(transfers)
+            changes, news = self._parse_block(block, txid)
+            txid += len(news)
+            transfers_changed += changes
+            new_transfers += news
+        return transfers_changed, new_transfers
 
     def transfers(self, pubkey):
         """

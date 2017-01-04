@@ -275,6 +275,7 @@ class IdentitiesService(QObject):
         for identity in set(need_refresh):
             refresh_futures.append(self.refresh_requirements(identity))
         await asyncio.gather(*refresh_futures)
+        return need_refresh
 
     async def requirements(self, currency, pubkey, uid):
         """

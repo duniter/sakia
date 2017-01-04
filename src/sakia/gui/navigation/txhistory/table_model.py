@@ -83,7 +83,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
         return self.sourceModel().community
 
     def columnCount(self, parent):
-        return self.sourceModel().columnCount(None) - 5
+        return self.sourceModel().columnCount(None) - 6
 
     def setSourceModel(self, sourceModel):
         self.app = sourceModel.app
@@ -171,7 +171,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
             if state_data == Transaction.VALIDATED or state_data == Transaction.AWAITING:
                 if current_confirmations >= MAX_CONFIRMATIONS:
                     return None
-                elif self.app.preferences['expert_mode']:
+                elif self.app.parameters.expert_mode:
                     return self.tr("{0} / {1} confirmations").format(current_confirmations, MAX_CONFIRMATIONS)
                 else:
                     confirmation = current_confirmations / MAX_CONFIRMATIONS * 100
@@ -214,7 +214,8 @@ class HistoryTableModel(QAbstractTableModel):
             'txid',
             'pubkey',
             'block_number',
-            'amount'
+            'amount',
+            'txhash'
         )
 
         self.column_headers = (
@@ -226,7 +227,8 @@ class HistoryTableModel(QAbstractTableModel):
             lambda: 'State',
             lambda: 'TXID',
             lambda: 'Pubkey',
-            lambda: 'Block Number'
+            lambda: 'Block Number',
+            lambda: 'TxHash'
         )
 
     def transfers(self):
@@ -239,12 +241,22 @@ class HistoryTableModel(QAbstractTableModel):
 
     def add_transfer(self, transfer):
         self.beginInsertRows(QModelIndex(), 0, 0)
-        if type(transfer) is Transaction:
+        if isinstance(transfer, Transaction):
             if transfer.issuer == self.connection.pubkey:
                 self.transfers_data.append(self.data_sent(transfer))
             else:
                 self.transfers_data.append(self.data_received(transfer))
         self.endInsertRows()
+
+    def change_transfer(self, transfer):
+        if isinstance(transfer, Transaction):
+            for i, data in enumerate(self.transfers_data):
+                if data[self.columns_types.index('txhash')] == transfer.sha_hash:
+                    if transfer.issuer == self.connection.pubkey:
+                        data[self.columns_types.index('txhash')] = self.data_sent(transfer)
+                    else:
+                        data[self.columns_types.index('txhash')] = self.data_received(transfer)
+                    self.dataChanged.emit(self.index(i, 0), self.index(i, len(self.columns_types)))
 
     def data_received(self, transfer):
         """
@@ -272,7 +284,7 @@ class HistoryTableModel(QAbstractTableModel):
 
         return (date_ts, sender, "", deposit,
                 transfer.comment, transfer.state, txid,
-                transfer.issuer, block_number, amount)
+                transfer.issuer, block_number, amount, transfer.sha_hash)
 
     def data_sent(self, transfer):
         """
@@ -299,7 +311,7 @@ class HistoryTableModel(QAbstractTableModel):
         txid = transfer.txid
         return (date_ts, receiver, paiement,
                 "", transfer.comment, transfer.state, txid,
-                transfer.receiver, block_number, amount)
+                transfer.receiver, block_number, amount, transfer.sha_hash)
 
     async def data_dividend(self, dividend):
         pass
@@ -307,10 +319,8 @@ class HistoryTableModel(QAbstractTableModel):
     def refresh_transfers(self):
         self.beginResetModel()
         self.transfers_data = []
-        count = 0
         transfers = self.transfers()
         for transfer in transfers:
-            count += 1
             if type(transfer) is Transaction:
                 if transfer.issuer == self.connection.pubkey:
                     self.transfers_data.append(self.data_sent(transfer))

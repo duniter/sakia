@@ -13,7 +13,7 @@ from sakia.data.connectors import BmaConnector
 from sakia.services import NetworkService, BlockchainService, IdentitiesService, \
     SourcesServices, TransactionsService, DocumentsService
 from sakia.data.repositories import SakiaDatabase
-from sakia.data.entities import Transaction, Connection
+from sakia.data.entities import Transaction, Connection, Identity
 from sakia.data.processors import BlockchainProcessor, NodesProcessor, IdentitiesProcessor, \
     CertificationsProcessor, SourcesProcessor, TransactionsProcessor, ConnectionsProcessor
 from sakia.data.files import AppDataFile, UserParametersFile
@@ -45,6 +45,8 @@ class Application(QObject):
     """
 
     new_transfer = pyqtSignal(Transaction)
+    transaction_state_changed = pyqtSignal(Transaction)
+    identity_changed = pyqtSignal(Identity)
     new_connection = pyqtSignal(Connection)
 
     qapp = attr.ib()
