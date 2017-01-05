@@ -1,13 +1,7 @@
-"""
-Created on 5 févr. 2014
-
-@author: inso
-"""
-
 from sakia.errors import NoPeerAvailable
 from PyQt5.QtCore import QAbstractTableModel, QSortFilterProxyModel, Qt, \
-                        QDateTime, QModelIndex, QLocale, QEvent
-from PyQt5.QtGui import QColor, QIcon
+                        QDateTime, QModelIndex, QLocale, QT_TRANSLATE_NOOP
+from PyQt5.QtGui import QColor, QIcon, QFont
 import logging
 import asyncio
 
@@ -16,6 +10,9 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
     def __init__(self, parent=None):
         super().__init__(parent)
 
+    def columnCount(self, parent):
+        return len(IdentitiesTableModel.columns_ids) - 1
+    
     def lessThan(self, left, right):
         """
         Sort table by given column number.
@@ -31,11 +28,12 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
         source_index = self.mapToSource(index)
         if source_index.isValid():
             source_data = self.sourceModel().data(source_index, role)
-            expiration_col = self.sourceModel().columns_ids.index('expiration')
+            expiration_col = IdentitiesTableModel.columns_ids.index('expiration')
             expiration_index = self.sourceModel().index(source_index.row(), expiration_col)
 
             STATUS_NOT_MEMBER = 0
             STATUS_MEMBER = 1
+            STATUS_UNKNOWN = 2
             STATUS_EXPIRE_SOON = 3
             status = STATUS_NOT_MEMBER
             expiration_data = self.sourceModel().data(expiration_index, Qt.DisplayRole)
@@ -44,7 +42,9 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
             warning_expiration_time = int(sig_validity / 3)
             #logging.debug("{0} > {1}".format(current_time, expiration_data))
 
-            if expiration_data is not None:
+            if expiration_data == 0:
+                status = STATUS_UNKNOWN
+            elif expiration_data is not None:
                 status = STATUS_MEMBER
                 if current_time > (expiration_data*1000):
                     status = STATUS_NOT_MEMBER
@@ -52,8 +52,8 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
                     status = STATUS_EXPIRE_SOON
 
             if role == Qt.DisplayRole:
-                if source_index.column() in (self.sourceModel().columns_ids.index('renewed'),
-                                             self.sourceModel().columns_ids.index('expiration')):
+                if source_index.column() in (IdentitiesTableModel.columns_ids.index('renewed'),
+                                             IdentitiesTableModel.columns_ids.index('expiration')):
                     if source_data:
                         return QLocale.toString(
                             QLocale(),
@@ -62,7 +62,7 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
                         )
                     else:
                         return ""
-                if source_index.column() == self.sourceModel().columns_ids.index('publication'):
+                if source_index.column() == IdentitiesTableModel.columns_ids.index('publication'):
                     if source_data:
                         return QLocale.toString(
                             QLocale(),
@@ -71,17 +71,27 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
                         )
                     else:
                         return ""
-                if source_index.column() == self.sourceModel().columns_ids.index('pubkey'):
-                    return "pub:{0}".format(source_data[:5])
+                if source_index.column() == IdentitiesTableModel.columns_ids.index('pubkey'):
+                    return source_data
+                if source_index.column() == IdentitiesTableModel.columns_ids.index('block'):
+                    return str(source_data)[:20]
 
             if role == Qt.ForegroundRole:
                 if status == STATUS_EXPIRE_SOON:
                     return QColor("darkorange").darker(120)
                 elif status == STATUS_NOT_MEMBER:
                     return QColor(Qt.red)
+                elif status == STATUS_UNKNOWN:
+                    return QColor(Qt.black)
                 else:
                     return QColor(Qt.blue)
-            if role == Qt.DecorationRole and source_index.column() == self.sourceModel().columns_ids.index('uid'):
+
+            if role == Qt.FontRole and status == STATUS_UNKNOWN:
+                font = QFont()
+                font.setItalic(True)
+                return font
+
+            if role == Qt.DecorationRole and source_index.column() == IdentitiesTableModel.columns_ids.index('uid'):
                 if status == STATUS_NOT_MEMBER:
                     return QIcon(":/icons/not_member")
                 elif status == STATUS_MEMBER:
@@ -98,6 +108,14 @@ class IdentitiesTableModel(QAbstractTableModel):
     A Qt abstract item model to display communities in a tree
     """
 
+    columns_titles = {'uid': lambda: QT_TRANSLATE_NOOP("IdentitiesTableModel", 'UID'),
+                           'pubkey': lambda: QT_TRANSLATE_NOOP("IdentitiesTableModel", 'Pubkey'),
+                           'renewed': lambda: QT_TRANSLATE_NOOP("IdentitiesTableModel", 'Renewed'),
+                           'expiration': lambda: QT_TRANSLATE_NOOP("IdentitiesTableModel", 'Expiration'),
+                           'publication': lambda: QT_TRANSLATE_NOOP("IdentitiesTableModel", 'Publication Date'),
+                           'block': lambda: QT_TRANSLATE_NOOP("IdentitiesTableModel", 'Publication Block'), }
+    columns_ids = ('uid', 'pubkey', 'renewed', 'expiration', 'publication', 'block', 'identity')
+
     def __init__(self, parent, blockchain_service, identities_service):
         """
         Constructor
@@ -108,19 +126,12 @@ class IdentitiesTableModel(QAbstractTableModel):
         super().__init__(parent)
         self.blockchain_service = blockchain_service
         self.identities_service = identities_service
-        self.columns_titles = {'uid': lambda: self.tr('UID'),
-                               'pubkey': lambda: self.tr('Pubkey'),
-                               'renewed': lambda: self.tr('Renewed'),
-                               'expiration': lambda: self.tr('Expiration'),
-                               'publication': lambda: self.tr('Publication Date'),
-                               'block': lambda: self.tr('Publication Block'),}
-        self.columns_ids = ('uid', 'pubkey', 'renewed', 'expiration', 'publication', 'block', 'identity')
         self.identities_data = []
         self._sig_validity = 0
 
     def sig_validity(self):
         return self._sig_validity
-
+    
     @property
     def pubkeys(self):
         """
@@ -138,7 +149,7 @@ class IdentitiesTableModel(QAbstractTableModel):
         join_date = identity.membership_timestamp
         expiration_date = self.identities_service.expiration_date(identity)
         sigdate_ts = identity.timestamp
-        sigdate_block = identity.blockstamp.sha_hash[:7]
+        sigdate_block = identity.blockstamp
 
         return identity.uid, identity.pubkey, join_date, expiration_date, sigdate_ts, sigdate_block, identity
 
@@ -164,32 +175,30 @@ class IdentitiesTableModel(QAbstractTableModel):
         self.identities_data = identities_data
         self.endResetModel()
 
+    def identity_loaded(self, identity):
+        for i, idty in enumerate(self.identities_data):
+            if idty[IdentitiesTableModel.columns_ids.index('identity')] == identity:
+                self.identities_data[i] = self.identity_data(identity)
+                self.dataChanged.emit(self.index(i, 0), self.index(i, len(IdentitiesTableModel.columns_ids)))
+                return
+
     def rowCount(self, parent):
         return len(self.identities_data)
 
     def columnCount(self, parent):
-        return len(self.columns_ids) - 1
+        return len(IdentitiesTableModel.columns_ids)
 
     def headerData(self, section, orientation, role):
         if role == Qt.DisplayRole:
-            col_id = self.columns_ids[section]
-            return self.columns_titles[col_id]()
+            col_id = IdentitiesTableModel.columns_ids[section]
+            return IdentitiesTableModel.columns_titles[col_id]()
 
     def data(self, index, role):
-        if role == Qt.DisplayRole:
+        if index.isValid() and role == Qt.DisplayRole:
             row = index.row()
             col = index.column()
             identity_data = self.identities_data[row]
             return identity_data[col]
-
-    def identity_index(self, pubkey):
-        try:
-            row = self.pubkeys.index(pubkey)
-            index_start = self.index(row, 0)
-            index_end = self.index(row, len(self.columns_ids))
-            return (index_start, index_end)
-        except ValueError:
-            return (QModelIndex(), QModelIndex())
 
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled

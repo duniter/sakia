@@ -13,6 +13,7 @@ from sakia.gui.sub.user_information.controller import UserInformationController
 
 class ContextMenu(QObject):
     view_identity_in_wot = pyqtSignal(object)
+    identity_information_loaded = pyqtSignal(Identity)
 
     def __init__(self, qmenu, app, connection):
         """
@@ -123,9 +124,9 @@ class ContextMenu(QObject):
     def informations(self, identity):
         if identity.uid:
             UserInformationController.show_identity(self.parent(), self._app, self._connection.currency, identity)
+            self.identity_information_loaded.emit(identity)
         else:
-            UserInformationController.search_and_show_pubkey(self.parent(), self._app,
-                                                             self._connection.currency, identity.pubkey)
+            UserInformationController.open_dialog(self.parent(), self._app, self._connection.currency, identity)
 
 
     @asyncify

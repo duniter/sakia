@@ -49,6 +49,7 @@ class TxHistoryController(QObject):
                                transactions_service, sources_service)
         txhistory = cls(view, model, None)
         model.setParent(txhistory)
+        app.referential_changed.connect(txhistory.refresh_balance)
         return txhistory
 
     def refresh_minimum_maximum(self):
@@ -71,9 +72,7 @@ class TxHistoryController(QObject):
             if self.model.notifications():
                 toast.display(self.tr("New transactions received"), text)
 
-    @once_at_a_time
-    @asyncify
-    async def refresh_balance(self):
+    def refresh_balance(self):
         self.view.busy_balance.show()
         localized_amount = self.model.localized_balance()
         self.view.set_balance(localized_amount)

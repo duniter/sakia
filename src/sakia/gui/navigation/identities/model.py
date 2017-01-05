@@ -44,8 +44,7 @@ class IdentitiesModel(QObject):
         if index.isValid() and index.row() < self.table_model.rowCount():
             source_index = self.table_model.mapToSource(index)
             identity_col = self.table_model.sourceModel().columns_ids.index('identity')
-            identity_index = self.table_model.sourceModel().index(source_index.row(),
-                                                                  identity_col)
+            identity_index = self.table_model.sourceModel().index(source_index.row(), identity_col)
             identity = self.table_model.sourceModel().data(identity_index, Qt.DisplayRole)
             return True, identity
         return False, None

@@ -1,7 +1,7 @@
 import logging
 
 from PyQt5.QtGui import QCursor
-from PyQt5.QtCore import QObject
+from PyQt5.QtCore import QObject, pyqtSignal
 from sakia.errors import NoPeerAvailable
 
 from duniterpy.api import errors
@@ -15,6 +15,7 @@ class IdentitiesController(QObject):
     """
     The navigation panel
     """
+    view_in_wot = pyqtSignal(object)
 
     def __init__(self, parent, view, model, password_asker=None):
         """
@@ -33,18 +34,6 @@ class IdentitiesController(QObject):
         table_model = self.model.init_table_model()
         self.view.set_table_identities_model(table_model)
 
-    @property
-    def app(self):
-        return self.model.app
-
-    @property
-    def community(self):
-        return self.model.community
-
-    @property
-    def account(self):
-        return self.model.account
-
     @classmethod
     def create(cls, parent, app, connection, blockchain_service, identities_service):
         view = IdentitiesView(parent.view)
@@ -57,8 +46,9 @@ class IdentitiesController(QObject):
         index = self.view.table_identities.indexAt(point)
         valid, identity = self.model.table_data(index)
         if valid:
-            menu = ContextMenu.from_data(self.view, self.app, self.model.connection, (identity,))
+            menu = ContextMenu.from_data(self.view, self.model.app, self.model.connection, (identity,))
             menu.view_identity_in_wot.connect(self.view_in_wot)
+            menu.identity_information_loaded.connect(self.model.table_model.sourceModel().identity_loaded)
 
             # Show the context menu.
             menu.qmenu.popup(QCursor.pos())
