@@ -31,8 +31,6 @@ class TxFilterProxyModel(QSortFilterProxyModel):
         self.app = None
         self.ts_from = ts_from
         self.ts_to = ts_to
-        self.payments = 0
-        self.deposits = 0
         self.blockchain_service = blockchain_service
 
 
@@ -48,9 +46,10 @@ class TxFilterProxyModel(QSortFilterProxyModel):
             datetime.datetime.fromtimestamp(ts_from).isoformat(' '),
             datetime.datetime.fromtimestamp(ts_to).isoformat(' '))
         )
+        self.beginResetModel()
         self.ts_from = ts_from
         self.ts_to = ts_to
-        self.modelReset.emit()
+        self.endResetModel()
 
     def filterAcceptsRow(self, sourceRow, sourceParent):
         def in_period(date_ts):
@@ -63,18 +62,9 @@ class TxFilterProxyModel(QSortFilterProxyModel):
         if in_period(date):
             # calculate sum total payments
             payment = source_model.data(
-                source_model.index(sourceRow, source_model.columns_types.index('amount')),
+                source_model.index(sourceRow, source_model.columns_types.index('value')),
                 Qt.DisplayRole
             )
-            if payment:
-                self.payments += int(payment)
-            # calculate sum total deposits
-            deposit = source_model.data(
-                source_model.index(sourceRow, source_model.columns_types.index('amount')),
-                Qt.DisplayRole
-            )
-            if deposit:
-                self.deposits += int(deposit)
 
         return in_period(date)
 
@@ -134,8 +124,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                     QDateTime.fromTime_t(source_data).date(),
                     QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
                 )
-            if source_index.column() == model.columns_types.index('payment') or \
-                    source_index.column() == model.columns_types.index('deposit'):
+            if source_index.column() == model.columns_types.index('amount'):
                 return source_data
 
         if role == Qt.FontRole:
@@ -153,13 +142,19 @@ class TxFilterProxyModel(QSortFilterProxyModel):
 
         if role == Qt.ForegroundRole:
             if state_data == Transaction.REFUSED:
-                return QColor(Qt.red)
+                return QColor(Qt.darkGray)
             elif state_data == Transaction.TO_SEND:
                 return QColor(Qt.blue)
+            if source_index.column() == model.columns_types.index('amount'):
+                source_data = model.data(source_index, role)
+                value_col = model.columns_types.index('value')
+                value_index = model.index(source_index.row(), value_col)
+                value_data = model.data(value_index, Qt.DisplayRole)
+                if value_data < 0:
+                    return QColor(Qt.darkRed)
 
         if role == Qt.TextAlignmentRole:
-            if source_index.column() == self.sourceModel().columns_types.index(
-                    'deposit') or source_index.column() == self.sourceModel().columns_types.index('payment'):
+            if  self.sourceModel().columns_types.index('amount'):
                 return Qt.AlignRight | Qt.AlignVCenter
             if source_index.column() == self.sourceModel().columns_types.index('date'):
                 return Qt.AlignCenter
@@ -202,27 +197,24 @@ class HistoryTableModel(QAbstractTableModel):
         self.identities_service = identities_service
         self.transactions_service = transactions_service
         self.transfers_data = []
-        self.refresh_transfers()
 
         self.columns_types = (
             'date',
             'uid',
-            'payment',
-            'deposit',
+            'amount',
             'comment',
             'state',
             'txid',
             'pubkey',
             'block_number',
-            'amount',
+            'value',
             'txhash'
         )
 
         self.column_headers = (
             lambda: self.tr('Date'),
             lambda: self.tr('UID/Public key'),
-            lambda: self.tr('Payment'),
-            lambda: self.tr('Deposit'),
+            lambda: self.tr('Amount'),
             lambda: self.tr('Comment'),
             lambda: 'State',
             lambda: 'TXID',
@@ -253,10 +245,11 @@ class HistoryTableModel(QAbstractTableModel):
             for i, data in enumerate(self.transfers_data):
                 if data[self.columns_types.index('txhash')] == transfer.sha_hash:
                     if transfer.issuer == self.connection.pubkey:
-                        data[self.columns_types.index('txhash')] = self.data_sent(transfer)
+                        self.transfers_data[self.columns_types.index('txhash')] = self.data_sent(transfer)
                     else:
-                        data[self.columns_types.index('txhash')] = self.data_received(transfer)
+                        self.transfers_data[self.columns_types.index('txhash')] = self.data_received(transfer)
                     self.dataChanged.emit(self.index(i, 0), self.index(i, len(self.columns_types)))
+                    return
 
     def data_received(self, transfer):
         """
@@ -266,25 +259,22 @@ class HistoryTableModel(QAbstractTableModel):
         """
         block_number = transfer.written_block
 
-        amount = transfer.amount * 10**transfer.amount_base
-        try:
-            deposit = self.app.current_ref.instance(amount, self.connection.currency, self.app, block_number)\
-                .diff_localized(international_system=self.app.parameters.international_system_of_units)
-        except NoPeerAvailable:
-            deposit = "Could not compute"
+        value = transfer.amount * 10**transfer.amount_base
+        deposit = self.app.current_ref.instance(value, self.connection.currency, self.app, block_number)\
+            .diff_localized(international_system=self.app.parameters.international_system_of_units)
 
         identity = self.identities_service.get_identity(transfer.issuer)
         if identity:
             sender = identity.uid
         else:
-            sender = "pub:{0}".format(transfer.issuer[:5])
+            sender = transfer.issuer
 
         date_ts = transfer.timestamp
         txid = transfer.txid
 
-        return (date_ts, sender, "", deposit,
+        return (date_ts, sender, deposit,
                 transfer.comment, transfer.state, txid,
-                transfer.issuer, block_number, amount, transfer.sha_hash)
+                transfer.issuer, block_number, value, transfer.sha_hash)
 
     def data_sent(self, transfer):
         """
@@ -294,29 +284,25 @@ class HistoryTableModel(QAbstractTableModel):
         """
         block_number = transfer.written_block
 
-        amount = transfer.amount * 10**transfer.amount_base
-        try:
-            paiement = self.app.current_ref.instance(amount, self.connection.currency, self.app, block_number)\
-                            .diff_localized(international_system=self.app.parameters.international_system_of_units)
-        except NoPeerAvailable:
-            paiement = "Could not compute"
+        value = transfer.amount * 10**transfer.amount_base * -1
+        amount = self.app.current_ref.instance(value, self.connection.currency, self.app, block_number)\
+                        .diff_localized(international_system=self.app.parameters.international_system_of_units)
 
         identity = self.identities_service.get_identity(transfer.receiver)
         if identity:
             receiver = identity.uid
         else:
-            receiver = "pub:{0}".format(transfer.receiver[:5])
+            receiver = transfer.receiver
 
         date_ts = transfer.timestamp
         txid = transfer.txid
-        return (date_ts, receiver, paiement,
-                "", transfer.comment, transfer.state, txid,
-                transfer.receiver, block_number, amount, transfer.sha_hash)
+        return (date_ts, receiver, amount, transfer.comment, transfer.state, txid,
+                transfer.receiver, block_number, value, transfer.sha_hash)
 
     async def data_dividend(self, dividend):
         pass
 
-    def refresh_transfers(self):
+    def init_transfers(self):
         self.beginResetModel()
         self.transfers_data = []
         transfers = self.transfers()
@@ -356,13 +342,6 @@ class HistoryTableModel(QAbstractTableModel):
 
         if role == Qt.ToolTipRole:
             return self.transfers_data[row][col]
-
-        if role == Qt.DecorationRole and index.column() == 0:
-            transfer = self.transfers_data[row]
-            if transfer[self.columns_types.index('payment')] != "":
-                return QIcon(":/icons/sent")
-            else:
-                return QIcon(":/icons/received")
 
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled

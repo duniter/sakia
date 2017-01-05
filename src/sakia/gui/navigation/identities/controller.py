@@ -57,8 +57,7 @@ class IdentitiesController(QObject):
         index = self.view.table_identities.indexAt(point)
         valid, identity = self.model.table_data(index)
         if valid:
-            menu = ContextMenu.from_data(self.view, self.app, self.account, self.community, self.password_asker,
-                                         (identity,))
+            menu = ContextMenu.from_data(self.view, self.app, self.model.connection, (identity,))
             menu.view_identity_in_wot.connect(self.view_in_wot)
 
             # Show the context menu.

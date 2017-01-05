@@ -314,7 +314,10 @@ class IdentitiesService(QObject):
         :rtype: int
         """
         validity = self._blockchain_processor.parameters(self.currency).ms_validity
-        return identity.membership_timestamp + validity
+        if identity.membership_timestamp:
+            return identity.membership_timestamp + validity
+        else:
+            return 0
 
     def certifications_received(self, pubkey):
         """

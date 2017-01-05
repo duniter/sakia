@@ -75,7 +75,7 @@ class Transaction:
     :param str issuer: the pubkey of the issuer
     :param str receiver: the pubkey of the receiver
     :param int amount: the amount
-    :param str amount_base: the amount base
+    :param int amount_base: the amount base
     :param str comment: a comment
     :param str txid: the transaction id to sort transctions
     :param int state: the state of the transaction

@@ -1,6 +1,7 @@
-from PyQt5.QtWidgets import QDialog
+from PyQt5.QtWidgets import QDialog, QTabWidget, QVBoxLayout
 from PyQt5.QtCore import QObject, pyqtSignal
 from sakia.decorators import asyncify
+from sakia.gui.widgets.dialogs import dialog_async_exec
 from .model import UserInformationModel
 from .view import UserInformationView
 
@@ -24,19 +25,34 @@ class UserInformationController(QObject):
 
     @classmethod
     def create(cls, parent, app, currency, identity):
-        view = UserInformationView(parent.view)
+        view = UserInformationView(parent.view if parent else None)
         model = UserInformationModel(None, app, currency, identity)
         homescreen = cls(parent, view, model)
         model.setParent(homescreen)
         return homescreen
 
     @classmethod
-    def open_dialog(cls, parent, app, currency, identity):
+    def show_identity(cls, parent, app, currency, identity):
         dialog = QDialog()
         user_info = cls.create(parent, app, currency, identity)
         user_info.view.setParent(dialog)
         user_info.refresh()
         dialog.exec()
+
+    @classmethod
+    @asyncify
+    async def search_and_show_pubkey(cls, parent, app, currency, pubkey):
+        dialog = QDialog(parent)
+        layout = QVBoxLayout(dialog)
+        tabwidget = QTabWidget(dialog)
+        layout.addWidget(tabwidget)
+
+        identities = await app.identities_services[currency].lookup(pubkey)
+        for i in identities:
+            user_info = cls.create(parent, app, currency, i)
+            user_info.refresh()
+            tabwidget.addTab(user_info.view, i.uid)
+        return await dialog_async_exec(dialog)
 
     @asyncify
     async def refresh(self):

@@ -31,31 +31,31 @@ class ContextMenu(QObject):
         :param ContextMenu menu: the qmenu to add actions to
         :param Identity identity: the identity
         """
-        menu.qmenu.addSeparator().setText(identity.uid)
+        menu.qmenu.addSeparator().setText(identity.uid if identity.uid else "Pubkey")
 
         informations = QAction(menu.qmenu.tr("Informations"), menu.qmenu.parent())
         informations.triggered.connect(lambda checked, i=identity: menu.informations(i))
         menu.qmenu.addAction(informations)
 
-        if menu._account.pubkey != identity.pubkey:
+        if menu._connection.pubkey != identity.pubkey:
             send_money = QAction(menu.qmenu.tr("Send money"), menu.qmenu.parent())
             send_money.triggered.connect(lambda checked, i=identity: menu.send_money(i))
             menu.qmenu.addAction(send_money)
 
-        if menu._account.pubkey != identity.pubkey:
+        if identity.uid and menu._connection.pubkey != identity.pubkey:
             certify = QAction(menu.tr("Certify identity"), menu.qmenu.parent())
             certify.triggered.connect(lambda checked, i=identity: menu.certify_identity(i))
             menu.qmenu.addAction(certify)
 
-        view_wot = QAction(menu.qmenu.tr("View in Web of Trust"), menu.qmenu.parent())
-        view_wot.triggered.connect(lambda checked, i=identity: menu.view_wot(i))
-        menu.qmenu.addAction(view_wot)
+            view_wot = QAction(menu.qmenu.tr("View in Web of Trust"), menu.qmenu.parent())
+            view_wot.triggered.connect(lambda checked, i=identity: menu.view_wot(i))
+            menu.qmenu.addAction(view_wot)
 
         copy_pubkey = QAction(menu.qmenu.tr("Copy pubkey to clipboard"), menu.qmenu.parent())
         copy_pubkey.triggered.connect(lambda checked, i=identity: ContextMenu.copy_pubkey_to_clipboard(i))
         menu.qmenu.addAction(copy_pubkey)
 
-        if menu._app.preferences['expert_mode']:
+        if identity.uid and menu._app.parameters.expert_mode:
             copy_membership = QAction(menu.qmenu.tr("Copy membership document to clipboard"), menu.qmenu.parent())
             copy_membership.triggered.connect(lambda checked, i=identity: menu.copy_membership_to_clipboard(i))
             menu.qmenu.addAction(copy_membership)
@@ -121,7 +121,12 @@ class ContextMenu(QObject):
         clipboard.setText(identity.pubkey)
 
     def informations(self, identity):
-        UserInformationController.open_dialog(None, self._app, self._connection, identity)
+        if identity.uid:
+            UserInformationController.show_identity(self.parent(), self._app, self._connection.currency, identity)
+        else:
+            UserInformationController.search_and_show_pubkey(self.parent(), self._app,
+                                                             self._connection.currency, identity.pubkey)
+
 
     @asyncify
     async def send_money(self, identity):
