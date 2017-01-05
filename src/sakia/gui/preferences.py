@@ -61,8 +61,7 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
         self.edit_proxy_address.setEnabled(self.checkbox_proxy.isChecked())
 
     def accept(self):
-        parameters = UserParameters(profile_name=self.combo_account.currentText(),
-                                    lang=self.combo_language.currentText(),
+        parameters = UserParameters(lang=self.combo_language.currentText(),
                                     referential=self.combo_referential.currentIndex(),
                                     expert_mode=self.checkbox_expertmode.isChecked(),
                                     maximized=self.checkbox_maximize.isChecked(),
@@ -72,7 +71,6 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
                                     proxy_address=self.edit_proxy_address.text(),
                                     proxy_port=self.spinbox_proxy_port.value(),
                                     international_system_of_units=self.checkbox_international_system.isChecked(),
-                                    auto_refresh=self.checkbox_auto_refresh.isChecked(),
                                     forgetfulness=self.checkbox_forgetfulness.isChecked())
         self.app.save_parameters(parameters)
       # change UI translation

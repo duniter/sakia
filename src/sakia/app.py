@@ -135,7 +135,7 @@ class Application(QObject):
 
     def switch_language(self):
         logging.debug("Loading translations")
-        locale = self.preferences['lang']
+        locale = self.parameters.lang
         QLocale.setDefault(QLocale(locale))
         QCoreApplication.removeTranslator(self._translator)
         self._translator = QTranslator(self.qapp)

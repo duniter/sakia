@@ -23,6 +23,8 @@ class UserParametersFile:
         Commit a user_parameters to the database
         :param sakia.data.entities.UserParameters user_parameters: the user_parameters to commit
         """
+        if not os.path.exists(os.path.abspath(os.path.join(self._file, os.pardir))):
+            os.makedirs(os.path.abspath(os.path.join(self._file, os.pardir)))
         with open(self._file, 'w') as outfile:
             json.dump(attr.asdict(user_parameters), outfile, indent=4)
         return user_parameters

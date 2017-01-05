@@ -35,6 +35,7 @@ class UserInformationModel(QObject):
         """
         self.identity = identity
         self.identity = await self.identities_service.load_memberships(self.identity)
+        self.identity = await self.identities_service.load_requirements(self.identity)
 
     def set_currency(self, currency):
         self.currency = currency

@@ -49,7 +49,7 @@ class BaseGraph(QObject):
         """
         # new node
         node_status = NodeStatus.NEUTRAL
-        node_identity = await self.identities_service.refresh_requirements(node_identity)
+        node_identity = await self.identities_service.load_requirements(node_identity)
         if node_identity.pubkey == account_identity.pubkey:
             node_status += NodeStatus.HIGHLIGHTED
         if node_identity.member is False:

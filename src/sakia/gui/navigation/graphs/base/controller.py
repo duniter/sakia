@@ -69,8 +69,7 @@ class BaseGraphController(QObject):
         :param str pubkey: the pubkey of the node to open
         """
         identity = self.model.get_identity(pubkey)
-        menu = ContextMenu.from_data(self.view, self.model.app, self.model.account, self.model.community, self.password_asker,
-                                     (identity,))
+        menu = ContextMenu.from_data(self.view, self.model.app, self.model.connection, (identity,))
         menu.view_identity_in_wot.connect(self.draw_graph)
 
         # Show the context menu.

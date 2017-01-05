@@ -27,4 +27,4 @@ class BaseGraphModel(QObject):
         :param str pubkey: Identity pubkey
         :rtype: sakia.core.registry.Identity
         """
-        return self.identities_service.get_identity(pubkey, self.community)
+        return self.identities_service.get_identity(pubkey, self.connection.currency)

@@ -31,6 +31,7 @@ class BlockchainProcessor:
                 return block['medianTime']
         except NoPeerAvailable as e:
             self._logger.debug(str(e))
+        return 0
 
     def current_buid(self, currency):
         """

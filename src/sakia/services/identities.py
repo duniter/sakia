@@ -1,7 +1,7 @@
 from PyQt5.QtCore import QObject
 import asyncio
 from duniterpy.api import bma, errors
-from duniterpy.documents import BlockUID
+from duniterpy.documents import BlockUID, block_uid
 from sakia.errors import NoPeerAvailable
 from sakia.data.entities import Certification
 import logging
@@ -80,7 +80,7 @@ class IdentitiesService(QObject):
                 identity.membership_buid = blockstamp
                 identity.membership_type = ms["membership"]
                 identity.membership_written_on = ms["written"]
-                identity = await self.refresh_requirements(identity)
+                identity = await self.load_requirements(identity)
             # We save connections pubkeys
             if identity.pubkey in self._connections_processor.pubkeys():
                 self._identities_processor.insert_or_update_identity(identity)
@@ -226,7 +226,7 @@ class IdentitiesService(QObject):
                     need_refresh.append(identity)
         return need_refresh
 
-    async def refresh_requirements(self, identity):
+    async def load_requirements(self, identity):
         """
         Refresh a given identity information
         :param sakia.data.entities.Identity identity:
@@ -237,7 +237,8 @@ class IdentitiesService(QObject):
                                                          req_args={'search': identity.pubkey})
             identity_data = requirements['identities'][0]
             identity.uid = identity_data["uid"]
-            identity.blockstamp = identity_data["meta"]["timestamp"]
+            identity.blockstamp = block_uid(identity_data["meta"]["timestamp"])
+            identity.timestamp = await self._blockchain_processor.timestamp(self.currency, identity.blockstamp)
             identity.member = identity_data["membershipExpiresIn"] > 0 and identity_data["outdistanced"] is False
             median_time = self._blockchain_processor.time(self.currency)
             expiration_time = self._blockchain_processor.parameters(self.currency).ms_validity
@@ -273,7 +274,7 @@ class IdentitiesService(QObject):
         # for every identity for which we need a refresh, we gather
         # requirements requests
         for identity in set(need_refresh):
-            refresh_futures.append(self.refresh_requirements(identity))
+            refresh_futures.append(self.load_requirements(identity))
         await asyncio.gather(*refresh_futures)
         return need_refresh
 
