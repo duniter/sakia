@@ -20,7 +20,7 @@ class HomeScreenController(QObject):
         self.model = model
 
     @classmethod
-    def create(cls, parent, app, **kwargs):
+    def create(cls, parent, app):
         """
         Instanciate a homescreen component
         :param sakia.gui.component.controller.ComponentController parent:

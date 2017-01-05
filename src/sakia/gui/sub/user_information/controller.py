@@ -58,10 +58,11 @@ class UserInformationController(QObject):
     async def refresh(self):
         if self.model.identity:
             self.view.show_busy()
-            self.view.display_uid(self.model.identity.uid)
             await self.model.load_identity(self.model.identity)
+            self.view.display_uid(self.model.identity.uid, self.model.identity.member)
             self.view.display_identity_timestamps(self.model.identity.pubkey, self.model.identity.timestamp,
-                                                  self.model.identity.membership_timestamp)
+                                                  self.model.identity.membership_timestamp,
+                                                  self.model.mstime_remaining(), await self.model.nb_certs())
             self.view.hide_busy()
             self.identity_loaded.emit()
 

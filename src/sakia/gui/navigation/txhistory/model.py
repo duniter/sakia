@@ -49,6 +49,7 @@ class TxHistoryModel(QObject):
         self._model.init_transfers()
         self.app.new_transfer.connect(self._model.add_transfer)
         self.app.transaction_state_changed.connect(self._model.change_transfer)
+        self.app.referential_changed.connect(self._model.modelReset)
 
         return self._proxy
 

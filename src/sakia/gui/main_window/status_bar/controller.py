@@ -23,7 +23,7 @@ class StatusBarController(QObject):
         self.update_time()
 
     @classmethod
-    def create(cls, app, **kwargs):
+    def create(cls, app):
         """
         Instanciate a navigation component
         :param sakia.gui.main_window.controller.MainWindowController parent:
@@ -62,4 +62,4 @@ class StatusBarController(QObject):
 
     @pyqtSlot(int)
     def referential_changed(self, index):
-        pass
+        self.model.app.change_referential(index)

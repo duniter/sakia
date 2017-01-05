@@ -33,7 +33,7 @@ class DividendPerDay(BaseReferential):
 
     @classmethod
     def instance(cls, amount, currency, app, block_number=None):
-        if app.preferences['forgetfulness']:
+        if app.parameters.forgetfulness:
             return cls(amount, currency, app, block_number)
         else:
             return UDDToPast(amount, currency, app, block_number)

@@ -1,5 +1,5 @@
 from PyQt5.QtCore import QObject
-from sakia.data.processors import CertificationsProcessor
+from sakia.data.processors import CertificationsProcessor, BlockchainProcessor
 
 
 class UserInformationModel(QObject):
@@ -18,6 +18,7 @@ class UserInformationModel(QObject):
         """
         super().__init__(parent)
         self._certifications_processor = CertificationsProcessor.instanciate(app)
+        self._blockchain_processor = BlockchainProcessor.instanciate(app)
         self.app = app
         self.currency = currency
         self.identity = identity
@@ -40,3 +41,14 @@ class UserInformationModel(QObject):
     def set_currency(self, currency):
         self.currency = currency
         self.identities_service = self.app.identities_services[self.currency]
+
+    async def nb_certs(self):
+        certs = await self.identities_service.load_certifiers_of(self.identity)
+        return len(certs)
+
+    def mstime_remaining(self):
+        return self.identities_service.expiration_date(self.identity) \
+               - self._blockchain_processor.time(self.identity.currency)
+
+    def outdistanced(self):
+        return self.identity_is_outdistanced

@@ -33,11 +33,6 @@ class TxFilterProxyModel(QSortFilterProxyModel):
         self.ts_to = ts_to
         self.blockchain_service = blockchain_service
 
-
-    @property
-    def account(self):
-        return self.app.current_account
-
     def set_period(self, ts_from, ts_to):
         """
         Filter table by given timestamps
@@ -62,18 +57,14 @@ class TxFilterProxyModel(QSortFilterProxyModel):
         if in_period(date):
             # calculate sum total payments
             payment = source_model.data(
-                source_model.index(sourceRow, source_model.columns_types.index('value')),
+                source_model.index(sourceRow, source_model.columns_types.index('amount')),
                 Qt.DisplayRole
             )
 
         return in_period(date)
 
-    @property
-    def community(self):
-        return self.sourceModel().community
-
     def columnCount(self, parent):
-        return self.sourceModel().columnCount(None) - 6
+        return self.sourceModel().columnCount(None) - 5
 
     def setSourceModel(self, sourceModel):
         self.app = sourceModel.app
@@ -125,7 +116,9 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                     QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
                 )
             if source_index.column() == model.columns_types.index('amount'):
-                return source_data
+                amount = self.app.current_ref.instance(source_data, model.connection.currency, self.app, block_data) \
+                    .diff_localized(international_system=self.app.parameters.international_system_of_units)
+                return amount
 
         if role == Qt.FontRole:
             font = QFont()
@@ -146,15 +139,11 @@ class TxFilterProxyModel(QSortFilterProxyModel):
             elif state_data == Transaction.TO_SEND:
                 return QColor(Qt.blue)
             if source_index.column() == model.columns_types.index('amount'):
-                source_data = model.data(source_index, role)
-                value_col = model.columns_types.index('value')
-                value_index = model.index(source_index.row(), value_col)
-                value_data = model.data(value_index, Qt.DisplayRole)
-                if value_data < 0:
+                if source_data < 0:
                     return QColor(Qt.darkRed)
 
         if role == Qt.TextAlignmentRole:
-            if  self.sourceModel().columns_types.index('amount'):
+            if self.sourceModel().columns_types.index('amount'):
                 return Qt.AlignRight | Qt.AlignVCenter
             if source_index.column() == self.sourceModel().columns_types.index('date'):
                 return Qt.AlignCenter
@@ -207,7 +196,6 @@ class HistoryTableModel(QAbstractTableModel):
             'txid',
             'pubkey',
             'block_number',
-            'value',
             'txhash'
         )
 
@@ -259,9 +247,7 @@ class HistoryTableModel(QAbstractTableModel):
         """
         block_number = transfer.written_block
 
-        value = transfer.amount * 10**transfer.amount_base
-        deposit = self.app.current_ref.instance(value, self.connection.currency, self.app, block_number)\
-            .diff_localized(international_system=self.app.parameters.international_system_of_units)
+        amount = transfer.amount * 10**transfer.amount_base
 
         identity = self.identities_service.get_identity(transfer.issuer)
         if identity:
@@ -272,9 +258,9 @@ class HistoryTableModel(QAbstractTableModel):
         date_ts = transfer.timestamp
         txid = transfer.txid
 
-        return (date_ts, sender, deposit,
+        return (date_ts, sender, amount,
                 transfer.comment, transfer.state, txid,
-                transfer.issuer, block_number, value, transfer.sha_hash)
+                transfer.issuer, block_number, transfer.sha_hash)
 
     def data_sent(self, transfer):
         """
@@ -284,10 +270,7 @@ class HistoryTableModel(QAbstractTableModel):
         """
         block_number = transfer.written_block
 
-        value = transfer.amount * 10**transfer.amount_base * -1
-        amount = self.app.current_ref.instance(value, self.connection.currency, self.app, block_number)\
-                        .diff_localized(international_system=self.app.parameters.international_system_of_units)
-
+        amount = transfer.amount * 10**transfer.amount_base * -1
         identity = self.identities_service.get_identity(transfer.receiver)
         if identity:
             receiver = identity.uid
@@ -297,7 +280,7 @@ class HistoryTableModel(QAbstractTableModel):
         date_ts = transfer.timestamp
         txid = transfer.txid
         return (date_ts, receiver, amount, transfer.comment, transfer.state, txid,
-                transfer.receiver, block_number, value, transfer.sha_hash)
+                transfer.receiver, block_number, transfer.sha_hash)
 
     async def data_dividend(self, dividend):
         pass
@@ -337,10 +320,7 @@ class HistoryTableModel(QAbstractTableModel):
         if not index.isValid():
             return QVariant()
 
-        if role == Qt.DisplayRole:
-            return self.transfers_data[row][col]
-
-        if role == Qt.ToolTipRole:
+        if role in (Qt.DisplayRole, Qt.ForegroundRole, Qt.ToolTipRole):
             return self.transfers_data[row][col]
 
     def flags(self, index):

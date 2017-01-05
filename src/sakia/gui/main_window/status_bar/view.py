@@ -18,7 +18,6 @@ class StatusBarView(QStatusBar):
         self.label_time = QLabel("", parent)
 
         self.combo_referential = QComboBox(parent)
-        self.combo_referential.setEnabled(False)
 
         self.addPermanentWidget(self.label_icon, 1)
         self.addPermanentWidget(self.status_label, 2)

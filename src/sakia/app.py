@@ -18,7 +18,7 @@ from sakia.data.processors import BlockchainProcessor, NodesProcessor, Identitie
     CertificationsProcessor, SourcesProcessor, TransactionsProcessor, ConnectionsProcessor
 from sakia.data.files import AppDataFile, UserParametersFile
 from sakia.decorators import asyncify
-from sakia.money import Relative
+from sakia.money import *
 
 
 @attr.s()
@@ -48,6 +48,7 @@ class Application(QObject):
     transaction_state_changed = pyqtSignal(Transaction)
     identity_changed = pyqtSignal(Identity)
     new_connection = pyqtSignal(Connection)
+    referential_changed = pyqtSignal()
 
     qapp = attr.ib()
     loop = attr.ib()
@@ -61,6 +62,7 @@ class Application(QObject):
     sources_services = attr.ib(default=attr.Factory(dict))
     transactions_services = attr.ib(default=attr.Factory(dict))
     documents_service = attr.ib(default=None)
+    current_ref = attr.ib(default=Relative)
     available_version = attr.ib(init=False)
     _translator = attr.ib(init=False)
 
@@ -194,11 +196,11 @@ class Application(QObject):
         except Exception as e:
             pass
 
-    @property
-    def current_ref(self):
-        return Relative
-
     def save_parameters(self, parameters):
         self.parameters = UserParametersFile\
             .in_config_path(self.options.config_path, parameters.profile_name)\
             .save(parameters)
+
+    def change_referential(self, index):
+        self.current_ref = Referentials[index]
+        self.referential_changed.emit()
