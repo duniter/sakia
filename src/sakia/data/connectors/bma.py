@@ -92,11 +92,8 @@ class BmaConnector:
                     reply = asyncio.ensure_future(request(endpoint.conn_handler(session), **req_args))
                     replies.append(reply)
 
-                try:
-                    result = await asyncio.gather(*replies)
-                    return tuple(result)
-                except (ClientError, ServerDisconnectedError, gaierror, asyncio.TimeoutError, ValueError) as e:
-                    self._logger.debug(str(e))
+                result = await asyncio.gather(*replies, return_exceptions=True)
+                return tuple(result)
             return ()
         else:
             raise NoPeerAvailable("", len(endpoints))

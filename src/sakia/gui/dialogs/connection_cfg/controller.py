@@ -168,6 +168,8 @@ class ConnectionConfigController(QObject):
 
             if mode in (ConnectionConfigController.REGISTER, ConnectionConfigController.CONNECT):
                 self.view.stream_log("Saving identity...")
+                self.model.connection.blockstamp = connection_identity.blockstamp
+                self.model.insert_or_update_connection()
                 self.model.insert_or_update_identity(connection_identity)
                 self.view.stream_log("Initializing identity informations...")
                 await self.model.initialize_identity(connection_identity, log_stream=self.view.stream_log)

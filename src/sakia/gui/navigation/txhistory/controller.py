@@ -3,13 +3,12 @@ import logging
 from PyQt5.QtCore import QTime, pyqtSignal, QObject
 from PyQt5.QtGui import QCursor
 
-from sakia.decorators import asyncify, once_at_a_time
+from sakia.decorators import asyncify
 from sakia.gui.widgets import toast
 from sakia.gui.widgets.context_menu import ContextMenu
 from sakia.data.entities import Identity
 from .model import TxHistoryModel
 from .view import TxHistoryView
-import attr
 
 
 class TxHistoryController(QObject):

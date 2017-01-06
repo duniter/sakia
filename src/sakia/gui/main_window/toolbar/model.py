@@ -1,4 +1,5 @@
 from PyQt5.QtCore import QObject
+from sakia.data.processors import ConnectionsProcessor
 import attr
 
 
@@ -19,3 +20,9 @@ class ToolbarModel(QObject):
 
     async def send_join(self, connection, password):
         return await self.app.documents_service.send_membership(connection, password, "IN")
+
+    def notifications(self):
+        return self.app.parameters.notifications
+
+    def connections(self):
+        return ConnectionsProcessor.instanciate(self.app).connections()

@@ -125,6 +125,7 @@ class ConnectionConfigModel(QObject):
                     for uid_data in uids:
                         if BlockUID.from_str(uid_data["meta"]["timestamp"]) >= timestamp:
                             timestamp = BlockUID.from_str(uid_data["meta"]["timestamp"])
+                            found_identity.blockstamp = timestamp
                             found_uid = uid_data["uid"]
                             found_identity.signature = uid_data["self"]
             return identity.uid == found_uid, identity.uid, found_uid
@@ -138,6 +139,7 @@ class ConnectionConfigModel(QObject):
                 for uid_data in uids:
                     if BlockUID.from_str(uid_data["meta"]["timestamp"]) >= timestamp:
                         timestamp = BlockUID.from_str(uid_data["meta"]["timestamp"])
+                        found_identity.blockstamp = timestamp
                         found_uid = uid_data["uid"]
                         found_identity.signature = uid_data["self"]
                 if found_uid == identity.uid:

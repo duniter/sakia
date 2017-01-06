@@ -55,19 +55,21 @@ class ToolbarController(QObject):
 
     @asyncify
     async def send_join_demand(self, checked=False):
-        connection = self.model.navigation_model.navigation.current_connection()
-        password = PasswordAskerDialog(connection).async_exec()
+        connection = await self.view.ask_for_connection(self.model.connections())
+        if not connection:
+            return
+        password = await PasswordAskerDialog(connection).async_exec()
         if not password:
             return
         result = await self.model.send_join(connection, password)
         if result[0]:
-            if self.app.preferences['notifications']:
+            if self.model.notifications():
                 toast.display(self.tr("Membership"), self.tr("Success sending Membership demand"))
             else:
                 await QAsyncMessageBox.information(self, self.tr("Membership"),
                                                         self.tr("Success sending Membership demand"))
         else:
-            if self.app.preferences['notifications']:
+            if self.model.notifications():
                 toast.display(self.tr("Membership"), result[1])
             else:
                 await QAsyncMessageBox.critical(self, self.tr("Membership"),
@@ -89,10 +91,11 @@ class ToolbarController(QObject):
     def open_add_connection_dialog(self):
         connection_config = ConnectionConfigController.create_connection(self, self.model.app)
         connection_config.exec()
-        if connection_config.result() == QDialog.Accepted:
+        if connection_config.view.result() == QDialog.Accepted:
             self.model.app.instanciate_services()
             self.model.app.start_coroutines()
             self.model.app.new_connection.emit(connection_config.model.connection)
+            self.enable_actions(True)
 
     def retranslateUi(self, widget):
         """

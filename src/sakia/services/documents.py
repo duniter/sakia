@@ -60,7 +60,7 @@ class DocumentsService:
         """
         block_uid = self._blockchain_processor.current_buid(connection.currency)
         timestamp = self._blockchain_processor.time(connection.currency)
-        selfcert = IdentityDoc(2,
+        selfcert = IdentityDoc(10,
                                connection.currency,
                                connection.pubkey,
                                connection.uid,
@@ -106,21 +106,24 @@ class DocumentsService:
         """
         self._logger.debug("Send membership")
 
-        blockUID = self._blockchain_processor.current_buid(currency)
-        membership = Membership(PROTOCOL_VERSION, currency,
-                                identity.pubkey, blockUID, mstype, identity.uid,
-                                identity.timestamp, None)
-        key = SigningKey(salt, password)
+        blockUID = self._blockchain_processor.current_buid(connection.currency)
+        membership = Membership(10, connection.currency,
+                                connection.pubkey, blockUID, mstype, connection.uid,
+                                connection.blockstamp, None)
+        key = SigningKey(connection.salt, password, connection.scrypt_params)
         membership.sign([key])
         self._logger.debug("Membership : {0}".format(membership.signed_raw()))
-        responses = await self._bma_connector.broadcast(currency, bma.blockchain.Membership, {},
-                                                            {'membership': membership.signed_raw()})
+        responses = await self._bma_connector.broadcast(connection.currency, bma.blockchain.membership,
+                                                        req_args={'membership': membership.signed_raw()})
         result = (False, "")
         for r in responses:
-            if r.status == 200:
+            if not result[0]:
+                if isinstance(r, BaseException):
+                    result = (False, str(r))
+                else:
+                    result = (False, (await r.json())["message"])
+            elif r.status == 200:
                 result = (True, (await r.json()))
-            elif not result[0]:
-                result = (False, (await r.text()))
             else:
                 await r.release()
         return result
@@ -136,7 +139,7 @@ class DocumentsService:
         self._logger.debug("Certdata")
         blockUID = self._blockchain_processor.current_buid(connection.currency)
 
-        certification = Certification(6, connection.currency,
+        certification = Certification(10, connection.currency,
                                       connection.pubkey, identity.pubkey, blockUID, None)
 
         key = SigningKey(connection.salt, password, connection.scrypt_params)
@@ -340,7 +343,7 @@ class DocumentsService:
         unlocks = self.tx_unlocks(sources)
         outputs = self.tx_outputs(issuer, receiver, computed_outputs, overheads)
         logging.debug("Outputs : {0}".format(outputs))
-        tx = TransactionDoc(3, currency, blockstamp, 0,
+        tx = TransactionDoc(10, currency, blockstamp, 0,
                             [issuer], inputs, unlocks,
                             outputs, message, None)
         return tx

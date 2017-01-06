@@ -1,4 +1,5 @@
-from PyQt5.QtWidgets import QFrame, QAction, QMenu, QSizePolicy, QMessageBox
+from PyQt5.QtWidgets import QFrame, QAction, QMenu, QSizePolicy, QInputDialog, QDialog
+from sakia.gui.widgets.dialogs import dialog_async_exec
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QObject, QT_TRANSLATE_NOOP, Qt
 from .toolbar_uic import Ui_SakiaToolbar
@@ -29,3 +30,17 @@ class ToolbarView(QFrame, Ui_SakiaToolbar):
 
         self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Minimum)
         self.setMaximumHeight(60)
+
+    async def ask_for_connection(self, connections):
+        connections_titles = [c.title() for c in connections]
+        input_dialog = QInputDialog()
+        input_dialog.setComboBoxItems(connections_titles)
+        input_dialog.setWindowTitle(self.tr("Membership"))
+        input_dialog.setLabelText(self.tr("Select a connection"))
+        await dialog_async_exec(input_dialog)
+        result = input_dialog.textValue()
+
+        if input_dialog.result() == QDialog.Accepted:
+            for c in connections:
+                if c.title() == result:
+                    return c
