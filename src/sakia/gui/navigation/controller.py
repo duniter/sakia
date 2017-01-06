@@ -45,6 +45,7 @@ class NavigationController(QObject):
         self.view.current_view_changed.connect(self.handle_view_change)
         self.view.setContextMenuPolicy(Qt.CustomContextMenu)
         self.view.customContextMenuRequested.connect(self.tree_context_menu)
+        self._components_controllers = []
 
     @classmethod
     def create(cls, parent, app):
@@ -66,6 +67,7 @@ class NavigationController(QObject):
         if 'component' in node_data:
             component_class = self.components[node_data['component']]
             component = component_class.create(self, self.model.app, **node_data['dependencies'])
+            self._components_controllers.append(component)
             widget = self.view.add_widget(component.view)
             node_data['widget'] = widget
         if 'children' in node_data:

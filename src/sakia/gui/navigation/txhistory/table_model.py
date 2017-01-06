@@ -66,9 +66,9 @@ class TxFilterProxyModel(QSortFilterProxyModel):
     def columnCount(self, parent):
         return self.sourceModel().columnCount(None) - 5
 
-    def setSourceModel(self, sourceModel):
-        self.app = sourceModel.app
-        super().setSourceModel(sourceModel)
+    def setSourceModel(self, source_model):
+        self.app = source_model.app
+        super().setSourceModel(source_model)
 
     def lessThan(self, left, right):
         """
@@ -145,11 +145,11 @@ class TxFilterProxyModel(QSortFilterProxyModel):
         if role == Qt.TextAlignmentRole:
             if self.sourceModel().columns_types.index('amount'):
                 return Qt.AlignRight | Qt.AlignVCenter
-            if source_index.column() == self.sourceModel().columns_types.index('date'):
+            if source_index.column() == model.columns_types.index('date'):
                 return Qt.AlignCenter
 
         if role == Qt.ToolTipRole:
-            if source_index.column() == self.sourceModel().columns_types.index('date'):
+            if source_index.column() == model.columns_types.index('date'):
                 return QDateTime.fromTime_t(source_data).toString(Qt.SystemLocaleLongDate)
 
             if state_data == Transaction.VALIDATED or state_data == Transaction.AWAITING:
@@ -203,12 +203,7 @@ class HistoryTableModel(QAbstractTableModel):
             lambda: self.tr('Date'),
             lambda: self.tr('UID/Public key'),
             lambda: self.tr('Amount'),
-            lambda: self.tr('Comment'),
-            lambda: 'State',
-            lambda: 'TXID',
-            lambda: 'Pubkey',
-            lambda: 'Block Number',
-            lambda: 'TxHash'
+            lambda: self.tr('Comment')
         )
 
     def transfers(self):

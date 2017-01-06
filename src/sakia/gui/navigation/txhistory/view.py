@@ -11,7 +11,6 @@ class TxHistoryView(QWidget, Ui_TxHistoryWidget):
     def __init__(self, parent):
         super().__init__(parent)
         self.setupUi(self)
-        self.busy_balance.hide()
 
     def get_time_frame(self):
         """
@@ -30,8 +29,6 @@ class TxHistoryView(QWidget, Ui_TxHistoryWidget):
         self.table_history.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table_history.setSortingEnabled(True)
         self.table_history.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
-        model.modelAboutToBeReset.connect(lambda: self.table_history.setEnabled(False))
-        model.modelReset.connect(lambda: self.table_history.setEnabled(True))
         model.modelReset.connect(self.table_history.resizeColumnsToContents)
 
     def set_minimum_maximum_datetime(self, minimum, maximum):
@@ -59,10 +56,6 @@ class TxHistoryView(QWidget, Ui_TxHistoryWidget):
             "{:}".format(balance)
         )
 
-    def resizeEvent(self, event):
-        self.busy_balance.resize(event.size())
-        super().resizeEvent(event)
-
     def changeEvent(self, event):
         """
         Intercepte LanguageChange event to translate UI
@@ -71,6 +64,4 @@ class TxHistoryView(QWidget, Ui_TxHistoryWidget):
         """
         if event.type() == QEvent.LanguageChange:
             self.retranslateUi(self)
-            self.refresh()
-            return True
         super().changeEvent(event)

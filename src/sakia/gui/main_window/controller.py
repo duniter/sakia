@@ -69,7 +69,6 @@ class MainWindowController(QObject):
         model = MainWindowModel(None, app)
         main_window = cls(view, model, password_asker, status_bar, toolbar, navigation)
         model.setParent(main_window)
-        main_window.navigation.init_navigation()
         return main_window
 
     @classmethod

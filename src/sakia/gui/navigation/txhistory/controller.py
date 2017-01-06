@@ -12,31 +12,23 @@ from .view import TxHistoryView
 import attr
 
 
-@attr.s()
 class TxHistoryController(QObject):
     """
     Transfer history component controller
     """
     view_in_wot = pyqtSignal(object)
 
-    view = attr.ib()
-    model = attr.ib()
-    password_asker = attr.ib()
-
-    def __attrs_post_init__(self):
-        """
-        Init
-        :param sakia.gui.txhistory.view.TxHistoryView view:
-        :param sakia.gui.txhistory.model.TxHistoryModel model:
-        :param password_asker:
-        """
+    def __init__(self, view, model):
         super().__init__()
+        self.view = view
+        self.model = model
+        self._logger = logging.getLogger('sakia')
         ts_from, ts_to = self.view.get_time_frame()
         model = self.model.init_history_table_model(ts_from, ts_to)
         self.view.set_table_history_model(model)
 
-        self.view.date_from.dateChanged['QDate'].connect(self.dates_changed)
-        self.view.date_to.dateChanged['QDate'].connect(self.dates_changed)
+        self.view.date_from.dateChanged.connect(self.dates_changed)
+        self.view.date_to.dateChanged.connect(self.dates_changed)
         self.view.table_history.customContextMenuRequested['QPoint'].connect(self.history_context_menu)
         self.refresh()
 
@@ -47,7 +39,7 @@ class TxHistoryController(QObject):
         view = TxHistoryView(parent.view)
         model = TxHistoryModel(None, app, connection, blockchain_service, identities_service,
                                transactions_service, sources_service)
-        txhistory = cls(view, model, None)
+        txhistory = cls(view, model)
         model.setParent(txhistory)
         app.referential_changed.connect(txhistory.refresh_balance)
         return txhistory
@@ -73,10 +65,8 @@ class TxHistoryController(QObject):
                 toast.display(self.tr("New transactions received"), text)
 
     def refresh_balance(self):
-        self.view.busy_balance.show()
         localized_amount = self.model.localized_balance()
         self.view.set_balance(localized_amount)
-        self.view.busy_balance.hide()
 
     def history_context_menu(self, point):
         index = self.view.table_history.indexAt(point)
@@ -95,7 +85,7 @@ class TxHistoryController(QObject):
             menu.qmenu.popup(QCursor.pos())
 
     def dates_changed(self):
-        logging.debug("Changed dates")
+        self._logger.debug("Changed dates")
         if self.view.table_history.model():
             qdate_from = self.view.date_from
             qdate_from.setTime(QTime(0, 0, 0))
