@@ -36,8 +36,7 @@ class BaseGraphController(QObject):
 
     @pyqtSlot(str, dict)
     def handle_node_click(self, pubkey, metadata):
-        identity = self.model.get_identity_from_data(metadata, pubkey)
-        asyncio.ensure_future(self.draw_graph(identity))
+        asyncio.ensure_future(self.draw_graph(metadata['identity']))
 
     async def draw_graph(self, identity):
         """

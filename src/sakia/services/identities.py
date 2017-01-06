@@ -96,8 +96,8 @@ class IdentitiesService(QObject):
         It does nothing if the identity is already written and updated with blockchain lookups
         :param sakia.data.entities.Identity identity: the identity
         """
+        certifications = []
         try:
-            certifications = []
             data = await self._bma_connector.get(self.currency, bma.wot.certifiers_of, {'search': identity.pubkey})
             for certifier_data in data['certifications']:
                 cert = Certification(currency=self.currency,
@@ -112,14 +112,12 @@ class IdentitiesService(QObject):
                 # We save connections pubkeys
                 if identity.pubkey in self._connections_processor.pubkeys():
                     self._certs_processor.insert_or_update_certification(cert)
-                return certifications
         except errors.DuniterError as e:
             if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
                 logging.debug("Certified by error : {0}".format(str(e)))
-                return []
         except NoPeerAvailable as e:
             logging.debug(str(e))
-            return []
+        return certifications
 
     async def load_certified_by(self, identity):
         """
@@ -127,8 +125,8 @@ class IdentitiesService(QObject):
         It does nothing if the identity is already written and updated with blockchain lookups
         :param sakia.data.entities.Identity identity: the identity
         """
+        certifications = []
         try:
-            certifications = []
             data = await self._bma_connector.get(self.currency, bma.wot.certified_by, {'search': identity.pubkey})
             for certified_data in data['certifications']:
                 cert = Certification(currency=self.currency,
@@ -143,14 +141,12 @@ class IdentitiesService(QObject):
                 # We save connections pubkeys
                 if identity.pubkey in self._connections_processor.pubkeys():
                     self._certs_processor.insert_or_update_certification(cert)
-                return certifications
         except errors.DuniterError as e:
             if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
                 logging.debug("Certified by error : {0}".format(str(e)))
-                return []
         except NoPeerAvailable as e:
             logging.debug(str(e))
-            return []
+        return certifications
 
     def _parse_revocations(self, block):
         """
@@ -306,6 +302,9 @@ class IdentitiesService(QObject):
 
     def get_identity(self, pubkey, uid=""):
         return self._identities_processor.get_identity(self.currency, pubkey, uid)
+
+    async def find_from_pubkey(self, pubkey):
+        return await self._identities_processor.find_from_pubkey(self.currency, pubkey)
 
     def expiration_date(self, identity):
         """

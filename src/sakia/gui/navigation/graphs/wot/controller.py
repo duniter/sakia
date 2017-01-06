@@ -48,12 +48,12 @@ class WotController(BaseGraphController):
 
         :param sakia.core.registry.Identity identity: Center identity
         """
+        self.view.setEnabled(False)
         await self.model.set_identity(identity)
         self.refresh()
+        self.view.setEnabled(True)
 
-    @once_at_a_time
-    @asyncify
-    async def refresh(self):
+    def refresh(self):
         """
         Refresh graph scene to current metadata
         """

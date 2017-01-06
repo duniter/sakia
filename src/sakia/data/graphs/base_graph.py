@@ -115,6 +115,7 @@ class BaseGraph(QObject):
         metadata = {
             'text': certifier.uid,
             'tooltip': certifier.pubkey,
+            'identity': certifier,
             'status': node_status
         }
         self.nx_graph.add_node(certifier.pubkey, attr_dict=metadata)
@@ -137,6 +138,7 @@ class BaseGraph(QObject):
         metadata = {
             'text': certified.uid,
             'tooltip': certified.pubkey,
+            'identity': certified,
             'status': node_status
         }
         self.nx_graph.add_node(certified.pubkey, attr_dict=metadata)
@@ -196,6 +198,8 @@ class BaseGraph(QObject):
             #  add certifiers of uid
             for certification in tuple(certifier_list):
                 certifier = self.identities_service.get_identity(certification.certifier)
+                if not certifier:
+                    certifier = await self.identities_service.find_from_pubkey(certification.certifier)
                 node_status = await self.node_status(certifier, account_identity)
                 self.add_certifier_node(certifier, identity, certification, node_status)
         except NoPeerAvailable as e:
@@ -213,8 +217,10 @@ class BaseGraph(QObject):
             # add certified by uid
             for certification in tuple(certified_list):
                 certified = self.identities_service.get_identity(certification.certified)
+                if not certified:
+                    certified = await self.identities_service.find_from_pubkey(certification.certified)
                 node_status = await self.node_status(certified, account_identity)
-                self.add_certified_node(certified, identity, certification, node_status)
+                self.add_certified_node(identity, certified, certification, node_status)
 
         except NoPeerAvailable as e:
             logging.debug(str(e))
@@ -230,6 +236,7 @@ class BaseGraph(QObject):
         metadata = {
             'text': identity.uid,
             'tooltip': identity.pubkey,
-            'status': status
+            'status': status,
+            'identity': identity
         }
         self.nx_graph.add_node(identity.pubkey, attr_dict=metadata)

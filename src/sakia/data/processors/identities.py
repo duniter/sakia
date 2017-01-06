@@ -31,33 +31,39 @@ class IdentitiesProcessor:
 
     async def find_from_pubkey(self, currency, pubkey):
         """
-        Get the list of identities corresponding to a pubkey
+        Get the most recent identity corresponding to a pubkey
         from the network and the local db
         :param currency:
         :param pubkey:
-        :rtype: list[sakia.data.entities.Identity]
+        :rtype: sakia.data.entities.Identity
         """
+        found_identity = Identity(currency=currency, pubkey=pubkey)
         identities = self._identities_repo.get_all(currency=currency, pubkey=pubkey)
-        tries = 0
-        while tries < 3:
-            try:
-                data = await self._bma_connector.get(currency, bma.wot.lookup, req_args={'search': pubkey})
-                for result in data['results']:
-                    if result["pubkey"] == pubkey:
-                        uids = result['uids']
-                        for uid_data in uids:
-                            identity = Identity(currency, pubkey)
-                            identity.uid = uid_data['uid']
-                            identity.blockstamp = data['meta']['timestamp']
-                            identity.signature = data['self']
-                            if identity not in identities:
-                                identities.append(identity)
-            except (errors.DuniterError, asyncio.TimeoutError, ClientError) as e:
-                tries += 1
-                self._logger.debug(str(e))
-            except NoPeerAvailable:
-                return identities
-        return identities
+        for idty in identities:
+            if idty.blockstamp > found_identity.blockstamp:
+                found_identity = idty
+        if not found_identity:
+            tries = 0
+            while tries < 3:
+                try:
+                    data = await self._bma_connector.get(currency, bma.wot.lookup, req_args={'search': pubkey})
+                    found_identity = None
+                    for result in data['results']:
+                        if result["pubkey"] == pubkey:
+                            uids = result['uids']
+                            for uid_data in uids:
+                                identity = Identity(currency, pubkey)
+                                identity.uid = uid_data['uid']
+                                identity.blockstamp = block_uid(uid_data['meta']['timestamp'])
+                                identity.signature = uid_data['self']
+                                if identity.blockstamp > found_identity.blockstamp:
+                                    found_identity = identity
+                except (errors.DuniterError, asyncio.TimeoutError, ClientError) as e:
+                    tries += 1
+                    self._logger.debug(str(e))
+                except NoPeerAvailable:
+                    self._logger.debug(str(e))
+        return found_identity
 
     async def lookup(self, currency, text):
         """

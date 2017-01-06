@@ -17,6 +17,7 @@ class WoTGraph(BaseGraph):
         super().__init__(app, blockchain_service, identities_service, nx_graph)
 
     async def initialize(self, center_identity, connection_identity):
+        self.nx_graph.clear()
         node_status = await self.node_status(center_identity, connection_identity)
 
         self.add_identity(center_identity, node_status)
@@ -25,18 +26,17 @@ class WoTGraph(BaseGraph):
         certifier_coro = asyncio.ensure_future(self.identities_service.load_certifiers_of(center_identity))
         certified_coro = asyncio.ensure_future(self.identities_service.load_certified_by(center_identity))
 
-        await asyncio.gather(certifier_coro, certified_coro)
+        certifier_list, certified_list = await asyncio.gather(*[certifier_coro, certified_coro])
 
         # populate graph with certifiers-of
-        certifier_list = self.identities_service.certifications_received(center_identity.pubkey)
         certifier_coro = asyncio.ensure_future(self.add_certifier_list(certifier_list,
                                                                        center_identity, connection_identity))
         # populate graph with certified-by
-        certified_list = self.identities_service.certifications_sent(center_identity.pubkey)
         certified_coro = asyncio.ensure_future(self.add_certified_list(certified_list,
                                                                        center_identity, connection_identity))
 
-        await asyncio.gather(certifier_coro, certified_coro)
+        await asyncio.gather(*[certifier_coro, certified_coro], return_exceptions=True)
+        await asyncio.sleep(0)
 
     def offline_init(self, center_identity, connection_identity):
         node_status = self.offline_node_status(center_identity, connection_identity)
