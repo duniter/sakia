@@ -37,3 +37,21 @@ async def test_receive_tx(application_with_one_connection, fake_server, bob, ali
     assert len(tx_before_send) + 1 == len(tx_after_parse)
     await fake_server.close()
 
+
+
+@pytest.mark.asyncio
+async def test_issue_dividend(application_with_one_connection, fake_server, bob):
+    dividends_before_send = application_with_one_connection.transactions_services[fake_server.forge.currency].dividends(bob.key.pubkey)
+    fake_server.forge.forge_block()
+    fake_server.forge.generate_dividend()
+    fake_server.forge.forge_block()
+    fake_server.forge.forge_block()
+    fake_server.forge.generate_dividend()
+    fake_server.forge.forge_block()
+    fake_server.forge.forge_block()
+    new_blocks = fake_server.forge.blocks[-5:]
+    application_with_one_connection.transactions_services[fake_server.forge.currency].handle_new_blocks(new_blocks)
+    dividends_after_parse = application_with_one_connection.transactions_services[fake_server.forge.currency].dividends(bob.key.pubkey)
+    assert len(dividends_before_send) + 2 == len(dividends_after_parse)
+    await fake_server.close()
+
