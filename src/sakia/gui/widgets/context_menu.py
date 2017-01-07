@@ -4,6 +4,7 @@ from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtWidgets import QMenu, QAction, QApplication, QMessageBox
 
 from duniterpy.documents import Block
+from duniterpy.documents import Transaction as TransactionDoc
 from sakia.data.entities import Identity, Transaction
 from sakia.decorators import asyncify
 from sakia.gui.dialogs.certification.controller import CertificationController
@@ -86,10 +87,10 @@ class ContextMenu(QObject):
             copy_doc.triggered.connect(lambda checked, tx=transfer: menu.copy_transaction_to_clipboard(tx))
             menu.qmenu.addAction(copy_doc)
 
-            if transfer.blockUID:
+            if transfer.blockstamp:
                 copy_doc = QAction(menu.qmenu.tr("Copy transaction block to clipboard"), menu.qmenu.parent())
-                copy_doc.triggered.connect(lambda checked, number=transfer.blockUID.number:
-                                           menu.copy_block_to_clipboard(number))
+                copy_doc.triggered.connect(lambda checked, number=transfer.blockstamp.number:
+                                           menu.copy_block_to_clipboard(transfer.blockstamp.number))
                 menu.qmenu.addAction(copy_doc)
 
     @classmethod
@@ -157,9 +158,7 @@ QMessageBox.Ok | QMessageBox.Cancel)
 
     def copy_transaction_to_clipboard(self, tx):
         clipboard = QApplication.clipboard()
-        raw_doc = tx.get_raw_document(self._community)
-        if raw_doc:
-            clipboard.setText(raw_doc.signed_raw())
+        clipboard.setText(tx.raw)
 
     @asyncify
     async def copy_block_to_clipboard(self, number):

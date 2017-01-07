@@ -32,6 +32,7 @@ class WotController(BaseGraphController):
         search_user = SearchUserController.create(wot, app, currency=connection.currency)
         wot.view.set_search_user(search_user.view)
         search_user.identity_selected.connect(wot.center_on_identity)
+        search_user.view.button_reset.clicked.connect(wot.reset)
         return wot
 
     def center_on_identity(self, identity):
@@ -40,18 +41,20 @@ class WotController(BaseGraphController):
 
         :param sakia.core.registry.Identity identity: Center identity
         """
-        asyncio.ensure_future(self.draw_graph(identity))
+        self.draw_graph(identity)
 
+    @once_at_a_time
+    @asyncify
     async def draw_graph(self, identity):
         """
         Draw community graph centered on the identity
 
         :param sakia.core.registry.Identity identity: Center identity
         """
-        self.view.setEnabled(False)
+        self.view.busy.show()
         await self.model.set_identity(identity)
         self.refresh()
-        self.view.setEnabled(True)
+        self.view.busy.hide()
 
     def refresh(self):
         """
@@ -60,10 +63,8 @@ class WotController(BaseGraphController):
         nx_graph = self.model.get_nx_graph()
         self.view.display_wot(nx_graph, self.model.identity)
 
-    @once_at_a_time
-    @asyncify
-    async def reset(self, checked=False):
+    def reset(self, checked=False):
         """
         Reset graph scene to wallet identity
         """
-        await self.draw_graph(None)
+        self.draw_graph(None)

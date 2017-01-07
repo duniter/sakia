@@ -1,5 +1,7 @@
 from ..base.view import BaseGraphView
 from .wot_tab_uic import Ui_WotWidget
+from sakia.gui.widgets.busy import Busy
+from PyQt5.QtCore import QEvent
 
 
 class WotView(BaseGraphView, Ui_WotWidget):
@@ -13,6 +15,8 @@ class WotView(BaseGraphView, Ui_WotWidget):
         """
         super().__init__(parent)
         self.setupUi(self)
+        self.busy = Busy(self.graphics_view)
+        self.busy.hide()
 
     def set_search_user(self, search_user):
         """
@@ -38,3 +42,7 @@ class WotView(BaseGraphView, Ui_WotWidget):
         """
         # draw graph in qt scene
         self.graphics_view.scene().update_wot(nx_graph, identity)
+
+    def resizeEvent(self, event):
+        self.busy.resize(event.size())
+        super().resizeEvent(event)

@@ -70,7 +70,7 @@ class QuantitativeZSum(BaseReferential):
         :return: int
         """
         last_members_count = self._blockchain_processor.last_members_count(self.currency)
-        monetary_mass = self._blockchain_processor.monetary_mass(self.currency)
+        monetary_mass = self._blockchain_processor.current_mass(self.currency)
         if last_members_count != 0:
             average = int(monetary_mass / last_members_count)
         else:
