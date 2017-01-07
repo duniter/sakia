@@ -6,7 +6,6 @@ import aiohttp
 from PyQt5.QtCore import QObject, pyqtSignal, QTranslator, QCoreApplication, QLocale
 from aiohttp.connector import ProxyConnector
 
-from duniterpy.api.bma import API
 from . import __version__
 from .options import SakiaOptions
 from sakia.data.connectors import BmaConnector
@@ -15,7 +14,7 @@ from sakia.services import NetworkService, BlockchainService, IdentitiesService,
 from sakia.data.repositories import SakiaDatabase
 from sakia.data.entities import Transaction, Connection, Identity
 from sakia.data.processors import BlockchainProcessor, NodesProcessor, IdentitiesProcessor, \
-    CertificationsProcessor, SourcesProcessor, TransactionsProcessor, ConnectionsProcessor
+    CertificationsProcessor, SourcesProcessor, TransactionsProcessor, ConnectionsProcessor, DividendsProcessor
 from sakia.data.files import AppDataFile, UserParametersFile
 from sakia.decorators import asyncify
 from sakia.money import *
@@ -104,6 +103,7 @@ class Application(QObject):
         blockchain_processor = BlockchainProcessor.instanciate(self)
         sources_processor = SourcesProcessor.instanciate(self)
         transactions_processor = TransactionsProcessor.instanciate(self)
+        dividends_processor = DividendsProcessor.instanciate(self)
 
         self.blockchain_services = {}
         self.network_services = {}
@@ -121,8 +121,9 @@ class Application(QObject):
 
             if currency not in self.transactions_services:
                 self.transactions_services[currency] = TransactionsService(currency, transactions_processor,
-                                                                       identities_processor, connections_processor,
-                                                                       bma_connector)
+                                                                           dividends_processor,
+                                                                           identities_processor, connections_processor,
+                                                                           bma_connector)
 
             if currency not in self.blockchain_services:
                 self.blockchain_services[currency] = BlockchainService(self, currency, blockchain_processor, bma_connector,

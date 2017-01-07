@@ -8,7 +8,6 @@ from .nodes import NodesProcessor
 from . import tx_lifecycle
 from ..connectors import BmaConnector
 from duniterpy.api import bma
-from duniterpy.documents import Block
 from duniterpy.documents import Transaction as TransactionDoc
 
 
@@ -145,13 +144,17 @@ class TransactionsProcessor:
         txid = 0
         nb_tx = len(history_data["history"]["sent"]) + len(history_data["history"]["received"])
         log_stream("Found {0} transactions".format(nb_tx))
+        transactions = []
         for sent_data in history_data["history"]["sent"] + history_data["history"]["received"]:
             sent = TransactionDoc.from_bma_history(history_data["currency"], sent_data)
             log_stream("{0}/{1} transactions".format(txid, nb_tx))
             try:
-                self._repo.insert(parse_transaction_doc(sent, identity.pubkey, sent_data["block_number"],
-                                                        sent_data["time"], txid))
+                tx = parse_transaction_doc(sent, identity.pubkey, sent_data["block_number"],
+                                                        sent_data["time"], txid)
+                self._repo.insert(tx)
+                transactions.append(tx)
             except sqlite3.IntegrityError:
                 log_stream("Transaction already registered in database")
             await asyncio.sleep(0)
             txid += 1
+        return transactions

@@ -6,7 +6,7 @@ from duniterpy.key import SigningKey
 from sakia.data.entities import Connection, Identity, Node
 from sakia.data.connectors import NodeConnector
 from sakia.data.processors import ConnectionsProcessor, NodesProcessor, BlockchainProcessor, \
-    SourcesProcessor, CertificationsProcessor, TransactionsProcessor
+    SourcesProcessor, CertificationsProcessor, TransactionsProcessor, DividendsProcessor
 
 
 class ConnectionConfigModel(QObject):
@@ -100,7 +100,18 @@ class ConnectionConfigModel(QObject):
         :return:
         """
         transactions_processor = TransactionsProcessor.instanciate(self.app)
-        await transactions_processor.initialize_transactions(identity, log_stream)
+        return await transactions_processor.initialize_transactions(identity, log_stream)
+
+    async def initialize_dividends(self, identity, transactions, log_stream):
+        """
+        Download certifications information locally
+        :param sakia.data.entities.Identity identity: the identity to initialize
+        :param List[sakia.data.entities.Transaction] transactions: the list of transactions found by tx processor
+        :param function log_stream: a method to log data in the screen
+        :return:
+        """
+        dividends_processor = DividendsProcessor.instanciate(self.app)
+        return await dividends_processor.initialize_dividends(identity, transactions, log_stream)
 
     async def publish_selfcert(self):
         """"

@@ -9,18 +9,21 @@ class TransactionsService(QObject):
     Transaction service is managing sources received
     to update data locally
     """
-    def __init__(self, currency, transactions_processor, identities_processor, connections_processor, bma_connector):
+    def __init__(self, currency, transactions_processor, dividends_processor,
+                 identities_processor, connections_processor, bma_connector):
         """
         Constructor the identities service
 
         :param str currency: The currency name of the community
         :param sakia.data.processors.IdentitiesProcessor identities_processor: the identities processor for given currency
         :param sakia.data.processors.TransactionsProcessor transactions_processor: the transactions processor for given currency
+        :param sakia.data.processors.DividendsProcessor dividends_processor: the dividends processor for given currency
         :param sakia.data.processors.ConnectionsProcessor connections_processor: the connections processor for given currency
         :param sakia.data.connectors.BmaConnector bma_connector: The connector to BMA API
         """
         super().__init__()
         self._transactions_processor = transactions_processor
+        self._dividends_processor = dividends_processor
         self._identities_processor = identities_processor
         self._connections_processor = connections_processor
         self._bma_connector = bma_connector
@@ -52,6 +55,7 @@ class TransactionsService(QObject):
                     self._transactions_processor.commit(tx)
                 else:
                     logging.debug("Error during transfer parsing")
+
         return transfers_changed, new_transfers
 
     def handle_new_blocks(self, blocks):
@@ -79,3 +83,12 @@ class TransactionsService(QObject):
         :rtype: List[sakia.data.entities.Transaction]
         """
         return self._transactions_processor.transfers(self.currency, pubkey)
+
+    def dividends(self, pubkey):
+        """
+        Get all dividends from or to a given pubkey
+        :param str pubkey:
+        :return: the list of Dividend entities
+        :rtype: List[sakia.data.entities.Dividend]
+        """
+        return self._dividends_processor.dividends(self.currency, pubkey)

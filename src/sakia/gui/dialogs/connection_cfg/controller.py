@@ -176,7 +176,9 @@ class ConnectionConfigController(QObject):
                 self.view.stream_log("Initializing certifications informations...")
                 await self.model.initialize_certifications(connection_identity, log_stream=self.view.stream_log)
                 self.view.stream_log("Initializing transactions history...")
-                await self.model.initialize_transactions(connection_identity, log_stream=self.view.stream_log)
+                transactions = await self.model.initialize_transactions(connection_identity, log_stream=self.view.stream_log)
+                self.view.stream_log("Initializing transactions history...")
+                await self.model.initialize_dividends(connection_identity, transactions, log_stream=self.view.stream_log)
 
             self.view.progress_bar.setValue(3)
             await self.model.initialize_sources(self.view.stream_log)

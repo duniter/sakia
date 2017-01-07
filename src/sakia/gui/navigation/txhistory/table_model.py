@@ -209,10 +209,16 @@ class HistoryTableModel(QAbstractTableModel):
     def transfers(self):
         """
         Transfer
-        :rtype: sakia.data.entities.Transfer
+        :rtype: List[sakia.data.entities.Transfer]
         """
-        #TODO: Handle dividends
         return self.transactions_service.transfers(self.connection.pubkey)
+
+    def dividends(self):
+        """
+        Transfer
+        :rtype: List[sakia.data.entities.Dividend]
+        """
+        return self.transactions_service.dividends(self.connection.pubkey)
 
     def add_transfer(self, transfer):
         self.beginInsertRows(QModelIndex(), 0, 0)
@@ -277,19 +283,37 @@ class HistoryTableModel(QAbstractTableModel):
         return (date_ts, receiver, amount, transfer.comment, transfer.state, txid,
                 transfer.receiver, block_number, transfer.sha_hash)
 
-    async def data_dividend(self, dividend):
-        pass
+    def data_dividend(self, dividend):
+        """
+        Converts a transaction to table data
+        :param sakia.data.entities.Dividend dividend: the dividend
+        :return: data as tuple
+        """
+        block_number = dividend.block_number
+
+        amount = dividend.amount * 10**dividend.base
+        identity = self.identities_service.get_identity(dividend.pubkey)
+        if identity:
+            receiver = identity.uid
+        else:
+            receiver = dividend.pubkey
+
+        date_ts = dividend.timestamp
+        return (date_ts, receiver, amount, "", Transaction.VALIDATED, 0,
+                receiver, block_number, "")
 
     def init_transfers(self):
         self.beginResetModel()
         self.transfers_data = []
         transfers = self.transfers()
         for transfer in transfers:
-            if type(transfer) is Transaction:
-                if transfer.issuer == self.connection.pubkey:
-                    self.transfers_data.append(self.data_sent(transfer))
-                else:
-                    self.transfers_data.append(self.data_received(transfer))
+            if transfer.issuer == self.connection.pubkey:
+                self.transfers_data.append(self.data_sent(transfer))
+            else:
+                self.transfers_data.append(self.data_received(transfer))
+        dividends = self.dividends()
+        for dividend in dividends:
+            self.transfers_data.append(self.data_dividend(dividend))
         self.endResetModel()
 
     def rowCount(self, parent):

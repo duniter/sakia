@@ -130,5 +130,13 @@ CREATE TABLE IF NOT EXISTS sources(
                                PRIMARY KEY (currency, pubkey, identifier, noffset)
                                );
 
-
+CREATE TABLE IF NOT EXISTS dividends(
+                               currency           VARCHAR(30),
+                               pubkey             VARCHAR(50),
+                               block_number       VARCHAR(255),
+                               timestamp          INT,
+                               amount             INT,
+                               base               INT,
+                               PRIMARY KEY (currency, pubkey, block_number)
+);
 

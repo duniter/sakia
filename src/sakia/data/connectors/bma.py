@@ -56,6 +56,7 @@ class BmaConnector:
             tries = 0
             while tries < 3:
                 endpoint = random.choice(endpoints)
+                endpoints.remove(endpoint)
                 try:
                     self._logger.debug("Requesting {0} on endpoint {1}".format(str(request.__name__), str(endpoint)))
                     async with aiohttp.ClientSession() as session:
