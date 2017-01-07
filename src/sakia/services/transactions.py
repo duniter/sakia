@@ -1,6 +1,7 @@
 from PyQt5.QtCore import QObject
 from sakia.data.entities.transaction import parse_transaction_doc
 from duniterpy.documents import SimpleTransaction
+from sakia.data.entities import Dividend
 import logging
 
 
@@ -47,8 +48,17 @@ class TransactionsService(QObject):
                             if not self._transactions_processor.find_by_hash(t.sha_hash)
                             and SimpleTransaction.is_simple(t)]
         connections_pubkeys = [c.pubkey for c in self._connections_processor.connections_to(self.currency)]
-        for (i, tx_doc) in enumerate(new_transactions):
-            for pubkey in connections_pubkeys:
+        for pubkey in connections_pubkeys:
+            if block_doc.ud:
+                dividend = Dividend(currency=self.currency,
+                                    pubkey=pubkey,
+                                    block_number=block_doc.number,
+                                    timestamp=block_doc.mediantime,
+                                    amount=block_doc.ud,
+                                    base=block_doc.unit_base)
+                self._dividends_processor.commit(dividend)
+
+            for (i, tx_doc) in enumerate(new_transactions):
                 tx = parse_transaction_doc(tx_doc, pubkey, block_doc.blockUID.number,  block_doc.mediantime, txid+i)
                 if tx:
                     new_transfers.append(tx)

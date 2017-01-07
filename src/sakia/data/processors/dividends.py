@@ -61,7 +61,7 @@ class DividendsProcessor:
         for tx in transactions:
             txdoc = Transaction.from_signed_raw(tx.raw)
             for input in txdoc.inputs:
-                if input.source == "D" and input.index not in block_numbers:
+                if input.source == "D" and input.origin_id == identity.pubkey and input.index not in block_numbers:
                     block = await self._bma_connector.get(identity.currency,
                                                           bma.blockchain.block, req_args={'number': input.index})
 
@@ -69,8 +69,8 @@ class DividendsProcessor:
                                         pubkey=identity.pubkey,
                                         block_number=input.index,
                                         timestamp=block["medianTime"],
-                                        amount=input.amount,
-                                        base=input.base)
+                                        amount=block["dividend"],
+                                        base=block["unitbase"])
                     log_stream("Dividend of block {0}".format(dividend.block_number))
                     try:
                         self._repo.insert(dividend)
