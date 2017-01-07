@@ -1,146 +1,77 @@
-import unittest
-
-from PyQt5.QtCore import QLocale
-from asynctest.mock import patch, PropertyMock
-
 from sakia.money import Quantitative
-from sakia.tests import QuamashTest
 
 
-class TestQuantitative(unittest.TestCase, QuamashTest):
-    def setUp(self):
-        self.setUpQuamash()
-        QLocale.setDefault(QLocale("en_GB"))
+def test_units(application_with_one_connection, bob):
+    referential = Quantitative(0, bob.currency, application_with_one_connection, None)
+    assert referential.units == "TC"
 
-    def tearDown(self):
-        self.tearDownQuamash()
 
-    @patch('sakia.core.Community')
-    @patch('sakia.core.Application')
-    def test_units(self, app, community):
-        type(community).short_currency = PropertyMock(return_value="TC")
-        referential = Quantitative(0, community, app, None)
-        self.assertEqual(referential.units, "TC")
+def test_diff_units(application_with_one_connection, bob):
+    referential = Quantitative(0, bob.currency, application_with_one_connection, None)
+    assert referential.units == "TC"
 
-    @patch('sakia.core.Community')
-    @patch('sakia.core.Application')
-    def test_diff_units(self, app, community):
-        type(community).short_currency = PropertyMock(return_value="TC")
-        referential = Quantitative(0, community, app, None)
-        self.assertEqual(referential.units, "TC")
 
-    @patch('sakia.core.Community')
-    @patch('sakia.core.Application')
-    def test_value(self, app, community):
-        referential = Quantitative(101010110, community, app, None)
-        async def exec_test():
-            value = await referential.value()
-            self.assertEqual(value, 101010110)
-        self.lp.run_until_complete(exec_test())
+def test_value(application_with_one_connection, bob):
+    referential = Quantitative(101010110, bob.currency, application_with_one_connection, None)
+    value = referential.value()
+    assert value == 101010110
 
-    @patch('sakia.core.Community')
-    @patch('sakia.core.Application')
-    def test_differential(self, app, community):
-        referential = Quantitative(110, community, app, None)
-        async def exec_test():
-            value = await referential.value()
-            self.assertEqual(value, 110)
-        self.lp.run_until_complete(exec_test())
 
-    @patch('sakia.core.Community')
-    @patch('sakia.core.Application')
-    def test_localized_no_si(self, app, community):
-        type(community).short_currency = PropertyMock(return_value="TC")
-        referential = Quantitative(101010110, community, app, None)
-        async def exec_test():
-            value = await referential.localized(units=True)
-            self.assertEqual(value, "101,010,110 TC")
-        self.lp.run_until_complete(exec_test())
+def test_differential(application_with_one_connection, bob):
+    referential = Quantitative(110, bob.currency, application_with_one_connection, None)
+    value = referential.value()
+    assert value == 110
 
-    @patch('sakia.core.Community')
-    @patch('sakia.core.Application')
-    def test_localized_with_si(self, app, community):
-        type(community).short_currency = PropertyMock(return_value="TC")
-        app.preferences = {
-            'digits_after_comma': 6
-        }
-        referential = Quantitative(101010110, community, app, None)
-        async def exec_test():
-            value = await referential.localized(units=True, international_system=True)
-            self.assertEqual(value, "101.010110 MTC")
-        self.lp.run_until_complete(exec_test())
 
-    @patch('sakia.core.Community')
-    @patch('sakia.core.Application')
-    def test_localized_no_units_no_si(self, app, community):
-        type(community).short_currency = PropertyMock(return_value="TC")
-        app.preferences = {
-            'digits_after_comma': 6
-        }
-        referential = Quantitative(101010110, community, app, None)
-        async def exec_test():
-            value = await referential.localized(units=False, international_system=False)
-            self.assertEqual(value, "101,010,110")
-        self.lp.run_until_complete(exec_test())
+def test_localized_no_si(application_with_one_connection, bob):
+    referential = Quantitative(101010110, bob.currency, application_with_one_connection, None)
+    value = referential.localized(units=True)
+    assert value == "101,010,110 TC"
 
-    @patch('sakia.core.Community')
-    @patch('sakia.core.Application')
-    def test_localized_no_units_with_si(self, app, community):
-        type(community).short_currency = PropertyMock(return_value="TC")
-        app.preferences = {
-            'digits_after_comma': 6
-        }
-        referential = Quantitative(101010110, community, app, None)
-        async def exec_test():
-            value = await referential.localized(units=False, international_system=True)
-            self.assertEqual(value, "101.010110 M")
-        self.lp.run_until_complete(exec_test())
 
-    @patch('sakia.core.Community')
-    @patch('sakia.core.Application')
-    def test_diff_localized_no_si(self, app, community):
-        type(community).short_currency = PropertyMock(return_value="TC")
-        referential = Quantitative(101010110, community, app, None)
-        async def exec_test():
-            value = await referential.diff_localized(units=True)
-            self.assertEqual(value, "101,010,110 TC")
-        self.lp.run_until_complete(exec_test())
+def test_localized_with_si(application_with_one_connection, bob):
+    application_with_one_connection.parameters.digits_after_comma = 6
+    referential = Quantitative(101010110, bob.currency, application_with_one_connection, None)
+    value = referential.localized(units=True, international_system=True)
+    assert value == "101.010110 x10⁶ TC"
 
-    @patch('sakia.core.Community')
-    @patch('sakia.core.Application')
-    def test_diff_localized_with_si(self, app, community):
-        type(community).short_currency = PropertyMock(return_value="TC")
-        app.preferences = {
-            'digits_after_comma': 6
-        }
-        referential = Quantitative(101010110, community, app, None)
-        async def exec_test():
-            value = await referential.diff_localized(units=True, international_system=True)
-            self.assertEqual(value, "101.010110 MTC")
-        self.lp.run_until_complete(exec_test())
 
-    @patch('sakia.core.Community')
-    @patch('sakia.core.Application')
-    def test_diff_localized_no_units_no_si(self, app, community):
-        type(community).short_currency = PropertyMock(return_value="TC")
-        app.preferences = {
-            'digits_after_comma': 6
-        }
-        referential = Quantitative(101010110, community, app, None)
-        async def exec_test():
-            value = await referential.diff_localized(units=False, international_system=False)
-            self.assertEqual(value, "101,010,110")
-        self.lp.run_until_complete(exec_test())
+def test_localized_no_units_no_si(application_with_one_connection, bob):
+    application_with_one_connection.parameters.digits_after_comma = 6
+    referential = Quantitative(101010110, bob.currency, application_with_one_connection, None)
+    value = referential.localized(units=False, international_system=False)
+    assert value == "101,010,110"
 
-    @patch('sakia.core.Community')
-    @patch('sakia.core.Application')
-    def test_diff_localized_no_units_with_si(self, app, community):
-        type(community).short_currency = PropertyMock(return_value="TC")
-        app.preferences = {
-            'digits_after_comma': 6
-        }
-        referential = Quantitative(101010110, community, app, None)
-        async def exec_test():
-            value = await referential.diff_localized(units=False, international_system=True)
-            self.assertEqual(value, "101.010110 M")
-        self.lp.run_until_complete(exec_test())
+
+def test_localized_no_units_with_si(application_with_one_connection, bob):
+    application_with_one_connection.parameters.digits_after_comma = 6
+    referential = Quantitative(101010110, bob.currency, application_with_one_connection, None)
+    value = referential.localized(units=False, international_system=True)
+    assert value == "101.010110 x10⁶"
+
+
+def test_diff_localized_no_si(application_with_one_connection, bob):
+    referential = Quantitative(101010110, bob.currency, application_with_one_connection, None)
+    value = referential.diff_localized(units=True)
+    assert value == "101,010,110 TC"
+
+
+def test_diff_localized_with_si(application_with_one_connection, bob):
+    application_with_one_connection.parameters.digits_after_comma = 6
+    referential = Quantitative(101010110, bob.currency, application_with_one_connection, None)
+    value = referential.diff_localized(units=True, international_system=True)
+    assert value == "101.010110 x10⁶ TC"
+
+
+def test_diff_localized_no_units_no_si(application_with_one_connection, bob):
+    application_with_one_connection.parameters.digits_after_comma = 6
+    referential = Quantitative(101010110, bob.currency, application_with_one_connection, None)
+    value = referential.diff_localized(units=False, international_system=False)
+    assert value == "101,010,110"
+
+
+def test_diff_localized_no_units_with_si(application_with_one_connection, bob):
+    application_with_one_connection.parameters.digits_after_comma = 6
+    referential = Quantitative(101010110, bob.currency, application_with_one_connection, None)
+    value = referential.diff_localized(units=False, international_system=True)
+    assert value == "101.010110 M"

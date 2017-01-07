@@ -74,27 +74,27 @@ def application(event_loop, meta_repo, sakia_options, app_data, user_parameters)
 
 @pytest.fixture
 def fake_server(event_loop):
-    return event_loop.run_until_complete(mirage.Node.start(None, "testcurrency", "12356", "123456", event_loop))
+    return event_loop.run_until_complete(mirage.Node.start(None, "test_currency", "12356", "123456", event_loop))
 
 
 @pytest.fixture
 def alice():
-    return mirage.User.create("testcurrency", "alice", "alicesalt", "alicepassword", BlockUID.empty())
+    return mirage.User.create("test_currency", "alice", "alicesalt", "alicepassword", BlockUID.empty())
 
 
 @pytest.fixture
 def bob():
-    return mirage.User.create("testcurrency", "bob", "bobsalt", "bobpassword", BlockUID.empty())
+    return mirage.User.create("test_currency", "bob", "bobsalt", "bobpassword", BlockUID.empty())
 
 
 @pytest.fixture
 def wrong_bob_uid():
-    return mirage.User.create("testcurrency", "wrong_bob", "bobsalt", "bobpassword", BlockUID.empty())
+    return mirage.User.create("test_currency", "wrong_bob", "bobsalt", "bobpassword", BlockUID.empty())
 
 
 @pytest.fixture
 def wrong_bob_pubkey():
-    return mirage.User.create("testcurrency", "bob", "wrongbobsalt", "bobpassword", BlockUID.empty())
+    return mirage.User.create("test_currency", "bob", "wrongbobsalt", "bobpassword", BlockUID.empty())
 
 
 @pytest.fixture
@@ -123,7 +123,7 @@ def application_with_one_connection(application, simple_fake_server, bob):
     last_ud_block = [b for b in simple_fake_server.forge.blocks if b.ud][-1]
     previous_ud_block = [b for b in simple_fake_server.forge.blocks if b.ud][-2]
     origin_block = simple_fake_server.forge.blocks[0]
-    connection = Connection(currency="testcurrency",
+    connection = Connection(currency="test_currency",
                       pubkey=bob.key.pubkey,
                       salt=bob.salt, uid=bob.uid,
                       scrypt_N=4096, scrypt_r=4, scrypt_p=2,
@@ -182,6 +182,8 @@ def application_with_one_connection(application, simple_fake_server, bob):
                                           state=Node.ONLINE,
                                           software="duniter",
                                           version="0.40.2"))
+    application.switch_language()
+
     return application
 
 

@@ -80,7 +80,7 @@ class Application(QObject):
         app.load_profile(app_data.default)
         app.start_coroutines()
         app.documents_service = DocumentsService.instanciate(app)
-        #app.switch_language()
+        app.switch_language()
         return app
 
     def load_profile(self, profile_name):

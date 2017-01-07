@@ -57,7 +57,21 @@ class Quantitative(BaseReferential):
 
     @staticmethod
     def to_si(value, digits):
-        prefixes = ['', 'k', 'M', 'G', 'Tera', 'Peta', 'Exa', 'Zeta', 'Yotta']
+        unicodes = {
+            '0': ord('\u2070'),
+            '1': ord('\u00B9'),
+            '2': ord('\u00B2'),
+            '3': ord('\u00B3'),
+        }
+        for n in range(4, 10):
+            unicodes[str(n)] = ord('\u2070') + n
+
+        exponent = 0
+        scientific_value = value
+        while scientific_value > 1000:
+            exponent += 3
+            scientific_value /= 1000
+
         if value < 0:
             value = -value
             multiplier = -1
@@ -65,20 +79,18 @@ class Quantitative(BaseReferential):
             multiplier = 1
 
         scientific_value = value
-        prefix_index = 0
-        prefix = ""
+        exponent = 0
 
         while scientific_value > 1000:
-            prefix_index += 1
+            exponent += 3
             scientific_value /= 1000
 
-        if prefix_index < len(prefixes):
-            prefix = prefixes[prefix_index]
+        if exponent > 1:
             localized_value = QLocale().toString(float(scientific_value * multiplier), 'f', digits)
         else:
             localized_value = QLocale().toString(float(value * multiplier), 'f', 0)
 
-        return localized_value, prefix
+        return localized_value, "x10" + "".join([chr(unicodes[e]) for e in str(exponent)])
 
     def localized(self, units=False, international_system=False):
         value = self.value()
@@ -93,7 +105,7 @@ class Quantitative(BaseReferential):
                                               Quantitative._REF_STR_) \
                 .format(localized_value,
                         prefix,
-                        shortened(self.currency) if units else "")
+                        " " if prefix else "" + shortened(self.currency) if units else "")
         else:
             return localized_value
 
