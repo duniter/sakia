@@ -43,6 +43,7 @@ class DividendsProcessor:
         history_data = await self._bma_connector.get(identity.currency, bma.ud.history,
                                                      req_args={'pubkey': identity.pubkey})
         log_stream("Found {0} available dividends".format(len(history_data["history"]["history"])))
+        block_numbers = []
         for ud_data in history_data["history"]["history"]:
             dividend = Dividend(currency=identity.currency,
                                 pubkey=identity.pubkey,
@@ -51,6 +52,7 @@ class DividendsProcessor:
                                 amount=ud_data["amount"],
                                 base=ud_data["base"])
             log_stream("Dividend of block {0}".format(dividend.block_number))
+            block_numbers.append(dividend.block_number)
             try:
                 self._repo.insert(dividend)
             except sqlite3.IntegrityError:
@@ -59,11 +61,10 @@ class DividendsProcessor:
         for tx in transactions:
             txdoc = Transaction.from_signed_raw(tx.raw)
             for input in txdoc.inputs:
-                if input.source == "D":
+                if input.source == "D" and input.index not in block_numbers:
                     block = await self._bma_connector.get(identity.currency,
                                                           bma.blockchain.block, req_args={'number': input.index})
-                    if input.amount == 0:
-                        pass
+
                     dividend = Dividend(currency=identity.currency,
                                         pubkey=identity.pubkey,
                                         block_number=input.index,

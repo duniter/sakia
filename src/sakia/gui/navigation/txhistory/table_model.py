@@ -141,6 +141,8 @@ class TxFilterProxyModel(QSortFilterProxyModel):
             if source_index.column() == model.columns_types.index('amount'):
                 if source_data < 0:
                     return QColor(Qt.darkRed)
+                elif state_data == HistoryTableModel.DIVIDEND:
+                    return QColor(Qt.darkBlue)
 
         if role == Qt.TextAlignmentRole:
             if self.sourceModel().columns_types.index('amount'):
@@ -170,6 +172,8 @@ class HistoryTableModel(QAbstractTableModel):
     """
     A Qt abstract item model to display communities in a tree
     """
+
+    DIVIDEND = 32
 
     def __init__(self, parent, app, connection, identities_service, transactions_service):
         """
@@ -299,7 +303,7 @@ class HistoryTableModel(QAbstractTableModel):
             receiver = dividend.pubkey
 
         date_ts = dividend.timestamp
-        return (date_ts, receiver, amount, "", Transaction.VALIDATED, 0,
+        return (date_ts, receiver, amount, "", HistoryTableModel.DIVIDEND, 0,
                 receiver, block_number, "")
 
     def init_transfers(self):
