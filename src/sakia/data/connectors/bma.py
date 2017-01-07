@@ -52,20 +52,19 @@ class BmaConnector:
         :return: The returned data
         """
         endpoints = self.filter_endpoints(request, self._nodes_processor.synced_nodes(currency))
-        if len(endpoints) > 0:
-            tries = 0
-            while tries < 3:
-                endpoint = random.choice(endpoints)
-                endpoints.remove(endpoint)
-                try:
-                    self._logger.debug("Requesting {0} on endpoint {1}".format(str(request.__name__), str(endpoint)))
-                    async with aiohttp.ClientSession() as session:
-                        json_data = await request(endpoint.conn_handler(session), **req_args)
-                        return json_data
-                except (ClientError, ServerDisconnectedError, gaierror,
-                        asyncio.TimeoutError, ValueError, jsonschema.ValidationError) as e:
-                    self._logger.debug(str(e))
-                    tries += 1
+        tries = 0
+        while tries < 3 and endpoints:
+            endpoint = random.choice(endpoints)
+            endpoints.remove(endpoint)
+            try:
+                self._logger.debug("Requesting {0} on endpoint {1}".format(str(request.__name__), str(endpoint)))
+                async with aiohttp.ClientSession() as session:
+                    json_data = await request(endpoint.conn_handler(session), **req_args)
+                    return json_data
+            except (ClientError, ServerDisconnectedError, gaierror,
+                    asyncio.TimeoutError, ValueError, jsonschema.ValidationError) as e:
+                self._logger.debug(str(e))
+                tries += 1
         raise NoPeerAvailable("", len(endpoints))
 
     async def broadcast(self, currency, request, req_args={}):

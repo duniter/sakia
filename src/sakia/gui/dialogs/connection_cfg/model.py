@@ -172,8 +172,7 @@ class ConnectionConfigModel(QObject):
                             registered = parser(data)
                         tries += 1
                     except errors.DuniterError as e:
-                        if e.ucode in (errors.NO_MEMBER_MATCHING_PUB_OR_UID,
-                                       e.ucode == errors.NO_MATCHING_IDENTITY):
+                        if e.ucode in (errors.NO_MEMBER_MATCHING_PUB_OR_UID, errors.NO_MATCHING_IDENTITY):
                                 tries += 1
                         else:
                             raise
