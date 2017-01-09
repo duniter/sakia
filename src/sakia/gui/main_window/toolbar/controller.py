@@ -33,6 +33,7 @@ class ToolbarController(QObject):
         self.view.button_membership.clicked.connect(self.send_join_demand)
         self.view.action_add_connection.triggered.connect(self.open_add_connection_dialog)
         self.view.action_parameters.triggered.connect(self.open_settings_dialog)
+        self.view.action_about.triggered.connect(self.open_about_dialog)
 
     @classmethod
     def create(cls, app, navigation):
@@ -96,6 +97,10 @@ class ToolbarController(QObject):
             self.model.app.start_coroutines()
             self.model.app.new_connection.emit(connection_config.model.connection)
             self.enable_actions(True)
+
+    def open_about_dialog(self):
+        text = self.model.about_text()
+        self.view.show_about(text)
 
     def retranslateUi(self, widget):
         """

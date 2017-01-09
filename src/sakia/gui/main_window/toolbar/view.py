@@ -1,8 +1,8 @@
 from PyQt5.QtWidgets import QFrame, QAction, QMenu, QSizePolicy, QInputDialog, QDialog
 from sakia.gui.widgets.dialogs import dialog_async_exec
-from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QObject, QT_TRANSLATE_NOOP, Qt
 from .toolbar_uic import Ui_SakiaToolbar
+from .about_uic import Ui_AboutPopup
 
 
 class ToolbarView(QFrame, Ui_SakiaToolbar):
@@ -28,6 +28,9 @@ class ToolbarView(QFrame, Ui_SakiaToolbar):
         self.action_parameters = QAction(self.tr("Settings"), tool_menu)
         tool_menu.addAction(self.action_parameters)
 
+        self.action_about = QAction(self.tr("About"), tool_menu)
+        tool_menu.addAction(self.action_about)
+
         self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Minimum)
         self.setMaximumHeight(60)
 
@@ -44,3 +47,10 @@ class ToolbarView(QFrame, Ui_SakiaToolbar):
             for c in connections:
                 if c.title() == result:
                     return c
+
+    def show_about(self, text):
+        dialog = QDialog(self)
+        about_dialog = Ui_AboutPopup()
+        about_dialog.setupUi(dialog)
+        about_dialog.label.setText(text)
+        dialog.exec()

@@ -62,6 +62,7 @@ class Application(QObject):
     transactions_services = attr.ib(default=attr.Factory(dict))
     documents_service = attr.ib(default=None)
     current_ref = attr.ib(default=Relative)
+    _logger = attr.ib(default=attr.Factory(lambda:logging.getLogger('sakia')))
     available_version = attr.ib(init=False)
     _translator = attr.ib(init=False)
 
@@ -76,7 +77,7 @@ class Application(QObject):
         app_data = AppDataFile.in_config_path(options.config_path).load_or_init()
         app = cls(qapp, loop, options, app_data, None, None)
         #app.set_proxy()
-        #app.get_last_version()
+        app.get_last_version()
         app.load_profile(app_data.default)
         app.start_coroutines()
         app.documents_service = DocumentsService.instanciate(app)
@@ -164,38 +165,35 @@ class Application(QObject):
 
     @asyncify
     async def get_last_version(self):
-        if self.preferences['enable_proxy'] is True:
-            connector = ProxyConnector("http://{0}:{1}".format(
-                                    self.preferences['proxy_address'],
-                                    self.preferences['proxy_port']))
+        if self.parameters.enable_proxy is True:
+            proxy = "http://{0}:{1}".format(self.parameters.proxy_address, self.parameters.proxy_port)
         else:
-            connector = None
+            proxy = None
         try:
-            with aiohttp.Timeout(15):
-                response = await aiohttp.get("https://api.github.com/repos/duniter/sakia/releases", connector=connector)
-                if response.status == 200:
-                    releases = await response.json()
-                    latest = None
-                    for r in releases:
-                        if not latest:
-                            latest = r
-                        else:
-                            latest_date = datetime.datetime.strptime(latest['published_at'], "%Y-%m-%dT%H:%M:%SZ")
-                            date = datetime.datetime.strptime(r['published_at'], "%Y-%m-%dT%H:%M:%SZ")
-                            if latest_date < date:
+            with aiohttp.ClientSession() as session:
+                with aiohttp.Timeout(15):
+                    response = await session.get("https://api.github.com/repos/duniter/sakia/releases", proxy=proxy)
+                    if response.status == 200:
+                        releases = await response.json()
+                        latest = None
+                        for r in releases:
+                            if not latest:
                                 latest = r
-                    latest_version = latest["tag_name"]
-                    version = (__version__ == latest_version,
-                               latest_version,
-                               latest["html_url"])
-                    logging.debug("Found version : {0}".format(latest_version))
-                    logging.debug("Current version : {0}".format(__version__))
-                    self.available_version = version
-                self.version_requested.emit()
+                            else:
+                                latest_date = datetime.datetime.strptime(latest['published_at'], "%Y-%m-%dT%H:%M:%SZ")
+                                date = datetime.datetime.strptime(r['published_at'], "%Y-%m-%dT%H:%M:%SZ")
+                                if latest_date < date:
+                                    latest = r
+                        latest_version = latest["tag_name"]
+                        version = (__version__ == latest_version,
+                                   latest_version,
+                                   latest["html_url"])
+                        logging.debug("Found version : {0}".format(latest_version))
+                        logging.debug("Current version : {0}".format(__version__))
+                        self.available_version = version
+                    self.version_requested.emit()
         except (aiohttp.errors.ClientError, aiohttp.errors.TimeoutError) as e:
-            logging.debug("Could not connect to github : {0}".format(str(e)))
-        except Exception as e:
-            pass
+            self._logger.debug("Could not connect to github : {0}".format(str(e)))
 
     def save_parameters(self, parameters):
         self.parameters = UserParametersFile\

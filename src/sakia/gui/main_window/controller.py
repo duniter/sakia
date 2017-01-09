@@ -1,11 +1,4 @@
-"""
-Created on 1 févr. 2014
-
-@author: inso
-"""
-import aiohttp
 import logging
-import traceback
 
 from PyQt5.QtWidgets import QMessageBox, QApplication
 from PyQt5.QtCore import QEvent, pyqtSlot, QObject

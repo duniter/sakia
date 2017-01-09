@@ -10,3 +10,4 @@ class MainWindowView(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__(None)
         self.setupUi(self)
+
