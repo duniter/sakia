@@ -1,4 +1,3 @@
-from unittest.mock import Mock
 from duniterpy.documents import Peer
 from sakia.data.connectors import NodeConnector
 
@@ -13,7 +12,7 @@ Endpoints:
 BASIC_MERKLED_API duniter.inso.ovh 80
 82o1sNCh1bLpUXU6nacbK48HBcA9Eu2sPkL1/3c2GtDPxBUZd2U2sb7DxwJ54n6ce9G0Oy7nd1hCxN3fS0oADw==
 """)
-    connector = NodeConnector.from_peer('meta_brouzouf', peer, Mock("aiohttp.ClientSession"))
+    connector = NodeConnector.from_peer('meta_brouzouf', peer)
     assert connector.node.pubkey == "8Fi1VSTbjkXguwThF4v2ZxC5whK7pwG2vcGTkPUPjPGU"
     assert connector.node.endpoints[0].inline() == "BASIC_MERKLED_API duniter.inso.ovh 80"
     assert connector.node.currency == "meta_brouzouf"

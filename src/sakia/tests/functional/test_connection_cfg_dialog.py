@@ -38,9 +38,9 @@ async def test_register_empty_blockchain(application, fake_server, bob):
         QTest.keyClicks(connection_config_dialog.view.edit_server, fake_server.peer_doc().endpoints[0].ipv4)
         connection_config_dialog.view.spinbox_port.setValue(fake_server.peer_doc().endpoints[0].port)
         assert connection_config_dialog.view.stacked_pages.currentWidget() == connection_config_dialog.view.page_node
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.6)
         QTest.mouseClick(connection_config_dialog.view.button_register, Qt.LeftButton)
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.6)
 
         assert connection_config_dialog.view.stacked_pages.currentWidget() == connection_config_dialog.view.page_connection
         assert_key_parameters_behaviour(connection_config_dialog, bob)
@@ -48,7 +48,7 @@ async def test_register_empty_blockchain(application, fake_server, bob):
         connection_config_dialog.model.connection.password = bob.password
         await asyncio.sleep(1)
         assert connection_config_dialog.view.stacked_pages.currentWidget() == connection_config_dialog.view.page_services
-        assert len(ConnectionsProcessor.instanciate(application).connections(fake_server.currency)) == 1
+        assert len(ConnectionsProcessor.instanciate(application).connections(fake_server.forge.currency)) == 1
 
     application.loop.call_later(10, close_dialog)
     asyncio.ensure_future(exec_test())
@@ -77,7 +77,7 @@ async def test_connect(application, simple_fake_server, bob):
         await asyncio.sleep(1)
 
         assert connection_config_dialog.view.stacked_pages.currentWidget() == connection_config_dialog.view.page_services
-        assert len(ConnectionsProcessor.instanciate(application).connections(simple_fake_server.currency)) == 1
+        assert len(ConnectionsProcessor.instanciate(application).connections(simple_fake_server.forge.currency)) == 1
 
     application.loop.call_later(10, close_dialog)
     asyncio.ensure_future(exec_test())

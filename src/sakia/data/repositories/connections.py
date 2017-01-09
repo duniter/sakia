@@ -114,7 +114,7 @@ class ConnectionsRepo:
         Drop an existing connection from the database
         :param sakia.data.entities.Connection connection: the connection to update
         """
-        where_fields = attr.astuple(connection, filter=attr.filters.include(*ConnectionsRepo._primary_connections))
+        where_fields = attr.astuple(connection, filter=attr.filters.include(*ConnectionsRepo._primary_keys))
         self._conn.execute("""DELETE FROM connections
                               WHERE
                               currency=? AND

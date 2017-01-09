@@ -12,7 +12,7 @@ from optparse import OptionParser
 from os import environ, path, makedirs
 
 
-def config_path():
+def config_path_factory():
     if "XDG_CONFIG_HOME" in environ:
         env_path = environ["XDG_CONFIG_HOME"]
     elif "HOME" in environ:
@@ -26,7 +26,7 @@ def config_path():
 
 @attr.s()
 class SakiaOptions:
-    config_path = attr.ib(default=attr.Factory(config_path))
+    config_path = attr.ib(default=attr.Factory(config_path_factory))
     _logger = attr.ib(default=attr.Factory(lambda: logging.getLogger('sakia')))
 
     @classmethod
@@ -59,10 +59,11 @@ class SakiaOptions:
             self._logger.setLevel(logging.INFO)
             formatter = logging.Formatter('%(levelname)s:%(message)s')
 
-        logging.getLogger('quamash').setLevel(logging.INFO)
-        file_handler = RotatingFileHandler(path.join(self.config_path, 'sakia.log'), 'a', 1000000, 10)
-        file_handler.setFormatter(formatter)
-        stream_handler = StreamHandler()
-        stream_handler.setFormatter(formatter)
-        self._logger.handlers = [file_handler, stream_handler]
-        self._logger.propagate = False
+        if options.debug or options.verbose:
+            logging.getLogger('quamash').setLevel(logging.INFO)
+            file_handler = RotatingFileHandler(path.join(self.config_path, 'sakia.log'), 'a', 1000000, 10)
+            file_handler.setFormatter(formatter)
+            stream_handler = StreamHandler()
+            stream_handler.setFormatter(formatter)
+            self._logger.handlers = [file_handler, stream_handler]
+            self._logger.propagate = False

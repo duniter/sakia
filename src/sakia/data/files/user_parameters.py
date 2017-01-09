@@ -16,6 +16,8 @@ class UserParametersFile:
 
     @classmethod
     def in_config_path(cls, config_path, profile_name):
+        if not os.path.exists(os.path.join(config_path, profile_name)):
+            os.makedirs(os.path.join(config_path, profile_name))
         return cls(os.path.join(config_path, profile_name, UserParametersFile.filename))
 
     def save(self, user_parameters):

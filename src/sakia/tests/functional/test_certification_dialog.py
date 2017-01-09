@@ -30,7 +30,7 @@ async def test_certification_init_community(application_with_one_connection, fak
         certification_dialog.search_user.view.search()
         await asyncio.sleep(0.1)
         certification_dialog.search_user.view.node_selected.emit(0)
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(1)
         assert certification_dialog.user_information.model.identity.uid == "alice"
         assert certification_dialog.view.button_box.button(QDialogButtonBox.Ok).isEnabled()
         QTest.mouseClick(certification_dialog.view.button_box.button(QDialogButtonBox.Ok), Qt.LeftButton)
