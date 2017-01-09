@@ -108,12 +108,16 @@ def simple_fake_server(fake_server, alice, bob):
     fake_server.forge.forge_block()
     fake_server.forge.set_member(alice.key.pubkey, True)
     fake_server.forge.set_member(bob.key.pubkey, True)
-    fake_server.forge.generate_dividend()
-    fake_server.forge.forge_block()
-    fake_server.forge.forge_block()
-    fake_server.forge.generate_dividend()
-    fake_server.forge.forge_block()
-    fake_server.forge.forge_block()
+    for i in range(0, 10):
+        new_user = mirage.User.create("test_currency", "user{0}".format(i),
+                                       "salt{0}".format(i), "password{0}".format(i),
+                                      fake_server.forge.blocks[-1].blockUID)
+        fake_server.forge.push(new_user.identity())
+        fake_server.forge.push(new_user.join(fake_server.forge.blocks[-1].blockUID))
+        fake_server.forge.forge_block()
+        fake_server.forge.set_member(new_user.key.pubkey, True)
+        fake_server.forge.generate_dividend()
+        fake_server.forge.forge_block()
     return fake_server
 
 

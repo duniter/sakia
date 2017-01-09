@@ -87,10 +87,12 @@ class Quantitative(BaseReferential):
 
         if exponent > 1:
             localized_value = QLocale().toString(float(scientific_value * multiplier), 'f', digits)
+            power_of_10 = "x10" + "".join([chr(unicodes[e]) for e in str(exponent)])
         else:
             localized_value = QLocale().toString(float(value * multiplier), 'f', 0)
+            power_of_10 = ""
 
-        return localized_value, "x10" + "".join([chr(unicodes[e]) for e in str(exponent)])
+        return localized_value, power_of_10
 
     def localized(self, units=False, international_system=False):
         value = self.value()
@@ -105,7 +107,7 @@ class Quantitative(BaseReferential):
                                               Quantitative._REF_STR_) \
                 .format(localized_value,
                         prefix,
-                        " " if prefix else "" + shortened(self.currency) if units else "")
+                        (" " if prefix and units else "") + (shortened(self.currency) if units else ""))
         else:
             return localized_value
 
@@ -122,6 +124,6 @@ class Quantitative(BaseReferential):
                                               Quantitative._REF_STR_) \
                 .format(localized_value,
                         prefix,
-                        shortened(self.currency) if units else "")
+                        (" " if prefix and units else "") + (shortened(self.currency) if units else ""))
         else:
             return localized_value

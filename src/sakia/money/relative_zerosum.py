@@ -7,7 +7,7 @@ from ..data.processors import BlockchainProcessor
 
 class RelativeZSum(BaseReferential):
     _NAME_STR_ = QT_TRANSLATE_NOOP('RelativeZSum', 'Relat Z-sum')
-    _REF_STR_ = QT_TRANSLATE_NOOP('RelativeZSum', "{0} {1}R0 {2}")
+    _REF_STR_ = QT_TRANSLATE_NOOP('RelativeZSum', "{0} {1}R0{2}")
     _UNITS_STR_ = QT_TRANSLATE_NOOP('RelativeZSum', "R0 {0}")
     _FORMULA_STR_ = QT_TRANSLATE_NOOP('RelativeZSum',
                                       """R0 = (R / UD(t)) - (( M(t-1) / N(t) ) / UD(t))
@@ -66,12 +66,13 @@ class RelativeZSum(BaseReferential):
         :param sakia.core.community.Community community: Community instance
         :return: float
         """
-        ud_block = self.community.get_ud_block()
-        ud_block_minus_1 = self.community.get_ud_block(x=1)
-        if ud_block_minus_1 and ud_block['membersCount'] > 0:
-            median = ud_block_minus_1['monetaryMass'] / ud_block['membersCount']
-            relative_value = self.amount / float(ud_block['dividend'])
-            relative_median = median / ud_block['dividend']
+        dividend, base = self._blockchain_processor.previous_ud(self.currency)
+        previous_monetary_mass = self._blockchain_processor.previous_monetary_mass(self.currency)
+        members_count = self._blockchain_processor.current_members_count(self.currency)
+        if previous_monetary_mass and members_count > 0:
+            median = previous_monetary_mass / members_count
+            relative_value = self.amount / float(dividend * 10**base)
+            relative_median = median / float(dividend * 10**base)
         else:
             relative_value = self.amount
             relative_median = 0
@@ -92,8 +93,8 @@ class RelativeZSum(BaseReferential):
         if units or international_system:
             return QCoreApplication.translate("RelativeZSum", RelativeZSum._REF_STR_)\
                 .format(localized_value,
-                        prefix,
-                        shortened(self.currency) if units else "")
+                        prefix + " " if prefix else "",
+                        (" " + shortened(self.currency)) if units else "")
         else:
             return localized_value
 
@@ -108,6 +109,8 @@ class RelativeZSum(BaseReferential):
 
         if units or international_system:
             return QCoreApplication.translate("Relative", Relative._REF_STR_)\
-                .format(localized_value, prefix, shortened(self.currency) if units else "")
+                .format(localized_value,
+                        prefix + " " if prefix else "",
+                        (" " + shortened(self.currency)) if units else "")
         else:
             return localized_value

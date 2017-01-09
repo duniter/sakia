@@ -8,7 +8,7 @@ from PyQt5.QtCore import QCoreApplication, QT_TRANSLATE_NOOP, QLocale
 
 class Relative(BaseReferential):
     _NAME_STR_ = QT_TRANSLATE_NOOP('Relative', 'UD')
-    _REF_STR_ = QT_TRANSLATE_NOOP('Relative', "{0} {1}UD {2}")
+    _REF_STR_ = QT_TRANSLATE_NOOP('Relative', "{0} {1}UD{2}")
     _UNITS_STR_ = QT_TRANSLATE_NOOP('Relative', "UD {0}")
     _FORMULA_STR_ = QT_TRANSLATE_NOOP('Relative',
                                       """R = Q / UD(t)
@@ -80,7 +80,7 @@ class Relative(BaseReferential):
         """
         dividend, base = self._blockchain_processor.last_ud(self.currency)
         if dividend > 0:
-            return self.amount / float(dividend * (10**base))
+            return self.amount / (float(dividend * (10**base)))
         else:
             return self.amount
 
@@ -89,27 +89,35 @@ class Relative(BaseReferential):
 
     @staticmethod
     def to_si(value, digits):
-        prefixes = ['', 'm', 'µ', 'n', 'p', 'f', 'a', 'z', 'y']
+        unicodes = {
+            '0': ord('\u2070'),
+            '1': ord('\u00B9'),
+            '2': ord('\u00B2'),
+            '3': ord('\u00B3'),
+        }
+        for n in range(4, 10):
+            unicodes[str(n)] = ord('\u2070') + n
+
         if value < 0:
             value = -value
             multiplier = -1
         else:
             multiplier = 1
         scientific_value = value
-        prefix_index = 0
-        prefix = ""
+        exponent = 0
 
-        while int(scientific_value) == 0 and scientific_value > 0.0:
+        while scientific_value < 0.01:
+            exponent += 3
             scientific_value *= 1000
-            prefix_index += 1
 
-        if prefix_index < len(prefixes):
-            prefix = prefixes[prefix_index]
+        if exponent > 1:
             localized_value = QLocale().toString(float(scientific_value * multiplier), 'f', digits)
+            power_of_10 = "x10⁻" + "".join([chr(unicodes[e]) for e in str(exponent)])
         else:
             localized_value = QLocale().toString(float(value * multiplier), 'f', digits)
+            power_of_10 = ""
 
-        return localized_value, prefix
+        return localized_value, power_of_10
 
     def localized(self, units=False, international_system=False):
         value = self.value()
@@ -122,8 +130,8 @@ class Relative(BaseReferential):
         if units or international_system:
             return QCoreApplication.translate("Relative", Relative._REF_STR_) \
                 .format(localized_value,
-                        prefix,
-                        shortened(self.currency) if units else "")
+                        prefix + " " if prefix else "",
+                        (" " + shortened(self.currency)) if units else "")
         else:
             return localized_value
 
@@ -138,7 +146,7 @@ class Relative(BaseReferential):
         if units or international_system:
             return QCoreApplication.translate("Relative", Relative._REF_STR_) \
                 .format(localized_value,
-                        prefix,
-                        shortened(self.currency) if units else "")
+                        prefix + " " if prefix else "",
+                        (" " + shortened(self.currency)) if units else "")
         else:
             return localized_value

@@ -7,7 +7,7 @@ from ..data.processors import BlockchainProcessor
 
 class QuantitativeZSum(BaseReferential):
     _NAME_STR_ = QT_TRANSLATE_NOOP('QuantitativeZSum', 'Quant Z-sum')
-    _REF_STR_ = QT_TRANSLATE_NOOP('QuantitativeZSum', "{0} {1}Q0 {2}")
+    _REF_STR_ = QT_TRANSLATE_NOOP('QuantitativeZSum', "{0} {1}Q0{2}")
     _UNITS_STR_ = QT_TRANSLATE_NOOP('QuantitativeZSum', "Q0 {0}")
     _FORMULA_STR_ = QT_TRANSLATE_NOOP('QuantitativeZSum',
                                       """Z0 = Q - ( M(t-1) / N(t) )
@@ -85,7 +85,7 @@ class QuantitativeZSum(BaseReferential):
 
         prefix = ""
         if international_system:
-            localized_value, prefix = Quantitative.to_si(value, self.app.preferences['digits_after_comma'])
+            localized_value, prefix = Quantitative.to_si(value, self.app.parameters.digits_after_comma)
         else:
             localized_value = QLocale().toString(float(value), 'f', 0)
 
@@ -93,12 +93,11 @@ class QuantitativeZSum(BaseReferential):
             return QCoreApplication.translate("QuantitativeZSum",
                                               QuantitativeZSum._REF_STR_) \
                 .format(localized_value,
-                        prefix,
-                        shortened(self.currency) if units else "")
+                        prefix + (" " if prefix else ""),
+                        (" " if units else "") + (shortened(self.currency) if units else ""))
         else:
             return localized_value
 
     def diff_localized(self, units=False, international_system=False):
-        localized = Quantitative(self.amount, shortened(self.currency), self.app).localized(units,
-                                                                                                  international_system)
+        localized = Quantitative(self.amount, shortened(self.currency), self.app).localized(units, international_system)
         return localized
