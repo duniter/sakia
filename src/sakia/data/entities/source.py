@@ -1,5 +1,4 @@
 import attr
-from duniterpy.documents import block_uid
 
 
 @attr.s()

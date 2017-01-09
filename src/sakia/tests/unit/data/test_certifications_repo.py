@@ -1,6 +1,5 @@
 from sakia.data.repositories import CertificationsRepo
 from sakia.data.entities import Certification
-from duniterpy.documents import BlockUID
 
 
 def test_add_get_drop_blockchain(meta_repo):
