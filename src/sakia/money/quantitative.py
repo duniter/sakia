@@ -50,7 +50,7 @@ class Quantitative(BaseReferential):
         :param sakia.core.community.Community community: Community instance
         :return: int
         """
-        return int(self.amount)
+        return int(self.amount) / 100
 
     def differential(self):
         return self.value()
@@ -66,12 +66,6 @@ class Quantitative(BaseReferential):
         for n in range(4, 10):
             unicodes[str(n)] = ord('\u2070') + n
 
-        exponent = 0
-        scientific_value = value
-        while scientific_value > 1000:
-            exponent += 3
-            scientific_value /= 1000
-
         if value < 0:
             value = -value
             multiplier = -1
@@ -81,7 +75,7 @@ class Quantitative(BaseReferential):
         scientific_value = value
         exponent = 0
 
-        while scientific_value > 1000:
+        while scientific_value > 1000 and int(scientific_value) * 10**exponent == scientific_value:
             exponent += 3
             scientific_value /= 1000
 
@@ -89,7 +83,7 @@ class Quantitative(BaseReferential):
             localized_value = QLocale().toString(float(scientific_value * multiplier), 'f', digits)
             power_of_10 = "x10" + "".join([chr(unicodes[e]) for e in str(exponent)])
         else:
-            localized_value = QLocale().toString(float(value * multiplier), 'f', 0)
+            localized_value = QLocale().toString(float(value * multiplier), 'f', 2)
             power_of_10 = ""
 
         return localized_value, power_of_10
@@ -98,9 +92,9 @@ class Quantitative(BaseReferential):
         value = self.value()
         prefix = ""
         if international_system:
-            localized_value, prefix = Quantitative.to_si(value, self.app.parameters.digits_after_comma)
+            localized_value, prefix = Quantitative.to_si(value, 2)
         else:
-            localized_value = QLocale().toString(float(value), 'f', 0)
+            localized_value = QLocale().toString(float(value), 'f', 2)
 
         if units or international_system:
             return QCoreApplication.translate("Quantitative",
@@ -115,9 +109,9 @@ class Quantitative(BaseReferential):
         value = self.differential()
         prefix = ""
         if international_system:
-            localized_value, prefix = Quantitative.to_si(value, self.app.parameters.digits_after_comma)
+            localized_value, prefix = Quantitative.to_si(value, 2)
         else:
-            localized_value = QLocale().toString(float(value), 'f', 0)
+            localized_value = QLocale().toString(float(value), 'f', 2)
 
         if units or international_system:
             return QCoreApplication.translate("Quantitative",

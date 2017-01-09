@@ -75,7 +75,7 @@ class QuantitativeZSum(BaseReferential):
             average = int(monetary_mass / last_members_count)
         else:
             average = 0
-        return self.amount - average
+        return (self.amount - average)/100
 
     def differential(self):
         return Quantitative(self.amount, self.currency, self.app).value()
@@ -87,7 +87,7 @@ class QuantitativeZSum(BaseReferential):
         if international_system:
             localized_value, prefix = Quantitative.to_si(value, self.app.parameters.digits_after_comma)
         else:
-            localized_value = QLocale().toString(float(value), 'f', 0)
+            localized_value = QLocale().toString(float(value), 'f', 2)
 
         if units or international_system:
             return QCoreApplication.translate("QuantitativeZSum",
