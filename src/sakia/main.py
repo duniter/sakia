@@ -91,6 +91,9 @@ if __name__ == '__main__':
 
     with loop:
         app = Application.startup(sys.argv, sakia, loop)
+        if not app.connection_exists():
+            conn_controller = ConnectionConfigController.create(None, app)
+            loop.run_until_complete(conn_controller.async_exec())
         window = MainWindowController.startup(app)
         loop.run_forever()
         try:

@@ -1,7 +1,6 @@
 import attr
 from duniterpy.documents import block_uid, BlockUID
 from duniterpy.documents import Identity as IdentityDoc
-from duniterpy import PROTOCOL_VERSION
 
 
 @attr.s()

@@ -23,28 +23,28 @@ class BaseReferential:
 
     @classmethod
     def translated_name(self):
-        pass
+        raise NotImplementedError()
 
     @property
     def units(self):
-        pass
+        raise NotImplementedError()
 
     @property
     def diff_units(self):
-        pass
+        raise NotImplementedError()
 
     def value(self):
-        pass
+        raise NotImplementedError()
 
     def differential(self):
-        pass
+        raise NotImplementedError()
 
     @staticmethod
     def to_si(value, digits):
-        pass
+        raise NotImplementedError()
 
     def localized(self, units=False, international_system=False):
-        pass
+        raise NotImplementedError()
 
     def diff_localized(self, units=False, international_system=False):
-        pass
+        raise NotImplementedError()

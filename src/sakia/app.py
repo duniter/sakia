@@ -205,3 +205,6 @@ class Application(QObject):
     def change_referential(self, index):
         self.current_ref = Referentials[index]
         self.referential_changed.emit()
+
+    def connection_exists(self):
+        return len(ConnectionsProcessor.instanciate(self).connections()) > 0

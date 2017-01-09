@@ -1,5 +1,4 @@
 from .base_referential import BaseReferential
-from .relative_to_past import RelativeToPast
 from .currency import shortened
 from ..data.processors import BlockchainProcessor
 
