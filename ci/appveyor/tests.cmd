@@ -13,6 +13,6 @@ lrelease -version
 
 echo "%CWD%"
 
-python setup.py test
+py.test
 
 if %errorlevel% neq 0 exit /b 1
