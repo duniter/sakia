@@ -21,7 +21,7 @@ class NetworkService(QObject):
     nodes_changed = pyqtSignal()
     root_nodes_changed = pyqtSignal()
 
-    def __init__(self, app, currency, node_processor, connectors, session, blockchain_service):
+    def __init__(self, app, currency, node_processor, connectors, blockchain_service):
         """
         Constructor of a network
 
@@ -29,7 +29,6 @@ class NetworkService(QObject):
         :param str currency: The currency name of the community
         :param sakia.data.processors.NodesProcessor node_processor: the nodes processor for given currency
         :param list connectors: The connectors to nodes of the network
-        :param aiohttp.ClientSession session: The main aiohttp client session
         :param sakia.services.BlockchainService blockchain_service: the blockchain service
         """
         super().__init__()
@@ -74,8 +73,8 @@ class NetworkService(QObject):
         """
         connectors = []
         for node in node_processor.nodes(currency):
-            connectors.append(NodeConnector(node, None))
-        network = cls(app, currency, node_processor, connectors, None, blockchain_service)
+            connectors.append(NodeConnector(node, app.parameters))
+        network = cls(app, currency, node_processor, connectors, blockchain_service)
         return network
 
     def start_coroutines(self):
@@ -201,7 +200,7 @@ class NetworkService(QObject):
                 if self._processor.unknown_node(self.currency, peer.pubkey):
                     self._logger.debug("New node found : {0}".format(peer.pubkey[:5]))
                     try:
-                        connector = NodeConnector.from_peer(self.currency, peer)
+                        connector = NodeConnector.from_peer(self.currency, peer, self.app.parameters)
                         self._processor.insert_node(connector.node)
                         await connector.init_session()
                         connector.refresh(manual=True)

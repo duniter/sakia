@@ -1,5 +1,5 @@
 import attr
-import re
+import logging
 from ..entities import Dividend
 from .nodes import NodesProcessor
 from ..connectors import BmaConnector
@@ -17,6 +17,7 @@ class DividendsProcessor:
     """
     _repo = attr.ib()
     _bma_connector = attr.ib()
+    _logger = attr.ib(default=attr.Factory(lambda: logging.getLogger('sakia')))
 
     @classmethod
     def instanciate(cls, app):

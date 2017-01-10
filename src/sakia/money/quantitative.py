@@ -75,7 +75,7 @@ class Quantitative(BaseReferential):
         scientific_value = value
         exponent = 0
 
-        while scientific_value > 1000 and int(scientific_value) * 10**exponent == scientific_value:
+        while scientific_value > 1000 and int(scientific_value) * 10**exponent == value:
             exponent += 3
             scientific_value /= 1000
 

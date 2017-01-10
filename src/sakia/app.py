@@ -168,7 +168,8 @@ class Application(QObject):
         try:
             with aiohttp.ClientSession() as session:
                 with aiohttp.Timeout(15):
-                    response = await session.get("https://api.github.com/repos/duniter/sakia/releases", proxy=proxy)
+                    response = await session.get("https://api.github.com/repos/duniter/sakia/releases",
+                                                 proxy=self.parameters.proxy())
                     if response.status == 200:
                         releases = await response.json()
                         latest = None
@@ -187,7 +188,6 @@ class Application(QObject):
                         logging.debug("Found version : {0}".format(latest_version))
                         logging.debug("Current version : {0}".format(__version__))
                         self.available_version = version
-                    self.version_requested.emit()
         except (aiohttp.errors.ClientError, aiohttp.errors.TimeoutError) as e:
             self._logger.debug("Could not connect to github : {0}".format(str(e)))
 
