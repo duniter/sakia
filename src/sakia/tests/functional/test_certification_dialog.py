@@ -4,7 +4,6 @@ from duniterpy.documents import Certification
 from PyQt5.QtCore import QLocale, Qt, QEvent
 from PyQt5.QtTest import QTest
 from PyQt5.QtWidgets import QDialogButtonBox, QApplication, QMessageBox
-from PyQt5.QtGui import QKeyEvent
 from sakia.gui.dialogs.certification.controller import CertificationController
 
 

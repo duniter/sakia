@@ -97,7 +97,7 @@ class Application(QObject):
 
     def instanciate_services(self):
         nodes_processor = NodesProcessor(self.db.nodes_repo)
-        bma_connector = BmaConnector(nodes_processor)
+        bma_connector = BmaConnector(nodes_processor, self.parameters)
         connections_processor = ConnectionsProcessor(self.db.connections_repo)
         identities_processor = IdentitiesProcessor(self.db.identities_repo, self.db.blockchains_repo, bma_connector)
         certs_processor = CertificationsProcessor(self.db.certifications_repo, self.db.identities_repo, bma_connector)
@@ -165,10 +165,6 @@ class Application(QObject):
 
     @asyncify
     async def get_last_version(self):
-        if self.parameters.enable_proxy is True:
-            proxy = "http://{0}:{1}".format(self.parameters.proxy_address, self.parameters.proxy_port)
-        else:
-            proxy = None
         try:
             with aiohttp.ClientSession() as session:
                 with aiohttp.Timeout(15):

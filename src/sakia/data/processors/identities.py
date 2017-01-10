@@ -27,7 +27,7 @@ class IdentitiesProcessor:
         :param sakia.app.Application app: the app
         """
         return cls(app.db.identities_repo, app.db.blockchains_repo,
-                   BmaConnector(NodesProcessor(app.db.nodes_repo)))
+                   BmaConnector(NodesProcessor(app.db.nodes_repo), app.parameters))
 
     async def find_from_pubkey(self, currency, pubkey):
         """

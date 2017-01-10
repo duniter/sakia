@@ -19,3 +19,7 @@ class UserParameters:
     proxy_port = attr.ib(convert=int, default=8080)
     international_system_of_units = attr.ib(convert=int, default=False)
     forgetfulness = attr.ib(convert=bool, default=True)
+
+    def proxy(self):
+        if self.enable_proxy is True:
+            return "http://{0}:{1}".format(self.proxy_address, self.proxy_port)

@@ -46,7 +46,7 @@ class NodeConnector(QObject):
                 ws.cancel()
 
     @classmethod
-    async def from_address(cls, currency, secured, address, port):
+    async def from_address(cls, currency, secured, address, port, proxy):
         """
         Factory method to get a node from a given address
         :param str currency: The node currency. None if we don't know\
@@ -61,7 +61,7 @@ class NodeConnector(QObject):
         http_scheme = "https" if secured else "http"
         ws_scheme = "ws" if secured else "wss"
         session = aiohttp.ClientSession()
-        peer_data = await bma.network.peering(ConnectionHandler(http_scheme, ws_scheme, address, port, session))
+        peer_data = await bma.network.peering(ConnectionHandler(http_scheme, ws_scheme, address, port, proxy, session))
 
         peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],
                                                       peer_data['signature']))
@@ -92,9 +92,9 @@ class NodeConnector(QObject):
 
         return cls(node, None)
 
-    async def safe_request(self, endpoint, request, req_args={}):
+    async def safe_request(self, endpoint, request, proxy, req_args={}):
         try:
-            conn_handler = endpoint.conn_handler(self.session)
+            conn_handler = endpoint.conn_handler(self.session, proxy=proxy)
             data = await request(conn_handler, **req_args)
             return data
         except (ClientError, gaierror, TimeoutError, ConnectionRefusedError, DisconnectedError, ValueError) as e:

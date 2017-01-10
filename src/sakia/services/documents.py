@@ -45,7 +45,7 @@ class DocumentsService:
         Instanciate a blockchain processor
         :param sakia.app.Application app: the app
         """
-        return cls(BmaConnector(NodesProcessor(app.db.nodes_repo)),
+        return cls(BmaConnector(NodesProcessor(app.db.nodes_repo), app.parameters),
                    BlockchainProcessor.instanciate(app),
                    IdentitiesProcessor.instanciate(app),
                    TransactionsProcessor.instanciate(app),

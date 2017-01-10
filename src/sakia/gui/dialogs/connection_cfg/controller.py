@@ -59,7 +59,8 @@ class ConnectionConfigController(QObject):
         view = ConnectionConfigView(parent.view if parent else None)
         model = ConnectionConfigModel(None, app, None,
                                       IdentitiesProcessor(app.db.identities_repo, app.db.blockchains_repo,
-                                                          BmaConnector(NodesProcessor(app.db.nodes_repo))))
+                                                          BmaConnector(NodesProcessor(app.db.nodes_repo),
+                                                                       app.parameters)))
         account_cfg = cls(parent, view, model)
         model.setParent(account_cfg)
         return account_cfg

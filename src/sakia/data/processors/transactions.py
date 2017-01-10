@@ -25,7 +25,7 @@ class TransactionsProcessor:
         :param sakia.app.Application app: the app
         """
         return cls(app.db.transactions_repo,
-                   BmaConnector(NodesProcessor(app.db.nodes_repo)))
+                   BmaConnector(NodesProcessor(app.db.nodes_repo), app.parameters))
 
     def next_txid(self, currency, block_number):
         """

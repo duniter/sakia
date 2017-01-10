@@ -22,7 +22,7 @@ class BlockchainProcessor:
         :param sakia.app.Application app: the app
         """
         return cls(app.db.blockchains_repo,
-                   BmaConnector(NodesProcessor(app.db.nodes_repo)))
+                   BmaConnector(NodesProcessor(app.db.nodes_repo), app.parameters))
 
     async def timestamp(self, currency, blockstamp):
         try:

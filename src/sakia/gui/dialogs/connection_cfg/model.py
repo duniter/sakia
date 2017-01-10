@@ -30,7 +30,8 @@ class ConnectionConfigModel(QObject):
         self.identities_processor = identities_processor
 
     async def create_connection(self, server, port, secured):
-        self.node_connector = await NodeConnector.from_address(None, secured, server, port)
+        self.node_connector = await NodeConnector.from_address(None, secured, server, port,
+                                                               proxy=self.app.parameters.proxy())
         self.connection = Connection(self.node_connector.node.currency, "", "")
         self.node_connector.node.state = Node.ONLINE
 
@@ -167,7 +168,8 @@ class ConnectionConfigModel(QObject):
                 if not registered[0] and not registered[2]:
                     try:
                         data = await self.node_connector.safe_request(endpoint, bma.wot.lookup,
-                                                                      req_args={'search': search})
+                                                                      req_args={'search': search},
+                                                                      proxy=self.app.parameters.proxy())
                         if data:
                             registered = parser(data)
                         tries += 1

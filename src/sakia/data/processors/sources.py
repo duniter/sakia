@@ -23,7 +23,7 @@ class SourcesProcessor:
         :param sakia.app.Application app: the app
         """
         return cls(app.db.sources_repo,
-                   BmaConnector(NodesProcessor(app.db.nodes_repo)))
+                   BmaConnector(NodesProcessor(app.db.nodes_repo), app.parameters))
 
     async def initialize_sources(self, currency, pubkey, log_stream):
         """

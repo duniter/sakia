@@ -24,7 +24,7 @@ class CertificationsProcessor:
         :param sakia.app.Application app: the app
         """
         return cls(app.db.certifications_repo, app.db.identities_repo,
-                   BmaConnector(NodesProcessor(app.db.nodes_repo)))
+                   BmaConnector(NodesProcessor(app.db.nodes_repo), app.parameters))
 
     def certifications_sent(self, currency, pubkey):
         """

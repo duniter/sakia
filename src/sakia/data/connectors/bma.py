@@ -18,6 +18,7 @@ class BmaConnector:
     This class is used to access BMA API.
     """
     _nodes_processor = attr.ib()
+    _user_parameters = attr.ib()
     _logger = attr.ib(default=attr.Factory(lambda: logging.getLogger('sakia')))
 
     def filter_endpoints(self, request, nodes):
@@ -59,7 +60,7 @@ class BmaConnector:
             try:
                 self._logger.debug("Requesting {0} on endpoint {1}".format(str(request.__name__), str(endpoint)))
                 async with aiohttp.ClientSession() as session:
-                    json_data = await request(endpoint.conn_handler(session), **req_args)
+                    json_data = await request(endpoint.conn_handler(session, proxy=self._user_parameters.proxy()), **req_args)
                     return json_data
             except (ClientError, ServerDisconnectedError, gaierror,
                     asyncio.TimeoutError, ValueError, jsonschema.ValidationError) as e:
@@ -89,7 +90,9 @@ class BmaConnector:
             with aiohttp.ClientSession() as session:
                 for endpoint in endpoints:
                     self._logger.debug("Trying to connect to : " + str(endpoint))
-                    reply = asyncio.ensure_future(request(endpoint.conn_handler(session), **req_args))
+                    reply = asyncio.ensure_future(request(endpoint.conn_handler(session,
+                                                                                proxy=self._user_parameters.proxy()),
+                                                          **req_args))
                     replies.append(reply)
 
                 result = await asyncio.gather(*replies, return_exceptions=True)

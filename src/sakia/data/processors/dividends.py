@@ -25,7 +25,7 @@ class DividendsProcessor:
         :param sakia.app.Application app: the app
         """
         return cls(app.db.dividends_repo,
-                   BmaConnector(NodesProcessor(app.db.nodes_repo)))
+                   BmaConnector(NodesProcessor(app.db.nodes_repo), app.parameters))
 
     def commit(self, dividend):
         try:

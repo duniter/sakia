@@ -52,7 +52,7 @@ class RevocationModel(QObject):
     async def send_to_node(self, server, port):
         session = aiohttp.ClientSession()
         try:
-            node = await Node.from_address(None, server, port, session=session)
+            node = await Node.from_address(None, server, port, proxy=self.app.parameters.proxy(), session=session)
             conn_handler = node.endpoint.conn_handler()
             await bma.wot.Revoke(conn_handler).post(session,
                                                     revocation=self.revocation_document.signed_raw(
