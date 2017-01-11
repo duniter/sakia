@@ -130,7 +130,8 @@ class ConnectionConfigController(QObject):
                     self.password_asker = PasswordAskerDialog(self.model.connection)
                 except (DisconnectedError, ClientError, MalformedDocumentError, ValueError, TimeoutError) as e:
                     self._logger.debug(str(e))
-                    self.view.display_info(self.tr("Could not connect. Check hostname, ip address or port : </br>str(e)"))
+                    self.view.display_info(self.tr("Could not connect. Check hostname, ip address or port : <br/>"
+                                                   + str(e)))
                     self.step_node = asyncio.Future()
                     self.view.button_connect.setEnabled(True)
                     self.view.button_register.setEnabled(True)

@@ -200,7 +200,6 @@ class InformationsView(QWidget, Ui_InformationsWidget):
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:2.0%}</b></td><td>{:}</td></tr>
             </table>
             """).format(
@@ -218,8 +217,6 @@ class InformationsView(QWidget, Ui_InformationsWidget):
                         self.tr('The average time in seconds for writing 1 block (wished time)'),
                         params.dt_diff_eval,
                         self.tr('The number of blocks required to evaluate again PoWMin value'),
-                        params.blocks_rot,
-                        self.tr('The number of previous blocks to check for personalized difficulty'),
                         params.percent_rot,
                         self.tr('The percent of previous issuers to reach for personalized difficulty')
                 )

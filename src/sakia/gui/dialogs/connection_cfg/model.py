@@ -30,8 +30,13 @@ class ConnectionConfigModel(QObject):
         self.identities_processor = identities_processor
 
     async def create_connection(self, server, port, secured):
-        self.node_connector = await NodeConnector.from_address(None, secured, server, port,
+        node_connector = await NodeConnector.from_address(None, secured, server, port,
                                                                user_parameters=self.app.parameters)
+        currencies = self.app.db.connections_repo.get_currencies()
+        if len(currencies) > 0 and node_connector.node.currency != currencies[0]:
+            raise ValueError("""This node is running for {0} network.<br/>
+Current database is storing {1} network.""".format(node_connector.node.currency, currencies[0]))
+        self.node_connector = node_connector
         self.connection = Connection(self.node_connector.node.currency, "", "")
         self.node_connector.node.state = Node.ONLINE
 

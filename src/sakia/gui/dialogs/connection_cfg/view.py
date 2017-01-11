@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QDialog
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal, Qt
 from .connection_cfg_uic import Ui_ConnectionConfigurationDialog
 from duniterpy.key import SigningKey, ScryptParams
 from math import ceil, log
@@ -36,6 +36,7 @@ class ConnectionConfigView(QDialog, Ui_ConnectionConfigurationDialog):
         self.spin_p.setMaximum(128)
         self.spin_p.setValue(self.scrypt_params.p)
         self.spin_p.valueChanged.connect(self.handle_p_change)
+        self.label_info.setTextFormat(Qt.RichText)
 
     def handle_combo_change(self, index):
         strengths = [
