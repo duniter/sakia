@@ -169,7 +169,7 @@ class ConnectionConfigModel(QObject):
                     try:
                         data = await self.node_connector.safe_request(endpoint, bma.wot.lookup,
                                                                       req_args={'search': search},
-                                                                      proxy=self.user_parameters.proxy())
+                                                                      proxy=self.app.parameters.proxy())
                         if data:
                             registered = parser(data)
                         tries += 1

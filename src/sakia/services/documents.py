@@ -121,7 +121,11 @@ class DocumentsService:
                 if isinstance(r, BaseException):
                     result = (False, str(r))
                 else:
-                    result = (False, (await r.json())["message"])
+                    try:
+                        result = (False, (await r.json())["message"])
+                    except KeyError:
+                        result = (False, await str(r.text()))
+
             elif r.status == 200:
                 result = (True, (await r.json()))
             else:

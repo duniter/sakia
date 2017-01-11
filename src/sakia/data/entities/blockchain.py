@@ -36,8 +36,6 @@ class BlockchainParameters:
     avg_gen_time = attr.ib(convert=int, default=0, cmp=False, hash=False)
     # The number of blocks required to evaluate again PoWMin value
     dt_diff_eval = attr.ib(convert=int, default=0, cmp=False, hash=False)
-    # The number of previous blocks to check for personalized difficulty
-    blocks_rot = attr.ib(convert=int, default=0, cmp=False, hash=False)
     # The decimal percent of previous issuers to reach for personalized difficulty
     percent_rot = attr.ib(convert=float, default=0, cmp=False, hash=False)
 

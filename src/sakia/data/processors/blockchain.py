@@ -211,7 +211,6 @@ class BlockchainProcessor:
                 parameters = await self._bma_connector.get(currency, bma.blockchain.parameters)
                 blockchain.parameters.ms_validity = parameters['msValidity']
                 blockchain.parameters.avg_gen_time = parameters['avgGenTime']
-                blockchain.parameters.blocks_rot = parameters['blocksRot']
                 blockchain.parameters.c = parameters['c']
                 blockchain.parameters.dt = parameters['dt']
                 blockchain.parameters.dt_diff_eval = parameters['dtDiffEval']
