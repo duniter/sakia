@@ -212,23 +212,26 @@ class HistoryTableModel(QAbstractTableModel):
 
     def add_transfer(self, transfer):
         self.beginInsertRows(QModelIndex(), 0, 0)
-        if isinstance(transfer, Transaction):
-            if transfer.issuer == self.connection.pubkey:
-                self.transfers_data.append(self.data_sent(transfer))
-            else:
-                self.transfers_data.append(self.data_received(transfer))
+        if transfer.issuer == self.connection.pubkey:
+            self.transfers_data.append(self.data_sent(transfer))
+        else:
+            self.transfers_data.append(self.data_received(transfer))
+        self.endInsertRows()
+
+    def add_dividend(self, dividend):
+        self.beginInsertRows(QModelIndex(), 0, 0)
+        self.transfers_data.append(self.data_dividend(dividend))
         self.endInsertRows()
 
     def change_transfer(self, transfer):
-        if isinstance(transfer, Transaction):
-            for i, data in enumerate(self.transfers_data):
-                if data[self.columns_types.index('txhash')] == transfer.sha_hash:
-                    if transfer.issuer == self.connection.pubkey:
-                        self.transfers_data[self.columns_types.index('txhash')] = self.data_sent(transfer)
-                    else:
-                        self.transfers_data[self.columns_types.index('txhash')] = self.data_received(transfer)
-                    self.dataChanged.emit(self.index(i, 0), self.index(i, len(self.columns_types)))
-                    return
+        for i, data in enumerate(self.transfers_data):
+            if data[self.columns_types.index('txhash')] == transfer.sha_hash:
+                if transfer.issuer == self.connection.pubkey:
+                    self.transfers_data[self.columns_types.index('txhash')] = self.data_sent(transfer)
+                else:
+                    self.transfers_data[self.columns_types.index('txhash')] = self.data_received(transfer)
+                self.dataChanged.emit(self.index(i, 0), self.index(i, len(self.columns_types)))
+                return
 
     def data_received(self, transfer):
         """

@@ -4,15 +4,13 @@ import logging
 
 import aiohttp
 from PyQt5.QtCore import QObject, pyqtSignal, QTranslator, QCoreApplication, QLocale
-from aiohttp.connector import ProxyConnector
-
 from . import __version__
 from .options import SakiaOptions
 from sakia.data.connectors import BmaConnector
 from sakia.services import NetworkService, BlockchainService, IdentitiesService, \
     SourcesServices, TransactionsService, DocumentsService
 from sakia.data.repositories import SakiaDatabase
-from sakia.data.entities import Transaction, Connection, Identity
+from sakia.data.entities import Transaction, Connection, Identity, Dividend
 from sakia.data.processors import BlockchainProcessor, NodesProcessor, IdentitiesProcessor, \
     CertificationsProcessor, SourcesProcessor, TransactionsProcessor, ConnectionsProcessor, DividendsProcessor
 from sakia.data.files import AppDataFile, UserParametersFile
@@ -43,6 +41,7 @@ class Application(QObject):
     :param sakia.services.DocumentsService documents_service: A service to broadcast documents
     """
 
+    new_dividend = pyqtSignal(Dividend)
     new_transfer = pyqtSignal(Transaction)
     transaction_state_changed = pyqtSignal(Transaction)
     identity_changed = pyqtSignal(Identity)

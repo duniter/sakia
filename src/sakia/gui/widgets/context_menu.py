@@ -127,7 +127,8 @@ class ContextMenu(QObject):
             UserInformationController.show_identity(self.parent(), self._app, self._connection.currency, identity)
             self.identity_information_loaded.emit(identity)
         else:
-            UserInformationController.open_dialog(self.parent(), self._app, self._connection.currency, identity)
+            UserInformationController.search_and_show_pubkey(self.parent(), self._app, self._connection.currency,
+                                                             identity.pubkey)
 
 
     @asyncify

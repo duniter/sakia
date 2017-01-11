@@ -42,13 +42,16 @@ class BlockchainService(QObject):
             blocks = await self._blockchain_processor.blocks(with_identities + with_money + [network_blockstamp.number],
                                                              self.currency)
             identities = await self._identities_service.handle_new_blocks(blocks)
-            transfers_changed, new_transfers = self._transactions_service.handle_new_blocks(blocks)
+            transfers_changed, new_transfers, new_dividends = self._transactions_service.handle_new_blocks(blocks)
             self._blockchain_processor.handle_new_blocks(self.currency, blocks)
             self.app.db.commit()
             for tx in transfers_changed:
                 self.app.transaction_state_changed.emit(tx)
             for tx in new_transfers:
                 self.app.new_transfer.emit(tx)
+            for ud in new_dividends:
+                self.app.new_dividend.emit(ud)
+
             for idty in identities:
                 self.app.identity_changed.emit(idty)
         except (NoPeerAvailable, DuniterError) as e:

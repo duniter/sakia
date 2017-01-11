@@ -40,6 +40,7 @@ class TransactionsService(QObject):
         """
         transfers_changed = []
         new_transfers = []
+        new_dividends = []
         for tx in [t for t in self._transactions_processor.awaiting(self.currency)]:
             if self._transactions_processor.run_state_transitions(tx, block_doc):
                 transfers_changed.append(tx)
@@ -56,6 +57,7 @@ class TransactionsService(QObject):
                                     timestamp=block_doc.mediantime,
                                     amount=block_doc.ud,
                                     base=block_doc.unit_base)
+                new_dividends.append(dividend)
                 self._dividends_processor.commit(dividend)
 
             for (i, tx_doc) in enumerate(new_transactions):
@@ -66,7 +68,7 @@ class TransactionsService(QObject):
                 else:
                     logging.debug("Error during transfer parsing")
 
-        return transfers_changed, new_transfers
+        return transfers_changed, new_transfers, new_dividends
 
     def handle_new_blocks(self, blocks):
         """
@@ -77,13 +79,15 @@ class TransactionsService(QObject):
         self._logger.debug("Refresh transactions")
         transfers_changed = []
         new_transfers = []
+        new_dividends = []
         txid = 0
         for block in blocks:
-            changes, news = self._parse_block(block, txid)
-            txid += len(news)
+            changes, new_tx, new_ud = self._parse_block(block, txid)
+            txid += len(new_tx)
             transfers_changed += changes
-            new_transfers += news
-        return transfers_changed, new_transfers
+            new_transfers += new_tx
+            new_dividends += new_ud
+        return transfers_changed, new_transfers, new_dividends
 
     def transfers(self, pubkey):
         """
