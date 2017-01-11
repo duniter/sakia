@@ -30,16 +30,20 @@ class BlockchainService(QObject):
         self._transactions_service = transactions_service
         self._logger = logging.getLogger('sakia')
 
-    async def handle_blockchain_progress(self):
+    async def handle_blockchain_progress(self, network_blockstamp):
         """
         Handle a new current block uid
+
+        :param duniterpy.documents.BlockUID network_blockstamp:
         """
         try:
             with_identities = await self._blockchain_processor.new_blocks_with_identities(self.currency)
             with_money = await self._blockchain_processor.new_blocks_with_money(self.currency)
-            blocks = await self._blockchain_processor.blocks(with_identities + with_money, self.currency)
+            blocks = await self._blockchain_processor.blocks(with_identities + with_money + [network_blockstamp.number],
+                                                             self.currency)
             identities = await self._identities_service.handle_new_blocks(blocks)
             transfers_changed, new_transfers = self._transactions_service.handle_new_blocks(blocks)
+            self._blockchain_processor.handle_new_blocks(self.currency, blocks)
             self.app.db.commit()
             for tx in transfers_changed:
                 self.app.transaction_state_changed.emit(tx)

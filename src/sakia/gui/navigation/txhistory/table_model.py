@@ -1,21 +1,12 @@
-"""
-Created on 5 févr. 2014
-
-@author: inso
-"""
-
-import asyncio
 import datetime
 import logging
-import math
 
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, \
     QDateTime, QLocale, QModelIndex
-from PyQt5.QtGui import QFont, QColor, QIcon
-from sakia.errors import NoPeerAvailable
+from PyQt5.QtGui import QFont, QColor
 from sakia.data.entities import Transaction
 from sakia.constants import MAX_CONFIRMATIONS
-from sakia.decorators import asyncify, once_at_a_time, cancel_once_task
+from sakia.data.processors import BlockchainProcessor
 
 
 class TxFilterProxyModel(QSortFilterProxyModel):
@@ -54,12 +45,6 @@ class TxFilterProxyModel(QSortFilterProxyModel):
         date_col = source_model.columns_types.index('date')
         source_index = source_model.index(sourceRow, date_col)
         date = source_model.data(source_index, Qt.DisplayRole)
-        if in_period(date):
-            # calculate sum total payments
-            payment = source_model.data(
-                source_model.index(sourceRow, source_model.columns_types.index('amount')),
-                Qt.DisplayRole
-            )
 
         return in_period(date)
 
@@ -85,9 +70,9 @@ class TxFilterProxyModel(QSortFilterProxyModel):
             txid_col = source_model.columns_types.index('txid')
             txid_left = source_model.index(left.row(), txid_col)
             txid_right = source_model.index(right.row(), txid_col)
-            return (txid_left < txid_right)
+            return txid_left < txid_right
 
-        return (left_data < right_data)
+        return left_data < right_data
 
     def data(self, index, role):
         source_index = self.mapToSource(index)
@@ -116,8 +101,8 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                     QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
                 )
             if source_index.column() == model.columns_types.index('amount'):
-                amount = self.app.current_ref.instance(source_data, model.connection.currency, self.app, block_data) \
-                    .diff_localized(international_system=self.app.parameters.international_system_of_units)
+                amount = self.app.current_ref.instance(source_data, model.connection.currency,
+                                                       self.app, block_data).diff_localized(False, True)
                 return amount
 
         if role == Qt.FontRole:
@@ -187,6 +172,7 @@ class HistoryTableModel(QAbstractTableModel):
         super().__init__(parent)
         self.app = app
         self.connection = connection
+        self.blockchain_processor = BlockchainProcessor.instanciate(app)
         self.identities_service = identities_service
         self.transactions_service = transactions_service
         self.transfers_data = []
@@ -328,9 +314,11 @@ class HistoryTableModel(QAbstractTableModel):
 
     def headerData(self, section, orientation, role):
         if role == Qt.DisplayRole:
-            if self.columns_types[section] == 'payment' or self.columns_types[section] == 'deposit':
-                return '{:}\n({:})'.format(
+            if self.columns_types[section] == 'amount':
+                dividend, base = self.blockchain_processor.last_ud(self.transactions_service.currency)
+                return '{:}\n({:} {:})'.format(
                     self.column_headers[section](),
+                    self.app.current_ref.base_str(base),
                     self.app.current_ref.instance(0, self.connection.currency, self.app, None).diff_units
                 )
 

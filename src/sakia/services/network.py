@@ -200,7 +200,7 @@ class NetworkService(QObject):
                 if self._processor.unknown_node(self.currency, peer.pubkey):
                     self._logger.debug("New node found : {0}".format(peer.pubkey[:5]))
                     try:
-                        connector = NodeConnector.from_peer(self.currency, peer, self.app.parameters)
+                        connector = NodeConnector.from_peer(self.currency, peer, self._app.parameters)
                         self._processor.insert_node(connector.node)
                         await connector.init_session()
                         connector.refresh(manual=True)
@@ -264,4 +264,4 @@ class NetworkService(QObject):
                 else:
                     self._logger.debug("Start refresh")
                     self._block_found = current_buid
-                    asyncio.ensure_future(self._blockchain_service.handle_blockchain_progress())
+                    asyncio.ensure_future(self._blockchain_service.handle_blockchain_progress(self._block_found))

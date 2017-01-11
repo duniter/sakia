@@ -4,8 +4,8 @@ from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtWidgets import QMenu, QAction, QApplication, QMessageBox
 
 from duniterpy.documents import Block
-from duniterpy.documents import Transaction as TransactionDoc
 from sakia.data.entities import Identity, Transaction
+from sakia.data.processors import BlockchainProcessor
 from sakia.decorators import asyncify
 from sakia.gui.dialogs.certification.controller import CertificationController
 from sakia.gui.dialogs.transfer.controller import TransferController
@@ -163,10 +163,9 @@ QMessageBox.Ok | QMessageBox.Cancel)
     @asyncify
     async def copy_block_to_clipboard(self, number):
         clipboard = QApplication.clipboard()
-        block = await self._community.get_block(number)
-        if block:
-            block_doc = Block.from_signed_raw("{0}{1}\n".format(block['raw'], block['signature']))
-            clipboard.setText(block_doc.signed_raw())
+        blockchain_processor = BlockchainProcessor.instanciate(self._app)
+        block_doc = await blockchain_processor.get_block(self._connection.currency, number)
+        clipboard.setText(block_doc.signed_raw())
 
     @asyncify
     async def copy_membership_to_clipboard(self, identity):

@@ -73,7 +73,7 @@ class NodeConnector(QObject):
         node = Node(peer.currency, peer.pubkey, peer.endpoints, peer.blockUID)
         logging.getLogger('sakia').debug("Node from address : {:}".format(str(node)))
 
-        return cls(node, session, user_parameters)
+        return cls(node, user_parameters, session=session)
 
     @classmethod
     def from_peer(cls, currency, peer, user_parameters):
@@ -91,7 +91,7 @@ class NodeConnector(QObject):
         node = Node(peer.currency, peer.pubkey, peer.endpoints, peer.blockUID)
         logging.getLogger('sakia').debug("Node from peer : {:}".format(str(node)))
 
-        return cls(node, None, user_parameters)
+        return cls(node, user_parameters, session=None)
 
     async def safe_request(self, endpoint, request, proxy, req_args={}):
         try:
@@ -261,7 +261,7 @@ class NodeConnector(QObject):
         for endpoint in [e for e in self.node.endpoints if isinstance(e, BMAEndpoint)]:
             try:
                 summary_data = await self.safe_request(endpoint, bma.node.summary,
-                                                     proxy=self._user_parameters.proxy())
+                                                       proxy=self._user_parameters.proxy())
                 if not summary_data:
                     continue
                 self.node.software = summary_data["duniter"]["software"]
@@ -379,6 +379,7 @@ class NodeConnector(QObject):
                         try:
                             leaf_data = await self.safe_request(endpoint,
                                                                 bma.network.peers,
+                                                                proxy=self._user_parameters.proxy(),
                                                                 req_args={'leaf': leaf_hash})
                             if not leaf_data:
                                 break

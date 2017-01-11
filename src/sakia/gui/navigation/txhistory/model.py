@@ -92,8 +92,7 @@ class TxHistoryModel(QObject):
         amount = 0
         for r in received_list:
             amount += r.metadata['amount']
-        localized_amount = await self.app.current_ref.instance(amount, self.connection.currency, self.app) \
-            .localized(units=True, international_system=self.app.parameters.international_system_of_units)
+        localized_amount = await self.app.current_ref.instance(amount, self.connection.currency, self.app).localized(True, True)
         return localized_amount
 
     def localized_balance(self):
@@ -104,8 +103,7 @@ class TxHistoryModel(QObject):
         """
         try:
             amount = self.sources_service.amount(self.connection.pubkey)
-            localized_amount = self.app.current_ref.instance(amount, self.connection.currency, self.app)\
-                .localized(units=True, international_system=self.app.parameters.international_system_of_units)
+            localized_amount = self.app.current_ref.instance(amount, self.connection.currency, self.app).localized(True, True)
             return localized_amount
         except NoPeerAvailable as e:
             logging.debug(str(e))

@@ -40,11 +40,15 @@ class BaseReferential:
         raise NotImplementedError()
 
     @staticmethod
-    def to_si(value, digits):
+    def to_si(value, base):
         raise NotImplementedError()
 
-    def localized(self, units=False, international_system=False):
+    @staticmethod
+    def base_str(base):
         raise NotImplementedError()
 
-    def diff_localized(self, units=False, international_system=False):
+    def localized(self, units=False, show_base=False):
+        raise NotImplementedError()
+
+    def diff_localized(self, units=False, show_base=False):
         raise NotImplementedError()

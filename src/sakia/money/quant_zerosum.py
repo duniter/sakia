@@ -77,27 +77,37 @@ class QuantitativeZSum(BaseReferential):
             average = 0
         return (self.amount - average)/100
 
+    @staticmethod
+    def base_str(base):
+        return Quantitative.base_str(base)
+
+    @staticmethod
+    def to_si(value, base):
+        return Quantitative.to_si(value, base)
+
     def differential(self):
         return Quantitative(self.amount, self.currency, self.app).value()
 
-    def localized(self, units=False, international_system=False):
+    def localized(self, units=False, show_base=False):
         value = self.value()
+        dividend, base = self._blockchain_processor.last_ud(self.currency)
 
         prefix = ""
-        if international_system:
-            localized_value, prefix = Quantitative.to_si(value, self.app.parameters.digits_after_comma)
+        if show_base:
+            localized_value = QuantitativeZSum.to_si(value, base)
+            prefix = QuantitativeZSum.base_str(base)
         else:
             localized_value = QLocale().toString(float(value), 'f', 2)
 
-        if units or international_system:
+        if units or show_base:
             return QCoreApplication.translate("QuantitativeZSum",
                                               QuantitativeZSum._REF_STR_) \
-                .format(localized_value,
-                        prefix + (" " if prefix else ""),
-                        (" " if units else "") + (shortened(self.currency) if units else ""))
+                    .format(localized_value,
+                            prefix + (" " if prefix else ""),
+                            (" " if units else "") + (shortened(self.currency) if units else ""))
         else:
             return localized_value
 
-    def diff_localized(self, units=False, international_system=False):
-        localized = Quantitative(self.amount, shortened(self.currency), self.app).localized(units, international_system)
+    def diff_localized(self, units=False, show_base=False):
+        localized = Quantitative(self.amount, self.currency, self.app).localized(units, show_base)
         return localized

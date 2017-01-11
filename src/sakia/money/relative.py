@@ -42,11 +42,8 @@ class Relative(BaseReferential):
         :param int block_number:
         :return:
         """
-        if app.parameters.forgetfulness:
-            return cls(amount, currency, app, block_number)
-        else:
-            return RelativeToPast(amount, currency, app, block_number)
-
+        return cls(amount, currency, app, block_number)
+        
     @classmethod
     def translated_name(cls):
         return QCoreApplication.translate('Relative', Relative._NAME_STR_)
@@ -67,6 +64,10 @@ class Relative(BaseReferential):
     def diff_units(self):
         return self.units
 
+    @staticmethod
+    def base_str(base):
+        return ""
+
     def value(self):
         """
         Return relative value of amount
@@ -86,47 +87,12 @@ class Relative(BaseReferential):
     def differential(self):
         return self.value()
 
-    @staticmethod
-    def to_si(value, digits):
-        unicodes = {
-            '0': ord('\u2070'),
-            '1': ord('\u00B9'),
-            '2': ord('\u00B2'),
-            '3': ord('\u00B3'),
-        }
-        for n in range(4, 10):
-            unicodes[str(n)] = ord('\u2070') + n
-
-        if value < 0:
-            value = -value
-            multiplier = -1
-        else:
-            multiplier = 1
-        scientific_value = value
-        exponent = 0
-
-        while scientific_value < 0.01:
-            exponent += 3
-            scientific_value *= 1000
-
-        if exponent > 1:
-            localized_value = QLocale().toString(float(scientific_value * multiplier), 'f', digits)
-            power_of_10 = "x10⁻" + "".join([chr(unicodes[e]) for e in str(exponent)])
-        else:
-            localized_value = QLocale().toString(float(value * multiplier), 'f', digits)
-            power_of_10 = ""
-
-        return localized_value, power_of_10
-
-    def localized(self, units=False, international_system=False):
+    def localized(self, units=False, show_base=False):
         value = self.value()
         prefix = ""
-        if international_system:
-            localized_value, prefix = Relative.to_si(value, self.app.parameters.digits_after_comma)
-        else:
-            localized_value = QLocale().toString(float(value), 'f', self.app.parameters.digits_after_comma)
+        localized_value = QLocale().toString(float(value), 'f', self.app.parameters.digits_after_comma)
 
-        if units or international_system:
+        if units:
             return QCoreApplication.translate("Relative", Relative._REF_STR_) \
                 .format(localized_value,
                         prefix + " " if prefix else "",
@@ -134,15 +100,12 @@ class Relative(BaseReferential):
         else:
             return localized_value
 
-    def diff_localized(self, units=False, international_system=False):
+    def diff_localized(self, units=False, show_base=False):
         value = self.differential()
         prefix = ""
-        if international_system and value != 0:
-            localized_value, prefix = Relative.to_si(value, self.app.parameters.digits_after_comma)
-        else:
-            localized_value = QLocale().toString(float(value), 'f', self.app.parameters.digits_after_comma)
+        localized_value = QLocale().toString(float(value), 'f', self.app.parameters.digits_after_comma)
 
-        if units or international_system:
+        if units:
             return QCoreApplication.translate("Relative", Relative._REF_STR_) \
                 .format(localized_value,
                         prefix + " " if prefix else "",

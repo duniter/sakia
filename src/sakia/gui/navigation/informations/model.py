@@ -60,20 +60,17 @@ class InformationsModel(QObject):
             # display float values
             localized_data['ud'] = self.app.current_ref.instance(last_ud * math.pow(10, last_ud_base),
                                               self.connection.currency,
-                                              self.app) \
-                .diff_localized(True, self.app.parameters.international_system_of_units)
+                                              self.app).diff_localized(True, True)
 
             localized_data['members_count'] = self.blockchain_service.current_members_count()
 
             computed_dividend = self.blockchain_service.computed_dividend()
             # display float values
             localized_data['ud_plus_1'] = self.app.current_ref.instance(computed_dividend,
-                                              self.connection.currency, self.app) \
-                .diff_localized(True, self.app.parameters.international_system_of_units)
+                                              self.connection.currency, self.app).diff_localized(True, True)
 
             localized_data['mass'] = self.app.current_ref.instance(self.blockchain_service.current_mass(),
-                                              self.connection.currency, self.app) \
-                .diff_localized(True, self.app.parameters.international_system_of_units)
+                                              self.connection.currency, self.app).diff_localized(True, True)
 
             localized_data['ud_median_time'] = QLocale.toString(
                 QLocale(),
@@ -92,10 +89,10 @@ class InformationsModel(QObject):
                                            previous_monetary_mass / previous_members_count)
                 localized_data['mass_minus_1_per_member'] = self.app.current_ref.instance(mass_minus_1_per_member,
                                                   self.connection.currency, self.app) \
-                                                .diff_localized(True, self.app.parameters.international_system_of_units)
+                                                .diff_localized(True, True)
                 localized_data['mass_minus_1'] = self.app.current_ref.instance(previous_monetary_mass,
                                                   self.connection.currency, self.app) \
-                                                    .diff_localized(True, self.app.parameters.international_system_of_units)
+                                                    .diff_localized(True, True)
                 # avoid divide by zero !
                 if members_count == 0 or previous_members_count == 0:
                     localized_data['actual_growth'] = float(0)
@@ -112,9 +109,7 @@ class InformationsModel(QObject):
 
     async def get_identity_data(self):
         amount = self.sources_service.amount(self.connection.pubkey)
-        localized_amount = self.app.current_ref.instance(amount, self.connection.currency, self.app)\
-                                                     .localized(units=True,
-                                                                international_system=self.app.parameters.international_system_of_units)
+        localized_amount = self.app.current_ref.instance(amount, self.connection.currency, self.app).localized(True, True)
         mstime_remaining_text = self.tr("Expired or never published")
         outdistanced_text = self.tr("Outdistanced")
 

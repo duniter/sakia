@@ -36,7 +36,6 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
         self.checkbox_expertmode.setChecked(self.app.parameters.expert_mode)
         self.checkbox_maximize.setChecked(self.app.parameters.maximized)
         self.checkbox_notifications.setChecked(self.app.parameters.notifications)
-        self.checkbox_international_system.setChecked(self.app.parameters.international_system_of_units)
         self.spinbox_digits_comma.setValue(self.app.parameters.digits_after_comma)
         self.spinbox_digits_comma.setMaximum(12)
         self.spinbox_digits_comma.setMinimum(1)
@@ -54,8 +53,6 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
         self.spinbox_proxy_port.setValue(self.app.parameters.proxy_port)
         self.edit_proxy_address.setText(self.app.parameters.proxy_address)
 
-        self.checkbox_forgetfulness.setChecked(self.app.parameters.forgetfulness)
-
     def handle_proxy_change(self):
         self.spinbox_proxy_port.setEnabled(self.checkbox_proxy.isChecked())
         self.edit_proxy_address.setEnabled(self.checkbox_proxy.isChecked())
@@ -69,9 +66,7 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
                                     notifications=self.checkbox_notifications.isChecked(),
                                     enable_proxy=self.checkbox_proxy.isChecked(),
                                     proxy_address=self.edit_proxy_address.text(),
-                                    proxy_port=self.spinbox_proxy_port.value(),
-                                    international_system_of_units=self.checkbox_international_system.isChecked(),
-                                    forgetfulness=self.checkbox_forgetfulness.isChecked())
+                                    proxy_port=self.spinbox_proxy_port.value())
         self.app.save_parameters(parameters)
       # change UI translation
         self.app.switch_language()

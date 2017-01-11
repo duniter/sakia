@@ -51,6 +51,10 @@ class RelativeZSum(BaseReferential):
     def diff_units(self):
         return QCoreApplication.translate("Relative", Relative._UNITS_STR_).format(shortened(self.currency))
 
+    @staticmethod
+    def base_str(base):
+        return Relative.base_str(base)
+
     def value(self):
         """
         Return relative value of amount minus the average value
@@ -81,36 +85,26 @@ class RelativeZSum(BaseReferential):
     def differential(self):
         return Relative(self.amount, self.currency, self.app).value()
 
-    def localized(self, units=False, international_system=False):
+    def localized(self, units=False, show_base=False):
         value = self.value()
 
-        prefix = ""
-        if international_system:
-            localized_value, prefix = Relative.to_si(value, self.app.parameters.digits_after_comma)
-        else:
-            localized_value = QLocale().toString(float(value), 'f', self.app.parameters.digits_after_comma)
+        localized_value = QLocale().toString(float(value), 'f', self.app.parameters.digits_after_comma)
 
-        if units or international_system:
+        if units:
             return QCoreApplication.translate("RelativeZSum", RelativeZSum._REF_STR_)\
-                .format(localized_value,
-                        prefix + " " if prefix else "",
+                .format(localized_value, "",
                         (" " + shortened(self.currency)) if units else "")
         else:
             return localized_value
 
-    def diff_localized(self, units=False, international_system=False):
+    def diff_localized(self, units=False, show_base=False):
         value = self.differential()
 
-        prefix = ""
-        if international_system and value != 0:
-            localized_value, prefix = Relative.to_si(value, self.app.parameters.digits_after_comma)
-        else:
-            localized_value = QLocale().toString(float(value), 'f', self.app.parameters.digits_after_comma)
+        localized_value = QLocale().toString(float(value), 'f', self.app.parameters.digits_after_comma)
 
-        if units or international_system:
+        if units:
             return QCoreApplication.translate("Relative", Relative._REF_STR_)\
-                .format(localized_value,
-                        prefix + " " if prefix else "",
+                .format(localized_value, "",
                         (" " + shortened(self.currency)) if units else "")
         else:
             return localized_value

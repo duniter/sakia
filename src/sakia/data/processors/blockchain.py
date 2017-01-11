@@ -20,6 +20,7 @@ class BlockchainProcessor:
         """
         Instanciate a blockchain processor
         :param sakia.app.Application app: the app
+        :rtype: sakia.data.processors.BlockchainProcessor
         """
         return cls(app.db.blockchains_repo,
                    BmaConnector(NodesProcessor(app.db.nodes_repo), app.parameters))
@@ -38,7 +39,8 @@ class BlockchainProcessor:
         Get the local current blockuid
         :rtype: duniterpy.documents.BlockUID
         """
-        return self._repo.get_one(currency=currency).current_buid
+        blockchain = self._repo.get_one(currency=currency)
+        return blockchain.current_buid
 
     def time(self, currency):
         """
@@ -81,7 +83,10 @@ class BlockchainProcessor:
         :rtype: int, int
         """
         blockchain = self._repo.get_one(currency=currency)
-        return blockchain.last_ud, blockchain.last_ud_base
+        try:
+            return blockchain.last_ud, blockchain.last_ud_base
+        except AttributeError:
+            pass
 
     def last_ud_time(self, currency):
         """
@@ -120,6 +125,19 @@ class BlockchainProcessor:
         """
         blockchain = self._repo.get_one(currency=currency)
         return blockchain.previous_ud_time
+
+    async def get_block(self, currency, number):
+        """
+        Get block documen at a given number
+        :param str currency:
+        :param int number:
+        :rtype: duniterpy.documents.Block
+        """
+        block = await self._bma_connector.get(currency, bma.blockchain.block, req_args={'number': number})
+        if block:
+            block_doc = Block.from_signed_raw("{0}{1}\n".format(block['raw'], block['signature']))
+            return block_doc
+
 
     async def new_blocks_with_identities(self, currency):
         """
@@ -262,3 +280,26 @@ class BlockchainProcessor:
                         raise
 
             self._repo.insert(blockchain)
+
+    def handle_new_blocks(self, currency, blocks):
+        """
+        Initialize blockchain for a given currency if no source exists locally
+        :param List[duniterpy.documents.Block] blocks
+        """
+        blockchain = self._repo.get_one(currency=currency)
+        for block in sorted(blocks):
+            blockchain.current_buid = block.blockUID
+            blockchain.median_time = block.mediantime
+            blockchain.current_members_count = block.members_count
+            if block.ud:
+                blockchain.previous_mass = blockchain.current_mass
+                blockchain.previous_members_count = blockchain.last_members_count
+                blockchain.previous_ud = blockchain.last_ud
+                blockchain.previous_ud_base = blockchain.last_ud_base
+                blockchain.previous_ud_time = blockchain.last_ud_time
+                blockchain.current_mass = blockchain.current_mass + block.ud * block.members_count
+                blockchain.last_members_count = block.members_count
+                blockchain.last_ud = block.ud
+                blockchain.last_ud_base = block.unit_base
+                blockchain.last_ud_time = block.mediantime
+        self._repo.update(blockchain)
