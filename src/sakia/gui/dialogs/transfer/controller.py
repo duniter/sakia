@@ -140,7 +140,7 @@ class TransferController(QObject):
 
         logging.debug("checking recipient mode...")
         recipient = self.selected_pubkey()
-        amount = self.view.spinbox_amount.value()
+        amount = self.view.spinbox_amount.value() * 100
         #TODO: Handle other amount base than 0
         amount_base = 0
 
@@ -183,7 +183,7 @@ class TransferController(QObject):
         else:
             self.view.set_button_box(TransferView.ButtonBoxState.OK)
 
-        max_relative = self.model.quant_to_rel(amount)
+        max_relative = self.model.quant_to_rel(amount/100)
         current_base = self.model.current_base()
 
         self.view.set_spinboxes_parameters(pow(10, current_base), amount, max_relative)
@@ -194,20 +194,7 @@ class TransferController(QObject):
         self.refresh_amount_suffix()
 
     def refresh_amount_suffix(self):
-        #TODO: Handle other exponents than 0 (using a custom spinbox ?)
-        unicodes = {
-            '0': ord('\u2070'),
-            '1': ord('\u00B9'),
-            '2': ord('\u00B2'),
-            '3': ord('\u00B3'),
-        }
-        for n in range(4, 10):
-            unicodes[str(n)] = ord('\u2070') + n
-
-        exponent = ""
-        for n in str('0'):
-            exponent += chr(unicodes[n])
-        self.view.spinbox_amount.setSuffix(" x10" + exponent + " " + self.model.connection.currency)
+        self.view.spinbox_amount.setSuffix(" " + self.model.connection.currency)
 
     def handle_relative_change(self, value):
         amount = self.model.rel_to_quant(value)

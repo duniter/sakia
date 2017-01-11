@@ -227,9 +227,9 @@ class HistoryTableModel(QAbstractTableModel):
         for i, data in enumerate(self.transfers_data):
             if data[self.columns_types.index('txhash')] == transfer.sha_hash:
                 if transfer.issuer == self.connection.pubkey:
-                    self.transfers_data[self.columns_types.index('txhash')] = self.data_sent(transfer)
+                    self.transfers_data[i] = self.data_sent(transfer)
                 else:
-                    self.transfers_data[self.columns_types.index('txhash')] = self.data_received(transfer)
+                    self.transfers_data[i] = self.data_received(transfer)
                 self.dataChanged.emit(self.index(i, 0), self.index(i, len(self.columns_types)))
                 return
 

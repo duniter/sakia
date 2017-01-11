@@ -34,11 +34,24 @@ class InformationsController(QObject):
 
     @classmethod
     def create(cls, parent, app, connection, blockchain_service, identities_service, sources_service):
+        """
+
+        :param parent:
+        :param sakia.app.Application app:
+        :param connection:
+        :param blockchain_service:
+        :param identities_service:
+        :param sources_service:
+        :return:
+        """
         view = InformationsView(parent.view)
         model = InformationsModel(None, app, connection, blockchain_service, identities_service, sources_service)
         informations = cls(parent, view, model)
         model.setParent(informations)
         informations.init_view_text()
+        app.identity_changed.connect(informations.handle_identity_change)
+        app.new_transfer.connect(informations.refresh_localized_data)
+        app.new_dividend.connect(informations.refresh_localized_data)
         return informations
 
     @asyncify
@@ -54,6 +67,10 @@ class InformationsController(QObject):
         if params:
             self.view.set_money_text(params, self.model.short_currency())
             self.view.set_wot_text(params)
+            self.refresh_localized_data()
+
+    def handle_identity_change(self, identity):
+        if identity.pubkey == self.model.connection.pubkey and identity.uid == self.model.connection.uid:
             self.refresh_localized_data()
 
     def refresh_localized_data(self):

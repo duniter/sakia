@@ -36,7 +36,7 @@ class TransferModel(QObject):
         amount = rel_value * dividend * pow(10, base)
         # amount is rounded to the nearest power of 10 depending of last ud base
         rounded = int(pow(10, base) * round(float(amount) / pow(10, base)))
-        return rounded
+        return rounded / 100
 
     def quant_to_rel(self, amount):
         """
@@ -45,7 +45,7 @@ class TransferModel(QObject):
         :rtype: float
         """
         dividend, base = self._blockchain_processor.last_ud(self.connection.currency)
-        relative = amount / (dividend * pow(10, base))
+        relative = amount * 100 / (dividend * pow(10, base))
         return relative
 
     def wallet_value(self):

@@ -105,7 +105,7 @@ class TransferView(QDialog, Ui_TransferMoneyDialog):
         :param int max_quant:
         :param float max_rel:
         """
-        self.spinbox_amount.setMaximum(max_quant)
+        self.spinbox_amount.setMaximum(max_quant/100)
         self.spinbox_relative.setMaximum(max_rel)
         self.spinbox_amount.setSingleStep(tick_quant)
 

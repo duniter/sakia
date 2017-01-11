@@ -192,13 +192,16 @@
            <bool>false</bool>
           </property>
           <property name="buttonSymbols">
-           <enum>QAbstractSpinBox::NoButtons</enum>
+           <enum>QAbstractSpinBox::UpDownArrows</enum>
           </property>
           <property name="showGroupSeparator" stdset="0">
            <bool>false</bool>
           </property>
           <property name="decimals">
-           <number>0</number>
+           <number>2</number>
+          </property>
+          <property name="singleStep">
+           <double>1.000000000000000</double>
           </property>
           <property name="value">
            <double>0.000000000000000</double>
