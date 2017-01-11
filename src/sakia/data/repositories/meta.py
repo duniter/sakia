@@ -28,14 +28,13 @@ class SakiaDatabase:
     sources_repo = attr.ib(default=None)
     dividends_repo = attr.ib(default=None)
     _logger = attr.ib(default=attr.Factory(lambda: logging.getLogger('sakia')))
-    db_file = 'sakia.db'
 
     @classmethod
-    def load_or_init(cls, config_path, profile_name):
+    def load_or_init(cls, options, profile_name):
         sqlite3.register_adapter(BlockUID, str)
         sqlite3.register_adapter(bool, int)
         sqlite3.register_converter("BOOLEAN", lambda v: bool(int(v)))
-        con = sqlite3.connect(os.path.join(config_path, profile_name, SakiaDatabase.db_file),
+        con = sqlite3.connect(os.path.join(options.config_path, profile_name, options.database + ".db"),
                               detect_types=sqlite3.PARSE_DECLTYPES)
         meta = SakiaDatabase(con, ConnectionsRepo(con), IdentitiesRepo(con),
                              BlockchainsRepo(con), CertificationsRepo(con), TransactionsRepo(con),

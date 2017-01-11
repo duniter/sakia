@@ -90,7 +90,7 @@ class Application(QObject):
         :return:
         """
         self.parameters = UserParametersFile.in_config_path(self.options.config_path, profile_name).load_or_init()
-        self.db = SakiaDatabase.load_or_init(self.options.config_path, profile_name)
+        self.db = SakiaDatabase.load_or_init(self.options, profile_name)
 
         self.instanciate_services()
 

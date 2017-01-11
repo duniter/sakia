@@ -27,6 +27,7 @@ def config_path_factory():
 @attr.s()
 class SakiaOptions:
     config_path = attr.ib(default=attr.Factory(config_path_factory))
+    database = attr.ib(default="sakia")
     _logger = attr.ib(default=attr.Factory(lambda: logging.getLogger('sakia')))
 
     @classmethod
@@ -50,7 +51,13 @@ class SakiaOptions:
                           action="store_true", dest="debug", default=False,
                           help="Print DEBUG messages to stdout")
 
+        parser.add_option("--database",  dest="database", default="sakia",
+                          help="Select another database filename")
+
         (options, args) = parser.parse_args(argv)
+
+        if options.database:
+            self.database = options.database
 
         if options.debug:
             self._logger.setLevel(logging.DEBUG)
