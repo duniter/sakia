@@ -1,8 +1,10 @@
 from PyQt5.QtCore import QObject
 from sakia.data.entities.transaction import parse_transaction_doc
-from duniterpy.documents import SimpleTransaction
+from duniterpy.documents import Transaction as TransactionDoc
 from sakia.data.entities import Dividend
+from duniterpy.api import bma
 import logging
+import sqlite3
 
 
 class TransactionsService(QObject):
@@ -40,7 +42,6 @@ class TransactionsService(QObject):
         """
         transfers_changed = []
         new_transfers = []
-        new_dividends = []
         for tx in [t for t in self._transactions_processor.awaiting(self.currency)]:
             if self._transactions_processor.run_state_transitions(tx, block_doc):
                 transfers_changed.append(tx)
@@ -50,16 +51,6 @@ class TransactionsService(QObject):
                             and SimpleTransaction.is_simple(t)]
         connections_pubkeys = [c.pubkey for c in self._connections_processor.connections_to(self.currency)]
         for pubkey in connections_pubkeys:
-            if block_doc.ud:
-                dividend = Dividend(currency=self.currency,
-                                    pubkey=pubkey,
-                                    block_number=block_doc.number,
-                                    timestamp=block_doc.mediantime,
-                                    amount=block_doc.ud,
-                                    base=block_doc.unit_base)
-                new_dividends.append(dividend)
-                self._dividends_processor.commit(dividend)
-
             for (i, tx_doc) in enumerate(new_transactions):
                 tx = parse_transaction_doc(tx_doc, pubkey, block_doc.blockUID.number,  block_doc.mediantime, txid+i)
                 if tx:
@@ -68,9 +59,9 @@ class TransactionsService(QObject):
                 else:
                     logging.debug("Error during transfer parsing")
 
-        return transfers_changed, new_transfers, new_dividends
+        return transfers_changed, new_transfers
 
-    def handle_new_blocks(self, blocks):
+    async def handle_new_blocks(self, blocks):
         """
         Refresh last transactions
 
@@ -79,15 +70,56 @@ class TransactionsService(QObject):
         self._logger.debug("Refresh transactions")
         transfers_changed = []
         new_transfers = []
-        new_dividends = []
         txid = 0
         for block in blocks:
-            changes, new_tx, new_ud = self._parse_block(block, txid)
+            changes, new_tx = self._parse_block(block, txid)
             txid += len(new_tx)
             transfers_changed += changes
             new_transfers += new_tx
-            new_dividends += new_ud
+        new_dividends = await self.parse_dividends_history(blocks, new_transfers)
         return transfers_changed, new_transfers, new_dividends
+
+    async def parse_dividends_history(self, blocks, transactions):
+        """
+        Request transactions from the network to initialize data for a given pubkey
+        :param List[duniterpy.documents.Block] blocks: the list of transactions found by tx parsing
+        :param List[sakia.data.entities.Transaction] transactions: the list of transactions found by tx parsing
+        """
+        connections_pubkeys = [c.pubkey for c in self._connections_processor.connections_to(self.currency)]
+        min_block_number = blocks[0].number
+        dividends = []
+        for pubkey in connections_pubkeys:
+            history_data = await self._bma_connector.get(self.currency, bma.ud.history,
+                                                         req_args={'pubkey': pubkey})
+            block_numbers = []
+            for ud_data in history_data["history"]["history"]:
+                dividend = Dividend(currency=self.currency,
+                                    pubkey=pubkey,
+                                    block_number=ud_data["block_number"],
+                                    timestamp=ud_data["time"],
+                                    amount=ud_data["amount"],
+                                    base=ud_data["base"])
+                if dividend.block_number > min_block_number:
+                    self._logger.debug("Dividend of block {0}".format(dividend.block_number))
+                    block_numbers.append(dividend.block_number)
+                    if self._dividends_processor.commit(dividend):
+                        dividends.append(dividend)
+
+            for tx in transactions:
+                txdoc = TransactionDoc.from_signed_raw(tx.raw)
+                for input in txdoc.inputs:
+                    if input.source == "D" and input.origin_id == pubkey and input.index not in block_numbers:
+                        block = next((b for b in blocks if b.number == input.index))
+                        dividend = Dividend(currency=self.currency,
+                                            pubkey=pubkey,
+                                            block_number=input.index,
+                                            timestamp=block.mediantime,
+                                            amount=block.ud,
+                                            base=block.unit_base)
+                        self._logger.debug("Dividend of block {0}".format(dividend.block_number))
+                        if self._dividends_processor.commit(dividend):
+                            dividends.append(dividend)
+        return dividends
 
     def transfers(self, pubkey):
         """

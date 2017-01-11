@@ -34,7 +34,6 @@ CREATE TABLE IF NOT EXISTS blockchains (
   median_time_blocks            INT,
   avg_gen_time                  INT,
   dt_diff_eval                  INT,
-  blocks_rot                    INT,
   percent_rot                   FLOAT(1, 6),
   current_buid            INT,
   current_members_count   INT,

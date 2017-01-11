@@ -3,9 +3,8 @@ import logging
 from ..entities import Dividend
 from .nodes import NodesProcessor
 from ..connectors import BmaConnector
-from duniterpy.api import bma, errors
+from duniterpy.api import bma
 from duniterpy.documents import Transaction
-import asyncio
 import sqlite3
 
 
@@ -31,8 +30,10 @@ class DividendsProcessor:
     def commit(self, dividend):
         try:
             self._repo.insert(dividend)
+            return True
         except sqlite3.IntegrityError:
             self._logger.debug("Dividend already in db")
+        return False
 
     async def initialize_dividends(self, identity, transactions, log_stream):
         """
