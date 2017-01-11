@@ -14,6 +14,7 @@ class NavigationView(QFrame, Ui_Navigation):
         super().__init__(parent)
         self.setupUi(self)
         self.tree_view.clicked.connect(self.handle_click)
+        self.tree_view.setItemsExpandable(False)
 
     def set_model(self, model):
         """

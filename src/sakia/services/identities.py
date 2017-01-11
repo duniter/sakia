@@ -235,7 +235,8 @@ class IdentitiesService(QObject):
             identity.uid = identity_data["uid"]
             identity.blockstamp = block_uid(identity_data["meta"]["timestamp"])
             identity.timestamp = await self._blockchain_processor.timestamp(self.currency, identity.blockstamp)
-            identity.member = identity_data["membershipExpiresIn"] > 0 and identity_data["outdistanced"] is False
+            identity.outdistanced = identity_data["outdistanced"]
+            identity.member = identity_data["membershipExpiresIn"] > 0 and not identity_data["outdistanced"]
             median_time = self._blockchain_processor.time(self.currency)
             expiration_time = self._blockchain_processor.parameters(self.currency).ms_validity
             identity.membership_timestamp = median_time - (expiration_time - identity_data["membershipExpiresIn"])
@@ -274,23 +275,6 @@ class IdentitiesService(QObject):
         await asyncio.gather(*refresh_futures)
         return need_refresh
 
-    async def requirements(self, currency, pubkey, uid):
-        """
-        Get the requirements for a given currency and pubkey
-        :param str currency:
-        :param str pubkey:
-        :param str uid:
-
-        :rtype: dict
-        """
-        try:
-            requirements_data = await self._bma_connector.get(currency, bma.wot.requirements, req_args={'search': pubkey})
-            for req in requirements_data['identities']:
-                if req['uid'] == uid:
-                    return req
-        except NoPeerAvailable as e:
-            self._logger.debug(str(e))
-
     async def lookup(self, text):
         """
         Lookup for a given text in the network and in local db
@@ -318,6 +302,9 @@ class IdentitiesService(QObject):
             return identity.membership_timestamp + validity
         else:
             return 0
+
+    def ms_time_remaining(self, identity):
+        return self.expiration_date(identity) - self._blockchain_processor.time(identity.currency)
 
     def certifications_received(self, pubkey):
         """

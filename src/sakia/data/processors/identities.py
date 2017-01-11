@@ -164,14 +164,15 @@ class IdentitiesProcessor:
                     if ms_block_data:
                         identity.membership_timestamp = ms_block_data['medianTime']
 
-                if memberships_data['memberships']:
-                    log_stream("Requesting identity requirements status")
+                log_stream("Requesting identity requirements status")
 
-                    requirements_data = await self._bma_connector.get(identity.currency, bma.wot.requirements,
-                                                                      req_args={'search': identity.pubkey})
-                    identity_data = next((data for data in requirements_data["identities"]
-                                          if data["pubkey"] == identity.pubkey))
-                    identity.member = identity_data['membershipExpiresIn'] > 0 and not identity_data['outdistanced']
+                requirements_data = await self._bma_connector.get(identity.currency, bma.wot.requirements,
+                                                                  req_args={'search': identity.pubkey})
+                identity_data = next((data for data in requirements_data["identities"]
+                                      if data["pubkey"] == identity.pubkey))
+                identity.member = identity_data['membershipExpiresIn'] > 0 and not identity_data['outdistanced']
+                identity.outdistanced = identity_data['outdistanced']
+                self.insert_or_update_identity(identity)
         except errors.DuniterError as e:
             if e.ucode == errors.NO_MEMBER_MATCHING_PUB_OR_UID:
                 pass

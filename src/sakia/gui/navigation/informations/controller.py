@@ -50,20 +50,19 @@ class InformationsController(QObject):
         self.view.set_rules_text_no_dividend()
         self.view.set_general_text_no_dividend()
         self.view.set_text_referentials(referentials)
-        params = await self.model.parameters()
+        params = self.model.parameters()
         if params:
             self.view.set_money_text(params, self.model.short_currency())
             self.view.set_wot_text(params)
             self.refresh_localized_data()
 
-    @asyncify
-    async def refresh_localized_data(self):
+    def refresh_localized_data(self):
         """
         Refresh localized data in view
         """
-        localized_data = await self.model.get_localized_data()
+        localized_data = self.model.get_localized_data()
         try:
-            simple_data = await self.model.get_identity_data()
+            simple_data = self.model.get_identity_data()
             all_data = {**simple_data, **localized_data}
             self.view.set_simple_informations(all_data, InformationsView.CommunityState.READY)
         except NoPeerAvailable as e:

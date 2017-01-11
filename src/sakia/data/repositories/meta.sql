@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS identities(
                                timestamp INT,
                                written_on INT,
                                revoked_on INT,
+                               outdistanced BOOLEAN,
                                member BOOLEAN,
                                ms_buid VARCHAR(100),
                                ms_timestamp INT,

@@ -47,8 +47,4 @@ class UserInformationModel(QObject):
         return len(certs)
 
     def mstime_remaining(self):
-        return self.identities_service.expiration_date(self.identity) \
-               - self._blockchain_processor.time(self.identity.currency)
-
-    def outdistanced(self):
-        return self.identity_is_outdistanced
+        return self.identities_service.ms_time_remaining(self.identity)

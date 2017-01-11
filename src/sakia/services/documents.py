@@ -154,12 +154,15 @@ class DocumentsService:
         responses = await self._bma_connector.broadcast(connection.currency, bma.wot.certify, req_args={'cert': signed_cert})
         result = (False, "")
         for r in responses:
-            if r.status == 200:
-                result = (True, (await r.json()))
-            elif not result[0]:
-                result = (False, (await r.text()))
+            if isinstance(r, BaseException) and not result[0]:
+                result = (False, (str(r)))
             else:
-                await r.release()
+                if r.status == 200:
+                    result = (True, (await r.json()))
+                elif not result[0]:
+                    result = (False, (await r.text()))
+                else:
+                    await r.release()
         return result
 
     async def revoke(self, currency, identity, salt, password):

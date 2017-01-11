@@ -33,6 +33,7 @@ class IdentitiesRepo:
                               timestamp=?,
                               written_on=?,
                               revoked_on=?,
+                              outdistanced=?,
                               member=?,
                               ms_buid=?,
                               ms_timestamp=?,

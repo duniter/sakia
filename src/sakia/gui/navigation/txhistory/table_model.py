@@ -319,11 +319,10 @@ class HistoryTableModel(QAbstractTableModel):
         if role == Qt.DisplayRole:
             if self.columns_types[section] == 'amount':
                 dividend, base = self.blockchain_processor.last_ud(self.transactions_service.currency)
-                return '{:}\n({:} {:})'.format(
-                    self.column_headers[section](),
-                    self.app.current_ref.base_str(base),
-                    self.app.current_ref.instance(0, self.connection.currency, self.app, None).diff_units
-                )
+                header = '{:}'.format(self.column_headers[section]())
+                if self.app.current_ref.base_str(base):
+                    header += "\n({:})".format(self.app.current_ref.base_str(base))
+                return header
 
             return self.column_headers[section]()
 

@@ -14,6 +14,7 @@ class Identity:
     timestamp = attr.ib(convert=int, default=0, cmp=False, hash=False)
     written_on = attr.ib(convert=int, default=0, cmp=False, hash=False)
     revoked_on = attr.ib(convert=int, default=0, cmp=False, hash=False)
+    outdistanced = attr.ib(convert=bool, default=True, cmp=False, hash=False)
     member = attr.ib(validator=attr.validators.instance_of(bool), default=False, cmp=False, hash=False)
     membership_buid = attr.ib(convert=block_uid, default=BlockUID.empty(), cmp=False, hash=False)
     membership_timestamp = attr.ib(convert=int, default=0, cmp=False, hash=False)
@@ -27,4 +28,4 @@ class Identity:
         :return: the document
         :rtype: duniterpy.documents.Identity
         """
-        return IdentityDoc(3, self.currency, self.pubkey, self.uid, self.blockstamp, self.signature)
+        return IdentityDoc(10, self.currency, self.pubkey, self.uid, self.blockstamp, self.signature)

@@ -66,6 +66,11 @@ class MainWindowController(QObject):
 
     @classmethod
     def startup(cls, app):
+        """
+
+        :param sakia.app.Application app:
+        :return:
+        """
         password_asker = PasswordAskerDialog(None)
         navigation = NavigationController.create(None, app)
         toolbar = ToolbarController.create(app, navigation)
@@ -74,13 +79,18 @@ class MainWindowController(QObject):
                                  navigation=navigation,
                                  toolbar=toolbar
                                  )
+        currencies = app.db.connections_repo.get_currencies()
+        if currencies:
+            currency = currencies[0]
+        else:
+            currency = ""
 
         #app.version_requested.connect(main_window.latest_version_requested)
         #app.account_imported.connect(main_window.import_account_accepted)
         #app.account_changed.connect(main_window.change_account)
 
         main_window.view.showMaximized()
-        main_window.refresh()
+        main_window.refresh(currency)
         return main_window
 
     @pyqtSlot(str)
@@ -107,7 +117,7 @@ class MainWindowController(QObject):
                 version_info=version_info,
                 version_url=version_url))
 
-    def refresh(self):
+    def refresh(self, currency):
         """
         Refresh main window
         When the selected account changes, all the widgets
@@ -115,7 +125,7 @@ class MainWindowController(QObject):
         """
         self.status_bar.refresh()
         self.toolbar.enable_actions(len(self.navigation.model.navigation[0]['children']) > 0)
-        self.view.setWindowTitle(self.tr("sakia {0}").format(__version__))
+        self.view.setWindowTitle(self.tr("sakia {0} - {currency}").format(__version__, currency=currency))
 
     def eventFilter(self, target, event):
         """

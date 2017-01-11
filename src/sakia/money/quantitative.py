@@ -97,7 +97,7 @@ class Quantitative(BaseReferential):
         else:
             localized_value = QLocale().toString(float(value), 'f', 2)
 
-        if units and show_base:
+        if show_base:
             prefix = Quantitative.base_str(base)
         else:
             prefix = ""
@@ -119,7 +119,7 @@ class Quantitative(BaseReferential):
         else:
             localized_value = QLocale().toString(float(value), 'f', 2)
 
-        if units and show_base:
+        if show_base:
             prefix = Quantitative.base_str(base)
         else:
             prefix = ""
