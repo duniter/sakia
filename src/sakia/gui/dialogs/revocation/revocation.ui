@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>250</height>
+    <width>452</width>
+    <height>358</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -103,14 +103,14 @@ QGroupBox::title {
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
-          <widget class="QRadioButton" name="radio_community">
+          <widget class="QRadioButton" name="radio_currency">
            <property name="text">
             <string>To a co&amp;mmunity</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="combo_community"/>
+          <widget class="QComboBox" name="combo_currency"/>
          </item>
         </layout>
        </item>
@@ -136,6 +136,13 @@ QGroupBox::title {
            </property>
            <property name="value">
             <number>8201</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="checkbox_secured">
+           <property name="text">
+            <string>SSL/TLS</string>
            </property>
           </widget>
          </item>

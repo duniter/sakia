@@ -9,11 +9,11 @@ from .informations.controller import InformationsController
 from .graphs.wot.controller import WotController
 from sakia.data.entities import Connection
 from PyQt5.QtCore import pyqtSignal, QObject, Qt
-from PyQt5.QtWidgets import QMenu, QAction, QMessageBox, QDialog
+from PyQt5.QtWidgets import QMenu, QAction, QMessageBox, QDialog, QFileDialog
 from PyQt5.QtGui import QCursor
 from sakia.decorators import asyncify
 from sakia.gui.password_asker import PasswordAskerDialog
-from sakia.gui.widgets.dialogs import QAsyncFileDialog, QAsyncMessageBox
+from sakia.gui.widgets.dialogs import QAsyncMessageBox
 from sakia.gui.widgets import toast
 
 
@@ -179,8 +179,8 @@ The process to join back the community later will have to be done again.""")
 
         raw_document = self.model.generate_revokation(connection, password)
         # Testable way of using a QFileDialog
-        selected_files = QAsyncFileDialog.get_save_filename(self, self.tr("Save a revokation document"),
-                                                            "", self.tr("All text files (*.txt)"))
+        selected_files = QFileDialog.getSaveFileName(self.view, self.tr("Save a revokation document"),
+                                                       "", self.tr("All text files (*.txt)"))
         if selected_files:
             path = selected_files[0]
             if not path.endswith('.txt'):
@@ -191,7 +191,6 @@ The process to join back the community later will have to be done again.""")
         dialog = QMessageBox(QMessageBox.Information, self.tr("Revokation file"),
                              self.tr("""<div>Your revokation document has been saved.</div>
 <div><b>Please keep it in a safe place.</b></div>
-The publication of this document will remove your identity from the network.</p>"""), QMessageBox.Ok,
-                             self)
+The publication of this document will remove your identity from the network.</p>"""), QMessageBox.Ok)
         dialog.setTextFormat(Qt.RichText)
         dialog.exec()

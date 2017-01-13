@@ -1,4 +1,4 @@
-import asyncio
+import jsonschema
 import attr
 import logging
 
@@ -90,6 +90,27 @@ class DocumentsService:
             identity = None
 
         return result, identity
+
+    async def broadcast_revocation(self, currency, identity_document, revocation_document):
+        signed_raw = revocation_document.signed_raw(identity_document)
+        self._logger.debug("Broadcasting : \n" + signed_raw)
+        responses = await self._bma_connector.broadcast(currency, bma.wot.revoke, req_args={
+                                                            'revocation': signed_raw
+                                                        })
+
+        result = False, ""
+        for r in responses:
+            if r.status == 200:
+                result = True, (await r.json())
+            elif not result[0]:
+                try:
+                    result = False, bma.api.parse_error(await r.text())["message"]
+                except jsonschema.ValidationError as e:
+                    result = False, str(e)
+            else:
+                await r.release()
+
+        return result
 
     async def send_membership(self, connection, password, mstype):
         """
@@ -214,9 +235,9 @@ class DocumentsService:
         :param sakia.data.entities.Connection connection: The connection of the identity
         :param str password: The account SigningKey password
         """
-        document = Revocation(2, connection.currency, connection.pubkey, "")
-        identity = self._identities_processor.get_written(connection.currency, connection.pubkey)
-        self_cert = identity[0].document()
+        document = Revocation(10, connection.currency, connection.pubkey, "")
+        identity = self._identities_processor.get_identity(connection.currency, connection.pubkey, connection.uid)
+        self_cert = identity.document()
 
         key = SigningKey(connection.salt, password, connection.scrypt_params)
 

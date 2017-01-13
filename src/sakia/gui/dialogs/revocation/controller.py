@@ -12,22 +12,29 @@ class RevocationController(QObject):
     The revocation view
     """
 
-    def __init__(self, parent, view, model):
+    def __init__(self, view, model):
         """
         Constructor of the revocation component
 
-        :param sakia.gui.revocation.view.revocationView: the view
-        :param sakia.gui.revocation.model.revocationModel model: the model
+        :param sakia.gui.dialogs.revocation.view.revocationView: the view
+        :param sakia.gui.dialogs.revocation.model.revocationModel model: the model
         """
-        super().__init__(parent)
+        super().__init__()
+        self.view = view
+        self.model = model
 
-        self.handle_next_step(init=True)
         self.view.button_next.clicked.connect(lambda checked: self.handle_next_step(False))
+        self.view.button_load.clicked.connect(self.load_from_file)
+        self.view.spinbox_port.valueChanged.connect(self.refresh_revocation_info)
+        self.view.edit_address.textChanged.connect(self.refresh_revocation_info)
+        self.view.radio_address.toggled.connect(self.refresh_revocation_info)
+        self.view.radio_currency.toggled.connect(self.refresh_revocation_info)
+
         self._steps = (
             {
                 'page': self.view.page_load_file,
-                'init': self.init_dialog,
-                'next': self.revocation_selected
+                'init': lambda: None,
+                'next': lambda: None
             },
             {
                 'page': self.view.page_destination,
@@ -38,40 +45,30 @@ class RevocationController(QObject):
         self._current_step = 0
 
     @classmethod
-    def create(cls, parent, app, account):
+    def create(cls, parent, app, connection):
         """
         Instanciate a revocation component
-        :param sakia.gui.component.controller.ComponentController parent:
-        :param sakia.core.Application app:
+        :param sakia.app.Application app:
         :return: a new revocation controller
         :rtype: revocationController
         """
         view = RevocationView(parent.view)
-        model = RevocationModel(None, app, account)
-        revocation = cls(parent, view, model)
-        model.setParent(revocation)
+        model = RevocationModel(app, connection)
+        revocation = cls(view, model)
         return revocation
 
     @classmethod
-    def open_dialog(cls, parent, app, account):
+    def open_dialog(cls, parent, app, connection):
         """
         Certify and identity
         :param sakia.gui.component.controller.ComponentController parent: the parent
-        :param sakia.core.Application app: the application
-        :param sakia.core.Account account: the account certifying the identity
+        :param sakia.app.Application app: the application
+        :param sakia.data.entities.Connection connection: the connection certifying the identity
         :return:
         """
-        dialog = cls.create(parent, app, account=account)
-        dialog.refresh()
+        dialog = cls.create(parent, app, connection=connection)
+        dialog.handle_next_step(init=True)
         return dialog.exec()
-
-    @property
-    def view(self) -> RevocationView:
-        return self._view
-
-    @property
-    def model(self) -> RevocationModel:
-        return self._model
 
     def handle_next_step(self, init=False):
         if self._current_step < len(self._steps) - 1:
@@ -86,18 +83,20 @@ class RevocationController(QObject):
         selected_file = self.view.select_revocation_file()
         try:
             self.model.load_revocation(selected_file)
+            self.view.show_revoked_selfcert(self.model.revoked_identity)
+            self.view.button_next.setEnabled(True)
         except FileNotFoundError:
             pass
         except MalformedDocumentError:
             self.view.malformed_file_error()
             self.button_next.setEnabled(False)
 
-    def revocation_selected(self):
-        pass
+    def refresh_revocation_info(self):
+        self.view.refresh_revocation_label(self.model.revoked_identity)
 
     def init_publication_page(self):
-        communities_names = self.model.communities_names()
-        self.view.set_communities_names(communities_names)
+        communities_names = self.model.currencies_names()
+        self.view.set_currencies_names(communities_names)
 
     def publish(self):
         self.view.button_next.setEnabled(False)
@@ -108,13 +107,14 @@ class RevocationController(QObject):
 
     @asyncify
     async def accept(self):
-        if self.view.radio_community.isChecked():
-            index = self.view.combo_community.currentIndex()
-            result, error = await self.model.send_to_community(index)
+        if self.view.radio_currency.isChecked():
+            index = self.view.combo_currency.currentIndex()
+            result, error = await self.model.broadcast_to_network(index)
         else:
             server = self.view.edit_address.text()
             port = self.view.spinbox_port.value()
-            result, error = await self.model.send_to_node(server, port)
+            secured = self.view.checkbox_secured.isChecked()
+            result, error = await self.model.send_to_node(server, port, secured)
 
         if result:
             self.view.accept()
@@ -123,10 +123,10 @@ class RevocationController(QObject):
 
     def async_exec(self):
         future = asyncio.Future()
-        self.widget.finished.connect(lambda r: future.set_result(r))
-        self.widget.open()
+        self.view.finished.connect(lambda r: future.set_result(r))
+        self.view.open()
         self.refresh()
         return future
 
     def exec(self):
-        self.widget.exec()
+        self.view.exec()

@@ -95,16 +95,6 @@ class IdentitiesProcessor:
                 self._logger.debug(str(e))
         return identities
 
-    def get_written(self, currency, pubkey):
-        """
-        Get identities from a given certification document
-        :param str currency: the currency in which to look for written identities
-        :param str pubkey: the pubkey of the identity
-
-        :rtype: sakia.data.entities.Identity
-        """
-        return self._identities_repo.get_all(currency=currency, pubkey=pubkey, ms_written_on=0)
-
     def get_identity(self, currency, pubkey, uid=""):
         """
         Return the identity corresponding to a given pubkey, uid and currency
@@ -115,20 +105,16 @@ class IdentitiesProcessor:
 
         :rtype: sakia.data.entities.Identity
         """
-        written = self.get_written(currency=currency, pubkey=pubkey)
-        if not written:
-            identities = self._identities_repo.get_all(currency=currency, pubkey=pubkey)
-            if identities:
-                recent = identities[0]
-                for i in identities:
-                    if i.blockstamp > recent.blockstamp:
-                        if uid and i.uid == uid:
-                            recent = i
-                        elif not uid:
-                            recent = i
-                return recent
-        else:
-            return written[0]
+        identities = self._identities_repo.get_all(currency=currency, pubkey=pubkey)
+        if identities:
+            recent = identities[0]
+            for i in identities:
+                if i.blockstamp > recent.blockstamp:
+                    if uid and i.uid == uid:
+                        recent = i
+                    elif not uid:
+                        recent = i
+            return recent
 
     def insert_or_update_identity(self, identity):
         """

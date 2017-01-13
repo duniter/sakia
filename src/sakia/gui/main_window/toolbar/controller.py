@@ -34,6 +34,7 @@ class ToolbarController(QObject):
         self.view.action_add_connection.triggered.connect(self.open_add_connection_dialog)
         self.view.action_parameters.triggered.connect(self.open_settings_dialog)
         self.view.action_about.triggered.connect(self.open_about_dialog)
+        self.view.action_revoke_uid.triggered.connect(self.open_revocation_dialog)
 
     @classmethod
     def create(cls, app, navigation):
@@ -81,7 +82,7 @@ class ToolbarController(QObject):
                                             self.model.navigation_model.current_connection())
 
     def open_revocation_dialog(self):
-        RevocationController.open_dialog(self.app, self.model.navigation_model.current_connection())
+        RevocationController.open_dialog(self, self.model.app, self.model.navigation_model.current_connection())
 
     def open_transfer_money_dialog(self):
         TransferController.open_dialog(self, self.model.app, self.model.navigation_model.current_connection())

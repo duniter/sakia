@@ -24,24 +24,19 @@ class RevocationView(QDialog, Ui_RevocationDialog):
         self.setupUi(self)
 
         self.button_next.setEnabled(False)
-        self.button_load.clicked.connect(self.load_from_file)
 
         self.radio_address.toggled.connect(lambda c: self.publication_mode_changed(RevocationView.PublicationMode.ADDRESS))
-        self.radio_community.toggled.connect(lambda c: self.publication_mode_changed(RevocationView.PublicationMode.COMMUNITY))
-        self.edit_address.textChanged.connect(self.refresh)
-        self.spinbox_port.valueChanged.connect(self.refresh)
-        self.combo_community.currentIndexChanged.connect(self.refresh)
+        self.radio_currency.toggled.connect(lambda c: self.publication_mode_changed(RevocationView.PublicationMode.COMMUNITY))
 
     def publication_mode_changed(self, radio):
         self.edit_address.setEnabled(radio == RevocationView.PublicationMode.ADDRESS)
         self.spinbox_port.setEnabled(radio == RevocationView.PublicationMode.ADDRESS)
-        self.combo_community.setEnabled(radio == RevocationView.PublicationMode.COMMUNITY)
-        self.refresh_revocation_label()
+        self.combo_currency.setEnabled(radio == RevocationView.PublicationMode.COMMUNITY)
 
     def refresh_target(self):
-        if self.radio_community.isChecked():
+        if self.radio_currency.isChecked():
             target = self.tr(
-                "All nodes of community {name}".format(name=self.combo_community.currentText()))
+                "All nodes of currency {name}".format(name=self.combo_currency.currentText()))
         elif self.radio_address.isChecked():
             target = self.tr("Address {address}:{port}".format(address=self.edit_address.text(),
                                                                port=self.spinbox_port.value()))
@@ -52,12 +47,40 @@ class RevocationView(QDialog, Ui_RevocationDialog):
 <div>{target}</div>
 """.format(target=target))
 
+    def refresh_revocation_label(self, revoked_identity):
+        if revoked_identity:
+            text = self.tr("""
+<div>Identity revoked : {uid} (public key : {pubkey}...)</div>
+<div>Identity signed on block : {timestamp}</div>
+    """.format(uid=revoked_identity.uid,
+               pubkey=revoked_identity.pubkey[:12],
+               timestamp=revoked_identity.timestamp))
+
+            self.label_revocation_content.setText(text)
+
+            if self.radio_currency.isChecked():
+                target = self.tr("All nodes of currency {name}".format(name=self.combo_currency.currentText()))
+            elif self.radio_address.isChecked():
+                target = self.tr("Address {address}:{port}".format(address=self.edit_address.text(),
+                                                                   port=self.spinbox_port.value()))
+            else:
+                target = ""
+            self.label_revocation_info.setText("""
+<h4>Revocation document</h4>
+<div>{text}</div>
+<h4>Publication address</h4>
+<div>{target}</div>
+""".format(text=text,
+           target=target))
+        else:
+            self.label_revocation_content.setText("")
+
     def select_revocation_file(self):
         """
         Get a revocation file using a file dialog
         :rtype: str
         """
-        selected_files = QFileDialog.getOpenFileName(self.widget,
+        selected_files = QFileDialog.getOpenFileName(self,
                                     self.tr("Load a revocation file"),
                                     "",
                                     self.tr("All text files (*.txt)"))
@@ -82,17 +105,17 @@ class RevocationView(QDialog, Ui_RevocationDialog):
                        timestamp=selfcert.timestamp))
         self.label_revocation_content.setText(text)
 
-    def set_communities_names(self, names):
-        self.combo_community.clear()
+    def set_currencies_names(self, names):
+        self.combo_currency.clear()
         for name in names:
-            self.combo_community.addItem(name)
-        self.radio_community.setChecked(True)
+            self.combo_currency.addItem(name)
+        self.radio_currency.setChecked(True)
 
     def ask_for_confirmation(self):
-        answer = QMessageBox.warning(self.widget, self.tr("Revocation"),
+        answer = QMessageBox.warning(self, self.tr("Revocation"),
                                      self.tr("""<h4>The publication of this document will remove your identity from the network.</h4>
         <li>
-            <li> <b>This identity won't be able to join the targeted community anymore.</b> </li>
+            <li> <b>This identity won't be able to join the targeted currency anymore.</b> </li>
             <li> <b>This identity won't be able to generate Universal Dividends anymore.</b> </li>
             <li> <b>This identity won't be able to certify individuals anymore.</b> </li>
         </li>
@@ -102,6 +125,6 @@ class RevocationView(QDialog, Ui_RevocationDialog):
 
     @asyncify
     async def accept(self):
-        await QAsyncMessageBox.information(self.widget, self.tr("Revocation broadcast"),
+        await QAsyncMessageBox.information(self, self.tr("Revocation broadcast"),
                                      self.tr("The document was successfully broadcasted."))
         super().accept()

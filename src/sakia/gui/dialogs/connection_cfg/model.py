@@ -1,6 +1,6 @@
 import aiohttp
 from PyQt5.QtCore import QObject
-from duniterpy.documents import BlockUID, BMAEndpoint
+from duniterpy.documents import BlockUID, BMAEndpoint, SecuredBMAEndpoint
 from duniterpy.api import bma, errors
 from duniterpy.key import SigningKey
 from sakia.data.entities import Connection, Identity, Node
@@ -169,7 +169,8 @@ Current database is storing {1} network.""".format(node_connector.node.currency,
         async def execute_requests(parser, search):
             tries = 0
             nonlocal registered
-            for endpoint in [e for e in self.node_connector.node.endpoints if isinstance(e, BMAEndpoint)]:
+            for endpoint in [e for e in self.node_connector.node.endpoints
+                             if isinstance(e, BMAEndpoint) or isinstance(e, SecuredBMAEndpoint)]:
                 if not registered[0] and not registered[2]:
                     try:
                         data = await self.node_connector.safe_request(endpoint, bma.wot.lookup,

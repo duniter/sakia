@@ -1,5 +1,11 @@
-from duniterpy.documents.certification import Revocation
+from duniterpy.documents import Revocation, BMAEndpoint, SecuredBMAEndpoint
 from duniterpy.api import bma, errors
+from sakia.data.connectors import NodeConnector
+from asyncio import TimeoutError
+from socket import gaierror
+import jsonschema
+from aiohttp.errors import ClientError, DisconnectedError
+from aiohttp.errors import ClientResponseError
 from PyQt5.QtCore import QObject
 import aiohttp
 
@@ -9,13 +15,13 @@ class RevocationModel(QObject):
     The model of HomeScreen component
     """
 
-    def __init__(self, parent, app, account):
-        super().__init__(parent)
+    def __init__(self, app, connection):
+        super().__init__()
         self.app = app
-        self.account = account
+        self.connection = connection
 
         self.revocation_document = None
-        self.revoked_selfcert = None
+        self.revoked_identity = None
 
     def load_revocation(self, path):
         """
@@ -25,42 +31,34 @@ class RevocationModel(QObject):
         with open(path, 'r') as file:
             file_content = file.read()
             self.revocation_document = Revocation.from_signed_raw(file_content)
-            self.revoked_selfcert = Revocation.extract_self_cert(file_content)
+            self.revoked_identity = Revocation.extract_self_cert(file_content)
 
-    def communities_names(self):
-        return [c.name for c in self.account.communities]
+    def currencies_names(self):
+        return [c for c in self.app.db.connections_repo.get_currencies()]
 
-    async def send_to_community(self, index):
-        community = self.account.communities[index]
-        responses = await community.bma_access.broadcast(bma.wot.Revoke, {},
-                                       {
-                                           'revocation': self.revocation_document.signed_raw(
-                                               self.revoked_selfcert)
-                                       })
+    async def broadcast_to_network(self, index):
+        currency = self.currencies_names()[index]
+        return await self.app.documents_service.broadcast_revocation(currency, self.revoked_identity,
+                                                               self.revocation_document)
 
-        result = False, ""
-        for r in responses:
-            if r.status == 200:
-                result = True, (await r.json())
-            elif not result[0]:
-                result = False, (await r.text())
-            else:
-                await r.release()
-
-        return result
-
-    async def send_to_node(self, server, port):
-        session = aiohttp.ClientSession()
-        try:
-            node = await Node.from_address(None, server, port, proxy=self.app.parameters.proxy(), session=session)
-            conn_handler = node.endpoint.conn_handler()
-            await bma.wot.Revoke(conn_handler).post(session,
-                                                    revocation=self.revocation_document.signed_raw(
-                                                        self.revoked_selfcert))
-        except (ValueError, errors.DuniterError,
-                aiohttp.errors.ClientError, aiohttp.errors.DisconnectedError,
-                aiohttp.errors.TimeoutError) as e:
-            return False, str(e)
-        finally:
-            session.close()
+    async def send_to_node(self, server, port, secured):
+        signed_raw = self.revocation_document.signed_raw(self.revoked_identity)
+        node_connector = await NodeConnector.from_address(None, secured, server, port, self.app.parameters)
+        for endpoint in [e for e in node_connector.node.endpoints
+                         if isinstance(e, BMAEndpoint) or isinstance(e, SecuredBMAEndpoint)]:
+            try:
+                self._logger.debug("Broadcasting : \n" + signed_raw)
+                conn_handler = endpoint.conn_handler(node_connector.session, proxy=self.app.parameters.proxy())
+                result = await bma.wot.revoke(conn_handler, signed_raw)
+                if result.status == 200:
+                    return True, ""
+                else:
+                    return False, bma.api.parse_error(await result.text())["message"]
+            except errors.DuniterError as e:
+                return False, e.message
+            except (jsonschema.ValidationError, ClientError, gaierror,
+                    TimeoutError, ConnectionRefusedError, DisconnectedError, ValueError) as e:
+                return False, str(e)
+            finally:
+                node_connector.session.close()
         return True, ""
