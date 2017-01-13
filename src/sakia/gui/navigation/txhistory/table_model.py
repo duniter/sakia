@@ -211,7 +211,7 @@ class HistoryTableModel(QAbstractTableModel):
         return self.transactions_service.dividends(self.connection.pubkey)
 
     def add_transfer(self, transfer):
-        self.beginInsertRows(QModelIndex(), 0, 0)
+        self.beginInsertRows(QModelIndex(), len(self.transfers_data), len(self.transfers_data))
         if transfer.issuer == self.connection.pubkey:
             self.transfers_data.append(self.data_sent(transfer))
         else:
