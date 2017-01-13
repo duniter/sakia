@@ -52,6 +52,8 @@ class InformationsController(QObject):
         app.identity_changed.connect(informations.handle_identity_change)
         app.new_transfer.connect(informations.refresh_localized_data)
         app.new_dividend.connect(informations.refresh_localized_data)
+        app.referential_changed.connect(informations.refresh_localized_data)
+        app.sources_refreshed.connect(informations.refresh_localized_data)
         return informations
 
     @asyncify

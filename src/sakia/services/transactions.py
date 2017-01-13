@@ -1,6 +1,7 @@
 from PyQt5.QtCore import QObject
 from sakia.data.entities.transaction import parse_transaction_doc
 from duniterpy.documents import Transaction as TransactionDoc
+from duniterpy.documents import SimpleTransaction
 from sakia.data.entities import Dividend
 from duniterpy.api import bma
 import logging

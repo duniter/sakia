@@ -47,6 +47,7 @@ class Application(QObject):
     identity_changed = pyqtSignal(Identity)
     new_connection = pyqtSignal(Connection)
     referential_changed = pyqtSignal()
+    sources_refreshed = pyqtSignal()
 
     qapp = attr.ib()
     loop = attr.ib()
@@ -125,16 +126,18 @@ class Application(QObject):
                                                                            identities_processor, connections_processor,
                                                                            bma_connector)
 
+            if currency not in self.sources_services:
+                self.sources_services[currency] = SourcesServices(currency, sources_processor,
+                                                                  connections_processor, bma_connector)
+
             if currency not in self.blockchain_services:
                 self.blockchain_services[currency] = BlockchainService(self, currency, blockchain_processor, bma_connector,
-                                                                   self.identities_services[currency],
-                                                                   self.transactions_services[currency])
-
+                                                                       self.identities_services[currency],
+                                                                       self.transactions_services[currency],
+                                                                       self.sources_services[currency])
             if currency not in self.network_services:
                 self.network_services[currency] = NetworkService.load(self, currency, nodes_processor,
                                                                   self.blockchain_services[currency])
-            if currency not in self.sources_services:
-                self.sources_services[currency] = SourcesServices(currency, sources_processor, bma_connector)
 
     def switch_language(self):
         logging.debug("Loading translations")

@@ -10,7 +10,8 @@ class BlockchainService(QObject):
     Blockchain service is managing new blocks received
     to update data locally
     """
-    def __init__(self, app, currency, blockchain_processor, bma_connector, identities_service, transactions_service):
+    def __init__(self, app, currency, blockchain_processor, bma_connector,
+                 identities_service, transactions_service, sources_service):
         """
         Constructor the identities service
 
@@ -20,6 +21,7 @@ class BlockchainService(QObject):
         :param sakia.data.connectors.BmaConnector bma_connector: The connector to BMA API
         :param sakia.services.IdentitiesService identities_service: The identities service
         :param sakia.services.TransactionsService transactions_service: The transactions service
+        :param sakia.services.SourcesService sources_service: The sources service
         """
         super().__init__()
         self.app = app
@@ -28,6 +30,7 @@ class BlockchainService(QObject):
         self.currency = currency
         self._identities_service = identities_service
         self._transactions_service = transactions_service
+        self._sources_service = sources_service
         self._logger = logging.getLogger('sakia')
 
     async def handle_blockchain_progress(self, network_blockstamp):
@@ -44,6 +47,7 @@ class BlockchainService(QObject):
             if len(blocks) > 0:
                 identities = await self._identities_service.handle_new_blocks(blocks)
                 changed_tx, new_tx, new_dividends = await self._transactions_service.handle_new_blocks(blocks)
+                await self._sources_service.refresh_sources()
                 self._blockchain_processor.handle_new_blocks(self.currency, blocks)
                 self.app.db.commit()
                 for tx in changed_tx:
@@ -54,6 +58,7 @@ class BlockchainService(QObject):
                     self.app.new_dividend.emit(ud)
                 for idty in identities:
                     self.app.identity_changed.emit(idty)
+                self.app.sources_refreshed.emit()
         except (NoPeerAvailable, DuniterError) as e:
             self._logger.debug(str(e))
 

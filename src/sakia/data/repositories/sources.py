@@ -69,3 +69,13 @@ class SourcesRepo:
                               WHERE
                               identifier=?""", where_fields)
 
+    def drop_all(self, **filter):
+        filters = []
+        values = []
+        for k, v in filter.items():
+            value = v
+            filters.append("{key} = ?".format(key=k))
+            values.append(value)
+
+        request = "DELETE FROM sources WHERE {filters}".format(filters=" AND ".join(filters))
+        self._conn.execute(request, tuple(values))
