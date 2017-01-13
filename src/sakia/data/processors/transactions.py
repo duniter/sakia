@@ -46,7 +46,7 @@ class TransactionsProcessor:
         """
         return self._repo.get_transfers(currency, pubkey)
 
-    def _try_transition(self, tx, transition_key, inputs):
+    def _try_transition(self, tx, transition_key, *inputs):
         """
         Try the transition defined by the given transition_key
         with inputs

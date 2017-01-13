@@ -44,10 +44,10 @@ class BlockchainService(QObject):
             with_money = await self._blockchain_processor.new_blocks_with_money(self.currency)
             blocks = await self._blockchain_processor.blocks(with_identities + with_money + [network_blockstamp.number],
                                                              self.currency)
+            await self._sources_service.refresh_sources()
             if len(blocks) > 0:
                 identities = await self._identities_service.handle_new_blocks(blocks)
                 changed_tx, new_tx, new_dividends = await self._transactions_service.handle_new_blocks(blocks)
-                await self._sources_service.refresh_sources()
                 self._blockchain_processor.handle_new_blocks(self.currency, blocks)
                 self.app.db.commit()
                 for tx in changed_tx:

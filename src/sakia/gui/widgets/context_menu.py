@@ -58,10 +58,6 @@ class ContextMenu(QObject):
         menu.qmenu.addAction(copy_pubkey)
 
         if identity.uid and menu._app.parameters.expert_mode:
-            copy_membership = QAction(menu.qmenu.tr("Copy membership document to clipboard"), menu.qmenu.parent())
-            copy_membership.triggered.connect(lambda checked, i=identity: menu.copy_membership_to_clipboard(i))
-            menu.qmenu.addAction(copy_membership)
-
             copy_selfcert = QAction(menu.qmenu.tr("Copy self-certification document to clipboard"), menu.qmenu.parent())
             copy_selfcert.triggered.connect(lambda checked, i=identity: menu.copy_selfcert_to_clipboard(i))
             menu.qmenu.addAction(copy_selfcert)
@@ -166,23 +162,6 @@ QMessageBox.Ok | QMessageBox.Cancel)
         blockchain_processor = BlockchainProcessor.instanciate(self._app)
         block_doc = await blockchain_processor.get_block(self._connection.currency, number)
         clipboard.setText(block_doc.signed_raw())
-
-    @asyncify
-    async def copy_membership_to_clipboard(self, identity):
-        """
-
-        :param sakia.core.registry.Identity identity:
-        :return:
-        """
-        clipboard = QApplication.clipboard()
-        membership = await identity.membership(self._community)
-        if membership:
-            block_number = membership['written']
-            block = await self._community.get_block(block_number)
-            block_doc = Block.from_signed_raw("{0}{1}\n".format(block['raw'], block['signature']))
-            for ms_doc in block_doc.joiners:
-                if ms_doc.issuer == identity.pubkey:
-                    clipboard.setText(ms_doc.signed_raw())
 
     @asyncify
     async def copy_selfcert_to_clipboard(self, identity):

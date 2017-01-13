@@ -3,8 +3,7 @@ import attr
 import logging
 
 from duniterpy.key import SigningKey
-from duniterpy import PROTOCOL_VERSION
-from duniterpy.documents import BlockUID, Block, Certification, Membership, Revocation, InputSource, \
+from duniterpy.documents import Certification, Membership, Revocation, InputSource, \
     OutputSource, SIGParameter, Unlock, block_uid
 from duniterpy.documents import Identity as IdentityDoc
 from duniterpy.documents import Transaction as TransactionDoc
@@ -202,7 +201,7 @@ class DocumentsService:
         :param str salt: The account SigningKey salt
         :param str password: The account SigningKey password
         """
-        revocation = Revocation(PROTOCOL_VERSION, currency, None)
+        revocation = Revocation(10, currency, None)
         self_cert = identity.document()
 
         key = SigningKey(salt, password)
