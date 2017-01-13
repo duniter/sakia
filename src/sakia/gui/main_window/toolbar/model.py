@@ -34,7 +34,7 @@ class ToolbarModel(QObject):
         version_url = ""
         if not latest[0]:
             version_info = "Latest release : {version}" \
-                            .format(version='.'.join(latest[1]))
+                            .format(version=latest[1])
             version_url = latest[2]
 
         new_version_text = """

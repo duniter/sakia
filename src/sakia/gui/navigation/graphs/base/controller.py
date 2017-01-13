@@ -62,12 +62,11 @@ class BaseGraphController(QObject):
         """
         raise NotImplementedError("refresh not implemented")
 
-    def node_context_menu(self, pubkey):
+    def node_context_menu(self, identity):
         """
         Open the node context menu
-        :param str pubkey: the pubkey of the node to open
+        :param sakia.data.entities.Identity identity: the identity of the node to open
         """
-        identity = self.model.get_identity(pubkey)
         menu = ContextMenu.from_data(self.view, self.model.app, self.model.connection, (identity,))
         menu.view_identity_in_wot.connect(self.draw_graph)
 

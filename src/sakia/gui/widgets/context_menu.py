@@ -134,7 +134,6 @@ class ContextMenu(QObject):
     @asyncify
     async def send_money(self, identity):
         await TransferController.send_money_to_identity(None, self._app, self._connection, identity)
-        self._app.refresh_transfers.emit()
 
     def view_wot(self, identity):
         self.view_identity_in_wot.emit(identity)

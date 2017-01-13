@@ -71,6 +71,7 @@ class TransferController(QObject):
     async def send_money_to_identity(cls, parent, app, connection, identity):
         dialog = cls.create(parent, app)
         dialog.view.combo_connections.setCurrentText(connection.title())
+        dialog.user_information.change_identity(identity)
         dialog.view.edit_pubkey.setText(identity.pubkey)
         dialog.view.radio_pubkey.setChecked(True)
 

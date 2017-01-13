@@ -66,5 +66,5 @@ class BaseNode(QGraphicsEllipseItem):
 
         :param event: scene context menu event
         """
-        self.scene().node_context_menu_requested.emit(self.id)
+        self.scene().node_context_menu_requested.emit(self.metadata['identity'])
 

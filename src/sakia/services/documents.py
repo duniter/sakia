@@ -1,13 +1,11 @@
 import asyncio
 import attr
 import logging
-import jsonschema
-from collections import Counter
 
 from duniterpy.key import SigningKey
 from duniterpy import PROTOCOL_VERSION
 from duniterpy.documents import BlockUID, Block, Certification, Membership, Revocation, InputSource, \
-    OutputSource, SIGParameter, Unlock
+    OutputSource, SIGParameter, Unlock, block_uid
 from duniterpy.documents import Identity as IdentityDoc
 from duniterpy.documents import Transaction as TransactionDoc
 from duniterpy.documents.transaction import reduce_base
@@ -142,6 +140,15 @@ class DocumentsService:
         """
         self._logger.debug("Certdata")
         blockUID = self._blockchain_processor.current_buid(connection.currency)
+        if not identity.signature:
+            lookup_data = await self._bma_connector.get(connection.currency, bma.wot.lookup,
+                                                     req_args={'search': identity.pubkey})
+            for uid_data in next(data["uids"] for data in lookup_data["results"] if data["pubkey"] == identity.pubkey):
+                if uid_data["uid"] == identity.uid and block_uid(uid_data["meta"]["timestamp"]) == identity.blockstamp:
+                    identity.signature = uid_data["self"]
+                    break
+            else:
+                return False, "Could not find certified identity signature"
 
         certification = Certification(10, connection.currency,
                                       connection.pubkey, identity.pubkey, blockUID, None)

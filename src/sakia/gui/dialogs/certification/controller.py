@@ -80,6 +80,7 @@ class CertificationController(QObject):
         """
         dialog = cls.create(parent, app)
         dialog.view.combo_pubkey.setCurrentText(connection.title())
+        dialog.user_information.change_identity(identity)
         dialog.refresh()
         return await dialog.async_exec()
 
@@ -125,7 +126,8 @@ class CertificationController(QObject):
             QApplication.restoreOverrideCursor()
             self.view.button_box.setEnabled(True)
 
-    def reject(self):
+    @asyncify
+    async def reject(self):
         self.view.reject()
 
     def refresh(self):

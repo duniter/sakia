@@ -1,7 +1,7 @@
 import attr
 import asyncio
 from duniterpy.api import bma, errors
-from duniterpy.documents import BlockUID
+from duniterpy.documents import block_uid
 from ..connectors import BmaConnector
 from ..processors import NodesProcessor
 from ..entities import Certification, Identity
