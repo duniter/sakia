@@ -107,21 +107,28 @@ class NavigationController(QObject):
         raw_data = self.view.tree_view.model().data(index, GenericTreeModel.ROLE_RAW_DATA)
         if raw_data and raw_data["component"] == "Informations":
             menu = QMenu(self.view)
-            action_gen_revokation = QAction(self.tr("Save revokation document"), menu)
-            menu.addAction(action_gen_revokation)
-            action_gen_revokation.triggered.connect(lambda c:
-                                                    self.action_save_revokation(raw_data['misc']['connection']))
+            if raw_data['misc']['connection'].uid:
+                action_gen_revokation = QAction(self.tr("Save revokation document"), menu)
+                menu.addAction(action_gen_revokation)
+                action_gen_revokation.triggered.connect(lambda c:
+                                                        self.action_save_revokation(raw_data['misc']['connection']))
 
-            action_publish_uid = QAction(self.tr("Publish UID"), menu)
-            menu.addAction(action_publish_uid)
-            action_publish_uid.triggered.connect(lambda c:
-                                                    self.publish_uid(raw_data['misc']['connection']))
-            action_publish_uid.setEnabled(self.model.identity_published(raw_data['misc']['connection']))
+                action_publish_uid = QAction(self.tr("Publish UID"), menu)
+                menu.addAction(action_publish_uid)
+                action_publish_uid.triggered.connect(lambda c:
+                                                        self.publish_uid(raw_data['misc']['connection']))
+                action_publish_uid.setEnabled(self.model.identity_published(raw_data['misc']['connection']))
 
-            action_leave = QAction(self.tr("Leave the currency"), menu)
-            menu.addAction(action_leave)
-            action_leave.triggered.connect(lambda c: self.send_leave(raw_data['misc']['connection']))
-            action_leave.setEnabled(self.model.identity_is_member(raw_data['misc']['connection']))
+                action_leave = QAction(self.tr("Leave the currency"), menu)
+                menu.addAction(action_leave)
+                action_leave.triggered.connect(lambda c: self.send_leave(raw_data['misc']['connection']))
+                action_leave.setEnabled(self.model.identity_is_member(raw_data['misc']['connection']))
+
+            copy_pubkey = QAction(menu.tr("Copy pubkey to clipboard"), menu.parent())
+            copy_pubkey.triggered.connect(lambda checked,
+                                                 c=raw_data['misc']['connection']: \
+                                              NavigationModel.copy_pubkey_to_clipboard(c))
+            menu.addAction(copy_pubkey)
 
             action_remove = QAction(self.tr("Remove the connection"), menu)
             menu.addAction(action_remove)

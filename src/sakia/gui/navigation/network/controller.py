@@ -33,7 +33,6 @@ class NetworkController(QObject):
         :param PyQt5.QObject parent:
         :param sakia.app.Application app:
         :param sakia.services.NetworkService network_service:
-        :param sakia.data.entities.Connection connection:
         :return:
         """
         view = NetworkView(parent.view,)

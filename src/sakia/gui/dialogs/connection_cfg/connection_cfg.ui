@@ -105,17 +105,17 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="button_guest">
+          <widget class="QPushButton" name="button_wallet">
            <property name="text">
-            <string>Connect as a guest</string>
+            <string>Connect a wallet</string>
            </property>
            <property name="icon">
             <iconset resource="../../../../../res/icons/icons.qrc">
-             <normaloff>:/icons/guest_icon</normaloff>:/icons/guest_icon</iconset>
+             <normaloff>:/icons/wallet_icon</normaloff>:/icons/wallet_icon</iconset>
            </property>
            <property name="iconSize">
             <size>
-             <width>32</width>
+             <width>50</width>
              <height>32</height>
             </size>
            </property>

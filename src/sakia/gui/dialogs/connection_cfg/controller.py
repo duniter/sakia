@@ -21,7 +21,7 @@ class ConnectionConfigController(QObject):
 
     CONNECT = 0
     REGISTER = 1
-    GUEST = 2
+    WALLET = 2
 
     def __init__(self, parent, view, model):
         """
@@ -40,8 +40,8 @@ class ConnectionConfigController(QObject):
             lambda: self.step_node.set_result(ConnectionConfigController.CONNECT))
         self.view.button_register.clicked.connect(
             lambda: self.step_node.set_result(ConnectionConfigController.REGISTER))
-        self.view.button_guest.clicked.connect(
-            lambda: self.step_node.set_result(ConnectionConfigController.GUEST))
+        self.view.button_wallet.clicked.connect(
+            lambda: self.step_node.set_result(ConnectionConfigController.WALLET))
         self.password_asker = None
         self.view.values_changed.connect(lambda: self.view.button_next.setEnabled(self.check_key()))
         self.view.values_changed.connect(lambda: self.view.button_generate.setEnabled(self.check_key()))
@@ -148,6 +148,12 @@ class ConnectionConfigController(QObject):
             self.view.button_next.clicked.connect(self.check_connect)
             self.view.stacked_pages.setCurrentWidget(self.view.page_connection)
             connection_identity = await self.step_key
+        elif mode == ConnectionConfigController.WALLET:
+            self._logger.debug("Wallet mode")
+            self.view.button_next.clicked.connect(self.check_wallet)
+            self.view.edit_uid.hide()
+            self.view.stacked_pages.setCurrentWidget(self.view.page_connection)
+            connection_identity = await self.step_key
 
         self.model.insert_or_update_connection()
         self.view.stacked_pages.setCurrentWidget(self.view.page_services)
@@ -177,10 +183,14 @@ class ConnectionConfigController(QObject):
                 await self.model.initialize_identity(connection_identity, log_stream=self.view.stream_log)
                 self.view.stream_log("Initializing certifications informations...")
                 await self.model.initialize_certifications(connection_identity, log_stream=self.view.stream_log)
+
+            if mode in (ConnectionConfigController.REGISTER,
+                        ConnectionConfigController.CONNECT,
+                        ConnectionConfigController.WALLET):
                 self.view.stream_log("Initializing transactions history...")
-                transactions = await self.model.initialize_transactions(connection_identity, log_stream=self.view.stream_log)
-                self.view.stream_log("Initializing transactions history...")
-                await self.model.initialize_dividends(connection_identity, transactions, log_stream=self.view.stream_log)
+                transactions = await self.model.initialize_transactions(self.model.connection, log_stream=self.view.stream_log)
+                self.view.stream_log("Initializing dividends history...")
+                await self.model.initialize_dividends(self.model.connection, transactions, log_stream=self.view.stream_log)
 
             self.view.progress_bar.setValue(3)
             await self.model.initialize_sources(self.view.stream_log)
@@ -197,6 +207,7 @@ class ConnectionConfigController(QObject):
             self.step_node.set_result(mode)
             self.step_key = asyncio.Future()
             self.view.button_next.disconnect()
+            self.view.edit_uid.show()
             asyncio.ensure_future(self.process())
             return
         self.accept()
@@ -234,6 +245,30 @@ class ConnectionConfigController(QObject):
 
         self.view.label_info.setText("")
         return True
+
+    @asyncify
+    async def check_wallet(self, checked=False):
+        self._logger.debug("Is valid ? ")
+        self.view.display_info(self.tr("connecting..."))
+        try:
+            salt = self.view.edit_salt.text()
+            password = self.view.edit_password.text()
+            self.model.set_scrypt_infos(salt, password, self.view.scrypt_params)
+            self.model.set_uid("")
+            if not self.model.key_exists():
+                registered, found_identity = await self.model.check_registered()
+                self.view.button_connect.setEnabled(True)
+                self.view.button_register.setEnabled(True)
+                if registered[0] is False and registered[2] is None:
+                    self.step_key.set_result(None)
+                elif registered[2]:
+                    self.view.display_info(self.tr("""Your pubkey is associated to a pubkey.
+    Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
+            else:
+                self.view.display_info(self.tr("A connection already exists using this key."))
+
+        except NoPeerAvailable:
+            self.config_dialog.label_error.setText(self.tr("Could not connect. Check node peering entry"))
 
     @asyncify
     async def check_connect(self, checked=False):

@@ -36,20 +36,20 @@ class DividendsProcessor:
             self._logger.debug("Dividend already in db")
         return False
 
-    async def initialize_dividends(self, identity, transactions, log_stream):
+    async def initialize_dividends(self, connection, transactions, log_stream):
         """
         Request transactions from the network to initialize data for a given pubkey
-        :param sakia.data.entities.Identity identity:
+        :param sakia.data.entities.Connection connection:
         :param List[sakia.data.entities.Transaction] transactions: the list of transactions found by tx processor
         :param function log_stream:
         """
-        history_data = await self._bma_connector.get(identity.currency, bma.ud.history,
-                                                     req_args={'pubkey': identity.pubkey}, verify=False)
+        history_data = await self._bma_connector.get(connection.currency, bma.ud.history,
+                                                     req_args={'pubkey': connection.pubkey}, verify=False)
         log_stream("Found {0} available dividends".format(len(history_data["history"]["history"])))
         block_numbers = []
         for ud_data in history_data["history"]["history"]:
-            dividend = Dividend(currency=identity.currency,
-                                pubkey=identity.pubkey,
+            dividend = Dividend(currency=connection.currency,
+                                pubkey=connection.pubkey,
                                 block_number=ud_data["block_number"],
                                 timestamp=ud_data["time"],
                                 amount=ud_data["amount"],

@@ -124,7 +124,9 @@ class TransactionsProcessor:
         responses = await self._bma_connector.broadcast(currency, bma.tx.process, req_args={'transaction': txdoc.signed_raw()})
         result = (False, "")
         for r in responses:
-            if r.status == 200:
+            if isinstance(r, BaseException):
+                result = (False, str(r))
+            elif r.status == 200:
                 result = (True, (await r.json()))
             elif not result[0]:
                 result = (False, (await r.text()))
@@ -133,14 +135,14 @@ class TransactionsProcessor:
         self.run_state_transitions(tx, [r.status for r in responses])
         return result, tx
 
-    async def initialize_transactions(self, identity, log_stream):
+    async def initialize_transactions(self, connection, log_stream):
         """
         Request transactions from the network to initialize data for a given pubkey
-        :param sakia.data.entities.Identity pubkey:
+        :param sakia.data.entities.Connection connection:
         :param function log_stream:
         """
-        history_data = await self._bma_connector.get(identity.currency, bma.tx.history,
-                                                     req_args={'pubkey': identity.pubkey}, verify=False)
+        history_data = await self._bma_connector.get(connection.currency, bma.tx.history,
+                                                     req_args={'pubkey': connection.pubkey}, verify=False)
         txid = 0
         nb_tx = len(history_data["history"]["sent"]) + len(history_data["history"]["received"])
         log_stream("Found {0} transactions".format(nb_tx))
@@ -149,8 +151,8 @@ class TransactionsProcessor:
             sent = TransactionDoc.from_bma_history(history_data["currency"], sent_data)
             log_stream("{0}/{1} transactions".format(txid, nb_tx))
             try:
-                tx = parse_transaction_doc(sent, identity.pubkey, sent_data["block_number"],
-                                                        sent_data["time"], txid)
+                tx = parse_transaction_doc(sent, connection.pubkey, sent_data["block_number"],
+                                           sent_data["time"], txid)
                 self._repo.insert(tx)
                 transactions.append(tx)
             except sqlite3.IntegrityError:

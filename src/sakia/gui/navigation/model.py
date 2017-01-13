@@ -1,6 +1,6 @@
-from PyQt5.QtCore import QObject
+from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtWidgets import QApplication
 from sakia.models.generic_tree import GenericTreeModel
-from PyQt5.QtCore import pyqtSignal
 from sakia.data.processors import ConnectionsProcessor
 
 
@@ -22,23 +22,40 @@ class NavigationModel(QObject):
         self._current_data = None
 
     def init_navigation_data(self):
-        self.navigation = [
-            {
-                'title': self.app.parameters.profile_name,
-                'component': "HomeScreen",
-                'parameters': self.app.parameters,
-                'dependencies': {},
-                'misc': {},
-                'children': []
-            }
-        ]
+        currencies = ConnectionsProcessor.instanciate(self.app).currencies()
+        if currencies:
+            self.navigation = [
+                {
+                    'title': self.tr('Network'),
+                    'icon': ':/icons/network_icon',
+                    'component': "Network",
+                    'dependencies': {
+                        'network_service': self.app.network_services[currencies[0]],
+                    },
+                    'misc': {
+                    },
+                    'children': []
+                }
+            ]
+        else:
+            self.navigation = [
+                {
+                    'title': self.tr("No connection configured"),
+                    'component': "HomeScreen",
+                    'parameters': self.app.parameters,
+                    'dependencies': {},
+                    'misc': {},
+                    'children': []
+                }
+            ]
+
         self._current_data = self.navigation[0]
         for connection in self.app.db.connections_repo.get_all():
             self.navigation[0]['children'].append(self.create_node(connection))
         return self.navigation
 
     def create_node(self, connection):
-        return {
+        node = {
             'title': connection.title(),
             'component': "Informations",
             'dependencies': {
@@ -65,46 +82,37 @@ class NavigationModel(QObject):
                     'misc': {
                         'connection': connection
                     }
-                },
-                {
-                    'title': self.tr('Network'),
-                    'icon': ':/icons/network_icon',
-                    'component': "Network",
-                    'dependencies': {
-                        'network_service': self.app.network_services[connection.currency],
-                    },
-                    'misc': {
-                        'connection': connection
-                    }
-                },
-                {
-                    'title': self.tr('Identities'),
-                    'icon': ':/icons/members_icon',
-                    'component': "Identities",
-                    'dependencies': {
-                        'connection': connection,
-                        'blockchain_service': self.app.blockchain_services[connection.currency],
-                        'identities_service': self.app.identities_services[connection.currency],
-                    },
-                    'misc': {
-                        'connection': connection
-                    }
-                },
-                {
-                    'title': self.tr('Web of Trust'),
-                    'icon': ':/icons/wot_icon',
-                    'component': "Wot",
-                    'dependencies': {
-                        'connection': connection,
-                        'blockchain_service': self.app.blockchain_services[connection.currency],
-                        'identities_service': self.app.identities_services[connection.currency],
-                    },
-                    'misc': {
-                        'connection': connection
-                    }
                 }
             ]
         }
+        if connection.uid:
+            node["children"] += [{
+                'title': self.tr('Identities'),
+                'icon': ':/icons/members_icon',
+                'component': "Identities",
+                'dependencies': {
+                    'connection': connection,
+                    'blockchain_service': self.app.blockchain_services[connection.currency],
+                    'identities_service': self.app.identities_services[connection.currency],
+                },
+                'misc': {
+                    'connection': connection
+                }
+            },
+            {
+                'title': self.tr('Web of Trust'),
+                'icon': ':/icons/wot_icon',
+                'component': "Wot",
+                'dependencies': {
+                    'connection': connection,
+                    'blockchain_service': self.app.blockchain_services[connection.currency],
+                    'identities_service': self.app.identities_services[connection.currency],
+                },
+                'misc': {
+                    'connection': connection
+                }
+            }]
+        return node
 
     def generic_tree(self):
         return GenericTreeModel.create("Navigation", self.navigation)
@@ -140,6 +148,10 @@ class NavigationModel(QObject):
     async def remove_connection(self, connection):
         await self.app.remove_connection(connection)
 
-
     async def send_leave(self, connection, password):
         return await self.app.documents_service.send_membership(connection, password, "OUT")
+
+    @staticmethod
+    def copy_pubkey_to_clipboard(connection):
+        clipboard = QApplication.clipboard()
+        clipboard.setText(connection.pubkey)

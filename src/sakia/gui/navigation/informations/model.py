@@ -119,31 +119,32 @@ class InformationsModel(QObject):
         mstime_remaining_text = self.tr("Expired or never published")
         outdistanced_text = self.tr("Outdistanced")
         is_member = False
+        nb_certs = 0
 
-        try:
-            identity = self.identities_service.get_identity(self.connection.pubkey, self.connection.uid)
-            mstime_remaining = self.identities_service.ms_time_remaining(identity)
-            is_member = identity.member
-            nb_certs = len(self.identities_service.certifications_received(identity.pubkey))
-            if not identity.outdistanced:
-                outdistanced_text = self.tr("In WoT range")
+        if self.connection.uid:
+            try:
+                identity = self.identities_service.get_identity(self.connection.pubkey, self.connection.uid)
+                mstime_remaining = self.identities_service.ms_time_remaining(identity)
+                is_member = identity.member
+                nb_certs = len(self.identities_service.certifications_received(identity.pubkey))
+                if not identity.outdistanced:
+                    outdistanced_text = self.tr("In WoT range")
 
-            if mstime_remaining > 0:
-                days, remainder = divmod(mstime_remaining, 3600 * 24)
-                hours, remainder = divmod(remainder, 3600)
-                minutes, seconds = divmod(remainder, 60)
-                mstime_remaining_text = self.tr("Expires in ")
-                if days > 0:
-                    mstime_remaining_text += "{days} days".format(days=days)
+                if mstime_remaining > 0:
+                    days, remainder = divmod(mstime_remaining, 3600 * 24)
+                    hours, remainder = divmod(remainder, 3600)
+                    minutes, seconds = divmod(remainder, 60)
+                    mstime_remaining_text = self.tr("Expires in ")
+                    if days > 0:
+                        mstime_remaining_text += "{days} days".format(days=days)
+                    else:
+                        mstime_remaining_text += "{hours} hours and {min} min.".format(hours=hours,
+                                                                                       min=minutes)
+            except errors.DuniterError as e:
+                if e.ucode == errors.NO_MEMBER_MATCHING_PUB_OR_UID:
+                    pass
                 else:
-                    mstime_remaining_text += "{hours} hours and {min} min.".format(hours=hours,
-                                                                                   min=minutes)
-        except errors.DuniterError as e:
-            if e.ucode == errors.NO_MEMBER_MATCHING_PUB_OR_UID:
-                nb_certs = 0
-            else:
-                self._logger.error(str(e))
-                nb_certs = 0
+                    self._logger.error(str(e))
 
         return {
             'amount': localized_amount,
