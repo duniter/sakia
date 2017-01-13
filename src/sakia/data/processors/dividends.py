@@ -64,14 +64,14 @@ class DividendsProcessor:
         for tx in transactions:
             txdoc = Transaction.from_signed_raw(tx.raw)
             for input in txdoc.inputs:
-                if input.source == "D" and input.origin_id == identity.pubkey and input.index not in block_numbers:
-                    block = await self._bma_connector.get(identity.currency,
+                if input.source == "D" and input.origin_id == connection.pubkey and input.index not in block_numbers:
+                    block = await self._bma_connector.get(connection.currency,
                                                           bma.blockchain.block, req_args={'number': input.index},
                                                           verify=False)
                     await asyncio.sleep(0.5)
 
-                    dividend = Dividend(currency=identity.currency,
-                                        pubkey=identity.pubkey,
+                    dividend = Dividend(currency=connection.currency,
+                                        pubkey=connection.pubkey,
                                         block_number=input.index,
                                         timestamp=block["medianTime"],
                                         amount=block["dividend"],

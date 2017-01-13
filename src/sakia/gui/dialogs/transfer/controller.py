@@ -168,6 +168,7 @@ class TransferController(QObject):
             self.view.accept()
         else:
             await self.view.show_error(self.model.notifications(), result[1])
+            self.model.app.new_transfer.emit(transaction)
 
             QApplication.restoreOverrideCursor()
             self.view.button_box.setEnabled(True)
