@@ -94,12 +94,9 @@ class Quantitative(BaseReferential):
         dividend, base = self._blockchain_processor.last_ud(self.currency)
         if show_base:
             localized_value = Quantitative.to_si(value, base)
-        else:
-            localized_value = QLocale().toString(float(value), 'f', 2)
-
-        if show_base:
             prefix = Quantitative.base_str(base)
         else:
+            localized_value = QLocale().toString(float(value), 'f', 2)
             prefix = ""
 
         if units or show_base:
@@ -116,12 +113,9 @@ class Quantitative(BaseReferential):
         dividend, base = self._blockchain_processor.last_ud(self.currency)
         if show_base:
             localized_value = Quantitative.to_si(value, base)
-        else:
-            localized_value = QLocale().toString(float(value), 'f', 2)
-
-        if show_base:
             prefix = Quantitative.base_str(base)
         else:
+            localized_value = QLocale().toString(float(value), 'f', 2)
             prefix = ""
 
         if units or show_base:

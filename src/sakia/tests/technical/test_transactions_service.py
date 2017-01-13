@@ -16,7 +16,7 @@ async def test_send_tx_then_validate(application_with_one_connection, fake_serve
     fake_server.forge.forge_block()
     fake_server.forge.forge_block()
     new_blocks = fake_server.forge.blocks[-3:]
-    application_with_one_connection.transactions_services[fake_server.forge.currency].handle_new_blocks(new_blocks)
+    await application_with_one_connection.transactions_services[fake_server.forge.currency].handle_new_blocks(new_blocks)
     tx_after_parse = application_with_one_connection.transactions_services[fake_server.forge.currency].transfers(bob.key.pubkey)
     assert tx_after_parse[-1].state is Transaction.VALIDATED
     await fake_server.close()
@@ -31,7 +31,7 @@ async def test_receive_tx(application_with_one_connection, fake_server, bob, ali
     fake_server.forge.forge_block()
     fake_server.forge.forge_block()
     new_blocks = fake_server.forge.blocks[-3:]
-    application_with_one_connection.transactions_services[fake_server.forge.currency].handle_new_blocks(new_blocks)
+    await application_with_one_connection.transactions_services[fake_server.forge.currency].handle_new_blocks(new_blocks)
     tx_after_parse = application_with_one_connection.transactions_services[fake_server.forge.currency].transfers(bob.key.pubkey)
     assert tx_after_parse[-1].state is Transaction.VALIDATED
     assert len(tx_before_send) + 1 == len(tx_after_parse)

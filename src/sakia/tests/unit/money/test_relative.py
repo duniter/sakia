@@ -34,22 +34,22 @@ def test_localized_no_si(application_with_one_connection, bob):
 def test_localized_with_si(application_with_one_connection, bob):
     application_with_one_connection.parameters.digits_after_comma = 6
     referential = Relative(1, bob.currency, application_with_one_connection, None)
-    value = referential.localized(units=True, international_system=True)
-    assert value == "4.291845 x10⁻³ UD TC"
+    value = referential.localized(units=True, show_base=True)
+    assert value == "0.004292 UD TC"
 
 
 def test_localized_no_units_no_si(application_with_one_connection, bob):
     application_with_one_connection.parameters.digits_after_comma = 6
     referential = Relative(11, bob.currency, application_with_one_connection, None)
-    value = referential.localized(units=False, international_system=False)
+    value = referential.localized(units=False, show_base=False)
     assert value == "0.047210"
 
 
 def test_localized_no_units_with_si(application_with_one_connection, bob):
     application_with_one_connection.parameters.digits_after_comma = 6
     referential = Relative(1, bob.currency, application_with_one_connection, None)
-    value = referential.localized(units=False, international_system=True)
-    assert value == "4.291845 x10⁻³ UD"
+    value = referential.localized(units=False, show_base=True)
+    assert value == "0.004292"
 
 
 def test_diff_localized_no_si(application_with_one_connection, bob):
@@ -62,19 +62,19 @@ def test_diff_localized_no_si(application_with_one_connection, bob):
 def test_diff_localized_with_si(application_with_one_connection, bob):
     application_with_one_connection.parameters.digits_after_comma = 6
     referential = Relative(1, bob.currency, application_with_one_connection, None)
-    value = referential.diff_localized(units=True, international_system=True)
+    value = referential.diff_localized(units=True, show_base=True)
     assert value, "9.090909 x10⁻ UD TC"
 
 
 def test_diff_localized_no_units_no_si(application_with_one_connection, bob):
     application_with_one_connection.parameters.digits_after_comma = 6
     referential = Relative(1, bob.currency, application_with_one_connection, None)
-    value = referential.diff_localized(units=False, international_system=False)
+    value = referential.diff_localized(units=False, show_base=False)
     assert value == "0.004292"
 
 
 def test_diff_localized_no_units_with_si(application_with_one_connection, bob):
     application_with_one_connection.parameters.digits_after_comma = 6
     referential = Relative(1, bob.currency, application_with_one_connection, None)
-    value = referential.diff_localized(units=False, international_system=True)
-    assert value == "4.291845 x10⁻³ UD"
+    value = referential.diff_localized(units=False, show_base=True)
+    assert value == "0.004292"

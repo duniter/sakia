@@ -89,7 +89,7 @@ def _filter_blockchain_data(request, data):
     :return:
     """
     include_only = {
-        bma.wot.lookup: "",
+        bma.wot.lookup: "/nomatch",
         bma.tx.history: "/history/[send|received]"
     }
     if request in include_only:
@@ -122,7 +122,7 @@ class BmaConnector:
         nb_verification = min(max(1, 0.66*len(synced_nodes)), 10)
         try:
             # On chercher des reponses jusqu'a obtenir un nombre de noeuds d'accords de 1 à 66% des noeuds, max 10
-            while max([len(ans) for ans in answers.values()] + [0]) <= nb_verification:
+            while max([len(nodes) for nodes in answers.values()] + [0]) <= nb_verification:
                 node = next(nodes_generator)
                 endpoints = filter_endpoints(request, [node])
                 tries = 0
