@@ -202,3 +202,5 @@ Current database is storing {1} network.""".format(node_connector.node.currency,
 
         return registered, found_identity
 
+    def key_exists(self):
+        return self.connection.pubkey in ConnectionsProcessor.instanciate(self.app).pubkeys()

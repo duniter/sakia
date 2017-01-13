@@ -1,11 +1,10 @@
 import asyncio
 import logging
 import time
-import aiohttp
 from collections import Counter
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
-
+from duniterpy.api import errors
 from duniterpy.key import VerifyingKey
 from sakia.data.connectors import NodeConnector
 from sakia.data.entities import Node
@@ -213,12 +212,15 @@ class NetworkService(QObject):
                     except InvalidNodeCurrency as e:
                         self._logger.debug(str(e))
                 if node:
-                    identity = await self._identities_service.find_from_pubkey(node.pubkey)
-                    identity = await self._identities_service.load_requirements(identity)
-                    node.member = identity.member
-                    node.uid = identity.uid
-                    self._processor.update_node(node)
-                    self.nodes_changed.emit()
+                    try:
+                        identity = await self._identities_service.find_from_pubkey(node.pubkey)
+                        identity = await self._identities_service.load_requirements(identity)
+                        node.member = identity.member
+                        node.uid = identity.uid
+                        self._processor.update_node(node)
+                        self.nodes_changed.emit()
+                    except errors.DuniterError as e:
+                        self._logger.error(e.message)
 
                 self._app.db.commit()
             except IndexError:

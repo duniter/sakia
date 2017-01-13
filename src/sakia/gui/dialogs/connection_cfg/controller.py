@@ -244,16 +244,20 @@ class ConnectionConfigController(QObject):
             password = self.view.edit_password.text()
             self.model.set_scrypt_infos(salt, password, self.view.scrypt_params)
             self.model.set_uid(self.view.edit_uid.text())
-            registered, found_identity = await self.model.check_registered()
-            self.view.button_connect.setEnabled(True)
-            self.view.button_register.setEnabled(True)
-            if registered[0] is False and registered[2] is None:
-                self.view.display_info(self.tr("Could not find your identity on the network."))
-            elif registered[0] is False and registered[2]:
-                self.view.display_info(self.tr("""Your pubkey or UID is different on the network.
-Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
+            if not self.model.key_exists():
+                registered, found_identity = await self.model.check_registered()
+                self.view.button_connect.setEnabled(True)
+                self.view.button_register.setEnabled(True)
+                if registered[0] is False and registered[2] is None:
+                    self.view.display_info(self.tr("Could not find your identity on the network."))
+                elif registered[0] is False and registered[2]:
+                    self.view.display_info(self.tr("""Your pubkey or UID is different on the network.
+    Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
+                else:
+                    self.step_key.set_result(found_identity)
             else:
-                self.step_key.set_result(found_identity)
+                self.view.display_info(self.tr("A connection already exists using this key."))
+
         except NoPeerAvailable:
             self.config_dialog.label_error.setText(self.tr("Could not connect. Check node peering entry"))
 
@@ -266,14 +270,17 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
             password = self.view.edit_password.text()
             self.model.set_scrypt_infos(salt, password, self.view.scrypt_params)
             self.model.set_uid(self.view.edit_uid.text())
-            registered, found_identity = await self.model.check_registered()
-            if registered[0] is False and registered[2] is None:
-                self.step_key.set_result(None)
-            elif registered[0] is False and registered[2]:
-                self.view.display_info(self.tr("""Your pubkey or UID was already found on the network.
-Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
+            if not self.model.key_exists():
+                registered, found_identity = await self.model.check_registered()
+                if registered[0] is False and registered[2] is None:
+                    self.step_key.set_result(None)
+                elif registered[0] is False and registered[2]:
+                    self.view.display_info(self.tr("""Your pubkey or UID was already found on the network.
+    Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
+                else:
+                    self.view.display_info("Your account already exists on the network")
             else:
-                self.view.display_info("Your account already exists on the network")
+                self.view.display_info(self.tr("A connection already exists using this key."))
         except NoPeerAvailable:
             self.view.display_info(self.tr("Could not connect. Check node peering entry"))
 

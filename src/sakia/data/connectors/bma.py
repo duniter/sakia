@@ -90,6 +90,12 @@ def _filter_data(request, data):
         filtered["history"].pop("sending")
         filtered["history"].pop("receiving")
         filtered["history"].pop("pending")
+    elif request is bma.wot.requirements:
+        filtered = copy.deepcopy(data)
+        for idty in filtered["identities"]:
+            for c in idty["certifications"]:
+                c.pop("expiresIn")
+
     return filtered
 
 
