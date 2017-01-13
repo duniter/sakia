@@ -140,7 +140,7 @@ class TransactionsProcessor:
         :param function log_stream:
         """
         history_data = await self._bma_connector.get(identity.currency, bma.tx.history,
-                                                     req_args={'pubkey': identity.pubkey})
+                                                     req_args={'pubkey': identity.pubkey}, verify=False)
         txid = 0
         nb_tx = len(history_data["history"]["sent"]) + len(history_data["history"]["received"])
         log_stream("Found {0} transactions".format(nb_tx))

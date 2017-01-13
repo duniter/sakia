@@ -102,6 +102,7 @@ CREATE TABLE IF NOT EXISTS nodes(
                                merkle_peers_root    VARCHAR(50),
                                merkle_peers_leaves  TEXT,
                                root                 BOOLEAN,
+                               member               BOOLEAN,
                                PRIMARY KEY (currency, pubkey)
                                );
 

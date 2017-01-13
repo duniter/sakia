@@ -153,7 +153,6 @@ class NetworkTableModel(QAbstractTableModel):
         :param ..core.net.node.Node node: Network node
         :return:
         """
-        is_member = False
 
         addresses = []
         ports = []
@@ -169,13 +168,12 @@ class NetworkTableModel(QAbstractTableModel):
         address = "\n".join(addresses)
         port = "\n".join(ports)
 
-        is_root = node.root
         if node.current_buid:
             number, block_hash, block_time = node.current_buid.number, node.current_buid.sha_hash, node.current_ts
         else:
             number, block_hash, block_time = "", "", ""
         return (address, port, number, block_hash, block_time, node.uid,
-                is_member, node.pubkey, node.software, node.version, node.root, node.state)
+                node.member, node.pubkey, node.software, node.version, node.root, node.state)
 
     def refresh_nodes(self):
         self.beginResetModel()

@@ -23,6 +23,12 @@ class NodesProcessor:
         """
         return self._repo.get_all(currency=currency, state=Node.ONLINE)
 
+    def synced_members_nodes(self, currency):
+        """
+        Get nodes which are in the ONLINE state.
+        """
+        return self._repo.get_all(currency=currency, state=Node.ONLINE, member=True)
+
     def online_nodes(self, currency):
         """
         Get nodes which are in the ONLINE state.
@@ -113,8 +119,9 @@ class NodesProcessor:
         :return:
         """
         node = self._repo.get_one(pubkey=peer.pubkey, currency=currency)
-        if node.peer_blockstamp < peer.blockUID:
+        if node and node.peer_blockstamp < peer.blockUID:
             logging.debug("Update node : {0}".format(peer.pubkey[:5]))
             node.endpoints = tuple(peer.endpoints)
             node.peer_blockstamp = peer.blockUID
             self._repo.update(node)
+        return node

@@ -76,4 +76,6 @@ class Node:
     merkle_peers_leaves = attr.ib(convert=_tuple_of_hashes, cmp=False, default=tuple())
     # Define if this node is a root node in Sakia
     root = attr.ib(convert=bool, cmp=False, default=False)
+    # If this node is a member or not
+    member = attr.ib(convert=bool, cmp=False, default=False)
 

@@ -1,7 +1,7 @@
 import logging
 import aiohttp
 from aiohttp.errors import ClientError, ServerDisconnectedError
-from duniterpy.api import bma
+from duniterpy.api import bma, errors
 from duniterpy.documents import BMAEndpoint, SecuredBMAEndpoint
 from sakia.errors import NoPeerAvailable
 from pkg_resources import parse_version
@@ -10,27 +10,7 @@ import asyncio
 import random
 import jsonschema
 import attr
-import dpath
 import copy
-
-
-def make_hash(o):
-    """
-    Makes a hash from a dictionary, list, tuple or set to any level, that contains
-    only other hashable types (including any lists, tuples, sets, and
-    dictionaries).
-    """
-
-    if isinstance(o, (set, tuple, list)):
-        return tuple([make_hash(e) for e in o])
-    elif not isinstance(o, dict):
-        return hash(o)
-
-    new_o = copy.deepcopy(o)
-    for k, v in new_o.items():
-        new_o[k] = make_hash(v)
-
-    return hash(tuple(frozenset(sorted(new_o.items()))))
 
 
 def filter_endpoints(request, nodes):
@@ -53,6 +33,25 @@ def filter_endpoints(request, nodes):
     for n in nodes:
         endpoints += [e for e in n.endpoints if type(e) in (BMAEndpoint, SecuredBMAEndpoint)]
     return endpoints
+
+
+def make_hash(o):
+    """
+    Makes a hash from a dictionary, list, tuple or set to any level, that contains
+    only other hashable types (including any lists, tuples, sets, and
+    dictionaries).
+    """
+
+    if isinstance(o, (set, tuple, list)):
+        return tuple([make_hash(e) for e in o])
+    elif not isinstance(o, dict):
+        return hash(o)
+
+    new_o = copy.deepcopy(o)
+    for k, v in new_o.items():
+        new_o[k] = make_hash(v)
+
+    return hash(tuple(frozenset(sorted(new_o.items()))))
 
 
 def _compare_json(first, second):
@@ -81,20 +80,18 @@ def _compare_json(first, second):
     return ordered(first) == ordered(second)
 
 
-def _filter_blockchain_data(request, data):
-    """
+def _filter_data(request, data):
+    filtered = data
+    if request is bma.wot.lookup:
+        filtered = copy.deepcopy(data)
+        filtered.pop("results")
+    elif request is bma.tx.history:
+        filtered = copy.deepcopy(data)
+        filtered["history"].pop("sending")
+        filtered["history"].pop("receiving")
+        filtered["history"].pop("pending")
+    return filtered
 
-    :param request:
-    :param dict data:
-    :return:
-    """
-    include_only = {
-        bma.wot.lookup: "/nomatch",
-        bma.tx.history: "/history/[send|received]"
-    }
-    if request in include_only:
-        data = dpath.util.search(data, include_only[request])
-    return data
 
 @attr.s()
 class BmaConnector:
@@ -105,58 +102,93 @@ class BmaConnector:
     _user_parameters = attr.ib()
     _logger = attr.ib(default=attr.Factory(lambda: logging.getLogger('sakia')))
 
+    async def verified_get(self, currency, request, req_args):
+        synced_nodes = self._nodes_processor.synced_members_nodes(currency)
+        if not synced_nodes:
+            # If no node is known as a member, lookup synced nodes as a fallback
+            synced_nodes = self._nodes_processor.synced_nodes(currency)
+        nodes_generator = (n for n in synced_nodes)
+        answers = {}
+        answers_data = {}
+        nb_verification = min(max(1, 0.66 * len(synced_nodes)), 10)
+        # We try to find agreeing nodes from one 1 to 66% of nodes, max 10
+        session = aiohttp.ClientSession()
+        try:
+            while max([len(nodes) for nodes in answers.values()] + [0]) <= nb_verification:
+                futures = []
+
+                try:
+                    for i in range(0, int(nb_verification)+1):
+                        node = next(nodes_generator)
+                        endpoints = filter_endpoints(request, [node])
+                        endpoint = random.choice(endpoints)
+                        self._logger.debug(
+                            "Requesting {0} on endpoint {1}".format(str(request.__name__), str(endpoint)))
+                        futures.append(request(
+                            endpoint.conn_handler(session, proxy=self._user_parameters.proxy()),
+                            **req_args))
+                except StopIteration:
+                    # When no more node is available, we go out of the while loop
+                    break
+                finally:
+                    # Everytime we go out of the while loop, we gather the futures
+                    if futures:
+                        responses = await asyncio.gather(*futures, return_exceptions=True)
+                        for r in responses:
+                            if isinstance(r, errors.DuniterError):
+                                data_hash = hash(r)
+                            elif isinstance(r, BaseException):
+                                self._logger.debug("Exception in responses : " + str(r))
+                                continue
+                            else:
+                                filtered_data = _filter_data(request, r)
+                                data_hash = make_hash(filtered_data)
+                            answers_data[data_hash] = r
+                            if data_hash not in answers:
+                                answers[data_hash] = [node]
+                            else:
+                                answers[data_hash].append(node)
+        finally:
+            session.close()
+
+        for dict_hash in answers:
+            if len(answers[dict_hash]) >= nb_verification:
+                if isinstance(answers_data[dict_hash], errors.DuniterError):
+                    raise answers_data[dict_hash]
+                else:
+                    return answers_data[dict_hash]
+
+        raise NoPeerAvailable("", len(synced_nodes))
+
+    async def simple_get(self, currency, request, req_args):
+        endpoints = filter_endpoints(request, self._nodes_processor.synced_nodes(currency))
+        tries = 0
+        while tries < 3 and endpoints:
+            endpoint = random.choice(endpoints)
+            endpoints.remove(endpoint)
+            try:
+                self._logger.debug("Requesting {0} on endpoint {1}".format(str(request.__name__), str(endpoint)))
+                async with aiohttp.ClientSession() as session:
+                    json_data = await request(endpoint.conn_handler(session), **req_args)
+                    return json_data
+            except (ClientError, ServerDisconnectedError, gaierror,
+                    asyncio.TimeoutError, ValueError, jsonschema.ValidationError) as e:
+                self._logger.debug(str(e))
+                tries += 1
+        raise NoPeerAvailable("", len(endpoints))
+
     async def get(self, currency, request, req_args={}, verify=True):
         """
-        Start a request to the network but don't cache its result.
-
         :param str currency: the currency requested
         :param class request: A bma request class calling for data
         :param dict req_args: Arguments to pass to the request constructor
         :param bool verify: Verify returned value against multiple nodes
         :return: The returned data
         """
-        synced_nodes = self._nodes_processor.synced_nodes(currency)
-        nodes_generator = (n for n in synced_nodes)
-        answers = {}
-        answers_data = {}
-        nb_verification = min(max(1, 0.66*len(synced_nodes)), 10)
-        try:
-            # On chercher des reponses jusqu'a obtenir un nombre de noeuds d'accords de 1 à 66% des noeuds, max 10
-            while max([len(nodes) for nodes in answers.values()] + [0]) <= nb_verification:
-                node = next(nodes_generator)
-                endpoints = filter_endpoints(request, [node])
-                tries = 0
-                while tries < 3 and endpoints:
-                    endpoint = random.choice(endpoints)
-                    endpoints.remove(endpoint)
-                    try:
-                        self._logger.debug("Requesting {0} on endpoint {1}".format(str(request.__name__), str(endpoint)))
-                        async with aiohttp.ClientSession() as session:
-                            json_data = await request(endpoint.conn_handler(session, proxy=self._user_parameters.proxy()),
-                                                      **req_args)
-                            if verify:
-                                filtered_data = _filter_blockchain_data(request, json_data)
-                                data_hash = make_hash(filtered_data)
-                                answers_data[data_hash] = json_data
-                                if data_hash not in answers:
-                                    answers[data_hash] = [node]
-                                else:
-                                    answers[data_hash].append(node)
-                                break
-                            else:
-                                return json_data
-                    except (ClientError, ServerDisconnectedError, gaierror,
-                            asyncio.TimeoutError, ValueError, jsonschema.ValidationError) as e:
-                        self._logger.debug(str(e))
-                        tries += 1
-        except StopIteration:
-            pass
-
-        for dict_hash in answers:
-            if len(answers[dict_hash]) >= nb_verification:
-                return answers_data[dict_hash]
-
-        raise NoPeerAvailable("", len(endpoints))
+        if verify:
+            return await self.verified_get(currency, request, req_args)
+        else:
+            return await self.simple_get(currency, request, req_args)
 
     async def broadcast(self, currency, request, req_args={}):
         """

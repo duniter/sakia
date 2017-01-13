@@ -135,7 +135,7 @@ class IdentitiesProcessor:
         log_stream("Requesting membership data")
         try:
             memberships_data = await self._bma_connector.get(identity.currency, bma.blockchain.memberships,
-                                                             req_args={'search': identity.pubkey})
+                                                             req_args={'search': identity.pubkey}, verify=False)
             if block_uid(memberships_data['sigDate']) == identity.blockstamp \
                and memberships_data['uid'] == identity.uid:
                 for ms in memberships_data['memberships']:
@@ -146,14 +146,15 @@ class IdentitiesProcessor:
                 if identity.membership_buid:
                     log_stream("Requesting membership timestamp")
                     ms_block_data = await self._bma_connector.get(identity.currency, bma.blockchain.block,
-                                                                  req_args={'number': identity.membership_buid.number})
+                                                                  req_args={'number': identity.membership_buid.number},
+                                                                  verify=False)
                     if ms_block_data:
                         identity.membership_timestamp = ms_block_data['medianTime']
 
                 log_stream("Requesting identity requirements status")
 
                 requirements_data = await self._bma_connector.get(identity.currency, bma.wot.requirements,
-                                                                  req_args={'search': identity.pubkey})
+                                                                  req_args={'search': identity.pubkey}, verify=False)
                 identity_data = next((data for data in requirements_data["identities"]
                                       if data["pubkey"] == identity.pubkey))
                 identity.member = identity_data['membershipExpiresIn'] > 0 and not identity_data['outdistanced']

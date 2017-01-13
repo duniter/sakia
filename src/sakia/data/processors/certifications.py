@@ -94,7 +94,7 @@ class CertificationsProcessor:
         certifiers = list()
         try:
             data = await self._bma_connector.get(identity.currency, bma.wot.certifiers_of,
-                                                 req_args={'search': identity.pubkey})
+                                                 req_args={'search': identity.pubkey}, verify=False)
 
             for certifier_data in data['certifications']:
                 certification = Certification(currency=identity.currency,
@@ -122,7 +122,8 @@ class CertificationsProcessor:
         log_stream("Requesting certified by data")
         certified = list()
         try:
-            data = await self._bma_connector.get(identity.currency, bma.wot.certified_by, req_args={'search': identity.pubkey})
+            data = await self._bma_connector.get(identity.currency, bma.wot.certified_by,
+                                                 req_args={'search': identity.pubkey}, verify=False)
             for certified_data in data['certifications']:
                 certification = Certification(currency=identity.currency,
                                               certifier=identity.pubkey,

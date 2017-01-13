@@ -137,7 +137,8 @@ class Application(QObject):
                                                                        self.sources_services[currency])
             if currency not in self.network_services:
                 self.network_services[currency] = NetworkService.load(self, currency, nodes_processor,
-                                                                  self.blockchain_services[currency])
+                                                                      self.blockchain_services[currency],
+                                                                      self.identities_services[currency])
 
     def switch_language(self):
         logging.debug("Loading translations")

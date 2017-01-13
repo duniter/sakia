@@ -54,6 +54,8 @@ class SearchUserModel(QObject):
                 logging.debug(str(e))
         except NoPeerAvailable as e:
             logging.debug(str(e))
+        except BaseException as e:
+            logging.debug(str(e))
 
     def select_identity(self, index):
         """

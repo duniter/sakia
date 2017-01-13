@@ -21,7 +21,7 @@ class NetworkService(QObject):
     nodes_changed = pyqtSignal()
     root_nodes_changed = pyqtSignal()
 
-    def __init__(self, app, currency, node_processor, connectors, blockchain_service):
+    def __init__(self, app, currency, node_processor, connectors, blockchain_service, identities_service):
         """
         Constructor of a network
 
@@ -30,6 +30,7 @@ class NetworkService(QObject):
         :param sakia.data.processors.NodesProcessor node_processor: the nodes processor for given currency
         :param list connectors: The connectors to nodes of the network
         :param sakia.services.BlockchainService blockchain_service: the blockchain service
+        :param sakia.services.IdentitiesService identities_service: the identities service
         """
         super().__init__()
         self._app = app
@@ -43,6 +44,7 @@ class NetworkService(QObject):
         self._block_found = self._processor.current_buid(self.currency)
         self._discovery_stack = []
         self._blockchain_service = blockchain_service
+        self._identities_service = identities_service
         self._discovery_loop_task = None
 
     @classmethod
@@ -62,7 +64,7 @@ class NetworkService(QObject):
         return network
 
     @classmethod
-    def load(cls, app, currency, node_processor, blockchain_service):
+    def load(cls, app, currency, node_processor, blockchain_service, identities_service):
         """
         Create a new network with all known nodes
 
@@ -74,7 +76,7 @@ class NetworkService(QObject):
         connectors = []
         for node in node_processor.nodes(currency):
             connectors.append(NodeConnector(node, app.parameters))
-        network = cls(app, currency, node_processor, connectors, blockchain_service)
+        network = cls(app, currency, node_processor, connectors, blockchain_service, identities_service)
         return network
 
     def start_coroutines(self):
@@ -197,10 +199,12 @@ class NetworkService(QObject):
             try:
                 await asyncio.sleep(1)
                 peer = self._discovery_stack.pop()
-                if self._processor.unknown_node(self.currency, peer.pubkey):
+                node = self._processor.update_peer(self.currency, peer)
+                if not node:
                     self._logger.debug("New node found : {0}".format(peer.pubkey[:5]))
                     try:
                         connector = NodeConnector.from_peer(self.currency, peer, self._app.parameters)
+                        node = connector.node
                         self._processor.insert_node(connector.node)
                         await connector.init_session()
                         connector.refresh(manual=True)
@@ -208,8 +212,13 @@ class NetworkService(QObject):
                         self.nodes_changed.emit()
                     except InvalidNodeCurrency as e:
                         self._logger.debug(str(e))
-                else:
-                    self._processor.update_peer(self.currency, peer)
+                if node:
+                    identity = await self._identities_service.find_from_pubkey(node.pubkey)
+                    identity = await self._identities_service.load_requirements(identity)
+                    node.member = identity.member
+                    node.uid = identity.uid
+                    self._processor.update_node(node)
+                    self.nodes_changed.emit()
 
                 self._app.db.commit()
             except IndexError:

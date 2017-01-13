@@ -52,6 +52,19 @@ class IdentitiesService(QObject):
         blockchain_time = self._blockchain_processor.time(self.currency)
         return blockchain_time - cert_time < parameters.sig_window * parameters.avg_gen_time
 
+    def expiration_date(self, identity):
+        """
+        Get the expiration date of the identity
+        :param sakia.data.entities.Identity identity:
+        :return: the expiration timestamp
+        :rtype: int
+        """
+        validity = self._blockchain_processor.parameters(self.currency).ms_validity
+        if identity.membership_timestamp:
+            return identity.membership_timestamp + validity
+        else:
+            return 0
+
     def _get_connections_identities(self):
         connections = self._connections_processor.connections_to(self.currency)
         identities = []
@@ -290,19 +303,6 @@ class IdentitiesService(QObject):
 
     async def find_from_pubkey(self, pubkey):
         return await self._identities_processor.find_from_pubkey(self.currency, pubkey)
-
-    def expiration_date(self, identity):
-        """
-        Get the expiration date of the identity
-        :param sakia.data.entities.Identity identity:
-        :return: the expiration timestamp
-        :rtype: int
-        """
-        validity = self._blockchain_processor.parameters(self.currency).ms_validity
-        if identity.membership_timestamp:
-            return identity.membership_timestamp + validity
-        else:
-            return 0
 
     def ms_time_remaining(self, identity):
         return self.expiration_date(identity) - self._blockchain_processor.time(identity.currency)

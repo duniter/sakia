@@ -44,7 +44,7 @@ class DividendsProcessor:
         :param function log_stream:
         """
         history_data = await self._bma_connector.get(identity.currency, bma.ud.history,
-                                                     req_args={'pubkey': identity.pubkey})
+                                                     req_args={'pubkey': identity.pubkey}, verify=False)
         log_stream("Found {0} available dividends".format(len(history_data["history"]["history"])))
         block_numbers = []
         for ud_data in history_data["history"]["history"]:
@@ -66,7 +66,8 @@ class DividendsProcessor:
             for input in txdoc.inputs:
                 if input.source == "D" and input.origin_id == identity.pubkey and input.index not in block_numbers:
                     block = await self._bma_connector.get(identity.currency,
-                                                          bma.blockchain.block, req_args={'number': input.index})
+                                                          bma.blockchain.block, req_args={'number': input.index},
+                                                          verify=False)
                     await asyncio.sleep(0.5)
 
                     dividend = Dividend(currency=identity.currency,

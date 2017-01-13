@@ -142,7 +142,6 @@ class NodeConnector(QObject):
             asyncio.ensure_future(self.request_peers())
 
         if self._refresh_counter % 20 == 0 or manual:
-            self.refresh_uid()
             self.refresh_summary()
             self._refresh_counter = self._refresh_counter if manual else 1
         else:
@@ -273,45 +272,6 @@ class NodeConnector(QObject):
                 self.node.state = Node.OFFLINE
                 self._logger.debug("Error in summary of {0} : {1}".format(self.node.pubkey[:5], str(e)))
                 self.changed.emit()
-        else:
-            self._logger.debug("Could not connect to any BMA endpoint : {0}".format(self.node.pubkey[:5]))
-            self.node.state = Node.OFFLINE
-            self.changed.emit()
-
-    @asyncify
-    async def refresh_uid(self):
-        """
-        Refresh the node UID
-        """
-        for endpoint in [e for e in self.node.endpoints if isinstance(e, BMAEndpoint)]:
-            try:
-                data = await self.safe_request(endpoint, bma.wot.lookup,
-                                               proxy=self._user_parameters.proxy(),
-                                               req_args={'search': self.node.pubkey})
-                if not data:
-                    continue
-                self.node.state = Node.ONLINE
-                timestamp = BlockUID.empty()
-                uid = ""
-                for result in data['results']:
-                    if result["pubkey"] == self.node.pubkey:
-                        uids = result['uids']
-                        for uid in uids:
-                            if BlockUID.from_str(uid["meta"]["timestamp"]) >= timestamp:
-                                timestamp = uid["meta"]["timestamp"]
-                                uid = uid["uid"]
-                if self.node.uid != uid:
-                    self.node.uid = uid
-                    self.identity_changed.emit()
-                break
-            except errors.DuniterError as e:
-                if e.ucode == errors.NO_MATCHING_IDENTITY:
-                    self._logger.debug("UID not found : {0}".format(self.node.pubkey[:5]))
-                else:
-                    self._logger.debug("error in uid reply : {0}".format(self.node.pubkey[:5]))
-                    self.node.state = Node.OFFLINE
-                    self.identity_changed.emit()
-                break
         else:
             self._logger.debug("Could not connect to any BMA endpoint : {0}".format(self.node.pubkey[:5]))
             self.node.state = Node.OFFLINE
