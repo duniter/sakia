@@ -60,7 +60,10 @@ class BlockchainsRepo:
             filters.append("{k}=?".format(k=k))
             values.append(v)
 
-        request = "SELECT * FROM blockchains WHERE {filters}".format(filters=" AND ".join(filters))
+        if filters:
+            request = "SELECT * FROM blockchains WHERE {filters}".format(filters=" AND ".join(filters))
+        else:
+            request = "SELECT * FROM blockchains"
 
         c = self._conn.execute(request, tuple(values))
         data = c.fetchone()

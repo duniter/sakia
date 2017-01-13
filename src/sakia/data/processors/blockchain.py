@@ -302,3 +302,7 @@ class BlockchainProcessor:
                 blockchain.last_ud_base = block.unit_base
                 blockchain.last_ud_time = block.mediantime
         self._repo.update(blockchain)
+
+    def remove_blockchain(self, currency):
+        self._repo.drop(self._repo.get_one(currency=currency))
+

@@ -112,4 +112,3 @@ class IdentitiesRepo:
                            pubkey=? AND
                            uid=? AND
                            blockstamp=?""", where_fields)
-

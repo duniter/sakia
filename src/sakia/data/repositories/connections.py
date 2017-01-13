@@ -119,4 +119,3 @@ class ConnectionsRepo:
                               WHERE
                               currency=? AND
                               pubkey=?""", where_fields)
-

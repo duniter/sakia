@@ -26,6 +26,9 @@ class ConnectionsProcessor:
         except sqlite3.IntegrityError:
             self._connections_repo.update(connection)
 
+    def remove_connections(self, connection):
+        self._connections_repo.drop(connection)
+
     def pubkeys(self):
         return self._connections_repo.get_pubkeys()
 

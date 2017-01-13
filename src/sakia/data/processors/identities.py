@@ -165,3 +165,13 @@ class IdentitiesProcessor:
                 pass
             else:
                 raise
+
+    def cleanup_connection(self, connection):
+        """
+        Cleanup after connection removal
+        :param sakia.data.entities.Connectionb connection:
+        :return:
+        """
+        identities = self._identities_repo.get_all(currency=connection.currency, pubkey=connection.pubkey)
+        for idty in identities:
+            self._identities_repo.drop(idty)

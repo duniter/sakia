@@ -84,3 +84,13 @@ class DividendsProcessor:
 
     def dividends(self, currency, pubkey):
         return self._repo.get_all(currency=currency, pubkey=pubkey)
+
+    def cleanup_connection(self, connection):
+        """
+        Cleanup connection after removal
+        :param sakia.data.entities.Connection connection:
+        :return:
+        """
+        dividends = self._repo.get_all(currency=connection.currency, pubkey=connection.pubkey)
+        for d in dividends:
+            self._repo.drop(d)

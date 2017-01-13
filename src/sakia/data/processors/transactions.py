@@ -158,3 +158,19 @@ class TransactionsProcessor:
             await asyncio.sleep(0)
             txid += 1
         return transactions
+
+    def cleanup_connection(self, connection, connections_pubkeys):
+        """
+        Cleanup connections data after removal
+        :param sakia.data.entities.Connection connection: removed connection
+        :param List[str] connections_pubkeys: pubkeys of existing connections
+        :return:
+        """
+        sent = self._repo.get_all(currency=connection.currency, issuer=connection.pubkey)
+        for tx in sent:
+            if tx.receiver not in connections_pubkeys:
+                self._repo.drop(tx)
+        received = self._repo.get_all(currency=connection.currency, receiver=connection.pubkey)
+        for tx in received:
+            if tx.issuer not in connections_pubkeys:
+                self._repo.drop(tx)

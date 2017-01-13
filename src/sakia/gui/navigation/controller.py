@@ -118,12 +118,14 @@ class NavigationController(QObject):
                                                     self.publish_uid(raw_data['misc']['connection']))
             action_publish_uid.setEnabled(self.model.identity_published(raw_data['misc']['connection']))
 
-            # Show the context menu.
-            action_publish_uid = QAction(self.tr("Leave the currency"), menu)
-            menu.addAction(action_publish_uid)
-            action_publish_uid.triggered.connect(lambda c:
-                                                    self.leave_currency(raw_data['misc']['connection']))
-            action_publish_uid.setEnabled(self.model.identity_is_member(raw_data['misc']['connection']))
+            action_leave = QAction(self.tr("Leave the currency"), menu)
+            menu.addAction(action_leave)
+            action_leave.triggered.connect(lambda c: self.send_leave(raw_data['misc']['connection']))
+            action_leave.setEnabled(self.model.identity_is_member(raw_data['misc']['connection']))
+
+            action_remove = QAction(self.tr("Remove the connection"), menu)
+            menu.addAction(action_remove)
+            action_remove.triggered.connect(lambda c: self.remove_connection(raw_data['misc']['connection']))
             # Show the context menu.
 
             menu.popup(QCursor.pos())
@@ -171,6 +173,15 @@ The process to join back the community later will have to be done again.""")
                 else:
                     await QAsyncMessageBox.critical(self, self.tr("Revoke"),
                                                     result[1])
+
+    @asyncify
+    async def remove_connection(self, connection):
+        reply = await QAsyncMessageBox.question(self.view, self.tr("Removing the connection"),
+                                                self.tr("""Are you sure ? This won't remove your money"
+neither your identity from the network."""), QMessageBox.Ok | QMessageBox.Cancel)
+        if reply == QMessageBox.Ok:
+            await self.model.remove_connection(connection)
+            self.init_navigation()
 
     def action_save_revokation(self, connection):
         password = PasswordAskerDialog(connection).exec()

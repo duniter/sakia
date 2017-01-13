@@ -161,3 +161,26 @@ class CertificationsProcessor:
             except sqlite3.IntegrityError:
                 self._identities_repo.update(idty)
             await asyncio.sleep(0)
+
+    def cleanup_connection(self, connection, connections_pubkeys):
+        """
+        Cleanup connections data after removal
+        :param sakia.data.entities.Connection connection: removed connection
+        :param List[str] connections_pubkeys: pubkeys of existing connections
+        :return:
+        """
+        certifiers = self._certifications_repo.get_all(currency=connection.currency, certifier=connection.pubkey)
+        for c in certifiers:
+            self._certifications_repo.drop(c)
+            if c.certified not in connections_pubkeys:
+                idty = self._identities_repo.get_one(currency=connection.currency, pubkey=c.certified)
+                if idty:
+                    self._identities_repo.drop(idty)
+
+        certified = self._certifications_repo.get_all(currency=connection.currency, certified=connection.pubkey)
+        for c in certified:
+            self._certifications_repo.drop(c)
+            if c.certifier not in connections_pubkeys:
+                idty = self._identities_repo.get_one(currency=connection.currency, pubkey=c.certifier)
+                if idty:
+                    self._identities_repo.drop(idty)

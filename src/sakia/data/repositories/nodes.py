@@ -88,7 +88,10 @@ class NodesRepo:
             filters.append("{key} = ?".format(key=k))
             values.append(value)
 
-        request = "SELECT * FROM nodes WHERE {filters}".format(filters=" AND ".join(filters))
+        if filters:
+            request = "SELECT * FROM nodes WHERE {filters}".format(filters=" AND ".join(filters))
+        else:
+            request = "SELECT * FROM nodes"
 
         c = self._conn.execute(request, tuple(values))
         datas = c.fetchall()

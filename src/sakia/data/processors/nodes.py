@@ -9,6 +9,10 @@ import logging
 class NodesProcessor:
     _repo = attr.ib()  # :type sakia.data.repositories.NodesRepo
 
+    @classmethod
+    def instanciate(cls, app):
+        return cls(app.db.nodes_repo)
+
     def current_buid(self, currency):
         """
         Get current buid
@@ -125,3 +129,8 @@ class NodesProcessor:
             node.peer_blockstamp = peer.blockUID
             self._repo.update(node)
         return node
+
+    def drop_all(self):
+        nodes = self._repo.get_all()
+        for n in nodes:
+            self._repo.drop(n)

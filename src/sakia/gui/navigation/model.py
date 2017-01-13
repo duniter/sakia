@@ -1,6 +1,7 @@
 from PyQt5.QtCore import QObject
 from sakia.models.generic_tree import GenericTreeModel
 from PyQt5.QtCore import pyqtSignal
+from sakia.data.processors import ConnectionsProcessor
 
 
 class NavigationModel(QObject):
@@ -135,6 +136,10 @@ class NavigationModel(QObject):
     def identity_is_member(self, connection):
         identities_services = self.app.identities_services[connection.currency]
         return identities_services.get_identity(connection.pubkey, connection.uid).member
+
+    async def remove_connection(self, connection):
+        await self.app.remove_connection(connection)
+
 
     async def send_leave(self, connection, password):
         return await self.app.documents_service.send_membership(connection, password, "OUT")
