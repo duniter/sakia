@@ -67,7 +67,7 @@ class IdentitiesService(QObject):
         """
         try:
             search = await self._bma_connector.get(self.currency, bma.blockchain.memberships,
-                                                        {'search': identity.pubkey})
+                                                   req_args={'search': identity.pubkey})
             blockstamp = BlockUID.empty()
             membership_data = None
 
@@ -98,7 +98,8 @@ class IdentitiesService(QObject):
         """
         certifications = []
         try:
-            data = await self._bma_connector.get(self.currency, bma.wot.certifiers_of, {'search': identity.pubkey})
+            data = await self._bma_connector.get(self.currency, bma.wot.certifiers_of,
+                                                 {'search': identity.pubkey})
             for certifier_data in data['certifications']:
                 cert = Certification(currency=self.currency,
                                      certified=data["pubkey"],

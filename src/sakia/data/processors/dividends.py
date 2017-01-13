@@ -6,6 +6,7 @@ from ..connectors import BmaConnector
 from duniterpy.api import bma
 from duniterpy.documents import Transaction
 import sqlite3
+import asyncio
 
 
 @attr.s
@@ -66,6 +67,7 @@ class DividendsProcessor:
                 if input.source == "D" and input.origin_id == identity.pubkey and input.index not in block_numbers:
                     block = await self._bma_connector.get(identity.currency,
                                                           bma.blockchain.block, req_args={'number': input.index})
+                    await asyncio.sleep(0.5)
 
                     dividend = Dividend(currency=identity.currency,
                                         pubkey=identity.pubkey,
