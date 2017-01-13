@@ -15,23 +15,24 @@ then
     brew update
     brew install libsodium
     ## Ensure your brew QT version is up to date. (brew install qt -> qt 4.8)
-    brew install qt55
-    brew link --force qt55
+    brew install qt5
     brew install pyenv-virtualenv
     pyenv update
+    pip install PyQt5
 elif [ $TRAVIS_OS_NAME == "linux" ]
 then
-    sudo apt-get update
-    sudo apt-get install -qq -y libxcb1 libxcb1-dev libx11-xcb1 libx11-xcb-dev libxcb-keysyms1 libxcb-keysyms1-dev libxcb-image0 \
-            libxcb-image0-dev libxcb-shm0 libxcb-shm0-dev libxcb-icccm4 libxcb-icccm4-dev \
-            libxcb-xfixes0-dev libxrender-dev libxcb-shape0-dev libxcb-randr0-dev libxcb-render-util0 \
-            libxcb-render-util0-dev libxcb-glx0-dev libgl1-mesa-dri libegl1-mesa libpcre3 libgles2-mesa-dev \
-            freeglut3-dev libfreetype6-dev xorg-dev xserver-xorg-input-void xserver-xorg-video-dummy xpra libosmesa6-dev \
-            curl libdbus-1-dev libdbus-glib-1-dev autoconf automake libtool libgstreamer-plugins-base0.10-0
-    wget https://download.qt.io/official_releases/qt/5.5/5.5.1/qt-opensource-linux-x64-5.5.1.run
-    chmod +x qt-opensource-linux-x64-5.5.1.run
-    ./qt-opensource-linux-x64-5.5.1.run --script $HOME/build/duniter/sakia/ci/travis/qt-installer-noninteractive.qs
+    # sudo apt-get update
+    # sudo apt-get install -qq -y libxcb1 libxcb1-dev libx11-xcb1 libx11-xcb-dev libxcb-keysyms1 libxcb-keysyms1-dev libxcb-image0 \
+    #         libxcb-image0-dev libxcb-shm0 libxcb-shm0-dev libxcb-icccm4 libxcb-icccm4-dev \
+    #         libxcb-xfixes0-dev libxrender-dev libxcb-shape0-dev libxcb-randr0-dev libxcb-render-util0 \
+    #         libxcb-render-util0-dev libxcb-glx0-dev libgl1-mesa-dri libegl1-mesa libpcre3 libgles2-mesa-dev \
+    #         freeglut3-dev libfreetype6-dev xorg-dev xserver-xorg-input-void xserver-xorg-video-dummy xpra libosmesa6-dev \
+    #         curl libdbus-1-dev libdbus-glib-1-dev autoconf automake libtool libgstreamer-plugins-base0.10-0
+    # wget https://download.qt.io/official_releases/qt/5.5/5.5.1/qt-opensource-linux-x64-5.5.1.run
+    # chmod +x qt-opensource-linux-x64-5.5.1.run
+    # ./qt-opensource-linux-x64-5.5.1.run --script $HOME/build/duniter/sakia/ci/travis/qt-installer-noninteractive.qs
 
+    pip install PyQt5
     wget http://archive.ubuntu.com/ubuntu/pool/universe/libs/libsodium/libsodium13_1.0.1-1_amd64.deb
     sudo dpkg -i libsodium13_1.0.1-1_amd64.deb
     rm -r ~/.pyenv
