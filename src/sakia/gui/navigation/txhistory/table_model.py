@@ -226,11 +226,16 @@ class HistoryTableModel(QAbstractTableModel):
     def change_transfer(self, transfer):
         for i, data in enumerate(self.transfers_data):
             if data[self.columns_types.index('txhash')] == transfer.sha_hash:
-                if transfer.issuer == self.connection.pubkey:
+                if transfer.state == Transaction.DROPPED:
+                    self.beginRemoveRows(QModelIndex(), i, i)
+                    self.transfers_data.pop(i)
+                    self.endRemoveRows()
+                elif transfer.issuer == self.connection.pubkey:
                     self.transfers_data[i] = self.data_sent(transfer)
+                    self.dataChanged.emit(self.index(i, 0), self.index(i, len(self.columns_types)))
                 else:
                     self.transfers_data[i] = self.data_received(transfer)
-                self.dataChanged.emit(self.index(i, 0), self.index(i, len(self.columns_types)))
+                    self.dataChanged.emit(self.index(i, 0), self.index(i, len(self.columns_types)))
                 return
 
     def data_received(self, transfer):
@@ -300,10 +305,11 @@ class HistoryTableModel(QAbstractTableModel):
         self.transfers_data = []
         transfers = self.transfers()
         for transfer in transfers:
-            if transfer.issuer == self.connection.pubkey:
-                self.transfers_data.append(self.data_sent(transfer))
-            else:
-                self.transfers_data.append(self.data_received(transfer))
+            if transfer.state != Transaction.DROPPED:
+                if transfer.issuer == self.connection.pubkey:
+                    self.transfers_data.append(self.data_sent(transfer))
+                else:
+                    self.transfers_data.append(self.data_received(transfer))
         dividends = self.dividends()
         for dividend in dividends:
             self.transfers_data.append(self.data_dividend(dividend))

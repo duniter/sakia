@@ -98,7 +98,7 @@ class TransactionsProcessor:
         """
         transition_keys = [k for k in tx_lifecycle.states.keys() if k[0] == tx.state]
         for key in transition_keys:
-            if self._try_transition(tx, key, inputs):
+            if self._try_transition(tx, key, *inputs):
                 self._repo.update(tx)
                 return True
         return False
@@ -120,6 +120,7 @@ class TransactionsProcessor:
         :param txdoc: A transaction duniterpy object
         :param currency: The community target of the transaction
         """
+        self._logger.debug(txdoc.signed_raw())
         self._repo.insert(tx)
         responses = await self._bma_connector.broadcast(currency, bma.tx.process, req_args={'transaction': txdoc.signed_raw()})
         result = (False, "")
@@ -132,7 +133,7 @@ class TransactionsProcessor:
                 result = (False, (await r.text()))
             else:
                 await r.text()
-        self.run_state_transitions(tx, [r.status for r in responses])
+        self.run_state_transitions(tx, [r.status for r in responses if not isinstance(r, BaseException)])
         return result, tx
 
     async def initialize_transactions(self, connection, log_stream):

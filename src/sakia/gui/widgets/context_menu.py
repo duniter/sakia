@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QMenu, QAction, QApplication, QMessageBox
 
 from duniterpy.documents import Block
 from sakia.data.entities import Identity, Transaction
-from sakia.data.processors import BlockchainProcessor
+from sakia.data.processors import BlockchainProcessor, TransactionsProcessor
 from sakia.decorators import asyncify
 from sakia.gui.dialogs.certification.controller import CertificationController
 from sakia.gui.dialogs.transfer.controller import TransferController
@@ -142,10 +142,8 @@ class ContextMenu(QObject):
     async def certify_identity(self, identity):
         await CertificationController.certify_identity(None, self._app, self._connection, identity)
 
-    @asyncify
-    async def send_again(self, transfer):
-        await TransferController.send_transfer_again(None, self._app, self._connection, transfer)
-        self._app.refresh_transfers.emit()
+    def send_again(self, transfer):
+        TransferController.send_transfer_again(None, self._app, self._connection, transfer)
 
     def cancel_transfer(self, transfer):
         reply = QMessageBox.warning(self.qmenu, self.tr("Warning"),
@@ -153,8 +151,10 @@ class ContextMenu(QObject):
 This money transfer will be removed and not sent."""),
 QMessageBox.Ok | QMessageBox.Cancel)
         if reply == QMessageBox.Ok:
-            transfer.cancel()
-        self._app.refresh_transfers.emit()
+            transactions_processor = TransactionsProcessor.instanciate(self._app)
+            transactions_processor.cancel(transfer)
+            self._app.db.commit()
+            self._app.transaction_state_changed.emit(transfer)
 
     def copy_transaction_to_clipboard(self, tx):
         clipboard = QApplication.clipboard()

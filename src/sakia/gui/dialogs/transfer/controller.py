@@ -4,6 +4,7 @@ import logging
 from PyQt5.QtCore import Qt, QObject
 from PyQt5.QtWidgets import QApplication
 
+from sakia.data.processors import ConnectionsProcessor
 from sakia.decorators import asyncify
 from sakia.gui.password_asker import PasswordAskerDialog
 from sakia.gui.sub.search_user.controller import SearchUserController
@@ -79,26 +80,26 @@ class TransferController(QObject):
         return await dialog.async_exec()
 
     @classmethod
-    async def send_transfer_again(cls, parent, app, connection, resent_transfer):
+    def send_transfer_again(cls, parent, app, connection, resent_transfer):
         dialog = cls.create(parent, app)
         dialog.view.combo_connections.setCurrentText(connection.title())
         dialog.view.edit_pubkey.setText(resent_transfer.receiver)
         dialog.view.radio_pubkey.setChecked(True)
 
         dialog.refresh()
-        relative = await dialog.model.quant_to_rel(resent_transfer.metadata['amount'])
-        dialog.view.set_spinboxes_parameters(1, resent_transfer.metadata['amount'], relative)
+        relative = dialog.model.quant_to_rel(resent_transfer.amount)
+        dialog.view.set_spinboxes_parameters(1, resent_transfer.amount, relative)
         dialog.view.change_relative_amount(relative)
-        dialog.view.change_quantitative_amount(resent_transfer.metadata['amount'])
+        dialog.view.change_quantitative_amount(resent_transfer.amount)
 
-        account = resent_transfer.metadata['issuer']
-        wallet_index = [w.pubkey for w in app.current_account.wallets].index(account)
+        connections_processor = ConnectionsProcessor.instanciate(app)
+        wallet_index = connections_processor.connections().index(connection)
         dialog.view.combo_connections.setCurrentIndex(wallet_index)
-        dialog.view.edit_pubkey.setText(resent_transfer.metadata['receiver'])
+        dialog.view.edit_pubkey.setText(resent_transfer.receiver)
         dialog.view.radio_pubkey.setChecked(True)
-        dialog.view.edit_message.setText(resent_transfer.metadata['comment'])
+        dialog.view.edit_message.setText(resent_transfer.comment)
 
-        return await dialog.async_exec()
+        return dialog.exec()
 
     def set_search_user(self, search_user):
         """

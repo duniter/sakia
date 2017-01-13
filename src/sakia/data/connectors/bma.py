@@ -142,7 +142,7 @@ class BmaConnector:
                         responses = await asyncio.gather(*futures, return_exceptions=True)
                         for r in responses:
                             if isinstance(r, errors.DuniterError):
-                                data_hash = hash(r)
+                                data_hash = hash(r.ucode)
                             elif isinstance(r, BaseException):
                                 self._logger.debug("Exception in responses : " + str(r))
                                 continue
