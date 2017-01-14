@@ -155,6 +155,7 @@ class ConnectionConfigController(QObject):
             self.view.stacked_pages.setCurrentWidget(self.view.page_connection)
             connection_identity = await self.step_key
 
+        self.model.insert_or_update_connector()
         self.view.stacked_pages.setCurrentWidget(self.view.page_services)
         self.view.progress_bar.setValue(0)
         self.view.progress_bar.setMaximum(3)

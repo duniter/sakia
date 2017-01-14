@@ -46,7 +46,7 @@ async def test_register_empty_blockchain(application, fake_server, bob):
         assert_key_parameters_behaviour(connection_config_dialog, bob)
         QTest.mouseClick(connection_config_dialog.view.button_next, Qt.LeftButton)
         connection_config_dialog.model.connection.password = bob.password
-        await asyncio.sleep(1)
+        await asyncio.sleep(10)
         assert connection_config_dialog.view.stacked_pages.currentWidget() == connection_config_dialog.view.page_services
         assert len(ConnectionsProcessor.instanciate(application).connections(fake_server.forge.currency)) == 1
 

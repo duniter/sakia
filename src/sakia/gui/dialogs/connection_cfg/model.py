@@ -54,9 +54,11 @@ Current database is storing {1} network.""".format(node_connector.node.currency,
         self.connection.password = password
         self.connection.pubkey = SigningKey(self.connection.salt, password, scrypt_params).pubkey
 
+    def insert_or_update_connector(self):
+        NodesProcessor(self.app.db.nodes_repo).commit_node(self.node_connector.node)
+
     def insert_or_update_connection(self):
         ConnectionsProcessor(self.app.db.connections_repo).commit_connection(self.connection)
-        NodesProcessor(self.app.db.nodes_repo).commit_node(self.node_connector.node)
 
     def insert_or_update_identity(self, identity):
         self.identities_processor.insert_or_update_identity(identity)
