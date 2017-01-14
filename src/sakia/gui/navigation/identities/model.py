@@ -1,3 +1,4 @@
+import asyncio
 from PyQt5.QtCore import Qt, QObject
 from .table_model import IdentitiesFilterProxyModel, IdentitiesTableModel
 
@@ -62,3 +63,18 @@ class IdentitiesModel(QObject):
         If no identities is passed, use the account connections.
         """
         self.table_model.sourceModel().refresh_identities(identities)
+
+    def linked_identities(self):
+
+        # create Identity from node metadata
+        connection_identity = self.identities_service.get_identity(self.connection.pubkey)
+        linked = []
+        certifier_list = self.identities_service.certifications_received(connection_identity.pubkey)
+        for certification in tuple(certifier_list):
+            linked.append(self.identities_service.get_identity(certification.certifier))
+
+        certified_list = self.identities_service.certifications_sent(connection_identity.pubkey)
+        for certification in tuple(certified_list):
+            linked.append(self.identities_service.get_identity(certification.certified))
+
+        return linked

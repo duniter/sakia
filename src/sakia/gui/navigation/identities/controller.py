@@ -70,23 +70,10 @@ class IdentitiesController(QObject):
         except NoPeerAvailable as e:
             logging.debug(str(e))
 
-    @once_at_a_time
-    @asyncify
-    async def search_direct_connections(self):
+    def search_direct_connections(self):
         """
         Search identities directly connected to account
         :return:
         """
-        self_identity = await self.account.identity(self.community)
-        account_connections = []
-        certs_of = await self_identity.unique_valid_certifiers_of(self.app.identities_registry, self.community)
-        for p in certs_of:
-            account_connections.append(p['identity'])
-        certifiers_of = [p for p in account_connections]
-        certs_by = await self_identity.unique_valid_certified_by(self.app.identities_registry, self.community)
-        for p in certs_by:
-            account_connections.append(p['identity'])
-        certified_by = [p for p in account_connections
-                        if p.pubkey not in [i.pubkey for i in certifiers_of]]
-        identities = certifiers_of + certified_by
+        identities = self.model.linked_identities()
         self.model.refresh_identities(identities)

@@ -34,6 +34,7 @@ class UserInformationController(QObject):
     @classmethod
     def show_identity(cls, parent, app, currency, identity):
         dialog = QDialog()
+        dialog.setWindowTitle("Informations")
         user_info = cls.create(parent, app, currency, identity)
         user_info.view.setParent(dialog)
         user_info.refresh()
@@ -43,6 +44,7 @@ class UserInformationController(QObject):
     @asyncify
     async def search_and_show_pubkey(cls, parent, app, currency, pubkey):
         dialog = QDialog(parent)
+        dialog.setWindowTitle("Informations")
         layout = QVBoxLayout(dialog)
         tabwidget = QTabWidget(dialog)
         layout.addWidget(tabwidget)
