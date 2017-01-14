@@ -28,6 +28,7 @@ if is_darwin:
         libsodium_path = os.path.join(library_path, "lib",
                                       "libsodium.dylib")
         a.binaries = a.binaries + TOC([('lib/libsodium.dylib', libsodium_path, 'BINARY')])
+    a.datas = a.datas + [('sakia/data/repositories/meta.sql', 'src/sakia/data/repositories/meta.sql', 'DATA')]
 
 if is_linux:
     libsodium_path = ctypes.util.find_library('libsodium.so')
@@ -38,9 +39,12 @@ if is_linux:
             libsodium_path = "/usr/lib/i386-linux-gnu/libsodium.so.13"
 
     a.binaries = a.binaries + TOC([('libsodium.so', libsodium_path, 'BINARY')])
+    a.datas = a.datas + [('sakia/data/repositories/meta.sql', 'src/sakia/data/repositories/meta.sql', 'DATA')]
 
 if is_win:
     a.binaries = a.binaries + TOC([('libsodium.dll', ctypes.util.find_library('libsodium.dll'), 'BINARY')])
+    a.datas = a.datas + [('sakia\\data\\repositories\\meta.sql', 'src\\sakia\\data\\repositories\\meta.sql', 'DATA')]
+
 
 print(a.binaries)
 
@@ -50,7 +54,7 @@ pyz = PYZ(a.pure, a.zipped_data,
 exe = EXE(pyz,
           a.scripts,
           exclude_binaries=True,
-          name='sakia',
+          name='Sakia',
           debug=True,
           strip=False,
           upx=True,
@@ -63,7 +67,7 @@ coll = COLLECT(exe,
                a.datas,
                strip=False,
                upx=True,
-               name='sakia')
+               name='Sakia')
 
 if is_darwin:
     app = BUNDLE(exe,
