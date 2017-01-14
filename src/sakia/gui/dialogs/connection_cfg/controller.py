@@ -155,7 +155,6 @@ class ConnectionConfigController(QObject):
             self.view.stacked_pages.setCurrentWidget(self.view.page_connection)
             connection_identity = await self.step_key
 
-        self.model.insert_or_update_connection()
         self.view.stacked_pages.setCurrentWidget(self.view.page_services)
         self.view.progress_bar.setValue(0)
         self.view.progress_bar.setMaximum(3)
@@ -171,6 +170,7 @@ class ConnectionConfigController(QObject):
                     await self.view.show_success(self.model.notification())
                 else:
                     self.view.show_error(self.model.notification(), result[1])
+                    raise StopIteration()
 
             self.view.progress_bar.setValue(2)
 
@@ -196,11 +196,11 @@ class ConnectionConfigController(QObject):
             await self.model.initialize_sources(self.view.stream_log)
 
             self._logger.debug("Validate changes")
+            self.model.insert_or_update_connection()
             self.model.app.db.commit()
             if self.model.node_connector:
                 await self.model.node_connector.session.close()
-        except (NoPeerAvailable, DuniterError) as e:
-            raise
+        except (NoPeerAvailable, DuniterError, StopIteration) as e:
             self._logger.debug(str(e))
             self.view.stacked_pages.setCurrentWidget(self.view.page_connection)
             self.step_node = asyncio.Future()

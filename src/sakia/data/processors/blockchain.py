@@ -1,4 +1,5 @@
 import attr
+import sqlite3
 import logging
 from sakia.errors import NoPeerAvailable
 from ..entities import Blockchain, BlockchainParameters
@@ -278,7 +279,10 @@ class BlockchainProcessor:
                     if e.ucode != errors.NO_CURRENT_BLOCK:
                         raise
 
-            self._repo.insert(blockchain)
+            try:
+                self._repo.insert(blockchain)
+            except sqlite3.IntegrityError:
+                pass
 
     def handle_new_blocks(self, currency, blocks):
         """

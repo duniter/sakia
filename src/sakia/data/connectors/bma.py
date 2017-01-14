@@ -13,6 +13,22 @@ import attr
 import copy
 
 
+async def parse_responses(responses):
+    result = (False, "")
+    for r in responses:
+        if not result[0]:
+            if isinstance(r, errors.DuniterError):
+                result = (False, r.message)
+            elif isinstance(r, BaseException):
+                result = (False, str(r))
+            elif r.status == 200:
+                result = (True, (await r.json()))
+            elif not result[0]:
+                result = (False, (await r.text()))
+        else:
+            await r.release()
+    return result
+
 def filter_endpoints(request, nodes):
     def compare_versions(node, version):
         if node.version and node.version != '':

@@ -13,7 +13,7 @@ from duniterpy.api import bma, errors
 from sakia.data.entities import Identity, Transaction
 from sakia.data.processors import BlockchainProcessor, IdentitiesProcessor, NodesProcessor, \
     TransactionsProcessor, SourcesProcessor
-from sakia.data.connectors import BmaConnector
+from sakia.data.connectors import BmaConnector, parse_bma_responses
 from sakia.errors import NotEnoughChangeError
 
 
@@ -69,14 +69,7 @@ class DocumentsService:
 
         responses = await self._bma_connector.broadcast(connection.currency, bma.wot.add,
                                                         req_args={'identity': selfcert.signed_raw()})
-        result = (False, "")
-        for r in responses:
-            if r.status == 200:
-                result = (True, (await r.json()))
-            elif not result[0]:
-                result = (False, (await r.text()))
-            else:
-                await r.release()
+        result = await parse_bma_responses(responses)
 
         if result[0]:
             identity = self._identities_processor.get_identity(connection.currency, connection.pubkey, connection.uid)
@@ -133,21 +126,8 @@ class DocumentsService:
         self._logger.debug("Membership : {0}".format(membership.signed_raw()))
         responses = await self._bma_connector.broadcast(connection.currency, bma.blockchain.membership,
                                                         req_args={'membership': membership.signed_raw()})
-        result = (False, "")
-        for r in responses:
-            if not result[0]:
-                if isinstance(r, BaseException):
-                    result = (False, str(r))
-                else:
-                    try:
-                        result = (False, (await r.json())["message"])
-                    except KeyError:
-                        result = (False, await str(r.text()))
+        result = await parse_bma_responses(responses)
 
-            elif r.status == 200:
-                result = (True, (await r.json()))
-            else:
-                await r.release()
         return result
 
     async def certify(self, connection, password, identity):
@@ -179,17 +159,8 @@ class DocumentsService:
         self._logger.debug("Certification : {0}".format(signed_cert))
 
         responses = await self._bma_connector.broadcast(connection.currency, bma.wot.certify, req_args={'cert': signed_cert})
-        result = (False, "")
-        for r in responses:
-            if isinstance(r, BaseException) and not result[0]:
-                result = (False, (str(r)))
-            else:
-                if r.status == 200:
-                    result = (True, (await r.json()))
-                elif not result[0]:
-                    result = (False, (await r.text()))
-                else:
-                    await r.release()
+        result = await parse_bma_responses(responses)
+
         return result
 
     async def revoke(self, currency, identity, salt, password):
@@ -217,14 +188,7 @@ class DocumentsService:
         }
         self._logger.debug("Posted data : {0}".format(data))
         responses = await self._bma_connector.broadcast(currency, bma.wot.Revoke, {}, data)
-        result = (False, "")
-        for r in responses:
-            if r.status == 200:
-                result = (True, (await r.json()))
-            elif not result[0]:
-                result = (False, (await r.text()))
-            else:
-                await r.release()
+        result = await parse_bma_responses(responses)
         return result
 
     def generate_revokation(self, connection, password):

@@ -6,7 +6,7 @@ from ..entities import Transaction
 from ..entities.transaction import parse_transaction_doc
 from .nodes import NodesProcessor
 from . import tx_lifecycle
-from ..connectors import BmaConnector
+from ..connectors import BmaConnector, parse_bma_responses
 from duniterpy.api import bma
 from duniterpy.documents import Transaction as TransactionDoc
 
@@ -123,16 +123,7 @@ class TransactionsProcessor:
         self._logger.debug(txdoc.signed_raw())
         self._repo.insert(tx)
         responses = await self._bma_connector.broadcast(currency, bma.tx.process, req_args={'transaction': txdoc.signed_raw()})
-        result = (False, "")
-        for r in responses:
-            if isinstance(r, BaseException):
-                result = (False, str(r))
-            elif r.status == 200:
-                result = (True, (await r.json()))
-            elif not result[0]:
-                result = (False, (await r.text()))
-            else:
-                await r.text()
+        result = await parse_bma_responses(responses)
         self.run_state_transitions(tx, [r.status for r in responses if not isinstance(r, BaseException)])
         return result, tx
 
