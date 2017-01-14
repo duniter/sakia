@@ -51,15 +51,27 @@ print(a.binaries)
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
 
-exe = EXE(pyz,
-          a.scripts,
-          exclude_binaries=True,
-          name='Sakia',
-          debug=True,
-          strip=False,
-          upx=True,
-          console=True,
-          icon='sakia.ico')
+if is_linux or is_darwin:
+    exe = EXE(pyz,
+              a.scripts,
+              exclude_binaries=True,
+              name='sakia.bin',
+              debug=True,
+              strip=False,
+              upx=True,
+              console=True,
+              icon='sakia.ico')
+else:
+    exe = EXE(pyz,
+              a.scripts,
+              exclude_binaries=True,
+              name='sakia',
+              debug=True,
+              strip=False,
+              upx=True,
+              console=True,
+              icon='sakia.ico')
+
 
 coll = COLLECT(exe,
                a.binaries,
@@ -67,7 +79,7 @@ coll = COLLECT(exe,
                a.datas,
                strip=False,
                upx=True,
-               name='Sakia')
+               name='sakia')
 
 if is_darwin:
     app = BUNDLE(exe,

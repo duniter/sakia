@@ -6,4 +6,4 @@ unzip -d $SAKIA_ROOT/ $SAKIA_ROOT/sakia.zip
 mv $SAKIA_ROOT/dist/sakia/* $SAKIA_ROOT/
 rm $SAKIA_ROOT/sakia.zip
 
-ln -s /opt/sakia/sakia /usr/bin/sakia
+ln -s /opt/sakia/sakia.bin /usr/bin/sakia
