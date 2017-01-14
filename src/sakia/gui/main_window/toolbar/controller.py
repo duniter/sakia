@@ -57,7 +57,7 @@ class ToolbarController(QObject):
 
     @asyncify
     async def send_join_demand(self, checked=False):
-        connection = await self.view.ask_for_connection(self.model.connections())
+        connection = await self.view.ask_for_connection(self.model.connections_with_uids())
         if not connection:
             return
         password = await PasswordAskerDialog(connection).async_exec()

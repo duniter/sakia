@@ -25,6 +25,9 @@ class ToolbarModel(QObject):
     def notifications(self):
         return self.app.parameters.notifications
 
+    def connections_with_uids(self):
+        return ConnectionsProcessor.instanciate(self.app).connections_with_uids()
+
     def connections(self):
         return ConnectionsProcessor.instanciate(self.app).connections()
 

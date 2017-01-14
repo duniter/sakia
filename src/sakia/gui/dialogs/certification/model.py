@@ -81,7 +81,7 @@ class CertificationModel(QObject):
         return is_member and self._blockchain_processor.current_buid(self.connection.currency)
 
     def available_connections(self):
-        return self._connections_processor.connections()
+        return self._connections_processor.connections_with_uids()
 
     def set_connection(self,  index):
         connections = self._connections_processor.connections()
