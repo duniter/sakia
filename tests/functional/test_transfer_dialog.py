@@ -23,7 +23,7 @@ async def test_transfer(application_with_one_connection, simple_fake_server, bob
         await asyncio.sleep(0.1)
         assert transfer_dialog.view.button_box.button(QDialogButtonBox.Ok).isEnabled()
         QTest.mouseClick(transfer_dialog.view.button_box.button(QDialogButtonBox.Ok), Qt.LeftButton)
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.2)
         assert isinstance(simple_fake_server.forge.pool[0], Transaction)
 
     application_with_one_connection.loop.call_later(10, close_dialog)
