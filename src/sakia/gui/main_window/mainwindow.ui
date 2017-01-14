@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>900</width>
+    <height>550</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string notr="true">Sakia</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout_6">
+    <item>
+     <layout class="QHBoxLayout" name="top_layout"/>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="bottom_layout"/>
+    </item>
+   </layout>
+  </widget>
+  <action name="actionManage_accounts">
+   <property name="text">
+    <string>Manage accounts</string>
+   </property>
+  </action>
+  <action name="actionConfigure_trustable_nodes">
+   <property name="text">
+    <string>Configure trustable nodes</string>
+   </property>
+  </action>
+  <action name="action_add_a_contact">
+   <property name="text">
+    <string>A&amp;dd a contact</string>
+   </property>
+  </action>
+  <action name="actionSend_a_message">
+   <property name="text">
+    <string>Send a message</string>
+   </property>
+  </action>
+  <action name="actionSend_money">
+   <property name="text">
+    <string>Send money</string>
+   </property>
+  </action>
+  <action name="actionRemove_contact">
+   <property name="text">
+    <string>Remove contact</string>
+   </property>
+  </action>
+  <action name="actionSend_a_message_2">
+   <property name="text">
+    <string>Send a message</string>
+   </property>
+  </action>
+  <action name="actionSend_money_2">
+   <property name="text">
+    <string>Send money</string>
+   </property>
+  </action>
+  <action name="actionRemove_contact_2">
+   <property name="text">
+    <string>Remove contact</string>
+   </property>
+  </action>
+  <action name="action_save">
+   <property name="text">
+    <string>Save</string>
+   </property>
+  </action>
+  <action name="action_quit">
+   <property name="text">
+    <string>&amp;Quit</string>
+   </property>
+  </action>
+  <action name="actionAccount">
+   <property name="text">
+    <string>Account</string>
+   </property>
+  </action>
+  <action name="actionTransfer_money">
+   <property name="text">
+    <string>&amp;Transfer money</string>
+   </property>
+  </action>
+  <action name="action_configure_parameters">
+   <property name="text">
+    <string>&amp;Configure</string>
+   </property>
+  </action>
+  <action name="action_import">
+   <property name="text">
+    <string>&amp;Import</string>
+   </property>
+  </action>
+  <action name="action_export">
+   <property name="text">
+    <string>&amp;Export</string>
+   </property>
+  </action>
+  <action name="actionCertification">
+   <property name="text">
+    <string>C&amp;ertification</string>
+   </property>
+  </action>
+  <action name="action_set_as_default">
+   <property name="text">
+    <string>&amp;Set as default</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>A&amp;bout</string>
+   </property>
+  </action>
+  <action name="actionPreferences">
+   <property name="text">
+    <string>&amp;Preferences</string>
+   </property>
+  </action>
+  <action name="action_add_account">
+   <property name="text">
+    <string>&amp;Add account</string>
+   </property>
+  </action>
+  <action name="actionManage_local_node">
+   <property name="text">
+    <string>&amp;Manage local node</string>
+   </property>
+  </action>
+  <action name="action_revoke_identity">
+   <property name="text">
+    <string>&amp;Revoke an identity</string>
+   </property>
+  </action>
+ </widget>
+ <resources>
+  <include location="../../../../res/icons/icons.qrc"/>
+ </resources>
+ <connections/>
+ <slots>
+  <slot>open_add_account_dialog()</slot>
+  <slot>import_account()</slot>
+  <slot>open_transfer_money_dialog()</slot>
+  <slot>open_add_contact_dialog()</slot>
+  <slot>open_configure_account_dialog()</slot>
+  <slot>refresh_main_window()</slot>
+  <slot>refresh_wallet_content(QModelIndex)</slot>
+  <slot>export_account()</slot>
+  <slot>open_certification_dialog()</slot>
+  <slot>open_preferences_dialog()</slot>
+  <slot>open_about_popup()</slot>
+ </slots>
+</ui>

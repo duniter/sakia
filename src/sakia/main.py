@@ -3,25 +3,19 @@ Created on 1 févr. 2014
 
 @author: inso
 """
-import signal
-import sys
 import asyncio
 import logging
-import os
+import signal
+import sys
 import traceback
 
-# To debug missing spec
-import jsonschema
-import traceback
-
-# To force cx_freeze import
-import PyQt5.QtSvg
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication, QMessageBox
 
 from quamash import QSelectorEventLoop
-from PyQt5.QtWidgets import QApplication, QMessageBox
-from PyQt5.QtCore import Qt
-from sakia.gui.mainwindow import MainWindow
-from sakia.core.app import Application
+from sakia.app import Application
+from sakia.gui.dialogs.connection_cfg.controller import ConnectionConfigController
+from sakia.gui.main_window.controller import MainWindowController
 
 
 def async_exception_handler(loop, context):
@@ -97,15 +91,19 @@ if __name__ == '__main__':
 
     with loop:
         app = Application.startup(sys.argv, sakia, loop)
-        window = MainWindow.startup(app)
+        if not app.connection_exists():
+            conn_controller = ConnectionConfigController.create_connection(None, app)
+            loop.run_until_complete(conn_controller.async_exec())
+            app.instanciate_services()
+            app.start_coroutines()
+        window = MainWindowController.startup(app)
         loop.run_forever()
         try:
             loop.set_exception_handler(None)
-            loop.run_until_complete(app.stop())
+            loop.run_until_complete(app.stop_current_profile())
             logging.debug("Application stopped")
         except asyncio.CancelledError:
             logging.info('CancelledError')
     logging.debug("Exiting")
     sys.exit()
-    logging.debug("Application stopped")
 

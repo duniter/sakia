@@ -1,4 +1,8 @@
-duniterpy>=0.20.dev0
 git+https://github.com/Insoleet/quamash.git@master
 asynctest
 networkx
+attrs
+duniter-mirage
+duniterpy>=0.40
+pytest
+pytest-asyncio

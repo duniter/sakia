@@ -7,10 +7,11 @@ Created on 24 dec. 2014
 import logging
 import re
 import asyncio
+from duniterpy.key import SigningKey
 from PyQt5.QtCore import QEvent
 from PyQt5.QtWidgets import QDialog, QMessageBox
 
-from ..gen_resources.password_asker_uic import Ui_PasswordAskerDialog
+from .password_asker_uic import Ui_PasswordAskerDialog
 
 
 class PasswordAskerDialog(QDialog, Ui_PasswordAskerDialog):
@@ -19,47 +20,44 @@ class PasswordAskerDialog(QDialog, Ui_PasswordAskerDialog):
     A dialog to get password.
     """
 
-    def __init__(self, account):
+    def __init__(self, connection):
         """
         Constructor
+
+        :param sakia.data.entities.Connection connection: a given connection
         """
         super().__init__()
         self.setupUi(self)
-        self.account = account
         self.password = ""
+        self.connection = connection
         self.remember = False
-
-    def change_account(self, account):
-        self.remember = False
-        self.password = ""
-        self.account = account
 
     def async_exec(self):
         future = asyncio.Future()
-        if not self.remember:
+        if not self.connection.password:
             def future_show():
                 pwd = self.password
-                if not self.remember:
-                    self.password = ""
+                if self.remember:
+                    self.connection.password = self.password
                 self.finished.disconnect(future_show)
                 future.set_result(pwd)
             self.open()
             self.finished.connect(future_show)
         else:
             self.setResult(QDialog.Accepted)
-            future.set_result(self.password)
+            future.set_result(self.connection.password)
         return future
 
-    def exec_(self):
-        if not self.remember:
+    def exec(self):
+        if not self.connection.password:
             super().exec_()
             pwd = self.password
-            if not self.remember:
-                self.password = ""
+            if self.remember:
+                self.connection.password = self.password
             return pwd
         else:
             self.setResult(QDialog.Accepted)
-            return self.password
+            return self.connection.password
 
     def accept(self):
         password = self.edit_password.text()
@@ -70,7 +68,7 @@ class PasswordAskerDialog(QDialog, Ui_PasswordAskerDialog):
                                 QMessageBox.Ok)
             return False
 
-        if not self.account.check_password(password):
+        if SigningKey(self.connection.salt, password, self.connection.scrypt_params).pubkey != self.connection.pubkey:
             QMessageBox.warning(self, self.tr("Failed to get private key"),
                                 self.tr("Wrong password typed. Cannot open the private key"),
                                 QMessageBox.Ok)

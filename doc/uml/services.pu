@@ -1,0 +1,36 @@
+@startuml
+
+
+
+class ProfileService << (S,cyan) >>  {
+    add_connection()
+    remove_connection()
+}
+
+class AccountService << (S,cyan) >>  {
+    send_transaction()
+    send_certification()
+    send_membership()
+    send_identity()
+    send_revokation()
+}
+
+class TransactionsService << (S,cyan) >>  {
+    handle_new_block()
+    refresh_transactions()
+    rollback_transactions()
+}
+
+class RegistryService << (S,cyan) >> {
+    handle_new_block()
+}
+
+class NetworkService << (S,cyan) >>  {
+    discover_network()
+}
+
+class BlockchainService  << (S,cyan) >>  {
+    receive_block()
+}
+
+@enduml

@@ -38,9 +38,6 @@ install:
   - "%CMD_IN_ENV% conda config --add channels inso/channel/sakia"
   - "%CMD_IN_ENV% conda create -q -n test-environment python=%PYTHON_VERSION% libsodium=1.0.3 setuptools=19.2"
 
-cache:
-  - C:\Qt\5.6\5.6
-
 build_script:
   - ".\\ci\\appveyor\\build.cmd"
 

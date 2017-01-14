@@ -1,0 +1,51 @@
+@startuml
+
+!include data.pu
+!include processors.pu
+!include services.pu
+
+ProfileService "1" --> "1" UserParameters
+ProfileService "*" --> "1" UserParametersRepo
+
+AccountService "1" --> "1" Key
+AccountService "*" --> "1" KeyRepo
+
+
+TransactionsService "1" --> "*" Transaction
+TransactionsService "*" --> "1" TransactionProcessor
+TransactionProcessor "1" --> "1" TransactionRepo
+
+RegistryService "1" --> "*" Identity
+RegistryService "1" --> "*" Certification
+RegistryService "*" --> "1" IdentitiesProcessor
+IdentitiesProcessor "1" --> "1" IdentitiesRepo
+RegistryService "*" --> "1" CertificationProcessor
+CertificationProcessor "1" --> "1" CertificationRepo
+
+NetworkService "1" --> "*" Node
+NetworkService "*" --> "1" NodesProcessor
+NodesProcessor "1" --> "1" NodesRepo
+
+BlockchainService "1" --> "1" Blockchain
+BlockchainService "1" --> "1" Community
+BlockchainService "*" --> "1" BlockchainProcessor
+BlockchainProcessor "1" --> "1" BlockchainRepo
+BlockchainService "*" --> "1" CommunityProcessor
+CommunityProcessor "1" --> "1" CommunityRepo
+
+package Connectors {
+    class BMAConnector << (S,cyan) >>  {
+        get()
+        post()
+        broadcast()
+    }
+}
+
+AccountService --> BMAConnector
+BlockchainProcessor --> BMAConnector
+CommunityProcessor --> BMAConnector
+TransactionProcessor --> BMAConnector
+IdentitiesProcessor --> BMAConnector
+CertificationProcessor --> BMAConnector
+
+@enduml
