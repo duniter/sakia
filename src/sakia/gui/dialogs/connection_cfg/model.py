@@ -193,13 +193,14 @@ Current database is storing {1} network.""".format(node_connector.node.currency,
         # cell 1 contains the uid/pubkey selected locally
         # cell 2 contains the uid/pubkey found on the network
         registered = (False, identity.uid, None)
+
         # We execute search based on pubkey
         # And look for account UID
         await execute_requests(_parse_uid_lookup, identity.pubkey)
 
         # If the uid wasn't found when looking for the pubkey
         # We look for the uid and check for the pubkey
-        if not registered[0] and not registered[2]:
+        if not registered[0] and not registered[2] and identity.uid:
             await execute_requests(_parse_pubkey_lookup, identity.uid)
 
         return registered, found_identity

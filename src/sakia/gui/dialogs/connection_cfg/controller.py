@@ -202,6 +202,8 @@ class ConnectionConfigController(QObject):
             if self.model.node_connector:
                 await self.model.node_connector.session.close()
         except (NoPeerAvailable, DuniterError, StopIteration) as e:
+            if not isinstance(e, StopIteration):
+                self.view.show_error(self.model.notification(), str(e))
             self._logger.debug(str(e))
             self.view.stacked_pages.setCurrentWidget(self.view.page_connection)
             self.step_node = asyncio.Future()
