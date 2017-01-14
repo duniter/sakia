@@ -11,8 +11,7 @@ pyrcc5 -version
 
 lrelease -version
 
-echo "%CWD%"
-
-py.test
+echo "%cd%"
+py.test tests/
 
 if %errorlevel% neq 0 exit /b 1

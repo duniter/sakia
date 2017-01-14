@@ -5,11 +5,11 @@ call activate test-environment
 echo "%PATH%"
 echo "%QT_PLUGIN_PATH%"
 python -V
-call pyuic5 --version
-
-pyrcc5 -version
 
 lrelease -version
+
+call pyuic5 --version
+pyrcc5 -version
 
 pip install -r requirements.txt
 pip install pyinstaller

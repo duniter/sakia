@@ -3,6 +3,11 @@ import asyncio
 import quamash
 import sqlite3
 import mirage
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
+
 from duniterpy.documents import BlockUID
 from sakia.app import Application
 from sakia.options import SakiaOptions
@@ -10,7 +15,6 @@ from sakia.data.files import AppDataFile
 from sakia.data.entities import *
 from sakia.data.repositories import *
 from sakia.services import DocumentsService
-
 
 _application_ = []
 

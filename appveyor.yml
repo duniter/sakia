@@ -11,7 +11,7 @@ environment:
       PYTHON_ARCH: "64"
       CONDA_PY: "35"
       CONDA_NPY: "18"
-      QTDIR: "C:\\Qt\\5.7\\msvc2015_64"
+      QTDIR: "C:\\Qt\\5.6\\msvc2015_64"
       platform: x64
 
     - PYTHON: "C:\\Python35_32"
@@ -19,7 +19,7 @@ environment:
       PYTHON_ARCH: "32"
       CONDA_PY: "35"
       CONDA_NPY: "18"
-      QTDIR: "C:\\Qt\\5.7\\msvc2015"
+      QTDIR: "C:\\Qt\\5.6\\msvc2015"
       platform: x86
 
 install:
@@ -36,10 +36,7 @@ install:
   #- choco install -y vcredist2015
   - "%CMD_IN_ENV% conda config --set always_yes yes --set changeps1 no"
   - "%CMD_IN_ENV% conda config --add channels inso/channel/sakia"
-  - "%CMD_IN_ENV% conda create -q -n test-environment python=%PYTHON_VERSION% libsodium=1.0.3 setuptools=19.2"
-
-cache:
-  - C:\Qt\5.7\5.7
+  - "%CMD_IN_ENV% conda create -q -n test-environment python=%PYTHON_VERSION% pyqt5=5.6 libsodium=1.0.3 setuptools=19.2"
 
 build_script:
   - ".\\ci\\appveyor\\build.cmd"
