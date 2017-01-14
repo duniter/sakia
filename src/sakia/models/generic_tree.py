@@ -168,5 +168,5 @@ class GenericTreeModel(QAbstractItemModel):
 
     def insert_node(self, raw_data):
         self.beginInsertRows(QModelIndex(), self.rowCount(QModelIndex()), 0)
-        parse_node(raw_data, self.root_item)
+        parse_node(raw_data, self.root_item.children[0])
         self.endInsertRows()
