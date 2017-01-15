@@ -61,7 +61,7 @@ class IdentitiesProcessor:
                 except (errors.DuniterError, asyncio.TimeoutError, ClientError) as e:
                     tries += 1
                     self._logger.debug(str(e))
-                except NoPeerAvailable:
+                except NoPeerAvailable as e:
                     self._logger.debug(str(e))
         return found_identity
 
@@ -138,6 +138,7 @@ class IdentitiesProcessor:
                                                              req_args={'search': identity.pubkey}, verify=False)
             if block_uid(memberships_data['sigDate']) == identity.blockstamp \
                and memberships_data['uid'] == identity.uid:
+                identity.written = True
                 for ms in memberships_data['memberships']:
                     if ms['written'] > identity.membership_written_on:
                         identity.membership_buid = BlockUID(ms['blockNumber'], ms['blockHash'])
@@ -162,7 +163,8 @@ class IdentitiesProcessor:
                 self.insert_or_update_identity(identity)
         except errors.DuniterError as e:
             if e.ucode == errors.NO_MEMBER_MATCHING_PUB_OR_UID:
-                pass
+                identity.written = False
+                self.insert_or_update_identity(identity)
             else:
                 raise
 

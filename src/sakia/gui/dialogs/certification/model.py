@@ -74,17 +74,17 @@ class CertificationModel(QObject):
         :return: true if the user can certifiy
         :rtype: bool
         """
-        is_member = self._identities_processor.get_identity(self.connection.currency,
+        identity = self._identities_processor.get_identity(self.connection.currency,
                                                             self.connection.pubkey,
-                                                            self.connection.pubkey)
+                                                            self.connection.uid)
 
-        return is_member and self._blockchain_processor.current_buid(self.connection.currency)
+        return identity.member
 
     def available_connections(self):
         return self._connections_processor.connections_with_uids()
 
     def set_connection(self,  index):
-        connections = self._connections_processor.connections()
+        connections = self._connections_processor.connections_with_uids()
         self.connection = connections[index]
 
     def notification(self):

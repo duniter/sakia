@@ -171,7 +171,7 @@ def application_with_one_connection(application, simple_fake_server, bob):
                             blockstamp=bob_blockstamp,
                             signature=bob_user_identity.signature,
                             timestamp=simple_fake_server.forge.blocks[bob_blockstamp.number].mediantime,
-                            written_on=0,
+                            written=True,
                             revoked_on=0,
                             member=bob_user_identity.member,
                             membership_buid=bob_ms.blockstamp,

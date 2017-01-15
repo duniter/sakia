@@ -139,7 +139,7 @@ class NavigationModel(QObject):
 
     def identity_published(self, connection):
         identities_services = self.app.identities_services[connection.currency]
-        return identities_services.get_identity(connection.pubkey, connection.uid).written_on != 0
+        return identities_services.get_identity(connection.pubkey, connection.uid).written
 
     def identity_is_member(self, connection):
         identities_services = self.app.identities_services[connection.currency]

@@ -76,7 +76,7 @@ class CertificationView(QDialog, Ui_CertificationDialog):
             toast.display(self.tr("Certification"),
                           self.tr("Success sending certification"))
         else:
-            await QAsyncMessageBox.information(self.widget, self.tr("Certification"),
+            await QAsyncMessageBox.information(self, self.tr("Certification"),
                                          self.tr("Success sending certification"))
 
     async def show_error(self, notification, error_txt):
@@ -85,7 +85,7 @@ class CertificationView(QDialog, Ui_CertificationDialog):
             toast.display(self.tr("Certification"), self.tr("Could not broadcast certification : {0}"
                                                             .format(error_txt)))
         else:
-            await QAsyncMessageBox.critical(self.widget, self.tr("Certification"),
+            await QAsyncMessageBox.critical(self, self.tr("Certification"),
                                             self.tr("Could not broadcast certification : {0}"
                                                     .format(error_txt)))
 

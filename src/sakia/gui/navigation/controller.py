@@ -117,7 +117,8 @@ class NavigationController(QObject):
                 menu.addAction(action_publish_uid)
                 action_publish_uid.triggered.connect(lambda c:
                                                         self.publish_uid(raw_data['misc']['connection']))
-                action_publish_uid.setEnabled(self.model.identity_published(raw_data['misc']['connection']))
+                identity_published = self.model.identity_published(raw_data['misc']['connection'])
+                action_publish_uid.setEnabled(not identity_published)
 
                 action_leave = QAction(self.tr("Leave the currency"), menu)
                 menu.addAction(action_leave)
@@ -139,8 +140,8 @@ class NavigationController(QObject):
 
     @asyncify
     async def publish_uid(self, connection):
-        password = await self.password_asker.async_exec()
-        if self.password_asker.result() == QDialog.Rejected:
+        password = await PasswordAskerDialog(connection).async_exec()
+        if not password:
             return
         result = await self.account.send_selfcert(password, self.community)
         if result[0]:

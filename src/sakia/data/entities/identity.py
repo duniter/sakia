@@ -12,7 +12,7 @@ class Identity:
     signature = attr.ib(convert=str, default="", cmp=False, hash=False)
     # Mediantime of the block referenced by blockstamp
     timestamp = attr.ib(convert=int, default=0, cmp=False, hash=False)
-    written_on = attr.ib(convert=int, default=0, cmp=False, hash=False)
+    written = attr.ib(convert=bool, default=False, cmp=False, hash=False)
     revoked_on = attr.ib(convert=int, default=0, cmp=False, hash=False)
     outdistanced = attr.ib(convert=bool, default=True, cmp=False, hash=False)
     member = attr.ib(validator=attr.validators.instance_of(bool), default=False, cmp=False, hash=False)

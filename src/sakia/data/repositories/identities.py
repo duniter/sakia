@@ -31,7 +31,7 @@ class IdentitiesRepo:
         self._conn.execute("""UPDATE identities SET
                               signature=?,
                               timestamp=?,
-                              written_on=?,
+                              written=?,
                               revoked_on=?,
                               outdistanced=?,
                               member=?,

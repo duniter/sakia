@@ -97,9 +97,14 @@ class IdentitiesService(QObject):
                 identity = await self.load_requirements(identity)
             # We save connections pubkeys
             if identity.pubkey in self._connections_processor.pubkeys():
+                identity.written = True
                 self._identities_processor.insert_or_update_identity(identity)
         except errors.DuniterError as e:
             logging.debug(str(e))
+            if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
+                identity.written = False
+                if identity.pubkey in self._connections_processor.pubkeys():
+                    self._identities_processor.insert_or_update_identity(identity)
         except NoPeerAvailable as e:
             logging.debug(str(e))
         return identity
@@ -127,8 +132,15 @@ class IdentitiesService(QObject):
                 # We save connections pubkeys
                 if identity.pubkey in self._connections_processor.pubkeys():
                     self._certs_processor.insert_or_update_certification(cert)
+
+            identity.written = True
+            if identity.pubkey in self._connections_processor.pubkeys():
+                self._identities_processor.insert_or_update_identity(identity)
         except errors.DuniterError as e:
             if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
+                identity.written = False
+                if identity.pubkey in self._connections_processor.pubkeys():
+                    self._identities_processor.insert_or_update_identity(identity)
                 logging.debug("Certified by error : {0}".format(str(e)))
         except NoPeerAvailable as e:
             logging.debug(str(e))
@@ -156,9 +168,16 @@ class IdentitiesService(QObject):
                 # We save connections pubkeys
                 if identity.pubkey in self._connections_processor.pubkeys():
                     self._certs_processor.insert_or_update_certification(cert)
+
+            identity.written = True
+            if identity.pubkey in self._connections_processor.pubkeys():
+                self._identities_processor.insert_or_update_identity(identity)
         except errors.DuniterError as e:
             if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
                 logging.debug("Certified by error : {0}".format(str(e)))
+                identity.written = False
+                if identity.pubkey in self._connections_processor.pubkeys():
+                    self._identities_processor.insert_or_update_identity(identity)
         except NoPeerAvailable as e:
             logging.debug(str(e))
         return certifications
@@ -178,8 +197,26 @@ class IdentitiesService(QObject):
             written = self._identities_processor.get_identity(self.currency, pubkey)
             # we update every written identities known locally
             if written:
-                written.revoked_on = block.blockUID
+                written.revoked_on = block.number
         return revoked
+
+    def _parse_identities(self, block):
+        """
+        Parse revoked pubkeys found in a block and refresh local data
+
+        :param duniterpy.documents.Block block: the block received
+        :return: list of pubkeys updated
+        """
+        identities = set([])
+        for rev in block.identities:
+            identities.add(rev.pubkey)
+
+        for pubkey in identities:
+            written = self._identities_processor.get_identity(self.currency, pubkey)
+            # we update every written identities known locally
+            if written:
+                written.written = True
+        return identities
 
     def _parse_memberships(self, block):
         """
@@ -197,6 +234,7 @@ class IdentitiesService(QObject):
                     identity.membership_written_on = block.number
                     identity.membership_type = "IN"
                     identity.membership_buid = ms.membership_ts
+                    identity.written = True
                     self._identities_processor.insert_or_update_identity(identity)
                     # If the identity was not member
                     # it can become one
@@ -209,6 +247,7 @@ class IdentitiesService(QObject):
                 identity.membership_written_on = block.number
                 identity.membership_type = "OUT"
                 identity.membership_buid = ms.membership_ts
+                identity.written = True
                 self._identities_processor.insert_or_update_identity(identity)
                 # If the identity was a member
                 # it can stop to be one
@@ -233,6 +272,7 @@ class IdentitiesService(QObject):
             # if we have are a target or a source of the certification
             for identity in connections_identities:
                 if cert.pubkey_from == identity.pubkey or cert.pubkey_to in identity.pubkey:
+                    identity.written = True
                     timestamp = await self._blockchain_processor.timestamp(self.currency, cert.timestamp)
                     self._certs_processor.create_or_update_certification(self.currency, cert, timestamp, block.blockUID)
                     need_refresh.append(identity)
@@ -276,6 +316,7 @@ class IdentitiesService(QObject):
         """
         self._parse_revocations(block)
         need_refresh = []
+        need_refresh += self._parse_identities(block)
         need_refresh += self._parse_memberships(block)
         need_refresh += await self._parse_certifications(block)
         return set(need_refresh)
