@@ -33,10 +33,10 @@ class TransferModel(QObject):
         :rtype: int
         """
         dividend, base = self._blockchain_processor.last_ud(self.connection.currency)
-        amount = rel_value * dividend * pow(10, base)
+        amount = rel_value * dividend
         # amount is rounded to the nearest power of 10 depending of last ud base
-        rounded = int(pow(10, base) * round(float(amount) / pow(10, base)))
-        return rounded / 100
+        # rounded = int(pow(10, base) * round(float(amount) / pow(10, base)))
+        return int(amount) / 100
 
     def quant_to_rel(self, amount):
         """
@@ -45,7 +45,7 @@ class TransferModel(QObject):
         :rtype: float
         """
         dividend, base = self._blockchain_processor.last_ud(self.connection.currency)
-        relative = amount * 100 / (dividend * pow(10, base))
+        relative = amount * 100 / dividend
         return relative
 
     def wallet_value(self):
@@ -65,7 +65,6 @@ class TransferModel(QObject):
         """
         Get the value of the current referential
         """
-
         localized = self.app.current_ref.instance(amount, self.connection.currency, self.app).diff_localized(True, True)
         return localized
 
@@ -92,7 +91,7 @@ class TransferModel(QObject):
         """
 
         result = await self.app.documents_service.send_money(self.connection, password,
-                                                           recipient, amount, amount_base, comment)
+                                                             recipient, amount, amount_base, comment)
         self.app.db.commit()
         return result
 

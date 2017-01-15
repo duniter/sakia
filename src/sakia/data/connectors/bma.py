@@ -17,18 +17,21 @@ async def parse_responses(responses):
     result = (False, "")
     for r in responses:
         if not result[0]:
-            if isinstance(r, BaseException):
-                result = (False, str(r))
-            elif r.status == 400:
-                error = await r.text()
-                try:
-                    result = (False, errors.DuniterError(bma.parse_error(error)).message)
-                except jsonschema.ValidationError:
-                    result = (False, error)
-            elif r.status == 200:
-                result = (True, (await r.json()))
-            elif not result[0]:
-                result = (False, (await r.text()))
+            try:
+                if isinstance(r, BaseException):
+                    result = (False, str(r))
+                elif r.status == 400:
+                    error = await r.text()
+                    try:
+                        result = (False, errors.DuniterError(bma.parse_error(error)).message)
+                    except jsonschema.ValidationError:
+                        result = (False, error)
+                elif r.status == 200:
+                    result = (True, (await r.json()))
+                elif not result[0]:
+                    result = (False, (await r.text()))
+            except BaseException as e:
+                result = (False, str(e))
         else:
             await r.release()
     return result
