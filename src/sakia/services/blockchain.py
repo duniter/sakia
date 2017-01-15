@@ -33,6 +33,9 @@ class BlockchainService(QObject):
         self._sources_service = sources_service
         self._logger = logging.getLogger('sakia')
 
+    def handle_new_blocks(self, blocks):
+        self._blockchain_processor.handle_new_blocks(self.currency, blocks)
+
     async def handle_blockchain_progress(self, network_blockstamp):
         """
         Handle a new current block uid
@@ -48,7 +51,7 @@ class BlockchainService(QObject):
             if len(blocks) > 0:
                 identities = await self._identities_service.handle_new_blocks(blocks)
                 changed_tx, new_tx, new_dividends = await self._transactions_service.handle_new_blocks(blocks)
-                self._blockchain_processor.handle_new_blocks(self.currency, blocks)
+                self.handle_new_blocks(blocks)
                 self.app.db.commit()
                 for tx in changed_tx:
                     self.app.transaction_state_changed.emit(tx)

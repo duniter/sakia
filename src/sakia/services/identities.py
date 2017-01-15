@@ -21,6 +21,7 @@ class IdentitiesService(QObject):
         :param sakia.data.processors.IdentitiesProcessor identities_processor: the identities processor for given currency
         :param sakia.data.processors.CertificationsProcessor certs_processor: the certifications processor for given currency
         :param sakia.data.processors.BlockchainProcessor blockchain_processor: the blockchain processor for given currency
+        :param sakia.data.processors.ConnectionsProcessor connections_processor: the connections processor
         :param sakia.data.connectors.BmaConnector bma_connector: The connector to BMA API
         """
         super().__init__()
@@ -66,7 +67,7 @@ class IdentitiesService(QObject):
             return 0
 
     def _get_connections_identities(self):
-        connections = self._connections_processor.connections_to(self.currency)
+        connections = self._connections_processor.connections_with_uids(self.currency)
         identities = []
         for c in connections:
             identities.append(self._identities_processor.get_identity(self.currency, c.pubkey))
@@ -216,7 +217,7 @@ class IdentitiesService(QObject):
 
         return need_refresh
 
-    def _parse_certifications(self, block):
+    async def _parse_certifications(self, block):
         """
         Parse certified pubkeys found in a block and refresh local data
         This method only creates certifications if one of both identities is
@@ -232,7 +233,8 @@ class IdentitiesService(QObject):
             # if we have are a target or a source of the certification
             for identity in connections_identities:
                 if cert.pubkey_from == identity.pubkey or cert.pubkey_to in identity.pubkey:
-                    self._certs_processor.create_certification(self.currency, cert, block.blockUID)
+                    timestamp = await self._blockchain_processor.timestamp(self.currency, cert.timestamp)
+                    self._certs_processor.create_or_update_certification(self.currency, cert, timestamp, block.blockUID)
                     need_refresh.append(identity)
         return need_refresh
 
@@ -261,7 +263,7 @@ class IdentitiesService(QObject):
             self._logger.debug(str(e))
         return identity
 
-    def parse_block(self, block):
+    async def parse_block(self, block):
         """
         Parse a block to refresh local data
         :param block:
@@ -270,7 +272,7 @@ class IdentitiesService(QObject):
         self._parse_revocations(block)
         need_refresh = []
         need_refresh += self._parse_memberships(block)
-        need_refresh += self._parse_certifications(block)
+        need_refresh += await self._parse_certifications(block)
         return set(need_refresh)
 
     async def handle_new_blocks(self, blocks):
@@ -280,7 +282,7 @@ class IdentitiesService(QObject):
         """
         need_refresh = []
         for block in blocks:
-            need_refresh += self.parse_block(block)
+            need_refresh += await self.parse_block(block)
         refresh_futures = []
         # for every identity for which we need a refresh, we gather
         # requirements requests

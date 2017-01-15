@@ -61,7 +61,7 @@ class Application(QObject):
     sources_services = attr.ib(default=attr.Factory(dict))
     transactions_services = attr.ib(default=attr.Factory(dict))
     documents_service = attr.ib(default=None)
-    current_ref = attr.ib(default=Relative)
+    current_ref = attr.ib(default=Quantitative)
     _logger = attr.ib(default=attr.Factory(lambda:logging.getLogger('sakia')))
     available_version = attr.ib(init=False)
     _translator = attr.ib(init=False)

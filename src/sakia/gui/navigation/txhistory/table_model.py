@@ -102,7 +102,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                 )
             if source_index.column() == model.columns_types.index('amount'):
                 amount = self.app.current_ref.instance(source_data, model.connection.currency,
-                                                       self.app, block_data).diff_localized(False, True)
+                                                       self.app, block_data).diff_localized(False, False)
                 return amount
 
         if role == Qt.FontRole:

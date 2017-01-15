@@ -59,17 +59,26 @@ class CertificationsProcessor:
             return parameters.sig_period - (blockchain_time - certified.timestamp)
         return 0
 
-    def create_certification(self, currency, cert, blockstamp):
+    def create_or_update_certification(self, currency, cert, timestamp, blockstamp):
         """
         Creates a certification and insert it in the db
         :param duniterpy.documents.Certification cert:
+        :param int timestamp: the timestamp of the transaction
         :param duniterpy.documents.BlockUID blockstamp:
         :return: the instanciated certification
         :rtype: sakia.data.entities.Certification
         """
-        cert = Certification(currency, cert.pubkey_from, cert.pubkey_to, cert.timestamp.number,
-                             0, cert.signatures[0], blockstamp)
-        self._certifications_repo.insert(cert)
+        cert = Certification(currency=currency,
+                             certifier=cert.pubkey_from,
+                             certified=cert.pubkey_to,
+                             block=cert.timestamp.number,
+                             timestamp=timestamp,
+                             signature=cert.signatures[0],
+                             written_on=blockstamp.number)
+        try:
+            self._certifications_repo.insert(cert)
+        except sqlite3.IntegrityError:
+            self._certifications_repo.update(cert)
         return cert
 
     def insert_or_update_certification(self, cert):
