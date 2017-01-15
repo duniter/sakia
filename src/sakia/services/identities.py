@@ -259,6 +259,11 @@ class IdentitiesService(QObject):
             # We save connections pubkeys
             if identity.pubkey in self._connections_processor.pubkeys():
                 self._identities_processor.insert_or_update_identity(identity)
+        except errors.DuniterError as e:
+            if e.ucode == errors.NO_MEMBER_MATCHING_PUB_OR_UID:
+                pass
+            else:
+                self._logger.debug(str(e))
         except NoPeerAvailable as e:
             self._logger.debug(str(e))
         return identity

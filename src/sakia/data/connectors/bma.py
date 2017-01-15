@@ -162,7 +162,10 @@ class BmaConnector:
                         responses = await asyncio.gather(*futures, return_exceptions=True)
                         for r in responses:
                             if isinstance(r, errors.DuniterError):
-                                data_hash = hash(r.ucode)
+                                if r.ucode == errors.HTTP_LIMITATION:
+                                    self._logger.debug("Exception in responses : " + r.message)
+                                else:
+                                    data_hash = hash(r.ucode)
                             elif isinstance(r, BaseException):
                                 self._logger.debug("Exception in responses : " + str(r))
                                 continue
@@ -197,6 +200,12 @@ class BmaConnector:
                 async with aiohttp.ClientSession() as session:
                     json_data = await request(endpoint.conn_handler(session), **req_args)
                     return json_data
+            except errors.DuniterError as e:
+                if e.ucode == errors.HTTP_LIMITATION:
+                    self._logger.debug(str(e))
+                    tries += 1
+                else:
+                    raise
             except (ClientError, ServerDisconnectedError, gaierror,
                     asyncio.TimeoutError, ValueError, jsonschema.ValidationError) as e:
                 self._logger.debug(str(e))
