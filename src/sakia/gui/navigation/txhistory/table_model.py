@@ -49,7 +49,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
         return in_period(date)
 
     def columnCount(self, parent):
-        return self.sourceModel().columnCount(None) - 5
+        return self.sourceModel().columnCount(None) - 6
 
     def setSourceModel(self, source_model):
         self.app = source_model.app
@@ -186,7 +186,8 @@ class HistoryTableModel(QAbstractTableModel):
             'txid',
             'pubkey',
             'block_number',
-            'txhash'
+            'txhash',
+            'raw_data'
         )
 
         self.column_headers = (
@@ -259,7 +260,7 @@ class HistoryTableModel(QAbstractTableModel):
 
         return (date_ts, sender, amount,
                 transfer.comment, transfer.state, txid,
-                transfer.issuer, block_number, transfer.sha_hash)
+                transfer.issuer, block_number, transfer.sha_hash, transfer)
 
     def data_sent(self, transfer):
         """
@@ -279,7 +280,7 @@ class HistoryTableModel(QAbstractTableModel):
         date_ts = transfer.timestamp
         txid = transfer.txid
         return (date_ts, receiver, amount, transfer.comment, transfer.state, txid,
-                transfer.receiver, block_number, transfer.sha_hash)
+                transfer.receiver, block_number, transfer.sha_hash, transfer)
 
     def data_dividend(self, dividend):
         """
@@ -298,7 +299,7 @@ class HistoryTableModel(QAbstractTableModel):
 
         date_ts = dividend.timestamp
         return (date_ts, receiver, amount, "", HistoryTableModel.DIVIDEND, 0,
-                receiver, block_number, "")
+                dividend.pubkey, block_number, "", dividend)
 
     def init_transfers(self):
         self.beginResetModel()

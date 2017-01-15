@@ -68,8 +68,7 @@ class TxHistoryModel(QObject):
             pubkey = self.table_model.sourceModel().data(pubkey_index, Qt.DisplayRole)
 
             identity = self.identities_service.get_identity(pubkey)
-
-            transfer = self.table_model.sourceModel().transfers()[source_index.row()]
+            transfer = self._model.transfers_data[source_index.row()][self._model.columns_types.index('raw_data')]
             return True, identity, transfer
         return False, None, None
 
