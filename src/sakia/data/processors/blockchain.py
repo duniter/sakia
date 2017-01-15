@@ -26,9 +26,9 @@ class BlockchainProcessor:
         return cls(app.db.blockchains_repo,
                    BmaConnector(NodesProcessor(app.db.nodes_repo), app.parameters))
 
-    async def timestamp(self, currency, blockstamp):
+    async def timestamp(self, currency, block_number):
         try:
-            block = await self._bma_connector.get(currency, bma.blockchain.block, {'number': blockstamp.number})
+            block = await self._bma_connector.get(currency, bma.blockchain.block, {'number': block_number})
             if block:
                 return block['medianTime']
         except NoPeerAvailable as e:

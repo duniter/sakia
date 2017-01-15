@@ -24,6 +24,7 @@ class InformationsController(QObject):
         super().__init__(parent)
         self.view = view
         self.model = model
+        self._logger = logging.getLogger('sakia')
 
     @property
     def informations_view(self):
@@ -85,13 +86,13 @@ class InformationsController(QObject):
             all_data = {**simple_data, **localized_data}
             self.view.set_simple_informations(all_data, InformationsView.CommunityState.READY)
         except NoPeerAvailable as e:
-            logging.debug(str(e))
+            self._logger.debug(str(e))
             self.view.set_simple_informations(all_data, InformationsView.CommunityState.OFFLINE)
         except errors.DuniterError as e:
             if e.ucode == errors.BLOCK_NOT_FOUND:
                 self.view.set_simple_informations(all_data, InformationsView.CommunityState.NOT_INIT)
             else:
-                raise
+                self._logger.debug(str(e))
 
         self.view.set_general_text(localized_data)
         self.view.set_rules_text(localized_data)

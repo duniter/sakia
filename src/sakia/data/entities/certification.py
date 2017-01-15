@@ -8,6 +8,6 @@ class Certification:
     certifier = attr.ib(convert=str)
     certified = attr.ib(convert=str)
     block = attr.ib(convert=int)
-    timestamp = attr.ib(convert=int)
+    timestamp = attr.ib(convert=int, cmp=False)
     signature = attr.ib(convert=str, cmp=False, hash=False)
     written_on = attr.ib(convert=int, default=0, cmp=False, hash=False)

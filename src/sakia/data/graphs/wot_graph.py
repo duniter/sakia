@@ -28,6 +28,10 @@ class WoTGraph(BaseGraph):
 
         certifier_list, certified_list = await asyncio.gather(*[certifier_coro, certified_coro])
 
+        certified_list, certified_list = await self.identities_service.load_certs_in_lookup(center_identity,
+                                                                                            certifier_list,
+                                                                                            certified_list)
+
         # populate graph with certifiers-of
         certifier_coro = asyncio.ensure_future(self.add_certifier_list(certifier_list,
                                                                        center_identity, connection_identity))

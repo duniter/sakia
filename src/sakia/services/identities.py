@@ -90,7 +90,8 @@ class IdentitiesService(QObject):
                     blockstamp = BlockUID(ms["blockNumber"], ms['blockHash'])
                     membership_data = ms
             if membership_data:
-                identity.membership_timestamp = await self._blockchain_processor.timestamp(self.currency, blockstamp)
+                identity.membership_timestamp = await self._blockchain_processor.timestamp(self.currency,
+                                                                                           blockstamp.number)
                 identity.membership_buid = blockstamp
                 identity.membership_type = ms["membership"]
                 identity.membership_written_on = ms["written"]
@@ -108,6 +109,53 @@ class IdentitiesService(QObject):
         except NoPeerAvailable as e:
             logging.debug(str(e))
         return identity
+
+    async def load_certs_in_lookup(self, identity, certifiers, certified):
+        """
+        :param sakia.data.entities.Identity identity: the identity
+        :param sakia.data.entities.Certification certifiers: the list of certifiers got in /wot/certifiers-of
+        :param sakia.data.entities.Certification certified: the list of certified got in /wot/certified-by
+        """
+        try:
+            lookup_data = await self._bma_connector.get(self.currency, bma.wot.lookup,
+                                                 {'search': identity.pubkey})
+            for result in lookup_data['results']:
+                if result["pubkey"] == identity.pubkey:
+                    for uid_data in result['uids']:
+                        if uid_data["uid"] == identity.uid:
+                            for other_data in uid_data["others"]:
+                                cert = Certification(currency=self.currency,
+                                                     certified=identity.pubkey,
+                                                     certifier=other_data["pubkey"],
+                                                     block=other_data["meta"]["block_number"],
+                                                     timestamp=0,
+                                                     signature=other_data['signature'])
+                                if cert not in certifiers:
+                                    cert.timestamp = await self._blockchain_processor.timestamp(self.currency,
+                                                                                                cert.block)
+                                    certifiers.append(cert)
+                                    # We save connections pubkeys
+                                    if identity.pubkey in self._connections_processor.pubkeys():
+                                        self._certs_processor.insert_or_update_certification(cert)
+                for signed_data in result["signed"]:
+                    cert = Certification(currency=self.currency,
+                                         certified=signed_data["pubkey"],
+                                         certifier=identity.pubkey,
+                                         block=signed_data["cert_time"]["block"],
+                                         timestamp=0,
+                                         signature=signed_data['signature'])
+                    if cert not in certified:
+                        certified.append(cert)
+                        # We save connections pubkeys
+                        if identity.pubkey in self._connections_processor.pubkeys():
+                            cert.timestamp = await self._blockchain_processor.timestamp(self.currency,
+                                                                                        cert.block)
+                            self._certs_processor.insert_or_update_certification(cert)
+        except errors.DuniterError as e:
+            logging.debug("Certified by error : {0}".format(str(e)))
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
+        return certifiers, certified
 
     async def load_certifiers_of(self, identity):
         """
@@ -273,7 +321,7 @@ class IdentitiesService(QObject):
             for identity in connections_identities:
                 if cert.pubkey_from == identity.pubkey or cert.pubkey_to in identity.pubkey:
                     identity.written = True
-                    timestamp = await self._blockchain_processor.timestamp(self.currency, cert.timestamp)
+                    timestamp = await self._blockchain_processor.timestamp(self.currency, cert.timestamp.number)
                     self._certs_processor.create_or_update_certification(self.currency, cert, timestamp, block.blockUID)
                     need_refresh.append(identity)
         return need_refresh
@@ -290,7 +338,7 @@ class IdentitiesService(QObject):
             identity_data = requirements['identities'][0]
             identity.uid = identity_data["uid"]
             identity.blockstamp = block_uid(identity_data["meta"]["timestamp"])
-            identity.timestamp = await self._blockchain_processor.timestamp(self.currency, identity.blockstamp)
+            identity.timestamp = await self._blockchain_processor.timestamp(self.currency, identity.blockstamp.number)
             identity.outdistanced = identity_data["outdistanced"]
             identity.member = identity_data["membershipExpiresIn"] > 0 and not identity_data["outdistanced"]
             median_time = self._blockchain_processor.time(self.currency)
