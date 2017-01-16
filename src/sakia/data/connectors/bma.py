@@ -167,6 +167,7 @@ class BmaConnector:
                             if isinstance(r, errors.DuniterError):
                                 if r.ucode == errors.HTTP_LIMITATION:
                                     self._logger.debug("Exception in responses : " + r.message)
+                                    continue
                                 else:
                                     data_hash = hash(r.ucode)
                             elif isinstance(r, BaseException):

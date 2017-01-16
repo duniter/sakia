@@ -235,17 +235,15 @@ class IdentitiesService(QObject):
         Parse revoked pubkeys found in a block and refresh local data
 
         :param duniterpy.documents.Block block: the block received
-        :return: list of pubkeys updated
+        :return: list of identities updated
         """
-        revoked = set([])
-        for rev in block.revoked:
-            revoked.add(rev.pubkey)
-
-        for pubkey in revoked:
-            written = self._identities_processor.get_identity(self.currency, pubkey)
-            # we update every written identities known locally
-            if written:
-                written.revoked_on = block.number
+        revoked = []
+        connections_identities = self._get_connections_identities()
+        for idty in connections_identities:
+            for rev in block.revoked:
+                if rev.pubkey == idty.pubkey:
+                    idty.revoked_on = block.number
+                    revoked.append(idty)
         return revoked
 
     def _parse_identities(self, block):
@@ -253,17 +251,15 @@ class IdentitiesService(QObject):
         Parse revoked pubkeys found in a block and refresh local data
 
         :param duniterpy.documents.Block block: the block received
-        :return: list of pubkeys updated
+        :return: list of identities updated
         """
-        identities = set([])
-        for rev in block.identities:
-            identities.add(rev.pubkey)
-
-        for pubkey in identities:
-            written = self._identities_processor.get_identity(self.currency, pubkey)
-            # we update every written identities known locally
-            if written:
-                written.written = True
+        identities = []
+        connections_identities = self._get_connections_identities()
+        for idty in connections_identities:
+            for idty_doc in block.identities:
+                if idty_doc.pubkey == idty.pubkey:
+                    idty.written = True
+                    identities.append(idty)
         return identities
 
     def _parse_memberships(self, block):

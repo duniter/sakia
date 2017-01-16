@@ -7,7 +7,7 @@ import jsonschema
 from aiohttp.errors import ClientError, DisconnectedError
 from aiohttp.errors import ClientResponseError
 from PyQt5.QtCore import QObject
-import aiohttp
+import logging
 
 
 class RevocationModel(QObject):
@@ -22,6 +22,7 @@ class RevocationModel(QObject):
 
         self.revocation_document = None
         self.revoked_identity = None
+        self._logger = logging.getLogger('sakia')
 
     def load_revocation(self, path):
         """

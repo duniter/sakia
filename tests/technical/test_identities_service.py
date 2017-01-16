@@ -1,5 +1,6 @@
-from sakia.data.entities import Identity
-from duniterpy.documents.certification import Certification
+from sakia.data.entities import Identity, Connection
+from duniterpy.documents import Certification, BlockUID
+
 import pytest
 
 
@@ -32,3 +33,34 @@ async def test_new_block_with_certs(application_with_one_connection, fake_server
     assert len(certs_after_parse) == len(certs_after_send)
     assert certs_after_parse[0].written_on == fake_server.forge.blocks[-3].number
     await fake_server.close()
+
+
+@pytest.mark.asyncio
+async def test_new_block_with_idty(application_with_one_connection, john, simple_fake_server):
+    john_identity = Identity(currency=simple_fake_server.forge.currency,
+                            pubkey=john.key.pubkey,
+                            uid=john.uid,
+                            blockstamp=john.blockstamp,
+                            signature=john.identity().signatures[0])
+    john_connection = Connection(currency="test_currency",
+                      pubkey=john.key.pubkey,
+                      salt=john.salt, uid=john.uid,
+                      scrypt_N=4096, scrypt_r=4, scrypt_p=2,
+                      blockstamp=john.blockstamp)
+    application_with_one_connection.db.connections_repo.insert(john_connection)
+    application_with_one_connection.db.identities_repo.insert(john_identity)
+    application_with_one_connection.instanciate_services()
+
+    john_found = application_with_one_connection.db.identities_repo.get_one(pubkey=john_identity.pubkey)
+    assert john_found.written is False
+    simple_fake_server.forge.forge_block()
+    simple_fake_server.forge.push(john.identity())
+    simple_fake_server.forge.push(john.join(BlockUID.empty()))
+    simple_fake_server.forge.forge_block()
+    simple_fake_server.forge.forge_block()
+    new_blocks = simple_fake_server.forge.blocks[-3:]
+    await application_with_one_connection.identities_service.handle_new_blocks(
+        new_blocks)
+    john_found = application_with_one_connection.db.identities_repo.get_one(pubkey=john_identity.pubkey)
+    assert john_found.written is True
+    await simple_fake_server.close()

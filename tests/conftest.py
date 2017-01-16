@@ -105,6 +105,13 @@ def bob():
 
 
 @pytest.fixture
+def john(simple_fake_server):
+    # John is not written in the blockchain
+    return mirage.User.create("test_currency", "john", "johnsalt", "johnpassword",
+                              simple_fake_server.forge.blocks[-1].blockUID)
+
+
+@pytest.fixture
 def wrong_bob_uid():
     return mirage.User.create("test_currency", "wrong_bob", "bobsalt", "bobpassword", BlockUID.empty())
 
