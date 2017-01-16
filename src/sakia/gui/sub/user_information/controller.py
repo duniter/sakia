@@ -49,7 +49,7 @@ class UserInformationController(QObject):
         tabwidget = QTabWidget(dialog)
         layout.addWidget(tabwidget)
 
-        identities = await app.identities_services[currency].lookup(pubkey)
+        identities = await app.identities_service.lookup(pubkey)
         for i in identities:
             user_info = cls.create(parent, app, currency, i)
             user_info.refresh()

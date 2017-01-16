@@ -6,3 +6,4 @@ duniter-mirage
 duniterpy>=0.40
 pytest
 pytest-asyncio
+pyyaml

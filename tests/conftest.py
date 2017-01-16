@@ -67,18 +67,31 @@ def user_parameters():
 @pytest.fixture
 def application(event_loop, meta_repo, sakia_options, app_data, user_parameters):
     app = Application(qapp=get_application(),
-                       loop=event_loop,
-                       options=sakia_options,
-                       app_data=app_data,
-                       parameters=user_parameters,
-                       db=meta_repo)
+                      loop=event_loop,
+                      options=sakia_options,
+                      app_data=app_data,
+                      parameters=user_parameters,
+                      db=meta_repo,
+                      currency="test_currency")
     app.documents_service = DocumentsService.instanciate(app)
     return app
 
 
 @pytest.fixture
-def fake_server(event_loop):
-    return event_loop.run_until_complete(mirage.Node.start(None, "test_currency", "12356", "123456", event_loop))
+def fake_server(application, event_loop):
+    server = event_loop.run_until_complete(mirage.Node.start(None, "test_currency", "12356", "123456", event_loop))
+
+    application.db.nodes_repo.insert(Node(currency=server.forge.currency,
+                                          pubkey=server.forge.key.pubkey,
+                                          endpoints=server.peer_doc().endpoints,
+                                          peer_blockstamp=server.peer_doc().blockUID,
+                                          uid="",
+                                          current_buid=BlockUID.empty(),
+                                          current_ts=0,
+                                          state=Node.ONLINE,
+                                          software="duniter",
+                                          version="0.40.2"))
+    return server
 
 
 @pytest.fixture
@@ -180,16 +193,6 @@ def application_with_one_connection(application, simple_fake_server, bob):
                             membership_written_on=simple_fake_server.forge.blocks[bob_ms.written_on].number)
     application.db.identities_repo.insert(bob_identity)
     application.instanciate_services()
-    application.db.nodes_repo.insert(Node(currency=simple_fake_server.forge.currency,
-                                          pubkey=simple_fake_server.forge.key.pubkey,
-                                          endpoints=simple_fake_server.peer_doc().endpoints,
-                                          peer_blockstamp=simple_fake_server.peer_doc().blockUID,
-                                          uid="",
-                                          current_buid=BlockUID(current_block.number, current_block.sha_hash),
-                                          current_ts=current_block.mediantime,
-                                          state=Node.ONLINE,
-                                          software="duniter",
-                                          version="0.40.2"))
     application.switch_language()
 
     return application

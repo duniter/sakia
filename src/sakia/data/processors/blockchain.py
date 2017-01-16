@@ -26,6 +26,9 @@ class BlockchainProcessor:
         return cls(app.db.blockchains_repo,
                    BmaConnector(NodesProcessor(app.db.nodes_repo), app.parameters))
 
+    def initialized(self, currency):
+        return self._repo.get_one(currency=currency) is not None
+
     async def timestamp(self, currency, block_number):
         try:
             block = await self._bma_connector.get(currency, bma.blockchain.block, {'number': block_number})
@@ -139,7 +142,6 @@ class BlockchainProcessor:
             block_doc = Block.from_signed_raw("{0}{1}\n".format(block['raw'], block['signature']))
             return block_doc
 
-
     async def new_blocks_with_identities(self, currency):
         """
         Get blocks more recent than local blockuid
@@ -209,7 +211,7 @@ class BlockchainProcessor:
             blockchain = Blockchain(currency=currency)
             log_stream("Requesting blockchain parameters")
             try:
-                parameters = await self._bma_connector.get(currency, bma.blockchain.parameters, verify=False)
+                parameters = await self._bma_connector.get(currency, bma.blockchain.parameters)
                 blockchain.parameters.ms_validity = parameters['msValidity']
                 blockchain.parameters.avg_gen_time = parameters['avgGenTime']
                 blockchain.parameters.c = parameters['c']
@@ -233,7 +235,7 @@ class BlockchainProcessor:
 
         log_stream("Requesting current block")
         try:
-            current_block = await self._bma_connector.get(currency, bma.blockchain.current, verify=False)
+            current_block = await self._bma_connector.get(currency, bma.blockchain.current)
             signed_raw = "{0}{1}\n".format(current_block['raw'], current_block['signature'])
             block = Block.from_signed_raw(signed_raw)
             blockchain.current_buid = block.blockUID
@@ -244,7 +246,7 @@ class BlockchainProcessor:
                 raise
 
         log_stream("Requesting blocks with dividend")
-        with_ud = await self._bma_connector.get(currency, bma.blockchain.ud, verify=False)
+        with_ud = await self._bma_connector.get(currency, bma.blockchain.ud)
         blocks_with_ud = with_ud['result']['blocks']
 
         if len(blocks_with_ud) > 0:
@@ -253,7 +255,7 @@ class BlockchainProcessor:
                 index = max(len(blocks_with_ud) - 1, 0)
                 block_number = blocks_with_ud[index]
                 block_with_ud = await self._bma_connector.get(currency, bma.blockchain.block,
-                                                              req_args={'number': block_number}, verify=False)
+                                                              req_args={'number': block_number})
                 if block_with_ud:
                     blockchain.last_members_count = block_with_ud['membersCount']
                     blockchain.last_ud = block_with_ud['dividend']
@@ -269,7 +271,7 @@ class BlockchainProcessor:
                 index = max(len(blocks_with_ud) - 2, 0)
                 block_number = blocks_with_ud[index]
                 block_with_ud = await self._bma_connector.get(currency, bma.blockchain.block,
-                                                              req_args={'number': block_number}, verify=False)
+                                                              req_args={'number': block_number})
                 blockchain.previous_mass = block_with_ud['monetaryMass']
                 blockchain.previous_members_count = block_with_ud['membersCount']
                 blockchain.previous_ud = block_with_ud['dividend']

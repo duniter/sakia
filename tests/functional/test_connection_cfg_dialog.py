@@ -35,10 +35,6 @@ async def test_register_empty_blockchain(application, fake_server, bob):
             connection_config_dialog.view.close()
 
     async def exec_test():
-        QTest.keyClicks(connection_config_dialog.view.edit_server, fake_server.peer_doc().endpoints[0].ipv4)
-        connection_config_dialog.view.spinbox_port.setValue(fake_server.peer_doc().endpoints[0].port)
-        assert connection_config_dialog.view.stacked_pages.currentWidget() == connection_config_dialog.view.page_node
-        await asyncio.sleep(0.6)
         QTest.mouseClick(connection_config_dialog.view.button_register, Qt.LeftButton)
         await asyncio.sleep(0.6)
 
@@ -65,9 +61,6 @@ async def test_connect(application, simple_fake_server, bob):
             connection_config_dialog.view.close()
 
     async def exec_test():
-        QTest.keyClicks(connection_config_dialog.view.edit_server, simple_fake_server.peer_doc().endpoints[0].ipv4)
-        connection_config_dialog.view.spinbox_port.setValue(simple_fake_server.peer_doc().endpoints[0].port)
-        assert connection_config_dialog.view.stacked_pages.currentWidget() == connection_config_dialog.view.page_node
         QTest.mouseClick(connection_config_dialog.view.button_connect, Qt.LeftButton)
         await asyncio.sleep(1)
 
@@ -94,10 +87,6 @@ async def test_connect_wrong_uid(application, simple_fake_server, wrong_bob_uid,
             connection_config_dialog.view.close()
 
     async def exec_test():
-        await asyncio.sleep(1)
-        QTest.keyClicks(connection_config_dialog.view.edit_server, simple_fake_server.peer_doc().endpoints[0].ipv4)
-        connection_config_dialog.view.spinbox_port.setValue(simple_fake_server.peer_doc().endpoints[0].port)
-        assert connection_config_dialog.view.stacked_pages.currentWidget() == connection_config_dialog.view.page_node
         QTest.mouseClick(connection_config_dialog.view.button_connect, Qt.LeftButton)
         await asyncio.sleep(1)
         assert connection_config_dialog.view.stacked_pages.currentWidget() == connection_config_dialog.view.page_connection
@@ -122,10 +111,6 @@ async def test_connect_wrong_pubkey(application, simple_fake_server, wrong_bob_p
             connection_config_dialog.view.close()
 
     async def exec_test():
-        await asyncio.sleep(1)
-        QTest.keyClicks(connection_config_dialog.view.edit_server, simple_fake_server.peer_doc().endpoints[0].ipv4)
-        connection_config_dialog.view.spinbox_port.setValue(simple_fake_server.peer_doc().endpoints[0].port)
-        assert connection_config_dialog.view.stacked_pages.currentWidget() == connection_config_dialog.view.page_node
         QTest.mouseClick(connection_config_dialog.view.button_connect, Qt.LeftButton)
         await asyncio.sleep(1)
         assert connection_config_dialog.view.stacked_pages.currentWidget() == connection_config_dialog.view.page_connection

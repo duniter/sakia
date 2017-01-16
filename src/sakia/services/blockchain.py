@@ -33,6 +33,9 @@ class BlockchainService(QObject):
         self._sources_service = sources_service
         self._logger = logging.getLogger('sakia')
 
+    def initialized(self):
+        return self._blockchain_processor.initialized(self.app.currency)
+
     def handle_new_blocks(self, blocks):
         self._blockchain_processor.handle_new_blocks(self.currency, blocks)
 

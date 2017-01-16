@@ -124,9 +124,7 @@ class ConnectionConfigController(QObject):
                 try:
                     self.view.button_connect.setEnabled(False)
                     self.view.button_register.setEnabled(False)
-                    await self.model.create_connection(self.view.edit_server.text(),
-                                                       self.view.spinbox_port.value(),
-                                                       self.view.checkbox_secured.isChecked())
+                    await self.model.create_connection()
                     self.password_asker = PasswordAskerDialog(self.model.connection)
                 except (DisconnectedError, ClientError, MalformedDocumentError, ValueError, TimeoutError) as e:
                     self._logger.debug(str(e))
@@ -155,7 +153,6 @@ class ConnectionConfigController(QObject):
             self.view.stacked_pages.setCurrentWidget(self.view.page_connection)
             connection_identity = await self.step_key
 
-        self.model.insert_or_update_connector()
         self.view.stacked_pages.setCurrentWidget(self.view.page_services)
         self.view.progress_bar.setValue(0)
         self.view.progress_bar.setMaximum(3)
@@ -199,8 +196,6 @@ class ConnectionConfigController(QObject):
             self._logger.debug("Validate changes")
             self.model.insert_or_update_connection()
             self.model.app.db.commit()
-            if self.model.node_connector:
-                await self.model.node_connector.session.close()
         except (NoPeerAvailable, DuniterError, StopIteration) as e:
             if not isinstance(e, StopIteration):
                 self.view.show_error(self.model.notification(), str(e))

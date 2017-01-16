@@ -1,5 +1,6 @@
 import attr
 import sqlite3
+from sakia.constants import ROOT_SERVERS
 from ..entities import Node
 from duniterpy.documents import BlockUID, endpoint
 import logging
@@ -12,6 +13,15 @@ class NodesProcessor:
     @classmethod
     def instanciate(cls, app):
         return cls(app.db.nodes_repo)
+
+    def initialize_root_nodes(self, currency):
+        if not self.nodes(currency):
+            for pubkey in ROOT_SERVERS[currency]:
+                node = Node(currency=currency,
+                            pubkey=pubkey,
+                            endpoints=ROOT_SERVERS[currency][pubkey],
+                            peer_blockstamp=BlockUID.empty())
+                self._repo.insert(node)
 
     def current_buid(self, currency):
         """

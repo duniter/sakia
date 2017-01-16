@@ -1,11 +1,6 @@
-"""
-Created on 7 févr. 2014
-
-@author: inso
-"""
-
 import attr
 import logging
+from sakia.constants import ROOT_SERVERS
 from logging import FileHandler, StreamHandler
 from logging.handlers import RotatingFileHandler
 from optparse import OptionParser
@@ -27,7 +22,7 @@ def config_path_factory():
 @attr.s()
 class SakiaOptions:
     config_path = attr.ib(default=attr.Factory(config_path_factory))
-    database = attr.ib(default="sakia")
+    currency = attr.ib(default="fakenet")
     _logger = attr.ib(default=attr.Factory(lambda: logging.getLogger('sakia')))
 
     @classmethod
@@ -51,13 +46,15 @@ class SakiaOptions:
                           action="store_true", dest="debug", default=False,
                           help="Print DEBUG messages to stdout")
 
-        parser.add_option("--database",  dest="database", default="sakia",
-                          help="Select another database filename")
+        parser.add_option("--currency",  dest="currency", default="fakenet",
+                          help="Select a currency between {0}".format(",".join(ROOT_SERVERS.keys())))
 
         (options, args) = parser.parse_args(argv)
 
-        if options.database:
-            self.database = options.database
+        if options.currency not in ROOT_SERVERS.keys():
+            raise RuntimeError("{0} is not a valid currency".format(options.currency))
+        else:
+            self.currency = options.currency
 
         if options.debug:
             self._logger.setLevel(logging.DEBUG)

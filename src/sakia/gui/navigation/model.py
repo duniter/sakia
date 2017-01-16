@@ -22,32 +22,19 @@ class NavigationModel(QObject):
         self._current_data = None
 
     def init_navigation_data(self):
-        currencies = ConnectionsProcessor.instanciate(self.app).currencies()
-        if currencies:
-            self.navigation = [
-                {
-                    'title': self.tr('Network'),
-                    'icon': ':/icons/network_icon',
-                    'component': "Network",
-                    'dependencies': {
-                        'network_service': self.app.network_services[currencies[0]],
-                    },
-                    'misc': {
-                    },
-                    'children': []
-                }
-            ]
-        else:
-            self.navigation = [
-                {
-                    'title': self.tr("No connection configured"),
-                    'component': "HomeScreen",
-                    'parameters': self.app.parameters,
-                    'dependencies': {},
-                    'misc': {},
-                    'children': []
-                }
-            ]
+        self.navigation = [
+            {
+                'title': self.tr('Network'),
+                'icon': ':/icons/network_icon',
+                'component': "Network",
+                'dependencies': {
+                    'network_service': self.app.network_service,
+                },
+                'misc': {
+                },
+                'children': []
+            }
+        ]
 
         self._current_data = self.navigation[0]
         for connection in self.app.db.connections_repo.get_all():
@@ -59,9 +46,9 @@ class NavigationModel(QObject):
             'title': connection.title(),
             'component': "Informations",
             'dependencies': {
-                'blockchain_service': self.app.blockchain_services[connection.currency],
-                'identities_service': self.app.identities_services[connection.currency],
-                'sources_service': self.app.sources_services[connection.currency],
+                'blockchain_service': self.app.blockchain_service,
+                'identities_service': self.app.identities_service,
+                'sources_service': self.app.sources_service,
                 'connection': connection,
             },
             'misc': {
@@ -74,10 +61,10 @@ class NavigationModel(QObject):
                     'component': "TxHistory",
                     'dependencies': {
                         'connection': connection,
-                        'identities_service': self.app.identities_services[connection.currency],
-                        'blockchain_service': self.app.blockchain_services[connection.currency],
-                        'transactions_service': self.app.transactions_services[connection.currency],
-                        "sources_service": self.app.sources_services[connection.currency]
+                        'identities_service': self.app.identities_service,
+                        'blockchain_service': self.app.blockchain_service,
+                        'transactions_service': self.app.transactions_service,
+                        "sources_service": self.app.sources_service
                     },
                     'misc': {
                         'connection': connection
@@ -92,8 +79,8 @@ class NavigationModel(QObject):
                 'component': "Identities",
                 'dependencies': {
                     'connection': connection,
-                    'blockchain_service': self.app.blockchain_services[connection.currency],
-                    'identities_service': self.app.identities_services[connection.currency],
+                    'blockchain_service': self.app.blockchain_service,
+                    'identities_service': self.app.identities_service,
                 },
                 'misc': {
                     'connection': connection
@@ -105,8 +92,8 @@ class NavigationModel(QObject):
                 'component': "Wot",
                 'dependencies': {
                     'connection': connection,
-                    'blockchain_service': self.app.blockchain_services[connection.currency],
-                    'identities_service': self.app.identities_services[connection.currency],
+                    'blockchain_service': self.app.blockchain_service,
+                    'identities_service': self.app.identities_service,
                 },
                 'misc': {
                     'connection': connection
@@ -138,12 +125,10 @@ class NavigationModel(QObject):
         return self.app.documents_service.generate_revokation(connection, password)
 
     def identity_published(self, connection):
-        identities_services = self.app.identities_services[connection.currency]
-        return identities_services.get_identity(connection.pubkey, connection.uid).written
+        return self.app.identities_service.get_identity(connection.pubkey, connection.uid).written
 
     def identity_is_member(self, connection):
-        identities_services = self.app.identities_services[connection.currency]
-        return identities_services.get_identity(connection.pubkey, connection.uid).member
+        return self.app.identities_services.get_identity(connection.pubkey, connection.uid).member
 
     async def remove_connection(self, connection):
         await self.app.remove_connection(connection)
