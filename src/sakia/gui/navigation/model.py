@@ -128,7 +128,7 @@ class NavigationModel(QObject):
         return self.app.identities_service.get_identity(connection.pubkey, connection.uid).written
 
     def identity_is_member(self, connection):
-        return self.app.identities_services.get_identity(connection.pubkey, connection.uid).member
+        return self.app.identities_service.get_identity(connection.pubkey, connection.uid).member
 
     async def remove_connection(self, connection):
         await self.app.remove_connection(connection)
