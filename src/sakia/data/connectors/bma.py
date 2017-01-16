@@ -17,18 +17,21 @@ async def parse_responses(responses):
     result = (False, "")
     for r in responses:
         if not result[0]:
-            if isinstance(r, BaseException):
-                result = (False, str(r))
-            elif r.status == 400:
-                error = await r.text()
-                try:
-                    result = (False, errors.DuniterError(bma.parse_error(error)).message)
-                except jsonschema.ValidationError:
-                    result = (False, error)
-            elif r.status == 200:
-                result = (True, (await r.json()))
-            elif not result[0]:
-                result = (False, (await r.text()))
+            try:
+                if isinstance(r, BaseException):
+                    result = (False, str(r))
+                elif r.status == 400:
+                    error = await r.text()
+                    try:
+                        result = (False, errors.DuniterError(bma.parse_error(error)).message)
+                    except jsonschema.ValidationError:
+                        result = (False, error)
+                elif r.status == 200:
+                    result = (True, (await r.json()))
+                elif not result[0]:
+                    result = (False, (await r.text()))
+            except BaseException as e:
+                result = (False, str(e))
         else:
             await r.release()
     return result
@@ -162,7 +165,10 @@ class BmaConnector:
                         responses = await asyncio.gather(*futures, return_exceptions=True)
                         for r in responses:
                             if isinstance(r, errors.DuniterError):
-                                data_hash = hash(r.ucode)
+                                if r.ucode == errors.HTTP_LIMITATION:
+                                    self._logger.debug("Exception in responses : " + r.message)
+                                else:
+                                    data_hash = hash(r.ucode)
                             elif isinstance(r, BaseException):
                                 self._logger.debug("Exception in responses : " + str(r))
                                 continue
@@ -197,6 +203,12 @@ class BmaConnector:
                 async with aiohttp.ClientSession() as session:
                     json_data = await request(endpoint.conn_handler(session), **req_args)
                     return json_data
+            except errors.DuniterError as e:
+                if e.ucode == errors.HTTP_LIMITATION:
+                    self._logger.debug(str(e))
+                    tries += 1
+                else:
+                    raise
             except (ClientError, ServerDisconnectedError, gaierror,
                     asyncio.TimeoutError, ValueError, jsonschema.ValidationError) as e:
                 self._logger.debug(str(e))

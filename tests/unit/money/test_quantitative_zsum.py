@@ -63,7 +63,7 @@ def test_diff_localized_with_si(application_with_one_connection, bob):
     blockchain.last_ud_base = 3
     application_with_one_connection.db.blockchains_repo.update(blockchain)
     value = referential.diff_localized(units=True, show_base=True)
-    assert value == "1,010.00 x10³ TC"
+    assert value == "1,010.00 .10³ TC"
 
 
 def test_diff_localized_no_units_no_si(application_with_one_connection, bob):
@@ -80,4 +80,4 @@ def test_diff_localized_no_units_with_si(application_with_one_connection, bob):
     blockchain.last_ud_base = 3
     application_with_one_connection.db.blockchains_repo.update(blockchain)
     value = referential.diff_localized(units=False, show_base=True)
-    assert value == "1,010.00 x10³"
+    assert value == "1,010.00 .10³"

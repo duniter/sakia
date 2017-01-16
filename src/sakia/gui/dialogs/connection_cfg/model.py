@@ -6,7 +6,7 @@ from duniterpy.key import SigningKey
 from sakia.data.entities import Connection, Identity, Node
 from sakia.data.connectors import NodeConnector
 from sakia.data.processors import ConnectionsProcessor, NodesProcessor, BlockchainProcessor, \
-    SourcesProcessor, CertificationsProcessor, TransactionsProcessor, DividendsProcessor
+    SourcesProcessor, CertificationsProcessor, TransactionsProcessor, DividendsProcessor, IdentitiesProcessor
 
 
 class ConnectionConfigModel(QObject):
@@ -26,19 +26,10 @@ class ConnectionConfigModel(QObject):
         super().__init__(parent)
         self.app = app
         self.connection = connection
-        self.node_connector = node_connector
         self.identities_processor = identities_processor
 
-    async def create_connection(self, server, port, secured):
-        node_connector = await NodeConnector.from_address(None, secured, server, port,
-                                                               user_parameters=self.app.parameters)
-        currencies = self.app.db.connections_repo.get_currencies()
-        if len(currencies) > 0 and node_connector.node.currency != currencies[0]:
-            raise ValueError("""This node is running for {0} network.<br/>
-Current database is storing {1} network.""".format(node_connector.node.currency, currencies[0]))
-        self.node_connector = node_connector
-        self.connection = Connection(self.node_connector.node.currency, "", "")
-        self.node_connector.node.state = Node.ONLINE
+    async def create_connection(self):
+        self.connection = Connection(self.app.currency, "", "")
 
     def notification(self):
         return self.app.parameters.notifications
@@ -54,9 +45,6 @@ Current database is storing {1} network.""".format(node_connector.node.currency,
         self.connection.password = password
         self.connection.pubkey = SigningKey(self.connection.salt, password, scrypt_params).pubkey
 
-    def insert_or_update_connector(self):
-        NodesProcessor(self.app.db.nodes_repo).commit_node(self.node_connector.node)
-
     def insert_or_update_connection(self):
         ConnectionsProcessor(self.app.db.connections_repo).commit_connection(self.connection)
 
@@ -70,7 +58,7 @@ Current database is storing {1} network.""".format(node_connector.node.currency,
         :return:
         """
         blockchain_processor = BlockchainProcessor.instanciate(self.app)
-        await blockchain_processor.initialize_blockchain(self.node_connector.node.currency, log_stream)
+        await blockchain_processor.initialize_blockchain(self.app.currency, log_stream)
 
     async def initialize_sources(self, log_stream):
         """
@@ -79,7 +67,7 @@ Current database is storing {1} network.""".format(node_connector.node.currency,
         :return:
         """
         sources_processor = SourcesProcessor.instanciate(self.app)
-        await sources_processor.initialize_sources(self.node_connector.node.currency, self.connection.pubkey, log_stream)
+        await sources_processor.initialize_sources(self.app.currency, self.connection.pubkey, log_stream)
 
     async def initialize_identity(self, identity, log_stream):
         """
@@ -128,81 +116,8 @@ Current database is storing {1} network.""".format(node_connector.node.currency,
         return await self.app.documents_service.broadcast_identity(self.connection, self.connection.password)
 
     async def check_registered(self):
-        """
-        Checks for the pubkey and the uid of an account on a given node
-        :return: (True if found, local value, network value)
-        """
-        identity = Identity(self.connection.currency, self.connection.pubkey, self.connection.uid)
-        found_identity = Identity(self.connection.currency, self.connection.pubkey, self.connection.uid)
-
-        def _parse_uid_lookup(data):
-            timestamp = BlockUID.empty()
-            found_uid = ""
-            for result in data['results']:
-                if result["pubkey"] == identity.pubkey:
-                    uids = result['uids']
-                    for uid_data in uids:
-                        if BlockUID.from_str(uid_data["meta"]["timestamp"]) >= timestamp:
-                            timestamp = BlockUID.from_str(uid_data["meta"]["timestamp"])
-                            found_identity.blockstamp = timestamp
-                            found_uid = uid_data["uid"]
-                            found_identity.signature = uid_data["self"]
-            return identity.uid == found_uid, identity.uid, found_uid
-
-        def _parse_pubkey_lookup(data):
-            timestamp = BlockUID.empty()
-            found_uid = ""
-            found_result = ["", ""]
-            for result in data['results']:
-                uids = result['uids']
-                for uid_data in uids:
-                    if BlockUID.from_str(uid_data["meta"]["timestamp"]) >= timestamp:
-                        timestamp = BlockUID.from_str(uid_data["meta"]["timestamp"])
-                        found_identity.blockstamp = timestamp
-                        found_uid = uid_data["uid"]
-                        found_identity.signature = uid_data["self"]
-                if found_uid == identity.uid:
-                    found_result = result['pubkey'], found_uid
-            if found_result[1] == identity.uid:
-                return identity.pubkey == found_result[0], identity.pubkey, found_result[0]
-            else:
-                return False, identity.pubkey, None
-
-        async def execute_requests(parser, search):
-            tries = 0
-            nonlocal registered
-            for endpoint in [e for e in self.node_connector.node.endpoints
-                             if isinstance(e, BMAEndpoint) or isinstance(e, SecuredBMAEndpoint)]:
-                if not registered[0] and not registered[2]:
-                    try:
-                        data = await self.node_connector.safe_request(endpoint, bma.wot.lookup,
-                                                                      req_args={'search': search},
-                                                                      proxy=self.app.parameters.proxy())
-                        if data:
-                            registered = parser(data)
-                        tries += 1
-                    except errors.DuniterError as e:
-                        if e.ucode in (errors.NO_MEMBER_MATCHING_PUB_OR_UID, errors.NO_MATCHING_IDENTITY):
-                                tries += 1
-                        else:
-                            raise
-                else:
-                    break
-
-        # cell 0 contains True if the user is already registered
-        # cell 1 contains the uid/pubkey selected locally
-        # cell 2 contains the uid/pubkey found on the network
-        registered = (False, identity.uid, None)
-        # We execute search based on pubkey
-        # And look for account UID
-        await execute_requests(_parse_uid_lookup, identity.pubkey)
-
-        # If the uid wasn't found when looking for the pubkey
-        # We look for the uid and check for the pubkey
-        if not registered[0] and not registered[2]:
-            await execute_requests(_parse_pubkey_lookup, identity.uid)
-
-        return registered, found_identity
+        identities_processor = IdentitiesProcessor.instanciate(self.app)
+        return await identities_processor.check_registered(self.connection)
 
     def key_exists(self):
         return self.connection.pubkey in ConnectionsProcessor.instanciate(self.app).pubkeys()

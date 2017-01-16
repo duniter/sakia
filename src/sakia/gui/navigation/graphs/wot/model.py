@@ -42,6 +42,14 @@ class WotModel(BaseGraphModel):
             # create empty graph instance
             self.wot_graph.offline_init(connection_identity, connection_identity)
 
+    def refresh(self, identity):
+        connection_identity = self.identities_service.get_identity(self.connection.pubkey)
+        if self.identity == connection_identity == identity:
+            # create empty graph instance
+            self.wot_graph.offline_init(connection_identity, connection_identity)
+            return True
+        return False
+
     def get_nx_graph(self):
         """
         Get nx graph of current identity wot graph

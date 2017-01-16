@@ -21,6 +21,7 @@ class IdentitiesService(QObject):
         :param sakia.data.processors.IdentitiesProcessor identities_processor: the identities processor for given currency
         :param sakia.data.processors.CertificationsProcessor certs_processor: the certifications processor for given currency
         :param sakia.data.processors.BlockchainProcessor blockchain_processor: the blockchain processor for given currency
+        :param sakia.data.processors.ConnectionsProcessor connections_processor: the connections processor
         :param sakia.data.connectors.BmaConnector bma_connector: The connector to BMA API
         """
         super().__init__()
@@ -66,7 +67,7 @@ class IdentitiesService(QObject):
             return 0
 
     def _get_connections_identities(self):
-        connections = self._connections_processor.connections_to(self.currency)
+        connections = self._connections_processor.connections_with_uids(self.currency)
         identities = []
         for c in connections:
             identities.append(self._identities_processor.get_identity(self.currency, c.pubkey))
@@ -89,19 +90,72 @@ class IdentitiesService(QObject):
                     blockstamp = BlockUID(ms["blockNumber"], ms['blockHash'])
                     membership_data = ms
             if membership_data:
-                identity.membership_timestamp = await self._blockchain_processor.timestamp(self.currency, blockstamp)
+                identity.membership_timestamp = await self._blockchain_processor.timestamp(self.currency,
+                                                                                           blockstamp.number)
                 identity.membership_buid = blockstamp
                 identity.membership_type = ms["membership"]
                 identity.membership_written_on = ms["written"]
                 identity = await self.load_requirements(identity)
             # We save connections pubkeys
             if identity.pubkey in self._connections_processor.pubkeys():
+                identity.written = True
                 self._identities_processor.insert_or_update_identity(identity)
         except errors.DuniterError as e:
             logging.debug(str(e))
+            if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
+                identity.written = False
+                if identity.pubkey in self._connections_processor.pubkeys():
+                    self._identities_processor.insert_or_update_identity(identity)
         except NoPeerAvailable as e:
             logging.debug(str(e))
         return identity
+
+    async def load_certs_in_lookup(self, identity, certifiers, certified):
+        """
+        :param sakia.data.entities.Identity identity: the identity
+        :param sakia.data.entities.Certification certifiers: the list of certifiers got in /wot/certifiers-of
+        :param sakia.data.entities.Certification certified: the list of certified got in /wot/certified-by
+        """
+        try:
+            lookup_data = await self._bma_connector.get(self.currency, bma.wot.lookup,
+                                                 {'search': identity.pubkey})
+            for result in lookup_data['results']:
+                if result["pubkey"] == identity.pubkey:
+                    for uid_data in result['uids']:
+                        if uid_data["uid"] == identity.uid:
+                            for other_data in uid_data["others"]:
+                                cert = Certification(currency=self.currency,
+                                                     certified=identity.pubkey,
+                                                     certifier=other_data["pubkey"],
+                                                     block=other_data["meta"]["block_number"],
+                                                     timestamp=0,
+                                                     signature=other_data['signature'])
+                                if cert not in certifiers:
+                                    cert.timestamp = await self._blockchain_processor.timestamp(self.currency,
+                                                                                                cert.block)
+                                    certifiers.append(cert)
+                                    # We save connections pubkeys
+                                    if identity.pubkey in self._connections_processor.pubkeys():
+                                        self._certs_processor.insert_or_update_certification(cert)
+                for signed_data in result["signed"]:
+                    cert = Certification(currency=self.currency,
+                                         certified=signed_data["pubkey"],
+                                         certifier=identity.pubkey,
+                                         block=signed_data["cert_time"]["block"],
+                                         timestamp=0,
+                                         signature=signed_data['signature'])
+                    if cert not in certified:
+                        certified.append(cert)
+                        # We save connections pubkeys
+                        if identity.pubkey in self._connections_processor.pubkeys():
+                            cert.timestamp = await self._blockchain_processor.timestamp(self.currency,
+                                                                                        cert.block)
+                            self._certs_processor.insert_or_update_certification(cert)
+        except errors.DuniterError as e:
+            logging.debug("Certified by error : {0}".format(str(e)))
+        except NoPeerAvailable as e:
+            logging.debug(str(e))
+        return certifiers, certified
 
     async def load_certifiers_of(self, identity):
         """
@@ -126,8 +180,15 @@ class IdentitiesService(QObject):
                 # We save connections pubkeys
                 if identity.pubkey in self._connections_processor.pubkeys():
                     self._certs_processor.insert_or_update_certification(cert)
+
+            identity.written = True
+            if identity.pubkey in self._connections_processor.pubkeys():
+                self._identities_processor.insert_or_update_identity(identity)
         except errors.DuniterError as e:
             if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
+                identity.written = False
+                if identity.pubkey in self._connections_processor.pubkeys():
+                    self._identities_processor.insert_or_update_identity(identity)
                 logging.debug("Certified by error : {0}".format(str(e)))
         except NoPeerAvailable as e:
             logging.debug(str(e))
@@ -155,9 +216,16 @@ class IdentitiesService(QObject):
                 # We save connections pubkeys
                 if identity.pubkey in self._connections_processor.pubkeys():
                     self._certs_processor.insert_or_update_certification(cert)
+
+            identity.written = True
+            if identity.pubkey in self._connections_processor.pubkeys():
+                self._identities_processor.insert_or_update_identity(identity)
         except errors.DuniterError as e:
             if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
                 logging.debug("Certified by error : {0}".format(str(e)))
+                identity.written = False
+                if identity.pubkey in self._connections_processor.pubkeys():
+                    self._identities_processor.insert_or_update_identity(identity)
         except NoPeerAvailable as e:
             logging.debug(str(e))
         return certifications
@@ -177,8 +245,26 @@ class IdentitiesService(QObject):
             written = self._identities_processor.get_identity(self.currency, pubkey)
             # we update every written identities known locally
             if written:
-                written.revoked_on = block.blockUID
+                written.revoked_on = block.number
         return revoked
+
+    def _parse_identities(self, block):
+        """
+        Parse revoked pubkeys found in a block and refresh local data
+
+        :param duniterpy.documents.Block block: the block received
+        :return: list of pubkeys updated
+        """
+        identities = set([])
+        for rev in block.identities:
+            identities.add(rev.pubkey)
+
+        for pubkey in identities:
+            written = self._identities_processor.get_identity(self.currency, pubkey)
+            # we update every written identities known locally
+            if written:
+                written.written = True
+        return identities
 
     def _parse_memberships(self, block):
         """
@@ -196,6 +282,7 @@ class IdentitiesService(QObject):
                     identity.membership_written_on = block.number
                     identity.membership_type = "IN"
                     identity.membership_buid = ms.membership_ts
+                    identity.written = True
                     self._identities_processor.insert_or_update_identity(identity)
                     # If the identity was not member
                     # it can become one
@@ -208,6 +295,7 @@ class IdentitiesService(QObject):
                 identity.membership_written_on = block.number
                 identity.membership_type = "OUT"
                 identity.membership_buid = ms.membership_ts
+                identity.written = True
                 self._identities_processor.insert_or_update_identity(identity)
                 # If the identity was a member
                 # it can stop to be one
@@ -216,7 +304,7 @@ class IdentitiesService(QObject):
 
         return need_refresh
 
-    def _parse_certifications(self, block):
+    async def _parse_certifications(self, block):
         """
         Parse certified pubkeys found in a block and refresh local data
         This method only creates certifications if one of both identities is
@@ -232,7 +320,9 @@ class IdentitiesService(QObject):
             # if we have are a target or a source of the certification
             for identity in connections_identities:
                 if cert.pubkey_from == identity.pubkey or cert.pubkey_to in identity.pubkey:
-                    self._certs_processor.create_certification(self.currency, cert, block.blockUID)
+                    identity.written = True
+                    timestamp = await self._blockchain_processor.timestamp(self.currency, cert.timestamp.number)
+                    self._certs_processor.create_or_update_certification(self.currency, cert, timestamp, block.blockUID)
                     need_refresh.append(identity)
         return need_refresh
 
@@ -248,7 +338,7 @@ class IdentitiesService(QObject):
             identity_data = requirements['identities'][0]
             identity.uid = identity_data["uid"]
             identity.blockstamp = block_uid(identity_data["meta"]["timestamp"])
-            identity.timestamp = await self._blockchain_processor.timestamp(self.currency, identity.blockstamp)
+            identity.timestamp = await self._blockchain_processor.timestamp(self.currency, identity.blockstamp.number)
             identity.outdistanced = identity_data["outdistanced"]
             identity.member = identity_data["membershipExpiresIn"] > 0 and not identity_data["outdistanced"]
             median_time = self._blockchain_processor.time(self.currency)
@@ -257,11 +347,16 @@ class IdentitiesService(QObject):
             # We save connections pubkeys
             if identity.pubkey in self._connections_processor.pubkeys():
                 self._identities_processor.insert_or_update_identity(identity)
+        except errors.DuniterError as e:
+            if e.ucode == errors.NO_MEMBER_MATCHING_PUB_OR_UID:
+                pass
+            else:
+                self._logger.debug(str(e))
         except NoPeerAvailable as e:
             self._logger.debug(str(e))
         return identity
 
-    def parse_block(self, block):
+    async def parse_block(self, block):
         """
         Parse a block to refresh local data
         :param block:
@@ -269,8 +364,9 @@ class IdentitiesService(QObject):
         """
         self._parse_revocations(block)
         need_refresh = []
+        need_refresh += self._parse_identities(block)
         need_refresh += self._parse_memberships(block)
-        need_refresh += self._parse_certifications(block)
+        need_refresh += await self._parse_certifications(block)
         return set(need_refresh)
 
     async def handle_new_blocks(self, blocks):
@@ -280,7 +376,7 @@ class IdentitiesService(QObject):
         """
         need_refresh = []
         for block in blocks:
-            need_refresh += self.parse_block(block)
+            need_refresh += await self.parse_block(block)
         refresh_futures = []
         # for every identity for which we need a refresh, we gather
         # requirements requests

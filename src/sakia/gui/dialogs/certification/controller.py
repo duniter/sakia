@@ -3,7 +3,6 @@ import asyncio
 from PyQt5.QtCore import Qt, QObject
 from PyQt5.QtWidgets import QApplication
 
-from sakia.data.entities import Identity
 from sakia.decorators import asyncify
 from sakia.gui.sub.search_user.controller import SearchUserController
 from sakia.gui.sub.user_information.controller import UserInformationController

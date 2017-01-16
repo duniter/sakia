@@ -4,6 +4,7 @@ import logging
 from PyQt5.QtCore import Qt, QObject
 from PyQt5.QtWidgets import QApplication
 
+from sakia.money import Quantitative
 from sakia.data.processors import ConnectionsProcessor
 from sakia.decorators import asyncify
 from sakia.gui.password_asker import PasswordAskerDialog
@@ -58,6 +59,8 @@ class TransferController(QObject):
         search_user.identity_selected.connect(user_information.search_identity)
 
         view.set_keys(transfer.model.available_connections())
+        view.radio_pubkey.toggle()
+
         return transfer
 
     @classmethod
@@ -144,7 +147,7 @@ class TransferController(QObject):
         recipient = self.selected_pubkey()
         amount = self.view.spinbox_amount.value() * 100
         #TODO: Handle other amount base than 0
-        amount_base = 0
+        amount_base = self.model.current_base()
 
         logging.debug("Showing password dialog...")
         password = await PasswordAskerDialog(self.model.connection).async_exec()
@@ -178,6 +181,8 @@ class TransferController(QObject):
 
     def refresh(self):
         amount = self.model.wallet_value()
+        current_base = self.model.current_base()
+        current_base_amount = amount / pow(10, current_base)
         total_text = self.model.localized_amount(amount)
         self.view.refresh_labels(total_text)
 
@@ -186,18 +191,14 @@ class TransferController(QObject):
         else:
             self.view.set_button_box(TransferView.ButtonBoxState.OK)
 
-        max_relative = self.model.quant_to_rel(amount/100)
-        current_base = self.model.current_base()
+        max_relative = self.model.quant_to_rel(current_base_amount/100)
+        self.view.spinbox_amount.setSuffix(Quantitative.base_str(current_base))
 
-        self.view.set_spinboxes_parameters(pow(10, current_base), amount, max_relative)
+        self.view.set_spinboxes_parameters(current_base_amount / 100, max_relative)
 
     def handle_amount_change(self, value):
         relative = self.model.quant_to_rel(value)
         self.view.change_relative_amount(relative)
-        self.refresh_amount_suffix()
-
-    def refresh_amount_suffix(self):
-        self.view.spinbox_amount.setSuffix(" " + self.model.connection.currency)
 
     def handle_relative_change(self, value):
         amount = self.model.rel_to_quant(value)

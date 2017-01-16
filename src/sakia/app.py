@@ -33,11 +33,11 @@ class Application(QObject):
     :param sakia.data.entities.AppData app_data: the application data
     :param sakia.data.entities.UserParameters parameters: the application current user parameters
     :param sakia.data.repositories.SakiaDatabase db: The database
-    :param dict network_services: All network services for current currency
-    :param dict blockchain_services: All blockchain services for current currency
-    :param dict identities_services: All identities services for current currency
-    :param dict sources_services: All sources services for current currency
-    :param dict transactions_services: All transactions services for current currency
+    :param sakia.services.NetworkService network_service: All network services for current currency
+    :param sakia.services.BlockchainService blockchain_service: All blockchain services for current currency
+    :param sakia.services.IdentitiesService identities_service: All identities services for current currency
+    :param sakia.services.SourcesService sources_service: All sources services for current currency
+    :param sakia.Services.TransactionsService transactions_service: All transactions services for current currency
     :param sakia.services.DocumentsService documents_service: A service to broadcast documents
     """
 
@@ -55,13 +55,14 @@ class Application(QObject):
     app_data = attr.ib()
     parameters = attr.ib()
     db = attr.ib()
-    network_services = attr.ib(default=attr.Factory(dict))
-    blockchain_services = attr.ib(default=attr.Factory(dict))
-    identities_services = attr.ib(default=attr.Factory(dict))
-    sources_services = attr.ib(default=attr.Factory(dict))
-    transactions_services = attr.ib(default=attr.Factory(dict))
+    currency = attr.ib()
+    network_service = attr.ib(default=attr.Factory(dict))
+    blockchain_service = attr.ib(default=attr.Factory(dict))
+    identities_service = attr.ib(default=attr.Factory(dict))
+    sources_service = attr.ib(default=attr.Factory(dict))
+    transactions_service = attr.ib(default=attr.Factory(dict))
     documents_service = attr.ib(default=None)
-    current_ref = attr.ib(default=Relative)
+    current_ref = attr.ib(default=Quantitative)
     _logger = attr.ib(default=attr.Factory(lambda:logging.getLogger('sakia')))
     available_version = attr.ib(init=False)
     _translator = attr.ib(init=False)
@@ -75,7 +76,7 @@ class Application(QObject):
     def startup(cls, argv, qapp, loop):
         options = SakiaOptions.from_arguments(argv)
         app_data = AppDataFile.in_config_path(options.config_path).load_or_init()
-        app = cls(qapp, loop, options, app_data, None, None)
+        app = cls(qapp, loop, options, app_data, None, None, options.currency)
         #app.set_proxy()
         app.get_last_version()
         app.load_profile(app_data.default)
@@ -105,40 +106,31 @@ class Application(QObject):
         sources_processor = SourcesProcessor.instanciate(self)
         transactions_processor = TransactionsProcessor.instanciate(self)
         dividends_processor = DividendsProcessor.instanciate(self)
+        nodes_processor.initialize_root_nodes(self.currency)
+        self.db.commit()
 
-        self.blockchain_services = {}
-        self.network_services = {}
-        self.identities_services = {}
-        self.sources_services = {}
-        self.transactions_services = {}
         self.documents_service = DocumentsService.instanciate(self)
+        self.identities_service = IdentitiesService(self.currency, connections_processor,
+                                                    identities_processor,
+                                                    certs_processor, blockchain_processor,
+                                                    bma_connector)
 
-        for currency in self.db.connections_repo.get_currencies():
-            if currency not in self.identities_services:
-                self.identities_services[currency] = IdentitiesService(currency, connections_processor,
-                                                                   identities_processor,
-                                                                   certs_processor, blockchain_processor,
+        self.transactions_service = TransactionsService(self.currency, transactions_processor,
+                                                                   dividends_processor,
+                                                                   identities_processor, connections_processor,
                                                                    bma_connector)
 
-            if currency not in self.transactions_services:
-                self.transactions_services[currency] = TransactionsService(currency, transactions_processor,
-                                                                           dividends_processor,
-                                                                           identities_processor, connections_processor,
-                                                                           bma_connector)
+        self.sources_service = SourcesServices(self.currency, sources_processor,
+                                                          connections_processor, bma_connector)
 
-            if currency not in self.sources_services:
-                self.sources_services[currency] = SourcesServices(currency, sources_processor,
-                                                                  connections_processor, bma_connector)
+        self.blockchain_service = BlockchainService(self, self.currency, blockchain_processor, bma_connector,
+                                                               self.identities_service,
+                                                               self.transactions_service,
+                                                               self.sources_service)
 
-            if currency not in self.blockchain_services:
-                self.blockchain_services[currency] = BlockchainService(self, currency, blockchain_processor, bma_connector,
-                                                                       self.identities_services[currency],
-                                                                       self.transactions_services[currency],
-                                                                       self.sources_services[currency])
-            if currency not in self.network_services:
-                self.network_services[currency] = NetworkService.load(self, currency, nodes_processor,
-                                                                      self.blockchain_services[currency],
-                                                                      self.identities_services[currency])
+        self.network_service = NetworkService.load(self, self.currency, nodes_processor,
+                                                    self.blockchain_service,
+                                                    self.identities_service)
 
     async def remove_connection(self, connection):
         await self.stop_current_profile()
@@ -179,16 +171,14 @@ class Application(QObject):
                 logging.debug("Couldn't load translation")
 
     def start_coroutines(self):
-        for currency in self.db.connections_repo.get_currencies():
-            self.network_services[currency].start_coroutines()
+        self.network_service.start_coroutines()
 
     async def stop_current_profile(self, closing=False):
         """
         Save the account to the cache
         and stop the coroutines
         """
-        for currency in self.db.connections_repo.get_currencies():
-            await self.network_services[currency].stop_coroutines(closing)
+        await self.network_service.stop_coroutines(closing)
 
     @asyncify
     async def get_last_version(self):

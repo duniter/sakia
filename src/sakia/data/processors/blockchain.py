@@ -26,9 +26,12 @@ class BlockchainProcessor:
         return cls(app.db.blockchains_repo,
                    BmaConnector(NodesProcessor(app.db.nodes_repo), app.parameters))
 
-    async def timestamp(self, currency, blockstamp):
+    def initialized(self, currency):
+        return self._repo.get_one(currency=currency) is not None
+
+    async def timestamp(self, currency, block_number):
         try:
-            block = await self._bma_connector.get(currency, bma.blockchain.block, {'number': blockstamp.number})
+            block = await self._bma_connector.get(currency, bma.blockchain.block, {'number': block_number})
             if block:
                 return block['medianTime']
         except NoPeerAvailable as e:
@@ -139,7 +142,6 @@ class BlockchainProcessor:
             block_doc = Block.from_signed_raw("{0}{1}\n".format(block['raw'], block['signature']))
             return block_doc
 
-
     async def new_blocks_with_identities(self, currency):
         """
         Get blocks more recent than local blockuid
@@ -209,7 +211,7 @@ class BlockchainProcessor:
             blockchain = Blockchain(currency=currency)
             log_stream("Requesting blockchain parameters")
             try:
-                parameters = await self._bma_connector.get(currency, bma.blockchain.parameters, verify=False)
+                parameters = await self._bma_connector.get(currency, bma.blockchain.parameters)
                 blockchain.parameters.ms_validity = parameters['msValidity']
                 blockchain.parameters.avg_gen_time = parameters['avgGenTime']
                 blockchain.parameters.c = parameters['c']
@@ -231,58 +233,58 @@ class BlockchainProcessor:
             except errors.DuniterError as e:
                 raise
 
-            log_stream("Requesting current block")
+        log_stream("Requesting current block")
+        try:
+            current_block = await self._bma_connector.get(currency, bma.blockchain.current)
+            signed_raw = "{0}{1}\n".format(current_block['raw'], current_block['signature'])
+            block = Block.from_signed_raw(signed_raw)
+            blockchain.current_buid = block.blockUID
+            blockchain.median_time = block.mediantime
+            blockchain.current_members_count = block.members_count
+        except errors.DuniterError as e:
+            if e.ucode != errors.NO_CURRENT_BLOCK:
+                raise
+
+        log_stream("Requesting blocks with dividend")
+        with_ud = await self._bma_connector.get(currency, bma.blockchain.ud)
+        blocks_with_ud = with_ud['result']['blocks']
+
+        if len(blocks_with_ud) > 0:
+            log_stream("Requesting last block with dividend")
             try:
-                current_block = await self._bma_connector.get(currency, bma.blockchain.current, verify=False)
-                signed_raw = "{0}{1}\n".format(current_block['raw'], current_block['signature'])
-                block = Block.from_signed_raw(signed_raw)
-                blockchain.current_buid = block.blockUID
-                blockchain.median_time = block.mediantime
-                blockchain.current_members_count = block.members_count
+                index = max(len(blocks_with_ud) - 1, 0)
+                block_number = blocks_with_ud[index]
+                block_with_ud = await self._bma_connector.get(currency, bma.blockchain.block,
+                                                              req_args={'number': block_number})
+                if block_with_ud:
+                    blockchain.last_members_count = block_with_ud['membersCount']
+                    blockchain.last_ud = block_with_ud['dividend']
+                    blockchain.last_ud_base = block_with_ud['unitbase']
+                    blockchain.last_ud_time = block_with_ud['medianTime']
+                    blockchain.current_mass = block_with_ud['monetaryMass']
             except errors.DuniterError as e:
                 if e.ucode != errors.NO_CURRENT_BLOCK:
                     raise
 
-            log_stream("Requesting blocks with dividend")
-            with_ud = await self._bma_connector.get(currency, bma.blockchain.ud, verify=False)
-            blocks_with_ud = with_ud['result']['blocks']
-
-            if len(blocks_with_ud) > 0:
-                log_stream("Requesting last block with dividend")
-                try:
-                    index = max(len(blocks_with_ud) - 1, 0)
-                    block_number = blocks_with_ud[index]
-                    block_with_ud = await self._bma_connector.get(currency, bma.blockchain.block,
-                                                                  req_args={'number': block_number}, verify=False)
-                    if block_with_ud:
-                        blockchain.last_members_count = block_with_ud['membersCount']
-                        blockchain.last_ud = block_with_ud['dividend']
-                        blockchain.last_ud_base = block_with_ud['unitbase']
-                        blockchain.last_ud_time = block_with_ud['medianTime']
-                        blockchain.current_mass = block_with_ud['monetaryMass']
-                except errors.DuniterError as e:
-                    if e.ucode != errors.NO_CURRENT_BLOCK:
-                        raise
-
-                log_stream("Requesting previous block with dividend")
-                try:
-                    index = max(len(blocks_with_ud) - 2, 0)
-                    block_number = blocks_with_ud[index]
-                    block_with_ud = await self._bma_connector.get(currency, bma.blockchain.block,
-                                                                  req_args={'number': block_number}, verify=False)
-                    blockchain.previous_mass = block_with_ud['monetaryMass']
-                    blockchain.previous_members_count = block_with_ud['membersCount']
-                    blockchain.previous_ud = block_with_ud['dividend']
-                    blockchain.previous_ud_base = block_with_ud['unitbase']
-                    blockchain.previous_ud_time = block_with_ud['medianTime']
-                except errors.DuniterError as e:
-                    if e.ucode != errors.NO_CURRENT_BLOCK:
-                        raise
-
+            log_stream("Requesting previous block with dividend")
             try:
-                self._repo.insert(blockchain)
-            except sqlite3.IntegrityError:
-                pass
+                index = max(len(blocks_with_ud) - 2, 0)
+                block_number = blocks_with_ud[index]
+                block_with_ud = await self._bma_connector.get(currency, bma.blockchain.block,
+                                                              req_args={'number': block_number})
+                blockchain.previous_mass = block_with_ud['monetaryMass']
+                blockchain.previous_members_count = block_with_ud['membersCount']
+                blockchain.previous_ud = block_with_ud['dividend']
+                blockchain.previous_ud_base = block_with_ud['unitbase']
+                blockchain.previous_ud_time = block_with_ud['medianTime']
+            except errors.DuniterError as e:
+                if e.ucode != errors.NO_CURRENT_BLOCK:
+                    raise
+
+        try:
+            self._repo.insert(blockchain)
+        except sqlite3.IntegrityError:
+            self._repo.update(blockchain)
 
     def handle_new_blocks(self, currency, blocks):
         """

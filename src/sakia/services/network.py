@@ -72,6 +72,7 @@ class NetworkService(QObject):
         :param sakia.data.processors.NodeProcessor node_processor: The nodes processor
         :return:
         """
+
         connectors = []
         for node in node_processor.nodes(currency):
             connectors.append(NodeConnector(node, app.parameters))
@@ -211,7 +212,7 @@ class NetworkService(QObject):
                         self.nodes_changed.emit()
                     except InvalidNodeCurrency as e:
                         self._logger.debug(str(e))
-                if node:
+                if node and self._blockchain_service.initialized():
                     try:
                         identity = await self._identities_service.find_from_pubkey(node.pubkey)
                         identity = await self._identities_service.load_requirements(identity)

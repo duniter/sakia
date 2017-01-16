@@ -1,0 +1,8 @@
+fakenet:
+  HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk:
+    - "BASIC_MERKLED_API fakenet.cgeek.fr 10900"
+test_net:
+  8Fi1VSTbjkXguwThF4v2ZxC5whK7pwG2vcGTkPUPjPGU:
+    - "BASIC_MERKLED_API testnet.duniter.inso.ovh 80"
+  BSmbyQCeRxoEami1ta6h67ZoVHs4KpudZ6VaSdpprbZP:
+    - "BASIC_MERKLED_API testnet.duniter.org 8999"

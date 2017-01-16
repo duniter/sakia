@@ -28,7 +28,7 @@ class SourcesProcessor:
         try:
             self._repo.insert(source)
         except sqlite3.IntegrityError:
-            self._repo.update(source)
+            self._logger.debug("Source already known : {0}".format(source.identifier))
 
     async def initialize_sources(self, currency, pubkey, log_stream):
         """
@@ -37,7 +37,7 @@ class SourcesProcessor:
         log_stream("Requesting sources")
         try:
             sources_data = await self._bma_connector.get(currency, bma.tx.sources,
-                                                         req_args={'pubkey': pubkey}, verify=False)
+                                                         req_args={'pubkey': pubkey})
 
             log_stream("Found {0} sources".format(len(sources_data['sources'])))
             for i, s in enumerate(sources_data['sources']):

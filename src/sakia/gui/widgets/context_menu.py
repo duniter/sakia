@@ -3,8 +3,7 @@ import logging
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtWidgets import QMenu, QAction, QApplication, QMessageBox
 
-from duniterpy.documents import Block
-from sakia.data.entities import Identity, Transaction
+from sakia.data.entities import Identity, Transaction, Dividend
 from sakia.data.processors import BlockchainProcessor, TransactionsProcessor
 from sakia.decorators import asyncify
 from sakia.gui.dialogs.certification.controller import CertificationController
@@ -105,6 +104,7 @@ class ContextMenu(QObject):
         build_actions = {
             Identity: ContextMenu._add_identity_actions,
             Transaction: ContextMenu._add_transfers_actions,
+            Dividend: lambda m, d: None,
             dict: lambda m, d: None,
             type(None): lambda m, d: None
         }

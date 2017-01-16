@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS identities(
                                blockstamp VARCHAR(100),
                                signature VARCHAR(100),
                                timestamp INT,
-                               written_on INT,
+                               written BOOLEAN,
                                revoked_on INT,
                                outdistanced BOOLEAN,
                                member BOOLEAN,

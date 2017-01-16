@@ -34,7 +34,7 @@ class SakiaDatabase:
         sqlite3.register_adapter(BlockUID, str)
         sqlite3.register_adapter(bool, int)
         sqlite3.register_converter("BOOLEAN", lambda v: bool(int(v)))
-        con = sqlite3.connect(os.path.join(options.config_path, profile_name, options.database + ".db"),
+        con = sqlite3.connect(os.path.join(options.config_path, profile_name, options.currency + ".db"),
                               detect_types=sqlite3.PARSE_DECLTYPES)
         meta = SakiaDatabase(con, ConnectionsRepo(con), IdentitiesRepo(con),
                              BlockchainsRepo(con), CertificationsRepo(con), TransactionsRepo(con),

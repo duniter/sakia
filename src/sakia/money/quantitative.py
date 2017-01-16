@@ -67,7 +67,7 @@ class Quantitative(BaseReferential):
             unicodes[str(n)] = ord('\u2070') + n
 
         if base > 1:
-            return "x10" + "".join([chr(unicodes[e]) for e in str(base)])
+            return ".10" + "".join([chr(unicodes[e]) for e in str(base)])
         else:
             return ""
 
@@ -92,12 +92,8 @@ class Quantitative(BaseReferential):
     def localized(self, units=False, show_base=False):
         value = self.value()
         dividend, base = self._blockchain_processor.last_ud(self.currency)
-        if show_base:
-            localized_value = Quantitative.to_si(value, base)
-            prefix = Quantitative.base_str(base)
-        else:
-            localized_value = QLocale().toString(float(value), 'f', 2)
-            prefix = ""
+        localized_value = Quantitative.to_si(value, base)
+        prefix = Quantitative.base_str(base)
 
         if units or show_base:
             return QCoreApplication.translate("Quantitative",
@@ -111,12 +107,8 @@ class Quantitative(BaseReferential):
     def diff_localized(self, units=False, show_base=False):
         value = self.differential()
         dividend, base = self._blockchain_processor.last_ud(self.currency)
-        if show_base:
-            localized_value = Quantitative.to_si(value, base)
-            prefix = Quantitative.base_str(base)
-        else:
-            localized_value = QLocale().toString(float(value), 'f', 2)
-            prefix = ""
+        localized_value = Quantitative.to_si(value, base)
+        prefix = Quantitative.base_str(base)
 
         if units or show_base:
             return QCoreApplication.translate("Quantitative",

@@ -25,12 +25,20 @@ class WotController(BaseGraphController):
 
     @classmethod
     def create(cls, parent, app, connection, blockchain_service, identities_service):
+        """
+        :param sakia.app.Application app:
+        :param sakia.data.entities.Connection connection:
+        :param sakia.services.BlockchainService blockchain_service:
+        :param sakia.services.IdentitiesService identities_service:
+        :return:
+        """
         view = WotView(parent.view)
         model = WotModel(None, app, connection, blockchain_service, identities_service)
         wot = cls(parent, view, model)
         model.setParent(wot)
         search_user = SearchUserController.create(wot, app, currency=connection.currency)
         wot.view.set_search_user(search_user.view)
+        app.identity_changed.connect(wot.handle_identity_change)
         search_user.identity_selected.connect(wot.center_on_identity)
         search_user.view.button_reset.clicked.connect(wot.reset)
         return wot
@@ -42,6 +50,10 @@ class WotController(BaseGraphController):
         :param sakia.core.registry.Identity identity: Center identity
         """
         self.draw_graph(identity)
+
+    def handle_identity_change(self, identity):
+        if self.model.refresh(identity):
+            self.refresh()
 
     @once_at_a_time
     @asyncify

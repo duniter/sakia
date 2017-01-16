@@ -35,8 +35,11 @@ class ConnectionsProcessor:
     def connections(self):
         return self._connections_repo.get_all()
 
-    def connections_with_uids(self):
-        return [r for r in self._connections_repo.get_all() if r.uid]
+    def connections_with_uids(self, currency=""):
+        if currency:
+            return [r for r in self._connections_repo.get_all(currency=currency) if r.uid]
+        else:
+            return [r for r in self._connections_repo.get_all() if r.uid]
 
     def connections_to(self, currency):
         return self._connections_repo.get_all(currency=currency)

@@ -4,15 +4,15 @@ import logging
 
 from duniterpy.key import SigningKey
 from duniterpy.documents import Certification, Membership, Revocation, InputSource, \
-    OutputSource, SIGParameter, Unlock, block_uid
+    OutputSource, SIGParameter, Unlock, block_uid, BlockUID
 from duniterpy.documents import Identity as IdentityDoc
 from duniterpy.documents import Transaction as TransactionDoc
 from duniterpy.documents.transaction import reduce_base
 from duniterpy.grammars import output
-from duniterpy.api import bma, errors
+from duniterpy.api import bma
 from sakia.data.entities import Identity, Transaction
 from sakia.data.processors import BlockchainProcessor, IdentitiesProcessor, NodesProcessor, \
-    TransactionsProcessor, SourcesProcessor
+    TransactionsProcessor, SourcesProcessor, CertificationsProcessor
 from sakia.data.connectors import BmaConnector, parse_bma_responses
 from sakia.errors import NotEnoughChangeError
 
@@ -32,6 +32,7 @@ class DocumentsService:
     _bma_connector = attr.ib()
     _blockchain_processor = attr.ib()
     _identities_processor = attr.ib()
+    _certifications_processor = attr.ib()
     _transactions_processor = attr.ib()
     _sources_processor = attr.ib()
     _logger = attr.ib(default=attr.Factory(lambda: logging.getLogger('sakia')))
@@ -45,6 +46,7 @@ class DocumentsService:
         return cls(BmaConnector(NodesProcessor(app.db.nodes_repo), app.parameters),
                    BlockchainProcessor.instanciate(app),
                    IdentitiesProcessor.instanciate(app),
+                   CertificationsProcessor.instanciate(app),
                    TransactionsProcessor.instanciate(app),
                    SourcesProcessor.instanciate(app))
 
@@ -157,9 +159,12 @@ class DocumentsService:
         certification.sign(identity.document(), [key])
         signed_cert = certification.signed_raw(identity.document())
         self._logger.debug("Certification : {0}".format(signed_cert))
-
+        timestamp = self._blockchain_processor.time(connection.currency)
         responses = await self._bma_connector.broadcast(connection.currency, bma.wot.certify, req_args={'cert': signed_cert})
         result = await parse_bma_responses(responses)
+        if result[0]:
+            self._certifications_processor.create_or_update_certification(connection.currency, certification,
+                                                                          timestamp, BlockUID.empty())
 
         return result
 

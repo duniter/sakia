@@ -97,17 +97,15 @@ class TransferView(QDialog, Ui_TransferMoneyDialog):
         self.spinbox_relative.setValue(relative)
         self.spinbox_relative.blockSignals(False)
 
-    def set_spinboxes_parameters(self, tick_quant, max_quant, max_rel):
+    def set_spinboxes_parameters(self, max_quant, max_rel):
         """
         Configure the spinboxes
         It should depend on what the last UD base is
-        :param int tick_quant:
         :param int max_quant:
         :param float max_rel:
         """
-        self.spinbox_amount.setMaximum(max_quant/100)
+        self.spinbox_amount.setMaximum(max_quant)
         self.spinbox_relative.setMaximum(max_rel)
-        self.spinbox_amount.setSingleStep(tick_quant)
 
     def refresh_labels(self, total_text):
         """
