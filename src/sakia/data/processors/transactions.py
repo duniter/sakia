@@ -108,7 +108,7 @@ class TransactionsProcessor:
         Cancel a local transaction
         :param sakia.data.entities.Transaction tx: the transaction
         """
-        self.run_state_transitions(tx, ())
+        self.run_state_transitions(tx)
 
     async def send(self, tx, txdoc, currency):
         """
