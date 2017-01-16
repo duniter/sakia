@@ -97,3 +97,6 @@ class TransferModel(QObject):
 
     def notifications(self):
         return self.app.parameters.notifications
+
+    def connection_pubkey(self, index):
+        return self.available_connections()[index].pubkey
