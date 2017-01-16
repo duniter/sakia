@@ -209,20 +209,16 @@ class IdentitiesProcessor:
                 return False, identity.pubkey, None
 
         async def execute_requests(parser, search):
-            tries = 0
             nonlocal registered
             try:
                 data = await self._bma_connector.get(connection.currency, bma.wot.lookup,
                                                       req_args={'search': search})
                 if data:
                     registered = parser(data)
-                tries += 1
             except errors.DuniterError as e:
-                if e.ucode in (errors.NO_MEMBER_MATCHING_PUB_OR_UID, errors.NO_MATCHING_IDENTITY):
-                        tries += 1
-                else:
+                self._logger.debug(e.ucode)
+                if e.ucode not in (errors.NO_MEMBER_MATCHING_PUB_OR_UID, errors.NO_MATCHING_IDENTITY):
                     raise
-
         # cell 0 contains True if the user is already registered
         # cell 1 contains the uid/pubkey selected locally
         # cell 2 contains the uid/pubkey found on the network

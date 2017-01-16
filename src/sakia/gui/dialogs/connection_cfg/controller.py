@@ -254,14 +254,19 @@ class ConnectionConfigController(QObject):
             self.model.set_scrypt_infos(salt, password, self.view.scrypt_params)
             self.model.set_uid("")
             if not self.model.key_exists():
-                registered, found_identity = await self.model.check_registered()
-                self.view.button_connect.setEnabled(True)
-                self.view.button_register.setEnabled(True)
-                if registered[0] is False and registered[2] is None:
-                    self.step_key.set_result(None)
-                elif registered[2]:
-                    self.view.display_info(self.tr("""Your pubkey is associated to a pubkey.
-    Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
+                try:
+                    registered, found_identity = await self.model.check_registered()
+                    self.view.button_connect.setEnabled(True)
+                    self.view.button_register.setEnabled(True)
+                    if registered[0] is False and registered[2] is None:
+                        self.step_key.set_result(None)
+                    elif registered[2]:
+                        self.view.display_info(self.tr("""Your pubkey is associated to a pubkey.
+        Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
+                except DuniterError as e:
+                    self.view.display_info(e.message)
+                except NoPeerAvailable as e:
+                    self.view.display_info(str(e))
             else:
                 self.view.display_info(self.tr("A connection already exists using this key."))
 
@@ -278,16 +283,21 @@ class ConnectionConfigController(QObject):
             self.model.set_scrypt_infos(salt, password, self.view.scrypt_params)
             self.model.set_uid(self.view.edit_uid.text())
             if not self.model.key_exists():
-                registered, found_identity = await self.model.check_registered()
-                self.view.button_connect.setEnabled(True)
-                self.view.button_register.setEnabled(True)
-                if registered[0] is False and registered[2] is None:
-                    self.view.display_info(self.tr("Could not find your identity on the network."))
-                elif registered[0] is False and registered[2]:
-                    self.view.display_info(self.tr("""Your pubkey or UID is different on the network.
-    Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
-                else:
-                    self.step_key.set_result(found_identity)
+                try:
+                    registered, found_identity = await self.model.check_registered()
+                    self.view.button_connect.setEnabled(True)
+                    self.view.button_register.setEnabled(True)
+                    if registered[0] is False and registered[2] is None:
+                        self.view.display_info(self.tr("Could not find your identity on the network."))
+                    elif registered[0] is False and registered[2]:
+                        self.view.display_info(self.tr("""Your pubkey or UID is different on the network.
+        Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
+                    else:
+                        self.step_key.set_result(found_identity)
+                except DuniterError as e:
+                    self.view.display_info(e.message)
+                except NoPeerAvailable as e:
+                    self.view.display_info(str(e))
             else:
                 self.view.display_info(self.tr("A connection already exists using this key."))
 
@@ -304,14 +314,19 @@ class ConnectionConfigController(QObject):
             self.model.set_scrypt_infos(salt, password, self.view.scrypt_params)
             self.model.set_uid(self.view.edit_uid.text())
             if not self.model.key_exists():
-                registered, found_identity = await self.model.check_registered()
-                if registered[0] is False and registered[2] is None:
-                    self.step_key.set_result(None)
-                elif registered[0] is False and registered[2]:
-                    self.view.display_info(self.tr("""Your pubkey or UID was already found on the network.
-    Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
-                else:
-                    self.view.display_info("Your account already exists on the network")
+                try:
+                    registered, found_identity = await self.model.check_registered()
+                    if registered[0] is False and registered[2] is None:
+                        self.step_key.set_result(None)
+                    elif registered[0] is False and registered[2]:
+                        self.view.display_info(self.tr("""Your pubkey or UID was already found on the network.
+        Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
+                    else:
+                        self.view.display_info("Your account already exists on the network")
+                except DuniterError as e:
+                    self.view.display_info(e.message)
+                except NoPeerAvailable as e:
+                    self.view.display_info(str(e))
             else:
                 self.view.display_info(self.tr("A connection already exists using this key."))
         except NoPeerAvailable:

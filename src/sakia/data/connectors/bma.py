@@ -30,8 +30,9 @@ async def parse_responses(responses):
                     result = (True, (await r.json()))
                 elif not result[0]:
                     result = (False, (await r.text()))
-            except BaseException as e:
-                result = (False, str(e))
+            except Exception as e:
+                if not result[0]:
+                    result = (False, str(e))
         else:
             await r.release()
     return result

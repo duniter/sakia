@@ -131,14 +131,14 @@ class TransferView(QDialog, Ui_TransferMoneyDialog):
             toast.display(self.tr("Transfer"),
                       self.tr("Success sending money to {0}").format(recipient))
         else:
-            await QAsyncMessageBox.information(self.widget, self.tr("Transfer"),
+            await QAsyncMessageBox.information(self, self.tr("Transfer"),
                       self.tr("Success sending money to {0}").format(recipient))
 
     async def show_error(self, notification, error_txt):
         if notification:
             toast.display(self.tr("Transfer"), "Error : {0}".format(error_txt))
         else:
-            await QAsyncMessageBox.critical(self.widget, self.tr("Transfer"), error_txt)
+            await QAsyncMessageBox.critical(self, self.tr("Transfer"), error_txt)
 
     def pubkey_value(self):
         return self.edit_pubkey.text()

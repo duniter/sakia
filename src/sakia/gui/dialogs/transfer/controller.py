@@ -90,10 +90,14 @@ class TransferController(QObject):
         dialog.view.radio_pubkey.setChecked(True)
 
         dialog.refresh()
-        relative = dialog.model.quant_to_rel(resent_transfer.amount)
-        dialog.view.set_spinboxes_parameters(1, resent_transfer.amount, relative)
+
+        current_base = dialog.model.current_base()
+        current_base_amount = resent_transfer.amount / pow(10, resent_transfer.amount_base - current_base)
+
+        relative = dialog.model.quant_to_rel(current_base_amount / 100)
+        dialog.view.set_spinboxes_parameters(current_base_amount / 100, relative)
         dialog.view.change_relative_amount(relative)
-        dialog.view.change_quantitative_amount(resent_transfer.amount)
+        dialog.view.change_quantitative_amount(current_base_amount / 100)
 
         connections_processor = ConnectionsProcessor.instanciate(app)
         wallet_index = connections_processor.connections().index(connection)
