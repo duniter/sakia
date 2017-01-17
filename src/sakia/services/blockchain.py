@@ -46,25 +46,26 @@ class BlockchainService(QObject):
         :param duniterpy.documents.BlockUID network_blockstamp:
         """
         try:
-            with_identities = await self._blockchain_processor.new_blocks_with_identities(self.currency)
-            with_money = await self._blockchain_processor.new_blocks_with_money(self.currency)
-            blocks = await self._blockchain_processor.blocks(with_identities + with_money + [network_blockstamp.number],
-                                                             self.currency)
-            await self._sources_service.refresh_sources()
-            if len(blocks) > 0:
-                identities = await self._identities_service.handle_new_blocks(blocks)
-                changed_tx, new_tx, new_dividends = await self._transactions_service.handle_new_blocks(blocks)
-                self.handle_new_blocks(blocks)
-                self.app.db.commit()
-                for tx in changed_tx:
-                    self.app.transaction_state_changed.emit(tx)
-                for tx in new_tx:
-                    self.app.new_transfer.emit(tx)
-                for ud in new_dividends:
-                    self.app.new_dividend.emit(ud)
-                for idty in identities:
-                    self.app.identity_changed.emit(idty)
-                self.app.sources_refreshed.emit()
+            if self._blockchain_processor.initialized(self.currency):
+                with_identities = await self._blockchain_processor.new_blocks_with_identities(self.currency)
+                with_money = await self._blockchain_processor.new_blocks_with_money(self.currency)
+                blocks = await self._blockchain_processor.blocks(with_identities + with_money + [network_blockstamp.number],
+                                                                 self.currency)
+                await self._sources_service.refresh_sources()
+                if len(blocks) > 0:
+                    identities = await self._identities_service.handle_new_blocks(blocks)
+                    changed_tx, new_tx, new_dividends = await self._transactions_service.handle_new_blocks(blocks)
+                    self.handle_new_blocks(blocks)
+                    self.app.db.commit()
+                    for tx in changed_tx:
+                        self.app.transaction_state_changed.emit(tx)
+                    for tx in new_tx:
+                        self.app.new_transfer.emit(tx)
+                    for ud in new_dividends:
+                        self.app.new_dividend.emit(ud)
+                    for idty in identities:
+                        self.app.identity_changed.emit(idty)
+                    self.app.sources_refreshed.emit()
         except (NoPeerAvailable, DuniterError) as e:
             self._logger.debug(str(e))
 
