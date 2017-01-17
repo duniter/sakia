@@ -74,22 +74,9 @@ class ConnectionConfigController(QObject):
         :return:
         """
         connection_cfg = cls.create(parent, app)
-        connection_cfg.view.set_creation_layout()
+        connection_cfg.view.set_creation_layout(app.currency)
         asyncio.ensure_future(connection_cfg.process())
         return connection_cfg
-
-    @classmethod
-    def modify_connection(cls, parent, app, connection):
-        """
-        Open a dialog to modify an existing account
-        :param parent:
-        :param app:
-        :param account:
-        :return:
-        """
-        connection_cfg = cls.create(parent, app, connection=connection)
-        #connection_cfg.view.set_modification_layout(account.name)
-        connection_cfg._current_step = 1
 
     def init_nodes_page(self):
         self.view.set_steps_buttons_visible(True)
@@ -150,6 +137,7 @@ class ConnectionConfigController(QObject):
             self._logger.debug("Wallet mode")
             self.view.button_next.clicked.connect(self.check_wallet)
             self.view.edit_uid.hide()
+            self.view.label_action.hide()
             self.view.stacked_pages.setCurrentWidget(self.view.page_connection)
             connection_identity = await self.step_key
 
