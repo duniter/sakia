@@ -137,6 +137,8 @@ class TransferController(QObject):
         if self.view.recipient_mode() == TransferView.RecipientMode.SEARCH:
             if self.search_user.current_identity():
                 pubkey = self.search_user.current_identity().pubkey
+        elif self.view.recipient_mode() == TransferView.RecipientMode.LOCAL_KEY:
+            pubkey = self.model.connection_pubkey(self.view.local_key_selected())
         else:
             pubkey = self.view.pubkey_value()
         return pubkey

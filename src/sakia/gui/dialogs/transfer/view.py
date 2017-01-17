@@ -19,6 +19,7 @@ class TransferView(QDialog, Ui_TransferMoneyDialog):
     class RecipientMode(Enum):
         PUBKEY = 1
         SEARCH = 2
+        LOCAL_KEY = 3
 
     _button_box_values = {
         ButtonBoxState.NO_AMOUNT: (False,
@@ -38,6 +39,8 @@ class TransferView(QDialog, Ui_TransferMoneyDialog):
 
         self.radio_pubkey.toggled.connect(lambda c, radio=TransferView.RecipientMode.PUBKEY: self.recipient_mode_changed(radio))
         self.radio_search.toggled.connect(lambda c, radio=TransferView.RecipientMode.SEARCH: self.recipient_mode_changed(radio))
+        self.radio_local_key.toggled.connect(lambda c, radio=TransferView.RecipientMode.LOCAL_KEY: self.recipient_mode_changed(radio))
+
 
         regexp = QRegExp('^([ a-zA-Z0-9-_:/;*?\[\]\(\)\\\?!^+=@&~#{}|<>%.]{0,255})$')
         validator = QRegExpValidator(regexp)
@@ -51,12 +54,18 @@ class TransferView(QDialog, Ui_TransferMoneyDialog):
     def recipient_mode(self):
         if self.radio_search.isChecked():
             return TransferView.RecipientMode.SEARCH
+        elif self.radio_local_key.isChecked():
+            return TransferView.RecipientMode.LOCAL_KEY
         else:
             return TransferView.RecipientMode.PUBKEY
 
     def set_keys(self, connections):
         for conn in connections:
             self.combo_connections.addItem(conn.title())
+            self.combo_local_keys.addItem(conn.title())
+
+    def local_key_selected(self):
+        return self.combo_local_keys.currentIndex()
 
     def set_search_user(self, search_user_view):
         """
@@ -78,6 +87,7 @@ class TransferView(QDialog, Ui_TransferMoneyDialog):
         """
         self.edit_pubkey.setEnabled(radio == TransferView.RecipientMode.PUBKEY)
         self.search_user.setEnabled(radio == TransferView.RecipientMode.SEARCH)
+        self.combo_local_keys.setEnabled(radio == TransferView.RecipientMode.LOCAL_KEY)
 
     def change_quantitative_amount(self, amount):
         """

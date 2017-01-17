@@ -104,23 +104,11 @@ class ConnectionConfigView(QDialog, Ui_ConnectionConfigurationDialog):
     def set_nodes_model(self, model):
         self.tree_peers.setModel(model)
 
-    def set_creation_layout(self):
+    def set_creation_layout(self, currency):
         """
         Hide unecessary buttons and display correct title
         """
-        self.setWindowTitle(self.tr("New account"))
-        self.button_delete.hide()
-
-    def set_modification_layout(self, account_name):
-        """
-        Hide unecessary widgets for account modification
-        and display correct title
-        :return:
-        """
-        self.label_action.setText("Edit account uid")
-        self.edit_account_name.setPlaceholderText(account_name)
-        self.button_next.setEnabled(True)
-        self.setWindowTitle(self.tr("Configure {0}".format(account_name)))
+        self.setWindowTitle(self.tr("New connection to {0} network").format(currency))
 
     def action_show_pubkey(self):
         salt = self.edit_salt.text()
