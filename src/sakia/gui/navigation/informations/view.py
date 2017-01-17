@@ -1,7 +1,8 @@
 from PyQt5.QtWidgets import QWidget
-from PyQt5.QtCore import QEvent
+from PyQt5.QtCore import QEvent, QLocale
 from .informations_uic import Ui_InformationsWidget
 from enum import Enum
+from sakia.helpers import timestamp_to_dhms
 
 
 class InformationsView(QWidget, Ui_InformationsWidget):
@@ -140,15 +141,13 @@ class InformationsView(QWidget, Ui_InformationsWidget):
             """).format(
                 self.tr('{:2.0%} / {:} days').format(localized_data['growth'], localized_data['days_per_dividend']),
                 self.tr('Fundamental growth (c) / Delta time (dt)'),
-                self.tr('UD(t+1) = MAX { UD(t) ; c &#215; M(t) / N(t+1) }'),
+                self.tr('UDĞ(t) = UDĞ(t-1) + c²*M(t-1)/N(t-1)'),
                 self.tr('Universal Dividend (formula)'),
-                self.tr('{:} = MAX {{ {:} {:} ; {:2.0%} &#215; {:} {:} / {:} }}').format(
+                self.tr('{:} = {:} + {:2.0%}²* {:} / {:}').format(
                     localized_data.get('ud_plus_1', '####'),
                     localized_data.get('ud', '####'),
-                    localized_data['diff_units'],
                     localized_data.get('growth', '####'),
                     localized_data.get('mass', '####'),
-                    localized_data['diff_units'],
                     localized_data.get('members_count', '####')
                 ),
                 self.tr('Universal Dividend (computed)')
@@ -190,6 +189,14 @@ class InformationsView(QWidget, Ui_InformationsWidget):
         :param str currency: The currency
         """
 
+        dt_dhms = timestamp_to_dhms(params.dt)
+        if dt_dhms[0] > 0:
+            dt_as_str = self.tr("{:} day(s) {:} hour(s)").format(*dt_dhms)
+        else:
+            dt_as_str = self.tr("{:} hour(s)").format(dt_dhms[1])
+        if dt_dhms[2] > 0 or dt_dhms[3] > 0:
+            dt_dhms += ", {:} minute(s) and {:} second(s)".format(*dt_dhms[1:])
+
         # set infos in label
         self.label_money.setText(
                 self.tr("""
@@ -204,13 +211,13 @@ class InformationsView(QWidget, Ui_InformationsWidget):
             </table>
             """).format(
                         params.c,
-                        params.dt / 86400,
+                        QLocale().toString(params.dt / 86400, 'f', 2),
                         self.tr('Fundamental growth (c)'),
                         params.ud0,
                         self.tr('Initial Universal Dividend UD(0) in'),
                         currency,
-                        params.dt / 86400,
-                        self.tr('Time period (dt) in days (86400 seconds) between two UD'),
+                        dt_as_str,
+                        self.tr('Time period between two UD'),
                         params.median_time_blocks,
                         self.tr('Number of blocks used for calculating median time'),
                         params.avg_gen_time,
@@ -243,9 +250,9 @@ class InformationsView(QWidget, Ui_InformationsWidget):
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             </table>
             """).format(
-                        params.sig_period / 86400,
+                        QLocale().toString(params.sig_period / 86400, 'f', 2),
                         self.tr('Minimum delay between 2 certifications (in days)'),
-                        params.sig_validity / 86400,
+                        QLocale().toString(params.sig_validity / 86400, 'f', 2),
                         self.tr('Maximum age of a valid signature (in days)'),
                         params.sig_qty,
                         self.tr('Minimum quantity of signatures to be part of the WoT'),

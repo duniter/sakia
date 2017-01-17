@@ -1,6 +1,7 @@
 from PyQt5.QtCore import QObject
 from sakia.data.processors import IdentitiesProcessor, CertificationsProcessor, \
     BlockchainProcessor, ConnectionsProcessor
+from sakia.helpers import timestamp_to_dhms
 import attr
 
 
@@ -51,10 +52,7 @@ class CertificationModel(QObject):
                                                                             self.connection.pubkey,
                                                                             parameters, blockchain_time)
 
-        days, remainder = divmod(remaining_time, 3600 * 24)
-        hours, remainder = divmod(remainder, 3600)
-        minutes, seconds = divmod(remainder, 60)
-        return days, hours, minutes, seconds
+        return timestamp_to_dhms(remaining_time)
 
     def nb_certifications(self):
         """
