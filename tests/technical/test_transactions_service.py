@@ -12,6 +12,7 @@ async def test_send_tx_then_validate(application_with_one_connection, fake_serve
     tx_after_send = application_with_one_connection.transactions_service.transfers(bob.key.pubkey)
     assert len(tx_before_send) + 1 == len(tx_after_send)
     assert tx_after_send[-1].state is Transaction.AWAITING
+    assert tx_after_send[-1].written_block == 0
     fake_server.forge.forge_block()
     fake_server.forge.forge_block()
     fake_server.forge.forge_block()
@@ -19,6 +20,7 @@ async def test_send_tx_then_validate(application_with_one_connection, fake_serve
     await application_with_one_connection.transactions_service.handle_new_blocks(new_blocks)
     tx_after_parse = application_with_one_connection.transactions_service.transfers(bob.key.pubkey)
     assert tx_after_parse[-1].state is Transaction.VALIDATED
+    assert tx_after_parse[-1].written_block == fake_server.forge.blocks[-3].number
     await fake_server.close()
 
 

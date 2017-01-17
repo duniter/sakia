@@ -17,15 +17,20 @@ def parse_transaction_doc(tx_doc, pubkey, block_number, mediantime, txid):
     receivers = [o.conditions.left.pubkey for o in tx_doc.outputs
                  if o.conditions.left.pubkey != tx_doc.issuers[0]]
 
-    if len(receivers) == 0:
-        receivers = [tx_doc.issuers[0]]
-
     in_issuers = len([i for i in tx_doc.issuers
                       if i == pubkey]) > 0
     in_outputs = len([o for o in tx_doc.outputs
                       if o.conditions.left.pubkey == pubkey]) > 0
 
-    if in_issuers or in_outputs:
+    if len(receivers) == 0:
+        receivers = [tx_doc.issuers[0]]
+        # Transaction to self
+        outputs = [o for o in tx_doc.outputs]
+        amount = 0
+        for o in outputs:
+            amount += o.amount * math.pow(10, o.base)
+        amount, amount_base = reduce_base(amount, 0)
+    elif in_issuers or in_outputs:
         # If the wallet pubkey is in the issuers we sent this transaction
         if in_issuers:
             outputs = [o for o in tx_doc.outputs
@@ -42,23 +47,24 @@ def parse_transaction_doc(tx_doc, pubkey, block_number, mediantime, txid):
         for o in outputs:
             amount += o.amount * math.pow(10, o.base)
         amount, amount_base = reduce_base(amount, 0)
+    else:
+        return None
 
-        transaction = Transaction(currency=tx_doc.currency,
-                                  sha_hash=tx_doc.sha_hash,
-                                  written_block=block_number,
-                                  blockstamp=tx_doc.blockstamp,
-                                  timestamp=mediantime,
-                                  signature=tx_doc.signatures[0],
-                                  issuer=tx_doc.issuers[0],
-                                  receiver=receivers[0],
-                                  amount=amount,
-                                  amount_base=amount_base,
-                                  comment=tx_doc.comment,
-                                  txid=txid,
-                                  state=Transaction.VALIDATED,
-                                  raw=tx_doc.signed_raw())
-        return transaction
-    return None
+    transaction = Transaction(currency=tx_doc.currency,
+                              sha_hash=tx_doc.sha_hash,
+                              written_block=block_number,
+                              blockstamp=tx_doc.blockstamp,
+                              timestamp=mediantime,
+                              signature=tx_doc.signatures[0],
+                              issuer=tx_doc.issuers[0],
+                              receiver=receivers[0],
+                              amount=amount,
+                              amount_base=amount_base,
+                              comment=tx_doc.comment,
+                              txid=txid,
+                              state=Transaction.VALIDATED,
+                              raw=tx_doc.signed_raw())
+    return transaction
 
 
 @attr.s()

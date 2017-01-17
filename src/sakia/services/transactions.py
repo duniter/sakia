@@ -46,6 +46,7 @@ class TransactionsService(QObject):
         for tx in [t for t in self._transactions_processor.awaiting(self.currency)]:
             if self._transactions_processor.run_state_transitions(tx, block_doc):
                 transfers_changed.append(tx)
+                self._logger.debug("New transaction validated : {0}".format(tx.sha_hash))
 
         new_transactions = [t for t in block_doc.transactions
                             if not self._transactions_processor.find_by_hash(t.sha_hash)

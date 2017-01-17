@@ -131,6 +131,10 @@ class NavigationModel(QObject):
         return self.app.identities_service.get_identity(connection.pubkey, connection.uid).member
 
     async def remove_connection(self, connection):
+        for data in self.navigation:
+            connected_to = self._current_data['misc'].get('connection', None)
+            if connected_to == connection:
+                self._current_data['widget'].disconnect()
         await self.app.remove_connection(connection)
 
     async def send_leave(self, connection, password):

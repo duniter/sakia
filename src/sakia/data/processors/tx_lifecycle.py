@@ -38,38 +38,6 @@ def _broadcast_failure(tx, ret_codes):
     """
     return 200 not in ret_codes
 
-
-def _rollback_and_removed(tx, rollback, block):
-    """
-    Check if the transfer is not in the block anymore
-
-    :param sakia.data.entities.Transaction tx: the transaction
-    :param bool rollback: True if we are in a rollback procedure
-    :param duniterpy.documents.Block block: The block to check for the transaction
-    :return: True if the transfer is not found in the block
-    """
-    if rollback:
-        if not block or block.blockUID != tx.blockstamp:
-            return True
-        else:
-            return tx.sha_hash not in [t.sha_hash for t in block.transactions]
-    return False
-
-
-def _rollback_and_local(tx, rollback, block):
-    """
-    Check if the transfer is not in the block anymore
-
-    :param sakia.data.entities.Transaction tx: the transaction
-    :param bool rollback: True if we are in a rollback procedure
-    :param duniterpy.documents.Block block: The block to check for the transaction
-    :return: True if the transfer is found in the block
-    """
-    if rollback and tx.local and block.blockUID == tx.blockstamp:
-        return tx.sha_hash not in [t.sha_hash for t in block.transactions]
-    return False
-
-
 def _is_locally_created(tx):
     """
     Check if we can send back the transaction if it was locally created
@@ -88,8 +56,7 @@ def _be_validated(tx, block):
     :param bool rollback: True if we are in a rollback procedure
     :param duniterpy.documents.Block block: The block checked
     """
-    tx.blockstamp = block.blockUID
-    tx.timestamp = block.mediantime
+    tx.written_block = block.number
 
 
 def _drop(tx):
@@ -115,12 +82,6 @@ states = {
 
             (Transaction.AWAITING, (Block,)):
                 ((_found_in_block, _be_validated, Transaction.VALIDATED),),
-
-            (Transaction.VALIDATED, (bool,)):
-                (
-                    (_rollback_and_removed, lambda tx, r: _drop(tx), Transaction.DROPPED),
-                    (_rollback_and_local, None, Transaction.AWAITING),
-                ),
 
             (Transaction.REFUSED, ()):
                 ((_is_locally_created, _drop, Transaction.DROPPED),)
