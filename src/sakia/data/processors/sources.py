@@ -62,12 +62,13 @@ class SourcesProcessor:
         sources = self._repo.get_all(currency=currency, pubkey=pubkey)
         return sum([s.amount * (10**s.base) for s in sources])
 
-    def available(self, currency):
+    def available(self, currency, pubkey):
         """"
         :param str currency: the currency of the sources
+        :param str pubkey: the owner of the sources
         :rtype: list[sakia.data.entities.Source]
         """
-        return self._repo.get_all(currency=currency)
+        return self._repo.get_all(currency=currency, pubkey=pubkey)
 
     def consume(self, sources):
         """

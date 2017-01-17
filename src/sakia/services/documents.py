@@ -212,12 +212,13 @@ class DocumentsService:
         document.sign(self_cert, [key])
         return document.signed_raw(self_cert)
 
-    def tx_sources(self, amount, amount_base, currency):
+    def tx_sources(self, amount, amount_base, currency, pubkey):
         """
         Get inputs to generate a transaction with a given amount of money
         :param int amount: The amount target value
         :param int amount_base: The amount base target value
         :param str currency: The community target of the transaction
+        :param str pubkey: The pubkey owning the sources
         :return: The list of inputs to use in the transaction document
         """
 
@@ -234,7 +235,7 @@ class DocumentsService:
             return i
 
         amount, amount_base = reduce_base(amount, amount_base)
-        available_sources = self._sources_processor.available(currency)
+        available_sources = self._sources_processor.available(currency, pubkey)
         if available_sources:
             current_base = max([src.base for src in available_sources])
             value = 0
@@ -335,7 +336,7 @@ class DocumentsService:
         :return: the transaction document
         :rtype: duniterpy.documents.Transaction
         """
-        result = self.tx_sources(int(amount), amount_base, currency)
+        result = self.tx_sources(int(amount), amount_base, currency, issuer)
         sources = result[0]
         computed_outputs = result[1]
         overheads = result[2]
