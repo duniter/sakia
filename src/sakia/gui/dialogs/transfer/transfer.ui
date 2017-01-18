@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>566</width>
-    <height>450</height>
+    <height>540</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -242,6 +242,18 @@
          <string/>
         </property>
        </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>Password</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <layout class="QHBoxLayout" name="layout_password_input"/>
       </item>
      </layout>
     </widget>

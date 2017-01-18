@@ -1,15 +1,15 @@
-from PyQt5.QtCore import Qt, QObject
-from PyQt5.QtWidgets import QDialog, QMessageBox
+from PyQt5.QtCore import QObject
+from PyQt5.QtWidgets import QDialog
 
 from sakia.decorators import asyncify
-from sakia.gui.dialogs.connection_cfg.controller import ConnectionConfigController
 from sakia.gui.dialogs.certification.controller import CertificationController
+from sakia.gui.dialogs.connection_cfg.controller import ConnectionConfigController
 from sakia.gui.dialogs.revocation.controller import RevocationController
 from sakia.gui.dialogs.transfer.controller import TransferController
-from sakia.gui.widgets import toast
-from sakia.gui.widgets.dialogs import QAsyncMessageBox, QAsyncFileDialog, dialog_async_exec
-from sakia.gui.password_asker import PasswordAskerDialog
 from sakia.gui.preferences import PreferencesDialog
+from sakia.gui.sub.password_input import PasswordInputController
+from sakia.gui.widgets import toast
+from sakia.gui.widgets.dialogs import QAsyncMessageBox
 from .model import ToolbarModel
 from .view import ToolbarView
 
@@ -60,7 +60,7 @@ class ToolbarController(QObject):
         connection = await self.view.ask_for_connection(self.model.connections_with_uids())
         if not connection:
             return
-        password = await PasswordAskerDialog(connection).async_exec()
+        password = await PasswordInputController.open_dialog(self, connection)
         if not password:
             return
         result = await self.model.send_join(connection, password)
@@ -68,13 +68,13 @@ class ToolbarController(QObject):
             if self.model.notifications():
                 toast.display(self.tr("Membership"), self.tr("Success sending Membership demand"))
             else:
-                await QAsyncMessageBox.information(self, self.tr("Membership"),
+                await QAsyncMessageBox.information(self.view, self.tr("Membership"),
                                                         self.tr("Success sending Membership demand"))
         else:
             if self.model.notifications():
                 toast.display(self.tr("Membership"), result[1])
             else:
-                await QAsyncMessageBox.critical(self, self.tr("Membership"),
+                await QAsyncMessageBox.critical(self.view, self.tr("Membership"),
                                                         result[1])
 
     def open_certification_dialog(self):

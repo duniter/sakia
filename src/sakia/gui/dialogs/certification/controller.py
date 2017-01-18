@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QApplication
 from sakia.decorators import asyncify
 from sakia.gui.sub.search_user.controller import SearchUserController
 from sakia.gui.sub.user_information.controller import UserInformationController
-from sakia.gui.password_asker import PasswordAskerDialog
+from sakia.gui.sub.password_input import PasswordInputController
 from .model import CertificationModel
 from .view import CertificationView
 import attr
@@ -109,7 +109,7 @@ class CertificationController(QObject):
         Validate the dialog
         """
         self.view.button_box.setDisabled(True)
-        password = await PasswordAskerDialog(self.model.connection).async_exec()
+        password = await PasswordInputController.open_dialog(self, self.model.connection)
         if not password:
             self.view.button_box.setEnabled(True)
             return

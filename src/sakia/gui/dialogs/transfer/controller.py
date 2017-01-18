@@ -4,12 +4,12 @@ import logging
 from PyQt5.QtCore import Qt, QObject
 from PyQt5.QtWidgets import QApplication
 
-from sakia.money import Quantitative
 from sakia.data.processors import ConnectionsProcessor
 from sakia.decorators import asyncify
-from sakia.gui.password_asker import PasswordAskerDialog
+from sakia.gui.sub.password_input import PasswordInputController
 from sakia.gui.sub.search_user.controller import SearchUserController
 from sakia.gui.sub.user_information.controller import UserInformationController
+from sakia.money import Quantitative
 from .model import TransferModel
 from .view import TransferView
 
@@ -19,7 +19,7 @@ class TransferController(QObject):
     The transfer component controller
     """
 
-    def __init__(self, view, model, search_user, user_information):
+    def __init__(self, view, model, search_user, user_information, password_input):
         """
         Constructor of the transfer component
 
@@ -31,6 +31,9 @@ class TransferController(QObject):
         self.model = model
         self.search_user = search_user
         self.user_information = user_information
+        self.password_input = password_input
+        self.password_input.set_info_visible(False)
+        self.password_input.password_changed.connect(self.refresh)
         self.view.button_box.accepted.connect(self.accept)
         self.view.button_box.rejected.connect(self.reject)
         self.view.combo_connections.currentIndexChanged.connect(self.change_current_connection)
@@ -46,15 +49,14 @@ class TransferController(QObject):
         :return: a new Transfer controller
         :rtype: TransferController
         """
-        view = TransferView(parent.view if parent else None, None, None)
+        search_user = SearchUserController.create(None, app, "")
+        user_information = UserInformationController.create(None, app, "", None)
+        password_input = PasswordInputController.create(None, None)
+
+        view = TransferView(parent.view if parent else None,
+                            search_user.view, user_information.view, password_input.view)
         model = TransferModel(app)
-        transfer = cls(view, model, None, None)
-
-        search_user = SearchUserController.create(transfer, app, "")
-        transfer.set_search_user(search_user)
-
-        user_information = UserInformationController.create(transfer, app, "", None)
-        transfer.set_user_information(user_information)
+        transfer = cls(view, model, search_user, user_information, password_input)
 
         search_user.identity_selected.connect(user_information.search_identity)
 
@@ -108,24 +110,6 @@ class TransferController(QObject):
 
         return dialog.exec()
 
-    def set_search_user(self, search_user):
-        """
-
-        :param search_user:
-        :return:
-        """
-        self.search_user = search_user
-        self.view.set_search_user(search_user.view)
-
-    def set_user_information(self, user_information):
-        """
-
-        :param user_information:
-        :return:
-        """
-        self.user_information = user_information
-        self.view.set_user_information(user_information.view)
-
     def selected_pubkey(self):
         """
         Get selected pubkey in the widgets of the window
@@ -156,10 +140,7 @@ class TransferController(QObject):
         amount_base = self.model.current_base()
 
         logging.debug("Showing password dialog...")
-        password = await PasswordAskerDialog(self.model.connection).async_exec()
-        if password == "":
-            self.view.button_box.setEnabled(True)
-            return
+        password = self.password_input.get_password()
 
         logging.debug("Setting cursor...")
         QApplication.setOverrideCursor(Qt.WaitCursor)
@@ -194,8 +175,10 @@ class TransferController(QObject):
 
         if amount == 0:
             self.view.set_button_box(TransferView.ButtonBoxState.NO_AMOUNT)
-        else:
+        elif self.password_input.valid():
             self.view.set_button_box(TransferView.ButtonBoxState.OK)
+        else:
+            self.view.set_button_box(TransferView.ButtonBoxState.WRONG_PASSWORD)
 
         max_relative = self.model.quant_to_rel(current_base_amount/100)
         self.view.spinbox_amount.setSuffix(Quantitative.base_str(current_base))
@@ -205,15 +188,18 @@ class TransferController(QObject):
     def handle_amount_change(self, value):
         relative = self.model.quant_to_rel(value)
         self.view.change_relative_amount(relative)
+        self.refresh()
 
     def handle_relative_change(self, value):
         amount = self.model.rel_to_quant(value)
         self.view.change_quantitative_amount(amount)
+        self.refresh()
 
     def change_current_connection(self, index):
         self.model.set_connection(index)
         self.search_user.set_currency(self.model.connection.currency)
         self.user_information.set_currency(self.model.connection.currency)
+        self.password_input.set_connection(self.model.connection)
         self.refresh()
 
     def async_exec(self):

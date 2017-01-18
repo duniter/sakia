@@ -28,7 +28,7 @@ class SearchUserController(QObject):
 
     @classmethod
     def create(cls, parent, app, currency):
-        view = SearchUserView(parent.view)
+        view = SearchUserView(parent.view if parent else None)
         model = SearchUserModel(parent, app, currency)
         search_user = cls(parent, view, model)
         model.setParent(search_user)

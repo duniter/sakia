@@ -1,17 +1,17 @@
 import logging
 
-from PyQt5.QtWidgets import QMessageBox, QApplication
 from PyQt5.QtCore import QEvent, pyqtSlot, QObject
 from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QMessageBox, QApplication
 
-from ..password_asker import PasswordAskerDialog
-from ...__init__ import __version__
-from ..widgets import toast
-from .view import MainWindowView
+from sakia.gui.sub.password_input import PasswordInputController
 from .model import MainWindowModel
 from .status_bar.controller import StatusBarController
 from .toolbar.controller import ToolbarController
+from .view import MainWindowView
 from ..navigation.controller import NavigationController
+from ..widgets import toast
+from ...__init__ import __version__
 
 
 class MainWindowController(QObject):
@@ -19,7 +19,7 @@ class MainWindowController(QObject):
     classdocs
     """
 
-    def __init__(self, view, model, password_asker, status_bar, toolbar, navigation):
+    def __init__(self, view, model, status_bar, toolbar, navigation):
         """
         Init
         :param MainWindowView view: the ui of the mainwindow component
@@ -36,7 +36,6 @@ class MainWindowController(QObject):
         self.view = view
         self.model = model
         self.initialized = False
-        self.password_asker = password_asker
         self.status_bar = status_bar
         self.toolbar = toolbar
         self.navigation = navigation
@@ -48,7 +47,7 @@ class MainWindowController(QObject):
         QApplication.setWindowIcon(QIcon(":/icons/sakia_logo"))
 
     @classmethod
-    def create(cls, app, password_asker, status_bar, toolbar, navigation):
+    def create(cls, app, status_bar, toolbar, navigation):
         """
         Instanciate a navigation component
         :param sakia.gui.status_bar.controller.StatusBarController status_bar: the controller of the status bar component
@@ -60,7 +59,7 @@ class MainWindowController(QObject):
         """
         view = MainWindowView()
         model = MainWindowModel(None, app)
-        main_window = cls(view, model, password_asker, status_bar, toolbar, navigation)
+        main_window = cls(view, model, status_bar, toolbar, navigation)
         model.setParent(main_window)
         return main_window
 
@@ -71,11 +70,9 @@ class MainWindowController(QObject):
         :param sakia.app.Application app:
         :return:
         """
-        password_asker = PasswordAskerDialog(None)
         navigation = NavigationController.create(None, app)
         toolbar = ToolbarController.create(app, navigation)
-        main_window = cls.create(app, password_asker=password_asker,
-                                 status_bar=StatusBarController.create(app),
+        main_window = cls.create(app, status_bar=StatusBarController.create(app),
                                  navigation=navigation,
                                  toolbar=toolbar
                                  )

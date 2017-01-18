@@ -1,17 +1,18 @@
 import asyncio
 import logging
 
+from PyQt5.QtCore import QObject
 from aiohttp.errors import DisconnectedError, ClientError, TimeoutError
-from duniterpy.documents import MalformedDocumentError
+
 from duniterpy.api.errors import DuniterError
-from sakia.errors import NoPeerAvailable
-from sakia.decorators import asyncify
-from sakia.data.processors import IdentitiesProcessor, NodesProcessor
+from duniterpy.documents import MalformedDocumentError
 from sakia.data.connectors import BmaConnector
-from sakia.gui.password_asker import PasswordAskerDialog, detect_non_printable
+from sakia.data.processors import IdentitiesProcessor, NodesProcessor
+from sakia.decorators import asyncify
+from sakia.errors import NoPeerAvailable
+from sakia.helpers import detect_non_printable
 from .model import ConnectionConfigModel
 from .view import ConnectionConfigView
-from PyQt5.QtCore import QObject
 
 
 class ConnectionConfigController(QObject):
@@ -42,7 +43,6 @@ class ConnectionConfigController(QObject):
             lambda: self.step_node.set_result(ConnectionConfigController.REGISTER))
         self.view.button_wallet.clicked.connect(
             lambda: self.step_node.set_result(ConnectionConfigController.WALLET))
-        self.password_asker = None
         self.view.values_changed.connect(lambda: self.view.button_next.setEnabled(self.check_key()))
         self.view.values_changed.connect(lambda: self.view.button_generate.setEnabled(self.check_key()))
         self._logger = logging.getLogger('sakia')
@@ -112,7 +112,6 @@ class ConnectionConfigController(QObject):
                     self.view.button_connect.setEnabled(False)
                     self.view.button_register.setEnabled(False)
                     await self.model.create_connection()
-                    self.password_asker = PasswordAskerDialog(self.model.connection)
                 except (DisconnectedError, ClientError, MalformedDocumentError, ValueError, TimeoutError) as e:
                     self._logger.debug(str(e))
                     self.view.display_info(self.tr("Could not connect. Check hostname, ip address or port : <br/>"

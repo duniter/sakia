@@ -1,20 +1,21 @@
-from .model import NavigationModel
-from .view import NavigationView
+from PyQt5.QtCore import pyqtSignal, QObject, Qt
+from PyQt5.QtGui import QCursor
+from PyQt5.QtWidgets import QMenu, QAction, QMessageBox, QFileDialog
+
+from sakia.data.entities import Connection
+from sakia.decorators import asyncify
+from sakia.gui.sub.password_input import PasswordInputController
+from sakia.gui.widgets import toast
+from sakia.gui.widgets.dialogs import QAsyncMessageBox
 from sakia.models.generic_tree import GenericTreeModel
-from .txhistory.controller import TxHistoryController
+from .graphs.wot.controller import WotController
 from .homescreen.controller import HomeScreenController
-from .network.controller import NetworkController
 from .identities.controller import IdentitiesController
 from .informations.controller import InformationsController
-from .graphs.wot.controller import WotController
-from sakia.data.entities import Connection
-from PyQt5.QtCore import pyqtSignal, QObject, Qt
-from PyQt5.QtWidgets import QMenu, QAction, QMessageBox, QDialog, QFileDialog
-from PyQt5.QtGui import QCursor
-from sakia.decorators import asyncify
-from sakia.gui.password_asker import PasswordAskerDialog
-from sakia.gui.widgets.dialogs import QAsyncMessageBox
-from sakia.gui.widgets import toast
+from .model import NavigationModel
+from .network.controller import NetworkController
+from .txhistory.controller import TxHistoryController
+from .view import NavigationView
 
 
 class NavigationController(QObject):
@@ -140,7 +141,7 @@ class NavigationController(QObject):
 
     @asyncify
     async def publish_uid(self, connection):
-        password = await PasswordAskerDialog(connection).async_exec()
+        password = await PasswordInputController.open_dialog(self, connection)
         if not password:
             return
         result = await self.account.send_selfcert(password, self.community)
@@ -165,7 +166,7 @@ Sending a leaving demand  cannot be canceled.
 The process to join back the community later will have to be done again.""")
                                                .format(self.account.pubkey), QMessageBox.Ok | QMessageBox.Cancel)
         if reply == QMessageBox.Ok:
-            password = PasswordAskerDialog(self.model.navigation_model.navigation.current_connection()).async_exec()
+            password = await PasswordInputController.open_dialog(self.model.navigation_model.navigation.current_connection()).async_exec()
             if not password:
                 return
             result = await self.model.send_leave(password)
@@ -191,8 +192,9 @@ neither your identity from the network."""), QMessageBox.Ok | QMessageBox.Cancel
             await self.model.remove_connection(connection)
             self.init_navigation()
 
-    def action_save_revokation(self, connection):
-        password = PasswordAskerDialog(connection).exec()
+    @asyncify
+    async def action_save_revokation(self, connection):
+        password = await PasswordInputController.open_dialog(connection)
         if not password:
             return
 
