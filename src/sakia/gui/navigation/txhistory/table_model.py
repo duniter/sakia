@@ -220,9 +220,10 @@ class HistoryTableModel(QAbstractTableModel):
         self.endInsertRows()
 
     def add_dividend(self, dividend):
-        self.beginInsertRows(QModelIndex(), 0, 0)
-        self.transfers_data.append(self.data_dividend(dividend))
-        self.endInsertRows()
+        if dividend.pubkey == self.connection.pubkey:
+            self.beginInsertRows(QModelIndex(), 0, 0)
+            self.transfers_data.append(self.data_dividend(dividend))
+            self.endInsertRows()
 
     def change_transfer(self, transfer):
         for i, data in enumerate(self.transfers_data):
