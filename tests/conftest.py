@@ -154,10 +154,14 @@ def application_with_one_connection(application, simple_fake_server, bob):
     connection = Connection(currency="test_currency",
                       pubkey=bob.key.pubkey,
                       salt=bob.salt, uid=bob.uid,
-                      scrypt_N=4096, scrypt_r=4, scrypt_p=2,
+                      scrypt_N=mirage.User.SCRYPT_PARAMS.N,
+                      scrypt_r=mirage.User.SCRYPT_PARAMS.r,
+                      scrypt_p=mirage.User.SCRYPT_PARAMS.p,
                       blockstamp=bob.blockstamp)
     application.db.connections_repo.insert(connection)
-    blockchain_parameters = BlockchainParameters(*origin_block.parameters)
+
+    parameters = origin_block.parameters
+    blockchain_parameters = BlockchainParameters(*parameters)
     blockchain = Blockchain(parameters=blockchain_parameters,
                             current_buid=current_block.blockUID,
                             current_members_count=current_block.members_count,

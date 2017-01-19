@@ -53,7 +53,7 @@ class TransferView(QDialog, Ui_TransferMoneyDialog):
         self.search_user.button_reset.hide()
         self.user_information_view = user_information_view
         self.group_box_recipient.layout().addWidget(user_information_view)
-        self.password_input_view = password_input_view
+        self.password_input = password_input_view
         self.layout_password_input.addWidget(password_input_view)
         self.button_box.button(QDialogButtonBox.Ok).setEnabled(False)
         self._amount_base = 0
