@@ -36,6 +36,11 @@ class BlockchainProcessor:
                 return block['medianTime']
         except NoPeerAvailable as e:
             self._logger.debug(str(e))
+        except errors.DuniterError as e:
+            if e.ucode == errors.BLOCK_NOT_FOUND:
+                self._logger.debug(str(e))
+            else:
+                raise
         return 0
 
     def current_buid(self, currency):
