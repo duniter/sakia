@@ -111,5 +111,8 @@ class BlockchainService(QObject):
         :rtype: int
         """
         parameters = self.parameters()
-        next_ud = parameters.c * self.current_mass() / self.last_members_count()
+        if self.last_members_count():
+            next_ud = parameters.c * self.current_mass() / self.last_members_count()
+        else:
+            next_ud = parameters.ud0
         return math.ceil(next_ud)

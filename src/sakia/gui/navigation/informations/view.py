@@ -98,7 +98,7 @@ class InformationsView(QWidget, Ui_InformationsWidget):
                 localized_data.get('ud', '####'),
                 self.tr('Universal Dividend UD(t) in'),
                 localized_data['diff_units'],
-                localized_data['mass_minus_1'],
+                localized_data.get('mass_minus_1', "###"),
                 self.tr('Monetary Mass M(t-1) in'),
                 localized_data['units'],
                 localized_data.get('members_count', '####'),
