@@ -180,28 +180,21 @@ class BlockchainProcessor:
         local_current_buid = self.current_buid(currency)
         return sorted([b for b in with_money if b > local_current_buid.number])
 
-    async def blocks(self, numbers, currency):
+    async def next_blocks(self, start, filter, currency):
         """
         Get blocks from the network
         :param List[int] numbers: list of blocks numbers to get
         :return: the list of block documents
         :rtype: List[duniterpy.documents.Block]
         """
-        if numbers:
-            from_block = min(numbers)
-            to_block = max(numbers)+1
-            self._logger.debug("Get blocks from {0} to {1}".format(from_block, to_block))
-            for start in range(from_block, to_block, 100):
-                blocks = []
-                self._logger.debug("Get range from {0} to {1}".format(start, start+100))
-                blocks_data = await self._bma_connector.get(currency, bma.blockchain.blocks, req_args={'count': 100,
-                                                                                         'start': start})
-                for data in blocks_data:
-                    if data['number'] in numbers:
-                        blocks.append(Block.from_signed_raw(data["raw"] + data["signature"] + "\n"))
+        blocks = []
+        blocks_data = await self._bma_connector.get(currency, bma.blockchain.blocks, req_args={'count': 100,
+                                                                                 'start': start})
+        for data in blocks_data:
+            if data['number'] in filter or data['number'] == start+99:
+                blocks.append(Block.from_signed_raw(data["raw"] + data["signature"] + "\n"))
 
-                yield blocks
-        yield []
+        return blocks
 
     async def initialize_blockchain(self, currency, log_stream):
         """

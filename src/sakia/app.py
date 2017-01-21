@@ -16,6 +16,7 @@ from sakia.data.processors import BlockchainProcessor, NodesProcessor, Identitie
 from sakia.data.files import AppDataFile, UserParametersFile
 from sakia.decorators import asyncify
 from sakia.money import *
+import asyncio
 
 
 @attr.s()
@@ -132,6 +133,7 @@ class Application(QObject):
         self.network_service = NetworkService.load(self, self.currency, nodes_processor,
                                                     self.blockchain_service,
                                                     self.identities_service)
+        asyncio.ensure_future(self.blockchain_service.handle_blockchain_progress(self.network_service._block_found))
 
     async def remove_connection(self, connection):
         await self.stop_current_profile()

@@ -41,6 +41,14 @@ class BlockchainService(QObject):
     def handle_new_blocks(self, blocks):
         self._blockchain_processor.handle_new_blocks(self.currency, blocks)
 
+    async def new_blocks(self, network_blockstamp):
+        with_identities = await self._blockchain_processor.new_blocks_with_identities(self.currency)
+        with_money = await self._blockchain_processor.new_blocks_with_money(self.currency)
+        block_numbers = with_identities + with_money
+        if network_blockstamp > self.current_buid():
+            block_numbers += [network_blockstamp.number]
+        return block_numbers
+
     async def handle_blockchain_progress(self, network_blockstamp):
         """
         Handle a new current block uid
@@ -50,34 +58,28 @@ class BlockchainService(QObject):
         if self._blockchain_processor.initialized(self.currency) and not self._update_lock:
             try:
                 self._update_lock = True
+                block_numbers = await self.new_blocks(network_blockstamp)
+                while block_numbers:
+                    start = self.current_buid().number
+                    self._logger.debug("Parsing from {0}".format(start))
+                    blocks = await self._blockchain_processor.next_blocks(start, block_numbers, self.currency)
+                    if len(blocks) > 0:
+                        identities = await self._identities_service.handle_new_blocks(blocks)
+                        changed_tx, new_tx, new_dividends = await self._transactions_service.handle_new_blocks(blocks)
+                        self.handle_new_blocks(blocks)
+                        self.app.db.commit()
+                        for tx in changed_tx:
+                            self.app.transaction_state_changed.emit(tx)
+                        for tx in new_tx:
+                            self.app.new_transfer.emit(tx)
+                        for ud in new_dividends:
+                            self.app.new_dividend.emit(ud)
+                        for idty in identities:
+                            self.app.identity_changed.emit(idty)
+                        self.app.new_blocks_handled.emit()
+                        block_numbers = await self.new_blocks(network_blockstamp)
                 await self._sources_service.refresh_sources()
                 self.app.sources_refreshed.emit()
-                with_identities = await self._blockchain_processor.new_blocks_with_identities(self.currency)
-                with_money = await self._blockchain_processor.new_blocks_with_money(self.currency)
-                block_numbers = with_identities + with_money
-                if network_blockstamp > self.current_buid():
-                    block_numbers += [network_blockstamp.number]
-                while block_numbers:
-                    await asyncio.sleep(0)
-                    async for blocks in self._blockchain_processor.blocks(block_numbers, self.currency):
-                        if len(blocks) > 0:
-                            identities = await self._identities_service.handle_new_blocks(blocks)
-                            changed_tx, new_tx, new_dividends = await self._transactions_service.handle_new_blocks(blocks)
-                            self.handle_new_blocks(blocks)
-                            self.app.db.commit()
-                            for tx in changed_tx:
-                                self.app.transaction_state_changed.emit(tx)
-                            for tx in new_tx:
-                                self.app.new_transfer.emit(tx)
-                            for ud in new_dividends:
-                                self.app.new_dividend.emit(ud)
-                            for idty in identities:
-                                self.app.identity_changed.emit(idty)
-                            self.app.new_blocks_handled.emit()
-
-                    with_identities = await self._blockchain_processor.new_blocks_with_identities(self.currency)
-                    with_money = await self._blockchain_processor.new_blocks_with_money(self.currency)
-                    block_numbers = with_identities + with_money
             except (NoPeerAvailable, DuniterError) as e:
                 self._logger.debug(str(e))
             finally:

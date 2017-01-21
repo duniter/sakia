@@ -102,7 +102,7 @@ class TransactionsService(QObject):
                                     timestamp=ud_data["time"],
                                     amount=ud_data["amount"],
                                     base=ud_data["base"])
-                if max_block_number > dividend.block_number > min_block_number:
+                if max_block_number >= dividend.block_number >= min_block_number:
                     self._logger.debug("Dividend of block {0}".format(dividend.block_number))
                     block_numbers.append(dividend.block_number)
                     if self._dividends_processor.commit(dividend):
