@@ -1151,9 +1151,6 @@ This money transfer will be removed and not sent.</source>
     </message>
 </context>
 <context>
-    <name>DividendPerDay</name>
-</context>
-<context>
     <name>ExplorerTabWidget</name>
     <message>
         <location filename="../../ui/explorer_tab.ui" line="14"/>
@@ -1589,9 +1586,6 @@ This money transfer will be removed and not sent.</source>
     </message>
 </context>
 <context>
-    <name>MemberDialog</name>
-</context>
-<context>
     <name>MemberView</name>
     <message>
         <location filename="../../ui/member.ui" line="34"/>
@@ -1833,12 +1827,6 @@ The publication of this document will remove your identity from the network.&lt;
         <source>Corrupted</source>
         <translation type="unfinished"></translation>
     </message>
-</context>
-<context>
-    <name>NodeManager</name>
-</context>
-<context>
-    <name>PasswordAskerDialog</name>
 </context>
 <context>
     <name>PasswordInputController</name>
@@ -2100,9 +2088,6 @@ The publication of this document will remove your identity from the network.&lt;
     </message>
 </context>
 <context>
-    <name>RelativeToPast</name>
-</context>
-<context>
     <name>RelativeZSum</name>
     <message>
         <location filename="../../../src/sakia/money/relative_zerosum.py" line="9"/>
@@ -2183,9 +2168,6 @@ The publication of this document will remove your identity from the network.&lt;
         <source>{0} : {1}</source>
         <translation type="obsolete">{0} : {1}</translation>
     </message>
-</context>
-<context>
-    <name>Toast</name>
 </context>
 <context>
     <name>ToolbarController</name>
@@ -2340,9 +2322,6 @@ The publication of this document will remove your identity from the network.&lt;
         <source>Loading...</source>
         <translation type="unfinished"></translation>
     </message>
-</context>
-<context>
-    <name>UDDToPast</name>
 </context>
 <context>
     <name>UserInformationView</name>

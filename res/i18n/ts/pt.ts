@@ -1182,9 +1182,6 @@ Esta transferência monetária será removida e não enviada.</translation>
     </message>
 </context>
 <context>
-    <name>DividendPerDay</name>
-</context>
-<context>
     <name>ExplorerTabWidget</name>
     <message>
         <location filename="../../ui/explorer_tab.ui" line="14"/>
@@ -2323,9 +2320,6 @@ The publication of this document will remove your identity from the network.&lt;
     </message>
 </context>
 <context>
-    <name>NodeManager</name>
-</context>
-<context>
     <name>PasswordAskerDialog</name>
     <message>
         <location filename="../../ui/password_asker.ui" line="14"/>
@@ -2732,9 +2726,6 @@ Você gostaria de publicar a chave?</translation>
     </message>
 </context>
 <context>
-    <name>RelativeToPast</name>
-</context>
-<context>
     <name>RelativeZSum</name>
     <message>
         <location filename="../../../src/sakia/money/relative_zerosum.py" line="9"/>
@@ -3102,9 +3093,6 @@ Esta transferência monetária será removida e não enviada.</translation>
         <source>Loading...</source>
         <translation type="unfinished"></translation>
     </message>
-</context>
-<context>
-    <name>UDDToPast</name>
 </context>
 <context>
     <name>UserInformationView</name>

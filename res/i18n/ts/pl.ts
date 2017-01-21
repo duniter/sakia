@@ -1087,9 +1087,6 @@ Ten przelew zostanie usunięty i nie wysłał.</translation>
     </message>
 </context>
 <context>
-    <name>DividendPerDay</name>
-</context>
-<context>
     <name>ExplorerTabWidget</name>
     <message>
         <location filename="../../ui/explorer_tab.ui" line="14"/>
@@ -2200,12 +2197,6 @@ The publication of this document will remove your identity from the network.&lt;
     </message>
 </context>
 <context>
-    <name>NodeManager</name>
-</context>
-<context>
-    <name>PasswordAskerDialog</name>
-</context>
-<context>
     <name>PasswordInputController</name>
     <message>
         <location filename="../../../src/sakia/gui/sub/password_input/controller.py" line="69"/>
@@ -2498,9 +2489,6 @@ Chciałbyś opublikować klucz ?</translation>
     </message>
 </context>
 <context>
-    <name>RelativeToPast</name>
-</context>
-<context>
     <name>RelativeZSum</name>
     <message>
         <location filename="../../../src/sakia/money/relative_zerosum.py" line="9"/>
@@ -2586,9 +2574,6 @@ Chciałbyś opublikować klucz ?</translation>
         <source>{0} : {1}</source>
         <translation type="obsolete">{0} : {1}</translation>
     </message>
-</context>
-<context>
-    <name>Toast</name>
 </context>
 <context>
     <name>ToolbarController</name>
@@ -2845,9 +2830,6 @@ Ten przelew zostanie usunięty i nie wysłał.</translation>
         <source>Loading...</source>
         <translation type="unfinished"></translation>
     </message>
-</context>
-<context>
-    <name>UDDToPast</name>
 </context>
 <context>
     <name>UserInformationView</name>

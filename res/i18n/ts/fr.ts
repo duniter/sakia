@@ -1429,9 +1429,6 @@ Le transfert de monnaie sera annulé et non envoyé.</translation>
     </message>
 </context>
 <context>
-    <name>DividendPerDay</name>
-</context>
-<context>
     <name>ExplorerTabWidget</name>
     <message>
         <location filename="../../ui/explorer_tab.ui" line="14"/>
@@ -2838,9 +2835,6 @@ The publication of this document will remove your identity from the network.&lt;
     </message>
 </context>
 <context>
-    <name>NodeManager</name>
-</context>
-<context>
     <name>PasswordAskerDialog</name>
     <message>
         <location filename="../../ui/password_asker.ui" line="14"/>
@@ -3855,9 +3849,6 @@ Veuillez rééssayer plus tard</translation>
         <source>Loading...</source>
         <translation type="unfinished"></translation>
     </message>
-</context>
-<context>
-    <name>UDDToPast</name>
 </context>
 <context>
     <name>UserInformationView</name>

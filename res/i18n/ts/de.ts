@@ -432,7 +432,7 @@
     <message>
         <location filename="../../../src/sakia/gui/navigation/informations/view.py" line="56"/>
         <source>Balance</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Gleichgewicht</translation>
     </message>
     <message>
         <location filename="../../../src/sakia/gui/navigation/informations/view.py" line="125"/>
@@ -1280,9 +1280,6 @@ Diese Überweisung, werden entfernt und nicht gesendet.</translation>
         <source>properties</source>
         <translation type="obsolete">Eigenschaften</translation>
     </message>
-</context>
-<context>
-    <name>DividendPerDay</name>
 </context>
 <context>
     <name>ExplorerTabWidget</name>
@@ -2581,9 +2578,6 @@ The publication of this document will remove your identity from the network.&lt;
     </message>
 </context>
 <context>
-    <name>NodeManager</name>
-</context>
-<context>
     <name>PasswordAskerDialog</name>
     <message>
         <location filename="../../ui/password_asker.ui" line="14"/>
@@ -2896,9 +2890,6 @@ The publication of this document will remove your identity from the network.&lt;
     </message>
 </context>
 <context>
-    <name>RelativeToPast</name>
-</context>
-<context>
     <name>RelativeZSum</name>
     <message>
         <location filename="../../../src/sakia/money/relative_zerosum.py" line="9"/>
@@ -2969,9 +2960,6 @@ The publication of this document will remove your identity from the network.&lt;
         <source>Error</source>
         <translation type="obsolete">Fehler</translation>
     </message>
-</context>
-<context>
-    <name>Toast</name>
 </context>
 <context>
     <name>ToolbarController</name>
@@ -3146,9 +3134,6 @@ The publication of this document will remove your identity from the network.&lt;
         <source>Loading...</source>
         <translation type="unfinished"></translation>
     </message>
-</context>
-<context>
-    <name>UDDToPast</name>
 </context>
 <context>
     <name>UserInformationView</name>
@@ -3384,9 +3369,6 @@ Sie können die UID nur widerrufen, wenn sie noch nicht vom Netzwerk validiert w
         <source>Not a member</source>
         <translation type="obsolete">Kein Mitglied</translation>
     </message>
-</context>
-<context>
-    <name>certificationsTabWidget</name>
 </context>
 <context>
     <name>menu</name>
