@@ -103,7 +103,7 @@ class NavigationController(QObject):
         self.parse_node(raw_node)
 
     def tree_context_menu(self, point):
-        mapped = self.view.tree_view.mapFromParent(point)
+        mapped = self.view.splitter.mapFromParent(point)
         index = self.view.tree_view.indexAt(mapped)
         raw_data = self.view.tree_view.model().data(index, GenericTreeModel.ROLE_RAW_DATA)
         if raw_data and raw_data["component"] == "Informations":
