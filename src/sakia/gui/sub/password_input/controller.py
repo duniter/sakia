@@ -48,6 +48,8 @@ class PasswordInputController(QObject):
         password_input.view.button_box.rejected.connect(dialog.reject)
         password_input.view.setParent(dialog)
         password_input.view.button_box.show()
+        if connection.password:
+            return connection.password
         result = await dialog_async_exec(dialog)
         if result == QDialog.Accepted:
             return password_input.get_password()
