@@ -6,3 +6,6 @@ test_net:
     - "BASIC_MERKLED_API testnet.duniter.inso.ovh 80"
   BSmbyQCeRxoEami1ta6h67ZoVHs4KpudZ6VaSdpprbZP:
     - "BASIC_MERKLED_API testnet.duniter.org 8999"
+gtest:
+    C4orqutdb3Nveur3xN5L2TduT1j8d2EZkJsWLmWuD2Sv:
+    - "BASIC_MERKLED_API gtest.duniter.org 10900"

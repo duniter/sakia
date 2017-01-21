@@ -15,6 +15,7 @@ class TransferView(QDialog, Ui_TransferMoneyDialog):
     class ButtonBoxState(Enum):
         NO_AMOUNT = 0
         OK = 1
+        WRONG_PASSWORD = 2
 
     class RecipientMode(Enum):
         PUBKEY = 1
@@ -24,15 +25,17 @@ class TransferView(QDialog, Ui_TransferMoneyDialog):
     _button_box_values = {
         ButtonBoxState.NO_AMOUNT: (False,
                                    QT_TRANSLATE_NOOP("TransferView", "No amount. Please give the transfer amount")),
-        ButtonBoxState.OK: (True, QT_TRANSLATE_NOOP("CertificationView", "&Ok"))
+        ButtonBoxState.OK: (True, QT_TRANSLATE_NOOP("CertificationView", "&Ok")),
+        ButtonBoxState.WRONG_PASSWORD: (False, QT_TRANSLATE_NOOP("TransferView", "Please enter correct password"))
     }
 
-    def __init__(self, parent, search_user_view, user_information_view):
+    def __init__(self, parent, search_user_view, user_information_view, password_input_view):
         """
 
         :param parent:
-        :param sakia.gui.search_user.view.SearchUserView search_user_view:
-        :param sakia.gui.user_information.view.UserInformationView user_information_view:
+        :param sakia.gui.sub.search_user.view.SearchUserView search_user_view:
+        :param sakia.gui.sub.user_information.view.UserInformationView user_information_view:
+        :param sakia.gui.sub.password_input.view.PasswordInputView password_input_view:
         """
         super().__init__(parent)
         self.setupUi(self)
@@ -41,13 +44,18 @@ class TransferView(QDialog, Ui_TransferMoneyDialog):
         self.radio_search.toggled.connect(lambda c, radio=TransferView.RecipientMode.SEARCH: self.recipient_mode_changed(radio))
         self.radio_local_key.toggled.connect(lambda c, radio=TransferView.RecipientMode.LOCAL_KEY: self.recipient_mode_changed(radio))
 
-
         regexp = QRegExp('^([ a-zA-Z0-9-_:/;*?\[\]\(\)\\\?!^+=@&~#{}|<>%.]{0,255})$')
         validator = QRegExpValidator(regexp)
         self.edit_message.setValidator(validator)
 
         self.search_user = search_user_view
+        self.layout_search_user.addWidget(search_user_view)
+        self.search_user.button_reset.hide()
         self.user_information_view = user_information_view
+        self.group_box_recipient.layout().addWidget(user_information_view)
+        self.password_input = password_input_view
+        self.layout_password_input.addWidget(password_input_view)
+        self.button_box.button(QDialogButtonBox.Ok).setEnabled(False)
         self._amount_base = 0
         self._currency = ""
 
@@ -74,12 +82,6 @@ class TransferView(QDialog, Ui_TransferMoneyDialog):
         :return:
         """
         self.search_user = search_user_view
-        self.layout_search_user.addWidget(search_user_view)
-        self.search_user.button_reset.hide()
-
-    def set_user_information(self, user_information_view):
-        self.user_information_view = user_information_view
-        self.group_box_recipient.layout().addWidget(user_information_view)
 
     def recipient_mode_changed(self, radio):
         """

@@ -1,6 +1,7 @@
 from PyQt5.QtCore import QObject
 from sakia.data.processors import IdentitiesProcessor, CertificationsProcessor, \
     BlockchainProcessor, ConnectionsProcessor
+from sakia.helpers import timestamp_to_dhms
 import attr
 
 
@@ -51,10 +52,7 @@ class CertificationModel(QObject):
                                                                             self.connection.pubkey,
                                                                             parameters, blockchain_time)
 
-        days, remainder = divmod(remaining_time, 3600 * 24)
-        hours, remainder = divmod(remainder, 3600)
-        minutes, seconds = divmod(remainder, 60)
-        return days, hours, minutes, seconds
+        return timestamp_to_dhms(remaining_time)
 
     def nb_certifications(self):
         """
@@ -77,8 +75,9 @@ class CertificationModel(QObject):
         identity = self._identities_processor.get_identity(self.connection.currency,
                                                             self.connection.pubkey,
                                                             self.connection.uid)
+        current_block = self._blockchain_processor.current_buid(self.connection.currency)
 
-        return identity.member
+        return identity.member or current_block.number == 0
 
     def available_connections(self):
         return self._connections_processor.connections_with_uids()
@@ -93,6 +92,7 @@ class CertificationModel(QObject):
     async def certify_identity(self, password, identity):
         result = await self.app.documents_service.certify(self.connection, password, identity)
         if result[0]:
+            self._identities_processor.insert_or_update_identity(identity)
             connection_identity = self._identities_processor.get_identity(self.connection.currency,
                                                                           self.connection.pubkey,
                                                                           self.connection.uid)

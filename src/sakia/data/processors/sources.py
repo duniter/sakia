@@ -1,5 +1,6 @@
 import attr
 import sqlite3
+import logging
 from ..entities import Source
 from .nodes import NodesProcessor
 from ..connectors import BmaConnector
@@ -14,6 +15,7 @@ class SourcesProcessor:
     """
     _repo = attr.ib()
     _bma_connector = attr.ib()
+    _logger = attr.ib(default=attr.Factory(lambda: logging.getLogger('sakia')))
 
     @classmethod
     def instanciate(cls, app):

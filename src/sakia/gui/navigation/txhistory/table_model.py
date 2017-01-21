@@ -86,7 +86,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
         block_index = model.index(source_index.row(), block_col)
         block_data = model.data(block_index, Qt.DisplayRole)
 
-        if state_data == Transaction.VALIDATED:
+        if state_data == Transaction.VALIDATED and block_data:
             current_confirmations = self.blockchain_service.current_buid().number - block_data
         else:
             current_confirmations = 0
@@ -215,14 +215,15 @@ class HistoryTableModel(QAbstractTableModel):
         self.beginInsertRows(QModelIndex(), len(self.transfers_data), len(self.transfers_data))
         if transfer.issuer == self.connection.pubkey:
             self.transfers_data.append(self.data_sent(transfer))
-        else:
+        if transfer.receiver == self.connection.pubkey:
             self.transfers_data.append(self.data_received(transfer))
         self.endInsertRows()
 
     def add_dividend(self, dividend):
-        self.beginInsertRows(QModelIndex(), 0, 0)
-        self.transfers_data.append(self.data_dividend(dividend))
-        self.endInsertRows()
+        if dividend.pubkey == self.connection.pubkey:
+            self.beginInsertRows(QModelIndex(), 0, 0)
+            self.transfers_data.append(self.data_dividend(dividend))
+            self.endInsertRows()
 
     def change_transfer(self, transfer):
         for i, data in enumerate(self.transfers_data):
@@ -231,12 +232,13 @@ class HistoryTableModel(QAbstractTableModel):
                     self.beginRemoveRows(QModelIndex(), i, i)
                     self.transfers_data.pop(i)
                     self.endRemoveRows()
-                elif transfer.issuer == self.connection.pubkey:
-                    self.transfers_data[i] = self.data_sent(transfer)
-                    self.dataChanged.emit(self.index(i, 0), self.index(i, len(self.columns_types)))
                 else:
-                    self.transfers_data[i] = self.data_received(transfer)
-                    self.dataChanged.emit(self.index(i, 0), self.index(i, len(self.columns_types)))
+                    if transfer.issuer == self.connection.pubkey:
+                        self.transfers_data[i] = self.data_sent(transfer)
+                        self.dataChanged.emit(self.index(i, 0), self.index(i, len(self.columns_types)))
+                    if transfer.receiver == self.connection.pubkey:
+                        self.transfers_data[i] = self.data_received(transfer)
+                        self.dataChanged.emit(self.index(i, 0), self.index(i, len(self.columns_types)))
                 return
 
     def data_received(self, transfer):
@@ -309,7 +311,7 @@ class HistoryTableModel(QAbstractTableModel):
             if transfer.state != Transaction.DROPPED:
                 if transfer.issuer == self.connection.pubkey:
                     self.transfers_data.append(self.data_sent(transfer))
-                else:
+                if transfer.receiver == self.connection.pubkey:
                     self.transfers_data.append(self.data_received(transfer))
         dividends = self.dividends()
         for dividend in dividends:

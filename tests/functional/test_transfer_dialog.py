@@ -16,11 +16,13 @@ async def test_transfer(application_with_one_connection, simple_fake_server, bob
             transfer_dialog.view.close()
 
     async def exec_test():
-        transfer_dialog.model.connection.password = bob.password
         QTest.mouseClick(transfer_dialog.view.radio_pubkey, Qt.LeftButton)
         QTest.keyClicks(transfer_dialog.view.edit_pubkey, alice.key.pubkey)
         transfer_dialog.view.spinbox_amount.setValue(10)
         await asyncio.sleep(0.1)
+        assert not transfer_dialog.view.button_box.button(QDialogButtonBox.Ok).isEnabled()
+        await asyncio.sleep(0.1)
+        QTest.keyClicks(transfer_dialog.view.password_input.edit_password, bob.password)
         assert transfer_dialog.view.button_box.button(QDialogButtonBox.Ok).isEnabled()
         QTest.mouseClick(transfer_dialog.view.button_box.button(QDialogButtonBox.Ok), Qt.LeftButton)
         await asyncio.sleep(0.2)

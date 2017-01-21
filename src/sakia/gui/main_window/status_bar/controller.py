@@ -1,6 +1,7 @@
 from PyQt5.QtCore import QLocale, pyqtSlot, QDateTime, QTimer, QObject
 from .model import StatusBarModel
 from .view import StatusBarView
+from sakia.data.processors import BlockchainProcessor
 import logging
 
 
@@ -21,6 +22,7 @@ class StatusBarController(QObject):
         self.model = model
         view.combo_referential.currentIndexChanged[int].connect(self.referential_changed)
         self.update_time()
+        self.new_blocks_handled()
 
     @classmethod
     def create(cls, app):
@@ -32,8 +34,9 @@ class StatusBarController(QObject):
         """
         view = StatusBarView(None)
 
-        model = StatusBarModel(None, app)
+        model = StatusBarModel(None, app, BlockchainProcessor.instanciate(app))
         status_bar = cls(view, model)
+        app.new_blocks_handled.connect(status_bar.new_blocks_handled)
         return status_bar
 
     @pyqtSlot()
@@ -47,6 +50,16 @@ class StatusBarController(QObject):
         timer = QTimer()
         timer.timeout.connect(self.update_time)
         timer.start(1000)
+
+    def new_blocks_handled(self):
+        current_block = self.model.current_block()
+        current_time = self.model.current_time()
+        str_time = QLocale.toString(
+                        QLocale(),
+                        QDateTime.fromTime_t(current_time),
+                        QLocale.dateTimeFormat(QLocale(), QLocale.NarrowFormat)
+                    )
+        self.view.status_label.setText(self.tr("Blockchain sync : {0} ({1})").format(str_time, str(current_block)[:15]))
 
     def refresh(self):
         """

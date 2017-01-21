@@ -3,7 +3,7 @@ import math
 
 from PyQt5.QtCore import QLocale, QDateTime, pyqtSignal, QObject
 from sakia.errors import NoPeerAvailable
-
+from sakia.helpers import timestamp_to_dhms
 from sakia.money.currency import shortened
 from sakia.money import Referentials
 from duniterpy.api import errors
@@ -44,7 +44,7 @@ class InformationsModel(QObject):
             return None
 
         localized_data['growth'] = params.c
-        localized_data['days_per_dividend'] = params.dt / 86400
+        localized_data['days_per_dividend'] = QLocale().toString(params.dt / 86400, 'f', 2)
 
         last_ud, last_ud_base = self.blockchain_service.last_ud()
         members_count = self.blockchain_service.last_members_count()
@@ -131,9 +131,7 @@ class InformationsModel(QObject):
                     outdistanced_text = self.tr("In WoT range")
 
                 if mstime_remaining > 0:
-                    days, remainder = divmod(mstime_remaining, 3600 * 24)
-                    hours, remainder = divmod(remainder, 3600)
-                    minutes, seconds = divmod(remainder, 60)
+                    days, hours, minutes, seconds = timestamp_to_dhms(mstime_remaining)
                     mstime_remaining_text = self.tr("Expires in ")
                     if days > 0:
                         mstime_remaining_text += "{days} days".format(days=days)

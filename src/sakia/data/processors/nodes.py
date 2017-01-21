@@ -20,7 +20,8 @@ class NodesProcessor:
                 node = Node(currency=currency,
                             pubkey=pubkey,
                             endpoints=ROOT_SERVERS[currency][pubkey],
-                            peer_blockstamp=BlockUID.empty())
+                            peer_blockstamp=BlockUID.empty(),
+                            state=Node.ONLINE)
                 self._repo.insert(node)
 
     def current_buid(self, currency):
