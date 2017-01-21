@@ -7,7 +7,7 @@ environment:
 
   matrix:
     - PYTHON: "C:\\Python35_64"
-      PYTHON_VERSION: "3.5"
+      PYTHON_VERSION: "3.6"
       PYTHON_ARCH: "64"
       CONDA_PY: "35"
       CONDA_NPY: "18"
@@ -15,7 +15,7 @@ environment:
       platform: x64
 
     - PYTHON: "C:\\Python35_32"
-      PYTHON_VERSION: "3.5"
+      PYTHON_VERSION: "3.6"
       PYTHON_ARCH: "32"
       CONDA_PY: "35"
       CONDA_NPY: "18"
