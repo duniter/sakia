@@ -163,6 +163,7 @@ class DocumentsService:
         responses = await self._bma_connector.broadcast(connection.currency, bma.wot.certify, req_args={'cert': signed_cert})
         result = await parse_bma_responses(responses)
         if result[0]:
+            self._identities_processor.insert_or_update_identity(identity)
             self._certifications_processor.create_or_update_certification(connection.currency, certification,
                                                                           timestamp, BlockUID.empty())
 

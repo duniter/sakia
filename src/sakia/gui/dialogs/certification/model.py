@@ -92,10 +92,10 @@ class CertificationModel(QObject):
     async def certify_identity(self, password, identity):
         result = await self.app.documents_service.certify(self.connection, password, identity)
         if result[0]:
-            self._identities_processor.insert_or_update_identity(identity)
             connection_identity = self._identities_processor.get_identity(self.connection.currency,
                                                                           self.connection.pubkey,
                                                                           self.connection.uid)
+            self.app.db.commit()
             self.app.identity_changed.emit(connection_identity)
             self.app.identity_changed.emit(identity)
         return result
