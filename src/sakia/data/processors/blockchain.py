@@ -189,18 +189,19 @@ class BlockchainProcessor:
         """
         if numbers:
             from_block = min(numbers)
-            to_block = max(numbers)
-            count = to_block - from_block
+            to_block = max(numbers)+1
+            self._logger.debug("Get blocks from {0} to {1}".format(from_block, to_block))
+            for start in range(from_block, to_block, 100):
+                blocks = []
+                self._logger.debug("Get range from {0} to {1}".format(start, start+100))
+                blocks_data = await self._bma_connector.get(currency, bma.blockchain.blocks, req_args={'count': 100,
+                                                                                         'start': start})
+                for data in blocks_data:
+                    if data['number'] in numbers:
+                        blocks.append(Block.from_signed_raw(data["raw"] + data["signature"] + "\n"))
 
-            blocks_data = await self._bma_connector.get(currency, bma.blockchain.blocks, req_args={'count': count,
-                                                                                         'start': from_block})
-            blocks = []
-            for data in blocks_data:
-                if data['number'] in numbers:
-                    blocks.append(Block.from_signed_raw(data["raw"] + data["signature"] + "\n"))
-
-            return blocks
-        return []
+                yield blocks
+        yield []
 
     async def initialize_blockchain(self, currency, log_stream):
         """
@@ -293,20 +294,21 @@ class BlockchainProcessor:
         """
         blockchain = self._repo.get_one(currency=currency)
         for block in sorted(blocks):
-            blockchain.current_buid = block.blockUID
-            blockchain.median_time = block.mediantime
-            blockchain.current_members_count = block.members_count
-            if block.ud:
-                blockchain.previous_mass = blockchain.current_mass
-                blockchain.previous_members_count = blockchain.last_members_count
-                blockchain.previous_ud = blockchain.last_ud
-                blockchain.previous_ud_base = blockchain.last_ud_base
-                blockchain.previous_ud_time = blockchain.last_ud_time
-                blockchain.current_mass = blockchain.current_mass + block.ud * block.members_count
-                blockchain.last_members_count = block.members_count
-                blockchain.last_ud = block.ud
-                blockchain.last_ud_base = block.unit_base
-                blockchain.last_ud_time = block.mediantime
+            if blockchain.current_buid < block.blockUID:
+                blockchain.current_buid = block.blockUID
+                blockchain.median_time = block.mediantime
+                blockchain.current_members_count = block.members_count
+                if block.ud:
+                    blockchain.previous_mass = blockchain.current_mass
+                    blockchain.previous_members_count = blockchain.last_members_count
+                    blockchain.previous_ud = blockchain.last_ud
+                    blockchain.previous_ud_base = blockchain.last_ud_base
+                    blockchain.previous_ud_time = blockchain.last_ud_time
+                    blockchain.current_mass = blockchain.current_mass + block.ud * block.members_count
+                    blockchain.last_members_count = block.members_count
+                    blockchain.last_ud = block.ud
+                    blockchain.last_ud_base = block.unit_base
+                    blockchain.last_ud_time = block.mediantime
         self._repo.update(blockchain)
 
     def remove_blockchain(self, currency):

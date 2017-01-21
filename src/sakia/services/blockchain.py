@@ -1,3 +1,4 @@
+import asyncio
 from PyQt5.QtCore import QObject
 import math
 import logging
@@ -32,6 +33,7 @@ class BlockchainService(QObject):
         self._transactions_service = transactions_service
         self._sources_service = sources_service
         self._logger = logging.getLogger('sakia')
+        self._update_lock = False
 
     def initialized(self):
         return self._blockchain_processor.initialized(self.app.currency)
@@ -45,29 +47,41 @@ class BlockchainService(QObject):
 
         :param duniterpy.documents.BlockUID network_blockstamp:
         """
-        try:
-            if self._blockchain_processor.initialized(self.currency):
+        if self._blockchain_processor.initialized(self.currency) and not self._update_lock:
+            try:
+                self._update_lock = True
+                await self._sources_service.refresh_sources()
+                self.app.sources_refreshed.emit()
                 with_identities = await self._blockchain_processor.new_blocks_with_identities(self.currency)
                 with_money = await self._blockchain_processor.new_blocks_with_money(self.currency)
-                blocks = await self._blockchain_processor.blocks(with_identities + with_money + [network_blockstamp.number],
-                                                                 self.currency)
-                await self._sources_service.refresh_sources()
-                if len(blocks) > 0:
-                    identities = await self._identities_service.handle_new_blocks(blocks)
-                    changed_tx, new_tx, new_dividends = await self._transactions_service.handle_new_blocks(blocks)
-                    self.handle_new_blocks(blocks)
-                    self.app.db.commit()
-                    for tx in changed_tx:
-                        self.app.transaction_state_changed.emit(tx)
-                    for tx in new_tx:
-                        self.app.new_transfer.emit(tx)
-                    for ud in new_dividends:
-                        self.app.new_dividend.emit(ud)
-                    for idty in identities:
-                        self.app.identity_changed.emit(idty)
-                    self.app.sources_refreshed.emit()
-        except (NoPeerAvailable, DuniterError) as e:
-            self._logger.debug(str(e))
+                block_numbers = with_identities + with_money
+                if network_blockstamp > self.current_buid():
+                    block_numbers += [network_blockstamp.number]
+                while block_numbers:
+                    await asyncio.sleep(0)
+                    async for blocks in self._blockchain_processor.blocks(block_numbers, self.currency):
+                        if len(blocks) > 0:
+                            identities = await self._identities_service.handle_new_blocks(blocks)
+                            changed_tx, new_tx, new_dividends = await self._transactions_service.handle_new_blocks(blocks)
+                            self.handle_new_blocks(blocks)
+                            self.app.db.commit()
+                            for tx in changed_tx:
+                                self.app.transaction_state_changed.emit(tx)
+                            for tx in new_tx:
+                                self.app.new_transfer.emit(tx)
+                            for ud in new_dividends:
+                                self.app.new_dividend.emit(ud)
+                            for idty in identities:
+                                self.app.identity_changed.emit(idty)
+                            self.app.new_blocks_handled.emit()
+
+                    with_identities = await self._blockchain_processor.new_blocks_with_identities(self.currency)
+                    with_money = await self._blockchain_processor.new_blocks_with_money(self.currency)
+                    block_numbers = with_identities + with_money
+            except (NoPeerAvailable, DuniterError) as e:
+                self._logger.debug(str(e))
+            finally:
+                self._update_lock = False
 
     def current_buid(self):
         return self._blockchain_processor.current_buid(self.currency)

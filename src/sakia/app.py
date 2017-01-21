@@ -48,6 +48,7 @@ class Application(QObject):
     new_connection = pyqtSignal(Connection)
     referential_changed = pyqtSignal()
     sources_refreshed = pyqtSignal()
+    new_blocks_handled = pyqtSignal()
 
     qapp = attr.ib()
     loop = attr.ib()
