@@ -302,7 +302,7 @@ class BlockchainProcessor:
                     blockchain.previous_ud = blockchain.last_ud
                     blockchain.previous_ud_base = blockchain.last_ud_base
                     blockchain.previous_ud_time = blockchain.last_ud_time
-                    blockchain.current_mass = blockchain.current_mass + block.ud * block.members_count
+                    blockchain.current_mass += (block.ud * 10**block.unit_base) * block.members_count
                     blockchain.last_members_count = block.members_count
                     blockchain.last_ud = block.ud
                     blockchain.last_ud_base = block.unit_base
