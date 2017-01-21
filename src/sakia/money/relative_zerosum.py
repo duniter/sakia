@@ -10,7 +10,7 @@ class RelativeZSum(BaseReferential):
     _REF_STR_ = QT_TRANSLATE_NOOP('RelativeZSum', "{0} {1}R0{2}")
     _UNITS_STR_ = QT_TRANSLATE_NOOP('RelativeZSum', "R0 {0}")
     _FORMULA_STR_ = QT_TRANSLATE_NOOP('RelativeZSum',
-                                      """R0 = (R / UD(t)) - (( M(t-1) / N(t) ) / UD(t))
+                                      """R0 = (Q / UD(t)) - (( M(t-1) / N(t) ) / UD(t))
                                         <br >
                                         <table>
                                         <tr><td>R0</td><td>Relative value at zero sum</td></tr>
