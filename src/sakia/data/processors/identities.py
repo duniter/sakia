@@ -42,27 +42,23 @@ class IdentitiesProcessor:
         for idty in identities:
             if idty.blockstamp > found_identity.blockstamp:
                 found_identity = idty
-        if not found_identity:
-            tries = 0
-            while tries < 3:
-                try:
-                    data = await self._bma_connector.get(currency, bma.wot.lookup, req_args={'search': pubkey})
-                    found_identity = None
-                    for result in data['results']:
-                        if result["pubkey"] == pubkey:
-                            uids = result['uids']
-                            for uid_data in uids:
-                                identity = Identity(currency, pubkey)
-                                identity.uid = uid_data['uid']
-                                identity.blockstamp = block_uid(uid_data['meta']['timestamp'])
-                                identity.signature = uid_data['self']
-                                if identity.blockstamp > found_identity.blockstamp:
-                                    found_identity = identity
-                except (errors.DuniterError, asyncio.TimeoutError, ClientError) as e:
-                    tries += 1
-                    self._logger.debug(str(e))
-                except NoPeerAvailable as e:
-                    self._logger.debug(str(e))
+        if not found_identity.uid:
+            try:
+                data = await self._bma_connector.get(currency, bma.wot.lookup, req_args={'search': pubkey})
+                for result in data['results']:
+                    if result["pubkey"] == pubkey:
+                        uids = result['uids']
+                        for uid_data in uids:
+                            identity = Identity(currency, pubkey)
+                            identity.uid = uid_data['uid']
+                            identity.blockstamp = block_uid(uid_data['meta']['timestamp'])
+                            identity.signature = uid_data['self']
+                            if identity.blockstamp >= found_identity.blockstamp:
+                                found_identity = identity
+            except (errors.DuniterError, asyncio.TimeoutError, ClientError) as e:
+                self._logger.debug(str(e))
+            except NoPeerAvailable as e:
+                self._logger.debug(str(e))
         return found_identity
 
     async def lookup(self, currency, text):

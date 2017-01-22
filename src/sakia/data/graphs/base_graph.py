@@ -113,7 +113,7 @@ class BaseGraph(QObject):
 
     def add_certifier_node(self, certifier, identity, certification, node_status):
         metadata = {
-            'text': certifier.uid,
+            'text': certifier.uid if certifier.uid else certifier.pubkey[:12],
             'tooltip': certifier.pubkey,
             'identity': certifier,
             'status': node_status
@@ -136,7 +136,7 @@ class BaseGraph(QObject):
 
     def add_certified_node(self, identity, certified, certification, node_status):
         metadata = {
-            'text': certified.uid,
+            'text': certified.uid if certified.uid else certified.pubkey[:12],
             'tooltip': certified.pubkey,
             'identity': certified,
             'status': node_status

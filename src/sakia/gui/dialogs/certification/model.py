@@ -97,5 +97,4 @@ class CertificationModel(QObject):
                                                                           self.connection.uid)
             self.app.db.commit()
             self.app.identity_changed.emit(connection_identity)
-            self.app.identity_changed.emit(identity)
         return result
