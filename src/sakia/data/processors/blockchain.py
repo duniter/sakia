@@ -36,6 +36,11 @@ class BlockchainProcessor:
                 return block['medianTime']
         except NoPeerAvailable as e:
             self._logger.debug(str(e))
+        except errors.DuniterError as e:
+            if e.ucode == errors.BLOCK_NOT_FOUND:
+                self._logger.debug(str(e))
+            else:
+                raise
         return 0
 
     def current_buid(self, currency):
@@ -180,27 +185,21 @@ class BlockchainProcessor:
         local_current_buid = self.current_buid(currency)
         return sorted([b for b in with_money if b > local_current_buid.number])
 
-    async def blocks(self, numbers, currency):
+    async def next_blocks(self, start, filter, currency):
         """
         Get blocks from the network
         :param List[int] numbers: list of blocks numbers to get
         :return: the list of block documents
         :rtype: List[duniterpy.documents.Block]
         """
-        if numbers:
-            from_block = min(numbers)
-            to_block = max(numbers)
-            count = to_block - from_block
+        blocks = []
+        blocks_data = await self._bma_connector.get(currency, bma.blockchain.blocks, req_args={'count': 100,
+                                                                                 'start': start})
+        for data in blocks_data:
+            if data['number'] in filter or data['number'] == start+99:
+                blocks.append(Block.from_signed_raw(data["raw"] + data["signature"] + "\n"))
 
-            blocks_data = await self._bma_connector.get(currency, bma.blockchain.blocks, req_args={'count': count,
-                                                                                         'start': from_block})
-            blocks = []
-            for data in blocks_data:
-                if data['number'] in numbers:
-                    blocks.append(Block.from_signed_raw(data["raw"] + data["signature"] + "\n"))
-
-            return blocks
-        return []
+        return blocks
 
     async def initialize_blockchain(self, currency, log_stream):
         """
@@ -293,20 +292,21 @@ class BlockchainProcessor:
         """
         blockchain = self._repo.get_one(currency=currency)
         for block in sorted(blocks):
-            blockchain.current_buid = block.blockUID
-            blockchain.median_time = block.mediantime
-            blockchain.current_members_count = block.members_count
-            if block.ud:
-                blockchain.previous_mass = blockchain.current_mass
-                blockchain.previous_members_count = blockchain.last_members_count
-                blockchain.previous_ud = blockchain.last_ud
-                blockchain.previous_ud_base = blockchain.last_ud_base
-                blockchain.previous_ud_time = blockchain.last_ud_time
-                blockchain.current_mass = blockchain.current_mass + block.ud * block.members_count
-                blockchain.last_members_count = block.members_count
-                blockchain.last_ud = block.ud
-                blockchain.last_ud_base = block.unit_base
-                blockchain.last_ud_time = block.mediantime
+            if blockchain.current_buid < block.blockUID:
+                blockchain.current_buid = block.blockUID
+                blockchain.median_time = block.mediantime
+                blockchain.current_members_count = block.members_count
+                if block.ud:
+                    blockchain.previous_mass = blockchain.current_mass
+                    blockchain.previous_members_count = blockchain.last_members_count
+                    blockchain.previous_ud = blockchain.last_ud
+                    blockchain.previous_ud_base = blockchain.last_ud_base
+                    blockchain.previous_ud_time = blockchain.last_ud_time
+                    blockchain.current_mass += (block.ud * 10**block.unit_base) * block.members_count
+                    blockchain.last_members_count = block.members_count
+                    blockchain.last_ud = block.ud
+                    blockchain.last_ud_base = block.unit_base
+                    blockchain.last_ud_time = block.mediantime
         self._repo.update(blockchain)
 
     def remove_blockchain(self, currency):

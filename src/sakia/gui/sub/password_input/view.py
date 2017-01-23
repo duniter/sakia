@@ -1,8 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QDialogButtonBox
 from PyQt5.QtCore import QEvent, Qt
-from duniterpy.key import SigningKey
 from .password_input_uic import Ui_PasswordInputWidget
-import re
 
 
 class PasswordInputView(QWidget, Ui_PasswordInputWidget):

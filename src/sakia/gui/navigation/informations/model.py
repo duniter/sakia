@@ -74,14 +74,13 @@ class InformationsModel(QObject):
                                               self.connection.currency, self.app).diff_localized(False, True)
 
             localized_data['mass'] = self.app.current_ref.instance(self.blockchain_service.current_mass(),
-                                              self.connection.currency, self.app).diff_localized(False, True)
+                                              self.connection.currency, self.app).localized(False, True)
 
             localized_data['ud_median_time'] = QLocale.toString(
                 QLocale(),
                 QDateTime.fromTime_t(self.blockchain_service.last_ud_time()),
                 QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
             )
-
             localized_data['next_ud_median_time'] = QLocale.toString(
                 QLocale(),
                 QDateTime.fromTime_t(self.blockchain_service.last_ud_time() + params.dt),
@@ -93,10 +92,10 @@ class InformationsModel(QObject):
                                            previous_monetary_mass / previous_members_count)
                 localized_data['mass_minus_1_per_member'] = self.app.current_ref.instance(mass_minus_1_per_member,
                                                   self.connection.currency, self.app) \
-                                                .diff_localized(False, True)
+                                                  .localized(False, True)
                 localized_data['mass_minus_1'] = self.app.current_ref.instance(previous_monetary_mass,
                                                   self.connection.currency, self.app) \
-                                                    .diff_localized(False, True)
+                                                  .localized(False, True)
                 # avoid divide by zero !
                 if members_count == 0 or previous_members_count == 0:
                     localized_data['actual_growth'] = float(0)

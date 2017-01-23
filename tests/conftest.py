@@ -91,6 +91,7 @@ def fake_server(application, event_loop):
                                           state=Node.ONLINE,
                                           software="duniter",
                                           version="0.40.2"))
+    application.instanciate_services()
     return server
 
 

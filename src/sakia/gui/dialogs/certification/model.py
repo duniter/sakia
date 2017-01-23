@@ -75,8 +75,9 @@ class CertificationModel(QObject):
         identity = self._identities_processor.get_identity(self.connection.currency,
                                                             self.connection.pubkey,
                                                             self.connection.uid)
+        current_block = self._blockchain_processor.current_buid(self.connection.currency)
 
-        return identity.member
+        return identity.member or current_block.number == 0
 
     def available_connections(self):
         return self._connections_processor.connections_with_uids()
@@ -88,12 +89,12 @@ class CertificationModel(QObject):
     def notification(self):
         return self.app.parameters.notifications
 
-    async def certify_identity(self, password, identity):
-        result = await self.app.documents_service.certify(self.connection, password, identity)
+    async def certify_identity(self, secret_key, password, identity):
+        result = await self.app.documents_service.certify(self.connection, secret_key, password, identity)
         if result[0]:
             connection_identity = self._identities_processor.get_identity(self.connection.currency,
                                                                           self.connection.pubkey,
                                                                           self.connection.uid)
+            self.app.db.commit()
             self.app.identity_changed.emit(connection_identity)
-            self.app.identity_changed.emit(identity)
         return result

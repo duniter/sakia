@@ -27,9 +27,9 @@ class SearchUserController(QObject):
         self.view.node_selected.connect(self.select_node)
 
     @classmethod
-    def create(cls, parent, app, currency):
+    def create(cls, parent, app):
         view = SearchUserView(parent.view if parent else None)
-        model = SearchUserModel(parent, app, currency)
+        model = SearchUserModel(parent, app)
         search_user = cls(parent, view, model)
         model.setParent(search_user)
         return search_user
@@ -60,5 +60,3 @@ class SearchUserController(QObject):
         self.model.select_identity(index)
         self.identity_selected.emit(self.model.identity())
 
-    def set_currency(self, currency):
-        self.model.currency = currency

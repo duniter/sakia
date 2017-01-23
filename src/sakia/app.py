@@ -16,6 +16,7 @@ from sakia.data.processors import BlockchainProcessor, NodesProcessor, Identitie
 from sakia.data.files import AppDataFile, UserParametersFile
 from sakia.decorators import asyncify
 from sakia.money import *
+import asyncio
 
 
 @attr.s()
@@ -48,6 +49,7 @@ class Application(QObject):
     new_connection = pyqtSignal(Connection)
     referential_changed = pyqtSignal()
     sources_refreshed = pyqtSignal()
+    new_blocks_handled = pyqtSignal()
 
     qapp = attr.ib()
     loop = attr.ib()
@@ -151,7 +153,7 @@ class Application(QObject):
         TransactionsProcessor.instanciate(self).cleanup_connection(connection, connections_processor.pubkeys())
 
         if not connections_processor.connections():
-            NodesProcessor.instanciate(self).drop_all()
+            NodesProcessor.instanciate(self).drop_all(self.currency)
 
         self.db.commit()
         self.start_coroutines()

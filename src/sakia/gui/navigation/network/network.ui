@@ -40,7 +40,7 @@
           <string/>
          </property>
          <property name="icon">
-          <iconset resource="../../../../res/icons/icons.qrc">
+          <iconset resource="../../../../../res/icons/icons.qrc">
            <normaloff>:/icons/refresh_icon</normaloff>:/icons/refresh_icon</iconset>
          </property>
          <property name="iconSize">
@@ -59,7 +59,7 @@
         <enum>Qt::CustomContextMenu</enum>
        </property>
        <property name="horizontalScrollBarPolicy">
-        <enum>Qt::ScrollBarAlwaysOff</enum>
+        <enum>Qt::ScrollBarAsNeeded</enum>
        </property>
        <property name="sizeAdjustPolicy">
         <enum>QAbstractScrollArea::AdjustToContents</enum>
@@ -86,7 +86,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../../../../res/icons/icons.qrc"/>
+  <include location="../../../../../res/icons/icons.qrc"/>
  </resources>
  <connections>
   <connection>

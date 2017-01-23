@@ -11,17 +11,15 @@ class SearchUserModel(QObject):
     The model of Navigation component
     """
 
-    def __init__(self, parent, app, currency):
+    def __init__(self, parent, app):
         """
 
         :param sakia.gui.search_user.controller.NetworkController parent: the controller
         :param sakia.app.Application app: the app
-        :param str currency: the currency network to look for users
         """
         super().__init__(parent)
         self.app = app
         self.identities_processor = IdentitiesProcessor.instanciate(app)
-        self.currency = currency
         self._nodes = list()
         self._current_identity = None
 
@@ -46,7 +44,7 @@ class SearchUserModel(QObject):
         :return:
         """
         try:
-            self._nodes = await self.identities_processor.lookup(self.currency, text)
+            self._nodes = await self.identities_processor.lookup(self.app.currency, text)
         except errors.DuniterError as e:
             if e.ucode == errors.NO_MATCHING_IDENTITY:
                 self._nodes = list()

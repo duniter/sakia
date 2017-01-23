@@ -121,8 +121,8 @@ class NavigationModel(QObject):
         else:
             return None
 
-    def generate_revokation(self, connection, password):
-        return self.app.documents_service.generate_revokation(connection, password)
+    def generate_revokation(self, connection, secret_key, password):
+        return self.app.documents_service.generate_revokation(connection, secret_key, password)
 
     def identity_published(self, connection):
         return self.app.identities_service.get_identity(connection.pubkey, connection.uid).written
@@ -137,8 +137,11 @@ class NavigationModel(QObject):
                 self._current_data['widget'].disconnect()
         await self.app.remove_connection(connection)
 
-    async def send_leave(self, connection, password):
-        return await self.app.documents_service.send_membership(connection, password, "OUT")
+    async def send_leave(self, connection, secret_key, password):
+        return await self.app.documents_service.send_membership(connection, secret_key, password, "OUT")
+
+    async def send_identity(self, connection, secret_key, password):
+        return await self.app.documents_service.broadcast_identity(connection, secret_key, password)
 
     @staticmethod
     def copy_pubkey_to_clipboard(connection):

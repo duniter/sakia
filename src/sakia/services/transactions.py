@@ -89,6 +89,7 @@ class TransactionsService(QObject):
         """
         connections_pubkeys = [c.pubkey for c in self._connections_processor.connections_to(self.currency)]
         min_block_number = blocks[0].number
+        max_block_number = blocks[-1].number
         dividends = []
         for pubkey in connections_pubkeys:
             history_data = await self._bma_connector.get(self.currency, bma.ud.history,
@@ -101,7 +102,7 @@ class TransactionsService(QObject):
                                     timestamp=ud_data["time"],
                                     amount=ud_data["amount"],
                                     base=ud_data["base"])
-                if dividend.block_number > min_block_number:
+                if max_block_number >= dividend.block_number >= min_block_number:
                     self._logger.debug("Dividend of block {0}".format(dividend.block_number))
                     block_numbers.append(dividend.block_number)
                     if self._dividends_processor.commit(dividend):

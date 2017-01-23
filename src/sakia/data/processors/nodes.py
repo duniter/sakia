@@ -20,7 +20,8 @@ class NodesProcessor:
                 node = Node(currency=currency,
                             pubkey=pubkey,
                             endpoints=ROOT_SERVERS[currency][pubkey],
-                            peer_blockstamp=BlockUID.empty())
+                            peer_blockstamp=BlockUID.empty(),
+                            state=Node.ONLINE)
                 self._repo.insert(node)
 
     def current_buid(self, currency):
@@ -140,7 +141,8 @@ class NodesProcessor:
             self._repo.update(node)
         return node
 
-    def drop_all(self):
+    def drop_all(self, currency):
         nodes = self._repo.get_all()
         for n in nodes:
-            self._repo.drop(n)
+            if n.pubkey not in ROOT_SERVERS[currency].keys():
+                self._repo.drop(n)

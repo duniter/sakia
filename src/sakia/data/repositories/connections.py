@@ -16,6 +16,8 @@ class ConnectionsRepo:
         Commit a connection to the database
         :param sakia.data.entities.Connection connection: the connection to commit
         """
+        if connection.is_identity():
+            connection = attr.assoc(connection, salt="")
         connection_tuple = attr.astuple(connection, filter=attr.filters.exclude(Connection.password))
         values = ",".join(['?'] * len(connection_tuple))
         self._conn.execute("INSERT INTO connections VALUES ({0})".format(values), connection_tuple)
@@ -25,6 +27,8 @@ class ConnectionsRepo:
         Update an existing connection in the database
         :param sakia.data.entities.Connection connection: the certification to update
         """
+        if connection.is_identity():
+            connection = attr.assoc(connection, salt="")
         updated_fields = attr.astuple(connection, filter=attr.filters.exclude(Connection.password,
                                                                               *ConnectionsRepo._primary_keys))
         where_fields = attr.astuple(connection, filter=attr.filters.include(*ConnectionsRepo._primary_keys))

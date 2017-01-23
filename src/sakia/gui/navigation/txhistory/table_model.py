@@ -221,7 +221,7 @@ class HistoryTableModel(QAbstractTableModel):
 
     def add_dividend(self, dividend):
         if dividend.pubkey == self.connection.pubkey:
-            self.beginInsertRows(QModelIndex(), 0, 0)
+            self.beginInsertRows(QModelIndex(), len(self.transfers_data), len(self.transfers_data))
             self.transfers_data.append(self.data_dividend(dividend))
             self.endInsertRows()
 
@@ -330,7 +330,7 @@ class HistoryTableModel(QAbstractTableModel):
                 dividend, base = self.blockchain_processor.last_ud(self.transactions_service.currency)
                 header = '{:}'.format(self.column_headers[section]())
                 if self.app.current_ref.base_str(base):
-                    header += "\n({:})".format(self.app.current_ref.base_str(base))
+                    header += " ({:})".format(self.app.current_ref.base_str(base))
                 return header
 
             return self.column_headers[section]()

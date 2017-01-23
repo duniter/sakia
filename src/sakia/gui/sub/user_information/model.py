@@ -7,12 +7,11 @@ class UserInformationModel(QObject):
     The model of HomeScreen component
     """
 
-    def __init__(self, parent, app, currency, identity):
+    def __init__(self, parent, app, identity):
         """
 
         :param sakia.gui.user_information.controller.UserInformationController parent:
         :param sakia.core.Application app: the app
-        :param str currency: the currency currently requested
         :param sakia.data.entities.Identity identity: the identity
         :param sakia.services.IdentitiesService identities_service: the identities service of current currency
         """
@@ -20,7 +19,6 @@ class UserInformationModel(QObject):
         self._certifications_processor = CertificationsProcessor.instanciate(app)
         self._blockchain_processor = BlockchainProcessor.instanciate(app)
         self.app = app
-        self.currency = currency
         self.identity = identity
         self.identities_service = self.app.identities_service
         if identity:
@@ -34,9 +32,6 @@ class UserInformationModel(QObject):
         self.identity = identity
         self.identity = await self.identities_service.load_memberships(self.identity)
         self.identity = await self.identities_service.load_requirements(self.identity)
-
-    def set_currency(self, currency):
-        self.currency = currency
 
     async def nb_certs(self):
         certs = await self.identities_service.load_certifiers_of(self.identity)
