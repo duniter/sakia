@@ -255,6 +255,7 @@ class IdentitiesService(QObject):
             certifier = self.get_identity(cert.certifier)
             if not certifier:
                 certifier = await self.find_from_pubkey(cert.certifier)
+                certifier = await self.load_requirements(certifier)
                 identities.append(certifier)
 
         for cert in certified:
@@ -263,6 +264,7 @@ class IdentitiesService(QObject):
             certified = self.get_identity(cert.certified)
             if not certified:
                 certified = await self.find_from_pubkey(cert.certified)
+                certified = await self.load_requirements(certified)
                 identities.append(certified)
 
         log_stream("Commiting identities...")
