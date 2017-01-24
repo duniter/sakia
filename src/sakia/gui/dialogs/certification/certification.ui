@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>517</width>
-    <height>338</height>
+    <height>360</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -27,7 +27,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <widget class="QComboBox" name="combo_pubkey"/>
+       <widget class="QComboBox" name="combo_connection"/>
       </item>
       <item>
        <widget class="QGroupBox" name="groupBox_3">
@@ -54,6 +54,18 @@
       <string>Certify user</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3"/>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="group_box_password">
+     <property name="title">
+      <string>Password</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_6">
+      <item>
+       <layout class="QVBoxLayout" name="layout_password_input"/>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>

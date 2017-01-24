@@ -7,8 +7,9 @@ async def test_send_tx_then_validate(application_with_one_connection, fake_serve
     tx_before_send = application_with_one_connection.transactions_service.transfers(bob.key.pubkey)
     bob_connection = application_with_one_connection.db.connections_repo.get_one(pubkey=bob.key.pubkey)
     await application_with_one_connection.documents_service.send_money(bob_connection,
-                                                                 bob.password,
-                                                                 alice.key.pubkey, 10, 0, "Test comment")
+                                                                       bob.salt,
+                                                                       bob.password,
+                                                                       alice.key.pubkey, 10, 0, "Test comment")
     tx_after_send = application_with_one_connection.transactions_service.transfers(bob.key.pubkey)
     assert len(tx_before_send) + 1 == len(tx_after_send)
     assert tx_after_send[-1].state is Transaction.AWAITING

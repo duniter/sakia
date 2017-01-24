@@ -110,7 +110,6 @@ CREATE TABLE IF NOT EXISTS nodes(
 CREATE TABLE IF NOT EXISTS connections(
                                currency           VARCHAR(30),
                                pubkey             VARCHAR(50),
-                               salt               VARCHAR(50),
                                uid                VARCHAR(255),
                                scrypt_N           INT,
                                scrypt_p           INT,

@@ -17,6 +17,7 @@ class CertificationView(QDialog, Ui_CertificationDialog):
         REMAINING_TIME_BEFORE_VALIDATION = 2
         OK = 3
         SELECT_IDENTITY = 4
+        WRONG_PASSWORD = 5
 
     _button_box_values = {
         ButtonBoxState.NO_MORE_CERTIFICATION: (False,
@@ -26,10 +27,11 @@ class CertificationView(QDialog, Ui_CertificationDialog):
         ButtonBoxState.REMAINING_TIME_BEFORE_VALIDATION: (True,
                                                           QT_TRANSLATE_NOOP("CertificationView",
                                                                             "&Ok (Not validated before {remaining})")),
-        ButtonBoxState.OK: (True, QT_TRANSLATE_NOOP("CertificationView", "&Ok"))
+        ButtonBoxState.OK: (True, QT_TRANSLATE_NOOP("CertificationView", "&Ok")),
+        ButtonBoxState.WRONG_PASSWORD: (False, QT_TRANSLATE_NOOP("CertificationView", "Please enter correct password"))
     }
 
-    def __init__(self, parent, search_user_view, user_information_view):
+    def __init__(self, parent, search_user_view, user_information_view, password_input_view):
         """
 
         :param parent:
@@ -40,33 +42,24 @@ class CertificationView(QDialog, Ui_CertificationDialog):
         super().__init__(parent)
         self.setupUi(self)
 
-        self.search_user = search_user_view
+        self.search_user_view = search_user_view
         self.user_information_view = user_information_view
+        self.password_input_view = password_input_view
+        self.groupbox_certified.layout().addWidget(search_user_view)
+        self.search_user_view.button_reset.hide()
+        self.layout_password_input.addWidget(password_input_view)
+        self.groupbox_certified.layout().addWidget(user_information_view)
 
     def set_keys(self, connections):
-        self.combo_pubkey.clear()
+        self.combo_connection.clear()
         for c in connections:
-            self.combo_pubkey.addItem(c.title())
+            self.combo_connection.addItem(c.title())
 
     def set_selected_key(self, connection):
         """
         :param sakia.data.entities.Connection connection:
         """
-        self.combo_pubkey.setCurrentText(connection.title())
-
-    def set_search_user(self, search_user_view):
-        """
-
-        :param sakia.gui.search_user.view.SearchUserView search_user_view:
-        :return:
-        """
-        self.search_user = search_user_view
-        self.groupbox_certified.layout().addWidget(search_user_view)
-        self.search_user.button_reset.hide()
-
-    def set_user_information(self, user_information_view):
-        self.user_information_view = user_information_view
-        self.groupbox_certified.layout().addWidget(user_information_view)
+        self.combo_connection.setCurrentText(connection.title())
 
     def pubkey_value(self):
         return self.edit_pubkey.text()

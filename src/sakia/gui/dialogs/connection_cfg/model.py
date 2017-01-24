@@ -1,12 +1,9 @@
 import aiohttp
 from PyQt5.QtCore import QObject
-from duniterpy.documents import BlockUID, BMAEndpoint, SecuredBMAEndpoint
-from duniterpy.api import bma, errors
 from duniterpy.key import SigningKey
-from sakia.data.entities import Connection, Identity, Node
-from sakia.data.connectors import NodeConnector
-from sakia.data.processors import ConnectionsProcessor, NodesProcessor, BlockchainProcessor, \
-    SourcesProcessor, CertificationsProcessor, TransactionsProcessor, DividendsProcessor, IdentitiesProcessor
+from sakia.data.entities import Connection
+from sakia.data.processors import ConnectionsProcessor, BlockchainProcessor, \
+    SourcesProcessor, TransactionsProcessor, DividendsProcessor, IdentitiesProcessor
 
 
 class ConnectionConfigModel(QObject):
@@ -85,8 +82,7 @@ class ConnectionConfigModel(QObject):
         :param function log_stream: a method to log data in the screen
         :return:
         """
-        certifications_processor = CertificationsProcessor.instanciate(self.app)
-        await certifications_processor.initialize_certifications(identity, log_stream)
+        await self.app.identities_service.initialize_certifications(identity, log_stream)
 
     async def initialize_transactions(self, identity, log_stream):
         """
@@ -113,7 +109,9 @@ class ConnectionConfigModel(QObject):
         """"
         Publish the self certification of the connection identity
         """
-        return await self.app.documents_service.broadcast_identity(self.connection, self.connection.password)
+        return await self.app.documents_service.broadcast_identity(self.connection,
+                                                                   self.connection.salt,
+                                                                   self.connection.password)
 
     async def check_registered(self):
         identities_processor = IdentitiesProcessor.instanciate(self.app)

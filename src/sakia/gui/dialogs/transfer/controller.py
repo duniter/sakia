@@ -49,8 +49,8 @@ class TransferController(QObject):
         :return: a new Transfer controller
         :rtype: TransferController
         """
-        search_user = SearchUserController.create(None, app, "")
-        user_information = UserInformationController.create(None, app, "", None)
+        search_user = SearchUserController.create(None, app)
+        user_information = UserInformationController.create(None, app, None)
         password_input = PasswordInputController.create(None, None)
 
         view = TransferView(parent.view if parent else None,
@@ -140,13 +140,13 @@ class TransferController(QObject):
         amount_base = self.model.current_base()
 
         logging.debug("Showing password dialog...")
-        password = self.password_input.get_password()
+        secret_key, password = self.password_input.get_salt_password()
 
         logging.debug("Setting cursor...")
         QApplication.setOverrideCursor(Qt.WaitCursor)
 
         logging.debug("Send money...")
-        result, transaction = await self.model.send_money(recipient, password, amount, amount_base, comment)
+        result, transaction = await self.model.send_money(recipient, secret_key, password, amount, amount_base, comment)
         if result[0]:
             await self.view.show_success(self.model.notifications(), recipient)
             logging.debug("Restore cursor...")
@@ -197,8 +197,6 @@ class TransferController(QObject):
 
     def change_current_connection(self, index):
         self.model.set_connection(index)
-        self.search_user.set_currency(self.model.connection.currency)
-        self.user_information.set_currency(self.model.connection.currency)
         self.password_input.set_connection(self.model.connection)
         self.refresh()
 

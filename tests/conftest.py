@@ -73,7 +73,6 @@ def application(event_loop, meta_repo, sakia_options, app_data, user_parameters)
                       parameters=user_parameters,
                       db=meta_repo,
                       currency="test_currency")
-    app.documents_service = DocumentsService.instanciate(app)
     return app
 
 
@@ -91,6 +90,7 @@ def fake_server(application, event_loop):
                                           state=Node.ONLINE,
                                           software="duniter",
                                           version="0.40.2"))
+    application.instanciate_services()
     return server
 
 
@@ -152,8 +152,7 @@ def application_with_one_connection(application, simple_fake_server, bob):
     previous_ud_block = [b for b in simple_fake_server.forge.blocks if b.ud][-2]
     origin_block = simple_fake_server.forge.blocks[0]
     connection = Connection(currency="test_currency",
-                      pubkey=bob.key.pubkey,
-                      salt=bob.salt, uid=bob.uid,
+                      pubkey=bob.key.pubkey, uid=bob.uid,
                       scrypt_N=mirage.User.SCRYPT_PARAMS.N,
                       scrypt_r=mirage.User.SCRYPT_PARAMS.r,
                       scrypt_p=mirage.User.SCRYPT_PARAMS.p,
@@ -203,7 +202,6 @@ def application_with_one_connection(application, simple_fake_server, bob):
                             membership_type=bob_ms.type,
                             membership_written_on=simple_fake_server.forge.blocks[bob_ms.written_on].number)
     application.db.identities_repo.insert(bob_identity)
-    application.instanciate_services()
     application.switch_language()
 
     return application

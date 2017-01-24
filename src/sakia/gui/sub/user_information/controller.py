@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QDialog, QTabWidget, QVBoxLayout
 from PyQt5.QtCore import QObject, pyqtSignal
 from sakia.decorators import asyncify
-from sakia.gui.widgets.dialogs import dialog_async_exec
+from sakia.gui.widgets.dialogs import dialog_async_exec, QAsyncMessageBox
 from .model import UserInformationModel
 from .view import UserInformationView
 
@@ -24,25 +24,25 @@ class UserInformationController(QObject):
         self.model = model
 
     @classmethod
-    def create(cls, parent, app, currency, identity):
+    def create(cls, parent, app, identity):
         view = UserInformationView(parent.view if parent else None)
-        model = UserInformationModel(None, app, currency, identity)
+        model = UserInformationModel(None, app, identity)
         homescreen = cls(parent, view, model)
         model.setParent(homescreen)
         return homescreen
 
     @classmethod
-    def show_identity(cls, parent, app, currency, identity):
+    def show_identity(cls, parent, app, identity):
         dialog = QDialog()
         dialog.setWindowTitle("Informations")
-        user_info = cls.create(parent, app, currency, identity)
+        user_info = cls.create(parent, app, identity)
         user_info.view.setParent(dialog)
         user_info.refresh()
         dialog.exec()
 
     @classmethod
     @asyncify
-    async def search_and_show_pubkey(cls, parent, app, currency, pubkey):
+    async def search_and_show_pubkey(cls, parent, app, pubkey):
         dialog = QDialog(parent)
         dialog.setWindowTitle("Informations")
         layout = QVBoxLayout(dialog)
@@ -51,7 +51,7 @@ class UserInformationController(QObject):
 
         identities = await app.identities_service.lookup(pubkey)
         for i in identities:
-            user_info = cls.create(parent, app, currency, i)
+            user_info = cls.create(parent, app, i)
             user_info.refresh()
             tabwidget.addTab(user_info.view, i.uid)
         return await dialog_async_exec(dialog)
@@ -79,8 +79,4 @@ class UserInformationController(QObject):
         :param sakia.core.registry.Identity identity:
         """
         self.model.identity = identity
-        self.refresh()
-
-    def set_currency(self, currency):
-        self.model.set_currency(currency)
         self.refresh()

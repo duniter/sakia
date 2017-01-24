@@ -153,7 +153,7 @@ class Application(QObject):
         TransactionsProcessor.instanciate(self).cleanup_connection(connection, connections_processor.pubkeys())
 
         if not connections_processor.connections():
-            NodesProcessor.instanciate(self).drop_all()
+            NodesProcessor.instanciate(self).drop_all(self.currency)
 
         self.db.commit()
         self.start_coroutines()

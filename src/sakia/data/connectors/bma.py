@@ -67,7 +67,7 @@ def make_hash(o):
     """
 
     if isinstance(o, (set, tuple, list)):
-        return tuple([make_hash(e) for e in o])
+        return tuple(sorted([make_hash(e) for e in o]))
     elif not isinstance(o, dict):
         return hash(o)
 
@@ -106,10 +106,7 @@ def _compare_json(first, second):
 
 def _filter_data(request, data):
     filtered = data
-    if request is bma.wot.lookup:
-        filtered = copy.deepcopy(data)
-        filtered.pop("results")
-    elif request is bma.tx.history:
+    if request is bma.tx.history:
         filtered = copy.deepcopy(data)
         filtered["history"].pop("sending")
         filtered["history"].pop("receiving")
@@ -119,8 +116,42 @@ def _filter_data(request, data):
         for idty in filtered["identities"]:
             for c in idty["certifications"]:
                 c.pop("expiresIn")
+            idty.pop('membershipPendingExpiresIn')
 
     return filtered
+
+
+def _merge_lookups(answers_data):
+    if len(answers_data) == 1:
+        data = next((v for v in answers_data.values()))
+        if isinstance(data, errors.DuniterError):
+            raise data
+
+    lookup_data = {"partial": False,
+                   "results": []}
+    for dict_hash in answers_data:
+        if not isinstance(answers_data[dict_hash], errors.DuniterError):
+            for data in answers_data[dict_hash]["results"]:
+                lookup_data["results"].append(data)
+    return lookup_data
+
+
+def _best_answer(answers, answers_data, nb_verification):
+    best_dict_hash = next(k for k in answers.keys())
+    best_dict_hash_score = len(answers[best_dict_hash])
+    for dict_hash in answers:
+        if len(answers[dict_hash]) > best_dict_hash_score:
+            best_dict_hash = answers[dict_hash]
+            best_dict_hash_score = len(answers[dict_hash])
+        if len(answers[dict_hash]) >= nb_verification:
+            if isinstance(answers_data[dict_hash], errors.DuniterError):
+                raise answers_data[dict_hash]
+            else:
+                return answers_data[dict_hash]
+    if isinstance(answers_data[best_dict_hash], errors.DuniterError):
+        raise answers_data[best_dict_hash]
+    else:
+        return answers_data[best_dict_hash]
 
 
 @attr.s()
@@ -143,6 +174,7 @@ class BmaConnector:
         nb_verification = min(max(1, 0.66 * len(synced_nodes)), 10)
         # We try to find agreeing nodes from one 1 to 66% of nodes, max 10
         session = aiohttp.ClientSession()
+        filtered_data = {}
         try:
             while max([len(nodes) for nodes in answers.values()] + [0]) <= nb_verification:
                 futures = []
@@ -185,12 +217,11 @@ class BmaConnector:
         finally:
             session.close()
 
-        for dict_hash in answers:
-            if len(answers[dict_hash]) >= nb_verification:
-                if isinstance(answers_data[dict_hash], errors.DuniterError):
-                    raise answers_data[dict_hash]
-                else:
-                    return answers_data[dict_hash]
+        if len(answers_data) > 0:
+            if request is bma.wot.lookup:
+                return _merge_lookups(answers_data)
+            else:
+                return _best_answer(answers, answers_data, nb_verification)
 
         raise NoPeerAvailable("", len(synced_nodes))
 

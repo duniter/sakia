@@ -113,8 +113,8 @@ class IdentitiesService(QObject):
     async def load_certs_in_lookup(self, identity, certifiers, certified):
         """
         :param sakia.data.entities.Identity identity: the identity
-        :param sakia.data.entities.Certification certifiers: the list of certifiers got in /wot/certifiers-of
-        :param sakia.data.entities.Certification certified: the list of certified got in /wot/certified-by
+        :param list[sakia.data.entities.Certification] certifiers: the list of certifiers got in /wot/certifiers-of
+        :param list[sakia.data.entities.Certification] certified: the list of certified got in /wot/certified-by
         """
         try:
             lookup_data = await self._bma_connector.get(self.currency, bma.wot.lookup,
@@ -229,6 +229,47 @@ class IdentitiesService(QObject):
         except NoPeerAvailable as e:
             logging.debug(str(e))
         return certifications
+
+    async def initialize_certifications(self, identity, log_stream):
+        """
+        Initialize certifications to and from a given identity
+        :param sakia.data.entities.Identity identity:
+        :param function log_stream:
+        """
+        log_stream("Requesting certifiers of data")
+        certifiers = await self.load_certifiers_of(identity)
+
+        log_stream("Requesting certified by data")
+        certified = await self.load_certified_by(identity)
+
+        log_stream("Requesting lookup data")
+        certifiers, certified = await self.load_certs_in_lookup(identity, certifiers, certified)
+
+        log_stream("Requesting identities of certifications")
+        identities = []
+        i = 0
+        nb_certs = len(certified + certifiers)
+        for cert in certifiers:
+            log_stream("Requesting identity... {0}/{1}".format(i, nb_certs))
+            i += 1
+            certifier = self.get_identity(cert.certifier)
+            if not certifier:
+                certifier = await self.find_from_pubkey(cert.certifier)
+                certifier = await self.load_requirements(certifier)
+                identities.append(certifier)
+
+        for cert in certified:
+            log_stream("Requesting identity... {0}/{1}".format(i, nb_certs))
+            i += 1
+            certified = self.get_identity(cert.certified)
+            if not certified:
+                certified = await self.find_from_pubkey(cert.certified)
+                certified = await self.load_requirements(certified)
+                identities.append(certified)
+
+        log_stream("Commiting identities...")
+        for idty in identities:
+            self._identities_processor.insert_or_update_identity(idty)
 
     def _parse_revocations(self, block):
         """

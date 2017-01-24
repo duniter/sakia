@@ -79,7 +79,7 @@ class TransferModel(QObject):
         connections = self._connections_processor.connections()
         self.connection = connections[index]
 
-    async def send_money(self, recipient, password, amount, amount_base, comment):
+    async def send_money(self, recipient, secret_key, password, amount, amount_base, comment):
         """
         Send money to given recipient using the account
         :param str recipient:
@@ -90,7 +90,7 @@ class TransferModel(QObject):
         :return: the result of the send
         """
 
-        result = await self.app.documents_service.send_money(self.connection, password,
+        result = await self.app.documents_service.send_money(self.connection, secret_key, password,
                                                              recipient, amount, amount_base, comment)
         self.app.db.commit()
         return result

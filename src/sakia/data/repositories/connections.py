@@ -16,7 +16,7 @@ class ConnectionsRepo:
         Commit a connection to the database
         :param sakia.data.entities.Connection connection: the connection to commit
         """
-        connection_tuple = attr.astuple(connection, filter=attr.filters.exclude(Connection.password))
+        connection_tuple = attr.astuple(connection, filter=attr.filters.exclude(Connection.password, Connection.salt))
         values = ",".join(['?'] * len(connection_tuple))
         self._conn.execute("INSERT INTO connections VALUES ({0})".format(values), connection_tuple)
 
@@ -25,12 +25,11 @@ class ConnectionsRepo:
         Update an existing connection in the database
         :param sakia.data.entities.Connection connection: the certification to update
         """
-        updated_fields = attr.astuple(connection, filter=attr.filters.exclude(Connection.password,
+        updated_fields = attr.astuple(connection, filter=attr.filters.exclude(Connection.password, Connection.salt,
                                                                               *ConnectionsRepo._primary_keys))
         where_fields = attr.astuple(connection, filter=attr.filters.include(*ConnectionsRepo._primary_keys))
 
         self._conn.execute("""UPDATE connections SET
-                              salt=?,
                               uid=?,
                               scrypt_N=?,
                               scrypt_p=?,

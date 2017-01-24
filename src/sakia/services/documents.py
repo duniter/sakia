@@ -50,11 +50,12 @@ class DocumentsService:
                    TransactionsProcessor.instanciate(app),
                    SourcesProcessor.instanciate(app))
 
-    async def broadcast_identity(self, connection, password):
+    async def broadcast_identity(self, connection, secret_key, password):
         """
         Send our self certification to a target community
 
         :param sakia.data.entities.Connection connection: the connection published
+        :param str secret_key: the private key secret key
         :param str password: the private key password
         """
         block_uid = self._blockchain_processor.current_buid(connection.currency)
@@ -65,7 +66,7 @@ class DocumentsService:
                                connection.uid,
                                block_uid,
                                None)
-        key = SigningKey(connection.salt, password, connection.scrypt_params)
+        key = SigningKey(secret_key, password, connection.scrypt_params)
         selfcert.sign([key])
         self._logger.debug("Key publish : {0}".format(selfcert.signed_raw()))
 
@@ -106,14 +107,13 @@ class DocumentsService:
 
         return result
 
-    async def send_membership(self, connection, password, mstype):
+    async def send_membership(self, connection, secret_key, password, mstype):
         """
         Send a membership document to a target community.
         Signal "document_broadcasted" is emitted at the end.
 
-        :param str currency: the currency target
-        :param sakia.data.entities.IdentityDoc identity: the identitiy data
-        :param str salt: The account SigningKey salt
+        :param sakia.data.entities.Connection connection: the connection publishing ms doc
+        :param str secret_key: The account SigningKey salt
         :param str password: The account SigningKey password
         :param str mstype: The type of membership demand. "IN" to join, "OUT" to leave
         """
@@ -123,7 +123,7 @@ class DocumentsService:
         membership = Membership(10, connection.currency,
                                 connection.pubkey, blockUID, mstype, connection.uid,
                                 connection.blockstamp, None)
-        key = SigningKey(connection.salt, password, connection.scrypt_params)
+        key = SigningKey(secret_key, password, connection.scrypt_params)
         membership.sign([key])
         self._logger.debug("Membership : {0}".format(membership.signed_raw()))
         responses = await self._bma_connector.broadcast(connection.currency, bma.blockchain.membership,
@@ -132,11 +132,12 @@ class DocumentsService:
 
         return result
 
-    async def certify(self, connection, password, identity):
+    async def certify(self, connection, secret_key, password, identity):
         """
         Certify an other identity
 
         :param sakia.data.entities.Connection connection: the connection published
+        :param str secret_key: the private key salt
         :param str password: the private key password
         :param sakia.data.entities.Identity identity: the identity certified
         """
@@ -155,7 +156,7 @@ class DocumentsService:
         certification = Certification(10, connection.currency,
                                       connection.pubkey, identity.pubkey, blockUID, None)
 
-        key = SigningKey(connection.salt, password, connection.scrypt_params)
+        key = SigningKey(secret_key, password, connection.scrypt_params)
         certification.sign(identity.document(), [key])
         signed_cert = certification.signed_raw(identity.document())
         self._logger.debug("Certification : {0}".format(signed_cert))
@@ -163,6 +164,7 @@ class DocumentsService:
         responses = await self._bma_connector.broadcast(connection.currency, bma.wot.certify, req_args={'cert': signed_cert})
         result = await parse_bma_responses(responses)
         if result[0]:
+            self._identities_processor.insert_or_update_identity(identity)
             self._certifications_processor.create_or_update_certification(connection.currency, certification,
                                                                           timestamp, BlockUID.empty())
 
@@ -196,18 +198,19 @@ class DocumentsService:
         result = await parse_bma_responses(responses)
         return result
 
-    def generate_revokation(self, connection, password):
+    def generate_revokation(self, connection, secret_key, password):
         """
         Generate account revokation document for given community
 
         :param sakia.data.entities.Connection connection: The connection of the identity
+        :param str secret_key: The account SigningKey secret key
         :param str password: The account SigningKey password
         """
         document = Revocation(10, connection.currency, connection.pubkey, "")
         identity = self._identities_processor.get_identity(connection.currency, connection.pubkey, connection.uid)
         self_cert = identity.document()
 
-        key = SigningKey(connection.salt, password, connection.scrypt_params)
+        key = SigningKey(secret_key, password, connection.scrypt_params)
 
         document.sign(self_cert, [key])
         return document.signed_raw(self_cert)
@@ -352,10 +355,11 @@ class DocumentsService:
                             outputs, message, None)
         return tx
 
-    async def send_money(self, connection, password, recipient, amount, amount_base, message):
+    async def send_money(self, connection, secret_key, password, recipient, amount, amount_base, message):
         """
         Send money to a given recipient in a specified community
         :param sakia.data.entities.Connection connection: The account salt
+        :param str secret_key: The account secret_key
         :param str password: The account password
         :param str recipient: The pubkey of the recipient
         :param int amount: The amount of money to transfer
@@ -364,7 +368,7 @@ class DocumentsService:
         """
         blockstamp = self._blockchain_processor.current_buid(connection.currency)
         time = self._blockchain_processor.time(connection.currency)
-        key = SigningKey(connection.salt, password, connection.scrypt_params)
+        key = SigningKey(secret_key, password, connection.scrypt_params)
         logging.debug("Sender pubkey:{0}".format(key.pubkey))
         try:
             txdoc = self.prepare_tx(connection.pubkey, recipient, blockstamp, amount, amount_base,

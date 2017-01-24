@@ -16,7 +16,8 @@ async def test_new_block_with_certs(application_with_one_connection, fake_server
                             signature=alice_user_identity.signature)
     bob_connection = application_with_one_connection.db.connections_repo.get_one(pubkey=bob.key.pubkey)
     await application_with_one_connection.documents_service.certify(bob_connection,
-                                                                       bob.password, alice_identity)
+                                                                    bob.salt,
+                                                                    bob.password, alice_identity)
     certs_after_send = application_with_one_connection.identities_service.certifications_sent(
         bob.key.pubkey)
     assert len(certs_after_send) == len(certs_before_send) + 1
@@ -43,10 +44,9 @@ async def test_new_block_with_idty(application_with_one_connection, john, simple
                             blockstamp=john.blockstamp,
                             signature=john.identity().signatures[0])
     john_connection = Connection(currency="test_currency",
-                      pubkey=john.key.pubkey,
-                      salt=john.salt, uid=john.uid,
-                      scrypt_N=4096, scrypt_r=4, scrypt_p=2,
-                      blockstamp=john.blockstamp)
+                                 pubkey=john.key.pubkey, uid=john.uid,
+                                 scrypt_N=4096, scrypt_r=4, scrypt_p=2,
+                                 blockstamp=john.blockstamp)
     application_with_one_connection.db.connections_repo.insert(john_connection)
     application_with_one_connection.db.identities_repo.insert(john_identity)
     application_with_one_connection.instanciate_services()

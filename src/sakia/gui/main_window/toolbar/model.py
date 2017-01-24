@@ -19,8 +19,8 @@ class ToolbarModel(QObject):
     def __attrs_post_init__(self):
         super().__init__()
 
-    async def send_join(self, connection, password):
-        return await self.app.documents_service.send_membership(connection, password, "IN")
+    async def send_join(self, connection, secret_key, password):
+        return await self.app.documents_service.send_membership(connection, secret_key, password, "IN")
 
     def notifications(self):
         return self.app.parameters.notifications
