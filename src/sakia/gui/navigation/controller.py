@@ -141,21 +141,21 @@ class NavigationController(QObject):
 
     @asyncify
     async def publish_uid(self, connection):
-        password = await PasswordInputController.open_dialog(self, connection)
-        if not password:
+        secret_key, password = await PasswordInputController.open_dialog(self, connection)
+        if not password or not secret_key:
             return
-        result = await self.account.send_selfcert(password, self.community)
+        result = await self.model.send_identity(connection, secret_key, password)
         if result[0]:
             if self.app.preferences['notifications']:
                 toast.display(self.tr("UID"), self.tr("Success publishing your UID"))
             else:
-                await QAsyncMessageBox.information(self, self.tr("Membership"),
+                await QAsyncMessageBox.information(self.view, self.tr("Membership"),
                                                         self.tr("Success publishing your UID"))
         else:
             if self.app.preferences['notifications']:
                 toast.display(self.tr("UID"), result[1])
             else:
-                await QAsyncMessageBox.critical(self, self.tr("UID"),
+                await QAsyncMessageBox.critical(self.view, self.tr("UID"),
                                                         result[1])
 
     @asyncify
@@ -166,10 +166,11 @@ Sending a leaving demand  cannot be canceled.
 The process to join back the community later will have to be done again.""")
                                                .format(self.account.pubkey), QMessageBox.Ok | QMessageBox.Cancel)
         if reply == QMessageBox.Ok:
-            password = await PasswordInputController.open_dialog(self.model.navigation_model.navigation.current_connection()).async_exec()
-            if not password:
+            connection = self.model.navigation_model.navigation.current_connection()
+            secret_key, password = await PasswordInputController.open_dialog(self, connection)
+            if not password or not secret_key:
                 return
-            result = await self.model.send_leave(password)
+            result = await self.model.send_leave(connection, secret_key, password)
             if result[0]:
                 if self.app.preferences['notifications']:
                     toast.display(self.tr("Revoke"), self.tr("Success sending Revoke demand"))
@@ -194,11 +195,11 @@ neither your identity from the network."""), QMessageBox.Ok | QMessageBox.Cancel
 
     @asyncify
     async def action_save_revokation(self, connection):
-        password = await PasswordInputController.open_dialog(connection)
-        if not password:
+        secret_key, password = await PasswordInputController.open_dialog(self, connection)
+        if not password or not secret_key:
             return
 
-        raw_document = self.model.generate_revokation(connection, password)
+        raw_document = self.model.generate_revokation(connection, secret_key, password)
         # Testable way of using a QFileDialog
         selected_files = QFileDialog.getSaveFileName(self.view, self.tr("Save a revokation document"),
                                                        "", self.tr("All text files (*.txt)"))

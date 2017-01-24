@@ -20,14 +20,15 @@ class CertificationController(QObject):
 
     view = attr.ib()
     model = attr.ib()
-    search_user = attr.ib(default=None)
-    user_information = attr.ib(default=None)
+    search_user = attr.ib()
+    user_information = attr.ib()
+    password_input = attr.ib()
 
     def __attrs_post_init__(self):
         super().__init__()
         self.view.button_box.accepted.connect(self.accept)
         self.view.button_box.rejected.connect(self.reject)
-        self.view.combo_pubkey.currentIndexChanged.connect(self.change_connection)
+        self.view.combo_connection.currentIndexChanged.connect(self.change_connection)
 
     @classmethod
     def create(cls, parent, app):
@@ -38,15 +39,19 @@ class CertificationController(QObject):
         :return: a new Certification controller
         :rtype: CertificationController
         """
-        view = CertificationView(parent.view if parent else None, None, None)
+
+        search_user = SearchUserController.create(None, app)
+        user_information = UserInformationController.create(None, app, None)
+        password_input = PasswordInputController.create(None, None)
+
+        view = CertificationView(parent.view if parent else None, search_user.view, user_information.view,
+                                 password_input.view)
         model = CertificationModel(app)
-        certification = cls(view, model, None, None)
+        certification = cls(view, model, search_user, user_information, password_input)
+        search_user.identity_selected.connect(certification.refresh_user_information)
+        password_input.password_changed.connect(certification.refresh)
 
-        search_user = SearchUserController.create(certification, app, "")
-        certification.set_search_user(search_user)
-
-        user_information = UserInformationController.create(certification, app, "", None)
-        certification.set_user_information(user_information)
+        user_information.identity_loaded.connect(certification.refresh)
 
         view.set_keys(certification.model.available_connections())
         return certification
@@ -62,8 +67,7 @@ class CertificationController(QObject):
         :return:
         """
         dialog = cls.create(parent, app)
-        if connection:
-            dialog.view.combo_pubkey.setCurrentText(connection.title())
+        dialog.set_connection(connection)
         dialog.refresh()
         return dialog.exec()
 
@@ -78,30 +82,20 @@ class CertificationController(QObject):
         :return:
         """
         dialog = cls.create(parent, app)
-        dialog.view.combo_pubkey.setCurrentText(connection.title())
+        dialog.view.combo_connection.setCurrentText(connection.title())
         dialog.user_information.change_identity(identity)
         dialog.refresh()
         return await dialog.async_exec()
 
-    def set_search_user(self, search_user):
-        """
+    def change_connection(self, index):
+        self.model.set_connection(index)
+        self.password_input.set_connection(self.model.connection)
+        self.refresh()
 
-        :param search_user:
-        :return:
-        """
-        self.search_user = search_user
-        self.view.set_search_user(search_user.view)
-        search_user.identity_selected.connect(self.refresh_user_information)
-
-    def set_user_information(self, user_information):
-        """
-
-        :param user_information:
-        :return:
-        """
-        self.user_information = user_information
-        self.view.set_user_information(user_information.view)
-        self.user_information.identity_loaded.connect(self.refresh)
+    def set_connection(self, connection):
+        if connection:
+            self.view.combo_connection.setCurrentText(connection.title())
+            self.password_input.set_connection(connection)
 
     @asyncify
     async def accept(self):
@@ -109,12 +103,9 @@ class CertificationController(QObject):
         Validate the dialog
         """
         self.view.button_box.setDisabled(True)
-        password = await PasswordInputController.open_dialog(self, self.model.connection)
-        if not password:
-            self.view.button_box.setEnabled(True)
-            return
+        secret_key, password = self.password_input.get_salt_password()
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        result = await self.model.certify_identity(password, self.user_information.model.identity)
+        result = await self.model.certify_identity(secret_key, password, self.user_information.model.identity)
 
         if result[0]:
             QApplication.restoreOverrideCursor()
@@ -146,8 +137,10 @@ class CertificationController(QObject):
                         remaining_localized = self.tr("{hours}h {min}min").format(hours=hours, min=minutes)
                     self.view.set_button_box(CertificationView.ButtonBoxState.REMAINING_TIME_BEFORE_VALIDATION,
                                              remaining=remaining_localized)
-                else:
+                elif self.password_input.valid():
                     self.view.set_button_box(CertificationView.ButtonBoxState.OK)
+                else:
+                    self.view.set_button_box(CertificationView.ButtonBoxState.WRONG_PASSWORD)
             else:
                     self.view.set_button_box(CertificationView.ButtonBoxState.NO_MORE_CERTIFICATION)
         else:
@@ -158,12 +151,6 @@ class CertificationController(QObject):
         Refresh user information
         """
         self.user_information.search_identity(self.search_user.model.identity())
-
-    def change_connection(self, index):
-        self.model.set_connection(index)
-        self.search_user.set_currency(self.model.connection.currency)
-        self.user_information.set_currency(self.model.connection.currency)
-        self.refresh()
 
     def async_exec(self):
         future = asyncio.Future()

@@ -23,6 +23,7 @@ class PasswordInputController(QObject):
         super().__init__()
         self.view = view
         self._password = ""
+        self._secret_key = ""
         self.connection = connection
         self.remember = False
         self.set_connection(connection)
@@ -34,7 +35,8 @@ class PasswordInputController(QObject):
     def create(cls, parent, connection):
         view = PasswordInputView(parent.view if parent else None)
         password_input = cls(view, connection)
-        view.edit_password.textChanged.connect(password_input.handle_text_change)
+        view.edit_password.textChanged.connect(password_input.handle_password_change)
+        view.edit_secret_key.textChanged.connect(password_input.handle_secret_key_change)
         return password_input
 
     @classmethod
@@ -52,35 +54,55 @@ class PasswordInputController(QObject):
             return connection.password
         result = await dialog_async_exec(dialog)
         if result == QDialog.Accepted:
-            return password_input.get_password()
+            return password_input.get_salt_password()
         else:
             return ""
 
     def valid(self):
         return self._password is not ""
 
-    def handle_text_change(self, password):
-        self._password = ""
+    def check_private_key(self, secret_key, password):
+        if detect_non_printable(secret_key):
+            self.view.error(self.tr("Non printable characters in secret key"))
+            return False
+
         if detect_non_printable(password):
             self.view.error(self.tr("Non printable characters in password"))
+            return False
+
+        if SigningKey(secret_key, password,
+                      self.connection.scrypt_params).pubkey != self.connection.pubkey:
+            self.view.error(self.tr("Wrong secret key or password. Cannot open the private key"))
+            return False
+        return True
+
+    def handle_secret_key_change(self, secret_key):
+        self._secret_key = ""
+
+        if self.check_private_key(secret_key, self.view.edit_password.text()):
+            self.view.valid()
+            self._secret_key = secret_key
+            self.password_changed.emit(True)
+        else:
             self.password_changed.emit(False)
-            return
 
-        if SigningKey(self.connection.salt, password, self.connection.scrypt_params).pubkey != self.connection.pubkey:
-            self.view.error(self.tr("Wrong password typed. Cannot open the private key"))
+    def handle_password_change(self, password):
+        self._password = ""
+        if self.check_private_key(self.view.edit_secret_key.text(), password):
+            self.view.valid()
+            self._password = password
+            self.password_changed.emit(True)
+        else:
             self.password_changed.emit(False)
-            return
 
-        self.view.valid()
-        self._password = password
-        self.password_changed.emit(True)
-
-    def get_password(self):
+    def get_salt_password(self):
         if self.view.check_remember.isChecked():
+            self.connection.salt = self._secret_key
             self.connection.password = self._password
-        return self._password
+        return self._secret_key, self._password
 
     def set_connection(self, connection):
         if connection:
             self.connection = connection
+            self.view.edit_secret_key.setText(connection.salt)
             self.view.edit_password.setText(connection.password)

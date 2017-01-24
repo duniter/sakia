@@ -60,10 +60,10 @@ class ToolbarController(QObject):
         connection = await self.view.ask_for_connection(self.model.connections_with_uids())
         if not connection:
             return
-        password = await PasswordInputController.open_dialog(self, connection)
-        if not password:
+        secret_key, password = await PasswordInputController.open_dialog(self, connection)
+        if not password or not secret_key:
             return
-        result = await self.model.send_join(connection, password)
+        result = await self.model.send_join(connection, secret_key, password)
         if result[0]:
             if self.model.notifications():
                 toast.display(self.tr("Membership"), self.tr("Success sending Membership demand"))

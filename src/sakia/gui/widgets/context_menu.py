@@ -120,10 +120,10 @@ class ContextMenu(QObject):
 
     def informations(self, identity):
         if identity.uid:
-            UserInformationController.show_identity(self.parent(), self._app, self._connection.currency, identity)
+            UserInformationController.show_identity(self.parent(), self._app, identity)
             self.identity_information_loaded.emit(identity)
         else:
-            UserInformationController.search_and_show_pubkey(self.parent(), self._app, self._connection.currency,
+            UserInformationController.search_and_show_pubkey(self.parent(), self._app,
                                                              identity.pubkey)
 
 

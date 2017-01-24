@@ -20,6 +20,12 @@ class Connection:
     blockstamp = attr.ib(convert=block_uid, default=BlockUID.empty(), cmp=False, hash=False)
     password = attr.ib(init=False, convert=str, default="", cmp=False, hash=False)
 
+    def is_identity(self):
+        return self.uid is not ""
+
+    def is_wallet(self):
+        return self.uid is ""
+
     def title(self):
         return "@".join([self.uid, self.pubkey[:11]])
 
