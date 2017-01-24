@@ -142,7 +142,7 @@ def _best_answer(answers, answers_data, nb_verification):
     for dict_hash in answers:
         if len(answers[dict_hash]) > best_dict_hash_score:
             best_dict_hash = answers[dict_hash]
-            best_dict_hash_score = len(answers[best_dict_hash])
+            best_dict_hash_score = len(answers[dict_hash])
         if len(answers[dict_hash]) >= nb_verification:
             if isinstance(answers_data[dict_hash], errors.DuniterError):
                 raise answers_data[dict_hash]
