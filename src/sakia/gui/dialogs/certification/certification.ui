@@ -59,7 +59,7 @@
    <item>
     <widget class="QGroupBox" name="group_box_password">
      <property name="title">
-      <string>Password</string>
+      <string>Secret Key / Password</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_6">
       <item>
