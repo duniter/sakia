@@ -54,7 +54,7 @@ class PasswordInputController(QObject):
         if result == QDialog.Accepted:
             return password_input.get_salt_password()
         else:
-            return ""
+            return "", ""
 
     def valid(self):
         return self._password is not ""
@@ -80,6 +80,7 @@ class PasswordInputController(QObject):
         if self.check_private_key(secret_key, self.view.edit_password.text()):
             self.view.valid()
             self._secret_key = secret_key
+            self._password = self.view.edit_password.text()
             self.password_changed.emit(True)
         else:
             self.password_changed.emit(False)
@@ -88,6 +89,7 @@ class PasswordInputController(QObject):
         self._password = ""
         if self.check_private_key(self.view.edit_secret_key.text(), password):
             self.view.valid()
+            self._secret_key = self.view.edit_secret_key.text()
             self._password = password
             self.password_changed.emit(True)
         else:
