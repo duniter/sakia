@@ -152,8 +152,7 @@ def application_with_one_connection(application, simple_fake_server, bob):
     previous_ud_block = [b for b in simple_fake_server.forge.blocks if b.ud][-2]
     origin_block = simple_fake_server.forge.blocks[0]
     connection = Connection(currency="test_currency",
-                      pubkey=bob.key.pubkey,
-                      salt=bob.salt, uid=bob.uid,
+                      pubkey=bob.key.pubkey, uid=bob.uid,
                       scrypt_N=mirage.User.SCRYPT_PARAMS.N,
                       scrypt_r=mirage.User.SCRYPT_PARAMS.r,
                       scrypt_p=mirage.User.SCRYPT_PARAMS.p,

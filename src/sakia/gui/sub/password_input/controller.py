@@ -50,8 +50,6 @@ class PasswordInputController(QObject):
         password_input.view.button_box.rejected.connect(dialog.reject)
         password_input.view.setParent(dialog)
         password_input.view.button_box.show()
-        if connection.password:
-            return connection.password
         result = await dialog_async_exec(dialog)
         if result == QDialog.Accepted:
             return password_input.get_salt_password()
@@ -96,13 +94,8 @@ class PasswordInputController(QObject):
             self.password_changed.emit(False)
 
     def get_salt_password(self):
-        if self.view.check_remember.isChecked():
-            self.connection.salt = self._secret_key
-            self.connection.password = self._password
         return self._secret_key, self._password
 
     def set_connection(self, connection):
         if connection:
             self.connection = connection
-            self.view.edit_secret_key.setText(connection.salt)
-            self.view.edit_password.setText(connection.password)
