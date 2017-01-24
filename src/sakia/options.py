@@ -22,7 +22,7 @@ def config_path_factory():
 @attr.s()
 class SakiaOptions:
     config_path = attr.ib(default=attr.Factory(config_path_factory))
-    currency = attr.ib(default="fakenet")
+    currency = attr.ib(default="gtest")
     _logger = attr.ib(default=attr.Factory(lambda: logging.getLogger('sakia')))
 
     @classmethod
@@ -46,7 +46,7 @@ class SakiaOptions:
                           action="store_true", dest="debug", default=False,
                           help="Print DEBUG messages to stdout")
 
-        parser.add_option("--currency",  dest="currency", default="fakenet",
+        parser.add_option("--currency",  dest="currency", default="gtest",
                           help="Select a currency between {0}".format(",".join(ROOT_SERVERS.keys())))
 
         (options, args) = parser.parse_args(argv)
