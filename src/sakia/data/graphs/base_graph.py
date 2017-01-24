@@ -80,7 +80,10 @@ class BaseGraph(QObject):
         :rtype: str
         """
         try:
-            current_confirmations = min(max(self.blockchain_service.current_buid().number - block_number, 0), 6)
+            if block_number >= 0:
+                current_confirmations = min(max(self.blockchain_service.current_buid().number - block_number, 0), 6)
+            else:
+                current_confirmations = 0
 
             if MAX_CONFIRMATIONS > current_confirmations:
                 if self.app.parameters.expert_mode:
@@ -130,7 +133,7 @@ class BaseGraph(QObject):
                 QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
             ),
             'cert_time': certification.timestamp,
-            'confirmation_text': self.confirmation_text(certification.block)
+            'confirmation_text': self.confirmation_text(certification.written_on)
         }
         self.nx_graph.add_edge(certifier.pubkey, identity.pubkey, attr_dict=arc)
 
@@ -153,7 +156,7 @@ class BaseGraph(QObject):
                 QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
             ),
             'cert_time': certification.timestamp,
-            'confirmation_text': self.confirmation_text(certification.block)
+            'confirmation_text': self.confirmation_text(certification.written_on)
         }
 
         self.nx_graph.add_edge(identity.pubkey, certified.pubkey, attr_dict=arc)
