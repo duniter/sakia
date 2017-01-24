@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QDialog, QTabWidget, QVBoxLayout
 from PyQt5.QtCore import QObject, pyqtSignal
 from sakia.decorators import asyncify
-from sakia.gui.widgets.dialogs import dialog_async_exec
+from sakia.gui.widgets.dialogs import dialog_async_exec, QAsyncMessageBox
 from .model import UserInformationModel
 from .view import UserInformationView
 
