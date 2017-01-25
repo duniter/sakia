@@ -4,7 +4,7 @@ import logging
 import i18n_rc
 
 import aiohttp
-from PyQt5.QtCore import QObject, pyqtSignal, QTranslator, QCoreApplication, QLocale
+from PyQt5.QtCore import QObject, pyqtSignal, QTranslator, QCoreApplication, QLocale, Qt
 from . import __version__
 from .options import SakiaOptions
 from sakia.data.connectors import BmaConnector
@@ -77,6 +77,7 @@ class Application(QObject):
 
     @classmethod
     def startup(cls, argv, qapp, loop):
+        qapp.setAttribute(Qt.AA_EnableHighDpiScaling, True)
         options = SakiaOptions.from_arguments(argv)
         app_data = AppDataFile.in_config_path(options.config_path).load_or_init()
         app = cls(qapp, loop, options, app_data, None, None, options.currency)
