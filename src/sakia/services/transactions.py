@@ -1,7 +1,7 @@
 from PyQt5.QtCore import QObject
 from sakia.data.entities.transaction import parse_transaction_doc
 from duniterpy.documents import Transaction as TransactionDoc
-from duniterpy.documents import SimpleTransaction
+from duniterpy.documents import SimpleTransaction, Block
 from sakia.data.entities import Dividend
 from duniterpy.api import bma
 import logging
@@ -111,8 +111,15 @@ class TransactionsService(QObject):
             for tx in transactions:
                 txdoc = TransactionDoc.from_signed_raw(tx.raw)
                 for input in txdoc.inputs:
+                    # For each dividends inputs, if it is consumed (not present in ud history)
                     if input.source == "D" and input.origin_id == pubkey and input.index not in block_numbers:
-                        block = next((b for b in blocks if b.number == input.index))
+                        try:
+                            # we try to get the block of the dividend
+                            block = next((b for b in blocks if b.number == input.index))
+                        except StopIteration:
+                            block_data = await self._bma_connector.get(self.currency, bma.blockchain.block,
+                                                                  req_args={'number': input.index})
+                            block = Block.from_signed_raw(block_data["raw"] + block_data["signature"] + "\n")
                         dividend = Dividend(currency=self.currency,
                                             pubkey=pubkey,
                                             block_number=input.index,
