@@ -30,7 +30,7 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
         for ref in money.Referentials:
             self.combo_referential.addItem(QCoreApplication.translate('Account', ref.translated_name()))
         self.combo_referential.setCurrentIndex(self.app.parameters.referential)
-        for lang in ('en_US', 'fr_FR', 'de_DE', 'es_ES', 'it_IT', 'pl_PL', 'pt_BR', 'ru_RU'):
+        for lang in ('en', 'fr', 'de', 'es', 'it', 'pl', 'pt', 'ru'):
             self.combo_language.addItem(lang)
         self.combo_language.setCurrentText(self.app.parameters.lang)
         self.checkbox_expertmode.setChecked(self.app.parameters.expert_mode)
