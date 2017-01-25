@@ -85,8 +85,10 @@ class MainWindowController(QObject):
         #app.version_requested.connect(main_window.latest_version_requested)
         #app.account_imported.connect(main_window.import_account_accepted)
         #app.account_changed.connect(main_window.change_account)
-
-        main_window.view.showMaximized()
+        if app.parameters.maximized:
+            main_window.view.showMaximized()
+        else:
+            main_window.view.show()
         main_window.refresh(currency)
         return main_window
 
