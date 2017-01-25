@@ -16,8 +16,8 @@ import copy
 async def parse_responses(responses):
     result = (False, "")
     for r in responses:
-        if not result[0]:
-            try:
+        try:
+            if not result[0]:
                 if isinstance(r, BaseException):
                     result = (False, str(r))
                 elif r.status == 400:
@@ -30,11 +30,11 @@ async def parse_responses(responses):
                     result = (True, (await r.json()))
                 elif not result[0]:
                     result = (False, (await r.text()))
-            except Exception as e:
-                if not result[0]:
-                    result = (False, str(e))
-        else:
-            await r.release()
+            else:
+                await r.release()
+        except Exception as e:
+            if not result[0]:
+                result = (False, str(e))
     return result
 
 def filter_endpoints(request, nodes):
