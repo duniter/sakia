@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QWidget
-from PyQt5.QtCore import QEvent, QLocale
+from PyQt5.QtCore import QEvent, QLocale, pyqtSignal
 from .informations_uic import Ui_InformationsWidget
 from enum import Enum
 from sakia.helpers import timestamp_to_dhms
@@ -9,6 +9,7 @@ class InformationsView(QWidget, Ui_InformationsWidget):
     """
     The view of navigation panel
     """
+    retranslate_required = pyqtSignal()
 
     class CommunityState(Enum):
         NOT_INIT = 0
@@ -277,5 +278,4 @@ class InformationsView(QWidget, Ui_InformationsWidget):
         """
         if event.type() == QEvent.LanguageChange:
             self.retranslateUi(self)
-            self.refresh()
         return super().changeEvent(event)

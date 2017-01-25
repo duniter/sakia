@@ -21,5 +21,4 @@ class BaseGraphView(QWidget):
         """
         if event.type() == QEvent.LanguageChange:
             self.retranslateUi(self)
-            self.refresh()
         return super().changeEvent(event)

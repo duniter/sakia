@@ -43,5 +43,4 @@ class NetworkView(QWidget, Ui_NetworkWidget):
         """
         if event.type() == QEvent.LanguageChange:
             self.retranslateUi(self)
-            self.refresh_nodes()
         return super().changeEvent(event)

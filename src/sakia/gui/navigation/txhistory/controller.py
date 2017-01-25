@@ -76,7 +76,7 @@ class TxHistoryController(QObject):
                 if transfer.issuer != self.model.connection.pubkey:
                     pubkey = transfer.issuer
                 else:
-                    pubkey = transfer.receiver
+                    pubkey = next(transfer.receiver)
                 identity = Identity(currency=transfer.currency, pubkey=pubkey)
             menu = ContextMenu.from_data(self.view, self.model.app, self.model.connection, (identity, transfer))
             menu.view_identity_in_wot.connect(self.view_in_wot)

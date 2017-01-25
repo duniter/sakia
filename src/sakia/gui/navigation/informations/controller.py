@@ -50,6 +50,7 @@ class InformationsController(QObject):
         informations = cls(parent, view, model)
         model.setParent(informations)
         informations.init_view_text()
+        view.retranslate_required.connect(informations.refresh_localized_data)
         app.identity_changed.connect(informations.handle_identity_change)
         app.new_transfer.connect(informations.refresh_localized_data)
         app.new_dividend.connect(informations.refresh_localized_data)
