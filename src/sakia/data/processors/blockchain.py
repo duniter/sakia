@@ -29,6 +29,24 @@ class BlockchainProcessor:
     def initialized(self, currency):
         return self._repo.get_one(currency=currency) is not None
 
+    async def ud_before(self, currency, block_number):
+        try:
+            udblocks = await self._bma_connector.get(currency, bma.blockchain.ud)
+            blocks = udblocks['result']['blocks']
+            ud_block_number = next(b for b in blocks if b <= block_number)
+            block = await self._bma_connector.get(currency, bma.blockchain.block, {'number': ud_block_number})
+            return block['dividend'], block['unitbase']
+        except StopIteration:
+            self._logger.debug("No dividend generated before {0}".format(block_number))
+        except NoPeerAvailable as e:
+            self._logger.debug(str(e))
+        except errors.DuniterError as e:
+            if e.ucode == errors.BLOCK_NOT_FOUND:
+                self._logger.debug(str(e))
+            else:
+                raise
+        return 0, 0
+
     async def timestamp(self, currency, block_number):
         try:
             block = await self._bma_connector.get(currency, bma.blockchain.block, {'number': block_number})

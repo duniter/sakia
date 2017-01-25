@@ -125,7 +125,8 @@ class Application(QObject):
                                                                    bma_connector)
 
         self.sources_service = SourcesServices(self.currency, sources_processor,
-                                                          connections_processor, bma_connector)
+                                               connections_processor, transactions_processor,
+                                               blockchain_processor, bma_connector)
 
         self.blockchain_service = BlockchainService(self, self.currency, blockchain_processor, bma_connector,
                                                                self.identities_service,

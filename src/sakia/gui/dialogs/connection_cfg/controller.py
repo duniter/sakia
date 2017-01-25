@@ -175,10 +175,10 @@ class ConnectionConfigController(QObject):
                 self.view.stream_log("Initializing transactions history...")
                 transactions = await self.model.initialize_transactions(self.model.connection, log_stream=self.view.stream_log)
                 self.view.stream_log("Initializing dividends history...")
-                await self.model.initialize_dividends(self.model.connection, transactions, log_stream=self.view.stream_log)
+                dividends = await self.model.initialize_dividends(self.model.connection, transactions, log_stream=self.view.stream_log)
 
             self.view.progress_bar.setValue(3)
-            await self.model.initialize_sources(self.view.stream_log)
+            await self.model.initialize_sources(transactions, dividends, self.view.stream_log)
 
             self._logger.debug("Validate changes")
             self.model.insert_or_update_connection()

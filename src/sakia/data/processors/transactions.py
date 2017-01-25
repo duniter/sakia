@@ -145,8 +145,8 @@ class TransactionsProcessor:
             try:
                 tx = parse_transaction_doc(sent, connection.pubkey, sent_data["block_number"],
                                            sent_data["time"], txid)
-                self._repo.insert(tx)
                 transactions.append(tx)
+                self._repo.insert(tx)
             except sqlite3.IntegrityError:
                 log_stream("Transaction already registered in database")
             await asyncio.sleep(0)

@@ -82,5 +82,17 @@ class SourcesProcessor:
         for s in sources:
             self._repo.drop(s)
 
+    def insert(self, source):
+        try:
+            self._repo.insert(source)
+        except sqlite3.IntegrityError:
+            self._logger.debug("Source already exist : {0}".format(source))
+
+    def drop(self, source):
+        try:
+            self._repo.drop(source)
+        except sqlite3.IntegrityError:
+            self._logger.debug("Source already dropped : {0}".format(source))
+
     def drop_all_of(self, currency, pubkey):
         self._repo.drop_all(currency=currency, pubkey=pubkey)

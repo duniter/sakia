@@ -57,14 +57,15 @@ class ConnectionConfigModel(QObject):
         blockchain_processor = BlockchainProcessor.instanciate(self.app)
         await blockchain_processor.initialize_blockchain(self.app.currency, log_stream)
 
-    async def initialize_sources(self, log_stream):
+    async def initialize_sources(self, transactions, dividends, log_stream):
         """
         Download sources information locally
         :param function log_stream: a method to log data in the screen
         :return:
         """
-        sources_processor = SourcesProcessor.instanciate(self.app)
-        await sources_processor.initialize_sources(self.app.currency, self.connection.pubkey, log_stream)
+        log_stream("Parsing sources...")
+        await self.app.sources_service.refresh_sources_of_pubkey(self.connection.pubkey, transactions, dividends, None)
+        log_stream("Sources parsed succefully !")
 
     async def initialize_identity(self, identity, log_stream):
         """

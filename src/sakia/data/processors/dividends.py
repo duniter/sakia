@@ -47,6 +47,7 @@ class DividendsProcessor:
                                                      req_args={'pubkey': connection.pubkey})
         log_stream("Found {0} available dividends".format(len(history_data["history"]["history"])))
         block_numbers = []
+        dividends = []
         for ud_data in history_data["history"]["history"]:
             dividend = Dividend(currency=connection.currency,
                                 pubkey=connection.pubkey,
@@ -57,6 +58,7 @@ class DividendsProcessor:
             log_stream("Dividend of block {0}".format(dividend.block_number))
             block_numbers.append(dividend.block_number)
             try:
+                dividends.append(dividend)
                 self._repo.insert(dividend)
             except sqlite3.IntegrityError:
                 log_stream("Dividend already registered in database")
@@ -77,9 +79,11 @@ class DividendsProcessor:
                                         base=block["unitbase"])
                     log_stream("Dividend of block {0}".format(dividend.block_number))
                     try:
+                        dividends.append(dividend)
                         self._repo.insert(dividend)
                     except sqlite3.IntegrityError:
                         log_stream("Dividend already registered in database")
+        return dividends
 
     def dividends(self, currency, pubkey):
         return self._repo.get_all(currency=currency, pubkey=pubkey)

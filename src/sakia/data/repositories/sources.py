@@ -8,7 +8,7 @@ class SourcesRepo:
     """The repository for Communities entities.
     """
     _conn = attr.ib()  # :type sqlite3.Connection
-    _primary_keys = (Source.identifier,)
+    _primary_keys = (Source.currency, Source.pubkey, Source.identifier, Source.noffset)
 
     def insert(self, source):
         """
@@ -67,7 +67,10 @@ class SourcesRepo:
         where_fields = attr.astuple(source, filter=attr.filters.include(*SourcesRepo._primary_keys))
         self._conn.execute("""DELETE FROM sources
                               WHERE
-                              identifier=?""", where_fields)
+                              currency=? AND
+                              pubkey=? AND
+                              identifier=? AND
+                              noffset=?""", where_fields)
 
     def drop_all(self, **filter):
         filters = []

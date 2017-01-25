@@ -6,7 +6,7 @@ from PyQt5.QtGui import QCursor
 from sakia.decorators import asyncify
 from sakia.gui.widgets import toast
 from sakia.gui.widgets.context_menu import ContextMenu
-from sakia.data.entities import Identity
+from sakia.data.entities import Identity, Transaction
 from .model import TxHistoryModel
 from .view import TxHistoryView
 
@@ -73,11 +73,12 @@ class TxHistoryController(QObject):
         valid, identity, transfer = self.model.table_data(index)
         if valid:
             if identity is None:
-                if transfer.issuer != self.model.connection.pubkey:
-                    pubkey = transfer.issuer
-                else:
-                    pubkey = next(transfer.receiver)
-                identity = Identity(currency=transfer.currency, pubkey=pubkey)
+                if isinstance(transfer, Transaction):
+                    if transfer.issuer != self.model.connection.pubkey:
+                        pubkey = transfer.issuer
+                    else:
+                        pubkey = transfer.receiver
+                    identity = Identity(currency=transfer.currency, pubkey=pubkey)
             menu = ContextMenu.from_data(self.view, self.model.app, self.model.connection, (identity, transfer))
             menu.view_identity_in_wot.connect(self.view_in_wot)
 
