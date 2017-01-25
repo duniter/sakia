@@ -212,12 +212,13 @@ class HistoryTableModel(QAbstractTableModel):
         return self.transactions_service.dividends(self.connection.pubkey)
 
     def add_transfer(self, transfer):
-        self.beginInsertRows(QModelIndex(), len(self.transfers_data), len(self.transfers_data))
-        if transfer.issuer == self.connection.pubkey:
-            self.transfers_data.append(self.data_sent(transfer))
-        if transfer.receiver == self.connection.pubkey:
-            self.transfers_data.append(self.data_received(transfer))
-        self.endInsertRows()
+        if self.connection.pubkey in (transfer.issuer, transfer.receiver):
+            self.beginInsertRows(QModelIndex(), len(self.transfers_data), len(self.transfers_data))
+            if transfer.issuer == self.connection.pubkey:
+                self.transfers_data.append(self.data_sent(transfer))
+            if transfer.receiver == self.connection.pubkey:
+                self.transfers_data.append(self.data_received(transfer))
+            self.endInsertRows()
 
     def add_dividend(self, dividend):
         if dividend.pubkey == self.connection.pubkey:
