@@ -88,7 +88,7 @@ class InformationsModel(QObject):
             )
 
             if previous_ud:
-                mass_minus_1_per_member = (float(0) if previous_ud == 0 else
+                mass_minus_1_per_member = (float(0) if previous_ud == 0 or previous_members_count == 0 else
                                            previous_monetary_mass / previous_members_count)
                 localized_data['mass_minus_1_per_member'] = self.app.current_ref.instance(mass_minus_1_per_member,
                                                   self.connection.currency, self.app) \
