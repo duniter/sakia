@@ -66,11 +66,14 @@ class BaseGraph(QObject):
         """
         # new node
         node_status = NodeStatus.NEUTRAL
-        if node_identity.pubkey == account_identity.pubkey:
-            node_status += NodeStatus.HIGHLIGHTED
-        if node_identity.member is False:
-            node_status += NodeStatus.OUT
-        return node_status
+        try:
+            if node_identity.pubkey == account_identity.pubkey:
+                node_status += NodeStatus.HIGHLIGHTED
+            if node_identity.member is False:
+                node_status += NodeStatus.OUT
+            return node_status
+        except AttributeError:
+            pass
 
     def confirmation_text(self, block_number):
         """
@@ -203,6 +206,7 @@ class BaseGraph(QObject):
                 certifier = self.identities_service.get_identity(certification.certifier)
                 if not certifier:
                     certifier = await self.identities_service.find_from_pubkey(certification.certifier)
+                    self.identities_service.insert_or_update_identity(certifier)
                 node_status = await self.node_status(certifier, account_identity)
                 self.add_certifier_node(certifier, identity, certification, node_status)
         except NoPeerAvailable as e:
@@ -222,6 +226,7 @@ class BaseGraph(QObject):
                 certified = self.identities_service.get_identity(certification.certified)
                 if not certified:
                     certified = await self.identities_service.find_from_pubkey(certification.certified)
+                    self.identities_service.insert_or_update_identity(certified)
                 node_status = await self.node_status(certified, account_identity)
                 self.add_certified_node(identity, certified, certification, node_status)
 
