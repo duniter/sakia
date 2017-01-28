@@ -122,21 +122,22 @@ class IdentitiesService(QObject):
             for result in lookup_data['results']:
                 if result["pubkey"] == identity.pubkey:
                     for uid_data in result['uids']:
-                        if uid_data["uid"] == identity.uid:
-                            for other_data in uid_data["others"]:
-                                cert = Certification(currency=self.currency,
-                                                     certified=identity.pubkey,
-                                                     certifier=other_data["pubkey"],
-                                                     block=other_data["meta"]["block_number"],
-                                                     timestamp=0,
-                                                     signature=other_data['signature'])
-                                if cert not in certifiers:
-                                    cert.timestamp = await self._blockchain_processor.timestamp(self.currency,
-                                                                                                cert.block)
-                                    certifiers.append(cert)
-                                    # We save connections pubkeys
-                                    if identity.pubkey in self._connections_processor.pubkeys():
-                                        self._certs_processor.insert_or_update_certification(cert)
+                        if not identity.uid or uid_data["uid"] == identity.uid:
+                            if not identity.blockstamp or identity.blockstamp == block_uid(uid_data["meta"]["timestamp"]):
+                                for other_data in uid_data["others"]:
+                                    cert = Certification(currency=self.currency,
+                                                         certified=identity.pubkey,
+                                                         certifier=other_data["pubkey"],
+                                                         block=other_data["meta"]["block_number"],
+                                                         timestamp=0,
+                                                         signature=other_data['signature'])
+                                    if cert not in certifiers:
+                                        cert.timestamp = await self._blockchain_processor.timestamp(self.currency,
+                                                                                                    cert.block)
+                                        certifiers.append(cert)
+                                        # We save connections pubkeys
+                                        if identity.pubkey in self._connections_processor.pubkeys():
+                                            self._certs_processor.insert_or_update_certification(cert)
                 for signed_data in result["signed"]:
                     cert = Certification(currency=self.currency,
                                          certified=signed_data["pubkey"],
@@ -372,18 +373,20 @@ class IdentitiesService(QObject):
         try:
             requirements = await self._bma_connector.get(self.currency, bma.wot.requirements,
                                                          req_args={'search': identity.pubkey})
-            identity_data = requirements['identities'][0]
-            identity.uid = identity_data["uid"]
-            identity.blockstamp = block_uid(identity_data["meta"]["timestamp"])
-            identity.timestamp = await self._blockchain_processor.timestamp(self.currency, identity.blockstamp.number)
-            identity.outdistanced = identity_data["outdistanced"]
-            identity.member = identity_data["membershipExpiresIn"] > 0
-            median_time = self._blockchain_processor.time(self.currency)
-            expiration_time = self._blockchain_processor.parameters(self.currency).ms_validity
-            identity.membership_timestamp = median_time - (expiration_time - identity_data["membershipExpiresIn"])
-            # We save connections pubkeys
-            if self._identities_processor.get_identity(self.currency, identity.pubkey, identity.uid):
-                self._identities_processor.insert_or_update_identity(identity)
+            for identity_data in requirements['identities']:
+                if not identity.uid or identity.uid == identity_data["uid"]:
+                    if not identity.blockstamp or identity.blockstamp == block_uid(identity_data["meta"]["timestamp"]):
+                        identity.uid = identity_data["uid"]
+                        identity.blockstamp = block_uid(identity_data["meta"]["timestamp"])
+                        identity.timestamp = await self._blockchain_processor.timestamp(self.currency, identity.blockstamp.number)
+                        identity.outdistanced = identity_data["outdistanced"]
+                        identity.member = identity_data["membershipExpiresIn"] > 0
+                        median_time = self._blockchain_processor.time(self.currency)
+                        expiration_time = self._blockchain_processor.parameters(self.currency).ms_validity
+                        identity.membership_timestamp = median_time - (expiration_time - identity_data["membershipExpiresIn"])
+                        # We save connections pubkeys
+                        if self._identities_processor.get_identity(self.currency, identity.pubkey, identity.uid):
+                            self._identities_processor.insert_or_update_identity(identity)
         except errors.DuniterError as e:
             if e.ucode == errors.NO_MEMBER_MATCHING_PUB_OR_UID:
                 pass
