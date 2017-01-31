@@ -1,8 +1,3 @@
-"""
-Created on 1 févr. 2014
-
-@author: inso
-"""
 import asyncio
 import logging
 import signal
@@ -12,6 +7,7 @@ import traceback
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QMessageBox
 
+from sakia.helpers import single_instance_lock, cleanup_lock
 from quamash import QSelectorEventLoop
 from sakia.app import Application
 from sakia.gui.dialogs.connection_cfg.controller import ConnectionConfigController
@@ -46,6 +42,7 @@ def async_exception_handler(loop, context):
         for ignored in ("Unclosed", "socket.gaierror"):
             if ignored in line:
                 return
+
     if exc_info:
         for line in traceback.format_exception(*exc_info):
             for ignored in ("Unclosed", "socket.gaierror"):
@@ -82,6 +79,12 @@ if __name__ == '__main__':
     # activate ctrl-c interrupt
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     sakia = QApplication(sys.argv)
+
+    lock = single_instance_lock()
+    if not lock:
+        QMessageBox.critical(None, "Sakia is already running", "Sakia is already running.")
+        sys.exit(1)
+
     sys.excepthook = exception_handler
 
     sakia.setStyle('Fusion')
@@ -91,11 +94,11 @@ if __name__ == '__main__':
 
     with loop:
         app = Application.startup(sys.argv, sakia, loop)
+        app.instanciate_services()
+        app.start_coroutines()
         if not app.connection_exists():
             conn_controller = ConnectionConfigController.create_connection(None, app)
             loop.run_until_complete(conn_controller.async_exec())
-            app.instanciate_services()
-            app.start_coroutines()
         window = MainWindowController.startup(app)
         loop.run_forever()
         try:
@@ -105,5 +108,6 @@ if __name__ == '__main__':
         except asyncio.CancelledError:
             logging.info('CancelledError')
     logging.debug("Exiting")
+    cleanup_lock(lock)
     sys.exit()
 

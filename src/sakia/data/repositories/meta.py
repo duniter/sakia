@@ -34,11 +34,12 @@ class SakiaDatabase:
         sqlite3.register_adapter(BlockUID, str)
         sqlite3.register_adapter(bool, int)
         sqlite3.register_converter("BOOLEAN", lambda v: bool(int(v)))
-        con = sqlite3.connect(os.path.join(options.config_path, profile_name, options.currency + ".db"),
-                              detect_types=sqlite3.PARSE_DECLTYPES)
+        db_path = os.path.join(options.config_path, profile_name, options.currency + ".db")
+        con = sqlite3.connect(db_path, detect_types=sqlite3.PARSE_DECLTYPES)
         meta = SakiaDatabase(con, ConnectionsRepo(con), IdentitiesRepo(con),
                              BlockchainsRepo(con), CertificationsRepo(con), TransactionsRepo(con),
                              NodesRepo(con), SourcesRepo(con), DividendsRepo(con))
+
         meta.prepare()
         meta.upgrade_database()
         return meta
@@ -49,6 +50,7 @@ class SakiaDatabase:
         """
         with self.conn:
             self._logger.debug("Initializing meta database")
+            self.conn.execute("PRAGMA busy_timeout = 50000")
             self.conn.execute("""CREATE TABLE IF NOT EXISTS meta(
                                id INTEGER NOT NULL,
                                version INTEGER NOT NULL,
