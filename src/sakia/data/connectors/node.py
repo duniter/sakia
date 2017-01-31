@@ -68,7 +68,7 @@ class NodeConnector(QObject):
                                                       peer_data['signature']))
 
         if currency and peer.currency != currency:
-            raise InvalidNodeCurrency(peer.currency, currency)
+            raise InvalidNodeCurrency(currency, peer.currency)
 
         node = Node(peer.currency, peer.pubkey, peer.endpoints, peer.blockUID)
         logging.getLogger('sakia').debug("Node from address : {:}".format(str(node)))
@@ -86,7 +86,7 @@ class NodeConnector(QObject):
         :rtype: sakia.core.net.Node
         """
         if currency and peer.currency != currency:
-            raise InvalidNodeCurrency(peer.currency, currency)
+            raise InvalidNodeCurrency(currency, peer.currency)
 
         node = Node(peer.currency, peer.pubkey, peer.endpoints, peer.blockUID)
         logging.getLogger('sakia').debug("Node from peer : {:}".format(str(node)))

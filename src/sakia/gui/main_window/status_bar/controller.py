@@ -22,13 +22,13 @@ class StatusBarController(QObject):
         self.model = model
         view.combo_referential.currentIndexChanged[int].connect(self.referential_changed)
         self.update_time()
-        self.new_blocks_handled()
 
     @classmethod
     def create(cls, app):
         """
         Instanciate a navigation component
-        :param sakia.gui.main_window.controller.MainWindowController parent:
+
+        :param sakia.app.Application app:
         :return: a new Navigation controller
         :rtype: NavigationController
         """
@@ -37,6 +37,8 @@ class StatusBarController(QObject):
         model = StatusBarModel(None, app, BlockchainProcessor.instanciate(app))
         status_bar = cls(view, model)
         app.new_blocks_handled.connect(status_bar.new_blocks_handled)
+        if app.connection_exists():
+            status_bar.new_blocks_handled()
         return status_bar
 
     @pyqtSlot()
