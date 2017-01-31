@@ -115,6 +115,20 @@ class NavigationModel(QObject):
     def current_data(self, key):
         return self._current_data.get(key, None)
 
+    def _lookup_raw_data(self, raw_data, component, **kwargs):
+        if raw_data['component'] == component:
+            for k in kwargs:
+                if raw_data['misc'].get(k, None) == kwargs[k]:
+                    return raw_data
+        for c in raw_data.get('children', []):
+            children_data = self._lookup_raw_data(c, component, **kwargs)
+            if children_data:
+                return children_data
+
+    def get_raw_data(self, component, **kwargs):
+        for data in self.navigation:
+            return self._lookup_raw_data(data, component, **kwargs)
+
     def current_connection(self):
         if self._current_data:
             return self._current_data['misc'].get('connection', None)

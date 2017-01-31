@@ -39,6 +39,7 @@ class WotController(BaseGraphController):
         search_user = SearchUserController.create(wot, app)
         wot.view.set_search_user(search_user.view)
         app.identity_changed.connect(wot.handle_identity_change)
+        app.view_in_wot.connect(lambda c, i: wot.center_on_identity(i) if c == connection else None)
         search_user.identity_selected.connect(wot.center_on_identity)
         search_user.view.button_reset.clicked.connect(wot.reset)
         return wot

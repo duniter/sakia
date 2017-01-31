@@ -42,6 +42,7 @@ class TxHistoryController(QObject):
         model.setParent(txhistory)
         app.referential_changed.connect(txhistory.refresh_balance)
         app.sources_refreshed.connect(txhistory.refresh_balance)
+        txhistory.view_in_wot.connect(lambda i: app.view_in_wot.emit(connection, i))
         return txhistory
 
     def refresh_minimum_maximum(self):

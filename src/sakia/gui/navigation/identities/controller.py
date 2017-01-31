@@ -5,6 +5,7 @@ from PyQt5.QtCore import QObject, pyqtSignal
 from sakia.errors import NoPeerAvailable
 
 from duniterpy.api import errors
+from sakia.data.entities import Identity
 from sakia.decorators import once_at_a_time, asyncify
 from sakia.gui.widgets.context_menu import ContextMenu
 from .model import IdentitiesModel
@@ -15,7 +16,7 @@ class IdentitiesController(QObject):
     """
     The navigation panel
     """
-    view_in_wot = pyqtSignal(object)
+    view_in_wot = pyqtSignal(Identity)
 
     def __init__(self, parent, view, model, password_asker=None):
         """
@@ -40,6 +41,7 @@ class IdentitiesController(QObject):
         model = IdentitiesModel(None, app, connection, blockchain_service, identities_service)
         identities = cls(parent, view, model)
         model.setParent(identities)
+        identities.view_in_wot.connect(lambda i: app.view_in_wot.emit(connection, i))
         return identities
 
     def identity_context_menu(self, point):

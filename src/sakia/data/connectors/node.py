@@ -160,7 +160,7 @@ class NodeConnector(QObject):
                     async with ws_connection as ws:
                         self._connected['block'] = True
                         self._logger.debug("Connected successfully to block ws : {0}"
-                                      .format(self.node.pubkey[:5]))
+                                           .format(self.node.pubkey[:5]))
                         async for msg in ws:
                             if msg.tp == aiohttp.MsgType.text:
                                 self._logger.debug("Received a block : {0}".format(self.node.pubkey[:5]))

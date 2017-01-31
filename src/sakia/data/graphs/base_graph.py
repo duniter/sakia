@@ -66,14 +66,11 @@ class BaseGraph(QObject):
         """
         # new node
         node_status = NodeStatus.NEUTRAL
-        try:
-            if node_identity.pubkey == account_identity.pubkey:
-                node_status += NodeStatus.HIGHLIGHTED
-            if node_identity.member is False:
-                node_status += NodeStatus.OUT
-            return node_status
-        except AttributeError:
-            pass
+        if node_identity.pubkey == account_identity.pubkey:
+            node_status += NodeStatus.HIGHLIGHTED
+        if node_identity.member is False:
+            node_status += NodeStatus.OUT
+        return node_status
 
     def confirmation_text(self, block_number):
         """
@@ -82,20 +79,17 @@ class BaseGraph(QObject):
         :return: the confirmation text
         :rtype: str
         """
-        try:
-            if block_number >= 0:
-                current_confirmations = min(max(self.blockchain_service.current_buid().number - block_number, 0), 6)
-            else:
-                current_confirmations = 0
+        if block_number >= 0:
+            current_confirmations = min(max(self.blockchain_service.current_buid().number - block_number, 0), 6)
+        else:
+            current_confirmations = 0
 
-            if MAX_CONFIRMATIONS > current_confirmations:
-                if self.app.parameters.expert_mode:
-                    return "{0}/{1}".format(current_confirmations, MAX_CONFIRMATIONS)
-                else:
-                    confirmation = current_confirmations / MAX_CONFIRMATIONS * 100
-                    return "{0} %".format(QLocale().toString(float(confirmation), 'f', 0))
-        except ValueError:
-            pass
+        if MAX_CONFIRMATIONS > current_confirmations:
+            if self.app.parameters.expert_mode:
+                return "{0}/{1}".format(current_confirmations, MAX_CONFIRMATIONS)
+            else:
+                confirmation = current_confirmations / MAX_CONFIRMATIONS * 100
+                return "{0} %".format(QLocale().toString(float(confirmation), 'f', 0))
         return None
 
     def is_sentry(self, nb_certs, nb_members):
@@ -175,8 +169,9 @@ class BaseGraph(QObject):
         #  add certifiers of uid
         for certification in tuple(certifier_list):
             certifier = self.identities_service.get_identity(certification.certifier)
-            node_status = self.offline_node_status(certifier, account_identity)
-            self.add_certifier_node(certifier, identity, certification, node_status)
+            if certifier:
+                node_status = self.offline_node_status(certifier, account_identity)
+                self.add_certifier_node(certifier, identity, certification, node_status)
 
     def add_offline_certified_list(self, certified_list, identity, account_identity):
         """
@@ -189,8 +184,9 @@ class BaseGraph(QObject):
         # add certified by uid
         for certification in tuple(certified_list):
             certified = self.identities_service.get_identity(certification.certified)
-            node_status = self.offline_node_status(certified, account_identity)
-            self.add_certified_node(identity, certified, certification, node_status)
+            if certified:
+                node_status = self.offline_node_status(certified, account_identity)
+                self.add_certified_node(identity, certified, certification, node_status)
 
     async def add_certifier_list(self, certifier_list, identity, account_identity):
         """
