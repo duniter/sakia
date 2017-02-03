@@ -136,7 +136,7 @@ class IdentitiesProcessor:
                and memberships_data['uid'] == identity.uid:
                 identity.written = True
                 for ms in memberships_data['memberships']:
-                    if ms['written'] > identity.membership_written_on:
+                    if ms['written'] and ms['written'] > identity.membership_written_on:
                         identity.membership_buid = BlockUID(ms['blockNumber'], ms['blockHash'])
                         identity.membership_type = ms['membership']
 
