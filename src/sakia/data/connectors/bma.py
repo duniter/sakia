@@ -186,8 +186,8 @@ class BmaConnector:
                         endpoint = random.choice(endpoints)
                         self._logger.debug(
                             "Requesting {0} on endpoint {1}".format(str(request.__name__), str(endpoint)))
-                        futures.append(request(
-                            endpoint.conn_handler(session, proxy=self._user_parameters.proxy()),
+                        futures.append(request(next(
+                            endpoint.conn_handler(session, proxy=self._user_parameters.proxy())),
                             **req_args))
                 except StopIteration:
                     # When no more node is available, we go out of the while loop
@@ -234,7 +234,7 @@ class BmaConnector:
             try:
                 self._logger.debug("Requesting {0} on endpoint {1}".format(str(request.__name__), str(endpoint)))
                 async with aiohttp.ClientSession() as session:
-                    json_data = await request(endpoint.conn_handler(session), **req_args)
+                    json_data = await request(next(endpoint.conn_handler(session), **req_args))
                     return json_data
             except errors.DuniterError as e:
                 if e.ucode == errors.HTTP_LIMITATION:
@@ -283,8 +283,8 @@ class BmaConnector:
             with aiohttp.ClientSession() as session:
                 for endpoint in endpoints:
                     self._logger.debug("Trying to connect to : " + str(endpoint))
-                    reply = asyncio.ensure_future(request(endpoint.conn_handler(session,
-                                                                                proxy=self._user_parameters.proxy()),
+                    reply = asyncio.ensure_future(request(next(endpoint.conn_handler(session,
+                                                                                proxy=self._user_parameters.proxy())),
                                                           **req_args))
                     replies.append(reply)
 

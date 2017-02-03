@@ -95,7 +95,7 @@ class NodeConnector(QObject):
 
     async def safe_request(self, endpoint, request, proxy, req_args={}):
         try:
-            conn_handler = endpoint.conn_handler(self.session, proxy=proxy)
+            conn_handler = next(endpoint.conn_handler(self.session, proxy=proxy))
             data = await request(conn_handler, **req_args)
             return data
         except (ClientError, gaierror, TimeoutError, ConnectionRefusedError, DisconnectedError, ValueError) as e:
@@ -155,7 +155,7 @@ class NodeConnector(QObject):
         for endpoint in [e for e in self.node.endpoints if isinstance(e, BMAEndpoint)]:
             if not self._connected['block']:
                 try:
-                    conn_handler = endpoint.conn_handler(self.session, proxy=self._user_parameters.proxy())
+                    conn_handler = next(endpoint.conn_handler(self.session, proxy=self._user_parameters.proxy()))
                     ws_connection = bma.ws.block(conn_handler)
                     async with ws_connection as ws:
                         self._connected['block'] = True
@@ -222,8 +222,8 @@ class NodeConnector(QObject):
         self.node.state = Node.ONLINE
         if not self.node.current_buid or self.node.current_buid.sha_hash != block_data['hash']:
             for endpoint in [e for e in self.node.endpoints if isinstance(e, BMAEndpoint)]:
-                conn_handler = endpoint.conn_handler(self.session,
-                                                     proxy=self._user_parameters.proxy())
+                conn_handler = next(endpoint.conn_handler(self.session,
+                                                     proxy=self._user_parameters.proxy()))
                 self._logger.debug("Requesting {0}".format(conn_handler))
                 try:
                     previous_block = await self.safe_request(endpoint, bma.blockchain.block,
@@ -285,8 +285,8 @@ class NodeConnector(QObject):
         for endpoint in [e for e in self.node.endpoints if isinstance(e, BMAEndpoint)]:
             if not self._connected['peer']:
                 try:
-                    conn_handler = endpoint.conn_handler(self.session,
-                                                         proxy=self._user_parameters.proxy())
+                    conn_handler = next(endpoint.conn_handler(self.session,
+                                                         proxy=self._user_parameters.proxy()))
                     ws_connection = bma.ws.peer(conn_handler)
                     async with ws_connection as ws:
                         self._connected['peer'] = True
