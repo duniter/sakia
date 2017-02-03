@@ -38,6 +38,7 @@ def _broadcast_failure(tx, ret_codes):
     """
     return 200 not in ret_codes
 
+
 def _is_locally_created(tx):
     """
     Check if we can send back the transaction if it was locally created

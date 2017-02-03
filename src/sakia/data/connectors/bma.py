@@ -290,6 +290,5 @@ class BmaConnector:
 
                 result = await asyncio.gather(*replies, return_exceptions=True)
                 return tuple(result)
-            return ()
         else:
             raise NoPeerAvailable("", len(endpoints))

@@ -56,4 +56,3 @@ async def test_issue_dividend(application_with_one_connection, fake_server, bob)
     dividends_after_parse = application_with_one_connection.transactions_service.dividends(bob.key.pubkey)
     assert len(dividends_before_send) + 2 == len(dividends_after_parse)
     await fake_server.close()
-

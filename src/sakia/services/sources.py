@@ -172,3 +172,30 @@ class SourcesServices(QObject):
             # this is acceptable I guess
             destructions += await self.refresh_sources_of_pubkey(pubkey, transactions, dividends, current_base)
         return destructions
+
+    def restore_sources(self, pubkey, tx):
+        """
+        Restore the sources of a cancelled tx
+        :param sakia.entities.Transaction tx:
+        """
+        txdoc = TransactionDoc.from_signed_raw(tx.raw)
+        for offset, output in enumerate(txdoc.outputs):
+            if output.conditions.left.pubkey == pubkey:
+                source = Source(currency=self.currency,
+                                pubkey=pubkey,
+                                identifier=txdoc.sha_hash,
+                                type='T',
+                                noffset=offset,
+                                amount=output.amount,
+                                base=output.base)
+                self._sources_processor.drop(source)
+        for index, input in enumerate(txdoc.inputs):
+            source = Source(currency=self.currency,
+                            pubkey=txdoc.issuers[0],
+                            identifier=input.origin_id,
+                            type=input.source,
+                            noffset=input.index,
+                            amount=input.amount,
+                            base=input.base)
+            if source.pubkey == pubkey:
+                self._sources_processor.insert(source)

@@ -126,7 +126,6 @@ class ContextMenu(QObject):
             UserInformationController.search_and_show_pubkey(self.parent(), self._app,
                                                              identity.pubkey)
 
-
     @asyncify
     async def send_money(self, identity):
         await TransferController.send_money_to_identity(None, self._app, self._connection, identity)
@@ -148,7 +147,8 @@ This money transfer will be removed and not sent."""),
 QMessageBox.Ok | QMessageBox.Cancel)
         if reply == QMessageBox.Ok:
             transactions_processor = TransactionsProcessor.instanciate(self._app)
-            transactions_processor.cancel(transfer)
+            if transactions_processor.cancel(transfer):
+                self._app.sources_service.restore_sources(self._connection.pubkey, transfer)
             self._app.db.commit()
             self._app.transaction_state_changed.emit(transfer)
 

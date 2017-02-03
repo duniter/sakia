@@ -1,5 +1,6 @@
 import pytest
 from sakia.data.entities import Transaction
+from sakia.data.processors import TransactionsProcessor
 
 
 @pytest.mark.asyncio
@@ -32,7 +33,6 @@ async def test_send_source(application_with_one_connection, fake_server, bob, al
     await fake_server.close()
 
 
-
 @pytest.mark.asyncio
 async def test_destruction(application_with_one_connection, fake_server, bob, alice):
     amount = application_with_one_connection.sources_service.amount(bob.key.pubkey)
@@ -49,3 +49,33 @@ async def test_destruction(application_with_one_connection, fake_server, bob, al
     assert tx_after_parse[-1].comment == "Too low balance"
     await fake_server.close()
 
+
+@pytest.mark.asyncio
+async def test_send_tx_then_cancel(application_with_one_connection, fake_server, bob, alice):
+    tx_before_send = application_with_one_connection.transactions_service.transfers(bob.key.pubkey)
+    sources_before_send = application_with_one_connection.sources_service.amount(bob.key.pubkey)
+    bob_connection = application_with_one_connection.db.connections_repo.get_one(pubkey=bob.key.pubkey)
+    fake_server.reject_next_post = True
+    await application_with_one_connection.documents_service.send_money(bob_connection,
+                                                                       bob.salt,
+                                                                       bob.password,
+                                                                       alice.key.pubkey, 10, 0, "Test comment")
+    tx_after_send = application_with_one_connection.transactions_service.transfers(bob.key.pubkey)
+    sources_after_send = application_with_one_connection.sources_service.amount(bob.key.pubkey)
+    assert len(tx_before_send) + 1 == len(tx_after_send)
+    assert sources_before_send - 10 >= sources_after_send
+    assert tx_after_send[-1].state is Transaction.REFUSED
+    assert tx_after_send[-1].written_block == 0
+
+    transactions_processor = TransactionsProcessor.instanciate(application_with_one_connection)
+    if transactions_processor.cancel(tx_after_send[-1]):
+        application_with_one_connection.sources_service.restore_sources(bob.key.pubkey, tx_after_send[-1])
+
+    tx_after_cancel = application_with_one_connection.transactions_service.transfers(bob.key.pubkey)
+    sources_after_cancel = application_with_one_connection.sources_service.amount(bob.key.pubkey)
+    assert tx_after_cancel[-1].state is Transaction.DROPPED
+    assert tx_after_cancel[-1].written_block == 0
+    assert len(tx_before_send) + 1 == len(tx_after_cancel)
+    assert sources_before_send == sources_after_cancel
+
+    await fake_server.close()
