@@ -4,6 +4,7 @@ from sakia.decorators import asyncify
 from sakia.gui.widgets.dialogs import dialog_async_exec, QAsyncMessageBox
 from .model import UserInformationModel
 from .view import UserInformationView
+import logging
 
 
 class UserInformationController(QObject):
@@ -22,6 +23,7 @@ class UserInformationController(QObject):
         super().__init__(parent)
         self.view = view
         self.model = model
+        self._logger = logging.getLogger('sakia')
 
     @classmethod
     def create(cls, parent, app, identity):
@@ -58,15 +60,24 @@ class UserInformationController(QObject):
 
     @asyncify
     async def refresh(self):
-        if self.model.identity:
-            self.view.show_busy()
-            await self.model.load_identity(self.model.identity)
-            self.view.display_uid(self.model.identity.uid, self.model.identity.member)
-            self.view.display_identity_timestamps(self.model.identity.pubkey, self.model.identity.timestamp,
-                                                  self.model.identity.membership_timestamp,
-                                                  self.model.mstime_remaining(), await self.model.nb_certs())
-            self.view.hide_busy()
-            self.identity_loaded.emit()
+        try:
+            if self.model.identity:
+                self.view.show_busy()
+                await self.model.load_identity(self.model.identity)
+                self.view.display_uid(self.model.identity.uid, self.model.identity.member)
+                self.view.display_identity_timestamps(self.model.identity.pubkey, self.model.identity.timestamp,
+                                                      self.model.identity.membership_timestamp,
+                                                      self.model.mstime_remaining(), await self.model.nb_certs())
+                self.view.hide_busy()
+                self.identity_loaded.emit()
+        except RuntimeError as e:
+            # object can be deleted by Qt during asynchronous ops
+            # we don't care of this error
+            if "wrapped C/C++ object" in str(e):
+                self._logger.debug(str(e))
+                pass
+            else:
+                raise
 
     @asyncify
     async def search_identity(self, identity):
