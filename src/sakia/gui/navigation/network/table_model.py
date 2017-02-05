@@ -1,4 +1,5 @@
-from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, QDateTime, QLocale, QT_TRANSLATE_NOOP
+from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, \
+    QDateTime, QLocale, QT_TRANSLATE_NOOP, QModelIndex
 from PyQt5.QtGui import QColor, QFont, QIcon
 from sakia.data.entities import Node
 from duniterpy.documents import BMAEndpoint, SecuredBMAEndpoint
@@ -147,7 +148,9 @@ class NetworkTableModel(QAbstractTableModel):
         self.network_service = network_service
         
         self.nodes_data = []
-        self.network_service.nodes_changed.connect(self.refresh_nodes)
+        self.network_service.node_changed.connect(self.change_node)
+        self.network_service.node_removed.connect(self.remove_node)
+        self.network_service.new_node_found.connect(self.add_node)
 
     def data_node(self, node: Node) -> tuple:
         """
@@ -162,10 +165,10 @@ class NetworkTableModel(QAbstractTableModel):
             if type(e) in (BMAEndpoint, SecuredBMAEndpoint):
                 if e.server:
                     addresses.append(e.server)
-                elif e.ipv4:
-                    addresses.append(e.ipv4)
                 elif e.ipv6:
                     addresses.append(e.ipv6)
+                elif e.ipv4:
+                    addresses.append(e.ipv4)
                 ports.append(str(e.port))
         address = "\n".join(addresses)
         port = "\n".join(ports)
@@ -177,7 +180,7 @@ class NetworkTableModel(QAbstractTableModel):
         return (address, port, number, block_hash, block_time, node.uid,
                 node.member, node.pubkey, node.software, node.version, node.root, node.state)
 
-    def refresh_nodes(self):
+    def init_nodes(self):
         self.beginResetModel()
         self.nodes_data = []
         nodes_data = []
@@ -186,6 +189,25 @@ class NetworkTableModel(QAbstractTableModel):
             nodes_data.append(data)
         self.nodes_data = nodes_data
         self.endResetModel()
+
+    def add_node(self, node):
+        self.beginInsertRows(QModelIndex(), len(self.nodes_data), len(self.nodes_data))
+        self.nodes_data.append(self.data_node(node))
+        self.endInsertRows()
+
+    def change_node(self, node):
+        for i, n in enumerate(self.nodes_data):
+            if n[NetworkTableModel.columns_types.index('pubkey')] == node.pubkey:
+                self.nodes_data[i] = self.data_node(node)
+                self.dataChanged.emit(self.index(i, 0), self.index(i, len(self.columns_types)))
+                return
+
+    def remove_node(self, node):
+        for i, n in enumerate(self.nodes_data.copy()):
+            if n[NetworkTableModel.columns_types.index('pubkey')] == node.pubkey:
+                self.beginRemoveRows(QModelIndex(), i, i)
+                self.nodes_data.pop(i)
+                self.endRemoveRows()
 
     def rowCount(self, parent):
         return len(self.nodes_data)

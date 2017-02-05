@@ -32,6 +32,7 @@ class NetworkView(QWidget, Ui_NetworkWidget):
         model.modelAboutToBeReset.connect(lambda: self.table_network.setEnabled(False))
         model.modelReset.connect(lambda: self.table_network.setEnabled(True))
         model.modelReset.connect(self.table_network.resizeColumnsToContents)
+        model.modelReset.connect(self.table_network.resizeRowsToContents)
 
     def manual_nodes_refresh(self):
         self.button_manual_refresh.setEnabled(False)

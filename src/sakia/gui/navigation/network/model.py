@@ -25,7 +25,7 @@ class NetworkModel(QObject):
         proxy = NetworkFilterProxyModel()
         proxy.setSourceModel(model)
         self.table_model = proxy
-        model.refresh_nodes()
+        model.init_nodes()
         return self.table_model
 
     def refresh_nodes_once(self):

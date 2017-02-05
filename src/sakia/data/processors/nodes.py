@@ -63,6 +63,7 @@ class NodesProcessor:
             self._repo.update(node)
         else:
             self._repo.insert(node)
+        return node
 
     def insert_node(self, node):
         """
@@ -139,7 +140,8 @@ class NodesProcessor:
             node.endpoints = tuple(peer.endpoints)
             node.peer_blockstamp = peer.blockUID
             self._repo.update(node)
-        return node
+            return node, True
+        return node, False
 
     def drop_all(self, currency):
         nodes = self._repo.get_all()

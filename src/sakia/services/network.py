@@ -17,7 +17,9 @@ class NetworkService(QObject):
     A network is managing nodes polling and crawling of a
     given community.
     """
-    nodes_changed = pyqtSignal()
+    node_changed = pyqtSignal(Node)
+    new_node_found = pyqtSignal(Node)
+    node_removed = pyqtSignal(Node)
     root_nodes_changed = pyqtSignal()
 
     def __init__(self, app, currency, node_processor, connectors, blockchain_service, identities_service):
@@ -114,7 +116,7 @@ class NetworkService(QObject):
     def continue_crawling(self):
         return self._must_crawl
 
-    def _check_nodes_sync(self):
+    def _check_nodes_sync(self, node):
         """
         Check nodes sync with the following rules :
         1 : The block of the majority
@@ -137,8 +139,10 @@ class NetworkService(QObject):
 
         if len(blocks_by_occurences) == 0:
             for n in [n for n in online_nodes if n.state in (Node.ONLINE, Node.DESYNCED)]:
-                n.state = Node.ONLINE
-                self._processor.update_node(n)
+                if n.state != Node.ONLINE:
+                    n.state = Node.ONLINE
+                    self._processor.update_node(n)
+                    self.node_changed.emit(n)
             return
 
         most_present = max(blocks_by_occurences.keys())
@@ -147,10 +151,17 @@ class NetworkService(QObject):
 
         for n in online_nodes:
             if n.current_buid.sha_hash == synced_block_hash:
-                n.state = Node.ONLINE
-            else:
+                if n.state != Node.ONLINE:
+                    n.state = Node.ONLINE
+                    self.node_changed.emit(n)
+            elif n.state != Node.DESYNCED:
                 n.state = Node.DESYNCED
-            self._processor.update_node(n)
+                self.node_changed.emit(n)
+            if node == n:
+                node = self._processor.update_node(n)
+            else:
+                self._processor.update_node(n)
+        return node
 
     def add_connector(self, node_connector):
         """
@@ -199,7 +210,7 @@ class NetworkService(QObject):
             try:
                 await asyncio.sleep(1)
                 peer = self._discovery_stack.pop()
-                node = self._processor.update_peer(self.currency, peer)
+                node, updated = self._processor.update_peer(self.currency, peer)
                 if not node:
                     self._logger.debug("New node found : {0}".format(peer.pubkey[:5]))
                     try:
@@ -209,17 +220,19 @@ class NetworkService(QObject):
                         await connector.init_session()
                         connector.refresh(manual=True)
                         self.add_connector(connector)
-                        self.nodes_changed.emit()
+                        self.new_node_found.emit(node)
                     except InvalidNodeCurrency as e:
                         self._logger.debug(str(e))
-                if node and self._blockchain_service.initialized():
+                if node and updated and self._blockchain_service.initialized():
+                    connector = next(conn for conn in self._connectors if conn.node == node)
+                    connector.refresh_summary()
                     try:
                         identity = await self._identities_service.find_from_pubkey(node.pubkey)
                         identity = await self._identities_service.load_requirements(identity)
                         node.member = identity.member
                         node.uid = identity.uid
                         self._processor.update_node(node)
-                        self.nodes_changed.emit()
+                        self.node_changed.emit(node)
                     except errors.DuniterError as e:
                         self._logger.error(e.message)
 
@@ -231,7 +244,7 @@ class NetworkService(QObject):
         key = VerifyingKey(peer.pubkey)
         if key.verify_document(peer):
             if len(self._discovery_stack) < 1000 \
-            and peer.signatures[0] not in [p.signatures[0] for p in self._discovery_stack]:
+               and peer.signatures[0] not in [p.signatures[0] for p in self._discovery_stack]:
                 self._logger.debug("Stacking new peer document : {0}".format(peer.pubkey))
                 self._discovery_stack.append(peer)
         else:
@@ -241,24 +254,23 @@ class NetworkService(QObject):
     def handle_identity_change(self):
         connector = self.sender()
         self._processor.update_node(connector.node)
-        self.nodes_changed.emit()
+        self.node_changed.emit(connector.node)
 
     @pyqtSlot()
     def handle_error(self):
         node = self.sender()
-        if node.state in (Node.OFFLINE, Node.CORRUPTED) and \
-                                node.last_change + 3600 < time.time():
+        if node.state in (Node.OFFLINE, Node.CORRUPTED) and  node.last_change + 3600 < time.time():
             node.disconnect()
             self._processor.delete_node(node)
-            self.nodes_changed.emit()
+            self.node_removed.emit(node)
 
     def handle_change(self):
         node_connector = self.sender()
 
         if node_connector.node.state in (Node.ONLINE, Node.DESYNCED):
-            self._check_nodes_sync()
-        self.nodes_changed.emit()
+            node_connector.node = self._check_nodes_sync(node_connector.node)
         self._processor.update_node(node_connector.node)
+        self.node_changed.emit(node_connector.node)
 
         if node_connector.node.state == Node.ONLINE:
             current_buid = self._processor.current_buid(self.currency)

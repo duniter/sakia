@@ -38,7 +38,6 @@ class NodeConnector(QObject):
                     'peer': False}
         self._user_parameters = user_parameters
         self.session = session
-        self._refresh_counter = 1
         self._logger = logging.getLogger('sakia')
 
     def __del__(self):
@@ -100,11 +99,11 @@ class NodeConnector(QObject):
             return data
         except (ClientError, gaierror, TimeoutError, ConnectionRefusedError, DisconnectedError, ValueError) as e:
             self._logger.debug("{0} : {1}".format(str(e), self.node.pubkey[:5]))
-            self.node.state = Node.OFFLINE
+            self.change_state_and_emit(Node.OFFLINE)
         except jsonschema.ValidationError as e:
             self._logger.debug(str(e))
             self._logger.debug("Validation error : {0}".format(self.node.pubkey[:5]))
-            self.node.state = Node.CORRUPTED
+            self.change_state_and_emit(Node.CORRUPTED)
 
     async def init_session(self):
         if not self.session:
@@ -141,12 +140,6 @@ class NodeConnector(QObject):
         if manual:
             asyncio.ensure_future(self.request_peers())
 
-        if self._refresh_counter % 20 == 0 or manual:
-            self.refresh_summary()
-            self._refresh_counter = self._refresh_counter if manual else 1
-        else:
-            self._refresh_counter += 1
-
     async def connect_current_block(self):
         """
         Connects to the websocket entry point of the node
@@ -177,13 +170,11 @@ class NodeConnector(QObject):
                     await self.request_current_block()
                 except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
                     self._logger.debug("{0} : {1}".format(str(e), self.node.pubkey[:5]))
-                    self.node.state = Node.OFFLINE
-                    self.changed.emit()
+                    self.change_state_and_emit(Node.OFFLINE)
                 except jsonschema.ValidationError as e:
                     self._logger.debug(str(e))
                     self._logger.debug("Validation error : {0}".format(self.node.pubkey[:5]))
-                    self.node.state = Node.CORRUPTED
-                    self.changed.emit()
+                    self.change_state_and_emit(Node.CORRUPTED)
                 finally:
                     self._connected['block'] = False
                     self._ws_tasks['block'] = None
@@ -206,13 +197,11 @@ class NodeConnector(QObject):
                     self.node.previous_buid = BlockUID.empty()
                     self.changed.emit()
                 else:
-                    self.node.state = Node.OFFLINE
-                    self.changed.emit()
-                self._logger.debug("Error in block reply of {0} : {1}}".format(self.node.pubkey[:5], str(e)))
+                    self.change_state_and_emit(Node.OFFLINE)
+                    self._logger.debug("Error in block reply of {0} : {1}}".format(self.node.pubkey[:5], str(e)))
         else:
             self._logger.debug("Could not connect to any BMA endpoint : {0}".format(self.node.pubkey[:5]))
-            self.node.state = Node.OFFLINE
-            self.changed.emit()
+            self.change_state_and_emit(Node.OFFLINE)
 
     async def refresh_block(self, block_data):
         """
@@ -249,8 +238,9 @@ class NodeConnector(QObject):
                         self.changed.emit()
             else:
                 self._logger.debug("Could not connect to any BMA endpoint : {0}".format(self.node.pubkey[:5]))
-                self.node.state = Node.OFFLINE
-                self.changed.emit()
+                self.change_state_and_emit(Node.OFFLINE)
+        else:
+            self.changed.emit()
 
     @asyncify
     async def refresh_summary(self):
@@ -269,13 +259,11 @@ class NodeConnector(QObject):
                 self.changed.emit()
                 return  # Break endpoints loop
             except errors.DuniterError as e:
-                self.node.state = Node.OFFLINE
                 self._logger.debug("Error in summary of {0} : {1}".format(self.node.pubkey[:5], str(e)))
-                self.changed.emit()
+                self.change_state_and_emit(Node.OFFLINE)
         else:
             self._logger.debug("Could not connect to any BMA endpoint : {0}".format(self.node.pubkey[:5]))
-            self.node.state = Node.OFFLINE
-            self.changed.emit()
+            self.change_state_and_emit(Node.OFFLINE)
 
     async def connect_peers(self):
         """
@@ -295,6 +283,7 @@ class NodeConnector(QObject):
                             if msg.tp == aiohttp.MsgType.text:
                                 self._logger.debug("Received a peer : {0}".format(self.node.pubkey[:5]))
                                 peer_data = bma.parse_text(msg.data, bma.ws.WS_PEER_SCHEMA)
+                                self.change_state_and_emit(Node.ONLINE)
                                 self.refresh_peer_data(peer_data)
                             elif msg.tp == aiohttp.MsgType.closed:
                                 break
@@ -307,20 +296,17 @@ class NodeConnector(QObject):
                     await self.request_peers()
                 except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
                     self._logger.debug("{0} : {1}".format(str(e), self.node.pubkey[:5]))
-                    self.node.state = Node.OFFLINE
-                    self.changed.emit()
+                    self.change_state_and_emit(Node.OFFLINE)
                 except jsonschema.ValidationError as e:
                     self._logger.debug(str(e))
                     self._logger.debug("Validation error : {0}".format(self.node.pubkey[:5]))
-                    self.node.state = Node.CORRUPTED
-                    self.changed.emit()
+                    self.change_state_and_emit(Node.CORRUPTED)
                 finally:
                     self._connected['peer'] = False
                     self._ws_tasks['peer'] = None
         else:
             self._logger.debug("Could not connect to any BMA endpoint : {0}".format(self.node.pubkey[:5]))
-            self.node.state = Node.OFFLINE
-            self.changed.emit()
+            self.change_state_and_emit(Node.OFFLINE)
 
     async def request_peers(self):
         """
@@ -359,12 +345,10 @@ class NodeConnector(QObject):
                 return  # Break endpoints loop
             except errors.DuniterError as e:
                 self._logger.debug("Error in peers reply : {0}".format(str(e)))
-                self.node.state = Node.OFFLINE
-                self.changed.emit()
+                self.change_state_and_emit(Node.OFFLINE)
         else:
             self._logger.debug("Could not connect to any BMA endpoint : {0}".format(self.node.pubkey[:5]))
-            self.node.state = Node.OFFLINE
-            self.changed.emit()
+            self.change_state_and_emit(Node.OFFLINE)
 
     def refresh_peer_data(self, peer_data):
         if "raw" in peer_data:
@@ -377,3 +361,8 @@ class NodeConnector(QObject):
                 self._logger.debug(str(e))
         else:
             self._logger.debug("Incorrect leaf reply")
+
+    def change_state_and_emit(self, new_state):
+        if self.node.state != new_state:
+            self.node.state = new_state
+            self.changed.emit()
