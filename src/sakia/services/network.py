@@ -157,10 +157,9 @@ class NetworkService(QObject):
             elif n.state != Node.DESYNCED:
                 n.state = Node.DESYNCED
                 self.node_changed.emit(n)
-            if node == n:
-                node = self._processor.update_node(n)
-            else:
                 self._processor.update_node(n)
+            if n == node:
+                node.state = n.state
         return node
 
     def add_connector(self, node_connector):

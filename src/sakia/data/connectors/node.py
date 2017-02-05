@@ -166,7 +166,7 @@ class NodeConnector(QObject):
                 except (WSServerHandshakeError,
                         ClientResponseError, ValueError) as e:
                     self._logger.debug("Websocket block {0} : {1} - {2}"
-                                  .format(type(e).__name__, str(e), self.node.pubkey[:5]))
+                                        .format(type(e).__name__, str(e), self.node.pubkey[:5]))
                     await self.request_current_block()
                 except (ClientError, gaierror, TimeoutError, DisconnectedError) as e:
                     self._logger.debug("{0} : {1}".format(str(e), self.node.pubkey[:5]))
@@ -195,7 +195,7 @@ class NodeConnector(QObject):
             except errors.DuniterError as e:
                 if e.ucode == errors.BLOCK_NOT_FOUND:
                     self.node.previous_buid = BlockUID.empty()
-                    self.changed.emit()
+                    self.change_state_and_emit(Node.ONLINE)
                 else:
                     self.change_state_and_emit(Node.OFFLINE)
                     self._logger.debug("Error in block reply of {0} : {1}}".format(self.node.pubkey[:5], str(e)))
@@ -235,7 +235,7 @@ class NodeConnector(QObject):
                         self.node.current_ts = block_data['medianTime']
                         self._logger.debug("Changed block {0} -> {1}".format(self.node.current_buid.number,
                                                                         block_data['number']))
-                        self.changed.emit()
+                    self.changed.emit()
             else:
                 self._logger.debug("Could not connect to any BMA endpoint : {0}".format(self.node.pubkey[:5]))
                 self.change_state_and_emit(Node.OFFLINE)
@@ -304,9 +304,6 @@ class NodeConnector(QObject):
                 finally:
                     self._connected['peer'] = False
                     self._ws_tasks['peer'] = None
-        else:
-            self._logger.debug("Could not connect to any BMA endpoint : {0}".format(self.node.pubkey[:5]))
-            self.change_state_and_emit(Node.OFFLINE)
 
     async def request_peers(self):
         """
