@@ -36,7 +36,7 @@ class SourcesServices(QObject):
     def amount(self, pubkey):
         return self._sources_processor.amount(self.currency, pubkey)
 
-    def _parse_tx(self, pubkey, transaction):
+    def parse_transaction(self, pubkey, transaction):
         """
         Parse a transaction
         :param sakia.data.entities.Transaction transaction:
@@ -130,7 +130,7 @@ class SourcesServices(QObject):
         destructions = []
         while tx or ud:
             if tx and tx.written_block == block_number:
-                self._parse_tx(pubkey, tx)
+                self.parse_transaction(pubkey, tx)
                 try:
                     tx = next(sorted_tx)
                 except StopIteration:

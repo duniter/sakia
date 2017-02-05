@@ -90,10 +90,14 @@ class TransferModel(QObject):
         :return: the result of the send
         """
 
-        result = await self.app.documents_service.send_money(self.connection, secret_key, password,
+        result, transaction = await self.app.documents_service.send_money(self.connection, secret_key, password,
                                                              recipient, amount, amount_base, comment)
+        self.app.sources_service.parse_transaction(self.connection.pubkey, transaction)
+        if recipient in self._connections_processor.pubkeys():
+            self.app.sources_service.parse_transaction(recipient, transaction)
         self.app.db.commit()
-        return result
+        self.app.sources_refreshed.emit()
+        return result, transaction
 
     def notifications(self):
         return self.app.parameters.notifications

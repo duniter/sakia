@@ -143,9 +143,6 @@ class Application(QObject):
         connections_processor = ConnectionsProcessor.instanciate(self)
         connections_processor.remove_connections(connection)
 
-        if not connections_processor.connections_to(connection.currency):
-            BlockchainProcessor.instanciate(self).remove_blockchain(connection.currency)
-
         IdentitiesProcessor.instanciate(self).cleanup_connection(connection)
 
         CertificationsProcessor.instanciate(self).cleanup_connection(connection, connections_processor.pubkeys())
