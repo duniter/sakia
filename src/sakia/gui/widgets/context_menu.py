@@ -48,9 +48,9 @@ class ContextMenu(QObject):
             certify.triggered.connect(lambda checked, i=identity: menu.certify_identity(i))
             menu.qmenu.addAction(certify)
 
-            view_wot = QAction(menu.qmenu.tr("View in Web of Trust"), menu.qmenu.parent())
-            view_wot.triggered.connect(lambda checked, i=identity: menu.view_wot(i))
-            menu.qmenu.addAction(view_wot)
+        view_wot = QAction(menu.qmenu.tr("View in Web of Trust"), menu.qmenu.parent())
+        view_wot.triggered.connect(lambda checked, i=identity: menu.view_wot(i))
+        menu.qmenu.addAction(view_wot)
 
         copy_pubkey = QAction(menu.qmenu.tr("Copy pubkey to clipboard"), menu.qmenu.parent())
         copy_pubkey.triggered.connect(lambda checked, i=identity: ContextMenu.copy_pubkey_to_clipboard(i))

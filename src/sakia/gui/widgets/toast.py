@@ -59,7 +59,7 @@ class _Toast(QMainWindow, Ui_Toast):
         rect = QApplication.desktop().availableGeometry()
         height = rect.height()
         width = rect.width()
-        self.setWindowFlags(Qt.FramelessWindowHint |Qt.NoDropShadowWindowHint)
+        self.setWindowFlags(Qt.FramelessWindowHint |Qt.NoDropShadowWindowHint | Qt.WA_AlwaysStackOnTop | Qt.NoFocus)
         self.setupUi(self)
         x = width - self.width()
         y = height - self.height()
