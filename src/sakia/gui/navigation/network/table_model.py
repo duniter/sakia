@@ -1,55 +1,39 @@
-"""
-Created on 5 févr. 2014
-
-@author: inso
-"""
-
-
-from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, QDateTime, QLocale
+from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, QDateTime, QLocale, QT_TRANSLATE_NOOP
 from PyQt5.QtGui import QColor, QFont, QIcon
 from sakia.data.entities import Node
 from duniterpy.documents import BMAEndpoint, SecuredBMAEndpoint
+
 
 class NetworkFilterProxyModel(QSortFilterProxyModel):
     def __init__(self, parent=None):
         super().__init__(parent)
 
     def columnCount(self, parent):
-        return self.sourceModel().columnCount(None) - 2
+        return len(NetworkTableModel.header_names)
 
     def lessThan(self, left, right):
         """
         Sort table by given column number.
         """
-        source_model = self.sourceModel()
         left_data = self.sourceModel().data(left, Qt.DisplayRole)
         right_data = self.sourceModel().data(right, Qt.DisplayRole)
-        if left.column() in (source_model.columns_types.index('port'),
-                             source_model.columns_types.index('current_block'),
-                             source_model.columns_types.index('current_time')):
+        if left.column() == NetworkTableModel.columns_types.index('port'):
+            left_data = int(left_data.split('\n')[0]) if left_data != '' else 0
+            right_data = int(right_data.split('\n')[0]) if right_data != '' else 0
+
+        if left.column() in (NetworkTableModel.columns_types.index('current_block'),
+                             NetworkTableModel.columns_types.index('current_time')):
             left_data = int(left_data) if left_data != '' else 0
             right_data = int(right_data) if right_data != '' else 0
 
         return left_data < right_data
 
     def headerData(self, section, orientation, role):
-        if role != Qt.DisplayRole:
+        if role != Qt.DisplayRole or section >= len(NetworkTableModel.header_names):
             return QVariant()
 
-        header_names = {
-            'address': self.tr('Address'),
-            'port': self.tr('Port'),
-            'current_block': self.tr('Block'),
-            'current_hash': self.tr('Hash'),
-            'current_time': self.tr('Time'),
-            'uid': self.tr('UID'),
-            'is_member': self.tr('Member'),
-            'pubkey': self.tr('Pubkey'),
-            'software': self.tr('Software'),
-            'version': self.tr('Version')
-        }
         _type = self.sourceModel().headerData(section, orientation, role)
-        return header_names[_type]
+        return NetworkTableModel.header_names[_type]
 
     def data(self, index, role):
         source_index = self.mapToSource(index)
@@ -59,23 +43,27 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
         source_data = source_model.data(source_index, role)
 
         if role == Qt.DisplayRole:
-            if index.column() == source_model.columns_types.index('is_member'):
-                value = {True: self.tr('yes'), False: self.tr('no'), None: self.tr('offline')}
+            if index.column() == NetworkTableModel.columns_types.index('is_member'):
+                value = {True: QT_TRANSLATE_NOOP("NetworkTableModel", 'yes'), False: QT_TRANSLATE_NOOP("NetworkTableModel", 'no'), None: QT_TRANSLATE_NOOP("NetworkTableModel", 'offline')}
                 return value[source_data]
 
-            if index.column() == source_model.columns_types.index('pubkey'):
+            if index.column() == NetworkTableModel.columns_types.index('pubkey'):
                 return source_data[:5]
 
-            if index.column() == source_model.columns_types.index('current_block'):
+            if index.column() == NetworkTableModel.columns_types.index('current_block'):
                 if source_data == -1:
                     return ""
                 else:
                     return source_data
 
-            if index.column() == source_model.columns_types.index('current_hash') :
+            if index.column() == NetworkTableModel.columns_types.index('address') \
+                    or index.column() == NetworkTableModel.columns_types.index('port'):
+                return "<p>" + source_data.replace('\n', "<br>") + "</p>"
+
+            if index.column() == NetworkTableModel.columns_types.index('current_hash') :
                 return source_data[:10]
 
-            if index.column() == source_model.columns_types.index('current_time') and source_data:
+            if index.column() == NetworkTableModel.columns_types.index('current_time') and source_data:
                 return QLocale.toString(
                             QLocale(),
                             QDateTime.fromTime_t(source_data),
@@ -83,13 +71,13 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
                         )
 
         if role == Qt.TextAlignmentRole:
-            if source_index.column() == source_model.columns_types.index('address') or source_index.column() == self.sourceModel().columns_types.index('current_block'):
+            if source_index.column() == NetworkTableModel.columns_types.index('address') or source_index.column() == self.sourceModel().columns_types.index('current_block'):
                 return Qt.AlignRight | Qt.AlignVCenter
-            if source_index.column() == source_model.columns_types.index('is_member'):
+            if source_index.column() == NetworkTableModel.columns_types.index('is_member'):
                 return Qt.AlignCenter
 
         if role == Qt.FontRole:
-            is_root_col = source_model.columns_types.index('is_root')
+            is_root_col = NetworkTableModel.columns_types.index('is_root')
             index_root_col = source_model.index(source_index.row(), is_root_col)
             if source_model.data(index_root_col, Qt.DisplayRole):
                 font = QFont()
@@ -104,6 +92,51 @@ class NetworkTableModel(QAbstractTableModel):
     A Qt abstract item model to display
     """
 
+    header_names = {
+        'address': QT_TRANSLATE_NOOP("NetworkTableModel", 'Address'),
+        'port': QT_TRANSLATE_NOOP("NetworkTableModel", 'Port'),
+        'current_block': QT_TRANSLATE_NOOP("NetworkTableModel", 'Block'),
+        'current_hash': QT_TRANSLATE_NOOP("NetworkTableModel", 'Hash'),
+        'current_time': QT_TRANSLATE_NOOP("NetworkTableModel", 'Time'),
+        'uid': QT_TRANSLATE_NOOP("NetworkTableModel", 'UID'),
+        'is_member': QT_TRANSLATE_NOOP("NetworkTableModel", 'Member'),
+        'pubkey': QT_TRANSLATE_NOOP("NetworkTableModel", 'Pubkey'),
+        'software': QT_TRANSLATE_NOOP("NetworkTableModel", 'Software'),
+        'version': QT_TRANSLATE_NOOP("NetworkTableModel", 'Version')
+    }
+    columns_types = (
+        'address',
+        'port',
+        'current_block',
+        'current_hash',
+        'current_time',
+        'uid',
+        'is_member',
+        'pubkey',
+        'software',
+        'version',
+        'is_root',
+        'state'
+    )
+    node_colors = {
+        Node.ONLINE: QColor('#99ff99'),
+        Node.OFFLINE: QColor('#ff9999'),
+        Node.DESYNCED: QColor('#ffbd81'),
+        Node.CORRUPTED: QColor(Qt.lightGray)
+    }
+    node_icons = {
+        Node.ONLINE: ":/icons/synchronized",
+        Node.OFFLINE: ":/icons/offline",
+        Node.DESYNCED: ":/icons/forked",
+        Node.CORRUPTED: ":/icons/corrupted"
+    }
+    node_states = {
+        Node.ONLINE: lambda: QT_TRANSLATE_NOOP("NetworkTableModel", 'Online'),
+        Node.OFFLINE: lambda: QT_TRANSLATE_NOOP("NetworkTableModel", 'Offline'),
+        Node.DESYNCED: lambda: QT_TRANSLATE_NOOP("NetworkTableModel", 'Unsynchronized'),
+        Node.CORRUPTED: lambda: QT_TRANSLATE_NOOP("NetworkTableModel", 'Corrupted')
+    }
+    
     def __init__(self, network_service, parent=None):
         """
         The table showing nodes
@@ -112,38 +145,7 @@ class NetworkTableModel(QAbstractTableModel):
         """
         super().__init__(parent)
         self.network_service = network_service
-        self.columns_types = (
-            'address',
-            'port',
-            'current_block',
-            'current_hash',
-            'current_time',
-            'uid',
-            'is_member',
-            'pubkey',
-            'software',
-            'version',
-            'is_root',
-            'state'
-        )
-        self.node_colors = {
-            Node.ONLINE: QColor('#99ff99'),
-            Node.OFFLINE: QColor('#ff9999'),
-            Node.DESYNCED: QColor('#ffbd81'),
-            Node.CORRUPTED: QColor(Qt.lightGray)
-        }
-        self.node_icons = {
-            Node.ONLINE: ":/icons/synchronized",
-            Node.OFFLINE: ":/icons/offline",
-            Node.DESYNCED: ":/icons/forked",
-            Node.CORRUPTED: ":/icons/corrupted"
-        }
-        self.node_states = {
-            Node.ONLINE: lambda: self.tr('Online'),
-            Node.OFFLINE: lambda: self.tr('Offline'),
-            Node.DESYNCED: lambda: self.tr('Unsynchronized'),
-            Node.CORRUPTED: lambda: self.tr('Corrupted')
-        }
+        
         self.nodes_data = []
         self.network_service.nodes_changed.connect(self.refresh_nodes)
 
@@ -189,13 +191,13 @@ class NetworkTableModel(QAbstractTableModel):
         return len(self.nodes_data)
 
     def columnCount(self, parent):
-        return len(self.columns_types)
+        return len(NetworkTableModel.columns_types)
 
     def headerData(self, section, orientation, role):
         if role != Qt.DisplayRole:
             return QVariant()
 
-        return self.columns_types[section]
+        return NetworkTableModel.columns_types[section]
 
     def data(self, index, role):
         row = index.row()
@@ -208,12 +210,12 @@ class NetworkTableModel(QAbstractTableModel):
         if role == Qt.DisplayRole:
             return node[col]
         if role == Qt.BackgroundColorRole:
-            return self.node_colors[node[self.columns_types.index('state')]]
+            return NetworkTableModel.node_colors[node[NetworkTableModel.columns_types.index('state')]]
         if role == Qt.ToolTipRole:
-            return self.node_states[node[self.columns_types.index('state')]]()
+            return NetworkTableModel.node_states[node[NetworkTableModel.columns_types.index('state')]]()
 
         if role == Qt.DecorationRole and index.column() == 0:
-            return QIcon(self.node_icons[node[self.columns_types.index('state')]])
+            return QIcon(NetworkTableModel.node_icons[node[NetworkTableModel.columns_types.index('state')]])
 
         return QVariant()
 

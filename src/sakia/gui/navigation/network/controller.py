@@ -4,7 +4,6 @@ from PyQt5.QtWidgets import QAction, QMenu
 from PyQt5.QtGui import QCursor, QDesktopServices
 from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 from duniterpy.api import bma
-from sakia.data.processors import ConnectionsProcessor
 
 
 class NetworkController(QObject):

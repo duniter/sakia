@@ -1,5 +1,6 @@
+from PyQt5.QtCore import QDateTime, QEvent
 from PyQt5.QtWidgets import QWidget, QAbstractItemView, QHeaderView
-from PyQt5.QtCore import QDateTime, QEvent, Qt
+
 from .txhistory_uic import Ui_TxHistoryWidget
 
 

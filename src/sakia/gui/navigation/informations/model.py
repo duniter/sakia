@@ -123,20 +123,21 @@ class InformationsModel(QObject):
         if self.connection.uid:
             try:
                 identity = self.identities_service.get_identity(self.connection.pubkey, self.connection.uid)
-                mstime_remaining = self.identities_service.ms_time_remaining(identity)
-                is_member = identity.member
-                nb_certs = len(self.identities_service.certifications_received(identity.pubkey))
-                if not identity.outdistanced:
-                    outdistanced_text = self.tr("In WoT range")
+                if identity:
+                    mstime_remaining = self.identities_service.ms_time_remaining(identity)
+                    is_member = identity.member
+                    nb_certs = len(self.identities_service.certifications_received(identity.pubkey))
+                    if not identity.outdistanced:
+                        outdistanced_text = self.tr("In WoT range")
 
-                if mstime_remaining > 0:
-                    days, hours, minutes, seconds = timestamp_to_dhms(mstime_remaining)
-                    mstime_remaining_text = self.tr("Expires in ")
-                    if days > 0:
-                        mstime_remaining_text += "{days} days".format(days=days)
-                    else:
-                        mstime_remaining_text += "{hours} hours and {min} min.".format(hours=hours,
-                                                                                       min=minutes)
+                    if mstime_remaining > 0:
+                        days, hours, minutes, seconds = timestamp_to_dhms(mstime_remaining)
+                        mstime_remaining_text = self.tr("Expires in ")
+                        if days > 0:
+                            mstime_remaining_text += "{days} days".format(days=days)
+                        else:
+                            mstime_remaining_text += "{hours} hours and {min} min.".format(hours=hours,
+                                                                                           min=minutes)
             except errors.DuniterError as e:
                 if e.ucode == errors.NO_MEMBER_MATCHING_PUB_OR_UID:
                     pass

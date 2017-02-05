@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import Qt, QEvent, pyqtSignal
 from .network_uic import Ui_NetworkWidget
+from .delegate import NetworkDelegate
 import asyncio
 
 
@@ -25,7 +26,9 @@ class NetworkView(QWidget, Ui_NetworkWidget):
         """
         self.table_network.setModel(model)
         self.table_network.sortByColumn(2, Qt.DescendingOrder)
+        self.table_network.setItemDelegate(NetworkDelegate())
         self.table_network.resizeColumnsToContents()
+        self.table_network.resizeRowsToContents()
         model.modelAboutToBeReset.connect(lambda: self.table_network.setEnabled(False))
         model.modelReset.connect(lambda: self.table_network.setEnabled(True))
         model.modelReset.connect(self.table_network.resizeColumnsToContents)
