@@ -8,6 +8,11 @@ from sakia.decorators import asyncify
 from .model import InformationsModel
 from .view import InformationsView
 
+from sakia.decorators import asyncify
+from sakia.gui.sub.password_input import PasswordInputController
+from sakia.gui.widgets import toast
+from sakia.gui.widgets.dialogs import QAsyncMessageBox
+
 
 class InformationsController(QObject):
     """
@@ -25,6 +30,7 @@ class InformationsController(QObject):
         self.view = view
         self.model = model
         self._logger = logging.getLogger('sakia')
+        self.view.button_membership.clicked.connect(self.send_join_demand)
 
     @property
     def informations_view(self):
@@ -98,3 +104,24 @@ class InformationsController(QObject):
         self.view.set_general_text(localized_data)
         self.view.set_rules_text(localized_data)
 
+    @asyncify
+    async def send_join_demand(self, checked=False):
+        connection = await self.view.ask_for_connection(self.model.connections_with_uids())
+        if not connection:
+            return
+        secret_key, password = await PasswordInputController.open_dialog(self, connection)
+        if not password or not secret_key:
+            return
+        result = await self.model.send_join(connection, secret_key, password)
+        if result[0]:
+            if self.model.notifications():
+                toast.display(self.tr("Membership"), self.tr("Success sending Membership demand"))
+            else:
+                await QAsyncMessageBox.information(self.view, self.tr("Membership"),
+                                                        self.tr("Success sending Membership demand"))
+        else:
+            if self.model.notifications():
+                toast.display(self.tr("Membership"), result[1])
+            else:
+                await QAsyncMessageBox.critical(self.view, self.tr("Membership"),
+                                                        result[1])

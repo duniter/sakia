@@ -3,8 +3,9 @@ from PyQt5.QtCore import pyqtSignal, Qt
 from .connection_cfg_uic import Ui_ConnectionConfigurationDialog
 from duniterpy.key import SigningKey, ScryptParams
 from math import ceil, log
-from ...widgets import toast
-from ...widgets.dialogs import QAsyncMessageBox
+from sakia.gui.widgets import toast
+from sakia.helpers import timestamp_to_dhms
+from sakia.gui.widgets.dialogs import QAsyncMessageBox
 
 
 class ConnectionConfigView(QDialog, Ui_ConnectionConfigurationDialog):
@@ -132,3 +133,25 @@ class ConnectionConfigView(QDialog, Ui_ConnectionConfigurationDialog):
         :param str log:
         """
         self.plain_text_edit.insertPlainText("\n" + log)
+
+    async def show_register_message(self, blockchain_parameters):
+        """
+
+        :param sakia.data.entities.BlockchainParameters blockchain_parameters:
+        :return:
+        """
+        days, hours, minutes, seconds = timestamp_to_dhms(blockchain_parameters.idty_window)
+        expiration_time_str = self.tr("{days} days, {hours}h  and {min}min").format(days=days,
+                                                                                    hours=hours,
+                                                                                    min=minutes)
+
+        await QAsyncMessageBox.information(self, self.tr("Registration"), self.tr("""
+<b>Congratulations !</b><br>
+<br>
+You just published your identity to the network.<br>
+For your identity to be registered, you will need <b>{certs} certifications</b> from members.<br>
+Once you got the required certifications, you will be able to validate your registration
+by <b>publishing your membership request !</b><br>
+Please notice that your identity document <b>will expire in {expiration_time_str}.</b> If you failed
+to get {certs} certifications before this time, the process will have to be restarted from scratch.
+""".format(certs=blockchain_parameters.sig_qty, expiration_time_str=expiration_time_str)))

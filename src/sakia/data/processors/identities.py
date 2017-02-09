@@ -139,6 +139,7 @@ class IdentitiesProcessor:
                     if ms['written'] and ms['written'] > identity.membership_written_on:
                         identity.membership_buid = BlockUID(ms['blockNumber'], ms['blockHash'])
                         identity.membership_type = ms['membership']
+                        identity.membership_written_on = ms['written']
 
                 if identity.membership_buid:
                     log_stream("Requesting membership timestamp")

@@ -115,12 +115,15 @@ class InformationsModel(QObject):
         localized_amount = self.app.current_ref.instance(amount,
                                                          self.connection.currency,
                                                          self.app).localized(False, True)
-        mstime_remaining_text = self.tr("Expired or never published")
         outdistanced_text = self.tr("Outdistanced")
+        is_identity = False
         is_member = False
         nb_certs = 0
+        mstime_remaining = 0
+        nb_certs_required = self.blockchain_service.parameters().sig_qty
 
         if self.connection.uid:
+            is_identity = True
             try:
                 identity = self.identities_service.get_identity(self.connection.pubkey, self.connection.uid)
                 if identity:
@@ -129,15 +132,6 @@ class InformationsModel(QObject):
                     nb_certs = len(self.identities_service.certifications_received(identity.pubkey))
                     if not identity.outdistanced:
                         outdistanced_text = self.tr("In WoT range")
-
-                    if mstime_remaining > 0:
-                        days, hours, minutes, seconds = timestamp_to_dhms(mstime_remaining)
-                        mstime_remaining_text = self.tr("Expires in ")
-                        if days > 0:
-                            mstime_remaining_text += "{days} days".format(days=days)
-                        else:
-                            mstime_remaining_text += "{hours} hours and {min} min.".format(hours=hours,
-                                                                                           min=minutes)
             except errors.DuniterError as e:
                 if e.ucode == errors.NO_MEMBER_MATCHING_PUB_OR_UID:
                     pass
@@ -148,8 +142,10 @@ class InformationsModel(QObject):
             'amount': localized_amount,
             'outdistanced': outdistanced_text,
             'nb_certs': nb_certs,
-            'mstime': mstime_remaining_text,
-            'membership_state': is_member
+            'nb_certs_required': nb_certs_required,
+            'mstime': mstime_remaining,
+            'membership_state': is_member,
+            'is_identity': is_identity
         }
 
     def parameters(self):

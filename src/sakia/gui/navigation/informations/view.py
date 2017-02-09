@@ -30,7 +30,7 @@ class InformationsView(QWidget, Ui_InformationsWidget):
 
     def set_simple_informations(self, data, state):
         if state in (InformationsView.CommunityState.NOT_INIT, InformationsView.CommunityState.OFFLINE):
-            self.label_simple.setText("""<html>
+            self.label_currency.setText("""<html>
                 <body>
                 <p>
                 <span style=" font-size:16pt; font-weight:600;">{currency}</span>
@@ -39,37 +39,88 @@ class InformationsView(QWidget, Ui_InformationsWidget):
                 </body>
                 </html>""".format(currency=data['currency'],
                                   message=InformationsView.simple_message[state]))
+            self.button_membership.hide()
         else:
             status_value = self.tr("Member") if data['membership_state'] else self.tr("Non-Member")
+            if data['mstime'] > 0:
+                membership_action_value = self.tr("Renew membership")
+                status_info = ""
+                membership_action_enabled = True
+            elif data['membership_state']:
+                membership_action_value = self.tr("Renew membership")
+                status_info = "Your membership expired"
+                membership_action_enabled = True
+            else:
+                membership_action_value = self.tr("Request membership")
+                if data['nb_certs'] > data['nb_certs_required']:
+                    status_info = self.tr("Registration ready")
+                    membership_action_enabled = True
+                else:
+                    status_info = self.tr("{0} more certifications required")\
+                        .format(data['nb_certs_required'] - data['nb_certs'])
+                    membership_action_enabled = True
+
+            if data['mstime'] > 0:
+                days, hours, minutes, seconds = timestamp_to_dhms(data['mstime'])
+                mstime_remaining_text = self.tr("Expires in ")
+                if days > 0:
+                    mstime_remaining_text += "{days} days".format(days=days)
+                else:
+                    mstime_remaining_text += "{hours} hours and {min} min.".format(hours=hours,
+                                                                                   min=minutes)
+            else:
+                mstime_remaining_text = self.tr("Expired or never published")
+
             status_color = '#00AA00' if data['membership_state'] else self.tr('#FF0000')
-            description = """<html>
-                        <body>
-                        <p>
-                        <span style=" font-size:16pt; font-weight:600;">{currency}</span>
-                        </p>
-                        <p>{nb_members} {members_label}</p>
-                        <p><span style="font-weight:600;">{monetary_mass_label}</span> : {monetary_mass}</p>
-                        <p><span style="font-weight:600;">{status_label}</span> : <span style="color:{status_color};">{status}</span></p>
-                        <p><span style="font-weight:600;">{nb_certs_label}</span> : {nb_certs} ({outdistanced_text})</p>
-                        <p><span style="font-weight:600;">{mstime_remaining_label}</span> : {mstime_remaining}</p>
-                        <p><span style="font-weight:600;">{balance_label}</span> : {balance}</p>
-                        </body>
-                        </html>""".format(currency=data['units'],
-                                          nb_members=data['members_count'],
-                                          members_label=self.tr("members"),
-                                          monetary_mass_label=self.tr("Monetary mass"),
-                                          monetary_mass=data['mass'],
-                                          status_color=status_color,
-                                          status_label=self.tr("Status"),
-                                          status=status_value,
-                                          nb_certs_label=self.tr("Certs. received"),
-                                          nb_certs=data['nb_certs'],
-                                          outdistanced_text=data['outdistanced'],
-                                          mstime_remaining_label=self.tr("Membership"),
-                                          mstime_remaining=data['mstime'],
-                                          balance_label=self.tr("Balance"),
-                                          balance=data['amount'])
-            self.label_simple.setText(description)
+            description_currency = """<html>
+<body>
+    <p>
+        <span style=" font-size:16pt; font-weight:600;">{currency}</span>
+    </p>
+    <p>{nb_members} {members_label}</p>
+    <p><span style="font-weight:600;">{monetary_mass_label}</span> : {monetary_mass}</p>
+    <p><span style="font-weight:600;">{balance_label}</span> : {balance}</p>
+</body>
+</html>""".format(currency=data['units'],
+                  nb_members=data['members_count'],
+                  members_label=self.tr("members"),
+                  monetary_mass_label=self.tr("Monetary mass"),
+                  monetary_mass=data['mass'],
+                  balance_label=self.tr("Balance"),
+                  balance=data['amount'])
+
+            description_membership = """<html>
+<body>
+    <p><span style="font-weight:600;">{status_label}</span>
+     : <span style="color:{status_color};">{status}</span>
+     - <span>{status_info}</span></p>
+</body>
+</html>""".format(status_color=status_color,
+                  status_label=self.tr("Status"),
+                  status=status_value,
+                  status_info=status_info)
+            description_identity = """<html>
+<body>
+    <p><span style="font-weight:600;">{nb_certs_label}</span> : {nb_certs} ({outdistanced_text})</p>
+    <p><span style="font-weight:600;">{mstime_remaining_label}</span> : {mstime_remaining}</p>
+</body>
+</html>""".format(nb_certs_label=self.tr("Certs. received"),
+                  nb_certs=data['nb_certs'],
+                  outdistanced_text=data['outdistanced'],
+                  mstime_remaining_label=self.tr("Membership"),
+                  mstime_remaining=mstime_remaining_text)
+
+            self.label_currency.setText(description_currency)
+
+            if data['is_identity']:
+                self.label_membership.setText(description_membership)
+                self.label_identity.setText(description_identity)
+                self.button_membership.setText(membership_action_value)
+                self.button_membership.setEnabled(membership_action_enabled)
+            else:
+                self.label_membership.hide()
+                self.label_identity.hide()
+                self.button_membership.hide()
 
     def set_general_text_no_dividend(self):
         """

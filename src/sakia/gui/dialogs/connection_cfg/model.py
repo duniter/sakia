@@ -120,3 +120,7 @@ class ConnectionConfigModel(QObject):
 
     def key_exists(self):
         return self.connection.pubkey in ConnectionsProcessor.instanciate(self.app).pubkeys()
+
+    def blockchain_parameters(self):
+        blockchain_processor = BlockchainProcessor.instanciate(self.app)
+        return blockchain_processor.parameters(self.app.currency)
