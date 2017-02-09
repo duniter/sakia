@@ -22,17 +22,14 @@ class NetworkView(QWidget, Ui_NetworkWidget):
     def set_network_table_model(self, model):
         """
         Set the table view model
-        :param PyQt5.QtCore.QAbstractItemModel model: the model of the table view
+        :param PyQt5.QtCore.QAbstractTableModel model: the model of the table view
         """
         self.table_network.setModel(model)
         self.table_network.sortByColumn(2, Qt.DescendingOrder)
         self.table_network.setItemDelegate(NetworkDelegate())
         self.table_network.resizeColumnsToContents()
         self.table_network.resizeRowsToContents()
-        model.modelAboutToBeReset.connect(lambda: self.table_network.setEnabled(False))
-        model.modelReset.connect(lambda: self.table_network.setEnabled(True))
-        model.modelReset.connect(self.table_network.resizeColumnsToContents)
-        model.modelReset.connect(self.table_network.resizeRowsToContents)
+        model.sourceModel().nb_endpoints_changed.connect(self.table_network.resizeRowsToContents)
 
     def manual_nodes_refresh(self):
         self.button_manual_refresh.setEnabled(False)
