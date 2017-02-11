@@ -94,7 +94,10 @@ class TransferController(QObject):
         dialog.refresh()
 
         current_base = dialog.model.current_base()
-        current_base_amount = resent_transfer.amount / pow(10, resent_transfer.amount_base - current_base)
+        if current_base > 1:
+            current_base_amount = resent_transfer.amount / pow(10, resent_transfer.amount_base - current_base)
+        else:
+            current_base_amount = resent_transfer.amount
 
         relative = dialog.model.quant_to_rel(current_base_amount / 100)
         dialog.view.set_spinboxes_parameters(current_base_amount / 100, relative)
