@@ -19,7 +19,6 @@ then
     brew list qt5
     brew install pyenv-virtualenv
     pyenv update
-    pip install PyQt5
 elif [ $TRAVIS_OS_NAME == "linux" ]
 then
     sudo apt-get update

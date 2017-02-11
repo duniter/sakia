@@ -21,6 +21,7 @@ then
 fi
 if [ $TRAVIS_OS_NAME == "osx" ]
 then
+    brew link qt5
     export PATH=/Users/travis/.pyenv/versions/$PYENV_PYTHON_VERSION/Python.framework/Versions/3.5/bin:$PATH
 fi
 
