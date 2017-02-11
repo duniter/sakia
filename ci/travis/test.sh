@@ -10,6 +10,12 @@ then
     sleep 3
 fi
 
+if [ $TRAVIS_OS_NAME == "osx" ]
+then
+    brew link --force qt5
+    export PATH=/Users/travis/.pyenv/versions/$PYENV_PYTHON_VERSION/Python.framework/Versions/3.5/bin:$PATH
+fi
+
 cd $HOME/build/duniter/sakia
 pyenv shell $PYENV_PYTHON_VERSION
 if [ $TRAVIS_OS_NAME == "linux" ]
