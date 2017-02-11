@@ -141,6 +141,8 @@ class TransferController(QObject):
         amount = self.view.spinbox_amount.value() * 100
         #TODO: Handle other amount base than 0
         amount_base = self.model.current_base()
+        if amount_base <= 1:
+            amount_base = 0
 
         logging.debug("Showing password dialog...")
         secret_key, password = self.password_input.get_salt_password()

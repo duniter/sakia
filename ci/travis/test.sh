@@ -22,7 +22,7 @@ if [ $TRAVIS_OS_NAME == "linux" ]
 then
     py.test --cov=sakia tests/
 else
-    py.test
+    py.test -s
 fi
 
 
