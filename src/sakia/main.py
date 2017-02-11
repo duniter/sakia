@@ -94,7 +94,6 @@ if __name__ == '__main__':
 
     with loop:
         app = Application.startup(sys.argv, sakia, loop)
-        app.instanciate_services()
         app.start_coroutines()
         if not app.connection_exists():
             conn_controller = ConnectionConfigController.create_connection(None, app)
