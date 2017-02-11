@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QWidget, QHeaderView
 from PyQt5.QtCore import Qt, QEvent, pyqtSignal
 from .network_uic import Ui_NetworkWidget
 from .delegate import NetworkDelegate
@@ -29,7 +29,7 @@ class NetworkView(QWidget, Ui_NetworkWidget):
         self.table_network.setItemDelegate(NetworkDelegate())
         self.table_network.resizeColumnsToContents()
         self.table_network.resizeRowsToContents()
-        model.sourceModel().nb_endpoints_changed.connect(self.table_network.resizeRowsToContents)
+        self.table_network.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
 
     def manual_nodes_refresh(self):
         self.button_manual_refresh.setEnabled(False)

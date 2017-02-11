@@ -6,6 +6,7 @@ from duniterpy.documents import BMAEndpoint, SecuredBMAEndpoint
 
 
 class NetworkFilterProxyModel(QSortFilterProxyModel):
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -137,8 +138,6 @@ class NetworkTableModel(QAbstractTableModel):
         Node.DESYNCED: lambda: QT_TRANSLATE_NOOP("NetworkTableModel", 'Unsynchronized'),
         Node.CORRUPTED: lambda: QT_TRANSLATE_NOOP("NetworkTableModel", 'Corrupted')
     }
-
-    nb_endpoints_changed = pyqtSignal()
     
     def __init__(self, network_service, parent=None):
         """
@@ -200,12 +199,7 @@ class NetworkTableModel(QAbstractTableModel):
     def change_node(self, node):
         for i, n in enumerate(self.nodes_data):
             if n[NetworkTableModel.columns_types.index('pubkey')] == node.pubkey:
-                nb_endpoints_before = len(n[NetworkTableModel.columns_types.index('address')].split('\n'))
-                self.nodes_data[i] = new_data = self.data_node(node)
-                nb_endpoints_after = len(new_data[NetworkTableModel.columns_types.index('address')].split('\n'))
-                if nb_endpoints_after != nb_endpoints_before:
-                    self.nb_endpoints_changed.emit()
-                self.dataChanged.emit(self.index(i, 0), self.index(i, len(self.columns_types)))
+                self.dataChanged.emit(self.index(i, 0), self.index(i, len(self.columns_types)-1))
                 return
 
     def remove_node(self, node):
