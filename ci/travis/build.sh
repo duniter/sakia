@@ -24,6 +24,7 @@ then
     export PATH=/Users/travis/.pyenv/versions/$PYENV_PYTHON_VERSION/Python.framework/Versions/3.5/bin:$PATH
 fi
 
+echo $PATH
 python gen_resources.py
 python gen_translations.py --lrelease
 

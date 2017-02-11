@@ -15,8 +15,8 @@ then
     brew update
     brew install libsodium
     ## Ensure your brew QT version is up to date. (brew install qt -> qt 4.8)
-    brew install qt57
-    brew list qt57
+    brew install qt5
+    brew list qt5
     brew install pyenv-virtualenv
     pyenv update
     pip install PyQt5
