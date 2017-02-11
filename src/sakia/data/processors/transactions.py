@@ -110,19 +110,17 @@ class TransactionsProcessor:
         """
         return self.run_state_transitions(tx)
 
-    async def send(self, tx, txdoc, currency):
+    async def send(self, tx, currency):
         """
         Send a transaction and update the transfer state to AWAITING if accepted.
         If the transaction was refused (return code != 200), state becomes REFUSED
         The txdoc is saved as the transfer txdoc.
 
         :param sakia.data.entities.Transaction tx: the transaction
-        :param txdoc: A transaction duniterpy object
         :param currency: The community target of the transaction
         """
-        self._logger.debug(txdoc.signed_raw())
         self._repo.insert(tx)
-        responses = await self._bma_connector.broadcast(currency, bma.tx.process, req_args={'transaction': txdoc.signed_raw()})
+        responses = await self._bma_connector.broadcast(currency, bma.tx.process, req_args={'transaction': tx.raw})
         result = await parse_bma_responses(responses)
         self.run_state_transitions(tx, [r.status for r in responses if not isinstance(r, BaseException)])
         return result, tx

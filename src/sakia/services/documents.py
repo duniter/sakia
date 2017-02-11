@@ -10,7 +10,7 @@ from duniterpy.documents import Transaction as TransactionDoc
 from duniterpy.documents.transaction import reduce_base
 from duniterpy.grammars import output
 from duniterpy.api import bma
-from sakia.data.entities import Identity, Transaction
+from sakia.data.entities import Identity, Transaction, Source
 from sakia.data.processors import BlockchainProcessor, IdentitiesProcessor, NodesProcessor, \
     TransactionsProcessor, SourcesProcessor, CertificationsProcessor
 from sakia.data.connectors import BmaConnector, parse_bma_responses
@@ -326,10 +326,29 @@ class DocumentsService:
 
         return total
 
-    def prepare_tx(self, issuer, receiver, blockstamp, amount, amount_base, message, currency):
+    def commit_outputs_to_self(self, currency, pubkey, txdoc):
+        """
+        Save outputs to self
+        :param str currency:
+        :param str pubkey:
+        :param TransactionDoc txdoc:
+        :return:
+        """
+        for offset, output in enumerate(txdoc.outputs):
+            if output.conditions.left.pubkey == pubkey:
+                source = Source(currency=currency,
+                                pubkey=pubkey,
+                                identifier=txdoc.sha_hash,
+                                type='T',
+                                noffset=offset,
+                                amount=output.amount,
+                                base=output.base)
+                self._sources_processor.insert(source)
+
+    def prepare_tx(self, key, receiver, blockstamp, amount, amount_base, message, currency):
         """
         Prepare a simple Transaction document
-        :param str issuer: the issuer of the transaction
+        :param SigningKey key: the issuer of the transaction
         :param str receiver: the target of the transaction
         :param duniterpy.documents.BlockUID blockstamp: the blockstamp
         :param int amount: the amount sent to the receiver
@@ -337,23 +356,54 @@ class DocumentsService:
         :param str message: the comment of the tx
         :param str currency: the target community
         :return: the transaction document
-        :rtype: duniterpy.documents.Transaction
+        :rtype: List[sakia.data.entities.Transaction]
         """
-        result = self.tx_sources(int(amount), amount_base, currency, issuer)
-        sources = result[0]
-        computed_outputs = result[1]
-        overheads = result[2]
+        forged_tx = []
+        sources = [None]*41
+        while len(sources) > 40:
+            result = self.tx_sources(int(amount), amount_base, currency, key.pubkey)
+            sources = result[0]
+            computed_outputs = result[1]
+            overheads = result[2]
+            # Fix issue #594
+            if len(sources) > 40:
+                sources_value = 0
+                for s in sources[:39]:
+                    sources_value += s.amount * (10**s.base)
+                sources_value, sources_base = reduce_base(sources_value, 0)
+                chained_tx = self.prepare_tx(key, key.pubkey, blockstamp,
+                                             sources_value, sources_base, "[CHAINED]", currency)
+                forged_tx += chained_tx
         self._sources_processor.consume(sources)
         logging.debug("Inputs : {0}".format(sources))
 
         inputs = self.tx_inputs(sources)
         unlocks = self.tx_unlocks(sources)
-        outputs = self.tx_outputs(issuer, receiver, computed_outputs, overheads)
+        outputs = self.tx_outputs(key.pubkey, receiver, computed_outputs, overheads)
         logging.debug("Outputs : {0}".format(outputs))
-        tx = TransactionDoc(10, currency, blockstamp, 0,
-                            [issuer], inputs, unlocks,
-                            outputs, message, None)
-        return tx
+        txdoc = TransactionDoc(10, currency, blockstamp, 0,
+                               [key.pubkey], inputs, unlocks,
+                               outputs, message, None)
+        txdoc.sign([key])
+        self.commit_outputs_to_self(currency, key.pubkey, txdoc)
+        time = self._blockchain_processor.time(currency)
+        tx = Transaction(currency=currency,
+                         sha_hash=txdoc.sha_hash,
+                         written_block=0,
+                         blockstamp=blockstamp,
+                         timestamp=time,
+                         signature=txdoc.signatures[0],
+                         issuer=key.pubkey,
+                         receiver=receiver,
+                         amount=amount,
+                         amount_base=amount_base,
+                         comment=txdoc.comment,
+                         txid=0,
+                         state=Transaction.TO_SEND,
+                         local=True,
+                         raw=txdoc.signed_raw())
+        forged_tx.append(tx)
+        return forged_tx
 
     async def send_money(self, connection, secret_key, password, recipient, amount, amount_base, message):
         """
@@ -367,32 +417,25 @@ class DocumentsService:
         :param str message: The message to send with the transfer
         """
         blockstamp = self._blockchain_processor.current_buid(connection.currency)
-        time = self._blockchain_processor.time(connection.currency)
         key = SigningKey(secret_key, password, connection.scrypt_params)
         logging.debug("Sender pubkey:{0}".format(key.pubkey))
+        tx_entities = []
+        result = (True, ""), tx_entities
         try:
-            txdoc = self.prepare_tx(connection.pubkey, recipient, blockstamp, amount, amount_base,
-                                    message, connection.currency)
-            logging.debug("TX : {0}".format(txdoc.raw()))
+            tx_entities = self.prepare_tx(key, recipient, blockstamp, amount, amount_base,
+                                           message, connection.currency)
 
-            txdoc.sign([key])
-            logging.debug("Transaction : [{0}]".format(txdoc.signed_raw()))
-            txid = self._transactions_processor.next_txid(connection.currency, blockstamp.number)
-            tx = Transaction(currency=connection.currency,
-                             sha_hash=txdoc.sha_hash,
-                             written_block=0,
-                             blockstamp=blockstamp,
-                             timestamp=time,
-                             signature=txdoc.signatures[0],
-                             issuer=connection.pubkey,
-                             receiver=recipient,
-                             amount=amount,
-                             amount_base=amount_base,
-                             comment=message,
-                             txid=txid,
-                             state=Transaction.TO_SEND,
-                             local=True,
-                             raw=txdoc.signed_raw())
-            return await self._transactions_processor.send(tx, txdoc, connection.currency)
+            for i, tx in enumerate(tx_entities):
+                logging.debug("Transaction : [{0}]".format(tx.raw))
+                txid = self._transactions_processor.next_txid(connection.currency, blockstamp.number)
+
+                tx_res, tx_entities[i] = await self._transactions_processor.send(tx, connection.currency)
+
+                # Result can be negative if a tx is not accepted by the network
+                if result[0]:
+                    if not tx_res[0]:
+                        result = (False, tx_res[1]), tx_entities
+                result = result[0], tx_entities
+            return result
         except NotEnoughChangeError as e:
-            return (False, str(e)), None
+            return (False, str(e)), tx_entities

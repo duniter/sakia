@@ -1,0 +1,30 @@
+import pytest
+from sakia.data.entities import Transaction
+
+
+@pytest.mark.asyncio
+async def test_send_more_than_40_sources(application_with_one_connection, fake_server, bob, alice):
+    for i in range(0, 60):
+        fake_server.forge.generate_dividend()
+        fake_server.forge.forge_block()
+
+    new_blocks = fake_server.forge.blocks[-60:]
+    changed_tx, new_tx, new_ud = await application_with_one_connection.transactions_service.handle_new_blocks(new_blocks)
+
+    await application_with_one_connection.sources_service.refresh_sources_of_pubkey(bob.key.pubkey, new_tx, new_ud, None)
+    amount_before_send = application_with_one_connection.sources_service.amount(bob.key.pubkey)
+    bob_connection = application_with_one_connection.db.connections_repo.get_one(pubkey=bob.key.pubkey)
+
+    result, transactions = await application_with_one_connection.documents_service.send_money(bob_connection,
+                                                                       bob.salt,
+                                                                       bob.password,
+                                                                       alice.key.pubkey,
+                                                                       amount_before_send,
+                                                                       0,
+                                                                       "Test comment")
+    assert transactions[0].comment == "[CHAINED]"
+    assert transactions[1].comment == "Test comment"
+    amount_after_send = application_with_one_connection.sources_service.amount(bob.key.pubkey)
+    assert amount_after_send == 0
+
+    await fake_server.close()
