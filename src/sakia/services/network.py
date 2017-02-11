@@ -3,7 +3,7 @@ import logging
 import time
 from collections import Counter
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt
 from duniterpy.api import errors
 from duniterpy.key import VerifyingKey
 from sakia.data.connectors import NodeConnector
@@ -167,10 +167,10 @@ class NetworkService(QObject):
         Add a nod to the network.
         """
         self._connectors.append(node_connector)
-        node_connector.changed.connect(self.handle_change)
-        node_connector.error.connect(self.handle_error)
-        node_connector.identity_changed.connect(self.handle_identity_change)
-        node_connector.neighbour_found.connect(self.handle_new_node)
+        node_connector.changed.connect(self.handle_change, type=Qt.UniqueConnection|Qt.QueuedConnection)
+        node_connector.error.connect(self.handle_error, type=Qt.UniqueConnection|Qt.QueuedConnection)
+        node_connector.identity_changed.connect(self.handle_identity_change, type=Qt.UniqueConnection|Qt.QueuedConnection)
+        node_connector.neighbour_found.connect(self.handle_new_node, type=Qt.UniqueConnection|Qt.QueuedConnection)
         self._logger.debug("{:} connected".format(node_connector.node.pubkey[:5]))
 
     @asyncify

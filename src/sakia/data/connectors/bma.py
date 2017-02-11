@@ -215,7 +215,7 @@ class BmaConnector:
                             else:
                                 answers[data_hash].append(node)
         finally:
-            session.close()
+            await session.close()
 
         if len(answers_data) > 0:
             if request is bma.wot.lookup:
