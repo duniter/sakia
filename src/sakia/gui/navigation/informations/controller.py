@@ -106,13 +106,12 @@ class InformationsController(QObject):
 
     @asyncify
     async def send_join_demand(self, checked=False):
-        connection = await self.view.ask_for_connection(self.model.connections_with_uids())
-        if not connection:
+        if not self.model.connection:
             return
-        secret_key, password = await PasswordInputController.open_dialog(self, connection)
+        secret_key, password = await PasswordInputController.open_dialog(self, self.model.connection)
         if not password or not secret_key:
             return
-        result = await self.model.send_join(connection, secret_key, password)
+        result = await self.model.send_join(secret_key, password)
         if result[0]:
             if self.model.notifications():
                 toast.display(self.tr("Membership"), self.tr("Success sending Membership demand"))

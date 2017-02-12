@@ -171,3 +171,9 @@ class InformationsModel(QObject):
         :return: the community in short currency format
         """
         return shortened(self.connection.currency)
+
+    def notifications(self):
+        return self.app.parameters.notifications
+
+    async def send_join(self, secret_key, password):
+        return await self.app.documents_service.send_membership(self.connection, secret_key, password, "IN")
