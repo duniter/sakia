@@ -199,6 +199,7 @@ class NetworkTableModel(QAbstractTableModel):
     def change_node(self, node):
         for i, n in enumerate(self.nodes_data):
             if n[NetworkTableModel.columns_types.index('pubkey')] == node.pubkey:
+                self.nodes_data[i] = self.data_node(node)
                 self.dataChanged.emit(self.index(i, 0), self.index(i, len(self.columns_types)-1))
                 return
 
