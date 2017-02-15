@@ -50,7 +50,7 @@ class Relative(BaseReferential):
 
     @property
     def units(self):
-            return QCoreApplication.translate("Relative", Relative._UNITS_STR_).format(shortened(self.currency))
+            return QCoreApplication.translate("Relative", Relative._UNITS_STR_).format("")
 
     @property
     def formula(self):

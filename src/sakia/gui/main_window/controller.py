@@ -4,7 +4,7 @@ from PyQt5.QtCore import QEvent, pyqtSlot, QObject
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMessageBox, QApplication
 
-from sakia.gui.sub.password_input import PasswordInputController
+from sakia.constants import ROOT_SERVERS
 from .model import MainWindowModel
 from .status_bar.controller import StatusBarController
 from .toolbar.controller import ToolbarController
@@ -76,12 +76,6 @@ class MainWindowController(QObject):
                                  navigation=navigation,
                                  toolbar=toolbar
                                  )
-        currencies = app.db.connections_repo.get_currencies()
-        if currencies:
-            currency = currencies[0]
-        else:
-            currency = ""
-
         #app.version_requested.connect(main_window.latest_version_requested)
         #app.account_imported.connect(main_window.import_account_accepted)
         #app.account_changed.connect(main_window.change_account)
@@ -89,7 +83,7 @@ class MainWindowController(QObject):
             main_window.view.showMaximized()
         else:
             main_window.view.show()
-        main_window.refresh(currency)
+        main_window.refresh(app.currency)
         return main_window
 
     @pyqtSlot(str)
@@ -124,7 +118,8 @@ class MainWindowController(QObject):
         """
         self.status_bar.refresh()
         self.toolbar.enable_actions(len(self.navigation.model.navigation[0]['children']) > 0)
-        self.view.setWindowTitle(self.tr("sakia {0} - {currency}").format(__version__, currency=currency))
+        display_name = ROOT_SERVERS[currency]["display"]
+        self.view.setWindowTitle(self.tr("sakia {0} - {1}").format(__version__, display_name))
 
     def eventFilter(self, target, event):
         """

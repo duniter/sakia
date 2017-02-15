@@ -1,8 +1,17 @@
 fakenet:
-  HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk:
-    - "BASIC_MERKLED_API fakenet.cgeek.fr 10900"
+  display: fakenet
+  nodes:
+    HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk:
+      - "BASIC_MERKLED_API fakenet.cgeek.fr 10900"
 gtest:
+  display: ğtest
+  nodes:
     C4orqutdb3Nveur3xN5L2TduT1j8d2EZkJsWLmWuD2Sv:
     - "BASIC_MERKLED_API gtest.duniter.org 10900"
     - "BASIC_MERKLED_API cgeek.fr 10900"
     - "BASIC_MERKLED_API gtest.duniter.fr 10900"
+g1:
+  display: ğ1
+  nodes:
+    858SvdsS7Aog3U8QRg2TaygEFN8M8Hru48P17KosDFbg:
+    - "BASIC_MERKLED_API g1.duniter.org 80"

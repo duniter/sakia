@@ -37,7 +37,7 @@ class RelativeZSum(BaseReferential):
 
     @property
     def units(self):
-        return QCoreApplication.translate("RelativeZSum", RelativeZSum._UNITS_STR_).format(shortened(self.currency))
+        return QCoreApplication.translate("RelativeZSum", RelativeZSum._UNITS_STR_).format("")
 
     @property
     def formula(self):
@@ -49,7 +49,7 @@ class RelativeZSum(BaseReferential):
 
     @property
     def diff_units(self):
-        return QCoreApplication.translate("Relative", Relative._UNITS_STR_).format(shortened(self.currency))
+        return QCoreApplication.translate("Relative", Relative._UNITS_STR_).format(shortened(""))
 
     @staticmethod
     def base_str(base):

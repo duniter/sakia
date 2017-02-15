@@ -3,8 +3,7 @@ import math
 
 from PyQt5.QtCore import QLocale, QDateTime, pyqtSignal, QObject
 from sakia.errors import NoPeerAvailable
-from sakia.helpers import timestamp_to_dhms
-from sakia.money.currency import shortened
+from sakia.constants import ROOT_SERVERS
 from sakia.money import Referentials
 from duniterpy.api import errors
 
@@ -43,6 +42,7 @@ class InformationsModel(QObject):
             logging.debug('community parameters error : ' + str(e))
             return None
 
+        localized_data['currency'] = ROOT_SERVERS[self.connection.currency]["display"]
         localized_data['growth'] = params.c
         localized_data['days_per_dividend'] = QLocale().toString(params.dt / 86400, 'f', 2)
 
@@ -164,13 +164,6 @@ class InformationsModel(QObject):
         for ref_class in Referentials:
              refs_instances.append(ref_class(0, self.connection.currency, self.app, None))
         return refs_instances
-
-    def short_currency(self):
-        """
-        Get community currency
-        :return: the community in short currency format
-        """
-        return shortened(self.connection.currency)
 
     def notifications(self):
         return self.app.parameters.notifications

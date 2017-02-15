@@ -16,10 +16,10 @@ class NodesProcessor:
 
     def initialize_root_nodes(self, currency):
         if not self.nodes(currency):
-            for pubkey in ROOT_SERVERS[currency]:
+            for pubkey in ROOT_SERVERS[currency]["nodes"]:
                 node = Node(currency=currency,
                             pubkey=pubkey,
-                            endpoints=ROOT_SERVERS[currency][pubkey],
+                            endpoints=ROOT_SERVERS[currency]["nodes"][pubkey],
                             peer_blockstamp=BlockUID.empty(),
                             state=Node.ONLINE)
                 self._repo.insert(node)

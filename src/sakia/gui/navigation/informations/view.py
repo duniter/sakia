@@ -81,7 +81,7 @@ class InformationsView(QWidget, Ui_InformationsWidget):
     <p><span style="font-weight:600;">{monetary_mass_label}</span> : {monetary_mass}</p>
     <p><span style="font-weight:600;">{balance_label}</span> : {balance}</p>
 </body>
-</html>""".format(currency=data['units'],
+</html>""".format(currency=data['currency'],
                   nb_members=data['members_count'],
                   members_label=self.tr("members"),
                   monetary_mass_label=self.tr("Monetary mass"),

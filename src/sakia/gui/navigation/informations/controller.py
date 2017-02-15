@@ -2,9 +2,8 @@ import logging
 
 from PyQt5.QtCore import QObject
 from sakia.errors import NoPeerAvailable
-
+from sakia.constants import ROOT_SERVERS
 from duniterpy.api import errors
-from sakia.decorators import asyncify
 from .model import InformationsModel
 from .view import InformationsView
 
@@ -75,7 +74,7 @@ class InformationsController(QObject):
         self.view.set_text_referentials(referentials)
         params = self.model.parameters()
         if params:
-            self.view.set_money_text(params, self.model.short_currency())
+            self.view.set_money_text(params, ROOT_SERVERS[self.model.connection.currency]["display"])
             self.view.set_wot_text(params)
             self.refresh_localized_data()
 

@@ -71,7 +71,7 @@ class TransferModel(QObject):
         """
         Get the value of the current referential
         """
-        localized = self.app.current_ref.instance(amount, self.connection.currency, self.app).diff_localized(True, True)
+        localized = self.app.current_ref.instance(amount, self.connection.currency, self.app).diff_localized(False, True)
         return localized
 
     def cancel_previous(self):

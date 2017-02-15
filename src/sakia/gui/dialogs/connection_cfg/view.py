@@ -6,6 +6,7 @@ from math import ceil, log
 from sakia.gui.widgets import toast
 from sakia.helpers import timestamp_to_dhms
 from sakia.gui.widgets.dialogs import QAsyncMessageBox
+from sakia.constants import ROOT_SERVERS
 
 
 class ConnectionConfigView(QDialog, Ui_ConnectionConfigurationDialog):
@@ -109,7 +110,7 @@ class ConnectionConfigView(QDialog, Ui_ConnectionConfigurationDialog):
         """
         Hide unecessary buttons and display correct title
         """
-        self.setWindowTitle(self.tr("New connection to {0} network").format(currency))
+        self.setWindowTitle(self.tr("New connection to {0} network").format(ROOT_SERVERS[currency]["display"]))
 
     def action_show_pubkey(self):
         salt = self.edit_salt.text()
