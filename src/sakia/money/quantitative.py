@@ -100,7 +100,7 @@ class Quantitative(BaseReferential):
                                               Quantitative._REF_STR_) \
                 .format(localized_value,
                         prefix,
-                        (" " if prefix and units else "") + (shortened(self.currency) if units else ""))
+                        (" " if prefix and units else "") + (self.units if units else ""))
         else:
             return localized_value
 
@@ -115,6 +115,6 @@ class Quantitative(BaseReferential):
                                               Quantitative._REF_STR_) \
                 .format(localized_value,
                         prefix,
-                        (" " if prefix and units else "") + (shortened(self.currency) if units else ""))
+                        (" " if prefix and units else "") + (self.diff_units if units else ""))
         else:
             return localized_value

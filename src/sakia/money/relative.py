@@ -7,8 +7,8 @@ from PyQt5.QtCore import QCoreApplication, QT_TRANSLATE_NOOP, QLocale
 
 class Relative(BaseReferential):
     _NAME_STR_ = QT_TRANSLATE_NOOP('Relative', 'UD')
-    _REF_STR_ = QT_TRANSLATE_NOOP('Relative', "{0} {1}UD{2}")
-    _UNITS_STR_ = QT_TRANSLATE_NOOP('Relative', "UD {0}")
+    _REF_STR_ = QT_TRANSLATE_NOOP('Relative', "{0} {1}{2}")
+    _UNITS_STR_ = QT_TRANSLATE_NOOP('Relative', "UD")
     _FORMULA_STR_ = QT_TRANSLATE_NOOP('Relative',
                                       """R = Q / UD(t)
                                         <br >
@@ -50,7 +50,7 @@ class Relative(BaseReferential):
 
     @property
     def units(self):
-            return QCoreApplication.translate("Relative", Relative._UNITS_STR_).format("")
+            return QCoreApplication.translate("Relative", Relative._UNITS_STR_)
 
     @property
     def formula(self):
@@ -89,26 +89,22 @@ class Relative(BaseReferential):
 
     def localized(self, units=False, show_base=False):
         value = self.value()
-        prefix = ""
         localized_value = QLocale().toString(float(value), 'f', self.app.parameters.digits_after_comma)
 
         if units:
             return QCoreApplication.translate("Relative", Relative._REF_STR_) \
-                .format(localized_value,
-                        prefix + " " if prefix else "",
-                        (" " + shortened(self.currency)) if units else "")
+                .format(localized_value, "",
+                        (self.units if units else ""))
         else:
             return localized_value
 
     def diff_localized(self, units=False, show_base=False):
         value = self.differential()
-        prefix = ""
         localized_value = QLocale().toString(float(value), 'f', self.app.parameters.digits_after_comma)
 
         if units:
             return QCoreApplication.translate("Relative", Relative._REF_STR_) \
-                .format(localized_value,
-                        prefix + " " if prefix else "",
-                        (" " + shortened(self.currency)) if units else "")
+                .format(localized_value, "",
+                        (self.diff_units if units else ""))
         else:
             return localized_value

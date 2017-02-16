@@ -7,7 +7,7 @@ from ..data.processors import BlockchainProcessor
 
 class QuantitativeZSum(BaseReferential):
     _NAME_STR_ = QT_TRANSLATE_NOOP('QuantitativeZSum', 'Quant Z-sum')
-    _REF_STR_ = QT_TRANSLATE_NOOP('QuantitativeZSum', "{0} {1}Q0{2}")
+    _REF_STR_ = QT_TRANSLATE_NOOP('QuantitativeZSum', "{0}{1}{2}")
     _UNITS_STR_ = QT_TRANSLATE_NOOP('QuantitativeZSum', "Q0 {0}")
     _FORMULA_STR_ = QT_TRANSLATE_NOOP('QuantitativeZSum',
                                       """Z0 = Q - ( M(t-1) / N(t) )
@@ -102,9 +102,8 @@ class QuantitativeZSum(BaseReferential):
         if units or show_base:
             return QCoreApplication.translate("QuantitativeZSum",
                                               QuantitativeZSum._REF_STR_) \
-                    .format(localized_value,
-                            prefix + (" " if prefix else ""),
-                            (" " if units else "") + (shortened(self.currency) if units else ""))
+                    .format(localized_value, "",
+                            (" " + self.units if units else ""))
         else:
             return localized_value
 

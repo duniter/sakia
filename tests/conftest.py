@@ -8,6 +8,7 @@ import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 
+from sakia.constants import ROOT_SERVERS
 from duniterpy.documents import BlockUID
 from sakia.app import Application
 from sakia.options import SakiaOptions
@@ -147,6 +148,8 @@ def simple_fake_server(fake_server, alice, bob):
 
 @pytest.fixture
 def application_with_one_connection(application, simple_fake_server, bob):
+    ROOT_SERVERS[simple_fake_server.forge.currency] = {'display': "Fake Currency",
+                                                        'nodes': []}
     current_block = simple_fake_server.forge.blocks[-1]
     last_ud_block = [b for b in simple_fake_server.forge.blocks if b.ud][-1]
     previous_ud_block = [b for b in simple_fake_server.forge.blocks if b.ud][-2]

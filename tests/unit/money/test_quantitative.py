@@ -1,16 +1,6 @@
 from sakia.money import Quantitative
 
 
-def test_units(application_with_one_connection, bob):
-    referential = Quantitative(0, bob.currency, application_with_one_connection, None)
-    assert referential.units == "TC"
-
-
-def test_diff_units(application_with_one_connection, bob):
-    referential = Quantitative(0, bob.currency, application_with_one_connection, None)
-    assert referential.units == "TC"
-
-
 def test_value(application_with_one_connection, bob):
     referential = Quantitative(101010110, bob.currency, application_with_one_connection, None)
     value = referential.value()
@@ -26,7 +16,7 @@ def test_differential(application_with_one_connection, bob):
 def test_localized_no_si(application_with_one_connection, bob):
     referential = Quantitative(101010110, bob.currency, application_with_one_connection, None)
     value = referential.localized(units=True)
-    assert value == "1,010,101.10 TC"
+    assert value == "1,010,101.10 units"
 
 
 def test_localized_with_si(application_with_one_connection, bob):
@@ -36,7 +26,7 @@ def test_localized_with_si(application_with_one_connection, bob):
     blockchain.last_ud_base = 3
     application_with_one_connection.db.blockchains_repo.update(blockchain)
     value = referential.localized(units=True, show_base=True)
-    assert value == "1,010.10 .10³ TC"
+    assert value == "1,010.10 .10³ units"
 
 
 def test_localized_no_units_no_si(application_with_one_connection, bob):
@@ -59,7 +49,7 @@ def test_localized_no_units_with_si(application_with_one_connection, bob):
 def test_diff_localized_no_si(application_with_one_connection, bob):
     referential = Quantitative(101010110, bob.currency, application_with_one_connection, None)
     value = referential.diff_localized(units=True)
-    assert value == "1,010,101.10 TC"
+    assert value == "1,010,101.10 units"
 
 
 def test_diff_localized_with_si(application_with_one_connection, bob):
@@ -70,7 +60,7 @@ def test_diff_localized_with_si(application_with_one_connection, bob):
     application_with_one_connection.db.blockchains_repo.update(blockchain)
 
     value = referential.diff_localized(units=True, show_base=True)
-    assert value == "1,010.10 .10³ TC"
+    assert value == "1,010.10 .10³ units"
 
 
 def test_diff_localized_no_units_no_si(application_with_one_connection, bob):

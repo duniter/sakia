@@ -7,8 +7,8 @@ from ..data.processors import BlockchainProcessor
 
 class RelativeZSum(BaseReferential):
     _NAME_STR_ = QT_TRANSLATE_NOOP('RelativeZSum', 'Relat Z-sum')
-    _REF_STR_ = QT_TRANSLATE_NOOP('RelativeZSum', "{0} {1}R0{2}")
-    _UNITS_STR_ = QT_TRANSLATE_NOOP('RelativeZSum', "R0 {0}")
+    _REF_STR_ = QT_TRANSLATE_NOOP('RelativeZSum', "{0} {1}{2}")
+    _UNITS_STR_ = QT_TRANSLATE_NOOP('RelativeZSum', "R0 UD")
     _FORMULA_STR_ = QT_TRANSLATE_NOOP('RelativeZSum',
                                       """R0 = (Q / UD(t)) - (( M(t-1) / N(t) ) / UD(t))
                                         <br >
@@ -37,7 +37,7 @@ class RelativeZSum(BaseReferential):
 
     @property
     def units(self):
-        return QCoreApplication.translate("RelativeZSum", RelativeZSum._UNITS_STR_).format("")
+        return QCoreApplication.translate("RelativeZSum", RelativeZSum._UNITS_STR_)
 
     @property
     def formula(self):
@@ -49,7 +49,7 @@ class RelativeZSum(BaseReferential):
 
     @property
     def diff_units(self):
-        return QCoreApplication.translate("Relative", Relative._UNITS_STR_).format(shortened(""))
+        return QCoreApplication.translate("Relative", Relative._UNITS_STR_)
 
     @staticmethod
     def base_str(base):
@@ -93,7 +93,7 @@ class RelativeZSum(BaseReferential):
         if units:
             return QCoreApplication.translate("RelativeZSum", RelativeZSum._REF_STR_)\
                 .format(localized_value, "",
-                        (" " + shortened(self.currency)) if units else "")
+                        self.units if units else "")
         else:
             return localized_value
 
@@ -105,6 +105,6 @@ class RelativeZSum(BaseReferential):
         if units:
             return QCoreApplication.translate("Relative", Relative._REF_STR_)\
                 .format(localized_value, "",
-                        (" " + shortened(self.currency)) if units else "")
+                        (self.diff_units if units else ""))
         else:
             return localized_value
