@@ -143,23 +143,24 @@ class NetworkService(QObject):
                     n.state = Node.ONLINE
                     self._processor.update_node(n)
                     self.node_changed.emit(n)
-            return
+                if n == node:
+                    node.state = n.state
+        else:
+            most_present = max(blocks_by_occurences.keys())
 
-        most_present = max(blocks_by_occurences.keys())
+            synced_block_hash = blocks_by_occurences[most_present][0]
 
-        synced_block_hash = blocks_by_occurences[most_present][0]
-
-        for n in online_nodes:
-            if n.current_buid.sha_hash == synced_block_hash:
-                if n.state != Node.ONLINE:
-                    n.state = Node.ONLINE
+            for n in online_nodes:
+                if n.current_buid.sha_hash == synced_block_hash:
+                    if n.state != Node.ONLINE:
+                        n.state = Node.ONLINE
+                        self.node_changed.emit(n)
+                elif n.state != Node.DESYNCED:
+                    n.state = Node.DESYNCED
                     self.node_changed.emit(n)
-            elif n.state != Node.DESYNCED:
-                n.state = Node.DESYNCED
-                self.node_changed.emit(n)
-                self._processor.update_node(n)
-            if n == node:
-                node.state = n.state
+                    self._processor.update_node(n)
+                if n == node:
+                    node.state = n.state
         return node
 
     def add_connector(self, node_connector):

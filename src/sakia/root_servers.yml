@@ -13,5 +13,5 @@ gtest:
 g1:
   display: ğ1
   nodes:
-    858SvdsS7Aog3U8QRg2TaygEFN8M8Hru48P17KosDFbg:
-    - "BASIC_MERKLED_API g1.duniter.org 80"
+    4aCqwikTaTPBRQLGiLHohuoJLPmLephy9eDtgCWLMwBk:
+    - "BMAS g1.duniter.org 443"
