@@ -62,8 +62,8 @@ class CertificationModel(QObject):
         """
         certifications = self._certifications_processor.certifications_sent(self.connection.currency,
                                                                             self.connection.pubkey)
-        nb_certifications = len([c for c in certifications if c.written_on])
-        nb_cert_pending = len([c for c in certifications if not c.written_on])
+        nb_certifications = len([c for c in certifications if c.written_on >= 0])
+        nb_cert_pending = len([c for c in certifications if c.written_on == -1])
         return nb_certifications, nb_cert_pending
 
     def could_certify(self):
