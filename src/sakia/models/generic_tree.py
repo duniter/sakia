@@ -1,11 +1,5 @@
-"""
-Created on 5 févr. 2014
-
-@author: inso
-"""
-
-from PyQt5.QtCore import QAbstractItemModel, QModelIndex, Qt
-from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import QAbstractItemModel, QModelIndex, Qt, QSize
+from PyQt5.QtGui import QIcon, QTextDocument
 import logging
 
 
@@ -47,6 +41,9 @@ class NodeItem(QAbstractItemModel):
 
         if role == Qt.DecorationRole and 'icon' in self.node:
             return QIcon(self.node['icon'])
+
+        if role == Qt.SizeHintRole:
+            return QSize(1, 22)
 
         if role == GenericTreeModel.ROLE_RAW_DATA:
             return self.node
@@ -105,6 +102,7 @@ class GenericTreeModel(QAbstractItemModel):
         if role in (Qt.DisplayRole,
                     Qt.DecorationRole,
                     Qt.ToolTipRole,
+                    Qt.SizeHintRole,
                     GenericTreeModel.ROLE_RAW_DATA) \
             and index.column() == 0:
             return item.data(0, role)
