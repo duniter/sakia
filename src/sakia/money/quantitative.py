@@ -66,7 +66,7 @@ class Quantitative(BaseReferential):
         for n in range(4, 10):
             unicodes[str(n)] = ord('\u2070') + n
 
-        if base > 1:
+        if base > 0:
             return ".10" + "".join([chr(unicodes[e]) for e in str(base)])
         else:
             return ""
@@ -82,7 +82,7 @@ class Quantitative(BaseReferential):
         scientific_value = value
         scientific_value /= 10**base
 
-        if base > 1:
+        if base > 0:
             localized_value = QLocale().toString(float(scientific_value * multiplier), 'f', 2)
         else:
             localized_value = QLocale().toString(float(value * multiplier), 'f', 2)

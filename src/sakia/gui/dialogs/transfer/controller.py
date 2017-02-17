@@ -94,10 +94,7 @@ class TransferController(QObject):
         dialog.refresh()
 
         current_base = dialog.model.current_base()
-        if current_base > 1:
-            current_base_amount = resent_transfer.amount / pow(10, resent_transfer.amount_base - current_base)
-        else:
-            current_base_amount = resent_transfer.amount
+        current_base_amount = resent_transfer.amount / pow(10, resent_transfer.amount_base - current_base)
 
         relative = dialog.model.quant_to_rel(current_base_amount / 100)
         dialog.view.set_spinboxes_parameters(current_base_amount / 100, relative)
@@ -139,10 +136,7 @@ class TransferController(QObject):
         logging.debug("checking recipient mode...")
         recipient = self.selected_pubkey()
         amount = self.view.spinbox_amount.value() * 100
-        #TODO: Handle other amount base than 0
         amount_base = self.model.current_base()
-        if amount_base <= 1:
-            amount_base = 0
 
         logging.debug("Showing password dialog...")
         secret_key, password = self.password_input.get_salt_password()
