@@ -15,3 +15,4 @@ g1:
   nodes:
     4aCqwikTaTPBRQLGiLHohuoJLPmLephy9eDtgCWLMwBk:
     - "BMAS g1.duniter.org 443"
+    - "BMA_ENDPOINT_API g1.duniter.org 80"
