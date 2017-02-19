@@ -6,7 +6,7 @@ from sakia.data.entities import Connection
 from sakia.decorators import asyncify
 from sakia.gui.sub.password_input import PasswordInputController
 from sakia.gui.widgets import toast
-from sakia.gui.widgets.dialogs import QAsyncMessageBox
+from sakia.gui.widgets.dialogs import QAsyncMessageBox, dialog_async_exec, QAsyncFileDialog
 from sakia.models.generic_tree import GenericTreeModel
 from .graphs.wot.controller import WotController
 from .homescreen.controller import HomeScreenController
@@ -211,8 +211,8 @@ neither your identity from the network."""), QMessageBox.Ok | QMessageBox.Cancel
 
         raw_document = self.model.generate_revokation(connection, secret_key, password)
         # Testable way of using a QFileDialog
-        selected_files = QFileDialog.getSaveFileName(self.view, self.tr("Save a revokation document"),
-                                                       "", self.tr("All text files (*.txt)"))
+        selected_files = await QAsyncFileDialog.get_save_filename(self.view, self.tr("Save a revokation document"),
+                                                                  "", self.tr("All text files (*.txt)"))
         if selected_files:
             path = selected_files[0]
             if not path.endswith('.txt'):
@@ -225,4 +225,4 @@ neither your identity from the network."""), QMessageBox.Ok | QMessageBox.Cancel
 <div><b>Please keep it in a safe place.</b></div>
 The publication of this document will remove your identity from the network.</p>"""), QMessageBox.Ok)
         dialog.setTextFormat(Qt.RichText)
-        dialog.exec()
+        await dialog_async_exec(dialog)
