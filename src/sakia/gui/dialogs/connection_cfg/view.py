@@ -47,9 +47,15 @@ class ConnectionConfigView(QDialog, Ui_ConnectionConfigurationDialog):
             (2 ** 16, 32, 4),
             (2 ** 18, 64, 8),
         ]
+        self.spin_n.blockSignals(True)
+        self.spin_r.blockSignals(True)
+        self.spin_p.blockSignals(True)
         self.spin_n.setValue(strengths[index][0])
         self.spin_r.setValue(strengths[index][1])
         self.spin_p.setValue(strengths[index][2])
+        self.spin_n.blockSignals(False)
+        self.spin_r.blockSignals(False)
+        self.spin_p.blockSignals(False)
 
     def handle_n_change(self, value):
         spinbox = self.sender()

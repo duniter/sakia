@@ -36,9 +36,9 @@ class ConnectionConfigModel(QObject):
 
     def set_scrypt_infos(self, salt, password, scrypt_params):
         self.connection.salt = salt
-        self.connection.N = scrypt_params.N
-        self.connection.r = scrypt_params.r
-        self.connection.p = scrypt_params.p
+        self.connection.scrypt_N = scrypt_params.N
+        self.connection.scrypt_r = scrypt_params.r
+        self.connection.scrypt_p = scrypt_params.p
         self.connection.password = password
         self.connection.pubkey = SigningKey(self.connection.salt, password, scrypt_params).pubkey
 
