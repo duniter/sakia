@@ -357,9 +357,11 @@ class IdentitiesService(QObject):
         parameters = self._blockchain_processor.parameters(self.currency)
         current_ts = self._blockchain_processor.time(self.currency)
         for identity in connections_identities:
-            self._certs_processor.drop_expired(identity, sig_validity=parameters.sig_validity,
-                                               sig_window=parameters.sig_window,
-                                               current_ts=current_ts)
+            if self._certs_processor.drop_expired(identity, sig_validity=parameters.sig_validity,
+                                                  sig_window=parameters.sig_window,
+                                                  current_ts=current_ts):
+                need_refresh.append(identity)
+
             for cert in block.certifications:
             # if we have are a target or a source of the certification
                 if cert.pubkey_from == identity.pubkey or cert.pubkey_to in identity.pubkey:

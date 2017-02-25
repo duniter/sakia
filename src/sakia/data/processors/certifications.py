@@ -39,6 +39,7 @@ class CertificationsProcessor:
                                                     sig_window=sig_window)
         for cert in expired:
             self._certifications_repo.drop(cert)
+        return expired
 
     def certifications_sent(self, currency, pubkey):
         """
