@@ -354,14 +354,20 @@ class IdentitiesService(QObject):
         """
         connections_identities = self._get_connections_identities()
         need_refresh = []
-        for cert in block.certifications:
+        parameters = self._blockchain_processor.parameters(self.currency)
+        current_ts = self._blockchain_processor.time(self.currency)
+        for identity in connections_identities:
+            self._certs_processor.drop_expired(identity, sig_validity=parameters.sig_validity,
+                                               sig_window=parameters.sig_window,
+                                               current_ts=current_ts)
+            for cert in block.certifications:
             # if we have are a target or a source of the certification
-            for identity in connections_identities:
                 if cert.pubkey_from == identity.pubkey or cert.pubkey_to in identity.pubkey:
                     identity.written = True
                     timestamp = await self._blockchain_processor.timestamp(self.currency, cert.timestamp.number)
                     self._certs_processor.create_or_update_certification(self.currency, cert, timestamp, block.blockUID)
                     need_refresh.append(identity)
+
         return need_refresh
 
     async def load_requirements(self, identity):

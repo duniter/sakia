@@ -26,6 +26,20 @@ class CertificationsProcessor:
         return cls(app.db.certifications_repo, app.db.identities_repo,
                    BmaConnector(NodesProcessor(app.db.nodes_repo), app.parameters))
 
+    def drop_expired(self, identity, current_ts, sig_validity, sig_window):
+        """
+        Get the list of expired certifications to and from a given identity
+        :param sakia.data.Identity identity:
+        :rtype: List[sakia.data.entities.Certification]
+        """
+        expired = self._certifications_repo.expired(currency=identity.currency,
+                                                    pubkey=identity.pubkey,
+                                                    current_ts=current_ts,
+                                                    sig_validity=sig_validity,
+                                                    sig_window=sig_window)
+        for cert in expired:
+            self._certifications_repo.drop(cert)
+
     def certifications_sent(self, currency, pubkey):
         """
         Get the list of certifications sent for a given pubkey

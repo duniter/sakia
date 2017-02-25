@@ -78,6 +78,29 @@ class CertificationsRepo:
             return [Certification(*data) for data in datas]
         return []
 
+    def expired(self, currency, pubkey, current_ts, sig_validity, sig_window):
+        """
+        Get expired certifications
+        :param str currency:
+        :param str pubkey:
+        :param int current_ts:
+        :param int sig_validity:
+        :param int sig_window:
+        :return:
+        """
+        request = """SELECT * FROM certifications
+                  WHERE currency=? AND (certifier=? or certified=?)
+                  AND ((ts + ? < ?) or (written_on == 0 and ts + ? < ?))
+                  """
+        c = self._conn.execute(request, (currency, pubkey, pubkey,
+                                         sig_validity, current_ts,
+                                         sig_window, current_ts))
+        datas = c.fetchall()
+        if datas:
+            return [Certification(*data) for data in datas]
+        else:
+            return []
+
     def get_latest_sent(self, currency, pubkey):
         """
         Get latest sent certification
