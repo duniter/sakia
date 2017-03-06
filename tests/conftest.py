@@ -37,7 +37,7 @@ def event_loop():
 
 
 @pytest.fixture
-def meta_repo():
+def meta_repo(version=0):
     sqlite3.register_adapter(BlockUID, str)
     sqlite3.register_adapter(bool, int)
     sqlite3.register_converter("BOOLEAN", lambda v: bool(int(v)))
@@ -47,7 +47,7 @@ def meta_repo():
                               BlockchainsRepo(con), CertificationsRepo(con), TransactionsRepo(con),
                               NodesRepo(con), SourcesRepo(con), DividendsRepo(con))
     meta_repo.prepare()
-    meta_repo.upgrade_database()
+    meta_repo.upgrade_database(version)
     return meta_repo
 
 
