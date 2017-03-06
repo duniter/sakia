@@ -62,15 +62,16 @@ class SakiaDatabase:
     def upgrades(self):
         return [
             self.create_all_tables,
+            self.add_ud_rythm_parameters
         ]
 
-    def upgrade_database(self):
+    def upgrade_database(self, to=0):
         """
         Execute the migrations
         """
         self._logger.debug("Begin upgrade of database...")
         version = self.version()
-        nb_versions = len(self.upgrades)
+        nb_versions = to if to else len(self.upgrades)
         for v in range(version, nb_versions):
             self._logger.debug("Upgrading to version {0}...".format(v))
             self.upgrades[v]()
@@ -85,6 +86,16 @@ class SakiaDatabase:
         """
         self._logger.debug("Initialiazing all databases")
         sql_file = open(os.path.join(os.path.dirname(__file__), 'meta.sql'), 'r')
+        with self.conn:
+            self.conn.executescript(sql_file.read())
+
+    def add_ud_rythm_parameters(self):
+        """
+        Init all the tables
+        :return:
+        """
+        self._logger.debug("Add ud rythm parameters to blockchains table")
+        sql_file = open(os.path.join(os.path.dirname(__file__), '000_add_ud_rythm_parameters.sql'), 'r')
         with self.conn:
             self.conn.executescript(sql_file.read())
 

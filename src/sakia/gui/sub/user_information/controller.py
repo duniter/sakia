@@ -39,6 +39,8 @@ class UserInformationController(QObject):
         dialog.setWindowTitle("Informations")
         user_info = cls.create(parent, app, identity)
         user_info.view.setParent(dialog)
+        dialog.setLayout(QVBoxLayout(dialog))
+        dialog.layout().addWidget(user_info.view)
         user_info.refresh()
         dialog.exec()
 

@@ -116,7 +116,7 @@ class NetworkService(QObject):
     def continue_crawling(self):
         return self._must_crawl
 
-    def _check_nodes_sync(self, node):
+    def check_nodes_sync(self, node):
         """
         Check nodes sync with the following rules :
         1 : The block of the majority
@@ -268,7 +268,7 @@ class NetworkService(QObject):
         node_connector = self.sender()
 
         if node_connector.node.state in (Node.ONLINE, Node.DESYNCED):
-            node_connector.node = self._check_nodes_sync(node_connector.node)
+            node_connector.node = self.check_nodes_sync(node_connector.node)
         self._processor.update_node(node_connector.node)
         self.node_changed.emit(node_connector.node)
 

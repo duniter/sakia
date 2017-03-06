@@ -209,6 +209,7 @@ class NetworkTableModel(QAbstractTableModel):
                 self.beginRemoveRows(QModelIndex(), i, i)
                 self.nodes_data.pop(i)
                 self.endRemoveRows()
+                return
 
     def rowCount(self, parent):
         return len(self.nodes_data)
