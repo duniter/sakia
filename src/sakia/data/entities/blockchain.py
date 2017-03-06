@@ -38,7 +38,9 @@ class BlockchainParameters:
     dt_diff_eval = attr.ib(convert=int, default=0, cmp=False, hash=False)
     # The decimal percent of previous issuers to reach for personalized difficulty
     percent_rot = attr.ib(convert=float, default=0, cmp=False, hash=False)
-
+    ud_time_0 = attr.ib(convert=int, default=0, cmp=False, hash=False)
+    ud_effective_time_0 = attr.ib(convert=int, default=0, cmp=False, hash=False)
+    dt_effective = attr.ib(convert=int, default=0, cmp=False, hash=False)
 
 @attr.s()
 class Blockchain:
