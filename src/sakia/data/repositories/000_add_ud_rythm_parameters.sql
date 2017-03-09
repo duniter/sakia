@@ -1,3 +1,5 @@
+BEGIN TRANSACTION ;
+
 ALTER TABLE blockchains RENAME TO TempOldBlockchains;
 
 -- BLOCKCHAIN TABLE
@@ -20,8 +22,8 @@ CREATE TABLE IF NOT EXISTS blockchains (
   dt_diff_eval                  INT,
   percent_rot                   FLOAT(1, 6),
   ud_time_0                     INT,
-  ud_effective_time_0           INT,
-  dt_effective                  INT,
+  ud_reeval_time_0              INT,
+  dt_reeval                     INT,
   current_buid            INT,
   current_members_count   INT,
   current_mass            INT,
@@ -57,8 +59,8 @@ INSERT INTO blockchains (c,
                          dt_diff_eval,
                          percent_rot,
                          ud_time_0,
-                         ud_effective_time_0,
-                         dt_effective,
+                         ud_reeval_time_0,
+                         dt_reeval,
                          current_buid,
                          current_members_count,
                          current_mass,
@@ -109,3 +111,5 @@ SELECT c,
        currency FROM TempOldBlockchains;
 
 DROP TABLE TempOldBlockchains;
+
+COMMIT;
