@@ -86,6 +86,11 @@ class InformationsModel(QObject):
                 QDateTime.fromTime_t(self.blockchain_service.last_ud_time() + params.dt),
                 QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
             )
+            localized_data['next_ud_reeval'] = QLocale.toString(
+                QLocale(),
+                QDateTime.fromTime_t(self.blockchain_service.next_ud_reeval()),
+                QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
+            )
 
             if previous_ud:
                 mass_minus_1_per_member = (float(0) if previous_ud == 0 or previous_members_count == 0 else

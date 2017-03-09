@@ -246,6 +246,8 @@ class BlockchainProcessor:
                 blockchain.parameters.sig_qty = parameters['sigQty']
                 blockchain.parameters.sig_period = parameters['sigPeriod']
                 blockchain.parameters.ud0 = parameters['ud0']
+                blockchain.parameters.dt_reeval = parameters['dtReeval']
+                blockchain.parameters.ud_reeval_time_0 = parameters['udReevalTime0']
                 blockchain.parameters.xpercent = parameters['xpercent']
             except errors.DuniterError as e:
                 raise

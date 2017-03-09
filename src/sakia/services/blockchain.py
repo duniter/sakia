@@ -121,6 +121,17 @@ class BlockchainService(QObject):
     def previous_ud(self):
         return self._blockchain_processor.previous_ud(self.currency)
 
+    def next_ud_reeval(self):
+        parameters = self._blockchain_processor.parameters(self.currency)
+        mediantime = self._blockchain_processor.time(self.currency)
+        if parameters.ud_reeval_time_0 == 0 or parameters.dt_reeval == 0:
+            return 0
+        else:
+            ud_reeval = parameters.ud_reeval_time_0
+            while ud_reeval <= mediantime:
+                ud_reeval += parameters.dt_reeval
+            return ud_reeval
+
     def computed_dividend(self):
         """
         Computes next dividend value

@@ -145,6 +145,7 @@ class InformationsView(QWidget, Ui_InformationsWidget):
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             </table>
             """).format(
                 localized_data.get('ud', '####'),
@@ -166,7 +167,9 @@ class InformationsView(QWidget, Ui_InformationsWidget):
                 localized_data.get('ud_median_time', '####'),
                 self.tr('Last UD date and time (t)'),
                 localized_data.get('next_ud_median_time', '####'),
-                self.tr('Next UD date and time (t+1)')
+                self.tr('Next UD date and time (t+1)'),
+                localized_data.get('next_ud_reeaval', '####'),
+                self.tr('Next UD reevaluation (t+1)')
             )
         )
 
@@ -248,6 +251,9 @@ class InformationsView(QWidget, Ui_InformationsWidget):
             dt_as_str = self.tr("{:} hour(s)").format(dt_dhms[1])
         if dt_dhms[2] > 0 or dt_dhms[3] > 0:
             dt_dhms += ", {:} minute(s) and {:} second(s)".format(*dt_dhms[1:])
+        dt_reeval_dhms = timestamp_to_dhms(params.dt_reeval)
+        dt_reeval_as_str = self.tr("{:} day(s) {:} hour(s)").format(*dt_reeval_dhms)
+
 
         # set infos in label
         self.label_money.setText(
@@ -255,6 +261,7 @@ class InformationsView(QWidget, Ui_InformationsWidget):
             <table cellpadding="5">
             <tr><td align="right"><b>{:2.0%} / {:} days</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:} {:}</td></tr>
+            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
@@ -270,6 +277,8 @@ class InformationsView(QWidget, Ui_InformationsWidget):
                         currency,
                         dt_as_str,
                         self.tr('Time period between two UD'),
+                        dt_reeval_as_str,
+                        self.tr('Time period between two UD reevaluation'),
                         params.median_time_blocks,
                         self.tr('Number of blocks used for calculating median time'),
                         params.avg_gen_time,
