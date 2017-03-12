@@ -16,6 +16,7 @@ class TransferView(QDialog, Ui_TransferMoneyDialog):
         NO_AMOUNT = 0
         OK = 1
         WRONG_PASSWORD = 2
+        NO_RECEIVER = 3
 
     class RecipientMode(Enum):
         PUBKEY = 1
@@ -26,7 +27,9 @@ class TransferView(QDialog, Ui_TransferMoneyDialog):
         ButtonBoxState.NO_AMOUNT: (False,
                                    QT_TRANSLATE_NOOP("TransferView", "No amount. Please give the transfer amount")),
         ButtonBoxState.OK: (True, QT_TRANSLATE_NOOP("CertificationView", "&Ok")),
-        ButtonBoxState.WRONG_PASSWORD: (False, QT_TRANSLATE_NOOP("TransferView", "Please enter correct password"))
+        ButtonBoxState.WRONG_PASSWORD: (False, QT_TRANSLATE_NOOP("TransferView", "Please enter correct password")),
+        ButtonBoxState.NO_RECEIVER: (False, QT_TRANSLATE_NOOP("TransferView", "Please enter a receiver"))
+
     }
 
     def __init__(self, parent, search_user_view, user_information_view, password_input_view):

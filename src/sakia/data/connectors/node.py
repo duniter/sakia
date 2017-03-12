@@ -60,7 +60,7 @@ class NodeConnector(QObject):
         http_scheme = "https" if secured else "http"
         ws_scheme = "ws" if secured else "wss"
         session = aiohttp.ClientSession()
-        peer_data = await bma.network.peering(ConnectionHandler(http_scheme, ws_scheme, address, port,
+        peer_data = await bma.network.peering(ConnectionHandler(http_scheme, ws_scheme, address, port, "",
                                                                 proxy=user_parameters.proxy(), session=session))
 
         peer = Peer.from_signed_raw("{0}{1}\n".format(peer_data['raw'],

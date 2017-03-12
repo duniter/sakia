@@ -36,6 +36,7 @@ class TransferController(QObject):
         self.password_input.password_changed.connect(self.refresh)
         self.view.button_box.accepted.connect(self.accept)
         self.view.button_box.rejected.connect(self.reject)
+        self.view.radio_pubkey.toggled.connect(self.refresh)
         self.view.combo_connections.currentIndexChanged.connect(self.change_current_connection)
         self.view.spinbox_amount.valueChanged.connect(self.handle_amount_change)
         self.view.spinbox_relative.valueChanged.connect(self.handle_relative_change)
@@ -176,6 +177,8 @@ class TransferController(QObject):
 
         if amount == 0:
             self.view.set_button_box(TransferView.ButtonBoxState.NO_AMOUNT)
+        if not self.selected_pubkey():
+            self.view.set_button_box(TransferView.ButtonBoxState.NO_RECEIVER)
         elif self.password_input.valid():
             self.view.set_button_box(TransferView.ButtonBoxState.OK)
         else:
