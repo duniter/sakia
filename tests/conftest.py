@@ -67,6 +67,8 @@ def user_parameters():
 
 @pytest.fixture
 def application(event_loop, meta_repo, sakia_options, app_data, user_parameters):
+
+    ROOT_SERVERS["test_currency"] = {'display': "Fake Currency", 'nodes': []}
     app = Application(qapp=get_application(),
                       loop=event_loop,
                       options=sakia_options,
@@ -148,8 +150,6 @@ def simple_fake_server(fake_server, alice, bob):
 
 @pytest.fixture
 def application_with_one_connection(application, simple_fake_server, bob):
-    ROOT_SERVERS[simple_fake_server.forge.currency] = {'display': "Fake Currency",
-                                                        'nodes': []}
     current_block = simple_fake_server.forge.blocks[-1]
     last_ud_block = [b for b in simple_fake_server.forge.blocks if b.ud][-1]
     previous_ud_block = [b for b in simple_fake_server.forge.blocks if b.ud][-2]
