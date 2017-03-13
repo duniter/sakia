@@ -1,8 +1,10 @@
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QWidget, QMessageBox
 from PyQt5.QtCore import QEvent, QLocale, pyqtSignal
 from .informations_uic import Ui_InformationsWidget
 from enum import Enum
 from sakia.helpers import timestamp_to_dhms
+from sakia.constants import ROOT_SERVERS
+from sakia.gui.widgets.dialogs import dialog_async_exec
 
 
 class InformationsView(QWidget, Ui_InformationsWidget):
@@ -301,34 +303,111 @@ class InformationsView(QWidget, Ui_InformationsWidget):
         self.label_wot.setText(
                 self.tr("""
             <table cellpadding="5">
-            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-            </table>
-            """).format(
-                        QLocale().toString(params.sig_period / 86400, 'f', 2),
-                        self.tr('Minimum delay between 2 certifications (in days)'),
-                        QLocale().toString(params.sig_validity / 86400, 'f', 2),
-                        self.tr('Maximum age of a valid signature (in days)'),
-                        params.sig_qty,
-                        self.tr('Minimum quantity of signatures to be part of the WoT'),
-                        params.sig_stock,
-                        self.tr('Maximum quantity of active certifications made by member.'),
-                        params.sig_window,
-                        self.tr('Maximum delay a certification can wait before being expired for non-writing.'),
-                        params.xpercent,
-                        self.tr('Minimum percent of sentries to reach to match the distance rule'),
-                        params.ms_validity / 86400,
-                        self.tr('Maximum age of a valid membership (in days)'),
-                        params.step_max,
-                        self.tr('Maximum distance between each WoT member and a newcomer'),
+<tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+<tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+<tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+<tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+<tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+<tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+<tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+<tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+</table>
+""").format(
+            QLocale().toString(params.sig_period / 86400, 'f', 2),
+            self.tr('Minimum delay between 2 certifications (in days)'),
+            QLocale().toString(params.sig_validity / 86400, 'f', 2),
+            self.tr('Maximum age of a valid signature (in days)'),
+            params.sig_qty,
+            self.tr('Minimum quantity of signatures to be part of the WoT'),
+            params.sig_stock,
+            self.tr('Maximum quantity of active certifications made by member.'),
+            params.sig_window,
+            self.tr('Maximum delay a certification can wait before being expired for non-writing.'),
+            params.xpercent,
+            self.tr('Minimum percent of sentries to reach to match the distance rule'),
+            params.ms_validity / 86400,
+            self.tr('Maximum age of a valid membership (in days)'),
+            params.step_max,
+            self.tr('Maximum distance between each WoT member and a newcomer'),
                 )
         )
+
+    async def licence_dialog(self, currency, params):
+        dt_dhms = timestamp_to_dhms(params.dt)
+        if dt_dhms[0] > 0:
+            dt_as_str = self.tr("{:} day(s) {:} hour(s)").format(*dt_dhms)
+        else:
+            dt_as_str = self.tr("{:} hour(s)").format(dt_dhms[1])
+        if dt_dhms[2] > 0 or dt_dhms[3] > 0:
+            dt_dhms += ", {:} minute(s) and {:} second(s)".format(*dt_dhms[1:])
+        dt_reeval_dhms = timestamp_to_dhms(params.dt_reeval)
+        dt_reeval_as_str = self.tr("{:} day(s) {:} hour(s)").format(*dt_reeval_dhms)
+
+        message_box = QMessageBox(self)
+
+        message_box.setText("Do you recognize the terms of the following licence :")
+        message_box.setInformativeText("""
+{:} is being produced by a Universal Dividend (UD) for any human member, which is :<br/>
+<br/>
+<table cellpadding="5">
+ <tr><td align="right"><b>{:2.0%} / {:} days</b></td><td>{:}</td></tr>
+ <tr><td align="right"><b>{:}</b></td><td>{:} {:}</td></tr>
+ <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+ <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+</table>
+<br/>
+<br/>
+
+The parameters of the Web of Trust of {:} are :<br/>
+<table cellpadding="5">
+ <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+ <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+ <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+ <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+ <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+ <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+ <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+ <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+</table>
+<br/>
+<br/>
+
+<b>By asking to join as member, you recognize that this is your unique account,
+and that you will only certify persons that you know well enough.</b>
+ """.format(
+            ROOT_SERVERS[currency]["display"],
+            params.c,
+            QLocale().toString(params.dt / 86400, 'f', 2),
+            self.tr('Fundamental growth (c)'),
+            params.ud0,
+            self.tr('Initial Universal Dividend UD(0) in'),
+            ROOT_SERVERS[currency]["display"],
+            dt_as_str,
+            self.tr('Time period between two UD'),
+            dt_reeval_as_str,
+            self.tr('Time period between two UD reevaluation'),
+            ROOT_SERVERS[currency]["display"],
+            QLocale().toString(params.sig_period / 86400, 'f', 2),
+            self.tr('Minimum delay between 2 certifications (in days)'),
+            QLocale().toString(params.sig_validity / 86400, 'f', 2),
+            self.tr('Maximum age of a valid signature (in days)'),
+            params.sig_qty,
+            self.tr('Minimum quantity of signatures to be part of the WoT'),
+            params.sig_stock,
+            self.tr('Maximum quantity of active certifications made by member.'),
+            params.sig_window,
+            self.tr('Maximum delay a certification can wait before being expired for non-writing.'),
+            params.xpercent,
+            self.tr('Minimum percent of sentries to reach to match the distance rule'),
+            params.ms_validity / 86400,
+            self.tr('Maximum age of a valid membership (in days)'),
+            params.step_max,
+            self.tr('Maximum distance between each WoT member and a newcomer'),
+        )
+    )
+        message_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No )
+        message_box.setDefaultButton(QMessageBox.No)
+        return await dialog_async_exec(message_box)
 
     def changeEvent(self, event):
         """

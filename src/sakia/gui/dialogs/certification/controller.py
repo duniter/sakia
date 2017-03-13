@@ -7,6 +7,7 @@ from sakia.decorators import asyncify
 from sakia.gui.sub.search_user.controller import SearchUserController
 from sakia.gui.sub.user_information.controller import UserInformationController
 from sakia.gui.sub.password_input import PasswordInputController
+from sakia.gui.widgets import dialogs
 from .model import CertificationModel
 from .view import CertificationView
 import attr
@@ -103,11 +104,33 @@ class CertificationController(QObject):
         """
         Validate the dialog
         """
+
+        if not self.user_information.model.identity.member:
+            result = await dialogs.QAsyncMessageBox.question(self.view, "Certifying a non-member",
+"""
+Did you ensure that :<br>
+<br/>
+1°) <b>You know the person declaring owning this pubkey
+well enough and to personally verify that it is the correct key you are going to certify.</b><br/>
+2°) To physically meet her to ensure that it is the person you know who owns this pubkey.<br/>
+3°) Or did you ensure by contacting her using multiple communications means,
+like forum + mail + videoconferencing + phone (to recognize voice)<br/>
+Because if one can hack 1 mail account or 1 forum account, it will be way more difficult to hack multiple
+communication means and imitate the voice of the person.<br/>
+<br/>
+The 2°) is however preferable to the 3°)... whereas <b>1°) is mandatory in any case.</b><br/>
+<br/>
+<b>Reminder</b> : Certifying is not only uniquely ensuring  that you met the person, its ensuring the {0} community
+that you know her well enough and that you will know how to find a double account done by a person certified by you
+using cross checking which will help to reveal the problem if needs to be.</br>""")
+            if result == dialogs.QMessageBox.No:
+                return
+
         self.view.button_box.setDisabled(True)
         secret_key, password = self.password_input.get_salt_password()
         QApplication.setOverrideCursor(Qt.WaitCursor)
         result = await self.model.certify_identity(secret_key, password, self.user_information.model.identity)
-
+#
         if result[0]:
             QApplication.restoreOverrideCursor()
             await self.view.show_success(self.model.notification())
@@ -129,21 +152,22 @@ class CertificationController(QObject):
 
         if self.model.could_certify():
             if written < stock or stock == 0:
-                if not self.user_information.model.identity:
-                    self.view.set_button_box(CertificationView.ButtonBoxState.SELECT_IDENTITY)
-                elif days+hours+minutes > 0:
-                    if days > 0:
-                        remaining_localized = self.tr("{days} days").format(days=days)
+                if self.password_input.valid():
+                    if not self.user_information.model.identity:
+                        self.view.set_button_box(CertificationView.ButtonBoxState.SELECT_IDENTITY)
+                    elif days+hours+minutes > 0:
+                        if days > 0:
+                            remaining_localized = self.tr("{days} days").format(days=days)
+                        else:
+                            remaining_localized = self.tr("{hours}h {min}min").format(hours=hours, min=minutes)
+                        self.view.set_button_box(CertificationView.ButtonBoxState.REMAINING_TIME_BEFORE_VALIDATION,
+                                                 remaining=remaining_localized)
                     else:
-                        remaining_localized = self.tr("{hours}h {min}min").format(hours=hours, min=minutes)
-                    self.view.set_button_box(CertificationView.ButtonBoxState.REMAINING_TIME_BEFORE_VALIDATION,
-                                             remaining=remaining_localized)
-                elif self.password_input.valid():
-                    self.view.set_button_box(CertificationView.ButtonBoxState.OK)
+                        self.view.set_button_box(CertificationView.ButtonBoxState.OK)
                 else:
                     self.view.set_button_box(CertificationView.ButtonBoxState.WRONG_PASSWORD)
             else:
-                    self.view.set_button_box(CertificationView.ButtonBoxState.NO_MORE_CERTIFICATION)
+                self.view.set_button_box(CertificationView.ButtonBoxState.NO_MORE_CERTIFICATION)
         else:
             self.view.set_button_box(CertificationView.ButtonBoxState.NOT_A_MEMBER)
 

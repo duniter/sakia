@@ -10,7 +10,7 @@ from .view import InformationsView
 from sakia.decorators import asyncify
 from sakia.gui.sub.password_input import PasswordInputController
 from sakia.gui.widgets import toast
-from sakia.gui.widgets.dialogs import QAsyncMessageBox
+from sakia.gui.widgets.dialogs import QAsyncMessageBox, QMessageBox
 
 
 class InformationsController(QObject):
@@ -107,6 +107,12 @@ class InformationsController(QObject):
     async def send_join_demand(self, checked=False):
         if not self.model.connection:
             return
+        if not self.model.get_identity_data()["membership_state"]:
+            result = await self.view.licence_dialog(self.model.connection.currency,
+                                                    self.model.parameters())
+            if result == QMessageBox.No:
+                return
+
         secret_key, password = await PasswordInputController.open_dialog(self, self.model.connection)
         if not password or not secret_key:
             return
