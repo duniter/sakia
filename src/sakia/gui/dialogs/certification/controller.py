@@ -3,6 +3,7 @@ import asyncio
 from PyQt5.QtCore import Qt, QObject
 from PyQt5.QtWidgets import QApplication
 
+from sakia.constants import ROOT_SERVERS
 from sakia.decorators import asyncify
 from sakia.gui.sub.search_user.controller import SearchUserController
 from sakia.gui.sub.user_information.controller import UserInformationController
@@ -120,9 +121,10 @@ communication means and imitate the voice of the person.<br/>
 <br/>
 The 2°) is however preferable to the 3°)... whereas <b>1°) is mandatory in any case.</b><br/>
 <br/>
-<b>Reminder</b> : Certifying is not only uniquely ensuring  that you met the person, its ensuring the {0} community
+<b>Reminder</b> : Certifying is not only uniquely ensuring  that you met the person, its ensuring the {:} community
 that you know her well enough and that you will know how to find a double account done by a person certified by you
-using cross checking which will help to reveal the problem if needs to be.</br>""")
+using cross checking which will help to reveal the problem if needs to be.</br>""".format(
+    ROOT_SERVERS[self.model.app.currency]["display"]))
             if result == dialogs.QMessageBox.No:
                 return
 
