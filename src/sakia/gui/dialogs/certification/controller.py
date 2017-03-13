@@ -47,6 +47,7 @@ class CertificationController(QObject):
         view = CertificationView(parent.view if parent else None, search_user.view, user_information.view,
                                  password_input.view)
         model = CertificationModel(app)
+        view.set_label_confirm(app.currency)
         certification = cls(view, model, search_user, user_information, password_input)
         search_user.identity_selected.connect(certification.refresh_user_information)
         password_input.password_changed.connect(certification.refresh)

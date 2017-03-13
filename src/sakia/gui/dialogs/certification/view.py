@@ -1,8 +1,9 @@
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QMessageBox
-from PyQt5.QtCore import QT_TRANSLATE_NOOP, pyqtSignal
+from PyQt5.QtCore import QT_TRANSLATE_NOOP, Qt
 from .certification_uic import Ui_CertificationDialog
 from sakia.gui.widgets import toast
 from sakia.gui.widgets.dialogs import QAsyncMessageBox
+from sakia.constants import ROOT_SERVERS
 from enum import Enum
 
 
@@ -63,6 +64,11 @@ class CertificationView(QDialog, Ui_CertificationDialog):
 
     def pubkey_value(self):
         return self.edit_pubkey.text()
+
+    def set_label_confirm(self, currency):
+        self.label_confirm.setTextFormat(Qt.RichText)
+        self.label_confirm.setText("""<b>Vous confirmez engager votre responsabilité envers la communauté Duniter {0} et acceptez de certifier le compte Duniter Ğ1 ci-dessus.<br/><br/>
+Pour confirmer votre certification veuillez confirmer votre signature :</b>""".format(ROOT_SERVERS[currency]["display"]))
 
     async def show_success(self, notification):
         if notification:
