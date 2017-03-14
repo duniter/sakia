@@ -2,7 +2,7 @@ import datetime
 import logging
 
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyModel, \
-    QDateTime, QLocale, QModelIndex
+    QDateTime, QLocale, QModelIndex, QT_TRANSLATE_NOOP
 from PyQt5.QtGui import QFont, QColor
 from sakia.data.entities import Transaction
 from sakia.constants import MAX_CONFIRMATIONS
@@ -93,7 +93,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
 
         if role == Qt.DisplayRole:
             if source_index.column() == model.columns_types.index('uid'):
-                return source_data
+                return "<p>" + source_data.replace('\n', "<br>") + "</p>"
             if source_index.column() == model.columns_types.index('date'):
                 return QLocale.toString(
                     QLocale(),
@@ -160,6 +160,26 @@ class HistoryTableModel(QAbstractTableModel):
 
     DIVIDEND = 32
 
+    columns_types = (
+        'date',
+        'uid',
+        'amount',
+        'comment',
+        'state',
+        'txid',
+        'pubkey',
+        'block_number',
+        'txhash',
+        'raw_data'
+    )
+
+    columns_headers = (
+        QT_TRANSLATE_NOOP("HistoryTableModel", 'Date'),
+        QT_TRANSLATE_NOOP("HistoryTableModel", 'UID/Public key'),
+        QT_TRANSLATE_NOOP("HistoryTableModel", 'Amount'),
+        QT_TRANSLATE_NOOP("HistoryTableModel", 'Comment')
+    )
+
     def __init__(self, parent, app, connection, identities_service, transactions_service):
         """
         History of all transactions
@@ -177,26 +197,6 @@ class HistoryTableModel(QAbstractTableModel):
         self.transactions_service = transactions_service
         self.transfers_data = []
 
-        self.columns_types = (
-            'date',
-            'uid',
-            'amount',
-            'comment',
-            'state',
-            'txid',
-            'pubkey',
-            'block_number',
-            'txhash',
-            'raw_data'
-        )
-
-        self.column_headers = (
-            lambda: self.tr('Date'),
-            lambda: self.tr('UID/Public key'),
-            lambda: self.tr('Amount'),
-            lambda: self.tr('Comment')
-        )
-
     def transfers(self):
         """
         Transfer
@@ -212,11 +212,11 @@ class HistoryTableModel(QAbstractTableModel):
         return self.transactions_service.dividends(self.connection.pubkey)
 
     def add_transfer(self, transfer):
-        if self.connection.pubkey in (transfer.issuer, transfer.receiver):
+        if self.connection.pubkey in (transfer.issuer, *transfer.receivers):
             self.beginInsertRows(QModelIndex(), len(self.transfers_data), len(self.transfers_data))
             if transfer.issuer == self.connection.pubkey:
                 self.transfers_data.append(self.data_sent(transfer))
-            if transfer.receiver == self.connection.pubkey:
+            if self.connection.pubkey in transfer.receivers:
                 self.transfers_data.append(self.data_received(transfer))
             self.endInsertRows()
 
@@ -228,7 +228,7 @@ class HistoryTableModel(QAbstractTableModel):
 
     def change_transfer(self, transfer):
         for i, data in enumerate(self.transfers_data):
-            if data[self.columns_types.index('txhash')] == transfer.sha_hash:
+            if data[HistoryTableModel.columns_types.index('txhash')] == transfer.sha_hash:
                 if transfer.state == Transaction.DROPPED:
                     self.beginRemoveRows(QModelIndex(), i, i)
                     self.transfers_data.pop(i)
@@ -236,10 +236,10 @@ class HistoryTableModel(QAbstractTableModel):
                 else:
                     if transfer.issuer == self.connection.pubkey:
                         self.transfers_data[i] = self.data_sent(transfer)
-                        self.dataChanged.emit(self.index(i, 0), self.index(i, len(self.columns_types)))
-                    if transfer.receiver == self.connection.pubkey:
+                        self.dataChanged.emit(self.index(i, 0), self.index(i, len(HistoryTableModel.columns_types)))
+                    if self.connection.pubkey in transfer.receivers:
                         self.transfers_data[i] = self.data_received(transfer)
-                        self.dataChanged.emit(self.index(i, 0), self.index(i, len(self.columns_types)))
+                        self.dataChanged.emit(self.index(i, 0), self.index(i, len(HistoryTableModel.columns_types)))
                 return
 
     def data_received(self, transfer):
@@ -274,16 +274,18 @@ class HistoryTableModel(QAbstractTableModel):
         block_number = transfer.written_block
 
         amount = transfer.amount * 10**transfer.amount_base * -1
-        identity = self.identities_service.get_identity(transfer.receiver)
-        if identity:
-            receiver = identity.uid
-        else:
-            receiver = transfer.receiver
+        receivers = []
+        for receiver in transfer.receivers:
+            identity = self.identities_service.get_identity(receiver)
+            if identity:
+                receivers.append(identity.uid)
+            else:
+                receivers.append(receiver)
 
         date_ts = transfer.timestamp
         txid = transfer.txid
-        return (date_ts, receiver, amount, transfer.comment, transfer.state, txid,
-                transfer.receiver, block_number, transfer.sha_hash, transfer)
+        return (date_ts, receivers, amount, transfer.comment, transfer.state, txid,
+                "\n".join(transfer.receivers), block_number, transfer.sha_hash, transfer)
 
     def data_dividend(self, dividend):
         """
@@ -312,7 +314,7 @@ class HistoryTableModel(QAbstractTableModel):
             if transfer.state != Transaction.DROPPED:
                 if transfer.issuer == self.connection.pubkey:
                     self.transfers_data.append(self.data_sent(transfer))
-                if transfer.receiver == self.connection.pubkey:
+                if self.connection.pubkey in transfer.receivers:
                     self.transfers_data.append(self.data_received(transfer))
         dividends = self.dividends()
         for dividend in dividends:
@@ -323,18 +325,18 @@ class HistoryTableModel(QAbstractTableModel):
         return len(self.transfers_data)
 
     def columnCount(self, parent):
-        return len(self.columns_types)
+        return len(HistoryTableModel.columns_types)
 
     def headerData(self, section, orientation, role):
         if role == Qt.DisplayRole:
-            if self.columns_types[section] == 'amount':
+            if HistoryTableModel.columns_types[section] == 'amount':
                 dividend, base = self.blockchain_processor.last_ud(self.transactions_service.currency)
-                header = '{:}'.format(self.column_headers[section]())
+                header = '{:}'.format(HistoryTableModel.columns_headers[section])
                 if self.app.current_ref.base_str(base):
                     header += " ({:})".format(self.app.current_ref.base_str(base))
                 return header
 
-            return self.column_headers[section]()
+            return HistoryTableModel.columns_headers[section]
 
     def data(self, index, role):
         row = index.row()

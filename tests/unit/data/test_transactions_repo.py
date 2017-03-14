@@ -28,7 +28,7 @@ def test_add_get_drop_transaction(meta_repo):
     assert transaction.amount == 1565
     assert transaction.amount_base == 1
     assert transaction.issuer == "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ"
-    assert transaction.receiver == "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn"
+    assert transaction.receivers[0] == "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn"
     assert transaction.comment == ""
     assert transaction.txid == 0
     transactions_repo.drop(transaction)
@@ -66,7 +66,7 @@ def test_add_get_multiple_transaction(meta_repo):
                                          Transaction.TO_SEND))
     transactions = transactions_repo.get_all(currency="testcurrency")
     assert "testcurrency" in [t.currency for t in transactions]
-    assert "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ" in [t.receiver for t in transactions]
+    assert "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ" in [t.receivers[0] for t in transactions]
     assert "FADxcH5LmXGmGFgdixSes6nWnC4Vb4pRUBYT81zQRhjn" in [t.issuer for t in transactions]
 
 

@@ -89,7 +89,7 @@ class TransferController(QObject):
     def send_transfer_again(cls, parent, app, connection, resent_transfer):
         dialog = cls.create(parent, app)
         dialog.view.combo_connections.setCurrentText(connection.title())
-        dialog.view.edit_pubkey.setText(resent_transfer.receiver)
+        dialog.view.edit_pubkey.setText(resent_transfer.receivers[0])
         dialog.view.radio_pubkey.setChecked(True)
 
         dialog.refresh()
@@ -105,7 +105,7 @@ class TransferController(QObject):
         connections_processor = ConnectionsProcessor.instanciate(app)
         wallet_index = connections_processor.connections().index(connection)
         dialog.view.combo_connections.setCurrentIndex(wallet_index)
-        dialog.view.edit_pubkey.setText(resent_transfer.receiver)
+        dialog.view.edit_pubkey.setText(resent_transfer.receivers[0])
         dialog.view.radio_pubkey.setChecked(True)
         dialog.view.edit_message.setText(resent_transfer.comment)
 

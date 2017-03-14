@@ -1,5 +1,6 @@
 import attr
 from duniterpy.documents import block_uid, endpoint
+from sakia.helpers import attrs_tuple_of_str
 
 
 def _tuple_of_endpoints(value):
@@ -16,18 +17,6 @@ def _tuple_of_endpoints(value):
         return conv
     else:
         raise TypeError("Can't convert {0} to list of endpoints".format(value))
-
-
-def _tuple_of_hashes(ls):
-    if isinstance(ls, tuple):
-        return ls
-    elif isinstance(ls, list):
-        return tuple([str(a) for a in ls])
-    elif isinstance(ls, str):
-        if ls:  # if string is not empty
-            return tuple([str(a) for a in ls.split('\n')])
-        else:
-            return tuple()
 
 
 @attr.s()
@@ -73,7 +62,7 @@ class Node:
     merkle_peers_root = attr.ib(convert=str, cmp=False,
                                 default=MERKLE_EMPTY_ROOT)
     # Leaves of the merkle peers tree
-    merkle_peers_leaves = attr.ib(convert=_tuple_of_hashes, cmp=False, default=tuple())
+    merkle_peers_leaves = attr.ib(convert=attrs_tuple_of_str, cmp=False, default=tuple())
     # Define if this node is a root node in Sakia
     root = attr.ib(convert=bool, cmp=False, default=False)
     # If this node is a member or not

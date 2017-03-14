@@ -31,3 +31,15 @@ def single_instance_lock():
 def cleanup_lock(lock):
     if lock.isAttached():
         lock.detach()
+
+
+def attrs_tuple_of_str(ls):
+    if isinstance(ls, tuple):
+        return ls
+    elif isinstance(ls, list):
+        return tuple([str(a) for a in ls])
+    elif isinstance(ls, str):
+        if ls:  # if string is not empty
+            return tuple([str(a) for a in ls.split('\n')])
+        else:
+            return tuple()

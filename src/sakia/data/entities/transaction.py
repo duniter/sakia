@@ -1,6 +1,7 @@
 import attr
 from duniterpy.documents import block_uid
 from duniterpy.documents.transaction import reduce_base
+from sakia.helpers import attrs_tuple_of_str
 import math
 
 
@@ -57,7 +58,7 @@ def parse_transaction_doc(tx_doc, pubkey, block_number, mediantime, txid):
                               timestamp=mediantime,
                               signature=tx_doc.signatures[0],
                               issuer=tx_doc.issuers[0],
-                              receiver=receivers[0],
+                              receivers=receivers,
                               amount=amount,
                               amount_base=amount_base,
                               comment=tx_doc.comment,
@@ -99,7 +100,7 @@ class Transaction:
     timestamp     = attr.ib(convert=int, cmp=False)
     signature     = attr.ib(convert=str, cmp=False)
     issuer        = attr.ib(convert=str, cmp=False)
-    receiver      = attr.ib(convert=str, cmp=False)
+    receivers     = attr.ib(convert=attrs_tuple_of_str, cmp=False)
     amount        = attr.ib(convert=int, cmp=False)
     amount_base   = attr.ib(convert=int, cmp=False)
     comment       = attr.ib(convert=str, cmp=False)

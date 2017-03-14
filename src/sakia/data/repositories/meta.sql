@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS transactions(
                                ts INT,
                                signature VARCHAR(100),
                                issuer VARCHAR(50),
-                               receiver VARCHAR(50),
+                               receiver TEXT,
                                amount INT,
                                amountbase INT,
                                comment VARCHAR(255),

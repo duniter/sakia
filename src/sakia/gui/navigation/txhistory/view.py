@@ -1,5 +1,6 @@
 from PyQt5.QtCore import QDateTime, QEvent
 from PyQt5.QtWidgets import QWidget, QAbstractItemView, QHeaderView
+from .delegate import TxHistoryDelegate
 
 from .txhistory_uic import Ui_TxHistoryWidget
 
@@ -30,6 +31,7 @@ class TxHistoryView(QWidget, Ui_TxHistoryWidget):
         self.table_history.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table_history.setSortingEnabled(True)
         self.table_history.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
+        self.table_history.setItemDelegate(TxHistoryDelegate())
         model.modelReset.connect(self.table_history.resizeColumnsToContents)
 
     def set_minimum_maximum_datetime(self, minimum, maximum):

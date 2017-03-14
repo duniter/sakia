@@ -15,7 +15,10 @@ class TransactionsRepo:
         Commit a transaction to the database
         :param sakia.data.entities.Transaction transaction: the transaction to commit
         """
-        transaction_tuple = attr.astuple(transaction)
+        transaction_tuple = attr.astuple(transaction, tuple_factory=list)
+
+        transaction_tuple[7] = "\n".join([str(n) for n in transaction_tuple[7]])
+
         values = ",".join(['?'] * len(transaction_tuple))
         self._conn.execute("INSERT INTO transactions VALUES ({0})".format(values), transaction_tuple)
 
@@ -93,7 +96,7 @@ class TransactionsRepo:
         :rtype: List[sakia.data.entities.Transaction]
         """
         request = """SELECT * FROM transactions
-                  WHERE currency=? AND (issuer=? or receiver=?)
+                  WHERE currency=? AND (issuer=? or receiver LIKE ?)
                   ORDER BY {sort_by} {sort_order}
                   LIMIT {limit} OFFSET {offset}""" \
                     .format(offset=offset,
@@ -101,7 +104,7 @@ class TransactionsRepo:
                             sort_by=sort_by,
                             sort_order=sort_order
                             )
-        c = self._conn.execute(request, (currency, pubkey, pubkey))
+        c = self._conn.execute(request, (currency, pubkey, "%" + pubkey + "%"))
         datas = c.fetchall()
         if datas:
             return [Transaction(*data) for data in datas]
