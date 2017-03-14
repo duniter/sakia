@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>623</width>
-    <height>545</height>
+    <height>577</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -81,6 +81,23 @@
           </widget>
          </item>
          <item>
+          <widget class="QPushButton" name="button_pubkey">
+           <property name="text">
+            <string>Connect using a public key</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../../../../../res/icons/icons.qrc">
+             <normaloff>:/icons/duniter_info_icon</normaloff>:/icons/duniter_info_icon</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>32</width>
+             <height>32</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item>
           <spacer name="verticalSpacer_8">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
@@ -120,38 +137,90 @@
            </layout>
           </item>
           <item>
-           <layout class="QVBoxLayout" name="verticalLayout_6">
+           <layout class="QVBoxLayout" name="layout_key">
             <item>
-             <widget class="QLabel" name="label_3">
-              <property name="text">
+             <layout class="QVBoxLayout" name="verticalLayout_5">
+              <property name="topMargin">
+               <number>6</number>
+              </property>
+              <item>
+               <widget class="QGroupBox" name="groupbox_pubkey">
+                <property name="title">
+                 <string>Public key</string>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_7">
+                 <item>
+                  <widget class="QLineEdit" name="edit_pubkey">
+                   <property name="placeholderText">
+                    <string>Public key</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="groupbox_key">
+              <property name="title">
                <string>Key parameters</string>
               </property>
-             </widget>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_5"/>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="edit_salt">
-              <property name="text">
-               <string/>
-              </property>
-              <property name="echoMode">
-               <enum>QLineEdit::Password</enum>
-              </property>
-              <property name="placeholderText">
-               <string>Secret key</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="edit_salt_bis">
-              <property name="echoMode">
-               <enum>QLineEdit::Password</enum>
-              </property>
-              <property name="placeholderText">
-               <string>Please repeat your secret key</string>
-              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_6">
+               <item>
+                <widget class="QLineEdit" name="edit_salt">
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="echoMode">
+                  <enum>QLineEdit::Password</enum>
+                 </property>
+                 <property name="placeholderText">
+                  <string>Secret key</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="edit_salt_bis">
+                 <property name="echoMode">
+                  <enum>QLineEdit::Password</enum>
+                 </property>
+                 <property name="placeholderText">
+                  <string>Please repeat your secret key</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="edit_password">
+                 <property name="echoMode">
+                  <enum>QLineEdit::Password</enum>
+                 </property>
+                 <property name="placeholderText">
+                  <string>Your password</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="edit_password_repeat">
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="echoMode">
+                  <enum>QLineEdit::Password</enum>
+                 </property>
+                 <property name="placeholderText">
+                  <string>Please repeat your password</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="button_generate">
+                 <property name="text">
+                  <string>Show public key</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </widget>
             </item>
             <item>
@@ -160,143 +229,6 @@
                <enum>Qt::Horizontal</enum>
               </property>
              </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="edit_password">
-              <property name="echoMode">
-               <enum>QLineEdit::Password</enum>
-              </property>
-              <property name="placeholderText">
-               <string>Your password</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="edit_password_repeat">
-              <property name="text">
-               <string/>
-              </property>
-              <property name="echoMode">
-               <enum>QLineEdit::Password</enum>
-              </property>
-              <property name="placeholderText">
-               <string>Please repeat your password</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_2">
-              <property name="topMargin">
-               <number>6</number>
-              </property>
-              <item>
-               <widget class="QLabel" name="label_6">
-                <property name="text">
-                 <string>Scrypt parameters</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QComboBox" name="combo_scrypt_params">
-                <item>
-                 <property name="text">
-                  <string>Simple</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Secure</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Hardest</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Extreme</string>
-                 </property>
-                </item>
-               </widget>
-              </item>
-              <item>
-               <spacer name="horizontalSpacer_3">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item>
-               <widget class="QLabel" name="label">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="text">
-                 <string>N :</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QSpinBox" name="spin_n"/>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_4">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="text">
-                 <string>r :</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QSpinBox" name="spin_r"/>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_5">
-                <property name="text">
-                 <string>p :</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QSpinBox" name="spin_p">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_6">
-              <property name="topMargin">
-               <number>5</number>
-              </property>
-              <item>
-               <widget class="QPushButton" name="button_generate">
-                <property name="text">
-                 <string>Show public key</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
             </item>
            </layout>
           </item>
@@ -312,6 +244,106 @@
              </size>
             </property>
            </spacer>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <property name="topMargin">
+             <number>6</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="label_6">
+              <property name="text">
+               <string>Scrypt parameters</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="combo_scrypt_params">
+              <item>
+               <property name="text">
+                <string>Simple</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Secure</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Hardest</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Extreme</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_3">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QLabel" name="label">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>N :</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="spin_n"/>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_4">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>r :</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="spin_r"/>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_5">
+              <property name="text">
+               <string>p :</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="spin_p">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_4">

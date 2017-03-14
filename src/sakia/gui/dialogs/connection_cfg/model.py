@@ -42,6 +42,14 @@ class ConnectionConfigModel(QObject):
         self.connection.password = password
         self.connection.pubkey = SigningKey(self.connection.salt, password, scrypt_params).pubkey
 
+    def set_pubkey(self, pubkey, scrypt_params):
+        self.connection.salt = ""
+        self.connection.scrypt_N = scrypt_params.N
+        self.connection.scrypt_r = scrypt_params.r
+        self.connection.scrypt_p = scrypt_params.p
+        self.connection.password = ""
+        self.connection.pubkey = pubkey
+
     def insert_or_update_connection(self):
         ConnectionsProcessor(self.app.db.connections_repo).commit_connection(self.connection)
 

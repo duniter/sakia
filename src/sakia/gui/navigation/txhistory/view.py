@@ -32,7 +32,8 @@ class TxHistoryView(QWidget, Ui_TxHistoryWidget):
         self.table_history.setSortingEnabled(True)
         self.table_history.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
         self.table_history.setItemDelegate(TxHistoryDelegate())
-        model.modelReset.connect(self.table_history.resizeColumnsToContents)
+        self.table_history.resizeRowsToContents()
+        self.table_history.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
 
     def set_minimum_maximum_datetime(self, minimum, maximum):
         """

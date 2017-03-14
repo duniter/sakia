@@ -284,7 +284,7 @@ class HistoryTableModel(QAbstractTableModel):
 
         date_ts = transfer.timestamp
         txid = transfer.txid
-        return (date_ts, receivers, amount, transfer.comment, transfer.state, txid,
+        return (date_ts, "\n".join(receivers), amount, transfer.comment, transfer.state, txid,
                 "\n".join(transfer.receivers), block_number, transfer.sha_hash, transfer)
 
     def data_dividend(self, dividend):
@@ -328,14 +328,13 @@ class HistoryTableModel(QAbstractTableModel):
         return len(HistoryTableModel.columns_types)
 
     def headerData(self, section, orientation, role):
-        if role == Qt.DisplayRole:
+        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             if HistoryTableModel.columns_types[section] == 'amount':
                 dividend, base = self.blockchain_processor.last_ud(self.transactions_service.currency)
                 header = '{:}'.format(HistoryTableModel.columns_headers[section])
                 if self.app.current_ref.base_str(base):
                     header += " ({:})".format(self.app.current_ref.base_str(base))
                 return header
-
             return HistoryTableModel.columns_headers[section]
 
     def data(self, index, role):

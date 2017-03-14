@@ -23,6 +23,7 @@ class ConnectionConfigController(QObject):
     CONNECT = 0
     REGISTER = 1
     WALLET = 2
+    PUBKEY = 3
 
     def __init__(self, parent, view, model):
         """
@@ -43,6 +44,8 @@ class ConnectionConfigController(QObject):
             lambda: self.step_node.set_result(ConnectionConfigController.REGISTER))
         self.view.button_wallet.clicked.connect(
             lambda: self.step_node.set_result(ConnectionConfigController.WALLET))
+        self.view.button_pubkey.clicked.connect(
+            lambda: self.step_node.set_result(ConnectionConfigController.PUBKEY))
         self.view.values_changed.connect(lambda: self.view.button_next.setEnabled(self.check_key()))
         self.view.values_changed.connect(lambda: self.view.button_generate.setEnabled(self.check_key()))
         self._logger = logging.getLogger('sakia')
@@ -122,13 +125,17 @@ class ConnectionConfigController(QObject):
 
         self._logger.debug("Key step")
         self.view.set_currency(self.model.connection.currency)
+        connection_identity = None
+
         if mode == ConnectionConfigController.REGISTER:
             self._logger.debug("Registering mode")
+            self.view.groupbox_pubkey.hide()
             self.view.button_next.clicked.connect(self.check_register)
             self.view.stacked_pages.setCurrentWidget(self.view.page_connection)
             connection_identity = await self.step_key
         elif mode == ConnectionConfigController.CONNECT:
             self._logger.debug("Connect mode")
+            self.view.groupbox_pubkey.hide()
             self.view.button_next.clicked.connect(self.check_connect)
             self.view.stacked_pages.setCurrentWidget(self.view.page_connection)
             connection_identity = await self.step_key
@@ -137,6 +144,14 @@ class ConnectionConfigController(QObject):
             self.view.button_next.clicked.connect(self.check_wallet)
             self.view.edit_uid.hide()
             self.view.label_action.hide()
+            self.view.groupbox_pubkey.hide()
+            self.view.stacked_pages.setCurrentWidget(self.view.page_connection)
+            connection_identity = await self.step_key
+        elif mode == ConnectionConfigController.PUBKEY:
+            self._logger.debug("Pubkey mode")
+            self.view.button_next.clicked.connect(self.check_pubkey)
+            self.view.label_action.setText(self.view.label_action.text() + self.tr(" (Optional)"))
+            self.view.groupbox_key.hide()
             self.view.stacked_pages.setCurrentWidget(self.view.page_connection)
             connection_identity = await self.step_key
 
@@ -146,7 +161,6 @@ class ConnectionConfigController(QObject):
         try:
             await self.model.initialize_blockchain(self.view.stream_log)
             self.view.progress_bar.setValue(1)
-
             if mode == ConnectionConfigController.REGISTER:
                 self.view.display_info(self.tr("Broadcasting identity..."))
                 self.view.stream_log("Broadcasting identity...")
@@ -159,7 +173,9 @@ class ConnectionConfigController(QObject):
 
             self.view.progress_bar.setValue(2)
 
-            if mode in (ConnectionConfigController.REGISTER, ConnectionConfigController.CONNECT):
+            if mode in (ConnectionConfigController.REGISTER,
+                        ConnectionConfigController.CONNECT,
+                        ConnectionConfigController.PUBKEY) and connection_identity:
                 self.view.stream_log("Saving identity...")
                 self.model.connection.blockstamp = connection_identity.blockstamp
                 self.model.insert_or_update_connection()
@@ -171,11 +187,14 @@ class ConnectionConfigController(QObject):
 
             if mode in (ConnectionConfigController.REGISTER,
                         ConnectionConfigController.CONNECT,
-                        ConnectionConfigController.WALLET):
+                        ConnectionConfigController.WALLET,
+                        ConnectionConfigController.PUBKEY):
                 self.view.stream_log("Initializing transactions history...")
-                transactions = await self.model.initialize_transactions(self.model.connection, log_stream=self.view.stream_log)
+                transactions = await self.model.initialize_transactions(self.model.connection,
+                                                                        log_stream=self.view.stream_log)
                 self.view.stream_log("Initializing dividends history...")
-                dividends = await self.model.initialize_dividends(self.model.connection, transactions, log_stream=self.view.stream_log)
+                dividends = await self.model.initialize_dividends(self.model.connection, transactions,
+                                                                  log_stream=self.view.stream_log)
 
             self.view.progress_bar.setValue(3)
             await self.model.initialize_sources(transactions, dividends, self.view.stream_log)
@@ -234,6 +253,43 @@ class ConnectionConfigController(QObject):
         return True
 
     @asyncify
+    async def check_pubkey(self, checked=False):
+        self._logger.debug("Is valid ? ")
+        self.view.display_info(self.tr("connecting..."))
+        try:
+            self.model.set_pubkey(self.view.edit_pubkey.text(), self.view.scrypt_params)
+            self.model.set_uid(self.view.edit_uid.text())
+            if not self.model.key_exists():
+                try:
+                    registered, found_identity = await self.model.check_registered()
+                    self.view.button_connect.setEnabled(True)
+                    self.view.button_register.setEnabled(True)
+                    if self.view.edit_uid.text():
+                        if registered[0] is False and registered[2] is None:
+                            self.view.display_info(self.tr("Could not find your identity on the network."))
+                        elif registered[0] is False and registered[2]:
+                            self.view.display_info(self.tr("""Your pubkey or UID is different on the network.
+Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
+                        else:
+                            self.step_key.set_result(found_identity)
+                    else:
+                        if registered[0] is False and registered[2] is None:
+                            self.step_key.set_result(None)
+                        elif registered[2]:
+                            self.view.display_info(self.tr("""Your pubkey is associated to a pubkey.<br/>
+Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
+
+                except DuniterError as e:
+                    self.view.display_info(e.message)
+                except NoPeerAvailable as e:
+                    self.view.display_info(str(e))
+            else:
+                self.view.display_info(self.tr("A connection already exists using this key."))
+
+        except NoPeerAvailable:
+            self.config_dialog.label_error.setText(self.tr("Could not connect. Check node peering entry"))
+
+    @asyncify
     async def check_wallet(self, checked=False):
         self._logger.debug("Is valid ? ")
         self.view.display_info(self.tr("connecting..."))
@@ -250,8 +306,8 @@ class ConnectionConfigController(QObject):
                     if registered[0] is False and registered[2] is None:
                         self.step_key.set_result(None)
                     elif registered[2]:
-                        self.view.display_info(self.tr("""Your pubkey is associated to a pubkey.
-        Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
+                        self.view.display_info(self.tr("""Your pubkey is associated to an identity.
+Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
                 except DuniterError as e:
                     self.view.display_info(e.message)
                 except NoPeerAvailable as e:

@@ -160,8 +160,9 @@ class TransactionsProcessor:
         """
         sent = self._repo.get_all(currency=connection.currency, issuer=connection.pubkey)
         for tx in sent:
-            if tx.receiver not in connections_pubkeys:
-                self._repo.drop(tx)
+            for pubkey in connections_pubkeys:
+                if pubkey not in tx.receivers:
+                    self._repo.drop(tx)
         received = self._repo.get_all(currency=connection.currency, receiver=connection.pubkey)
         for tx in received:
             if tx.issuer not in connections_pubkeys:
