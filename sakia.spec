@@ -29,6 +29,8 @@ if is_darwin:
                                       "libsodium.dylib")
         a.binaries = a.binaries + TOC([('lib/libsodium.dylib', libsodium_path, 'BINARY')])
     a.datas = a.datas + [('sakia/data/repositories/meta.sql', 'src/sakia/data/repositories/meta.sql', 'DATA')]
+    a.datas = a.datas + [('sakia/data/repositories/000_add_ud_rythm_parameters.sql',
+                          'src/sakia/data/repositories/000_add_ud_rythm_parameters.sql', 'DATA')]
     a.datas = a.datas + [('sakia/root_servers.yml', 'src/sakia/root_servers.yml', 'DATA')]
 
 if is_linux:
@@ -41,11 +43,15 @@ if is_linux:
 
     a.binaries = a.binaries + TOC([('libsodium.so', libsodium_path, 'BINARY')])
     a.datas = a.datas + [('sakia/data/repositories/meta.sql', 'src/sakia/data/repositories/meta.sql', 'DATA')]
+    a.datas = a.datas + [('sakia/data/repositories/000_add_ud_rythm_parameters.sql',
+                          'src/sakia/data/repositories/000_add_ud_rythm_parameters.sql', 'DATA')]
     a.datas = a.datas + [('sakia/root_servers.yml', 'src/sakia/root_servers.yml', 'DATA')]
 
 if is_win:
     a.binaries = a.binaries + TOC([('libsodium.dll', ctypes.util.find_library('libsodium.dll'), 'BINARY')])
     a.datas = a.datas + [('sakia\\data\\repositories\\meta.sql', 'src\\sakia\\data\\repositories\\meta.sql', 'DATA')]
+    a.datas = a.datas + [('sakia\\data\\repositories\\000_add_ud_rythm_parameters.sql',
+                          'src\\sakia\\data\\repositories\\000_add_ud_rythm_parameters.sql', 'DATA')]
     a.datas = a.datas + [('sakia\\root_servers.yml', 'src\\/sakia\\root_servers.yml', 'DATA')]
 
 
