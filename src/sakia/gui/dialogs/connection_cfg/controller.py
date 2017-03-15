@@ -128,7 +128,7 @@ class ConnectionConfigController(QObject):
         self.view.set_currency(self.model.connection.currency)
         connection_identity = None
         self.view.button_next.setEnabled(self.check_key())
-        
+
         if self.mode == ConnectionConfigController.REGISTER:
             self._logger.debug("Registering mode")
             self.view.groupbox_pubkey.hide()

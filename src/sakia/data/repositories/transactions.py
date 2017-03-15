@@ -27,8 +27,12 @@ class TransactionsRepo:
         Update an existing transaction in the database
         :param sakia.data.entities.Transaction transaction: the transaction to update
         """
-        updated_fields = attr.astuple(transaction, filter=attr.filters.exclude(*TransactionsRepo._primary_keys))
-        where_fields = attr.astuple(transaction, filter=attr.filters.include(*TransactionsRepo._primary_keys))
+        updated_fields = attr.astuple(transaction, filter=attr.filters.exclude(*TransactionsRepo._primary_keys),
+                                      tuple_factory=list)
+        updated_fields[6] = "\n".join([str(n) for n in updated_fields[6]])
+
+        where_fields = attr.astuple(transaction, filter=attr.filters.include(*TransactionsRepo._primary_keys),
+                                    tuple_factory=list)
         self._conn.execute("""UPDATE transactions SET
                            currency=?,
                            written_on=?,

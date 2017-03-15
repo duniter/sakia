@@ -93,7 +93,7 @@ class SourcesServices(QObject):
                                           timestamp=timestamp,
                                           signature="",
                                           issuer=pubkey,
-                                          receiver="",
+                                          receivers="",
                                           amount=amount,
                                           amount_base=0,
                                           comment="Too low balance",

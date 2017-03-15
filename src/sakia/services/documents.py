@@ -394,7 +394,7 @@ class DocumentsService:
                          timestamp=time,
                          signature=txdoc.signatures[0],
                          issuer=key.pubkey,
-                         receiver=receiver,
+                         receivers=receiver,
                          amount=amount,
                          amount_base=amount_base,
                          comment=txdoc.comment,
