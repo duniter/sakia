@@ -25,6 +25,7 @@ class ConnectionConfigView(QDialog, Ui_ConnectionConfigurationDialog):
         self.edit_password.textChanged.connect(self.values_changed)
         self.edit_password_repeat.textChanged.connect(self.values_changed)
         self.edit_salt.textChanged.connect(self.values_changed)
+        self.edit_pubkey.textChanged.connect(self.values_changed)
         self.button_generate.clicked.connect(self.action_show_pubkey)
 
         self.combo_scrypt_params.currentIndexChanged.connect(self.handle_combo_change)

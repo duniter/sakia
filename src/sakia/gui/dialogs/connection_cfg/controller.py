@@ -35,6 +35,7 @@ class ConnectionConfigController(QObject):
         super().__init__(parent)
         self.view = view
         self.model = model
+        self.mode = -1
 
         self.step_node = asyncio.Future()
         self.step_key = asyncio.Future()
@@ -106,10 +107,10 @@ class ConnectionConfigController(QObject):
     async def process(self):
         self._logger.debug("Begin process")
         if self.model.connection:
-            mode = await self.step_node
+            self.mode = await self.step_node
         else:
             while not self.model.connection:
-                mode = await self.step_node
+                self.mode = await self.step_node
                 self._logger.debug("Create connection")
                 try:
                     self.view.button_connect.setEnabled(False)
@@ -126,20 +127,21 @@ class ConnectionConfigController(QObject):
         self._logger.debug("Key step")
         self.view.set_currency(self.model.connection.currency)
         connection_identity = None
-
-        if mode == ConnectionConfigController.REGISTER:
+        self.view.button_next.setEnabled(self.check_key())
+        
+        if self.mode == ConnectionConfigController.REGISTER:
             self._logger.debug("Registering mode")
             self.view.groupbox_pubkey.hide()
             self.view.button_next.clicked.connect(self.check_register)
             self.view.stacked_pages.setCurrentWidget(self.view.page_connection)
             connection_identity = await self.step_key
-        elif mode == ConnectionConfigController.CONNECT:
+        elif self.mode == ConnectionConfigController.CONNECT:
             self._logger.debug("Connect mode")
             self.view.groupbox_pubkey.hide()
             self.view.button_next.clicked.connect(self.check_connect)
             self.view.stacked_pages.setCurrentWidget(self.view.page_connection)
             connection_identity = await self.step_key
-        elif mode == ConnectionConfigController.WALLET:
+        elif self.mode == ConnectionConfigController.WALLET:
             self._logger.debug("Wallet mode")
             self.view.button_next.clicked.connect(self.check_wallet)
             self.view.edit_uid.hide()
@@ -147,7 +149,7 @@ class ConnectionConfigController(QObject):
             self.view.groupbox_pubkey.hide()
             self.view.stacked_pages.setCurrentWidget(self.view.page_connection)
             connection_identity = await self.step_key
-        elif mode == ConnectionConfigController.PUBKEY:
+        elif self.mode == ConnectionConfigController.PUBKEY:
             self._logger.debug("Pubkey mode")
             self.view.button_next.clicked.connect(self.check_pubkey)
             self.view.label_action.setText(self.view.label_action.text() + self.tr(" (Optional)"))
@@ -161,7 +163,7 @@ class ConnectionConfigController(QObject):
         try:
             await self.model.initialize_blockchain(self.view.stream_log)
             self.view.progress_bar.setValue(1)
-            if mode == ConnectionConfigController.REGISTER:
+            if self.mode == ConnectionConfigController.REGISTER:
                 self.view.display_info(self.tr("Broadcasting identity..."))
                 self.view.stream_log("Broadcasting identity...")
                 result, connection_identity = await self.model.publish_selfcert()
@@ -173,7 +175,7 @@ class ConnectionConfigController(QObject):
 
             self.view.progress_bar.setValue(2)
 
-            if mode in (ConnectionConfigController.REGISTER,
+            if self.mode in (ConnectionConfigController.REGISTER,
                         ConnectionConfigController.CONNECT,
                         ConnectionConfigController.PUBKEY) and connection_identity:
                 self.view.stream_log("Saving identity...")
@@ -185,10 +187,10 @@ class ConnectionConfigController(QObject):
                 self.view.stream_log("Initializing certifications informations...")
                 await self.model.initialize_certifications(connection_identity, log_stream=self.view.stream_log)
 
-            if mode in (ConnectionConfigController.REGISTER,
-                        ConnectionConfigController.CONNECT,
-                        ConnectionConfigController.WALLET,
-                        ConnectionConfigController.PUBKEY):
+            if self.mode in (ConnectionConfigController.REGISTER,
+                             ConnectionConfigController.CONNECT,
+                             ConnectionConfigController.WALLET,
+                             ConnectionConfigController.PUBKEY):
                 self.view.stream_log("Initializing transactions history...")
                 transactions = await self.model.initialize_transactions(self.model.connection,
                                                                         log_stream=self.view.stream_log)
@@ -210,7 +212,7 @@ class ConnectionConfigController(QObject):
             self._logger.debug(str(e))
             self.view.stacked_pages.setCurrentWidget(self.view.page_connection)
             self.step_node = asyncio.Future()
-            self.step_node.set_result(mode)
+            self.step_node.set_result(self.mode)
             self.step_key = asyncio.Future()
             self.view.button_next.disconnect()
             self.view.edit_uid.show()
@@ -219,35 +221,43 @@ class ConnectionConfigController(QObject):
         self.accept()
 
     def check_key(self):
-        if self.model.app.parameters.expert_mode:
-            return True
+        if self.mode == ConnectionConfigController.PUBKEY:
+            if len(self.view.edit_pubkey.text()) < 42:
+                self.view.label_info.setText(self.tr("Forbidden : pubkey is too short"))
+                return False
+            if len(self.view.edit_pubkey.text()) > 45:
+                self.view.label_info.setText(self.tr("Forbidden : pubkey is too long"))
+                return False
+        else:
+            if self.model.app.parameters.expert_mode:
+                return True
 
-        if len(self.view.edit_salt.text()) < 6:
-            self.view.label_info.setText(self.tr("Forbidden : salt is too short"))
-            return False
+            if len(self.view.edit_salt.text()) < 6:
+                self.view.label_info.setText(self.tr("Forbidden : salt is too short"))
+                return False
 
-        if len(self.view.edit_password.text()) < 6:
-            self.view.label_info.setText(self.tr("Forbidden : password is too short"))
-            return False
+            if len(self.view.edit_password.text()) < 6:
+                self.view.label_info.setText(self.tr("Forbidden : password is too short"))
+                return False
 
-        if detect_non_printable(self.view.edit_salt.text()):
-            self.view.label_info.setText(self.tr("Forbidden : Invalid characters in salt field"))
-            return False
+            if detect_non_printable(self.view.edit_salt.text()):
+                self.view.label_info.setText(self.tr("Forbidden : Invalid characters in salt field"))
+                return False
 
-        if detect_non_printable(self.view.edit_password.text()):
-            self.view.label_info.setText(
-                self.tr("Forbidden : Invalid characters in password field"))
-            return False
+            if detect_non_printable(self.view.edit_password.text()):
+                self.view.label_info.setText(
+                    self.tr("Forbidden : Invalid characters in password field"))
+                return False
 
-        if self.view.edit_password.text() != \
-                self.view.edit_password_repeat.text():
-            self.view.label_info.setText(self.tr("Error : passwords are different"))
-            return False
+            if self.view.edit_password.text() != \
+                    self.view.edit_password_repeat.text():
+                self.view.label_info.setText(self.tr("Error : passwords are different"))
+                return False
 
-        if self.view.edit_salt.text() != \
-                self.view.edit_salt_bis.text():
-            self.view.label_info.setText(self.tr("Error : secret keys are different"))
-            return False
+            if self.view.edit_salt.text() != \
+                    self.view.edit_salt_bis.text():
+                self.view.label_info.setText(self.tr("Error : secret keys are different"))
+                return False
 
         self.view.label_info.setText("")
         return True
