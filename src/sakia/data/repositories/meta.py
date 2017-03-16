@@ -62,7 +62,8 @@ class SakiaDatabase:
     def upgrades(self):
         return [
             self.create_all_tables,
-            self.add_ud_rythm_parameters
+            self.add_ud_rythm_parameters,
+            self.add_contacts
         ]
 
     def upgrade_database(self, to=0):
@@ -96,6 +97,16 @@ class SakiaDatabase:
         """
         self._logger.debug("Add ud rythm parameters to blockchains table")
         sql_file = open(os.path.join(os.path.dirname(__file__), '000_add_ud_rythm_parameters.sql'), 'r')
+        with self.conn:
+            self.conn.executescript(sql_file.read())
+
+    def add_contacts(self):
+        """
+        Init all the tables
+        :return:
+        """
+        self._logger.debug("Add contacts table")
+        sql_file = open(os.path.join(os.path.dirname(__file__), '001_add_contacts.sql'), 'r')
         with self.conn:
             self.conn.executescript(sql_file.read())
 

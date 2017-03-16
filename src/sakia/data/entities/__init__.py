@@ -8,3 +8,4 @@ from .user_parameters import UserParameters
 from .app_data import AppData
 from .source import Source
 from .dividend import Dividend
+from .contact import Contact

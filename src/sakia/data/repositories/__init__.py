@@ -7,3 +7,4 @@ from .nodes import NodesRepo
 from .connections import ConnectionsRepo
 from .sources import SourcesRepo
 from .dividends import DividendsRepo
+from .contacts import ContactsRepo
