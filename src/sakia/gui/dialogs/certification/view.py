@@ -69,7 +69,7 @@ class CertificationView(QDialog, Ui_CertificationDialog):
         self.label_confirm.setTextFormat(Qt.RichText)
         self.label_confirm.setText("""<b>Vous confirmez engager votre responsabilité envers la communauté Duniter {:}
     et acceptez de certifier le compte Duniter {:} ci-dessus.<br/><br/>
-Pourconfirmer votre certification veuillez confirmer votre signature :</b>""".format(ROOT_SERVERS[currency]["display"],
+Pour confirmer votre certification veuillez confirmer votre signature :</b>""".format(ROOT_SERVERS[currency]["display"],
                                                                                      ROOT_SERVERS[currency]["display"]))
 
     async def show_success(self, notification):
