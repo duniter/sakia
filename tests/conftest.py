@@ -45,7 +45,8 @@ def meta_repo(version=0):
     meta_repo = SakiaDatabase(con,
                               ConnectionsRepo(con), IdentitiesRepo(con),
                               BlockchainsRepo(con), CertificationsRepo(con), TransactionsRepo(con),
-                              NodesRepo(con), SourcesRepo(con), DividendsRepo(con))
+                              NodesRepo(con), SourcesRepo(con), DividendsRepo(con),
+                              ContactsRepo(con))
     meta_repo.prepare()
     meta_repo.upgrade_database(version)
     return meta_repo

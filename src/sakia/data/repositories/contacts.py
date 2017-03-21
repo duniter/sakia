@@ -16,21 +16,31 @@ class ContactsRepo:
         Commit a contact to the database
         :param sakia.data.entities.Contact contact: the contact to commit
         """
-        contacts_list = attr.astuple(contact, tuple_factory=list, filter=attr.filters.exclude(*ContactsRepo._primary_keys))
+        contacts_list = attr.astuple(contact, tuple_factory=list)
         contacts_list[3] = "\n".join([str(n) for n in contacts_list[3]])
+        if contacts_list[-1] == -1:
+            col_names = ",".join([a.name for a in attr.fields(Contact)[:-1]])
+            contacts_list = contacts_list[:-1]
+        else:
+            col_names = ",".join([a.name for a in attr.fields(Contact)])
         values = ",".join(['?'] * len(contacts_list))
-        col_names = ",".join([a.name for a in attr.fields(Contact)[:-1]])
         cursor = self._conn.cursor()
         cursor.execute("INSERT INTO contacts ({:}) VALUES ({:})".format(col_names, values), contacts_list)
         contact.contact_id = cursor.lastrowid
+
 
     def update(self, contact):
         """
         Update an existing contact in the database
         :param sakia.data.entities.Contact contact: the certification to update
         """
-        updated_fields = attr.astuple(contact, filter=attr.filters.exclude(*ContactsRepo._primary_keys))
-        where_fields = attr.astuple(contact, filter=attr.filters.include(*ContactsRepo._primary_keys))
+        updated_fields = attr.astuple(contact, tuple_factory=list,
+                                      filter=attr.filters.exclude(*ContactsRepo._primary_keys))
+
+        updated_fields[3] = "\n".join([str(n) for n in updated_fields[3]])
+
+        where_fields = attr.astuple(contact, tuple_factory=list,
+                                    filter=attr.filters.include(*ContactsRepo._primary_keys))
 
         self._conn.execute("""UPDATE contacts SET
                               currency=?,

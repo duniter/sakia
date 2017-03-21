@@ -14,7 +14,7 @@ def test_add_get_drop_contact(meta_repo):
     assert contact.currency == "testcurrency"
     assert contact.pubkey == "7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ"
     assert contact.name == "john"
-#    assert contact.contact_id == new_contact.contact_id
+    assert contact.contact_id == new_contact.contact_id
     contacts_repo.drop(contact)
     meta_repo.conn.commit()
     contact = contacts_repo.get_one(currency="testcurrency",

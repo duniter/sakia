@@ -8,8 +8,6 @@ gtest:
   nodes:
     C4orqutdb3Nveur3xN5L2TduT1j8d2EZkJsWLmWuD2Sv:
     - "BASIC_MERKLED_API gtest.duniter.org 10900"
-    - "BASIC_MERKLED_API cgeek.fr 10900"
-    - "BASIC_MERKLED_API gtest.duniter.fr 10900"
 g1:
   display: ğ1
   nodes:

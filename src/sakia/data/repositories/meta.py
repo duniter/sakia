@@ -11,6 +11,7 @@ from .transactions import TransactionsRepo
 from .dividends import DividendsRepo
 from .nodes import NodesRepo
 from .sources import SourcesRepo
+from .contacts import ContactsRepo
 
 
 @attr.s(frozen=True)
@@ -27,6 +28,7 @@ class SakiaDatabase:
     nodes_repo = attr.ib(default=None)
     sources_repo = attr.ib(default=None)
     dividends_repo = attr.ib(default=None)
+    contacts_repo = attr.ib(default=None)
     _logger = attr.ib(default=attr.Factory(lambda: logging.getLogger('sakia')))
 
     @classmethod
@@ -38,7 +40,7 @@ class SakiaDatabase:
         con = sqlite3.connect(db_path, detect_types=sqlite3.PARSE_DECLTYPES)
         meta = SakiaDatabase(con, ConnectionsRepo(con), IdentitiesRepo(con),
                              BlockchainsRepo(con), CertificationsRepo(con), TransactionsRepo(con),
-                             NodesRepo(con), SourcesRepo(con), DividendsRepo(con))
+                             NodesRepo(con), SourcesRepo(con), DividendsRepo(con), ContactsRepo(con))
 
         meta.prepare()
         meta.upgrade_database()

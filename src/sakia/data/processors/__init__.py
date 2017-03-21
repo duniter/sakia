@@ -6,4 +6,6 @@ from .connections import ConnectionsProcessor
 from .sources import SourcesProcessor
 from .transactions import TransactionsProcessor
 from .dividends import DividendsProcessor
+from .contacts import ContactsProcessor
+
 

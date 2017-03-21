@@ -5,7 +5,13 @@ import logging
 
 @attr.s
 class ConnectionsProcessor:
-    _connections_repo = attr.ib()  # :type sakia.data.repositories.ConnectionsRepo
+    """
+    The processor of connections data.
+
+    :param sakia.data.repositories.ConnectionsRepo _connections_repo: the repository of connections
+    """
+
+    _connections_repo = attr.ib()  # :type
     _logger = attr.ib(default=attr.Factory(lambda: logging.getLogger('sakia')))
 
     @classmethod
