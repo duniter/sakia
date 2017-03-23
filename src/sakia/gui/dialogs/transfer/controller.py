@@ -62,6 +62,7 @@ class TransferController(QObject):
         search_user.identity_selected.connect(user_information.search_identity)
 
         view.set_keys(transfer.model.available_connections())
+        view.set_contacts(transfer.model.contacts())
         view.radio_pubkey.toggle()
 
         return transfer
@@ -124,6 +125,10 @@ class TransferController(QObject):
                 pubkey = self.search_user.current_identity().pubkey
         elif self.view.recipient_mode() == TransferView.RecipientMode.LOCAL_KEY:
             pubkey = self.model.connection_pubkey(self.view.local_key_selected())
+        elif self.view.recipient_mode() == TransferView.RecipientMode.CONTACT:
+            index = self.view.contact_selected()
+            if index >= 0:
+                pubkey = self.model.contacts()[index].pubkey
         else:
             pubkey = self.view.pubkey_value()
         return pubkey

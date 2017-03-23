@@ -22,6 +22,7 @@ class TransferView(QDialog, Ui_TransferMoneyDialog):
         PUBKEY = 1
         SEARCH = 2
         LOCAL_KEY = 3
+        CONTACT = 4
 
     _button_box_values = {
         ButtonBoxState.NO_AMOUNT: (False,
@@ -43,10 +44,6 @@ class TransferView(QDialog, Ui_TransferMoneyDialog):
         super().__init__(parent)
         self.setupUi(self)
 
-        self.radio_pubkey.toggled.connect(lambda c, radio=TransferView.RecipientMode.PUBKEY: self.recipient_mode_changed(radio))
-        self.radio_search.toggled.connect(lambda c, radio=TransferView.RecipientMode.SEARCH: self.recipient_mode_changed(radio))
-        self.radio_local_key.toggled.connect(lambda c, radio=TransferView.RecipientMode.LOCAL_KEY: self.recipient_mode_changed(radio))
-
         regexp = QRegExp('^([ a-zA-Z0-9-_:/;*?\[\]\(\)\\\?!^+=@&~#{}|<>%.]{0,255})$')
         validator = QRegExpValidator(regexp)
         self.edit_message.setValidator(validator)
@@ -62,13 +59,25 @@ class TransferView(QDialog, Ui_TransferMoneyDialog):
         self._amount_base = 0
         self._currency = ""
 
+        self.radio_to_mode = {
+            self.radio_search: TransferView.RecipientMode.SEARCH,
+            self.radio_local_key: TransferView.RecipientMode.LOCAL_KEY,
+            self.radio_contacts: TransferView.RecipientMode.CONTACT,
+            self.radio_pubkey: TransferView.RecipientMode.PUBKEY
+        }
+
+        for radio_widget in self.radio_to_mode:
+            radio_widget.toggled.connect(lambda c,
+                                                radio=self.radio_to_mode[radio_widget]: self.recipient_mode_changed(radio))
+
     def recipient_mode(self):
-        if self.radio_search.isChecked():
-            return TransferView.RecipientMode.SEARCH
-        elif self.radio_local_key.isChecked():
-            return TransferView.RecipientMode.LOCAL_KEY
-        else:
-            return TransferView.RecipientMode.PUBKEY
+        for radio in self.radio_to_mode:
+            if radio.isChecked():
+                return self.radio_to_mode[radio]
+
+    def set_contacts(self, contacts_list):
+        for contact in contacts_list:
+            self.combo_contacts.addItem(contact.name)
 
     def set_keys(self, connections):
         for conn in connections:
@@ -77,6 +86,9 @@ class TransferView(QDialog, Ui_TransferMoneyDialog):
 
     def local_key_selected(self):
         return self.combo_local_keys.currentIndex()
+
+    def contact_selected(self):
+        return self.combo_contacts.currentIndex()
 
     def set_search_user(self, search_user_view):
         """
@@ -93,6 +105,7 @@ class TransferView(QDialog, Ui_TransferMoneyDialog):
         self.edit_pubkey.setEnabled(radio == TransferView.RecipientMode.PUBKEY)
         self.search_user.setEnabled(radio == TransferView.RecipientMode.SEARCH)
         self.combo_local_keys.setEnabled(radio == TransferView.RecipientMode.LOCAL_KEY)
+        self.combo_contacts.setEnabled(radio == TransferView.RecipientMode.CONTACT)
 
     def change_quantitative_amount(self, amount):
         """

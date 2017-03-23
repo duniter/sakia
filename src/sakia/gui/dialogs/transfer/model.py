@@ -1,6 +1,6 @@
 import attr
 from PyQt5.QtCore import QObject
-from sakia.data.processors import BlockchainProcessor, SourcesProcessor, ConnectionsProcessor
+from sakia.data.processors import BlockchainProcessor, SourcesProcessor, ConnectionsProcessor, ContactsProcessor
 
 
 @attr.s()
@@ -25,6 +25,7 @@ class TransferModel(QObject):
         self._blockchain_processor = BlockchainProcessor.instanciate(self.app)
         self._sources_processor = SourcesProcessor.instanciate(self.app)
         self._connections_processor = ConnectionsProcessor.instanciate(self.app)
+        self._contacts_processor = ContactsProcessor.instanciate(self.app)
 
     def rel_to_quant(self, rel_value):
         """
@@ -105,3 +106,6 @@ class TransferModel(QObject):
 
     def connection_pubkey(self, index):
         return self.available_connections()[index].pubkey
+
+    def contacts(self):
+        return self._contacts_processor.contacts()

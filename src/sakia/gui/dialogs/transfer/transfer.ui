@@ -35,10 +35,10 @@
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_4">
         <property name="topMargin">
-         <number>6</number>
+         <number>0</number>
         </property>
         <property name="bottomMargin">
-         <number>6</number>
+         <number>0</number>
         </property>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout">
@@ -137,7 +137,7 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <property name="topMargin">
-           <number>6</number>
+           <number>0</number>
           </property>
           <item>
            <widget class="QRadioButton" name="radio_local_key">
@@ -148,6 +148,23 @@
           </item>
           <item>
            <widget class="QComboBox" name="combo_local_keys"/>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_6">
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QRadioButton" name="radio_contacts">
+            <property name="text">
+             <string>Con&amp;tact</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="combo_contacts"/>
           </item>
          </layout>
         </item>
