@@ -205,7 +205,8 @@ class ConnectionConfigController(QObject):
             self.model.insert_or_update_connection()
             self.model.app.db.commit()
 
-            await self.view.show_register_message(self.model.blockchain_parameters())
+            if self.mode == ConnectionConfigController.REGISTER:
+                await self.view.show_register_message(self.model.blockchain_parameters())
         except (NoPeerAvailable, DuniterError, StopIteration) as e:
             if not isinstance(e, StopIteration):
                 self.view.show_error(self.model.notification(), str(e))
