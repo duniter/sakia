@@ -4,6 +4,7 @@ from sakia.gui.dialogs.certification.controller import CertificationController
 from sakia.gui.dialogs.connection_cfg.controller import ConnectionConfigController
 from sakia.gui.dialogs.revocation.controller import RevocationController
 from sakia.gui.dialogs.transfer.controller import TransferController
+from sakia.gui.dialogs.contact.controller import ContactController
 from sakia.gui.preferences import PreferencesDialog
 from .model import ToolbarModel
 from .view import ToolbarView
@@ -29,6 +30,7 @@ class ToolbarController(QObject):
         self.view.action_parameters.triggered.connect(self.open_settings_dialog)
         self.view.action_about.triggered.connect(self.open_about_dialog)
         self.view.action_revoke_uid.triggered.connect(self.open_revocation_dialog)
+        self.view.button_contacts.clicked.connect(self.open_contacts_dialog)
 
     @classmethod
     def create(cls, app, navigation):
@@ -51,6 +53,9 @@ class ToolbarController(QObject):
     def open_certification_dialog(self):
         CertificationController.open_dialog(self, self.model.app,
                                             self.model.navigation_model.current_connection())
+
+    def open_contacts_dialog(self):
+        ContactController.open_dialog(self, self.model.app)
 
     def open_revocation_dialog(self):
         RevocationController.open_dialog(self, self.model.app, self.model.navigation_model.current_connection())

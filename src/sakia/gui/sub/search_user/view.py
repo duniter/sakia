@@ -1,6 +1,7 @@
-from PyQt5.QtWidgets import QWidget, QComboBox
-from PyQt5.QtCore import QT_TRANSLATE_NOOP, pyqtSignal, Qt
+from PyQt5.QtWidgets import QWidget, QComboBox, QCompleter
+from PyQt5.QtCore import QT_TRANSLATE_NOOP, pyqtSignal, Qt, QStringListModel
 from .search_user_uic import Ui_SearchUserWidget
+import re
 
 
 class SearchUserView(QWidget, Ui_SearchUserWidget):
@@ -26,11 +27,17 @@ class SearchUserView(QWidget, Ui_SearchUserWidget):
         self.combobox_search.setInsertPolicy(QComboBox.NoInsert)
         self.combobox_search.activated.connect(self.node_selected)
 
-    def search(self):
+    def search(self, text):
         """
         Search nodes when return is pressed in combobox lineEdit
         """
-        text = self.combobox_search.lineEdit().text()
+        if text:
+            re_contact = re.compile("[\w\s\d]+ < ((?![OIl])[1-9A-Za-z]{42,45}) >")
+            result = re.match(re_contact, text)
+            if result:
+                text = result.group(1)
+        else:
+            text = self.combobox_search.lineEdit().text()
         self.combobox_search.lineEdit().clear()
         self.combobox_search.lineEdit().setPlaceholderText(self.tr("Looking for {0}...".format(text)))
         self.search_requested.emit(text)
@@ -56,6 +63,14 @@ class SearchUserView(QWidget, Ui_SearchUserWidget):
         """
         self.combobox_search.lineEdit().setPlaceholderText(self.tr(SearchUserView._search_placeholder))
         super().retranslateUi(self)
+
+    def set_auto_completion(self, string_list):
+        completer = QCompleter()
+        model = QStringListModel()
+        model.setStringList(string_list)
+        completer.setModel(model)
+        completer.activated.connect(self.search, type=Qt.QueuedConnection)
+        self.combobox_search.setCompleter(completer)
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Return:

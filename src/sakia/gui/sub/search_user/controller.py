@@ -1,7 +1,7 @@
 from PyQt5.QtCore import pyqtSignal, QObject
-
 from sakia.data.entities import Identity
 from sakia.decorators import asyncify
+import re
 from .model import SearchUserModel
 from .view import SearchUserView
 
@@ -31,7 +31,7 @@ class SearchUserController(QObject):
         view = SearchUserView(parent.view if parent else None)
         model = SearchUserModel(parent, app)
         search_user = cls(parent, view, model)
-        model.setParent(search_user)
+        view.set_auto_completion([c.name + " < " + c.pubkey + " > " for c in model.contacts()])
         return search_user
 
     @asyncify

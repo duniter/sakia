@@ -1,7 +1,7 @@
 from PyQt5.QtCore import QObject
 from duniterpy.api import errors
 from sakia.errors import NoPeerAvailable
-from sakia.data.processors import IdentitiesProcessor
+from sakia.data.processors import IdentitiesProcessor, ContactsProcessor
 
 import logging
 
@@ -20,8 +20,12 @@ class SearchUserModel(QObject):
         super().__init__(parent)
         self.app = app
         self.identities_processor = IdentitiesProcessor.instanciate(app)
+        self.contacts_processor = ContactsProcessor.instanciate(app)
         self._nodes = list()
         self._current_identity = None
+
+    def contacts(self):
+        return self.contacts_processor.contacts()
 
     def identity(self):
         """
