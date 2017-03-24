@@ -20,14 +20,14 @@ async def test_certification_init_community(application_with_one_connection, fak
         certification_dialog.model.connection.password = bob.password
         QTest.keyClicks(certification_dialog.search_user.view.combobox_search.lineEdit(), "nothing")
         await asyncio.sleep(1)
-        certification_dialog.search_user.view.search()
+        certification_dialog.search_user.view.search("")
         await asyncio.sleep(1)
         assert certification_dialog.user_information.model.identity is None
         assert not certification_dialog.view.button_box.button(QDialogButtonBox.Ok).isEnabled()
         certification_dialog.search_user.view.combobox_search.lineEdit().clear()
         QTest.keyClicks(certification_dialog.search_user.view.combobox_search.lineEdit(), alice.key.pubkey)
         await asyncio.sleep(0.1)
-        certification_dialog.search_user.view.search()
+        certification_dialog.search_user.view.search("")
         await asyncio.sleep(1)
         certification_dialog.search_user.view.node_selected.emit(0)
         await asyncio.sleep(0.1)

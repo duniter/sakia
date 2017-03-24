@@ -1,9 +1,10 @@
-from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QMessageBox
-from PyQt5.QtCore import QT_TRANSLATE_NOOP, Qt
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QFileDialog, QMessageBox
+from PyQt5.QtCore import QT_TRANSLATE_NOOP, Qt, pyqtSignal
 from .certification_uic import Ui_CertificationDialog
 from sakia.gui.widgets import toast
 from sakia.gui.widgets.dialogs import QAsyncMessageBox
 from sakia.constants import ROOT_SERVERS
+from duniterpy.documents import Identity, MalformedDocumentError
 from enum import Enum
 
 
@@ -32,6 +33,8 @@ class CertificationView(QDialog, Ui_CertificationDialog):
         ButtonBoxState.WRONG_PASSWORD: (False, QT_TRANSLATE_NOOP("CertificationView", "Please enter correct password"))
     }
 
+    identity_document_imported = pyqtSignal(Identity)
+
     def __init__(self, parent, search_user_view, user_information_view, password_input_view):
         """
 
@@ -50,6 +53,7 @@ class CertificationView(QDialog, Ui_CertificationDialog):
         self.search_user_view.button_reset.hide()
         self.layout_password_input.addWidget(password_input_view)
         self.groupbox_certified.layout().addWidget(user_information_view)
+        self.button_import_identity.clicked.connect(self.import_identity_document)
 
     def set_keys(self, connections):
         self.combo_connection.clear()
@@ -64,6 +68,21 @@ class CertificationView(QDialog, Ui_CertificationDialog):
 
     def pubkey_value(self):
         return self.edit_pubkey.text()
+
+    def import_identity_document(self):
+        file_name = QFileDialog.getOpenFileName(self,
+                                                self.tr("Open identity document"), "",
+                                                self.tr("Duniter documents (*.txt)"))
+        if file_name:
+            with open(file_name[0], 'r') as open_file:
+                raw_text = open_file.read()
+                try:
+                    identity_doc = Identity.from_signed_raw(raw_text)
+                    self.identity_document_imported.emit(identity_doc)
+                except MalformedDocumentError as e:
+                    QMessageBox.warning(self, self.tr("Identity document"),
+                                        self.tr("The imported file is not a correct identity document"),
+                                        QMessageBox.Ok)
 
     def set_label_confirm(self, currency):
         self.label_confirm.setTextFormat(Qt.RichText)

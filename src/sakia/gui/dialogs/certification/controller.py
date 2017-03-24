@@ -9,6 +9,7 @@ from sakia.gui.sub.search_user.controller import SearchUserController
 from sakia.gui.sub.user_information.controller import UserInformationController
 from sakia.gui.sub.password_input import PasswordInputController
 from sakia.gui.widgets import dialogs
+from sakia.data.entities import Identity
 from .model import CertificationModel
 from .view import CertificationView
 import attr
@@ -57,6 +58,7 @@ class CertificationController(QObject):
         user_information.identity_loaded.connect(certification.refresh)
 
         view.set_keys(certification.model.available_connections())
+        view.identity_document_imported.connect(certification.load_identity_document)
         return certification
 
     @classmethod
@@ -172,6 +174,18 @@ using cross checking which will help to reveal the problem if needs to be.</br>"
                 self.view.set_button_box(CertificationView.ButtonBoxState.NO_MORE_CERTIFICATION)
         else:
             self.view.set_button_box(CertificationView.ButtonBoxState.NOT_A_MEMBER)
+
+    def load_identity_document(self, identity_doc):
+        """
+        Load an identity document
+        :param  duniterpy.documents.Identity identity_doc:
+        """
+        identity = Identity(currency=identity_doc.currency,
+                            pubkey=identity_doc.pubkey,
+                            uid=identity_doc.uid,
+                            blockstamp=identity_doc.timestamp,
+                            signature=identity_doc.signatures[0])
+        self.user_information.change_identity(identity)
 
     def refresh_user_information(self):
         """

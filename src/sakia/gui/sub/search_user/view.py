@@ -27,7 +27,7 @@ class SearchUserView(QWidget, Ui_SearchUserWidget):
         self.combobox_search.setInsertPolicy(QComboBox.NoInsert)
         self.combobox_search.activated.connect(self.node_selected)
 
-    def search(self, text):
+    def search(self, text=""):
         """
         Search nodes when return is pressed in combobox lineEdit
         """
