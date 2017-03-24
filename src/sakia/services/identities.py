@@ -388,6 +388,7 @@ class IdentitiesService(QObject):
                         identity.blockstamp = block_uid(identity_data["meta"]["timestamp"])
                         identity.timestamp = await self._blockchain_processor.timestamp(self.currency, identity.blockstamp.number)
                         identity.outdistanced = identity_data["outdistanced"]
+                        identity.written = identity_data["wasMember"]
                         identity.member = identity_data["membershipExpiresIn"] > 0
                         median_time = self._blockchain_processor.time(self.currency)
                         expiration_time = self._blockchain_processor.parameters(self.currency).ms_validity

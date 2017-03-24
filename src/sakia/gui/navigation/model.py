@@ -157,6 +157,9 @@ class NavigationModel(QObject):
     async def send_identity(self, connection, secret_key, password):
         return await self.app.documents_service.broadcast_identity(connection, secret_key, password)
 
+    def generate_identity(self, connection, secret_key, password):
+        return self.app.documents_service.generate_identity(connection, secret_key, password)
+
     @staticmethod
     def copy_pubkey_to_clipboard(connection):
         clipboard = QApplication.clipboard()

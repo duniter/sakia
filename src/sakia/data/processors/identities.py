@@ -155,6 +155,7 @@ class IdentitiesProcessor:
                 identity_data = next((data for data in requirements_data["identities"]
                                       if data["pubkey"] == identity.pubkey))
                 identity.member = identity_data['membershipExpiresIn'] > 0
+                identity.written = identity_data['wasMember']
                 identity.outdistanced = identity_data['outdistanced']
                 self.insert_or_update_identity(identity)
         except errors.DuniterError as e:

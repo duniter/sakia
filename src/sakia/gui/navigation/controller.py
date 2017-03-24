@@ -131,6 +131,11 @@ class NavigationController(QObject):
                 identity_published = self.model.identity_published(raw_data['misc']['connection'])
                 action_publish_uid.setEnabled(not identity_published)
 
+                action_export_identity = QAction(self.tr("Export identity document"), menu)
+                menu.addAction(action_export_identity)
+                action_export_identity.triggered.connect(lambda c:
+                                                        self.export_identity_document(raw_data['misc']['connection']))
+
                 action_leave = QAction(self.tr("Leave the currency"), menu)
                 menu.addAction(action_leave)
                 action_leave.triggered.connect(lambda c: self.send_leave(raw_data['misc']['connection']))
@@ -224,5 +229,28 @@ neither your identity from the network."""), QMessageBox.Ok | QMessageBox.Cancel
                              self.tr("""<div>Your revokation document has been saved.</div>
 <div><b>Please keep it in a safe place.</b></div>
 The publication of this document will remove your identity from the network.</p>"""), QMessageBox.Ok)
+        dialog.setTextFormat(Qt.RichText)
+        await dialog_async_exec(dialog)
+
+    @asyncify
+    async def export_identity_document(self, connection):
+        secret_key, password = await PasswordInputController.open_dialog(self, connection)
+        if not password or not secret_key:
+            return
+
+        raw_document = self.model.generate_identity(connection, secret_key, password)
+        # Testable way of using a QFileDialog
+        selected_files = await QAsyncFileDialog.get_save_filename(self.view, self.tr("Save an identity document"),
+                                                                  "", self.tr("All text files (*.txt)"))
+        if selected_files:
+            path = selected_files[0]
+            if not path.endswith('.txt'):
+                path = "{0}.txt".format(path)
+            with open(path, 'w') as save_file:
+                save_file.write(raw_document.signed_raw())
+
+        dialog = QMessageBox(QMessageBox.Information, self.tr("Identity file"),
+                             self.tr("""<div>Your identity document has been saved.</div>
+Share this document to your friends for them to certify you.</p>"""), QMessageBox.Ok)
         dialog.setTextFormat(Qt.RichText)
         await dialog_async_exec(dialog)
