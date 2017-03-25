@@ -20,6 +20,7 @@ class Identity:
     membership_timestamp = attr.ib(convert=int, default=0, cmp=False, hash=False)
     membership_type = attr.ib(convert=str, default='', validator=lambda s, a, t: t in ('', 'IN', 'OUT'), cmp=False, hash=False)
     membership_written_on = attr.ib(convert=int, default=0, cmp=False, hash=False)
+    sentry = attr.ib(convert=bool, default=False, cmp=False, hash=False)
 
     def document(self):
         """

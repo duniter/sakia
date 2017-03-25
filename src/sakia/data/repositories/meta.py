@@ -65,7 +65,8 @@ class SakiaDatabase:
         return [
             self.create_all_tables,
             self.add_ud_rythm_parameters,
-            self.add_contacts
+            self.add_contacts,
+            self.add_sentry_property
         ]
 
     def upgrade_database(self, to=0):
@@ -80,6 +81,7 @@ class SakiaDatabase:
             self.upgrades[v]()
             with self.conn:
                 self.conn.execute("UPDATE meta SET version=? WHERE id=1", (version + 1,))
+            version += 1
         self._logger.debug("End upgrade of database...")
 
     def create_all_tables(self):
@@ -109,6 +111,16 @@ class SakiaDatabase:
         """
         self._logger.debug("Add contacts table")
         sql_file = open(os.path.join(os.path.dirname(__file__), '001_add_contacts.sql'), 'r')
+        with self.conn:
+            self.conn.executescript(sql_file.read())
+
+    def add_sentry_property(self):
+        """
+        Init all the tables
+        :return:
+        """
+        self._logger.debug("Add sentry property")
+        sql_file = open(os.path.join(os.path.dirname(__file__), '002_add_sentry_property.sql'), 'r')
         with self.conn:
             self.conn.executescript(sql_file.read())
 

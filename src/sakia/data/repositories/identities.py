@@ -38,7 +38,8 @@ class IdentitiesRepo:
                               ms_buid=?,
                               ms_timestamp=?,
                               ms_written_on=?,
-                              ms_type=?
+                              ms_type=?,
+                              sentry=?
                               WHERE
                               currency=? AND
                               pubkey=? AND
