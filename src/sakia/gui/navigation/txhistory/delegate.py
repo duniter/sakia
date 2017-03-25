@@ -1,6 +1,6 @@
-from PyQt5.QtGui import QTextDocument, QAbstractTextDocumentLayout
+from PyQt5.QtGui import QTextDocument, QAbstractTextDocumentLayout, QPalette
 from PyQt5.QtWidgets import QStyledItemDelegate, QApplication, QStyle
-from PyQt5.QtCore import QSize
+from PyQt5.QtCore import QSize, Qt
 from .table_model import HistoryTableModel
 
 
@@ -8,6 +8,8 @@ class TxHistoryDelegate(QStyledItemDelegate):
     def paint(self, painter, option, index):
         self.initStyleOption(option, index)
 
+        foreground = index.data(Qt.ForegroundRole)
+        font = index.data(Qt.FontRole)
         style = QApplication.style()
 
         doc = QTextDocument()
@@ -20,7 +22,11 @@ class TxHistoryDelegate(QStyledItemDelegate):
         style.drawControl(QStyle.CE_ItemViewItem, option, painter)
 
         ctx = QAbstractTextDocumentLayout.PaintContext()
-
+        if foreground:
+            if foreground.isValid():
+                ctx.palette.setColor(QPalette.Text, foreground)
+        if font:
+            doc.setDefaultFont(font)
         text_rect = style.subElementRect(QStyle.SE_ItemViewItemText, option)
         painter.save()
         painter.translate(text_rect.topLeft())

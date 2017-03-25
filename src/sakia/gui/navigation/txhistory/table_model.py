@@ -104,6 +104,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                 amount = self.app.current_ref.instance(source_data, model.connection.currency,
                                                        self.app, block_data).diff_localized(False, False)
                 return amount
+            return source_data
 
         if role == Qt.FontRole:
             font = QFont()
@@ -128,6 +129,9 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                     return QColor(Qt.darkRed)
                 elif state_data == HistoryTableModel.DIVIDEND:
                     return QColor(Qt.darkBlue)
+            if state_data == Transaction.AWAITING or \
+                    (state_data == Transaction.VALIDATED and current_confirmations == 0):
+                return QColor("#ffb000")
 
         if role == Qt.TextAlignmentRole:
             if self.sourceModel().columns_types.index('amount'):
@@ -148,9 +152,6 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                     confirmation = current_confirmations / MAX_CONFIRMATIONS * 100
                     confirmation = 100 if confirmation > 100 else confirmation
                     return self.tr("Confirming... {0} %").format(QLocale().toString(float(confirmation), 'f', 0))
-
-            return None
-        return source_data
 
 
 class HistoryTableModel(QAbstractTableModel):
