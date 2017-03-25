@@ -39,6 +39,8 @@ async def test_register_empty_blockchain(application, fake_server, bob):
     async def exec_test():
         QTest.mouseClick(connection_config_dialog.view.button_register, Qt.LeftButton)
         await asyncio.sleep(0.6)
+        QTest.mouseClick(connection_config_dialog.view.button_accept, Qt.LeftButton)
+        await asyncio.sleep(0.1)
 
         assert connection_config_dialog.view.stacked_pages.currentWidget() == connection_config_dialog.view.page_connection
         assert_key_parameters_behaviour(connection_config_dialog, bob)
@@ -65,7 +67,9 @@ async def test_connect(application, simple_fake_server, bob):
 
     async def exec_test():
         QTest.mouseClick(connection_config_dialog.view.button_connect, Qt.LeftButton)
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.6)
+        QTest.mouseClick(connection_config_dialog.view.button_accept, Qt.LeftButton)
+        await asyncio.sleep(0.1)
 
         assert connection_config_dialog.view.stacked_pages.currentWidget() == connection_config_dialog.view.page_connection
         assert_key_parameters_behaviour(connection_config_dialog, bob)
@@ -92,7 +96,9 @@ async def test_connect_wrong_uid(application, simple_fake_server, wrong_bob_uid,
 
     async def exec_test():
         QTest.mouseClick(connection_config_dialog.view.button_connect, Qt.LeftButton)
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.6)
+        QTest.mouseClick(connection_config_dialog.view.button_accept, Qt.LeftButton)
+        await asyncio.sleep(0.1)
         assert connection_config_dialog.view.stacked_pages.currentWidget() == connection_config_dialog.view.page_connection
         assert_key_parameters_behaviour(connection_config_dialog, wrong_bob_uid)
         QTest.mouseClick(connection_config_dialog.view.button_next, Qt.LeftButton)
@@ -116,7 +122,9 @@ async def test_connect_wrong_pubkey(application, simple_fake_server, wrong_bob_p
 
     async def exec_test():
         QTest.mouseClick(connection_config_dialog.view.button_connect, Qt.LeftButton)
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.6)
+        QTest.mouseClick(connection_config_dialog.view.button_accept, Qt.LeftButton)
+        await asyncio.sleep(0.1)
         assert connection_config_dialog.view.stacked_pages.currentWidget() == connection_config_dialog.view.page_connection
         assert_key_parameters_behaviour(connection_config_dialog, wrong_bob_pubkey)
         QTest.mouseClick(connection_config_dialog.view.button_next, Qt.LeftButton)

@@ -38,6 +38,7 @@ class ConnectionConfigController(QObject):
         self.mode = -1
 
         self.step_node = asyncio.Future()
+        self.step_licence = asyncio.Future()
         self.step_key = asyncio.Future()
         self.view.button_connect.clicked.connect(
             lambda: self.step_node.set_result(ConnectionConfigController.CONNECT))
@@ -124,6 +125,11 @@ class ConnectionConfigController(QObject):
                     self.view.button_connect.setEnabled(True)
                     self.view.button_register.setEnabled(True)
 
+        self._logger.debug("Licence step")
+        self.view.stacked_pages.setCurrentWidget(self.view.page_licence)
+        self.view.button_accept.clicked.connect(lambda: self.step_licence.set_result(True))
+        await self.step_licence
+        self.view.button_accept.disconnect()
         self._logger.debug("Key step")
         self.view.set_currency(self.model.connection.currency)
         connection_identity = None
