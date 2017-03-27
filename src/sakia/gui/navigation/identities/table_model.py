@@ -150,8 +150,10 @@ class IdentitiesTableModel(QAbstractTableModel):
         expiration_date = self.identities_service.expiration_date(identity)
         sigdate_ts = identity.timestamp
         sigdate_block = identity.blockstamp
+        name = "✴ " if identity.sentry else ""
+        name += identity.uid
 
-        return identity.uid, identity.pubkey, join_date, expiration_date, sigdate_ts, sigdate_block, identity
+        return name, identity.pubkey, join_date, expiration_date, sigdate_ts, sigdate_block, identity
 
     def refresh_identities(self, identities):
         """

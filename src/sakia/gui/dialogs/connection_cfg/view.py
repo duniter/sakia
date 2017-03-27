@@ -1,11 +1,12 @@
 from PyQt5.QtWidgets import QDialog
 from PyQt5.QtCore import pyqtSignal, Qt
 from .connection_cfg_uic import Ui_ConnectionConfigurationDialog
+from .congratulation_uic import Ui_CongratulationPopup
 from duniterpy.key import SigningKey, ScryptParams
 from math import ceil, log
 from sakia.gui.widgets import toast
 from sakia.helpers import timestamp_to_dhms
-from sakia.gui.widgets.dialogs import QAsyncMessageBox
+from sakia.gui.widgets.dialogs import dialog_async_exec, QAsyncMessageBox
 from sakia.constants import ROOT_SERVERS
 
 
@@ -153,13 +154,23 @@ class ConnectionConfigView(QDialog, Ui_ConnectionConfigurationDialog):
                                                                                     hours=hours,
                                                                                     min=minutes)
 
-        await QAsyncMessageBox.information(self, self.tr("Registration"), self.tr("""
-<b>Congratulations !</b><br>
+        dialog = QDialog(self)
+        about_dialog = Ui_CongratulationPopup()
+        about_dialog.setupUi(dialog)
+        dialog.setWindowTitle("Registration")
+        about_dialog.label.setText(self.tr("""
+<p><b>Congratulations !</b><br>
 <br>
 You just published your identity to the network.<br>
-For your identity to be registered, you will need <b>{certs} certifications</b> from members.<br>
-Once you got the required certifications, you will be able to validate your registration
+For your identity to be registered, you will need<br>
+<b>{certs} certifications</b> from members.<br>
+Once you got the required certifications, <br>
+you will be able to validate your registration<br>
 by <b>publishing your membership request !</b><br>
-Please notice that your identity document <b>will expire in {expiration_time_str}.</b> If you failed
-to get {certs} certifications before this time, the process will have to be restarted from scratch.
+Please notice that your identity document <br>
+<b>will expire in {expiration_time_str}.</b><br>
+If you failed to get {certs} certifications before this time, <br>
+the process will have to be restarted from scratch.</p>
 """.format(certs=blockchain_parameters.sig_qty, expiration_time_str=expiration_time_str)))
+
+        await dialog_async_exec(dialog)

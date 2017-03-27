@@ -1,10 +1,19 @@
 import logging
 import time
 import networkx
-from PyQt5.QtCore import QLocale, QDateTime, QObject
+from PyQt5.QtCore import QLocale, QDateTime, QObject, QT_TRANSLATE_NOOP
 from sakia.errors import NoPeerAvailable
 from .constants import EdgeStatus, NodeStatus
 from sakia.constants import MAX_CONFIRMATIONS
+
+
+def sentry_display(identity):
+    sentry_text = ""
+    sentry_symbol = ""
+    if identity.sentry:
+        sentry_symbol = "✴ "
+        sentry_text = QT_TRANSLATE_NOOP("BaseGraph", "(sentry)") + " "
+    return sentry_symbol, sentry_text
 
 
 class BaseGraph(QObject):
@@ -92,29 +101,12 @@ class BaseGraph(QObject):
                 return "{0} %".format(QLocale().toString(float(confirmation), 'f', 0))
         return None
 
-    def is_sentry(self, nb_certs, nb_members):
-        """
-        Check if it is a sentry or not
-        :param int nb_certs: the number of certs
-        :param int nb_members: the number of members
-        :return: True if a sentry
-        """
-        Y = {
-            10: 2,
-            100: 4,
-            1000: 6,
-            10000: 12,
-            100000: 20
-        }
-        for k in reversed(sorted(Y.keys())):
-            if nb_members >= k:
-                return nb_certs >= Y[k]
-        return False
-
     def add_certifier_node(self, certifier, identity, certification, node_status):
+        sentry_symbol, sentry_text = sentry_display(certifier)
+        name_text = certifier.uid if certifier.uid else certifier.pubkey[:12]
         metadata = {
-            'text': certifier.uid if certifier.uid else certifier.pubkey[:12],
-            'tooltip': certifier.pubkey,
+            'text': sentry_symbol + name_text,
+            'tooltip': sentry_text + certifier.pubkey,
             'identity': certifier,
             'status': node_status
         }
@@ -135,9 +127,11 @@ class BaseGraph(QObject):
         self.nx_graph.add_edge(certifier.pubkey, identity.pubkey, attr_dict=arc)
 
     def add_certified_node(self, identity, certified, certification, node_status):
+        sentry_symbol, sentry_text = sentry_display(certified)
+        name_text = certified.uid if certified.uid else certified.pubkey[:12]
         metadata = {
-            'text': certified.uid if certified.uid else certified.pubkey[:12],
-            'tooltip': certified.pubkey,
+            'text': sentry_symbol + name_text,
+            'tooltip': sentry_text + certified.pubkey,
             'identity': certified,
             'status': node_status
         }
@@ -237,9 +231,11 @@ class BaseGraph(QObject):
         :param list edges:  Optional, default=None, List of edges (certified by identity)
         :param list connected:  Optional, default=None, Public key list of the connected nodes around the identity
         """
+        sentry_symbol, sentry_text = sentry_display(identity)
+        name_text = identity.uid
         metadata = {
-            'text': identity.uid,
-            'tooltip': identity.pubkey,
+            'text': sentry_symbol + name_text,
+            'tooltip': sentry_text + identity.pubkey,
             'status': status,
             'identity': identity
         }
