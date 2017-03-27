@@ -183,7 +183,7 @@ class DocumentsService:
         if result[0]:
             self._identities_processor.insert_or_update_identity(identity)
             self._certifications_processor.create_or_update_certification(connection.currency, certification,
-                                                                          timestamp, BlockUID.empty())
+                                                                          timestamp, None)
 
         return result
 

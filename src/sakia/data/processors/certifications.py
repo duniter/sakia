@@ -89,7 +89,7 @@ class CertificationsProcessor:
                              block=cert.timestamp.number,
                              timestamp=timestamp,
                              signature=cert.signatures[0],
-                             written_on=blockstamp.number)
+                             written_on=blockstamp.number if blockstamp else -1)
         try:
             self._certifications_repo.insert(cert)
         except sqlite3.IntegrityError:
