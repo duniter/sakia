@@ -1,4 +1,5 @@
 from sakia.errors import NoPeerAvailable
+from sakia.data.processors import BlockchainProcessor
 from PyQt5.QtCore import QAbstractTableModel, QSortFilterProxyModel, Qt, \
                         QDateTime, QModelIndex, QLocale, QT_TRANSLATE_NOOP
 from PyQt5.QtGui import QColor, QIcon, QFont
@@ -7,8 +8,9 @@ import asyncio
 
 
 class IdentitiesFilterProxyModel(QSortFilterProxyModel):
-    def __init__(self, parent=None):
+    def __init__(self, app, parent=None):
         super().__init__(parent)
+        self.blockchain_processor = BlockchainProcessor.instanciate(app)
 
     def columnCount(self, parent):
         return len(IdentitiesTableModel.columns_ids) - 1
@@ -22,7 +24,7 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
         right_data = source_model.data(right, Qt.DisplayRole)
         left_data = 0 if left_data is None else left_data
         right_data = 0 if right_data is None else right_data
-        return (left_data < right_data)
+        return left_data < right_data
 
     def data(self, index, role):
         source_index = self.mapToSource(index)
@@ -55,18 +57,20 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
                 if source_index.column() in (IdentitiesTableModel.columns_ids.index('renewed'),
                                              IdentitiesTableModel.columns_ids.index('expiration')):
                     if source_data:
+                        ts = self.blockchain_processor.adjusted_ts(self.connection.currency, source_data)
                         return QLocale.toString(
                             QLocale(),
-                            QDateTime.fromTime_t(source_data).date(),
+                            QDateTime.fromTime_t(ts).date(),
                             QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
                         )
                     else:
                         return ""
                 if source_index.column() == IdentitiesTableModel.columns_ids.index('publication'):
                     if source_data:
+                        ts = self.blockchain_processor.adjusted_ts(self.connection.currency, source_data)
                         return QLocale.toString(
                             QLocale(),
-                            QDateTime.fromTime_t(source_data),
+                            QDateTime.fromTime_t(ts),
                             QLocale.dateTimeFormat(QLocale(), QLocale.LongFormat)
                         )
                     else:

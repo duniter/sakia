@@ -47,6 +47,10 @@ class BlockchainProcessor:
                 raise
         return 0, 0
 
+    def adjusted_ts(self, currency, timestamp):
+        parameters = self.parameters(currency)
+        return timestamp + parameters.median_time_blocks/2 * parameters.avg_gen_time
+
     async def timestamp(self, currency, block_number):
         try:
             block = await self._bma_connector.get(currency, bma.blockchain.block, {'number': block_number})

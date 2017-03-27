@@ -23,6 +23,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
         self.ts_from = ts_from
         self.ts_to = ts_to
         self.blockchain_service = blockchain_service
+        self.blockchain_processor = BlockchainProcessor.instanciate(blockchain_service.app)
 
     def set_period(self, ts_from, ts_to):
         """
@@ -95,9 +96,10 @@ class TxFilterProxyModel(QSortFilterProxyModel):
             if source_index.column() == model.columns_types.index('uid'):
                 return "<p>" + source_data.replace('\n', "<br>") + "</p>"
             if source_index.column() == model.columns_types.index('date'):
+                ts = self.blockchain_processor.adjusted_ts(model.connection.currency, source_data)
                 return QLocale.toString(
                     QLocale(),
-                    QDateTime.fromTime_t(source_data).date(),
+                    QDateTime.fromTime_t(ts).date(),
                     QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
                 )
             if source_index.column() == model.columns_types.index('amount'):
@@ -141,7 +143,8 @@ class TxFilterProxyModel(QSortFilterProxyModel):
 
         if role == Qt.ToolTipRole:
             if source_index.column() == model.columns_types.index('date'):
-                return QDateTime.fromTime_t(source_data).toString(Qt.SystemLocaleLongDate)
+                ts = self.blockchain_processor.adjusted_ts(model.connection.currency, source_data)
+                return QDateTime.fromTime_t(ts).toString(Qt.SystemLocaleLongDate)
 
             if state_data == Transaction.VALIDATED or state_data == Transaction.AWAITING:
                 if current_confirmations >= MAX_CONFIRMATIONS:

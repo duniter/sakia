@@ -5,6 +5,7 @@ from PyQt5.QtCore import QLocale, QDateTime, pyqtSignal, QObject
 from sakia.errors import NoPeerAvailable
 from sakia.constants import ROOT_SERVERS
 from sakia.money import Referentials
+from sakia.data.processors import BlockchainProcessor
 from duniterpy.api import errors
 
 
@@ -28,6 +29,7 @@ class InformationsModel(QObject):
         super().__init__(parent)
         self.app = app
         self.connection = connection
+        self.blockchain_processor = BlockchainProcessor.instanciate(app)
         self.blockchain_service = blockchain_service
         self.identities_service = identities_service
         self.sources_service = sources_service
@@ -76,19 +78,29 @@ class InformationsModel(QObject):
             localized_data['mass'] = self.app.current_ref.instance(self.blockchain_service.current_mass(),
                                               self.connection.currency, self.app).localized(False, True)
 
+            ud_median_time = self.blockchain_service.last_ud_time()
+            ud_median_time = self.blockchain_processor.adjusted_ts(self.app.currency, ud_median_time)
+
             localized_data['ud_median_time'] = QLocale.toString(
                 QLocale(),
-                QDateTime.fromTime_t(self.blockchain_service.last_ud_time()),
+                QDateTime.fromTime_t(ud_median_time),
                 QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
             )
+
+            next_ud_median_time = self.blockchain_service.last_ud_time() + params.dt
+            next_ud_median_time = self.blockchain_processor.adjusted_ts(self.app.currency, next_ud_median_time)
+
             localized_data['next_ud_median_time'] = QLocale.toString(
                 QLocale(),
-                QDateTime.fromTime_t(self.blockchain_service.last_ud_time() + params.dt),
+                QDateTime.fromTime_t(next_ud_median_time),
                 QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
             )
+
+            next_ud_reeval = self.blockchain_service.next_ud_reeval()
+            next_ud_reeval = self.blockchain_processor.adjusted_ts(self.app.currency, next_ud_reeval)
             localized_data['next_ud_reeval'] = QLocale.toString(
                 QLocale(),
-                QDateTime.fromTime_t(self.blockchain_service.next_ud_reeval()),
+                QDateTime.fromTime_t(next_ud_reeval),
                 QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
             )
 
@@ -108,6 +120,7 @@ class InformationsModel(QObject):
                     localized_data['actual_growth'] = (last_ud * math.pow(10, last_ud_base)) / (
                     previous_monetary_mass / members_count)
 
+                previous_ud_time = self.blockchain_processor.adjusted_ts(self.app.currency, previous_ud_time)
                 localized_data['ud_median_time_minus_1'] = QLocale.toString(
                     QLocale(),
                     QDateTime.fromTime_t(previous_ud_time),

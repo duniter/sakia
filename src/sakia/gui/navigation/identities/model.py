@@ -31,7 +31,7 @@ class IdentitiesModel(QObject):
         Instanciate the table model of the view
         """
         identities_model = IdentitiesTableModel(self, self.blockchain_service, self.identities_service)
-        proxy = IdentitiesFilterProxyModel()
+        proxy = IdentitiesFilterProxyModel(self.app)
         proxy.setSourceModel(identities_model)
         self.table_model = proxy
         return self.table_model
