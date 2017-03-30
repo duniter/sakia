@@ -14,7 +14,7 @@ from sakia.data.repositories import SakiaDatabase
 from sakia.data.entities import Transaction, Connection, Identity, Dividend
 from sakia.data.processors import BlockchainProcessor, NodesProcessor, IdentitiesProcessor, \
     CertificationsProcessor, SourcesProcessor, TransactionsProcessor, ConnectionsProcessor, DividendsProcessor
-from sakia.data.files import AppDataFile, UserParametersFile
+from sakia.data.files import AppDataFile, UserParametersFile, PluginsDirectory
 from sakia.decorators import asyncify
 from sakia.money import *
 import asyncio
@@ -60,6 +60,7 @@ class Application(QObject):
     parameters = attr.ib()
     db = attr.ib()
     currency = attr.ib()
+    plugins_dir = attr.ib()
     network_service = attr.ib(default=None)
     blockchain_service = attr.ib(default=None)
     identities_service = attr.ib(default=None)
@@ -81,7 +82,7 @@ class Application(QObject):
         qapp.setAttribute(Qt.AA_EnableHighDpiScaling, True)
         options = SakiaOptions.from_arguments(argv)
         app_data = AppDataFile.in_config_path(options.config_path).load_or_init()
-        app = cls(qapp, loop, options, app_data, None, None, options.currency)
+        app = cls(qapp, loop, options, app_data, None, None, options.currency, None)
         #app.set_proxy()
         app.get_last_version()
         app.load_profile(app_data.default)
@@ -96,6 +97,7 @@ class Application(QObject):
         :param profile_name:
         :return:
         """
+        self.plugins_dir = PluginsDirectory.in_config_path(self.options.config_path, profile_name).load_or_init()
         self.parameters = UserParametersFile.in_config_path(self.options.config_path, profile_name).load_or_init()
         self.db = SakiaDatabase.load_or_init(self.options, profile_name)
 

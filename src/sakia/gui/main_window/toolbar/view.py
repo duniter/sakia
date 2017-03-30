@@ -27,6 +27,9 @@ class ToolbarView(QFrame, Ui_SakiaToolbar):
         self.action_parameters = QAction(self.tr("Settings"), tool_menu)
         tool_menu.addAction(self.action_parameters)
 
+        self.action_plugins = QAction(self.tr("Plugins manager"), tool_menu)
+        tool_menu.addAction(self.action_plugins)
+
         self.action_about = QAction(self.tr("About"), tool_menu)
         tool_menu.addAction(self.action_about)
 

@@ -24,9 +24,9 @@ class MainWindowController(QObject):
         Init
         :param MainWindowView view: the ui of the mainwindow component
         :param sakia.gui.main_window.model.MainWindowModel: the model of the mainwindow component
-        :param sakia.gui.status_bar.controller.StatusBarController status_bar: the controller of the status bar component
-        :param sakia.gui.toolbar.controller.ToolbarController toolbar: the controller of the toolbar component
-        :param sakia.gui.navigation.contoller.NavigationController navigation: the controller of the navigation
+        :param sakia.gui.main_window.status_bar.controller.StatusBarController status_bar: the controller of the status bar component
+        :param sakia.gui.main_window.toolbar.controller.ToolbarController toolbar: the controller of the toolbar component
+        :param sakia.gui.navigation.controller.NavigationController navigation: the controller of the navigation
 
         :param PasswordAsker password_asker: the password asker of the application
         :type: sakia.core.app.Application
@@ -83,6 +83,7 @@ class MainWindowController(QObject):
             main_window.view.showMaximized()
         else:
             main_window.view.show()
+        main_window.model.load_plugins(main_window)
         main_window.refresh(app.currency)
         return main_window
 

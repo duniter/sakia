@@ -10,3 +10,7 @@ class MainWindowModel(QObject):
         super().__init__(parent)
         self.app = app
 
+    def load_plugins(self, main_window):
+        for plugin in self.app.plugins_dir.plugins:
+            if plugin.imported:
+                plugin.module.plugin_exec(self.app, main_window)

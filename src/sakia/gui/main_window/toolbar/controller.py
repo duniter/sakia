@@ -5,9 +5,11 @@ from sakia.gui.dialogs.connection_cfg.controller import ConnectionConfigControll
 from sakia.gui.dialogs.revocation.controller import RevocationController
 from sakia.gui.dialogs.transfer.controller import TransferController
 from sakia.gui.dialogs.contact.controller import ContactController
+from sakia.gui.dialogs.plugins_manager.controller import PluginsManagerController
 from sakia.gui.preferences import PreferencesDialog
 from .model import ToolbarModel
 from .view import ToolbarView
+import sys
 
 
 class ToolbarController(QObject):
@@ -28,6 +30,7 @@ class ToolbarController(QObject):
         self.view.button_send_money.clicked.connect(self.open_transfer_money_dialog)
         self.view.action_add_connection.triggered.connect(self.open_add_connection_dialog)
         self.view.action_parameters.triggered.connect(self.open_settings_dialog)
+        self.view.action_plugins.triggered.connect(self.open_plugins_manager_dialog)
         self.view.action_about.triggered.connect(self.open_about_dialog)
         self.view.action_revoke_uid.triggered.connect(self.open_revocation_dialog)
         self.view.button_contacts.clicked.connect(self.open_contacts_dialog)
@@ -65,6 +68,9 @@ class ToolbarController(QObject):
 
     def open_settings_dialog(self):
         PreferencesDialog(self.model.app).exec()
+
+    def open_plugins_manager_dialog(self):
+        PluginsManagerController.open_dialog(self, self.model.app)
 
     def open_add_connection_dialog(self):
         connection_config = ConnectionConfigController.create_connection(self, self.model.app)
