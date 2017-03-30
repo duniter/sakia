@@ -8,3 +8,4 @@ class Plugin:
     version = attr.ib()
     imported = attr.ib()
     module = attr.ib()
+    filename = attr.ib()

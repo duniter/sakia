@@ -36,9 +36,9 @@ class PluginsFilterProxyModel(QSortFilterProxyModel):
         """
         if index.isValid() and index.row() < self.rowCount(QModelIndex()):
             source_index = self.mapToSource(index)
-            contact_name_col = PluginsTableModel.columns_types.index('name')
-            contact_name = self.sourceModel().contacts_data[source_index.row()][contact_name_col]
-            return contact_name
+            plugin_name_col = PluginsTableModel.columns_types.index('name')
+            plugin_name = self.sourceModel().plugins_data[source_index.row()][plugin_name_col]
+            return plugin_name
         return None
     
     def data(self, index, role):

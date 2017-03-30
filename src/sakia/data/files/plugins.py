@@ -37,11 +37,20 @@ class PluginsDirectory:
                                                    plugin_module.PLUGIN_DESCRIPTION,
                                                    plugin_module.PLUGIN_VERSION,
                                                    True,
-                                                   plugin_module))
+                                                   plugin_module,
+                                                   file))
                     except ImportError as e:
                         self.plugins.append(Plugin(module_name, "", "",
-                                                   False, None))
+                                                   False, None, file))
                         self._logger.debug(str(e) + " with sys.path " + str(sys.path))
         except OSError as e:
             self._logger.debug(str(e))
         return self
+
+    def uninstall_plugin(self, plugin):
+        try:
+            for file in os.listdir(self._path):
+                if file == plugin.filename:
+                    os.remove(os.path.join(self._path, file))
+        except OSError as e:
+            self._logger.debug(str(e))
