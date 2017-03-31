@@ -67,4 +67,6 @@ class Node:
     root = attr.ib(convert=bool, cmp=False, default=False)
     # If this node is a member or not
     member = attr.ib(convert=bool, cmp=False, default=False)
+    # If this node is a member or not
+    last_state_change = attr.ib(convert=int, cmp=False, default=False)
 

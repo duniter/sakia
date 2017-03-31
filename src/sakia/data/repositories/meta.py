@@ -66,7 +66,8 @@ class SakiaDatabase:
             self.create_all_tables,
             self.add_ud_rythm_parameters,
             self.add_contacts,
-            self.add_sentry_property
+            self.add_sentry_property,
+            self.add_last_state_change_property
         ]
 
     def upgrade_database(self, to=0):
@@ -121,6 +122,16 @@ class SakiaDatabase:
         """
         self._logger.debug("Add sentry property")
         sql_file = open(os.path.join(os.path.dirname(__file__), '002_add_sentry_property.sql'), 'r')
+        with self.conn:
+            self.conn.executescript(sql_file.read())
+
+    def add_last_state_change_property(self):
+        """
+        Init all the tables
+        :return:
+        """
+        self._logger.debug("Add last state change property")
+        sql_file = open(os.path.join(os.path.dirname(__file__), '003_add_last_state_change_property.sql'), 'r')
         with self.conn:
             self.conn.executescript(sql_file.read())
 

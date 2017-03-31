@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import time
 from asyncio import TimeoutError
 from socket import gaierror
 
@@ -360,6 +361,10 @@ class NodeConnector(QObject):
             self._logger.debug("Incorrect leaf reply")
 
     def change_state_and_emit(self, new_state):
+        if self.node.state in (Node.CORRUPTED, Node.OFFLINE):
+            self.error.emit()
+
         if self.node.state != new_state:
+            self.node.last_state_change = time.time()
             self.node.state = new_state
             self.changed.emit()

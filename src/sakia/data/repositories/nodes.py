@@ -45,7 +45,8 @@ class NodesRepo:
                                     merkle_peers_root=?,
                                     merkle_peers_leaves=?,
                                     root=?,
-                                    member=?
+                                    member=?,
+                                    last_state_change=?
                                    WHERE
                                    currency=? AND
                                    pubkey=?""",

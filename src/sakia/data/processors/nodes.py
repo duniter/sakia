@@ -51,6 +51,9 @@ class NodesProcessor:
         return self._repo.get_all(currency=currency, state=Node.ONLINE) + \
                self._repo.get_all(currency=currency, state=Node.DESYNCED)
 
+    def delete_node(self, node):
+        self._repo.drop(node)
+
     def update_node(self, node):
         """
         Update node in the repository.

@@ -21,7 +21,7 @@ async def test_new_block_with_certs(application_with_one_connection, fake_server
     certs_after_send = application_with_one_connection.identities_service.certifications_sent(
         bob.key.pubkey)
     assert len(certs_after_send) == len(certs_before_send) + 1
-    assert certs_after_send[0].written_on == 0
+    assert certs_after_send[0].written_on == -1
     assert isinstance(fake_server.forge.pool[0], Certification)
     fake_server.forge.forge_block()
     fake_server.forge.forge_block()

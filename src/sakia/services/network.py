@@ -256,19 +256,19 @@ class NetworkService(QObject):
         self._processor.update_node(connector.node)
         self.node_changed.emit(connector.node)
 
-    @pyqtSlot()
     def handle_error(self):
-        node = self.sender()
-        if node.state in (Node.OFFLINE, Node.CORRUPTED) and  node.last_change + 3600 < time.time():
-            node.disconnect()
-            self._processor.delete_node(node)
-            self.node_removed.emit(node)
+        node_connector = self.sender()
+        if node_connector.node.state in (Node.OFFLINE, Node.CORRUPTED) \
+                and node_connector.node.last_state_change + 3600 < time.time():
+            node_connector.disconnect()
+            self._processor.delete_node(node_connector.node)
+            self.node_removed.emit(node_connector.node)
+            self._connectors.remove(node_connector)
 
     def handle_change(self):
         node_connector = self.sender()
 
-        if node_connector.node.state in (Node.ONLINE, Node.DESYNCED):
-            node_connector.node = self.check_nodes_sync(node_connector.node)
+        node_connector.node = self.check_nodes_sync(node_connector.node)
         self._processor.update_node(node_connector.node)
         self.node_changed.emit(node_connector.node)
 
