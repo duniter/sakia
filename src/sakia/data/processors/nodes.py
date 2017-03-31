@@ -29,27 +29,28 @@ class NodesProcessor:
         Get current buid
         :param str currency:
         """
-        synced_node = self._repo.get_one(currency=currency, state=Node.ONLINE)
-        return synced_node.current_buid
+        current_buid = self._repo.current_buid(currency=currency)
+        return current_buid
 
     def synced_nodes(self, currency):
         """
         Get nodes which are in the ONLINE state.
         """
-        return self._repo.get_all(currency=currency, state=Node.ONLINE)
+        current_buid = self._repo.current_buid(currency=currency)
+        return self._repo.get_all(currency=currency, state=Node.ONLINE, current_buid=current_buid)
 
     def synced_members_nodes(self, currency):
         """
         Get nodes which are in the ONLINE state.
         """
-        return self._repo.get_all(currency=currency, state=Node.ONLINE, member=True)
+        current_buid = self._repo.current_buid(currency=currency)
+        return self._repo.get_all(currency=currency, state=Node.ONLINE, member=True, current_buid=current_buid)
 
     def online_nodes(self, currency):
         """
         Get nodes which are in the ONLINE state.
         """
-        return self._repo.get_all(currency=currency, state=Node.ONLINE) + \
-               self._repo.get_all(currency=currency, state=Node.DESYNCED)
+        return self._repo.get_all(currency=currency, state=Node.ONLINE)
 
     def delete_node(self, node):
         self._repo.drop(node)

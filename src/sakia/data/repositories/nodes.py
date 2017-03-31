@@ -1,5 +1,6 @@
 import attr
 
+from duniterpy.documents import BlockUID, block_uid
 from ..entities import Node
 
 
@@ -109,3 +110,16 @@ class NodesRepo:
         self._conn.execute("""DELETE FROM nodes
                               WHERE
                               currency=? AND pubkey=?""", where_fields)
+
+    def current_buid(self, currency):
+        c = self._conn.execute("""SELECT `current_buid`,
+             COUNT(`current_buid`) AS `value_occurrence`
+    FROM     `nodes`
+    WHERE state == 1 AND member == 1 AND currency == ?
+    GROUP BY `current_buid`
+    ORDER BY `value_occurrence` DESC
+    LIMIT    1;""", (currency,))
+        data = c.fetchone()
+        if data:
+            return block_uid(data[0])
+        return BlockUID.empty()

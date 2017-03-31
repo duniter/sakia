@@ -1,10 +1,10 @@
 import asyncio
 import logging
 import time
-from collections import Counter
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt
 from duniterpy.api import errors
+from duniterpy.documents import BlockUID
 from duniterpy.key import VerifyingKey
 from sakia.data.connectors import NodeConnector
 from sakia.data.entities import Node
@@ -20,6 +20,7 @@ class NetworkService(QObject):
     node_changed = pyqtSignal(Node)
     new_node_found = pyqtSignal(Node)
     node_removed = pyqtSignal(Node)
+    latest_block_changed = pyqtSignal(BlockUID)
     root_nodes_changed = pyqtSignal()
 
     def __init__(self, app, currency, node_processor, connectors, blockchain_service, identities_service):
@@ -99,6 +100,9 @@ class NetworkService(QObject):
     def commit_node(self, node):
         self._processor.commit_node(node)
 
+    def current_buid(self):
+        return self._processor.current_buid(self.currency)
+
     async def stop_coroutines(self, closing=False):
         """
         Stop network nodes crawling.
@@ -115,53 +119,6 @@ class NetworkService(QObject):
 
     def continue_crawling(self):
         return self._must_crawl
-
-    def check_nodes_sync(self, node):
-        """
-        Check nodes sync with the following rules :
-        1 : The block of the majority
-        2 : The more last different issuers
-        3 : The more difficulty
-        4 : The biggest number or timestamp
-        """
-        online_nodes = self._processor.online_nodes(self.currency)
-        # rule number 1 : block of the majority
-        blocks = [n.current_buid.sha_hash for n in online_nodes if n.current_buid.sha_hash]
-        blocks_occurences = Counter(blocks)
-        blocks_by_occurences = {}
-        for key, value in blocks_occurences.items():
-            the_block = [n.current_buid.sha_hash
-                         for n in online_nodes if n.current_buid.sha_hash == key][0]
-            if value not in blocks_by_occurences:
-                blocks_by_occurences[value] = [the_block]
-            else:
-                blocks_by_occurences[value].append(the_block)
-
-        if len(blocks_by_occurences) == 0:
-            for n in [n for n in online_nodes if n.state in (Node.ONLINE, Node.DESYNCED)]:
-                if n.state != Node.ONLINE:
-                    n.state = Node.ONLINE
-                    self._processor.update_node(n)
-                    self.node_changed.emit(n)
-                if n == node:
-                    node.state = n.state
-        else:
-            most_present = max(blocks_by_occurences.keys())
-
-            synced_block_hash = blocks_by_occurences[most_present][0]
-
-            for n in online_nodes:
-                if n.current_buid.sha_hash == synced_block_hash:
-                    if n.state != Node.ONLINE:
-                        n.state = Node.ONLINE
-                        self.node_changed.emit(n)
-                elif n.state != Node.DESYNCED:
-                    n.state = Node.DESYNCED
-                    self.node_changed.emit(n)
-                    self._processor.update_node(n)
-                if n == node:
-                    node.state = n.state
-        return node
 
     def add_connector(self, node_connector):
         """
@@ -265,8 +222,6 @@ class NetworkService(QObject):
 
     def handle_change(self):
         node_connector = self.sender()
-
-        node_connector.node = self.check_nodes_sync(node_connector.node)
         self._processor.update_node(node_connector.node)
         self.node_changed.emit(node_connector.node)
 
@@ -275,6 +230,7 @@ class NetworkService(QObject):
             self._logger.debug("{0} -> {1}".format(self._block_found.sha_hash[:10], current_buid.sha_hash[:10]))
             if self._block_found.sha_hash != current_buid.sha_hash:
                 self._logger.debug("Latest block changed : {0}".format(current_buid.number))
+                self.latest_block_changed.emit(self._block_found)
                 # If new latest block is lower than the previously found one
                 # or if the previously found block is different locally
                 # than in the main chain, we declare a rollback

@@ -33,7 +33,6 @@ class Node:
 
     ONLINE = 1
     OFFLINE = 2
-    DESYNCED = 3
     CORRUPTED = 4
 
     # The currency handled by this node

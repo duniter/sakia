@@ -210,7 +210,6 @@ class NodeConnector(QObject):
         :param dict block_data: The block data in json format
         """
         if not self.node.current_buid or self.node.current_buid.sha_hash != block_data['hash']:
-            new_state = self.node.state
             for endpoint in [e for e in self.node.endpoints if isinstance(e, BMAEndpoint)]:
                 conn_handler = next(endpoint.conn_handler(self.session,
                                                      proxy=self._user_parameters.proxy()))
@@ -222,17 +221,14 @@ class NodeConnector(QObject):
                     if not previous_block:
                         continue
                     self.node.previous_buid = BlockUID(previous_block['number'], previous_block['hash'])
-                    new_state = Node.ONLINE
                     break  # Do not try any more endpoint
                 except errors.DuniterError as e:
                     if e.ucode == errors.BLOCK_NOT_FOUND:
                         self.node.previous_buid = BlockUID.empty()
-                        self.node.current_buid = BlockUID.empty()
                         # we don't change state here
-                        new_state = Node.ONLINE
                         break
                     else:
-                        new_state = Node.CORRUPTED
+                        self.change_state_and_emit(Node.CORRUPTED)
                         break
 
                     self._logger.debug("Error in previous block reply of {0} : {1}".format(self.node.pubkey[:5], str(e)))
@@ -242,8 +238,7 @@ class NodeConnector(QObject):
                         self.node.current_ts = block_data['medianTime']
                         self._logger.debug("Changed block {0} -> {1}".format(self.node.current_buid.number,
                                                                         block_data['number']))
-                    self.change_state_and_emit(new_state)
-
+                        self.changed.emit()
             else:
                 self._logger.debug("Could not connect to any BMA endpoint : {0}".format(self.node.pubkey[:5]))
                 self.change_state_and_emit(Node.OFFLINE)

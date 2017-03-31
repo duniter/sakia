@@ -19,6 +19,10 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
         """
         left_data = self.sourceModel().data(left, Qt.DisplayRole)
         right_data = self.sourceModel().data(right, Qt.DisplayRole)
+
+        if left.column() == NetworkTableModel.columns_types.index('pubkey'):
+            return left_data < right_data
+
         if left.column() == NetworkTableModel.columns_types.index('port'):
             left_data = int(left_data.split('\n')[0]) if left_data != '' else 0
             right_data = int(right_data.split('\n')[0]) if right_data != '' else 0
@@ -29,7 +33,8 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
             right_data = int(right_data) if right_data != '' else 0
             if left_data == right_data:
                 pubkey_col = NetworkTableModel.columns_types.index('pubkey')
-                return self.lessThan(self.index(left.row(), pubkey_col), self.index(right.row(), pubkey_col))
+                return self.lessThan(self.sourceModel().index(left.row(), pubkey_col),
+                                     self.sourceModel().index(right.row(), pubkey_col))
 
         return left_data < right_data
 
@@ -123,22 +128,26 @@ class NetworkTableModel(QAbstractTableModel):
         'is_root',
         'state'
     )
+
+    DESYNCED = 3
+
     node_colors = {
         Node.ONLINE: QColor('#99ff99'),
         Node.OFFLINE: QColor('#ff9999'),
-        Node.DESYNCED: QColor('#ffbd81'),
+        DESYNCED: QColor('#ffbd81'),
         Node.CORRUPTED: QColor(Qt.lightGray)
     }
+
     node_icons = {
         Node.ONLINE: ":/icons/synchronized",
         Node.OFFLINE: ":/icons/offline",
-        Node.DESYNCED: ":/icons/forked",
+        DESYNCED: ":/icons/forked",
         Node.CORRUPTED: ":/icons/corrupted"
     }
     node_states = {
         Node.ONLINE: lambda: QT_TRANSLATE_NOOP("NetworkTableModel", 'Online'),
         Node.OFFLINE: lambda: QT_TRANSLATE_NOOP("NetworkTableModel", 'Offline'),
-        Node.DESYNCED: lambda: QT_TRANSLATE_NOOP("NetworkTableModel", 'Unsynchronized'),
+        DESYNCED: lambda: QT_TRANSLATE_NOOP("NetworkTableModel", 'Unsynchronized'),
         Node.CORRUPTED: lambda: QT_TRANSLATE_NOOP("NetworkTableModel", 'Corrupted')
     }
     
@@ -155,8 +164,9 @@ class NetworkTableModel(QAbstractTableModel):
         self.network_service.node_changed.connect(self.change_node)
         self.network_service.node_removed.connect(self.remove_node)
         self.network_service.new_node_found.connect(self.add_node)
+        self.network_service.latest_block_changed.connect(self.init_nodes)
 
-    def data_node(self, node: Node) -> tuple:
+    def data_node(self, node: Node, current_buid=None) -> tuple:
         """
         Return node data tuple
         :param ..core.net.node.Node node: Network node
@@ -181,10 +191,16 @@ class NetworkTableModel(QAbstractTableModel):
             number, block_hash, block_time = node.current_buid.number, node.current_buid.sha_hash, node.current_ts
         else:
             number, block_hash, block_time = "", "", ""
-        return (address, port, number, block_hash, block_time, node.uid,
-                node.member, node.pubkey, node.software, node.version, node.root, node.state)
+        state = node.state
+        if not current_buid:
+            current_buid = self.network_service.current_buid()
+        if node.state == Node.ONLINE and node.current_buid != current_buid:
+            state = NetworkTableModel.DESYNCED
 
-    def init_nodes(self):
+        return (address, port, number, block_hash, block_time, node.uid,
+                node.member, node.pubkey, node.software, node.version, node.root, state)
+
+    def init_nodes(self, current_buid=None):
         self.beginResetModel()
         self.nodes_data = []
         nodes_data = []
