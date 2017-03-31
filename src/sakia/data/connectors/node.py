@@ -198,7 +198,7 @@ class NodeConnector(QObject):
                     self.node.previous_buid = BlockUID.empty()
                     self.change_state_and_emit(Node.ONLINE)
                 else:
-                    self.change_state_and_emit(Node.OFFLINE)
+                    self.change_state_and_emit(Node.CORRUPTED)
                     self._logger.debug("Error in block reply of {0} : {1}}".format(self.node.pubkey[:5], str(e)))
         else:
             self._logger.debug("Could not connect to any BMA endpoint : {0}".format(self.node.pubkey[:5]))
@@ -209,8 +209,8 @@ class NodeConnector(QObject):
         Refresh the blocks of this node
         :param dict block_data: The block data in json format
         """
-        self.node.state = Node.ONLINE
         if not self.node.current_buid or self.node.current_buid.sha_hash != block_data['hash']:
+            new_state = self.node.state
             for endpoint in [e for e in self.node.endpoints if isinstance(e, BMAEndpoint)]:
                 conn_handler = next(endpoint.conn_handler(self.session,
                                                      proxy=self._user_parameters.proxy()))
@@ -222,13 +222,19 @@ class NodeConnector(QObject):
                     if not previous_block:
                         continue
                     self.node.previous_buid = BlockUID(previous_block['number'], previous_block['hash'])
-                    return  # Do not try any more endpoint
+                    new_state = Node.ONLINE
+                    break  # Do not try any more endpoint
                 except errors.DuniterError as e:
                     if e.ucode == errors.BLOCK_NOT_FOUND:
                         self.node.previous_buid = BlockUID.empty()
                         self.node.current_buid = BlockUID.empty()
+                        # we don't change state here
+                        new_state = Node.ONLINE
+                        break
                     else:
-                        self.node.state = Node.OFFLINE
+                        new_state = Node.CORRUPTED
+                        break
+
                     self._logger.debug("Error in previous block reply of {0} : {1}".format(self.node.pubkey[:5], str(e)))
                 finally:
                     if self.node.current_buid != BlockUID(block_data['number'], block_data['hash']):
@@ -236,12 +242,13 @@ class NodeConnector(QObject):
                         self.node.current_ts = block_data['medianTime']
                         self._logger.debug("Changed block {0} -> {1}".format(self.node.current_buid.number,
                                                                         block_data['number']))
-                    self.changed.emit()
+                    self.change_state_and_emit(new_state)
+
             else:
                 self._logger.debug("Could not connect to any BMA endpoint : {0}".format(self.node.pubkey[:5]))
                 self.change_state_and_emit(Node.OFFLINE)
         else:
-            self.changed.emit()
+            self.change_state_and_emit(Node.ONLINE)
 
     @asyncify
     async def refresh_summary(self):
@@ -257,7 +264,7 @@ class NodeConnector(QObject):
                 self.node.software = summary_data["duniter"]["software"]
                 self.node.version = summary_data["duniter"]["version"]
                 self.node.state = Node.ONLINE
-                self.changed.emit()
+                self.identity_changed.emit()
                 return  # Break endpoints loop
             except errors.DuniterError as e:
                 self._logger.debug("Error in summary of {0} : {1}".format(self.node.pubkey[:5], str(e)))
@@ -284,7 +291,6 @@ class NodeConnector(QObject):
                             if msg.tp == aiohttp.MsgType.text:
                                 self._logger.debug("Received a peer : {0}".format(self.node.pubkey[:5]))
                                 peer_data = bma.parse_text(msg.data, bma.ws.WS_PEER_SCHEMA)
-                                self.change_state_and_emit(Node.ONLINE)
                                 self.refresh_peer_data(peer_data)
                             elif msg.tp == aiohttp.MsgType.closed:
                                 break
@@ -334,9 +340,7 @@ class NodeConnector(QObject):
                             self._logger.debug("{pubkey} : Incorrect peer data in {leaf}"
                                           .format(pubkey=self.node.pubkey[:5],
                                                   leaf=leaf_hash))
-                            self.node.state = Node.OFFLINE
-                        finally:
-                            self.changed.emit()
+                            self.change_state_and_emit(Node.OFFLINE)
                     else:
                         self.node.merkle_peers_root = peers_data['root']
                         self.node.merkle_peers_leaves = tuple(peers_data['leaves'])

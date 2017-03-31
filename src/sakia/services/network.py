@@ -235,8 +235,6 @@ class NetworkService(QObject):
                         self.node_changed.emit(node)
                     except errors.DuniterError as e:
                         self._logger.error(e.message)
-
-                self._app.db.commit()
             except IndexError:
                 await asyncio.sleep(2)
 
