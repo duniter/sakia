@@ -17,7 +17,7 @@ class PluginsDirectory:
     _logger = attr.ib(default=attr.Factory(lambda: logging.getLogger('sakia')))
 
     @classmethod
-    def in_config_path(cls, config_path, profile_name):
+    def in_config_path(cls, config_path, profile_name="Default Profile"):
         plugins_path = os.path.join(config_path, profile_name, "plugins")
         if not os.path.exists(plugins_path):
             os.makedirs(plugins_path)

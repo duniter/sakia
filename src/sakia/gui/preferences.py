@@ -1,9 +1,3 @@
-"""
-Created on 11 mai 2015
-
-@author: inso
-"""
-
 from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtWidgets import QDialog
 
@@ -52,6 +46,8 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
         self.spinbox_proxy_port.setMaximum(55636)
         self.spinbox_proxy_port.setValue(self.app.parameters.proxy_port)
         self.edit_proxy_address.setText(self.app.parameters.proxy_address)
+        self.edit_proxy_username.setText(self.app.parameters.proxy_user)
+        self.edit_proxy_password.setText(self.app.parameters.proxy_password)
 
     def handle_proxy_change(self):
         self.spinbox_proxy_port.setEnabled(self.checkbox_proxy.isChecked())
@@ -66,7 +62,9 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
                                     notifications=self.checkbox_notifications.isChecked(),
                                     enable_proxy=self.checkbox_proxy.isChecked(),
                                     proxy_address=self.edit_proxy_address.text(),
-                                    proxy_port=self.spinbox_proxy_port.value())
+                                    proxy_port=self.spinbox_proxy_port.value(),
+                                    proxy_user=self.edit_proxy_username.text(),
+                                    proxy_password=self.edit_proxy_password.text())
         self.app.save_parameters(parameters)
       # change UI translation
         self.app.switch_language()

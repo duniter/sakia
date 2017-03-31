@@ -12,7 +12,7 @@ from sakia.constants import ROOT_SERVERS
 from duniterpy.documents import BlockUID
 from sakia.app import Application
 from sakia.options import SakiaOptions
-from sakia.data.files import AppDataFile
+from sakia.data.files import *
 from sakia.data.entities import *
 from sakia.data.repositories import *
 from sakia.services import DocumentsService
@@ -67,7 +67,11 @@ def user_parameters():
     return UserParameters()
 
 @pytest.fixture
-def application(event_loop, meta_repo, sakia_options, app_data, user_parameters):
+def plugins_dir(sakia_options):
+    return PluginsDirectory.in_config_path(sakia_options.config_path).load_or_init()
+
+@pytest.fixture
+def application(event_loop, meta_repo, sakia_options, app_data, user_parameters, plugins_dir):
 
     ROOT_SERVERS["test_currency"] = {'display': "Fake Currency", 'nodes': []}
     app = Application(qapp=get_application(),
@@ -76,7 +80,8 @@ def application(event_loop, meta_repo, sakia_options, app_data, user_parameters)
                       app_data=app_data,
                       parameters=user_parameters,
                       db=meta_repo,
-                      currency="test_currency")
+                      currency="test_currency",
+                      plugins_dir=plugins_dir)
     return app
 
 
