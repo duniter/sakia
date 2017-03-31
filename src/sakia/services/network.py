@@ -230,7 +230,7 @@ class NetworkService(QObject):
             self._logger.debug("{0} -> {1}".format(self._block_found.sha_hash[:10], current_buid.sha_hash[:10]))
             if self._block_found.sha_hash != current_buid.sha_hash:
                 self._logger.debug("Latest block changed : {0}".format(current_buid.number))
-                self.latest_block_changed.emit(self._block_found)
+                self.latest_block_changed.emit(current_buid)
                 # If new latest block is lower than the previously found one
                 # or if the previously found block is different locally
                 # than in the main chain, we declare a rollback

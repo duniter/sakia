@@ -3,12 +3,16 @@ from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyMode
 from PyQt5.QtGui import QColor, QFont, QIcon
 from sakia.data.entities import Node
 from duniterpy.documents import BMAEndpoint, SecuredBMAEndpoint
+from sakia.data.processors import BlockchainProcessor
+import logging
 
 
 class NetworkFilterProxyModel(QSortFilterProxyModel):
 
-    def __init__(self, parent=None):
+    def __init__(self, app, parent=None):
         super().__init__(parent)
+        self.app = app
+        self.blockchain_processor = BlockchainProcessor.instanciate(app)
 
     def columnCount(self, parent):
         return len(NetworkTableModel.header_names)
@@ -31,6 +35,15 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
                              NetworkTableModel.columns_types.index('current_time')):
             left_data = int(left_data) if left_data != '' else 0
             right_data = int(right_data) if right_data != '' else 0
+            if left_data == right_data:
+                hash_col = NetworkTableModel.columns_types.index('current_hash')
+                return self.lessThan(self.sourceModel().index(left.row(), hash_col),
+                                     self.sourceModel().index(right.row(), hash_col))
+
+        # for every column which is not current_block or current_time,
+        # if they are different from the pubkey column
+        # if they are equal, we sort them by the pubkey
+        if left.column() != NetworkTableModel.columns_types.index('pubkey'):
             if left_data == right_data:
                 pubkey_col = NetworkTableModel.columns_types.index('pubkey')
                 return self.lessThan(self.sourceModel().index(left.row(), pubkey_col),
@@ -74,9 +87,10 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
                 return source_data[:10]
 
             if index.column() == NetworkTableModel.columns_types.index('current_time') and source_data:
+                ts = self.blockchain_processor.adjusted_ts(self.app.currency, source_data)
                 return QLocale.toString(
                             QLocale(),
-                            QDateTime.fromTime_t(source_data),
+                            QDateTime.fromTime_t(ts),
                             QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
                         )
 
@@ -165,6 +179,7 @@ class NetworkTableModel(QAbstractTableModel):
         self.network_service.node_removed.connect(self.remove_node)
         self.network_service.new_node_found.connect(self.add_node)
         self.network_service.latest_block_changed.connect(self.init_nodes)
+        self._logger = logging.getLogger('sakia')
 
     def data_node(self, node: Node, current_buid=None) -> tuple:
         """
@@ -201,11 +216,12 @@ class NetworkTableModel(QAbstractTableModel):
                 node.member, node.pubkey, node.software, node.version, node.root, state)
 
     def init_nodes(self, current_buid=None):
+        self._logger.debug("Init nodes table")
         self.beginResetModel()
         self.nodes_data = []
         nodes_data = []
         for node in self.network_service.nodes():
-            data = self.data_node(node)
+            data = self.data_node(node, current_buid)
             nodes_data.append(data)
         self.nodes_data = nodes_data
         self.endResetModel()

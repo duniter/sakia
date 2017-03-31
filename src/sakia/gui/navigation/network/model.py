@@ -22,7 +22,7 @@ class NetworkModel(QObject):
 
     def init_network_table_model(self):
         model = NetworkTableModel(self.network_service)
-        proxy = NetworkFilterProxyModel()
+        proxy = NetworkFilterProxyModel(self.app)
         proxy.setSourceModel(model)
         self.table_model = proxy
         model.init_nodes()
