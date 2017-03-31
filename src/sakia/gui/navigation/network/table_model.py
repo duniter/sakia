@@ -27,6 +27,9 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
                              NetworkTableModel.columns_types.index('current_time')):
             left_data = int(left_data) if left_data != '' else 0
             right_data = int(right_data) if right_data != '' else 0
+            if left_data == right_data:
+                pubkey_col = NetworkTableModel.columns_types.index('pubkey')
+                return self.lessThan(self.index(left.row(), pubkey_col), self.index(right.row(), pubkey_col))
 
         return left_data < right_data
 
