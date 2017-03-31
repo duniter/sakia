@@ -4,8 +4,8 @@ import attr
 @attr.s(frozen=True)
 class Plugin:
     name = attr.ib()
-    description = attr.ib()
-    version = attr.ib()
-    imported = attr.ib()
-    module = attr.ib()
-    filename = attr.ib()
+    description = attr.ib(cmp=False, hash=False)
+    version = attr.ib(cmp=False, hash=False)
+    imported = attr.ib(cmp=False, hash=False)
+    module = attr.ib(cmp=False, hash=False)
+    filename = attr.ib(cmp=False, hash=False)

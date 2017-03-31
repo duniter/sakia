@@ -7,6 +7,8 @@ import attr
 class PluginsManagerModel(QObject):
     """
     The model of Plugin component
+
+    :param sakia.app.Application app: The application
     """
 
     app = attr.ib()
@@ -39,3 +41,10 @@ class PluginsManagerModel(QObject):
             except StopIteration:
                 pass
         return None
+
+    def install_plugin(self, filename):
+        try:
+            plugin = self.app.plugins_dir.install_plugin(filename)
+            self._model.add_plugin(plugin)
+        except OSError as e:
+            self.view.show_error(str(e))

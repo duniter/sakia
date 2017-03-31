@@ -49,7 +49,7 @@
          </spacer>
         </item>
         <item>
-         <widget class="QPushButton" name="button_save">
+         <widget class="QPushButton" name="button_install">
           <property name="text">
            <string>Install a new plugin</string>
           </property>

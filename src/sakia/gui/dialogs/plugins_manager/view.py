@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QDialog, QAbstractItemView, QHeaderView
+from PyQt5.QtWidgets import QDialog, QAbstractItemView, QHeaderView, QMessageBox
 from PyQt5.QtCore import QModelIndex
 from .plugins_manager_uic import Ui_PluginDialog
 
@@ -34,3 +34,7 @@ class PluginsManagerView(QDialog, Ui_PluginDialog):
         if indexes:
             return indexes[0]
         return QModelIndex()
+
+    def show_error(self, error_txt):
+        QMessageBox.critical(self, self.tr("Plugin import"),
+                             self.tr("CCould not import plugin : {0}".format(error_txt)))

@@ -1,5 +1,6 @@
 import asyncio
 
+from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtCore import QObject
 from .model import PluginsManagerModel
 from .view import PluginsManagerView
@@ -33,6 +34,7 @@ class PluginsManagerController(QObject):
         plugin = cls(view, model)
         view.set_table_plugins_model(model.init_plugins_table())
         view.button_delete.clicked.connect(plugin.delete_plugin)
+        view.button_install.clicked.connect(plugin.install_plugin)
         return plugin
 
     @classmethod
@@ -52,6 +54,13 @@ class PluginsManagerController(QObject):
         plugin_index = self.view.selected_plugin_index()
         plugin = self.model.plugin(plugin_index)
         self.model.delete_plugin(plugin)
+
+    def install_plugin(self):
+
+        filename = QFileDialog.getOpenFileName(self.view, self.tr("Open File"),"",
+                                               self.tr("Sakia module (*.zip)"))
+        if filename[0]:
+            self.model.install_plugin(filename[0])
 
     def async_exec(self):
         future = asyncio.Future()

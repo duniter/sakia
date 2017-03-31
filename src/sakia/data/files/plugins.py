@@ -1,4 +1,5 @@
 import attr
+import shutil
 import os
 import sys
 import logging
@@ -48,9 +49,16 @@ class PluginsDirectory:
         return self
 
     def uninstall_plugin(self, plugin):
-        try:
-            for file in os.listdir(self._path):
-                if file == plugin.filename:
-                    os.remove(os.path.join(self._path, file))
-        except OSError as e:
-            self._logger.debug(str(e))
+        for file in os.listdir(self._path):
+            if file == plugin.filename:
+                os.remove(os.path.join(self._path, file))
+                self.plugins.remove(plugin)
+
+    def install_plugin(self, filename):
+        basename = os.path.basename(filename)
+        if basename not in [p.filename for p in self.plugins]:
+            shutil.copyfile(filename, os.path.join(self._path, basename))
+            module_name = os.path.splitext(basename)[0]
+            plugin = Plugin(module_name, "", "", False, None, basename)
+            self.plugins.append(plugin)
+            return plugin
