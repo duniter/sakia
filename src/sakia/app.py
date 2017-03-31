@@ -186,6 +186,7 @@ class Application(QObject):
         and stop the coroutines
         """
         await self.network_service.stop_coroutines(closing)
+        self.db.commit()
 
     @asyncify
     async def get_last_version(self):
