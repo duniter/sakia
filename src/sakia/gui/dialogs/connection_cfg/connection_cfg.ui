@@ -454,7 +454,11 @@ p, li { white-space: pre-wrap; }
         </widget>
        </item>
        <item>
-        <widget class="QPlainTextEdit" name="plain_text_edit"/>
+        <widget class="QPlainTextEdit" name="plain_text_edit">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
