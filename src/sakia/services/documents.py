@@ -56,7 +56,7 @@ class DocumentsService:
             identity = Identity(connection.currency, connection.pubkey, connection.uid)
 
         sig_window = self._blockchain_processor.parameters(connection.currency).sig_window
-        expired = identity.timestamp + sig_window >= self._blockchain_processor.time(connection.currency)
+        expired = identity.timestamp + sig_window <= self._blockchain_processor.time(connection.currency)
 
         if identity.written or (not identity.written and not expired):
             identity_doc = IdentityDoc(10,
@@ -76,10 +76,10 @@ class DocumentsService:
                                connection.uid,
                                block_uid,
                                None)
-            key = SigningKey(secret_key, password, connection.scrypt_params)
-            identity_doc.sign([key])
-            identity.signature = identity_doc.signatures[0]
-        return identity_doc
+        key = SigningKey(secret_key, password, connection.scrypt_params)
+        identity_doc.sign([key])
+        identity.signature = identity_doc.signatures[0]
+        return identity, identity_doc
 
     async def broadcast_identity(self, connection, secret_key, password):
         """
@@ -89,16 +89,14 @@ class DocumentsService:
         :param str secret_key: the private key secret key
         :param str password: the private key password
         """
-        identity_doc = self.generate_identity(connection, secret_key, password)
+        identity, identity_doc = self.generate_identity(connection, secret_key, password)
         self._logger.debug("Key publish : {0}".format(identity_doc.signed_raw()))
 
         responses = await self._bma_connector.broadcast(connection.currency, bma.wot.add,
                                                         req_args={'identity': identity_doc.signed_raw()})
         result = await parse_bma_responses(responses)
 
-        if result[0]:
-            identity = self._identities_processor.get_identity(connection.currency, connection.pubkey, connection.uid)
-        else:
+        if not result[0]:
             identity = None
 
         return result, identity

@@ -238,7 +238,7 @@ The publication of this document will remove your identity from the network.</p>
         if not password or not secret_key:
             return
 
-        raw_document = self.model.generate_identity(connection, secret_key, password)
+        _, raw_document = self.model.generate_identity(connection, secret_key, password)
         # Testable way of using a QFileDialog
         selected_files = await QAsyncFileDialog.get_save_filename(self.view, self.tr("Save an identity document"),
                                                                   "", self.tr("All text files (*.txt)"))
