@@ -122,4 +122,16 @@ class NodesRepo:
         data = c.fetchone()
         if data:
             return block_uid(data[0])
+        else:
+            c = self._conn.execute("""SELECT `current_buid`,
+             COUNT(`current_buid`) AS `value_occurrence`
+    FROM     `nodes`
+    WHERE state == 1 AND currency == ?
+    GROUP BY `current_buid`
+    ORDER BY `value_occurrence` DESC
+    LIMIT    1;""", (currency,))
+            data = c.fetchone()
+            if data:
+                return block_uid(data[0])
+
         return BlockUID.empty()
