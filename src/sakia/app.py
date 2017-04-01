@@ -141,7 +141,6 @@ class Application(QObject):
                                                     self.identities_service)
 
     async def remove_connection(self, connection):
-        await self.stop_current_profile()
         connections_processor = ConnectionsProcessor.instanciate(self)
         connections_processor.remove_connections(connection)
 
@@ -159,7 +158,6 @@ class Application(QObject):
             NodesProcessor.instanciate(self).drop_all(self.currency)
 
         self.db.commit()
-        self.start_coroutines()
 
     def switch_language(self):
         logging.debug("Loading translations")
