@@ -42,6 +42,7 @@ class UserInformationController(QObject):
         dialog.setLayout(QVBoxLayout(dialog))
         dialog.layout().addWidget(user_info.view)
         user_info.refresh()
+        dialog.resize(800, 300)
         dialog.exec()
 
     @classmethod
