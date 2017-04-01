@@ -31,7 +31,7 @@ class SearchUserController(QObject):
         view = SearchUserView(parent.view if parent else None)
         model = SearchUserModel(parent, app)
         search_user = cls(parent, view, model)
-        view.set_auto_completion([c.name + " < " + c.pubkey + " > " for c in model.contacts()])
+        view.set_auto_completion([c.displayed_text() for c in model.contacts()])
         return search_user
 
     @asyncify

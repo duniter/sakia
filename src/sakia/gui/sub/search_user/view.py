@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QComboBox, QCompleter
 from PyQt5.QtCore import QT_TRANSLATE_NOOP, pyqtSignal, Qt, QStringListModel
+from sakia.data.entities import Contact
 from .search_user_uic import Ui_SearchUserWidget
 import re
 
@@ -32,10 +33,9 @@ class SearchUserView(QWidget, Ui_SearchUserWidget):
         Search nodes when return is pressed in combobox lineEdit
         """
         if text:
-            re_contact = re.compile("[\w\s\d]+ < ((?![OIl])[1-9A-Za-z]{42,45}) >")
-            result = re.match(re_contact, text)
+            result = re.match(Contact.re_displayed_text, text)
             if result:
-                text = result.group(1)
+                text = result.group(2)
         else:
             text = self.combobox_search.lineEdit().text()
         self.combobox_search.lineEdit().clear()

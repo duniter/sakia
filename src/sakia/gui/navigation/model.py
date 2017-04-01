@@ -1,7 +1,7 @@
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtWidgets import QApplication
 from sakia.models.generic_tree import GenericTreeModel
-from sakia.data.processors import ConnectionsProcessor
+from sakia.data.processors import ContactsProcessor
 
 
 class NavigationModel(QObject):
@@ -20,6 +20,7 @@ class NavigationModel(QObject):
         self.app = app
         self.navigation = []
         self._current_data = None
+        self._contacts_processor = ContactsProcessor.instanciate(self.app)
 
     def init_navigation_data(self):
         self.navigation = [
@@ -42,8 +43,13 @@ class NavigationModel(QObject):
         return self.navigation
 
     def create_node(self, connection):
+        matching_contact = self._contacts_processor.get_one(pubkey=connection.pubkey)
+        if matching_contact:
+            title = matching_contact.displayed_text()
+        else:
+            title = connection.title()
         node = {
-            'title': connection.title(),
+            'title': title,
             'component': "Informations",
             'dependencies': {
                 'blockchain_service': self.app.blockchain_service,

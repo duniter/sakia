@@ -35,3 +35,6 @@ class ContactsProcessor:
 
     def delete(self, contact):
         self._contacts_repo.drop(contact)
+
+    def get_one(self, **search):
+        return self._contacts_repo.get_one(**search)
