@@ -59,6 +59,76 @@ class ConnectionConfigView(QDialog, Ui_ConnectionConfigurationDialog):
         self.spin_r.blockSignals(False)
         self.spin_p.blockSignals(False)
 
+    def set_license(self, currency):
+        license_text = self.tr("""
+<H1> License Ğ1 - v0.1 </H1>
+<H2> Money licensing and liability commitment. </H2>
+
+<P> Any certification of a new member of Ğ1
+    must first be accompanied by this license of the currency Ğ1
+    which the certifier must ensure that it has been studied,
+    understood and accepted by the person who will be certified. </P>
+<H4> Production of Units Ğ1 </h4>
+<P> Ğ1 occurs via a Universal Dividend (DU) for any human member, which is of the form: </ p>
+<Ul>
+<Li> 1 DU per person per day </ li>
+</Ul>
+<div>
+<P> The amount of DU is identical each day until the next equinox,
+where the DU will then be reevaluated according to the formula: </p>
+</div>
+<div>
+<ul>
+<li> DU <sub> day </sub> (the following equinox) = DU <day> (equinox) + c² (M / N) (equinox) / (15778800 seconds)
+</Ul>
+</div>
+<div>
+<P> With as parameters: </p>
+</div>
+<div>
+<Ul>
+<Li> c = 4.88% / equinox </li>
+<Li> UD (0) = 10.00 Ğ1 </li>
+</Ul>
+</div>
+<div>
+<P> And as variables: </p>
+</div>
+<div>
+<Ul>
+<Li> <em> M </em> the total monetary mass at the equinox </li>
+<Li> <em> N </em> the number of members at the equinox </li>
+</Ul>
+<div>
+<H4>Web of Trust</H4>
+</div>
+<div>
+<P> <strong> Warning: </strong> Certifying is not just about making sure you've met the person,
+it's ensuring that the community Ğ1 knows the certified person well enough and Duplicate account
+made by a person certified by you, or other types of problems (disappearance ...),
+by cross-checking that will reveal the problem if necessary. </P>
+</div>
+<div>
+<P> When you are a member of Ğ1 and you are about to certify a new account: </p>
+</div>
+<div>
+<P> <strong> You are assured: </strong> </p>
+</div>
+<div>
+<P> 1 °) The person who declares to manage this public key (new account) and to have personally verified with him that
+it is indeed this Public key you are about to certify. </P>
+<P> 2 °) To meet her physically to make sure that it is this person you know who manages this public key. </P>
+<P> 3 °) Remotely verify the public person / key link by contacting the person via several different means of communication,
+such as social network + forum + mail + video conference + phone (acknowledge voice). </P>
+</div>
+<div>
+<P> Because if you can hack an email account or a forum account, it will be much harder to imagine hacking four distinct
+ means of communication, and mimic the appearance (video) as well as the voice of the person . </P>
+<P> However, the 2 °) is preferable to 3 °, whereas the 1 °) is always indispensable in all cases. </P>
+</div>
+""")
+        self.text_license.setText(license_text)
+
     def handle_n_change(self, value):
         spinbox = self.sender()
         self.scrypt_params.N = ConnectionConfigView.compute_power_of_2(spinbox, value, self.scrypt_params.N)

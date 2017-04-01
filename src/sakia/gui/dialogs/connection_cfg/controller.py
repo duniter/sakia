@@ -68,6 +68,7 @@ class ConnectionConfigController(QObject):
                                                                        app.parameters)))
         account_cfg = cls(parent, view, model)
         model.setParent(account_cfg)
+        view.set_license(app.currency)
         return account_cfg
 
     @classmethod
@@ -158,7 +159,8 @@ class ConnectionConfigController(QObject):
         elif self.mode == ConnectionConfigController.PUBKEY:
             self._logger.debug("Pubkey mode")
             self.view.button_next.clicked.connect(self.check_pubkey)
-            self.view.label_action.setText(self.view.label_action.text() + self.tr(" (Optional)"))
+            if not self.view.label_action.text().endswidth(self.tr(" (Optional)")):
+                self.view.label_action.setText(self.view.label_action.text() + self.tr(" (Optional)"))
             self.view.groupbox_key.hide()
             self.view.stacked_pages.setCurrentWidget(self.view.page_connection)
             connection_identity = await self.step_key
@@ -293,7 +295,7 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
                         if registered[0] is False and registered[2] is None:
                             self.step_key.set_result(None)
                         elif registered[2]:
-                            self.view.display_info(self.tr("""Your pubkey is associated to a pubkey.<br/>
+                            self.view.display_info(self.tr("""Your pubkey is associated to an identity.<br/>
 Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
 
                 except DuniterError as e:
