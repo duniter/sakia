@@ -45,14 +45,15 @@ if is_win:
     a.binaries = a.binaries + TOC([('libsodium.dll', ctypes.util.find_library('libsodium.dll'), 'BINARY')])
     a.datas = a.datas + [('sakia\\root_servers.yml', 'src\\/sakia\\root_servers.yml', 'DATA')]
 
-
-for sql_file in ("meta.sql", "000_add_ud_rythm_parameters.sql", "001_add_contacts.sql"):
-    if is_win:
-        a.datas = a.datas + [('sakia\\data\\repositories\\{:}'.format(sql_file),
-                              'src\\sakia\\data\\repositories\\{:}'.format(sql_file), 'DATA')]
-    else:
-        a.datas = a.datas + [('sakia/data/repositories/{:}'.format(sql_file),
-                              'src/sakia/data/repositories/{:}'.format(sql_file), 'DATA')]
+for file in os.listdir(os.path.join("src", "sakia", "data", "repositories")):
+    if file.endswith(".sql"):
+        sql_file = os.path.basename(file)
+        if is_win:
+            a.datas = a.datas + [('sakia\\data\\repositories\\{:}'.format(sql_file),
+                                  'src\\sakia\\data\\repositories\\{:}'.format(sql_file), 'DATA')]
+        else:
+            a.datas = a.datas + [('sakia/data/repositories/{:}'.format(sql_file),
+                                  'src/sakia/data/repositories/{:}'.format(sql_file), 'DATA')]
 
 print(a.binaries)
 
