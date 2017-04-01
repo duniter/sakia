@@ -1,6 +1,6 @@
 from PyQt5.QtGui import QTextDocument, QAbstractTextDocumentLayout, QPalette
 from PyQt5.QtWidgets import QStyledItemDelegate, QApplication, QStyle
-from PyQt5.QtCore import QSize, Qt
+from PyQt5.QtCore import QSize, Qt, QSizeF
 from .table_model import HistoryTableModel
 
 
@@ -43,5 +43,5 @@ class TxHistoryDelegate(QStyledItemDelegate):
             doc.setHtml(option.text)
         else:
             doc.setPlainText("")
-        doc.setTextWidth(option.rect.width())
+        doc.setTextWidth(-1)
         return QSize(doc.idealWidth(), doc.size().height())
