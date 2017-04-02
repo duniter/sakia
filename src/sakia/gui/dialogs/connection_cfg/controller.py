@@ -159,7 +159,7 @@ class ConnectionConfigController(QObject):
         elif self.mode == ConnectionConfigController.PUBKEY:
             self._logger.debug("Pubkey mode")
             self.view.button_next.clicked.connect(self.check_pubkey)
-            if not self.view.label_action.text().endswidth(self.tr(" (Optional)")):
+            if not self.view.label_action.text().endswith(self.tr(" (Optional)")):
                 self.view.label_action.setText(self.view.label_action.text() + self.tr(" (Optional)"))
             self.view.groupbox_key.hide()
             self.view.stacked_pages.setCurrentWidget(self.view.page_connection)
