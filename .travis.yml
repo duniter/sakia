@@ -6,6 +6,8 @@ matrix:
       sudo: required
   exclude:
     - os: linux
+  allow_failures:
+    - os: osx
 
 env:
 - PYENV_PYTHON_VERSION=3.5.2
