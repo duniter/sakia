@@ -28,6 +28,12 @@ def assert_key_parameters_behaviour(connection_config_dialog, user):
     assert connection_config_dialog.view.label_info.text() == user.key.pubkey
 
 
+def assert_pubkey_parameters_behaviour(connection_config_dialog, user):
+    QTest.keyClicks(connection_config_dialog.view.edit_uid, user.uid)
+    QTest.keyClicks(connection_config_dialog.view.edit_pubkey, user.key.pubkey)
+    assert connection_config_dialog.view.button_next.isEnabled() is True
+
+
 @pytest.mark.asyncio
 async def test_register_empty_blockchain(application, fake_server, bob):
     connection_config_dialog = ConnectionConfigController.create_connection(None, application)
@@ -137,3 +143,30 @@ Yours : {0}, the network : {1}""".format(wrong_bob_pubkey.pubkey, bob.pubkey)
     await connection_config_dialog.async_exec()
     await simple_fake_server.close()
 
+
+
+@pytest.mark.asyncio
+async def test_connect_pubkey_wrong_uid(application, simple_fake_server, wrong_bob_uid, bob):
+    connection_config_dialog = ConnectionConfigController.create_connection(None, application)
+
+    def close_dialog():
+        if connection_config_dialog.view.isVisible():
+            connection_config_dialog.view.close()
+
+    async def exec_test():
+        QTest.mouseClick(connection_config_dialog.view.button_pubkey, Qt.LeftButton)
+        await asyncio.sleep(0.6)
+        QTest.mouseClick(connection_config_dialog.view.button_accept, Qt.LeftButton)
+        await asyncio.sleep(0.1)
+        assert connection_config_dialog.view.stacked_pages.currentWidget() == connection_config_dialog.view.page_connection
+        assert_pubkey_parameters_behaviour(connection_config_dialog, wrong_bob_uid)
+        QTest.mouseClick(connection_config_dialog.view.button_next, Qt.LeftButton)
+        await asyncio.sleep(0.6)
+        assert connection_config_dialog.view.label_info.text() == """Your pubkey or UID is different on the network.
+Yours : {0}, the network : {1}""".format(wrong_bob_uid.uid, bob.uid)
+        connection_config_dialog.view.close()
+
+    application.loop.call_later(10, close_dialog)
+    asyncio.ensure_future(exec_test())
+    await connection_config_dialog.async_exec()
+    await simple_fake_server.close()
