@@ -10,6 +10,7 @@ import asyncio
 class IdentitiesFilterProxyModel(QSortFilterProxyModel):
     def __init__(self, app, parent=None):
         super().__init__(parent)
+        self.app = app
         self.blockchain_processor = BlockchainProcessor.instanciate(app)
 
     def columnCount(self, parent):
@@ -57,7 +58,7 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
                 if source_index.column() in (IdentitiesTableModel.columns_ids.index('renewed'),
                                              IdentitiesTableModel.columns_ids.index('expiration')):
                     if source_data:
-                        ts = self.blockchain_processor.adjusted_ts(self.connection.currency, source_data)
+                        ts = self.blockchain_processor.adjusted_ts(self.app.currency, source_data)
                         return QLocale.toString(
                             QLocale(),
                             QDateTime.fromTime_t(ts).date(),
@@ -67,7 +68,7 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
                         return ""
                 if source_index.column() == IdentitiesTableModel.columns_ids.index('publication'):
                     if source_data:
-                        ts = self.blockchain_processor.adjusted_ts(self.connection.currency, source_data)
+                        ts = self.blockchain_processor.adjusted_ts(self.app.currency, source_data)
                         return QLocale.toString(
                             QLocale(),
                             QDateTime.fromTime_t(ts),
