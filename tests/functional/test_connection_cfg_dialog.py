@@ -5,7 +5,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtTest import QTest
 from sakia.data.processors import ConnectionsProcessor
 from sakia.gui.dialogs.connection_cfg import ConnectionConfigController
-from ..helpers import click_on_top_message_box
+from tests.helpers import click_on_top_message_box
 
 
 def assert_key_parameters_behaviour(connection_config_dialog, user):
@@ -64,7 +64,7 @@ async def test_register_empty_blockchain(application, fake_server, bob):
 
 
 @pytest.mark.asyncio
-async def test_connect(application, simple_fake_server, bob):
+async def test_connect(application, fake_server_with_blockchain, bob):
     connection_config_dialog = ConnectionConfigController.create_connection(None, application)
 
     def close_dialog():
@@ -89,11 +89,11 @@ async def test_connect(application, simple_fake_server, bob):
     application.loop.call_later(10, close_dialog)
     asyncio.ensure_future(exec_test())
     await connection_config_dialog.async_exec()
-    await simple_fake_server.close()
+    await fake_server_with_blockchain.close()
 
 
 @pytest.mark.asyncio
-async def test_connect_wrong_uid(application, simple_fake_server, wrong_bob_uid, bob):
+async def test_connect_wrong_uid(application, fake_server_with_blockchain, wrong_bob_uid, bob):
     connection_config_dialog = ConnectionConfigController.create_connection(None, application)
 
     def close_dialog():
@@ -115,11 +115,11 @@ Yours : {0}, the network : {1}""".format(wrong_bob_uid.uid, bob.uid)
     application.loop.call_later(10, close_dialog)
     asyncio.ensure_future(exec_test())
     await connection_config_dialog.async_exec()
-    await simple_fake_server.close()
+    await fake_server_with_blockchain.close()
 
 
 @pytest.mark.asyncio
-async def test_connect_wrong_pubkey(application, simple_fake_server, wrong_bob_pubkey, bob):
+async def test_connect_wrong_pubkey(application, fake_server_with_blockchain, wrong_bob_pubkey, bob):
     connection_config_dialog = ConnectionConfigController.create_connection(None, application)
 
     def close_dialog():
@@ -141,12 +141,12 @@ Yours : {0}, the network : {1}""".format(wrong_bob_pubkey.pubkey, bob.pubkey)
     application.loop.call_later(10, close_dialog)
     asyncio.ensure_future(exec_test())
     await connection_config_dialog.async_exec()
-    await simple_fake_server.close()
+    await fake_server_with_blockchain.close()
 
 
 
 @pytest.mark.asyncio
-async def test_connect_pubkey_wrong_uid(application, simple_fake_server, wrong_bob_uid, bob):
+async def test_connect_pubkey_wrong_uid(application, fake_server_with_blockchain, wrong_bob_uid, bob):
     connection_config_dialog = ConnectionConfigController.create_connection(None, application)
 
     def close_dialog():
@@ -169,4 +169,4 @@ Yours : {0}, the network : {1}""".format(wrong_bob_uid.uid, bob.uid)
     application.loop.call_later(10, close_dialog)
     asyncio.ensure_future(exec_test())
     await connection_config_dialog.async_exec()
-    await simple_fake_server.close()
+    await fake_server_with_blockchain.close()

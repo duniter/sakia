@@ -14,7 +14,7 @@ def test_differential(application_with_one_connection, bob):
     assert value == approx(-3.521619496)
 
 
-def test_localized_no_si(application_with_one_connection, fake_server, bob):
+def test_localized_no_si(application_with_one_connection, bob):
     referential = RelativeZSum(110, bob.currency, application_with_one_connection, None)
     value = referential.localized(units=True)
     assert value == "-3.53 R0 UD"

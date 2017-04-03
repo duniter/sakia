@@ -57,6 +57,6 @@ class SearchUserController(QObject):
         """
         Select node in graph when item is selected in combobox
         """
-        self.model.select_identity(index)
-        self.identity_selected.emit(self.model.identity())
+        if self.model.select_identity(index):
+            self.identity_selected.emit(self.model.identity())
 

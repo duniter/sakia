@@ -4,8 +4,7 @@ from sakia.data.connectors import NodeConnector
 from asyncio import TimeoutError
 from socket import gaierror
 import jsonschema
-from aiohttp.errors import ClientError, DisconnectedError
-from aiohttp.errors import ClientResponseError
+from aiohttp import ClientError
 from PyQt5.QtCore import QObject
 import logging
 
@@ -58,7 +57,7 @@ class RevocationModel(QObject):
             except errors.DuniterError as e:
                 return False, e.message
             except (jsonschema.ValidationError, ClientError, gaierror,
-                    TimeoutError, ConnectionRefusedError, DisconnectedError, ValueError) as e:
+                    TimeoutError, ConnectionRefusedError, ValueError) as e:
                 return False, str(e)
             finally:
                 node_connector.session.close()
