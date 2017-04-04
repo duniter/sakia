@@ -1,6 +1,6 @@
 import logging
 import aiohttp
-from aiohttp.errors import ClientError, ServerDisconnectedError
+from aiohttp import ClientError
 from duniterpy.api import bma, errors
 from duniterpy.documents import BMAEndpoint, SecuredBMAEndpoint
 from sakia.errors import NoPeerAvailable
@@ -242,8 +242,8 @@ class BmaConnector:
                     tries += 1
                 else:
                     raise
-            except (ClientError, ServerDisconnectedError, gaierror,
-                    asyncio.TimeoutError, ValueError, jsonschema.ValidationError) as e:
+            except (ClientError, gaierror, asyncio.TimeoutError,
+                    ValueError, jsonschema.ValidationError) as e:
                 self._logger.debug(str(e))
                 tries += 1
         raise NoPeerAvailable("", len(endpoints))

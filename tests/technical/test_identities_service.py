@@ -5,11 +5,11 @@ import pytest
 
 
 @pytest.mark.asyncio
-async def test_new_block_with_certs(application_with_one_connection, fake_server, bob, alice):
+async def test_new_block_with_certs(application_with_one_connection, fake_server_with_blockchain, bob, alice):
     certs_before_send = application_with_one_connection.identities_service.certifications_sent(
         bob.key.pubkey)
-    alice_user_identity = fake_server.forge.user_identities[bob.key.pubkey]
-    alice_identity = Identity(currency=fake_server.forge.currency,
+    alice_user_identity = fake_server_with_blockchain.forge.user_identities[bob.key.pubkey]
+    alice_identity = Identity(currency=fake_server_with_blockchain.forge.currency,
                             pubkey=alice.key.pubkey,
                             uid=alice.uid,
                             blockstamp=alice_user_identity.blockstamp,
@@ -22,23 +22,23 @@ async def test_new_block_with_certs(application_with_one_connection, fake_server
         bob.key.pubkey)
     assert len(certs_after_send) == len(certs_before_send) + 1
     assert certs_after_send[0].written_on == -1
-    assert isinstance(fake_server.forge.pool[0], Certification)
-    fake_server.forge.forge_block()
-    fake_server.forge.forge_block()
-    fake_server.forge.forge_block()
-    new_blocks = fake_server.forge.blocks[-3:]
+    assert isinstance(fake_server_with_blockchain.forge.pool[0], Certification)
+    fake_server_with_blockchain.forge.forge_block()
+    fake_server_with_blockchain.forge.forge_block()
+    fake_server_with_blockchain.forge.forge_block()
+    new_blocks = fake_server_with_blockchain.forge.blocks[-3:]
     await application_with_one_connection.identities_service.handle_new_blocks(
         new_blocks)
     certs_after_parse = application_with_one_connection.identities_service.certifications_sent(
         bob.key.pubkey)
     assert len(certs_after_parse) == len(certs_after_send)
-    assert certs_after_parse[0].written_on == fake_server.forge.blocks[-3].number
-    await fake_server.close()
+    assert certs_after_parse[0].written_on == fake_server_with_blockchain.forge.blocks[-3].number
+    await fake_server_with_blockchain.close()
 
 
 @pytest.mark.asyncio
-async def test_new_block_with_idty(application_with_one_connection, john, simple_fake_server):
-    john_identity = Identity(currency=simple_fake_server.forge.currency,
+async def test_new_block_with_idty(application_with_one_connection, john, fake_server_with_blockchain):
+    john_identity = Identity(currency=fake_server_with_blockchain.forge.currency,
                             pubkey=john.key.pubkey,
                             uid=john.uid,
                             blockstamp=john.blockstamp,
@@ -53,14 +53,14 @@ async def test_new_block_with_idty(application_with_one_connection, john, simple
 
     john_found = application_with_one_connection.db.identities_repo.get_one(pubkey=john_identity.pubkey)
     assert john_found.written is False
-    simple_fake_server.forge.forge_block()
-    simple_fake_server.forge.push(john.identity())
-    simple_fake_server.forge.push(john.join(BlockUID.empty()))
-    simple_fake_server.forge.forge_block()
-    simple_fake_server.forge.forge_block()
-    new_blocks = simple_fake_server.forge.blocks[-3:]
+    fake_server_with_blockchain.forge.forge_block()
+    fake_server_with_blockchain.forge.push(john.identity())
+    fake_server_with_blockchain.forge.push(john.join(BlockUID.empty()))
+    fake_server_with_blockchain.forge.forge_block()
+    fake_server_with_blockchain.forge.forge_block()
+    new_blocks = fake_server_with_blockchain.forge.blocks[-3:]
     await application_with_one_connection.identities_service.handle_new_blocks(
         new_blocks)
     john_found = application_with_one_connection.db.identities_repo.get_one(pubkey=john_identity.pubkey)
     assert john_found.written is True
-    await simple_fake_server.close()
+    await fake_server_with_blockchain.close()

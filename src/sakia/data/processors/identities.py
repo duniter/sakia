@@ -9,7 +9,7 @@ from duniterpy.api import bma, errors
 from duniterpy.key import SigningKey
 from duniterpy.documents import BlockUID, block_uid
 from duniterpy.documents import Identity as IdentityDoc
-from aiohttp.errors import ClientError
+from aiohttp import ClientError
 from sakia.errors import NoPeerAvailable
 
 

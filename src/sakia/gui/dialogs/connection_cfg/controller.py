@@ -2,7 +2,8 @@ import asyncio
 import logging
 
 from PyQt5.QtCore import QObject
-from aiohttp.errors import DisconnectedError, ClientError, TimeoutError
+from aiohttp import ClientError
+from asyncio import TimeoutError
 
 from duniterpy.api.errors import DuniterError
 from duniterpy.documents import MalformedDocumentError
@@ -118,7 +119,7 @@ class ConnectionConfigController(QObject):
                     self.view.button_connect.setEnabled(False)
                     self.view.button_register.setEnabled(False)
                     await self.model.create_connection()
-                except (DisconnectedError, ClientError, MalformedDocumentError, ValueError, TimeoutError) as e:
+                except (ClientError, MalformedDocumentError, ValueError, TimeoutError) as e:
                     self._logger.debug(str(e))
                     self.view.display_info(self.tr("Could not connect. Check hostname, ip address or port : <br/>"
                                                    + str(e)))

@@ -9,7 +9,7 @@ from ..helpers import click_on_top_message_box
 
 
 @pytest.mark.asyncio
-async def test_certification_init_community(application_with_one_connection, fake_server, bob, alice):
+async def test_certification_init_community(application_with_one_connection, fake_server_with_blockchain, bob, alice):
     certification_dialog = CertificationController.create(None, application_with_one_connection)
 
     def close_dialog():
@@ -42,9 +42,9 @@ async def test_certification_init_community(application_with_one_connection, fak
         await asyncio.sleep(0.1)
         click_on_top_message_box()
         await asyncio.sleep(0.2)
-        assert isinstance(fake_server.forge.pool[0], Certification)
+        assert isinstance(fake_server_with_blockchain.forge.pool[0], Certification)
 
     application_with_one_connection.loop.call_later(10, close_dialog)
     asyncio.ensure_future(exec_test())
     await certification_dialog.async_exec()
-    await fake_server.close()
+    await fake_server_with_blockchain.close()

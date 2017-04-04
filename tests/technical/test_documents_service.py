@@ -3,12 +3,12 @@ from sakia.data.entities import Transaction
 
 
 @pytest.mark.asyncio
-async def test_send_more_than_40_sources(application_with_one_connection, fake_server, bob, alice):
+async def test_send_more_than_40_sources(application_with_one_connection, fake_server_with_blockchain, bob, alice):
     for i in range(0, 60):
-        fake_server.forge.generate_dividend()
-        fake_server.forge.forge_block()
+        fake_server_with_blockchain.forge.generate_dividend()
+        fake_server_with_blockchain.forge.forge_block()
 
-    new_blocks = fake_server.forge.blocks[-60:]
+    new_blocks = fake_server_with_blockchain.forge.blocks[-60:]
     changed_tx, new_tx, new_ud = await application_with_one_connection.transactions_service.handle_new_blocks(new_blocks)
 
     await application_with_one_connection.sources_service.refresh_sources_of_pubkey(bob.key.pubkey, new_tx, new_ud, None)
@@ -27,4 +27,4 @@ async def test_send_more_than_40_sources(application_with_one_connection, fake_s
     amount_after_send = application_with_one_connection.sources_service.amount(bob.key.pubkey)
     assert amount_after_send == 0
 
-    await fake_server.close()
+    await fake_server_with_blockchain.close()

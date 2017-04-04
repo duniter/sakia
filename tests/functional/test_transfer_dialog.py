@@ -8,7 +8,7 @@ from duniterpy.documents import Transaction
 
 
 @pytest.mark.asyncio
-async def test_transfer(application_with_one_connection, simple_fake_server, bob, alice):
+async def test_transfer(application_with_one_connection, fake_server_with_blockchain, bob, alice):
     transfer_dialog = TransferController.create(None, application_with_one_connection)
 
     def close_dialog():
@@ -27,9 +27,9 @@ async def test_transfer(application_with_one_connection, simple_fake_server, bob
         assert transfer_dialog.view.button_box.button(QDialogButtonBox.Ok).isEnabled()
         QTest.mouseClick(transfer_dialog.view.button_box.button(QDialogButtonBox.Ok), Qt.LeftButton)
         await asyncio.sleep(0.2)
-        assert isinstance(simple_fake_server.forge.pool[0], Transaction)
+        assert isinstance(fake_server_with_blockchain.forge.pool[0], Transaction)
 
     application_with_one_connection.loop.call_later(10, close_dialog)
     asyncio.ensure_future(exec_test())
     await transfer_dialog.async_exec()
-    await simple_fake_server.close()
+    await fake_server_with_blockchain.close()

@@ -69,3 +69,4 @@ class SearchUserModel(QObject):
             self._current_identity = None
             return False
         self._current_identity = self._nodes[index]
+        return True

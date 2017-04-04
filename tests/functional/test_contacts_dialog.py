@@ -5,11 +5,10 @@ from PyQt5.QtCore import QLocale, Qt, QEvent, QModelIndex
 from PyQt5.QtTest import QTest
 from PyQt5.QtWidgets import QDialogButtonBox
 from sakia.gui.dialogs.contact.controller import ContactController
-from ..helpers import click_on_top_message_box
 
 
 @pytest.mark.asyncio
-async def test_add_contact(application_with_one_connection, fake_server):
+async def test_add_contact(application_with_one_connection, fake_server_with_blockchain):
     contact_dialog = ContactController.create(None, application_with_one_connection)
 
     def close_dialog():
@@ -26,11 +25,11 @@ async def test_add_contact(application_with_one_connection, fake_server):
     application_with_one_connection.loop.call_later(10, close_dialog)
     asyncio.ensure_future(exec_test())
     await contact_dialog.async_exec()
-    await fake_server.close()
+    await fake_server_with_blockchain.close()
 
 
 @pytest.mark.asyncio
-async def test_edit_contact(application_with_one_connection, fake_server):
+async def test_edit_contact(application_with_one_connection, fake_server_with_blockchain):
     contacts_repo = application_with_one_connection.db.contacts_repo
     contacts_repo.insert(Contact(currency="test_currency",
                                  pubkey="7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
@@ -55,11 +54,11 @@ async def test_edit_contact(application_with_one_connection, fake_server):
     application_with_one_connection.loop.call_later(10, close_dialog)
     asyncio.ensure_future(exec_test())
     await contact_dialog.async_exec()
-    await fake_server.close()
+    await fake_server_with_blockchain.close()
 
 
 @pytest.mark.asyncio
-async def test_remove_contact(application_with_one_connection, fake_server):
+async def test_remove_contact(application_with_one_connection, fake_server_with_blockchain):
     contacts_repo = application_with_one_connection.db.contacts_repo
     contacts_repo.insert(Contact(currency="test_currency",
                                  pubkey="7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
@@ -83,11 +82,11 @@ async def test_remove_contact(application_with_one_connection, fake_server):
     application_with_one_connection.loop.call_later(10, close_dialog)
     asyncio.ensure_future(exec_test())
     await contact_dialog.async_exec()
-    await fake_server.close()
+    await fake_server_with_blockchain.close()
 
 
 @pytest.mark.asyncio
-async def test_clear_selection(application_with_one_connection, fake_server):
+async def test_clear_selection(application_with_one_connection, fake_server_with_blockchain):
     contacts_repo = application_with_one_connection.db.contacts_repo
     contacts_repo.insert(Contact(currency="test_currency",
                                  pubkey="7Aqw6Efa9EzE7gtsc8SveLLrM7gm6NEGoywSv4FJx6pZ",
@@ -117,4 +116,4 @@ async def test_clear_selection(application_with_one_connection, fake_server):
     application_with_one_connection.loop.call_later(10, close_dialog)
     asyncio.ensure_future(exec_test())
     await contact_dialog.async_exec()
-    await fake_server.close()
+    await fake_server_with_blockchain.close()
