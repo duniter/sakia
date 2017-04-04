@@ -167,6 +167,9 @@ class NetworkService(QObject):
             try:
                 await asyncio.sleep(1)
                 peer = self._discovery_stack.pop()
+            except IndexError:
+                await asyncio.sleep(2)
+            else:
                 node, updated = self._processor.update_peer(self.currency, peer)
                 if not node:
                     self._logger.debug("New node found : {0}".format(peer.pubkey[:5]))
@@ -181,19 +184,23 @@ class NetworkService(QObject):
                     except InvalidNodeCurrency as e:
                         self._logger.debug(str(e))
                 if node and updated and self._blockchain_service.initialized():
-                    connector = next(conn for conn in self._connectors if conn.node == node)
-                    connector.refresh_summary()
                     try:
-                        identity = await self._identities_service.find_from_pubkey(node.pubkey)
-                        identity = await self._identities_service.load_requirements(identity)
-                        node.member = identity.member
-                        node.uid = identity.uid
-                        self._processor.update_node(node)
-                        self.node_changed.emit(node)
-                    except errors.DuniterError as e:
-                        self._logger.error(e.message)
-            except IndexError:
-                await asyncio.sleep(2)
+                        connector = next(conn for conn in self._connectors if conn.node == node)
+                    except StopIteration:
+                        self._logger.warning("A node not associated to"
+                                             " a connector was encoutered : {:}"
+                                             .format(node.pubkey[:7]))
+                    else:
+                        connector.refresh_summary()
+                        try:
+                            identity = await self._identities_service.find_from_pubkey(node.pubkey)
+                            identity = await self._identities_service.load_requirements(identity)
+                            node.member = identity.member
+                            node.uid = identity.uid
+                            self._processor.update_node(node)
+                            self.node_changed.emit(node)
+                        except errors.DuniterError as e:
+                            self._logger.error(e.message)
 
     def handle_new_node(self, peer):
         key = VerifyingKey(peer.pubkey)
@@ -217,8 +224,8 @@ class NetworkService(QObject):
                 and node_connector.node.last_state_change + 3600 < time.time():
             node_connector.disconnect()
             self._processor.delete_node(node_connector.node)
-            self.node_removed.emit(node_connector.node)
             self._connectors.remove(node_connector)
+            self.node_removed.emit(node_connector.node)
 
     def handle_change(self):
         node_connector = self.sender()
