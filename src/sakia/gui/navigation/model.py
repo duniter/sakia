@@ -163,8 +163,11 @@ class NavigationModel(QObject):
     async def send_identity(self, connection, secret_key, password):
         return await self.app.documents_service.broadcast_identity(connection, secret_key, password)
 
-    def generate_identity(self, connection, secret_key, password):
-        return self.app.documents_service.generate_identity(connection, secret_key, password)
+    def generate_identity(self, connection):
+        return self.app.documents_service.generate_identity(connection)
+
+    def update_identity(self, identity):
+        self.app.identities_service.insert_or_update_identity(identity)
 
     @staticmethod
     def copy_pubkey_to_clipboard(connection):

@@ -50,7 +50,7 @@ class DocumentsService:
                    TransactionsProcessor.instanciate(app),
                    SourcesProcessor.instanciate(app))
 
-    def generate_identity(self, connection, secret_key, password):
+    def generate_identity(self, connection):
         identity = self._identities_processor.get_identity(connection.currency, connection.pubkey, connection.uid)
         if not identity:
             identity = Identity(connection.currency, connection.pubkey, connection.uid)
@@ -76,9 +76,7 @@ class DocumentsService:
                                connection.uid,
                                block_uid,
                                None)
-        key = SigningKey(secret_key, password, connection.scrypt_params)
-        identity_doc.sign([key])
-        identity.signature = identity_doc.signatures[0]
+
         return identity, identity_doc
 
     async def broadcast_identity(self, connection, secret_key, password):
@@ -89,7 +87,10 @@ class DocumentsService:
         :param str secret_key: the private key secret key
         :param str password: the private key password
         """
-        identity, identity_doc = self.generate_identity(connection, secret_key, password)
+        identity, identity_doc = self.generate_identity(connection)
+        key = SigningKey(secret_key, password, connection.scrypt_params)
+        identity_doc.sign([key])
+        identity.signature = identity_doc.signatures[0]
         self._logger.debug("Key publish : {0}".format(identity_doc.signed_raw()))
 
         responses = await self._bma_connector.broadcast(connection.currency, bma.wot.add,

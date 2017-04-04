@@ -2,6 +2,7 @@ from PyQt5.QtCore import pyqtSignal, QObject, Qt
 from PyQt5.QtGui import QCursor
 from PyQt5.QtWidgets import QMenu, QAction, QMessageBox, QFileDialog
 
+from duniterpy.key import SigningKey
 from sakia.data.entities import Connection
 from sakia.decorators import asyncify
 from sakia.gui.sub.password_input import PasswordInputController
@@ -234,11 +235,17 @@ The publication of this document will remove your identity from the network.</p>
 
     @asyncify
     async def export_identity_document(self, connection):
-        secret_key, password = await PasswordInputController.open_dialog(self, connection)
-        if not password or not secret_key:
-            return
 
-        _, raw_document = self.model.generate_identity(connection, secret_key, password)
+        identity, identity_doc = self.model.generate_identity(connection)
+        if not identity_doc.signatures[0]:
+            secret_key, password = await PasswordInputController.open_dialog(self, connection)
+            if not password or not secret_key:
+                return
+            key = SigningKey(secret_key, password, connection.scrypt_params)
+            identity_doc.sign([key])
+            identity.signature = identity_doc.signatures[0]
+            self.model.update_identity(identity)
+
         # Testable way of using a QFileDialog
         selected_files = await QAsyncFileDialog.get_save_filename(self.view, self.tr("Save an identity document"),
                                                                   "", self.tr("All text files (*.txt)"))
@@ -247,7 +254,7 @@ The publication of this document will remove your identity from the network.</p>
             if not path.endswith('.txt'):
                 path = "{0}.txt".format(path)
             with open(path, 'w') as save_file:
-                save_file.write(raw_document.signed_raw())
+                save_file.write(identity_doc.signed_raw())
 
         dialog = QMessageBox(QMessageBox.Information, self.tr("Identity file"),
                              self.tr("""<div>Your identity document has been saved.</div>
