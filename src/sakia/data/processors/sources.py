@@ -32,28 +32,6 @@ class SourcesProcessor:
         except sqlite3.IntegrityError:
             self._logger.debug("Source already known : {0}".format(source.identifier))
 
-    async def initialize_sources(self, currency, pubkey, log_stream):
-        """
-        Initialize sources for a given pubkey if no source exists locally
-        """
-        log_stream("Requesting sources")
-        try:
-            sources_data = await self._bma_connector.get(currency, bma.tx.sources,
-                                                         req_args={'pubkey': pubkey})
-
-            log_stream("Found {0} sources".format(len(sources_data['sources'])))
-            for i, s in enumerate(sources_data['sources']):
-                source = Source(currency=currency, pubkey=pubkey,
-                                identifier=s['identifier'],
-                                type=s['type'],
-                                noffset=s['noffset'],
-                                amount=s['amount'],
-                                base=s['base'])
-                self.commit(source)
-                log_stream("{0}/{1} sources".format(i, len(sources_data['sources'])))
-        except errors.DuniterError as e:
-            raise
-
     def amount(self, currency, pubkey):
         """
         Get the amount value of the sources for a given pubkey
