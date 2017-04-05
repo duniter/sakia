@@ -160,8 +160,8 @@ class NavigationModel(QObject):
     async def send_leave(self, connection, secret_key, password):
         return await self.app.documents_service.send_membership(connection, secret_key, password, "OUT")
 
-    async def send_identity(self, connection, secret_key, password):
-        return await self.app.documents_service.broadcast_identity(connection, secret_key, password)
+    async def send_identity(self, connection, identity_doc):
+        return await self.app.documents_service.broadcast_identity(connection, identity_doc)
 
     def generate_identity(self, connection):
         return self.app.documents_service.generate_identity(connection)

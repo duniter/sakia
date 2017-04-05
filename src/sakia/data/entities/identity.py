@@ -30,3 +30,7 @@ class Identity:
         :rtype: duniterpy.documents.Identity
         """
         return IdentityDoc(10, self.currency, self.pubkey, self.uid, self.blockstamp, self.signature)
+
+    def is_obsolete(self, sig_window, current_time):
+        expired = self.timestamp + sig_window <= current_time
+        return not self.written and expired

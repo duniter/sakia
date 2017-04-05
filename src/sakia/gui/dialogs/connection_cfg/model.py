@@ -119,9 +119,13 @@ class ConnectionConfigModel(QObject):
         """"
         Publish the self certification of the connection identity
         """
-        return await self.app.documents_service.broadcast_identity(self.connection,
-                                                                   self.connection.salt,
-                                                                   self.connection.password)
+        identity, identity_doc = self.app.documents_service.generate_identity(self.connection)
+        key = SigningKey(self.connection.salt, self.connection.password, self.connection.scrypt_params)
+        identity_doc.sign([key])
+        identity.signature = identity_doc.signatures[0]
+        self.identities_processor.insert_or_update_identity(identity)
+        result = await self.app.documents_service.broadcast_identity(self.connection, identity_doc)
+        return result, identity
 
     async def check_registered(self):
         identities_processor = IdentitiesProcessor.instanciate(self.app)

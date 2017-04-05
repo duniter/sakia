@@ -56,16 +56,9 @@ class DocumentsService:
             identity = Identity(connection.currency, connection.pubkey, connection.uid)
 
         sig_window = self._blockchain_processor.parameters(connection.currency).sig_window
-        expired = identity.timestamp + sig_window <= self._blockchain_processor.time(connection.currency)
+        current_time = self._blockchain_processor.time(connection.currency)
 
-        if identity.written or (not identity.written and not expired):
-            identity_doc = IdentityDoc(10,
-                               connection.currency,
-                               connection.pubkey,
-                               connection.uid,
-                               identity.blockstamp,
-                               identity.signature)
-        else:
+        if identity.is_obsolete(sig_window, current_time):
             block_uid = self._blockchain_processor.current_buid(connection.currency)
             identity.blockstamp = block_uid
             timestamp = self._blockchain_processor.time(connection.currency)
@@ -76,31 +69,29 @@ class DocumentsService:
                                connection.uid,
                                block_uid,
                                None)
+        else:
+            identity_doc = IdentityDoc(10,
+                               connection.currency,
+                               connection.pubkey,
+                               connection.uid,
+                               identity.blockstamp,
+                               identity.signature)
 
         return identity, identity_doc
 
-    async def broadcast_identity(self, connection, secret_key, password):
+    async def broadcast_identity(self, connection, identity_doc):
         """
         Send our self certification to a target community
 
         :param sakia.data.entities.Connection connection: the connection published
-        :param str secret_key: the private key secret key
-        :param str password: the private key password
         """
-        identity, identity_doc = self.generate_identity(connection)
-        key = SigningKey(secret_key, password, connection.scrypt_params)
-        identity_doc.sign([key])
-        identity.signature = identity_doc.signatures[0]
         self._logger.debug("Key publish : {0}".format(identity_doc.signed_raw()))
 
         responses = await self._bma_connector.broadcast(connection.currency, bma.wot.add,
                                                         req_args={'identity': identity_doc.signed_raw()})
         result = await parse_bma_responses(responses)
 
-        if not result[0]:
-            identity = None
-
-        return result, identity
+        return result
 
     async def broadcast_revocation(self, currency, identity_document, revocation_document):
         signed_raw = revocation_document.signed_raw(identity_document)

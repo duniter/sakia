@@ -157,15 +157,22 @@ class NavigationController(QObject):
 
     @asyncify
     async def publish_uid(self, connection):
-        secret_key, password = await PasswordInputController.open_dialog(self, connection)
-        if not password or not secret_key:
-            return
-        result = await self.model.send_identity(connection, secret_key, password)
+        identity, identity_doc = self.model.generate_identity(connection)
+        if not identity_doc.signatures[0]:
+            secret_key, password = await PasswordInputController.open_dialog(self, connection)
+            if not password or not secret_key:
+                return
+            key = SigningKey(secret_key, password, connection.scrypt_params)
+            identity_doc.sign([key])
+            identity.signature = identity_doc.signatures[0]
+            self.model.update_identity(identity)
+
+        result = await self.model.send_identity(connection, identity_doc)
         if result[0]:
             if self.app.preferences['notifications']:
                 toast.display(self.tr("UID"), self.tr("Success publishing your UID"))
             else:
-                await QAsyncMessageBox.information(self.view, self.tr("Membership"),
+                await QAsyncMessageBox.information(self.view, self.tr("UID"),
                                                         self.tr("Success publishing your UID"))
         else:
             if self.app.preferences['notifications']:
@@ -226,16 +233,15 @@ neither your identity from the network."""), QMessageBox.Ok | QMessageBox.Cancel
             with open(path, 'w') as save_file:
                 save_file.write(raw_document)
 
-        dialog = QMessageBox(QMessageBox.Information, self.tr("Revokation file"),
-                             self.tr("""<div>Your revokation document has been saved.</div>
+            dialog = QMessageBox(QMessageBox.Information, self.tr("Revokation file"),
+                                 self.tr("""<div>Your revokation document has been saved.</div>
 <div><b>Please keep it in a safe place.</b></div>
 The publication of this document will remove your identity from the network.</p>"""), QMessageBox.Ok)
-        dialog.setTextFormat(Qt.RichText)
-        await dialog_async_exec(dialog)
+            dialog.setTextFormat(Qt.RichText)
+            await dialog_async_exec(dialog)
 
     @asyncify
     async def export_identity_document(self, connection):
-
         identity, identity_doc = self.model.generate_identity(connection)
         if not identity_doc.signatures[0]:
             secret_key, password = await PasswordInputController.open_dialog(self, connection)
@@ -246,7 +252,6 @@ The publication of this document will remove your identity from the network.</p>
             identity.signature = identity_doc.signatures[0]
             self.model.update_identity(identity)
 
-        # Testable way of using a QFileDialog
         selected_files = await QAsyncFileDialog.get_save_filename(self.view, self.tr("Save an identity document"),
                                                                   "", self.tr("All text files (*.txt)"))
         if selected_files:
@@ -256,8 +261,8 @@ The publication of this document will remove your identity from the network.</p>
             with open(path, 'w') as save_file:
                 save_file.write(identity_doc.signed_raw())
 
-        dialog = QMessageBox(QMessageBox.Information, self.tr("Identity file"),
-                             self.tr("""<div>Your identity document has been saved.</div>
+            dialog = QMessageBox(QMessageBox.Information, self.tr("Identity file"),
+                                 self.tr("""<div>Your identity document has been saved.</div>
 Share this document to your friends for them to certify you.</p>"""), QMessageBox.Ok)
-        dialog.setTextFormat(Qt.RichText)
-        await dialog_async_exec(dialog)
+            dialog.setTextFormat(Qt.RichText)
+            await dialog_async_exec(dialog)
