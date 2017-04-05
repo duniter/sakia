@@ -196,16 +196,12 @@ class ConnectionConfigController(QObject):
                 self.view.stream_log("Initializing certifications informations...")
                 await self.model.initialize_certifications(connection_identity, log_stream=self.view.stream_log)
 
-            if self.mode in (ConnectionConfigController.REGISTER,
-                             ConnectionConfigController.CONNECT,
-                             ConnectionConfigController.WALLET,
-                             ConnectionConfigController.PUBKEY):
-                self.view.stream_log("Initializing transactions history...")
-                transactions = await self.model.initialize_transactions(self.model.connection,
-                                                                        log_stream=self.view.stream_log)
-                self.view.stream_log("Initializing dividends history...")
-                dividends = await self.model.initialize_dividends(self.model.connection, transactions,
-                                                                  log_stream=self.view.stream_log)
+            self.view.stream_log("Initializing transactions history...")
+            transactions = await self.model.initialize_transactions(self.model.connection,
+                                                                    log_stream=self.view.stream_log)
+            self.view.stream_log("Initializing dividends history...")
+            dividends = await self.model.initialize_dividends(self.model.connection, transactions,
+                                                              log_stream=self.view.stream_log)
 
             self.view.progress_bar.setValue(3)
             await self.model.initialize_sources(transactions, dividends, self.view.stream_log)
