@@ -11,7 +11,8 @@ async def test_send_more_than_40_sources(application_with_one_connection, fake_s
     new_blocks = fake_server_with_blockchain.forge.blocks[-60:]
     changed_tx, new_tx, new_ud = await application_with_one_connection.transactions_service.handle_new_blocks(new_blocks)
 
-    await application_with_one_connection.sources_service.refresh_sources_of_pubkey(bob.key.pubkey, new_tx, new_ud, None)
+    for conn in new_tx:
+        await application_with_one_connection.sources_service.refresh_sources_of_pubkey(bob.key.pubkey, new_tx[conn], new_ud[conn], None)
     amount_before_send = application_with_one_connection.sources_service.amount(bob.key.pubkey)
     bob_connection = application_with_one_connection.db.connections_repo.get_one(pubkey=bob.key.pubkey)
 
