@@ -17,7 +17,7 @@ then
     pip install -U git+https://github.com/posborne/dbus-python.git
     pip install notify2
 
-    export PATH=/tmp/qt/5.7/5.7/gcc_64/bin:$PATH
+    export PATH=/tmp/qt/5.8/5.8/gcc_64/bin:$PATH
 fi
 if [ $TRAVIS_OS_NAME == "osx" ]
 then
