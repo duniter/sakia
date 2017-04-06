@@ -1,10 +1,11 @@
 import asyncio
 import logging
 
-from PyQt5.QtCore import QObject
+from PyQt5.QtCore import QObject, Qt
 from aiohttp import ClientError
 from asyncio import TimeoutError
 
+from sakia.gui.widgets.dialogs import dialog_async_exec, QAsyncFileDialog, QMessageBox
 from duniterpy.api.errors import DuniterError
 from duniterpy.documents import MalformedDocumentError
 from sakia.data.connectors import BmaConnector
@@ -212,6 +213,8 @@ class ConnectionConfigController(QObject):
 
             if self.mode == ConnectionConfigController.REGISTER:
                 await self.view.show_register_message(self.model.blockchain_parameters())
+                await self.export_identity_document()
+                await self.action_save_revokation()
         except (NoPeerAvailable, DuniterError, StopIteration) as e:
             if not isinstance(e, StopIteration):
                 self.view.show_error(self.model.notification(), str(e))
@@ -267,6 +270,42 @@ class ConnectionConfigController(QObject):
 
         self.view.label_info.setText("")
         return True
+
+    async def action_save_revokation(self):
+        raw_document = self.model.generate_revokation()
+        # Testable way of using a QFileDialog
+        selected_files = await QAsyncFileDialog.get_save_filename(self.view, self.tr("Save a revokation document"),
+                                                                  "", self.tr("All text files (*.txt)"))
+        if selected_files:
+            path = selected_files[0]
+            if not path.endswith('.txt'):
+                path = "{0}.txt".format(path)
+            with open(path, 'w') as save_file:
+                save_file.write(raw_document)
+
+            dialog = QMessageBox(QMessageBox.Information, self.tr("Revokation file"),
+                                 self.tr("""<div>Your revokation document has been saved.</div>
+<div><b>Please keep it in a safe place.</b></div>
+The publication of this document will remove your identity from the network.</p>"""), QMessageBox.Ok)
+            dialog.setTextFormat(Qt.RichText)
+            await dialog_async_exec(dialog)
+
+    async def export_identity_document(self):
+        identity, identity_doc = self.model.generate_identity()
+        selected_files = await QAsyncFileDialog.get_save_filename(self.view, self.tr("Save an identity document"),
+                                                                  "", self.tr("All text files (*.txt)"))
+        if selected_files:
+            path = selected_files[0]
+            if not path.endswith('.txt'):
+                path = "{0}.txt".format(path)
+            with open(path, 'w') as save_file:
+                save_file.write(identity_doc.signed_raw())
+
+            dialog = QMessageBox(QMessageBox.Information, self.tr("Identity file"),
+                                 self.tr("""<div>Your identity document has been saved.</div>
+Share this document to your friends for them to certify you.</p>"""), QMessageBox.Ok)
+            dialog.setTextFormat(Qt.RichText)
+            await dialog_async_exec(dialog)
 
     @asyncify
     async def check_pubkey(self, checked=False):

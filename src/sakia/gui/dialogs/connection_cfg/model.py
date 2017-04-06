@@ -56,6 +56,14 @@ class ConnectionConfigModel(QObject):
     def insert_or_update_identity(self, identity):
         self.identities_processor.insert_or_update_identity(identity)
 
+    def generate_revokation(self):
+        return self.app.documents_service.generate_revokation(self.connection,
+                                                              self.connection.salt,
+                                                              self.connection.password)
+
+    def generate_identity(self):
+        return self.app.documents_service.generate_identity(self.connection)
+
     async def initialize_blockchain(self, log_stream):
         """
         Download blockchain information locally
