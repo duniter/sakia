@@ -165,14 +165,17 @@ class SourcesServices(QObject):
         :param list[sakia.data.entities.Dividend] dividends:
         :return: the destruction of sources
         """
-        connections_pubkeys = [c.pubkey for c in self._connections_processor.connections_to(self.currency)]
-        destructions = []
-        for pubkey in connections_pubkeys:
+        connections = self._connections_processor.connections_to(self.currency)
+        destructions = {}
+        for conn in connections:
+            destructions[conn] = []
             _, current_base = self._blockchain_processor.last_ud(self.currency)
             # there can be bugs if the current base switch during the parsing of blocks
             # but since it only happens every 23 years and that its only on accounts having less than 100
             # this is acceptable I guess
-            destructions += await self.refresh_sources_of_pubkey(pubkey, transactions, dividends, current_base)
+            destructions[conn] += await self.refresh_sources_of_pubkey(conn.pubkey, transactions[conn],
+                                                                       dividends[conn], current_base)
+
         return destructions
 
     def restore_sources(self, pubkey, tx):

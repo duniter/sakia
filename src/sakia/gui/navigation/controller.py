@@ -1,6 +1,6 @@
 from PyQt5.QtCore import pyqtSignal, QObject, Qt
 from PyQt5.QtGui import QCursor
-from PyQt5.QtWidgets import QMenu, QAction, QMessageBox, QFileDialog
+from PyQt5.QtWidgets import QMenu, QAction, QMessageBox
 
 from duniterpy.key import SigningKey
 from sakia.data.entities import Connection

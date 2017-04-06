@@ -66,15 +66,20 @@ class BlockchainService(QObject):
                     if len(blocks) > 0:
                         identities = await self._identities_service.handle_new_blocks(blocks)
                         changed_tx, new_tx, new_dividends = await self._transactions_service.handle_new_blocks(blocks)
-                        new_tx += await self._sources_service.refresh_sources(new_tx, new_dividends)
+                        destructions = await self._sources_service.refresh_sources(new_tx, new_dividends)
                         self.handle_new_blocks(blocks)
                         self.app.db.commit()
                         for tx in changed_tx:
                             self.app.transaction_state_changed.emit(tx)
-                        for tx in new_tx:
-                            self.app.new_transfer.emit(tx)
-                        for ud in new_dividends:
-                            self.app.new_dividend.emit(ud)
+                        for conn in new_tx:
+                            for tx in new_tx[conn]:
+                                self.app.new_transfer.emit(conn, tx)
+                        for conn in destructions:
+                            for tx in destructions[conn]:
+                                self.app.new_transfer.emit(conn, tx)
+                        for conn in new_dividends:
+                            for ud in new_dividends[conn]:
+                                self.app.new_dividend.emit(conn, ud)
                         for idty in identities:
                             self.app.identity_changed.emit(idty)
                         self.app.new_blocks_handled.emit()

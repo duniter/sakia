@@ -42,7 +42,7 @@ class TransactionsService(QObject):
         :return: The list of transfers sent
         """
         transfers_changed = []
-        new_transfers = []
+        new_transfers = {}
         for tx in [t for t in self._transactions_processor.awaiting(self.currency)]:
             if self._transactions_processor.run_state_transitions(tx, block_doc):
                 transfers_changed.append(tx)
@@ -51,12 +51,13 @@ class TransactionsService(QObject):
         new_transactions = [t for t in block_doc.transactions
                             if not self._transactions_processor.find_by_hash(t.sha_hash)
                             and SimpleTransaction.is_simple(t)]
-        connections_pubkeys = [c.pubkey for c in self._connections_processor.connections_to(self.currency)]
-        for pubkey in connections_pubkeys:
+        connections = self._connections_processor.connections_to(self.currency)
+        for conn in connections:
+            new_transfers[conn] = []
             for (i, tx_doc) in enumerate(new_transactions):
-                tx = parse_transaction_doc(tx_doc, pubkey, block_doc.blockUID.number,  block_doc.mediantime, txid+i)
+                tx = parse_transaction_doc(tx_doc, conn.pubkey, block_doc.blockUID.number,  block_doc.mediantime, txid+i)
                 if tx:
-                    new_transfers.append(tx)
+                    new_transfers[conn].append(tx)
                     self._transactions_processor.commit(tx)
                 else:
                     logging.debug("Error during transfer parsing")
@@ -71,13 +72,17 @@ class TransactionsService(QObject):
         """
         self._logger.debug("Refresh transactions")
         transfers_changed = []
-        new_transfers = []
+        new_transfers = {}
         txid = 0
         for block in blocks:
             changes, new_tx = self._parse_block(block, txid)
             txid += len(new_tx)
             transfers_changed += changes
-            new_transfers += new_tx
+            for conn in new_tx:
+                try:
+                    new_transfers[conn] += new_tx[conn]
+                except KeyError:
+                    new_transfers[conn] = new_tx[conn]
         new_dividends = await self.parse_dividends_history(blocks, new_transfers)
         return transfers_changed, new_transfers, new_dividends
 
@@ -87,17 +92,18 @@ class TransactionsService(QObject):
         :param List[duniterpy.documents.Block] blocks: the list of transactions found by tx parsing
         :param List[sakia.data.entities.Transaction] transactions: the list of transactions found by tx parsing
         """
-        connections_pubkeys = [c.pubkey for c in self._connections_processor.connections_to(self.currency)]
+        connections = self._connections_processor.connections_to(self.currency)
         min_block_number = blocks[0].number
         max_block_number = blocks[-1].number
-        dividends = []
-        for pubkey in connections_pubkeys:
+        dividends = {}
+        for connection in connections:
+            dividends[connection] = []
             history_data = await self._bma_connector.get(self.currency, bma.ud.history,
-                                                         req_args={'pubkey': pubkey})
+                                                         req_args={'pubkey': connection.pubkey})
             block_numbers = []
             for ud_data in history_data["history"]["history"]:
                 dividend = Dividend(currency=self.currency,
-                                    pubkey=pubkey,
+                                    pubkey=connection.pubkey,
                                     block_number=ud_data["block_number"],
                                     timestamp=ud_data["time"],
                                     amount=ud_data["amount"],
@@ -106,13 +112,13 @@ class TransactionsService(QObject):
                     self._logger.debug("Dividend of block {0}".format(dividend.block_number))
                     block_numbers.append(dividend.block_number)
                     if self._dividends_processor.commit(dividend):
-                        dividends.append(dividend)
+                        dividends[connection].append(dividend)
 
-            for tx in transactions:
+            for tx in transactions[connection]:
                 txdoc = TransactionDoc.from_signed_raw(tx.raw)
                 for input in txdoc.inputs:
                     # For each dividends inputs, if it is consumed (not present in ud history)
-                    if input.source == "D" and input.origin_id == pubkey and input.index not in block_numbers:
+                    if input.source == "D" and input.origin_id == connection.pubkey and input.index not in block_numbers:
                         try:
                             # we try to get the block of the dividend
                             block = next((b for b in blocks if b.number == input.index))
@@ -121,14 +127,14 @@ class TransactionsService(QObject):
                                                                   req_args={'number': input.index})
                             block = Block.from_signed_raw(block_data["raw"] + block_data["signature"] + "\n")
                         dividend = Dividend(currency=self.currency,
-                                            pubkey=pubkey,
+                                            pubkey=connection.pubkey,
                                             block_number=input.index,
                                             timestamp=block.mediantime,
                                             amount=block.ud,
                                             base=block.unit_base)
                         self._logger.debug("Dividend of block {0}".format(dividend.block_number))
                         if self._dividends_processor.commit(dividend):
-                            dividends.append(dividend)
+                            dividends[connection].append(dividend)
         return dividends
 
     def transfers(self, pubkey):

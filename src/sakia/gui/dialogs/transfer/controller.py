@@ -160,12 +160,12 @@ class TransferController(QObject):
             # If we sent back a transaction we cancel the first one
             self.model.cancel_previous()
             for tx in transactions:
-                self.model.app.new_transfer.emit(tx)
+                self.model.app.new_transfer.emit(self.model.connection, tx)
             self.view.accept()
         else:
             await self.view.show_error(self.model.notifications(), result[1])
             for tx in transactions:
-                self.model.app.new_transfer.emit(tx)
+                self.model.app.new_transfer.emit(self.model.connection, tx)
 
             QApplication.restoreOverrideCursor()
             self.view.button_box.setEnabled(True)

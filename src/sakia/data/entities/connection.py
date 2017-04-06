@@ -13,11 +13,11 @@ class Connection:
     currency = attr.ib(convert=str)
     pubkey = attr.ib(convert=str)
     uid = attr.ib(convert=str, default="", cmp=False, hash=False)
-    scrypt_N = attr.ib(convert=int, default=4096)
-    scrypt_r = attr.ib(convert=int, default=16)
-    scrypt_p = attr.ib(convert=int, default=1)
+    scrypt_N = attr.ib(convert=int, default=4096, cmp=False, hash=False)
+    scrypt_r = attr.ib(convert=int, default=16, cmp=False, hash=False)
+    scrypt_p = attr.ib(convert=int, default=1, cmp=False, hash=False)
     blockstamp = attr.ib(convert=block_uid, default=BlockUID.empty(), cmp=False, hash=False)
-    salt = attr.ib(convert=str, init=False)
+    salt = attr.ib(convert=str, init=False, cmp=False, hash=False)
     password = attr.ib(init=False, convert=str, default="", cmp=False, hash=False)
 
     def is_identity(self):

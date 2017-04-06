@@ -43,8 +43,8 @@ class Application(QObject):
     :param sakia.services.DocumentsService documents_service: A service to broadcast documents
     """
 
-    new_dividend = pyqtSignal(Dividend)
-    new_transfer = pyqtSignal(Transaction)
+    new_dividend = pyqtSignal(Connection, Dividend)
+    new_transfer = pyqtSignal(Connection, Transaction)
     transaction_state_changed = pyqtSignal(Transaction)
     identity_changed = pyqtSignal(Identity)
     new_connection = pyqtSignal(Connection)

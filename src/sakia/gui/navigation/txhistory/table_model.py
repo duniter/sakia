@@ -215,8 +215,8 @@ class HistoryTableModel(QAbstractTableModel):
         """
         return self.transactions_service.dividends(self.connection.pubkey)
 
-    def add_transfer(self, transfer):
-        if self.connection.pubkey in (transfer.issuer, *transfer.receivers):
+    def add_transfer(self, connection, transfer):
+        if self.connection == connection:
             self.beginInsertRows(QModelIndex(), len(self.transfers_data), len(self.transfers_data))
             if transfer.issuer == self.connection.pubkey:
                 self.transfers_data.append(self.data_sent(transfer))
@@ -224,8 +224,8 @@ class HistoryTableModel(QAbstractTableModel):
                 self.transfers_data.append(self.data_received(transfer))
             self.endInsertRows()
 
-    def add_dividend(self, dividend):
-        if dividend.pubkey == self.connection.pubkey:
+    def add_dividend(self, connection, dividend):
+        if self.connection == connection:
             self.beginInsertRows(QModelIndex(), len(self.transfers_data), len(self.transfers_data))
             self.transfers_data.append(self.data_dividend(dividend))
             self.endInsertRows()
