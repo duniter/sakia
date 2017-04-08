@@ -65,12 +65,13 @@ class TxHistoryModel(QObject):
 
             pubkey_col = self.table_model.sourceModel().columns_types.index('pubkey')
             pubkey_index = self.table_model.sourceModel().index(source_index.row(), pubkey_col)
-            pubkey = self.table_model.sourceModel().data(pubkey_index, Qt.DisplayRole)
-
-            identity = self.identities_service.get_identity(pubkey)
+            pubkeys = self.table_model.sourceModel().data(pubkey_index, Qt.DisplayRole)
+            identities = []
+            for pubkey in pubkeys:
+                identities.append(self.identities_service.get_identity(pubkey))
             transfer = self._model.transfers_data[source_index.row()][self._model.columns_types.index('raw_data')]
-            return True, identity, transfer
-        return False, None, None
+            return True, identities, transfer
+        return False, [], None
 
     def minimum_maximum_datetime(self):
         """

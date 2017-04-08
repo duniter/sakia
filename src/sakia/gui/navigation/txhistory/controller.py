@@ -71,16 +71,9 @@ class TxHistoryController(QObject):
 
     def history_context_menu(self, point):
         index = self.view.table_history.indexAt(point)
-        valid, identity, transfer = self.model.table_data(index)
+        valid, identities, transfer = self.model.table_data(index)
         if valid:
-            if identity is None:
-                if isinstance(transfer, Transaction):
-                    if transfer.issuer != self.model.connection.pubkey:
-                        pubkey = transfer.issuer
-                    else:
-                        pubkey = transfer.receivers[0]
-                    identity = Identity(currency=transfer.currency, pubkey=pubkey)
-            menu = ContextMenu.from_data(self.view, self.model.app, self.model.connection, (identity, transfer))
+            menu = ContextMenu.from_data(self.view, self.model.app, self.model.connection, identities + [transfer])
             menu.view_identity_in_wot.connect(self.view_in_wot)
 
             # Show the context menu.

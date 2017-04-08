@@ -46,9 +46,9 @@ class IdentitiesController(QObject):
 
     def identity_context_menu(self, point):
         index = self.view.table_identities.indexAt(point)
-        valid, identity = self.model.table_data(index)
+        valid, identities = self.model.table_data(index)
         if valid:
-            menu = ContextMenu.from_data(self.view, self.model.app, self.model.connection, (identity,))
+            menu = ContextMenu.from_data(self.view, self.model.app, self.model.connection, (identities,))
             menu.view_identity_in_wot.connect(self.view_in_wot)
             menu.identity_information_loaded.connect(self.model.table_model.sourceModel().identity_loaded)
 
