@@ -15,7 +15,16 @@ from sakia.errors import NoPeerAvailable
 
 @attr.s
 class IdentitiesProcessor:
+    """
+
+    :param _identities_repo: sakia.data.repositories.IdentitiesRepo
+    :param _certifications_repo: sakia.data.repositories.IdentitiesRepo
+    :param _blockchain_repo: sakia.data.repositories.BlockchainRepo
+    :param _bma_connector: sakia.data.connectors.bma.BmaConnector
+    :param _logger:
+    """
     _identities_repo = attr.ib()  # :type sakia.data.repositories.IdentitiesRepo
+    _certifications_repo = attr.ib()  # :type sakia.data.repositories.IdentitiesRepo
     _blockchain_repo = attr.ib()  # :type sakia.data.repositories.BlockchainRepo
     _bma_connector = attr.ib()  # :type sakia.data.connectors.bma.BmaConnector
     _logger = attr.ib(default=attr.Factory(lambda: logging.getLogger('sakia')))
@@ -26,7 +35,7 @@ class IdentitiesProcessor:
         Instanciate a blockchain processor
         :param sakia.app.Application app: the app
         """
-        return cls(app.db.identities_repo, app.db.blockchains_repo,
+        return cls(app.db.identities_repo, app.db.certifications_repo, app.db.blockchains_repo,
                    BmaConnector(NodesProcessor(app.db.nodes_repo), app.parameters))
 
     async def find_from_pubkey(self, currency, pubkey):
@@ -240,6 +249,11 @@ class IdentitiesProcessor:
         :param sakia.data.entities.Connectionb connection:
         :return:
         """
-        identities = self._identities_repo.get_all(currency=connection.currency, pubkey=connection.pubkey)
+        identities = self._identities_repo.get_all(currency=connection.currency)
         for idty in identities:
-            self._identities_repo.drop(idty)
+            others_certs = self._certifications_repo.get_all(currency=connection.currency,
+                                                             certifier=idty.pubkey)
+            others_certs += self._certifications_repo.get_all(currency=connection.currency,
+                                                              certified=idty.pubkey)
+            if not others_certs:
+                self._identities_repo.drop(idty)

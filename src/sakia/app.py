@@ -107,7 +107,7 @@ class Application(QObject):
         nodes_processor = NodesProcessor(self.db.nodes_repo)
         bma_connector = BmaConnector(nodes_processor, self.parameters)
         connections_processor = ConnectionsProcessor(self.db.connections_repo)
-        identities_processor = IdentitiesProcessor(self.db.identities_repo, self.db.blockchains_repo, bma_connector)
+        identities_processor = IdentitiesProcessor(self.db.identities_repo, self.db.certifications_repo, self.db.blockchains_repo, bma_connector)
         certs_processor = CertificationsProcessor(self.db.certifications_repo, self.db.identities_repo, bma_connector)
         blockchain_processor = BlockchainProcessor.instanciate(self)
         sources_processor = SourcesProcessor.instanciate(self)
@@ -144,18 +144,14 @@ class Application(QObject):
         connections_processor = ConnectionsProcessor.instanciate(self)
         connections_processor.remove_connections(connection)
 
-        IdentitiesProcessor.instanciate(self).cleanup_connection(connection)
-
         CertificationsProcessor.instanciate(self).cleanup_connection(connection, connections_processor.pubkeys())
+        IdentitiesProcessor.instanciate(self).cleanup_connection(connection)
 
         SourcesProcessor.instanciate(self).drop_all_of(currency=connection.currency, pubkey=connection.pubkey)
 
         DividendsProcessor.instanciate(self).cleanup_connection(connection)
 
         TransactionsProcessor.instanciate(self).cleanup_connection(connection, connections_processor.pubkeys())
-
-        if not connections_processor.connections():
-            NodesProcessor.instanciate(self).drop_all(self.currency)
 
         self.db.commit()
 

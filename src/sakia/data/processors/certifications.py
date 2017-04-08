@@ -114,24 +114,12 @@ class CertificationsProcessor:
         :param List[str] connections_pubkeys: pubkeys of existing connections
         :return:
         """
-        def clean_unused_identity(pubkey):
-            others_certs = self._certifications_repo.get_all(currency=connection.currency,
-                                                             certifier=pubkey)
-            others_certs += self._certifications_repo.get_all(currency=connection.currency,
-                                                              certified=pubkey)
-            if not others_certs:
-                idty = self._identities_repo.get_one(currency=connection.currency, pubkey=pubkey)
-                if idty:
-                    self._identities_repo.drop(idty)
-
         certifiers = self._certifications_repo.get_all(currency=connection.currency, certifier=connection.pubkey)
         for c in certifiers:
-            self._certifications_repo.drop(c)
             if c.certified not in connections_pubkeys:
-                clean_unused_identity(c.certified)
+                self._certifications_repo.drop(c)
 
         certified = self._certifications_repo.get_all(currency=connection.currency, certified=connection.pubkey)
         for c in certified:
-            self._certifications_repo.drop(c)
             if c.certifier not in connections_pubkeys:
-                clean_unused_identity(c.certifier)
+                self._certifications_repo.drop(c)
