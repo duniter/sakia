@@ -43,26 +43,6 @@ class NetworkModel(QObject):
         """
         if index.isValid() and index.row() < self.table_model.rowCount(QModelIndex()):
             source_index = self.table_model.mapToSource(index)
-            is_root_col = self.table_model.sourceModel().columns_types.index('is_root')
-            is_root_index = self.table_model.sourceModel().index(source_index.row(), is_root_col)
-            is_root = self.table_model.sourceModel().data(is_root_index, Qt.DisplayRole)
-            node = self.community.network.nodes()[source_index.row()]
-            return True, node, is_root
-        return False, None, None
-
-    def add_root_node(self, node):
-        """
-        The node set as root
-        :param sakia.data.entities.Node node: the node
-        """
-        node.root = True
-        self.network_service.commit_node(node)
-
-    def unset_root_node(self, node):
-        """
-        The node set as root
-        :param sakia.data.entities.Node node: the node
-        """
-        node.root = False
-        self.network_service.commit_node(node)
-
+            node = self.network_service.nodes()[source_index.row()]
+            return True, node
+        return False, None

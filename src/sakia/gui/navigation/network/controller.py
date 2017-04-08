@@ -24,6 +24,7 @@ class NetworkController(QObject):
         table_model = self.model.init_network_table_model()
         self.view.set_network_table_model(table_model)
         self.view.manual_refresh_clicked.connect(self.refresh_nodes_manually)
+        self.view.table_network.customContextMenuRequested.connect(self.node_context_menu)
 
     @classmethod
     def create(cls, parent, app, network_service):
@@ -45,27 +46,13 @@ class NetworkController(QObject):
 
     def node_context_menu(self, point):
         index = self.view.table_network.indexAt(point)
-        valid, node, is_root = self.model.table_model_data(index)
-        if valid:
-            self.view.show_menu(point, is_root)
+        valid, node = self.model.table_model_data(index)
+        if self.model.app.parameters.expert_mode:
             menu = QMenu()
-            if is_root:
-                unset_root = QAction(self.tr("Unset root node"), self)
-                unset_root.triggered.connect(self.unset_root_node)
-                unset_root.setData(node)
-                if len(self.community.network.root_nodes) > 1:
-                    menu.addAction(unset_root)
-            else:
-                set_root = QAction(self.tr("Set as root node"), self)
-                set_root.triggered.connect(self.set_root_node)
-                set_root.setData(node)
-                menu.addAction(set_root)
-
-            if self.app.preferences['expert_mode']:
-                open_in_browser = QAction(self.tr("Open in browser"), self)
-                open_in_browser.triggered.connect(self.open_node_in_browser)
-                open_in_browser.setData(node)
-                menu.addAction(open_in_browser)
+            open_in_browser = QAction(self.tr("Open in browser"), self)
+            open_in_browser.triggered.connect(self.open_node_in_browser)
+            open_in_browser.setData(node)
+            menu.addAction(open_in_browser)
 
             # Show the context menu.
             menu.exec_(QCursor.pos())
@@ -83,6 +70,7 @@ class NetworkController(QObject):
     @pyqtSlot()
     def open_node_in_browser(self):
         node = self.sender().data()
-        peering = bma.network.Peering(node.endpoint.conn_handler())
-        url = QUrl(peering.reverse_url("http", "/peering"))
+        conn_handler = next(node.endpoints[0].conn_handler())
+        peering_url = bma.API(conn_handler, bma.network.URL_PATH).reverse_url(conn_handler.http_scheme, '/peering')
+        url = QUrl(peering_url)
         QDesktopServices.openUrl(url)
