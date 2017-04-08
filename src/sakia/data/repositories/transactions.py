@@ -8,7 +8,7 @@ class TransactionsRepo:
     """The repository for Communities entities.
     """
     _conn = attr.ib()  # :type sqlite3.Connection
-    _primary_keys = (Transaction.sha_hash,)
+    _primary_keys = (Transaction.currency, Transaction.pubkey, Transaction.sha_hash,)
 
     def insert(self, transaction):
         """
@@ -17,7 +17,9 @@ class TransactionsRepo:
         """
         transaction_tuple = attr.astuple(transaction, tuple_factory=list)
 
+        transaction_tuple[6] = "\n".join([str(n) for n in transaction_tuple[6]])
         transaction_tuple[7] = "\n".join([str(n) for n in transaction_tuple[7]])
+        transaction_tuple[8] = "\n".join([str(n) for n in transaction_tuple[8]])
 
         values = ",".join(['?'] * len(transaction_tuple))
         self._conn.execute("INSERT INTO transactions VALUES ({0})".format(values), transaction_tuple)
@@ -29,18 +31,19 @@ class TransactionsRepo:
         """
         updated_fields = attr.astuple(transaction, filter=attr.filters.exclude(*TransactionsRepo._primary_keys),
                                       tuple_factory=list)
-        updated_fields[6] = "\n".join([str(n) for n in updated_fields[6]])
+        updated_fields[3] = "\n".join([str(n) for n in updated_fields[3]])
+        updated_fields[4] = "\n".join([str(n) for n in updated_fields[4]])
+        updated_fields[5] = "\n".join([str(n) for n in updated_fields[5]])
 
         where_fields = attr.astuple(transaction, filter=attr.filters.include(*TransactionsRepo._primary_keys),
                                     tuple_factory=list)
         self._conn.execute("""UPDATE transactions SET
-                           currency=?,
                            written_on=?,
                            blockstamp=?,
                            ts=?,
-                           signature=?,
-                           issuer = ?,
-                           receiver = ?,
+                           signatures=?,
+                           issuers = ?,
+                           receivers = ?,
                            amount = ?,
                            amountbase = ?,
                            comment = ?,
@@ -49,6 +52,8 @@ class TransactionsRepo:
                            local = ?,
                            raw = ?
                            WHERE
+                           currency=? AND
+                           pubkey=? AND
                            sha_hash=?""",
                            updated_fields + where_fields)
 
@@ -100,7 +105,7 @@ class TransactionsRepo:
         :rtype: List[sakia.data.entities.Transaction]
         """
         request = """SELECT * FROM transactions
-                  WHERE currency=? AND (issuer=? or receiver LIKE ?)
+                  WHERE currency=? AND pubkey=?
                   ORDER BY {sort_by} {sort_order}
                   LIMIT {limit} OFFSET {offset}""" \
                     .format(offset=offset,
@@ -108,7 +113,7 @@ class TransactionsRepo:
                             sort_by=sort_by,
                             sort_order=sort_order
                             )
-        c = self._conn.execute(request, (currency, pubkey, "%" + pubkey + "%"))
+        c = self._conn.execute(request, (currency, pubkey))
         datas = c.fetchall()
         if datas:
             return [Transaction(*data) for data in datas]
@@ -122,4 +127,6 @@ class TransactionsRepo:
         where_fields = attr.astuple(transaction, filter=attr.filters.include(*TransactionsRepo._primary_keys))
         self._conn.execute("""DELETE FROM transactions
                               WHERE
+                              currency=? AND
+                              pubkey=? AND
                               sha_hash=?""", where_fields)

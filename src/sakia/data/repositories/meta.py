@@ -7,7 +7,7 @@ from .connections import ConnectionsRepo
 from .identities import IdentitiesRepo
 from .blockchains import BlockchainsRepo
 from .certifications import CertificationsRepo
-from .transactions import TransactionsRepo
+from .transactions import TransactionsRepo, Transaction
 from .dividends import DividendsRepo
 from .nodes import NodesRepo
 from .sources import SourcesRepo
@@ -67,7 +67,8 @@ class SakiaDatabase:
             self.add_ud_rythm_parameters,
             self.add_contacts,
             self.add_sentry_property,
-            self.add_last_state_change_property
+            self.add_last_state_change_property,
+            self.refactor_transactions
         ]
 
     def upgrade_database(self, to=0):
@@ -132,6 +133,16 @@ class SakiaDatabase:
         """
         self._logger.debug("Add last state change property")
         sql_file = open(os.path.join(os.path.dirname(__file__), '003_add_last_state_change_property.sql'), 'r')
+        with self.conn:
+            self.conn.executescript(sql_file.read())
+
+    def refactor_transactions(self):
+        """
+        Init all the tables
+        :return:
+        """
+        self._logger.debug("Refactor transactions")
+        sql_file = open(os.path.join(os.path.dirname(__file__), '004_refactor_transactions.sql'), 'r')
         with self.conn:
             self.conn.executescript(sql_file.read())
 

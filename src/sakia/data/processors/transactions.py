@@ -82,8 +82,8 @@ class TransactionsProcessor:
         except sqlite3.IntegrityError:
             self._repo.update(tx)
 
-    def find_by_hash(self, sha_hash):
-        return self._repo.get_one(sha_hash=sha_hash)
+    def find_by_hash(self, pubkey, sha_hash):
+        return self._repo.get_one(pubkey=pubkey, sha_hash=sha_hash)
 
     def awaiting(self, currency):
         return self._repo.get_all(currency=currency, state=Transaction.AWAITING)
@@ -158,12 +158,6 @@ class TransactionsProcessor:
         :param List[str] connections_pubkeys: pubkeys of existing connections
         :return:
         """
-        sent = self._repo.get_all(currency=connection.currency, issuer=connection.pubkey)
-        for tx in sent:
-            for pubkey in connections_pubkeys:
-                if pubkey not in tx.receivers:
-                    self._repo.drop(tx)
-        received = self._repo.get_all(currency=connection.currency, receiver=connection.pubkey)
-        for tx in received:
-            if tx.issuer not in connections_pubkeys:
-                self._repo.drop(tx)
+        transactions = self._repo.get_all(currency=connection.currency, pubkey=connection.pubkey)
+        for tx in transactions:
+            self._repo.drop(tx)

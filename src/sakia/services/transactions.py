@@ -47,12 +47,12 @@ class TransactionsService(QObject):
             if self._transactions_processor.run_state_transitions(tx, block_doc):
                 transfers_changed.append(tx)
                 self._logger.debug("New transaction validated : {0}".format(tx.sha_hash))
-
-        new_transactions = [t for t in block_doc.transactions
-                            if not self._transactions_processor.find_by_hash(t.sha_hash)
-                            and SimpleTransaction.is_simple(t)]
         connections = self._connections_processor.connections_to(self.currency)
         for conn in connections:
+            new_transactions = [t for t in block_doc.transactions
+                                if not self._transactions_processor.find_by_hash(conn.pubkey, t.sha_hash)
+                                and SimpleTransaction.is_simple(t)]
+
             new_transfers[conn] = []
             for (i, tx_doc) in enumerate(new_transactions):
                 tx = parse_transaction_doc(tx_doc, conn.pubkey, block_doc.blockUID.number,  block_doc.mediantime, txid+i)

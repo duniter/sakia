@@ -395,13 +395,14 @@ class DocumentsService:
         self.commit_outputs_to_self(currency, key.pubkey, txdoc)
         time = self._blockchain_processor.time(currency)
         tx = Transaction(currency=currency,
+                         pubkey=key.pubkey,
                          sha_hash=txdoc.sha_hash,
                          written_block=0,
                          blockstamp=blockstamp,
                          timestamp=time,
-                         signature=txdoc.signatures[0],
-                         issuer=key.pubkey,
-                         receivers=receiver,
+                         signatures=txdoc.signatures,
+                         issuers=[key.pubkey],
+                         receivers=[receiver],
                          amount=amount,
                          amount_base=amount_base,
                          comment=txdoc.comment,

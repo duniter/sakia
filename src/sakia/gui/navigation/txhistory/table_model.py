@@ -256,18 +256,20 @@ class HistoryTableModel(QAbstractTableModel):
 
         amount = transfer.amount * 10**transfer.amount_base
 
-        identity = self.identities_service.get_identity(transfer.issuer)
-        if identity:
-            sender = identity.uid
-        else:
-            sender = transfer.issuer
+        senders = []
+        for issuer in transfer.issuers:
+            identity = self.identities_service.get_identity(issuer)
+            if identity:
+                senders.append(identity.uid)
+            else:
+                senders.append(issuer)
 
         date_ts = transfer.timestamp
         txid = transfer.txid
 
-        return (date_ts, sender, amount,
+        return (date_ts, "\n".join(senders), amount,
                 transfer.comment, transfer.state, txid,
-                transfer.issuer, block_number, transfer.sha_hash, transfer)
+                transfer.issuers, block_number, transfer.sha_hash, transfer)
 
     def data_sent(self, transfer):
         """
@@ -289,7 +291,7 @@ class HistoryTableModel(QAbstractTableModel):
         date_ts = transfer.timestamp
         txid = transfer.txid
         return (date_ts, "\n".join(receivers), amount, transfer.comment, transfer.state, txid,
-                "\n".join(transfer.receivers), block_number, transfer.sha_hash, transfer)
+                transfer.receivers, block_number, transfer.sha_hash, transfer)
 
     def data_dividend(self, dividend):
         """
@@ -316,7 +318,7 @@ class HistoryTableModel(QAbstractTableModel):
         transfers = self.transfers()
         for transfer in transfers:
             if transfer.state != Transaction.DROPPED:
-                if transfer.issuer == self.connection.pubkey:
+                if self.connection.pubkey in transfer.issuers:
                     self.transfers_data.append(self.data_sent(transfer))
                 if self.connection.pubkey in transfer.receivers:
                     self.transfers_data.append(self.data_received(transfer))

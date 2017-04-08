@@ -52,12 +52,13 @@ def parse_transaction_doc(tx_doc, pubkey, block_number, mediantime, txid):
         return None
 
     transaction = Transaction(currency=tx_doc.currency,
+                              pubkey=pubkey,
                               sha_hash=tx_doc.sha_hash,
                               written_block=block_number,
                               blockstamp=tx_doc.blockstamp,
                               timestamp=mediantime,
-                              signature=tx_doc.signatures[0],
-                              issuer=tx_doc.issuers[0],
+                              signatures=tx_doc.signatures,
+                              issuers=tx_doc.issuers,
                               receivers=receivers,
                               amount=amount,
                               amount_base=amount_base,
@@ -93,13 +94,14 @@ class Transaction:
     REFUSED = 8
     DROPPED = 16
 
-    currency      = attr.ib(convert=str, cmp=False)
+    currency      = attr.ib(convert=str)
+    pubkey        = attr.ib(convert=str)
     sha_hash      = attr.ib(convert=str)
     written_block = attr.ib(convert=int, cmp=False)
     blockstamp    = attr.ib(convert=block_uid, cmp=False)
     timestamp     = attr.ib(convert=int, cmp=False)
-    signature     = attr.ib(convert=str, cmp=False)
-    issuer        = attr.ib(convert=str, cmp=False)
+    signatures    = attr.ib(convert=attrs_tuple_of_str, cmp=False)
+    issuers       = attr.ib(convert=attrs_tuple_of_str, cmp=False)
     receivers     = attr.ib(convert=attrs_tuple_of_str, cmp=False)
     amount        = attr.ib(convert=int, cmp=False)
     amount_base   = attr.ib(convert=int, cmp=False)

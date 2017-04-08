@@ -87,13 +87,14 @@ class SourcesServices(QObject):
                 next_txid = self._transactions_processor.next_txid(self.currency, block_number)
                 sha_identifier = hashlib.sha256("Destruction{0}{1}{2}".format(block_number, pubkey, amount).encode("ascii")).hexdigest().upper()
                 destruction = Transaction(currency=self.currency,
+                                          pubkey=pubkey,
                                           sha_hash=sha_identifier,
                                           written_block=block_number,
                                           blockstamp=BlockUID.empty(),
                                           timestamp=timestamp,
-                                          signature="",
-                                          issuer=pubkey,
-                                          receivers="",
+                                          signatures=[],
+                                          issuers=[pubkey],
+                                          receivers=[],
                                           amount=amount,
                                           amount_base=0,
                                           comment="Too low balance",
