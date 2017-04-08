@@ -46,7 +46,7 @@ async def test_destruction(application_with_one_connection, fake_server_with_blo
     await application_with_one_connection.sources_service.refresh_sources(new_tx, new_ud)
     assert 0 == application_with_one_connection.sources_service.amount(bob.key.pubkey)
     tx_after_parse = application_with_one_connection.transactions_service.transfers(bob.key.pubkey)
-    assert tx_after_parse[-1].comment == "Too low balance"
+    assert "Too low balance" in [t.comment for t in tx_after_parse]
     await fake_server_with_blockchain.close()
 
 
