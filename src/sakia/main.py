@@ -65,14 +65,12 @@ def exception_message(log_lines, exc_info):
     ----
     {stacktrace}
     """.format(log_lines='\n'.join(log_lines), stacktrace='\n'.join(stacktrace))
-    mb = QMessageBox(QMessageBox.Critical, "Critical error",
-                    """A critical error occured. Select the details to display it.
-                    Please report it to <a href='https://github.com/duniter/sakia/issues/new'>the developers github</a>""",
+    mb = QMessageBox(QMessageBox.Critical, "Critical error", """A critical error occured. Select the details to display it.
+                  Please report it to <a href='https://github.com/duniter/sakia/issues/new/'>the developers github</a>""",
                      QMessageBox.Ok, QApplication.activeWindow())
     mb.setDetailedText(message)
     mb.setTextFormat(Qt.RichText)
 
-    mb.setTextInteractionFlags(Qt.TextSelectableByMouse)
     mb.exec()
 
 if __name__ == '__main__':
