@@ -170,12 +170,13 @@ QGroupBox::title {
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="button_details">
+      <widget class="QPushButton" name="button_certify">
        <property name="text">
-        <string>Details</string>
+        <string>Certify an identity</string>
        </property>
-       <property name="checkable">
-        <bool>true</bool>
+       <property name="icon">
+        <iconset resource="../../../../../res/icons/icons.qrc">
+         <normaloff>:/icons/certification_icon</normaloff>:/icons/certification_icon</iconset>
        </property>
       </widget>
      </item>

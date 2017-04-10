@@ -30,7 +30,13 @@ class ToolbarView(QFrame, Ui_SakiaToolbar):
         self.action_plugins = QAction(self.tr("Plugins manager"), tool_menu)
         tool_menu.addAction(self.action_plugins)
 
-        self.action_about = QAction(self.tr("About"), tool_menu)
+        self.action_about = QAction(self.tr("About Money"), tool_menu)
+        tool_menu.addAction(self.action_about)
+
+        self.action_about = QAction(self.tr("About Web of Trust"), tool_menu)
+        tool_menu.addAction(self.action_about)
+
+        self.action_about = QAction(self.tr("About Sakia"), tool_menu)
         tool_menu.addAction(self.action_about)
 
         self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Minimum)

@@ -1,6 +1,7 @@
 import logging
 import time
 import networkx
+from sakia.data.processors import ConnectionsProcessor
 from PyQt5.QtCore import QLocale, QDateTime, QObject, QT_TRANSLATE_NOOP
 from sakia.errors import NoPeerAvailable
 from .constants import EdgeStatus, NodeStatus
@@ -30,6 +31,7 @@ class BaseGraph(QObject):
         self.app = app
         self.identities_service = identities_service
         self.blockchain_service = blockchain_service
+        self._connections_processors = ConnectionsProcessor.instanciate(app)
         # graph empty if None parameter
         self.nx_graph = nx_graph if nx_graph else networkx.DiGraph()
 
@@ -48,24 +50,23 @@ class BaseGraph(QObject):
         else:
             return EdgeStatus.STRONG
 
-    async def node_status(self, node_identity, account_identity):
+    async def node_status(self, node_identity):
         """
         Return the status of the node depending
         :param sakia.core.registry.Identity node_identity: The identity of the node
-        :param sakia.core.registry.Identity account_identity: The identity of the account displayed
         :return: HIGHLIGHTED if node_identity is account_identity and OUT if the node_identity is not a member
         :rtype: sakia.core.graph.constants.NodeStatus
         """
         # new node
         node_status = NodeStatus.NEUTRAL
         node_identity = await self.identities_service.load_requirements(node_identity)
-        if node_identity.pubkey == account_identity.pubkey:
+        if node_identity.pubkey in self._connections_processor.pubkeys():
             node_status += NodeStatus.HIGHLIGHTED
         if node_identity.member is False:
             node_status += NodeStatus.OUT
         return node_status
 
-    def offline_node_status(self, node_identity, account_identity):
+    def offline_node_status(self, node_identity):
         """
         Return the status of the node depending on its requirements. No network request.
         :param sakia.core.registry.Identity node_identity: The identity of the node
@@ -75,7 +76,7 @@ class BaseGraph(QObject):
         """
         # new node
         node_status = NodeStatus.NEUTRAL
-        if node_identity.pubkey == account_identity.pubkey:
+        if node_identity.pubkey in self._connections_processors.pubkeys():
             node_status += NodeStatus.HIGHLIGHTED
         if node_identity.member is False:
             node_status += NodeStatus.OUT
@@ -152,42 +153,39 @@ class BaseGraph(QObject):
 
         self.nx_graph.add_edge(identity.pubkey, certified.pubkey, attr_dict=arc)
 
-    def add_offline_certifier_list(self, certifier_list, identity, account_identity):
+    def add_offline_certifier_list(self, certifier_list, identity):
         """
         Add list of certifiers to graph
         :param List[sakia.data.entities.Certification] certifier_list: List of certified from api
         :param sakia.data.entities.Identity identity:   identity instance which is certified
-        :param sakia.data.entities.Identity account_identity:   Account identity instance
         :return:
         """
         #  add certifiers of uid
         for certification in tuple(certifier_list):
             certifier = self.identities_service.get_identity(certification.certifier)
             if certifier:
-                node_status = self.offline_node_status(certifier, account_identity)
+                node_status = self.offline_node_status(certifier)
                 self.add_certifier_node(certifier, identity, certification, node_status)
 
-    def add_offline_certified_list(self, certified_list, identity, account_identity):
+    def add_offline_certified_list(self, certified_list, identity):
         """
         Add list of certified from api to graph
         :param List[sakia.data.entities.Certification] certified_list: List of certified from api
         :param identity identity:   identity instance which is certifier
-        :param identity account_identity:   Account identity instance
         :return:
         """
         # add certified by uid
         for certification in tuple(certified_list):
             certified = self.identities_service.get_identity(certification.certified)
             if certified:
-                node_status = self.offline_node_status(certified, account_identity)
+                node_status = self.offline_node_status(certified)
                 self.add_certified_node(identity, certified, certification, node_status)
 
-    async def add_certifier_list(self, certifier_list, identity, account_identity):
+    async def add_certifier_list(self, certifier_list, identity):
         """
         Add list of certifiers to graph
         :param List[sakia.data.entities.Certification] certifier_list: List of certified from api
         :param sakia.data.entities.Identity identity:   identity instance which is certified
-        :param sakia.data.entities.Identity account_identity:   Account identity instance
         :return:
         """
         try:
@@ -197,17 +195,16 @@ class BaseGraph(QObject):
                 if not certifier:
                     certifier = await self.identities_service.find_from_pubkey(certification.certifier)
                     self.identities_service.insert_or_update_identity(certifier)
-                node_status = await self.node_status(certifier, account_identity)
+                node_status = await self.node_status(certifier)
                 self.add_certifier_node(certifier, identity, certification, node_status)
         except NoPeerAvailable as e:
             logging.debug(str(e))
 
-    async def add_certified_list(self, certified_list, identity, account_identity):
+    async def add_certified_list(self, certified_list, identity):
         """
         Add list of certified from api to graph
         :param List[sakia.data.entities.Certification] certified_list: List of certified from api
         :param identity identity:   identity instance which is certifier
-        :param identity account_identity:   Account identity instance
         :return:
         """
         try:
@@ -217,7 +214,7 @@ class BaseGraph(QObject):
                 if not certified:
                     certified = await self.identities_service.find_from_pubkey(certification.certified)
                     self.identities_service.insert_or_update_identity(certified)
-                node_status = await self.node_status(certified, account_identity)
+                node_status = await self.node_status(certified)
                 self.add_certified_node(identity, certified, certification, node_status)
 
         except NoPeerAvailable as e:

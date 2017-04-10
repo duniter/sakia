@@ -76,6 +76,9 @@ class MainWindowController(QObject):
                                  navigation=navigation,
                                  toolbar=toolbar
                                  )
+        toolbar.view.button_network.clicked.connect(navigation.open_network_view)
+        toolbar.view.button_identity.clicked.connect(navigation.open_identities_view)
+        toolbar.view.button_explore.clicked.connect(navigation.open_wot_view)
         #app.version_requested.connect(main_window.latest_version_requested)
         #app.account_imported.connect(main_window.import_account_accepted)
         #app.account_changed.connect(main_window.change_account)
@@ -118,7 +121,6 @@ class MainWindowController(QObject):
         in the window have to be refreshed
         """
         self.status_bar.refresh()
-        self.toolbar.enable_actions(len(self.navigation.model.navigation[0]['children']) > 0)
         display_name = ROOT_SERVERS[currency]["display"]
         self.view.setWindowTitle(self.tr("sakia {0} - {1}").format(__version__, display_name))
 

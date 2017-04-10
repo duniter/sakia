@@ -22,7 +22,7 @@ class InformationsView(QWidget, Ui_InformationsWidget):
         super().__init__(parent)
         self.setupUi(self)
         self.scrollarea.hide()
-        self.button_details.clicked.connect(self.handle_details_click)
+        #self.button_details.clicked.connect(self.handle_details_click)
 
     def handle_details_click(self):
         if self.button_details.isChecked():

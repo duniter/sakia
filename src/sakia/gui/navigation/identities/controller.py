@@ -36,12 +36,12 @@ class IdentitiesController(QObject):
         self.view.set_table_identities_model(table_model)
 
     @classmethod
-    def create(cls, parent, app, connection, blockchain_service, identities_service):
+    def create(cls, parent, app, blockchain_service, identities_service):
         view = IdentitiesView(parent.view)
-        model = IdentitiesModel(None, app, connection, blockchain_service, identities_service)
+        model = IdentitiesModel(None, app, blockchain_service, identities_service)
         identities = cls(parent, view, model)
         model.setParent(identities)
-        identities.view_in_wot.connect(lambda i: app.view_in_wot.emit(connection, i))
+        identities.view_in_wot.connect(lambda i: app.view_in_wot.emit(i))
         return identities
 
     def identity_context_menu(self, point):

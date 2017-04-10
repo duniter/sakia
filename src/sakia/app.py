@@ -51,7 +51,7 @@ class Application(QObject):
     referential_changed = pyqtSignal()
     sources_refreshed = pyqtSignal()
     new_blocks_handled = pyqtSignal()
-    view_in_wot = pyqtSignal(Connection, Identity)
+    view_in_wot = pyqtSignal(Identity)
 
     qapp = attr.ib()
     loop = attr.ib()

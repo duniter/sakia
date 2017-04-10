@@ -34,12 +34,42 @@ class NavigationModel(QObject):
                 'misc': {
                 },
                 'children': []
+            },
+            {
+                'title': self.tr('Identities'),
+                'icon': ':/icons/members_icon',
+                'component': "Identities",
+                'dependencies': {
+                    'blockchain_service': self.app.blockchain_service,
+                    'identities_service': self.app.identities_service,
+                },
+                'misc': {
+                }
+            },
+            {
+                'title': self.tr('Web of Trust'),
+                'icon': ':/icons/wot_icon',
+                'component': "Wot",
+                'dependencies': {
+                    'blockchain_service': self.app.blockchain_service,
+                    'identities_service': self.app.identities_service,
+                },
+                'misc': {
+                }
+            },
+            {
+                'title': self.tr('Personal accounts'),
+                'children': []
             }
         ]
 
         self._current_data = self.navigation[0]
         for connection in self.app.db.connections_repo.get_all():
-            self.navigation[0]['children'].append(self.create_node(connection))
+            self.navigation[3]['children'].append(self.create_node(connection))
+        try:
+            self._current_data = self.navigation[0]
+        except IndexError:
+            self._current_data = None
         return self.navigation
 
     def create_node(self, connection):
@@ -48,67 +78,60 @@ class NavigationModel(QObject):
             title = matching_contact.displayed_text()
         else:
             title = connection.title()
-        node = {
-            'title': title,
-            'component': "Informations",
-            'dependencies': {
-                'blockchain_service': self.app.blockchain_service,
-                'identities_service': self.app.identities_service,
-                'sources_service': self.app.sources_service,
-                'connection': connection,
-            },
-            'misc': {
-                'connection': connection
-            },
-            'children': [
-                {
-                    'title': self.tr('Transfers'),
-                    'icon': ':/icons/tx_icon',
-                    'component': "TxHistory",
-                    'dependencies': {
-                        'connection': connection,
-                        'identities_service': self.app.identities_service,
-                        'blockchain_service': self.app.blockchain_service,
-                        'transactions_service': self.app.transactions_service,
-                        "sources_service": self.app.sources_service
-                    },
-                    'misc': {
-                        'connection': connection
-                    }
-                }
-            ]
-        }
         if connection.uid:
-            node["children"] += [{
-                'title': self.tr('Identities'),
-                'icon': ':/icons/members_icon',
-                'component': "Identities",
+            node = {
+                'title': title,
+                'component': "Informations",
+                'icon': ':/icons/member',
                 'dependencies': {
-                    'connection': connection,
                     'blockchain_service': self.app.blockchain_service,
                     'identities_service': self.app.identities_service,
+                    'sources_service': self.app.sources_service,
+                    'connection': connection,
                 },
                 'misc': {
                     'connection': connection
-                }
-            },
-            {
-                'title': self.tr('Web of Trust'),
-                'icon': ':/icons/wot_icon',
-                'component': "Wot",
+                },
+                'children': [
+                    {
+                        'title': self.tr('Transfers'),
+                        'icon': ':/icons/tx_icon',
+                        'component': "TxHistory",
+                        'dependencies': {
+                            'connection': connection,
+                            'identities_service': self.app.identities_service,
+                            'blockchain_service': self.app.blockchain_service,
+                            'transactions_service': self.app.transactions_service,
+                            "sources_service": self.app.sources_service
+                        },
+                        'misc': {
+                            'connection': connection
+                        }
+                    }
+                ]
+            }
+        else:
+            node = {
+                'title': title,
+                'component': "TxHistory",
+                'icon': ':/icons/tx_icon',
                 'dependencies': {
                     'connection': connection,
-                    'blockchain_service': self.app.blockchain_service,
                     'identities_service': self.app.identities_service,
+                    'blockchain_service': self.app.blockchain_service,
+                    'transactions_service': self.app.transactions_service,
+                    "sources_service": self.app.sources_service
                 },
                 'misc': {
                     'connection': connection
-                }
-            }]
+                },
+                'children': []
+            }
+
         return node
 
     def generic_tree(self):
-        return GenericTreeModel.create("Navigation", self.navigation)
+        return GenericTreeModel.create("Navigation", self.navigation[3]['children'])
 
     def add_connection(self, connection):
         raw_node = self.create_node(connection)
@@ -123,9 +146,12 @@ class NavigationModel(QObject):
 
     def _lookup_raw_data(self, raw_data, component, **kwargs):
         if raw_data['component'] == component:
-            for k in kwargs:
-                if raw_data['misc'].get(k, None) == kwargs[k]:
-                    return raw_data
+            if kwargs:
+                for k in kwargs:
+                    if raw_data['misc'].get(k, None) == kwargs[k]:
+                        return raw_data
+            else:
+                return raw_data
         for c in raw_data.get('children', []):
             children_data = self._lookup_raw_data(c, component, **kwargs)
             if children_data:
@@ -133,7 +159,9 @@ class NavigationModel(QObject):
 
     def get_raw_data(self, component, **kwargs):
         for data in self.navigation:
-            return self._lookup_raw_data(data, component, **kwargs)
+            raw_data = self._lookup_raw_data(data, component, **kwargs)
+            if raw_data:
+                return raw_data
 
     def current_connection(self):
         if self._current_data:

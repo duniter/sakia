@@ -1,5 +1,6 @@
 from sakia.data.graphs import WoTGraph
 from ..base.model import BaseGraphModel
+from sakia.data.processors import ConnectionsProcessor
 
 
 class WotModel(BaseGraphModel):
@@ -7,19 +8,18 @@ class WotModel(BaseGraphModel):
     The model of Navigation component
     """
 
-    def __init__(self, parent, app, connection, blockchain_service, identities_service):
+    def __init__(self, parent, app, blockchain_service, identities_service):
         """
         Constructor of a model of WoT component
 
         :param sakia.gui.identities.controller.IdentitiesController parent: the controller
         :param sakia.app.Application app: the app
-        :param sakia.data.entities.Connection connection: the connection
         :param sakia.services.BlockchainService blockchain_service: the blockchain service
         :param sakia.services.IdentitiesService identities_service: the identities service
         """
-        super().__init__(parent, app, connection, blockchain_service, identities_service)
+        super().__init__(parent, app, blockchain_service, identities_service)
         self.app = app
-        self.connection = connection
+        self._connections_processor = ConnectionsProcessor.instanciate(self.app)
         self.blockchain_service = blockchain_service
         self.identities_service = identities_service
         self.wot_graph = WoTGraph(self.app, self.blockchain_service, self.identities_service)
@@ -32,15 +32,18 @@ class WotModel(BaseGraphModel):
         :param sakia.core.registry.Identity identity: the new identity to show
         :return:
         """
-        connection_identity = self.identities_service.get_identity(self.connection.pubkey)
-        # create empty graph instance
-        if identity:
-            self.identity = identity
-            await self.wot_graph.initialize(self.identity, connection_identity)
+        for pubkey in self._connections_processor.pubkeys():
+            connection_identity = self.identities_service.get_identity(pubkey)
+            if connection_identity:
+                self.identity = connection_identity
+                # create empty graph instance
+                self.wot_graph.offline_init(connection_identity)
+                break
         else:
-            self.identity = connection_identity
             # create empty graph instance
-            self.wot_graph.offline_init(connection_identity, connection_identity)
+            if identity:
+                self.identity = identity
+                await self.wot_graph.initialize(self.identity)
 
     def refresh(self, identity):
         connection_identity = self.identities_service.get_identity(self.connection.pubkey)

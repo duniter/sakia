@@ -63,11 +63,29 @@ class NavigationController(QObject):
         model.setParent(navigation)
         navigation.init_navigation()
         app.new_connection.connect(navigation.add_connection)
-        app.view_in_wot.connect(navigation.view_in_wot)
+        app.view_in_wot.connect(navigation.open_wot_view)
         return navigation
 
-    def view_in_wot(self, connection, _):
-        raw_data = self.model.get_raw_data('Wot', connection=connection)
+    def open_network_view(self, _):
+        raw_data = self.model.get_raw_data('Network')
+        if raw_data:
+            widget = raw_data['widget']
+            if self.view.stacked_widget.indexOf(widget) != -1:
+                self.view.stacked_widget.setCurrentWidget(widget)
+                self.view.current_view_changed.emit(raw_data)
+                return
+
+    def open_wot_view(self, _):
+        raw_data = self.model.get_raw_data('Wot')
+        if raw_data:
+            widget = raw_data['widget']
+            if self.view.stacked_widget.indexOf(widget) != -1:
+                self.view.stacked_widget.setCurrentWidget(widget)
+                self.view.current_view_changed.emit(raw_data)
+                return
+
+    def open_identities_view(self, _):
+        raw_data = self.model.get_raw_data('Identities')
         if raw_data:
             widget = raw_data['widget']
             if self.view.stacked_widget.indexOf(widget) != -1:

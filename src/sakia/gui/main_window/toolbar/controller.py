@@ -26,8 +26,6 @@ class ToolbarController(QObject):
         super().__init__()
         self.view = view
         self.model = model
-        self.view.button_certification.clicked.connect(self.open_certification_dialog)
-        self.view.button_send_money.clicked.connect(self.open_transfer_money_dialog)
         self.view.action_add_connection.triggered.connect(self.open_add_connection_dialog)
         self.view.action_parameters.triggered.connect(self.open_settings_dialog)
         self.view.action_plugins.triggered.connect(self.open_plugins_manager_dialog)
@@ -49,10 +47,6 @@ class ToolbarController(QObject):
         toolbar = cls(view, model)
         return toolbar
 
-    def enable_actions(self, enabled):
-        self.view.button_certification.setEnabled(enabled)
-        self.view.button_send_money.setEnabled(enabled)
-
     def open_certification_dialog(self):
         CertificationController.open_dialog(self, self.model.app,
                                             self.model.navigation_model.current_connection())
@@ -62,9 +56,6 @@ class ToolbarController(QObject):
 
     def open_revocation_dialog(self):
         RevocationController.open_dialog(self, self.model.app, self.model.navigation_model.current_connection())
-
-    def open_transfer_money_dialog(self):
-        TransferController.open_dialog(self, self.model.app, self.model.navigation_model.current_connection())
 
     def open_settings_dialog(self):
         PreferencesDialog(self.model.app).exec()

@@ -8,19 +8,17 @@ class IdentitiesModel(QObject):
     The model of the identities component
     """
 
-    def __init__(self, parent, app, connection, blockchain_service, identities_service):
+    def __init__(self, parent, app, blockchain_service, identities_service):
         """
         Constructor of a model of Identities component
 
         :param sakia.gui.identities.controller.IdentitiesController parent: the controller
         :param sakia.app.Application app: the app
-        :param sakia.data.entities.Connection connection: the connection
         :param sakia.services.BlockchainService blockchain_service: the blockchain service
         :param sakia.services.IdentitiesService identities_service: the identities service
         """
         super().__init__(parent)
         self.app = app
-        self.connection = connection
         self.blockchain_service = blockchain_service
         self.identities_service = identities_service
 
