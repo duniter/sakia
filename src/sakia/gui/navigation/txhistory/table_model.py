@@ -218,7 +218,7 @@ class HistoryTableModel(QAbstractTableModel):
     def add_transfer(self, connection, transfer):
         if self.connection == connection:
             self.beginInsertRows(QModelIndex(), len(self.transfers_data), len(self.transfers_data))
-            if transfer.issuer == self.connection.pubkey:
+            if self.connection.pubkey in transfer.issuers:
                 self.transfers_data.append(self.data_sent(transfer))
             if self.connection.pubkey in transfer.receivers:
                 self.transfers_data.append(self.data_received(transfer))
@@ -238,7 +238,7 @@ class HistoryTableModel(QAbstractTableModel):
                     self.transfers_data.pop(i)
                     self.endRemoveRows()
                 else:
-                    if transfer.issuer == self.connection.pubkey:
+                    if self.connection.pubkey in transfer.issuers:
                         self.transfers_data[i] = self.data_sent(transfer)
                         self.dataChanged.emit(self.index(i, 0), self.index(i, len(HistoryTableModel.columns_types)))
                     if self.connection.pubkey in transfer.receivers:

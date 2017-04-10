@@ -1,5 +1,5 @@
 from PyQt5.QtCore import QObject
-from sakia.data.entities.transaction import parse_transaction_doc
+from sakia.data.entities.transaction import parse_transaction_doc, Transaction
 from duniterpy.documents import Transaction as TransactionDoc
 from duniterpy.documents import SimpleTransaction, Block
 from sakia.data.entities import Dividend
@@ -33,6 +33,23 @@ class TransactionsService(QObject):
         self._bma_connector = bma_connector
         self.currency = currency
         self._logger = logging.getLogger('sakia')
+
+    def parse_sent_transaction(self, pubkey, transaction):
+        """
+        Parse a block
+        :param sakia.data.entities.Transaction transaction: The transaction to parse
+        :return: The list of transfers sent
+        """
+        if not self._transactions_processor.find_by_hash(pubkey, transaction.sha_hash):
+            txid = self._transactions_processor.next_txid(transaction.currency, -1)
+            tx = parse_transaction_doc(transaction.txdoc(), pubkey,
+                                       transaction.blockstamp.number,  transaction.timestamp, txid+1)
+            tx.state = Transaction.AWAITING
+            if tx:
+                self._transactions_processor.commit(tx)
+                return tx
+            else:
+                logging.debug("Error during transfer parsing")
 
     def _parse_block(self, block_doc, txid):
         """

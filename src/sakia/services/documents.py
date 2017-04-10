@@ -435,8 +435,6 @@ class DocumentsService:
 
             for i, tx in enumerate(tx_entities):
                 logging.debug("Transaction : [{0}]".format(tx.raw))
-                txid = self._transactions_processor.next_txid(connection.currency, blockstamp.number)
-
                 tx_res, tx_entities[i] = await self._transactions_processor.send(tx, connection.currency)
 
                 # Result can be negative if a tx is not accepted by the network

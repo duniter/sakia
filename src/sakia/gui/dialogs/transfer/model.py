@@ -95,10 +95,13 @@ class TransferModel(QObject):
                                                              recipient, amount, amount_base, comment)
         for transaction in transactions:
             self.app.sources_service.parse_transaction(self.connection.pubkey, transaction)
-            if recipient in self._connections_processor.pubkeys():
-                self.app.sources_service.parse_transaction(recipient, transaction)
-            self.app.db.commit()
+            for conn in self._connections_processor.connections():
+                if conn.pubkey == recipient:
+                    self.app.sources_service.parse_transaction(recipient, transaction)
+                    new_tx = self.app.transactions_service.parse_sent_transaction(recipient, transaction)
+                    self.app.new_transfer.emit(conn, new_tx)
             self.app.sources_refreshed.emit()
+            self.app.db.commit()
         return result, transactions
 
     def notifications(self):

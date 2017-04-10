@@ -1,5 +1,6 @@
 import attr
 from duniterpy.documents import block_uid
+from duniterpy.documents import Transaction as TransactionDoc
 from duniterpy.documents.transaction import reduce_base
 from sakia.helpers import attrs_tuple_of_str
 import math
@@ -77,7 +78,7 @@ class Transaction:
     :param str currency: the currency of the transaction
     :param str sha_hash: the hash of the transaction
     :param int written_block: the number of the block
-    :param str blockstamp: the blockstamp of the transaction
+    :param duniterpy.documents.BlockUID blockstamp: the blockstamp of the transaction
     :param int timestamp: the timestamp of the transaction
     :param str signature: the signature
     :param str issuer: the pubkey of the issuer
@@ -110,3 +111,9 @@ class Transaction:
     state         = attr.ib(convert=int, cmp=False)
     local         = attr.ib(convert=bool, cmp=False, default=False)
     raw           = attr.ib(convert=str, cmp=False, default="")
+
+    def txdoc(self):
+        """
+        :rtype: duniterpy.documents.Transaction
+        """
+        return TransactionDoc.from_signed_raw(self.raw)
