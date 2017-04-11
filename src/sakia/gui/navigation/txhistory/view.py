@@ -10,9 +10,12 @@ class TxHistoryView(QWidget, Ui_TxHistoryWidget):
     The view of TxHistory component
     """
 
-    def __init__(self, parent):
+    def __init__(self, parent, transfer_view):
         super().__init__(parent)
+        self.transfer_view = transfer_view
         self.setupUi(self)
+        self.stacked_widget.insertWidget(1, transfer_view)
+        self.button_send.clicked.connect(lambda c: self.stacked_widget.setCurrentWidget(self.transfer_view))
 
     def get_time_frame(self):
         """
@@ -59,6 +62,9 @@ class TxHistoryView(QWidget, Ui_TxHistoryWidget):
         self.label_balance.setText(
             "{:}".format(balance)
         )
+
+    def clear(self):
+        self.stacked_widget.setCurrentWidget(self.page_history)
 
     def changeEvent(self, event):
         """

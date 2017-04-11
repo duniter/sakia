@@ -1,13 +1,13 @@
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox
 from PyQt5.QtGui import QRegExpValidator
 from PyQt5.QtCore import QT_TRANSLATE_NOOP, QRegExp
-from .transfer_uic import Ui_TransferMoneyDialog
+from .transfer_uic import Ui_TransferMoneyWidget
 from enum import Enum
 from sakia.gui.widgets import toast
 from sakia.gui.widgets.dialogs import QAsyncMessageBox
 
 
-class TransferView(QDialog, Ui_TransferMoneyDialog):
+class TransferView(QDialog, Ui_TransferMoneyWidget):
     """
     Transfer component view
     """
@@ -69,6 +69,10 @@ class TransferView(QDialog, Ui_TransferMoneyDialog):
         for radio_widget in self.radio_to_mode:
             radio_widget.toggled.connect(lambda c,
                                                 radio=self.radio_to_mode[radio_widget]: self.recipient_mode_changed(radio))
+
+    def clear(self):
+        self._amount_base = 0
+        self.radio_pubkey.setChecked(True)
 
     def recipient_mode(self):
         for radio in self.radio_to_mode:

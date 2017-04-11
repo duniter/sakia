@@ -3,7 +3,6 @@ from PyQt5.QtWidgets import QDialog
 from sakia.gui.dialogs.certification.controller import CertificationController
 from sakia.gui.dialogs.connection_cfg.controller import ConnectionConfigController
 from sakia.gui.dialogs.revocation.controller import RevocationController
-from sakia.gui.dialogs.transfer.controller import TransferController
 from sakia.gui.dialogs.contact.controller import ContactController
 from sakia.gui.dialogs.plugins_manager.controller import PluginsManagerController
 from sakia.gui.preferences import PreferencesDialog

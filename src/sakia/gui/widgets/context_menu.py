@@ -7,7 +7,7 @@ from sakia.data.entities import Identity, Transaction, Dividend
 from sakia.data.processors import BlockchainProcessor, TransactionsProcessor
 from sakia.decorators import asyncify
 from sakia.gui.dialogs.certification.controller import CertificationController
-from sakia.gui.dialogs.transfer.controller import TransferController
+from sakia.gui.sub.transfer.controller import TransferController
 from sakia.gui.sub.user_information.controller import UserInformationController
 
 

@@ -6,7 +6,7 @@ from PyQt5.QtGui import QCursor
 from sakia.decorators import asyncify
 from sakia.gui.widgets import toast
 from sakia.gui.widgets.context_menu import ContextMenu
-from sakia.data.entities import Identity, Transaction
+from sakia.gui.sub.transfer.controller import TransferController
 from .model import TxHistoryModel
 from .view import TxHistoryView
 
@@ -17,10 +17,17 @@ class TxHistoryController(QObject):
     """
     view_in_wot = pyqtSignal(object)
 
-    def __init__(self, view, model):
+    def __init__(self, view, model, transfer):
+        """
+
+        :param TxHistoryView view:
+        :param TxHistoryModel model:
+        :param sakia.gui.sub.transfer.controller.TransferController transfer:
+        """
         super().__init__()
         self.view = view
         self.model = model
+        self.transfer = transfer
         self._logger = logging.getLogger('sakia')
         ts_from, ts_to = self.view.get_time_frame()
         model = self.model.init_history_table_model(ts_from, ts_to)
@@ -35,14 +42,18 @@ class TxHistoryController(QObject):
     def create(cls, parent, app, connection,
                identities_service, blockchain_service, transactions_service, sources_service):
 
-        view = TxHistoryView(parent.view)
+        transfer = TransferController.create(None, app)
+        transfer.integrate_to_main_view(connection)
+        view = TxHistoryView(parent.view, transfer.view)
         model = TxHistoryModel(None, app, connection, blockchain_service, identities_service,
                                transactions_service, sources_service)
-        txhistory = cls(view, model)
+        txhistory = cls(view, model, transfer)
         model.setParent(txhistory)
         app.referential_changed.connect(txhistory.refresh_balance)
         app.sources_refreshed.connect(txhistory.refresh_balance)
         txhistory.view_in_wot.connect(app.view_in_wot)
+        transfer.accepted.connect(view.clear)
+        transfer.rejected.connect(view.clear)
         return txhistory
 
     def refresh_minimum_maximum(self):

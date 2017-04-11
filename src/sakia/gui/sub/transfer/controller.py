@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-from PyQt5.QtCore import Qt, QObject
+from PyQt5.QtCore import Qt, QObject, pyqtSignal
 from PyQt5.QtWidgets import QApplication
 
 from sakia.data.processors import ConnectionsProcessor
@@ -18,6 +18,9 @@ class TransferController(QObject):
     """
     The transfer component controller
     """
+
+    accepted = pyqtSignal()
+    rejected = pyqtSignal()
 
     def __init__(self, view, model, search_user, user_information, password_input):
         """
@@ -68,27 +71,21 @@ class TransferController(QObject):
         return transfer
 
     @classmethod
-    def open_dialog(cls, parent, app, connection):
-        dialog = cls.create(parent, app)
-        if connection:
-            dialog.view.combo_connections.setCurrentText(connection.title())
-        dialog.refresh()
-        return dialog.exec()
-
-    @classmethod
     async def send_money_to_identity(cls, parent, app, connection, identity):
         dialog = cls.create(parent, app)
+        dialog.view.groupbox_connection.show()
         dialog.view.combo_connections.setCurrentText(connection.title())
         dialog.user_information.change_identity(identity)
         dialog.view.edit_pubkey.setText(identity.pubkey)
         dialog.view.radio_pubkey.setChecked(True)
 
         dialog.refresh()
-        return await dialog.async_exec()
 
     @classmethod
     def send_transfer_again(cls, parent, app, connection, resent_transfer):
         dialog = cls.create(parent, app)
+        dialog.view.groupbox_connection.show()
+        dialog.view.label_total.show()
         dialog.view.combo_connections.setCurrentText(connection.title())
         dialog.view.edit_pubkey.setText(resent_transfer.receivers[0])
         dialog.view.radio_pubkey.setChecked(True)
@@ -110,7 +107,10 @@ class TransferController(QObject):
         dialog.view.radio_pubkey.setChecked(True)
         dialog.view.edit_message.setText(resent_transfer.comment)
 
-        return dialog.exec()
+    def integrate_to_main_view(self, connection):
+        self.view.combo_connections.setCurrentText(connection.title())
+        self.view.groupbox_connection.hide()
+        self.view.label_total.hide()
 
     def selected_pubkey(self):
         """
@@ -161,7 +161,8 @@ class TransferController(QObject):
             self.model.cancel_previous()
             for tx in transactions:
                 self.model.app.new_transfer.emit(self.model.connection, tx)
-            self.view.accept()
+            self.view.clear()
+            self.rejected.emit()
         else:
             await self.view.show_error(self.model.notifications(), result[1])
             for tx in transactions:
@@ -171,7 +172,8 @@ class TransferController(QObject):
             self.view.button_box.setEnabled(True)
 
     def reject(self):
-        self.view.reject()
+        self.view.clear()
+        self.rejected.emit()
 
     def refresh(self):
         amount = self.model.wallet_value()
