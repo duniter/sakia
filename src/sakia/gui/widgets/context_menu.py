@@ -1,8 +1,9 @@
 import logging
-
+import re
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtWidgets import QMenu, QAction, QApplication, QMessageBox
 
+from duniterpy.documents.constants import pubkey_regex
 from sakia.data.entities import Identity, Transaction, Dividend
 from sakia.data.processors import BlockchainProcessor, TransactionsProcessor
 from sakia.decorators import asyncify
@@ -32,25 +33,24 @@ class ContextMenu(QObject):
         :param ContextMenu menu: the qmenu to add actions to
         :param Identity identity: the identity
         """
-        menu.qmenu.addSeparator().setText(identity.uid if identity.uid else "Pubkey")
+        menu.qmenu.addSeparator().setText(identity.uid if identity.uid else identity.pubkey[:7])
 
         informations = QAction(menu.qmenu.tr("Informations"), menu.qmenu.parent())
         informations.triggered.connect(lambda checked, i=identity: menu.informations(i))
         menu.qmenu.addAction(informations)
-
-        if menu._connection.pubkey != identity.pubkey:
-            send_money = QAction(menu.qmenu.tr("Send money"), menu.qmenu.parent())
-            send_money.triggered.connect(lambda checked, i=identity: menu.send_money(i))
-            menu.qmenu.addAction(send_money)
 
         if identity.uid and menu._connection.pubkey != identity.pubkey:
             certify = QAction(menu.tr("Certify identity"), menu.qmenu.parent())
             certify.triggered.connect(lambda checked, i=identity: menu.certify_identity(i))
             menu.qmenu.addAction(certify)
 
-        view_wot = QAction(menu.qmenu.tr("View in Web of Trust"), menu.qmenu.parent())
-        view_wot.triggered.connect(lambda checked, i=identity: menu.view_wot(i))
-        menu.qmenu.addAction(view_wot)
+            view_wot = QAction(menu.qmenu.tr("View in Web of Trust"), menu.qmenu.parent())
+            view_wot.triggered.connect(lambda checked, i=identity: menu.view_wot(i))
+            menu.qmenu.addAction(view_wot)
+
+            send_money = QAction(menu.qmenu.tr("Send money"), menu.qmenu.parent())
+            send_money.triggered.connect(lambda checked, i=identity: menu.send_money(i))
+            menu.qmenu.addAction(send_money)
 
         copy_pubkey = QAction(menu.qmenu.tr("Copy pubkey to clipboard"), menu.qmenu.parent())
         copy_pubkey.triggered.connect(lambda checked, i=identity: ContextMenu.copy_pubkey_to_clipboard(i))
@@ -88,6 +88,19 @@ class ContextMenu(QObject):
                                            menu.copy_block_to_clipboard(transfer.blockstamp.number))
                 menu.qmenu.addAction(copy_doc)
 
+    @staticmethod
+    def _add_string_actions(menu, str_value):
+        if re.match(pubkey_regex, str_value):
+            menu.qmenu.addSeparator().setText(str_value[:7])
+            copy_pubkey = QAction(menu.qmenu.tr("Copy pubkey to clipboard"), menu.qmenu.parent())
+            copy_pubkey.triggered.connect(lambda checked, p=str_value: ContextMenu.copy_pubkey_to_clipboard(p))
+            menu.qmenu.addAction(copy_pubkey)
+
+            if menu._connection.pubkey != str_value:
+                send_money = QAction(menu.qmenu.tr("Send money"), menu.qmenu.parent())
+                send_money.triggered.connect(lambda checked, p=str_value: menu.send_money(p))
+                menu.qmenu.addAction(send_money)
+
     @classmethod
     def from_data(cls, parent, app, connection, data):
         """
@@ -105,6 +118,7 @@ class ContextMenu(QObject):
             Identity: ContextMenu._add_identity_actions,
             Transaction: ContextMenu._add_transfers_actions,
             Dividend: lambda m, d: None,
+            str: ContextMenu._add_string_actions,
             dict: lambda m, d: None,
             type(None): lambda m, d: None
         }
@@ -114,9 +128,12 @@ class ContextMenu(QObject):
         return menu
 
     @staticmethod
-    def copy_pubkey_to_clipboard(identity):
+    def copy_pubkey_to_clipboard(identity_or_pubkey):
         clipboard = QApplication.clipboard()
-        clipboard.setText(identity.pubkey)
+        if isinstance(identity_or_pubkey, Identity):
+            clipboard.setText(identity_or_pubkey.pubkey)
+        else:
+            clipboard.setText(identity_or_pubkey)
 
     def informations(self, identity):
         if identity.uid:
@@ -126,9 +143,11 @@ class ContextMenu(QObject):
             UserInformationController.search_and_show_pubkey(self.parent(), self._app,
                                                              identity.pubkey)
 
-    @asyncify
-    async def send_money(self, identity):
-        await TransferController.send_money_to_identity(None, self._app, self._connection, identity)
+    def send_money(self, identity_or_pubkey):
+        if isinstance(identity_or_pubkey, Identity):
+            TransferController.send_money_to_identity(None, self._app, self._connection, identity_or_pubkey)
+        else:
+            TransferController.send_money_to_pubkey(None, self._app, self._connection, identity_or_pubkey)
 
     def view_wot(self, identity):
         self.view_identity_in_wot.emit(identity)

@@ -72,6 +72,9 @@ class IdentitiesService(QObject):
         for c in connections:
             identities.append(self._identities_processor.get_identity(self.currency, c.pubkey))
         return identities
+    
+    def is_identity_of_connection(self, identity):
+        return identity.pubkey in self._connections_processor.pubkeys()
 
     async def load_memberships(self, identity):
         """
@@ -97,14 +100,14 @@ class IdentitiesService(QObject):
                 identity.membership_written_on = ms["written"]
                 identity = await self.load_requirements(identity)
             # We save connections pubkeys
-            if identity.pubkey in self._connections_processor.pubkeys():
-                identity.written = True
+            identity.written = True
+            if self.is_identity_of_connection(identity):
                 self._identities_processor.insert_or_update_identity(identity)
         except errors.DuniterError as e:
             logging.debug(str(e))
             if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
                 identity.written = False
-                if identity.pubkey in self._connections_processor.pubkeys():
+                if self.is_identity_of_connection(identity):
                     self._identities_processor.insert_or_update_identity(identity)
         except NoPeerAvailable as e:
             logging.debug(str(e))
@@ -136,7 +139,7 @@ class IdentitiesService(QObject):
                                                                                                     cert.block)
                                         certifiers.append(cert)
                                         # We save connections pubkeys
-                                        if identity.pubkey in self._connections_processor.pubkeys():
+                                        if self.is_identity_of_connection(identity):
                                             self._certs_processor.insert_or_update_certification(cert)
                 for signed_data in result["signed"]:
                     cert = Certification(currency=self.currency,
@@ -148,7 +151,7 @@ class IdentitiesService(QObject):
                     if cert not in certified:
                         certified.append(cert)
                         # We save connections pubkeys
-                        if identity.pubkey in self._connections_processor.pubkeys():
+                        if self.is_identity_of_connection(identity):
                             cert.timestamp = await self._blockchain_processor.timestamp(self.currency,
                                                                                         cert.block)
                             self._certs_processor.insert_or_update_certification(cert)
@@ -183,7 +186,7 @@ class IdentitiesService(QObject):
                     self._certs_processor.insert_or_update_certification(cert)
 
             identity.written = True
-            if identity.pubkey in self._connections_processor.pubkeys():
+            if self.is_identity_of_connection(identity):
                 self._identities_processor.insert_or_update_identity(identity)
         except errors.DuniterError as e:
             if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):
@@ -219,7 +222,7 @@ class IdentitiesService(QObject):
                     self._certs_processor.insert_or_update_certification(cert)
 
             identity.written = True
-            if identity.pubkey in self._connections_processor.pubkeys():
+            if self.is_identity_of_connection(identity):
                 self._identities_processor.insert_or_update_identity(identity)
         except errors.DuniterError as e:
             if e.ucode in (errors.NO_MATCHING_IDENTITY, errors.NO_MEMBER_MATCHING_PUB_OR_UID):

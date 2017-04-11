@@ -3,6 +3,7 @@ from .table_model import HistoryTableModel, TxFilterProxyModel
 from PyQt5.QtCore import Qt, QDateTime, QTime, pyqtSignal, QModelIndex
 from sakia.errors import NoPeerAvailable
 from duniterpy.api import errors
+from sakia.data.entities import Identity
 
 import logging
 
@@ -66,11 +67,15 @@ class TxHistoryModel(QObject):
             pubkey_col = self.table_model.sourceModel().columns_types.index('pubkey')
             pubkey_index = self.table_model.sourceModel().index(source_index.row(), pubkey_col)
             pubkeys = self.table_model.sourceModel().data(pubkey_index, Qt.DisplayRole)
-            identities = []
+            identities_or_pubkeys = []
             for pubkey in pubkeys:
-                identities.append(self.identities_service.get_identity(pubkey))
+                identity = self.identities_service.get_identity(pubkey)
+                if identity:
+                    identities_or_pubkeys.append(identity)
+                else:
+                    identities_or_pubkeys.append(pubkey)
             transfer = self._model.transfers_data[source_index.row()][self._model.columns_types.index('raw_data')]
-            return True, identities, transfer
+            return True,  identities_or_pubkeys, transfer
         return False, [], None
 
     def minimum_maximum_datetime(self):
