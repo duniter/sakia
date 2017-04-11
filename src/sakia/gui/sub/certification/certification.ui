@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>CertificationDialog</class>
- <widget class="QDialog" name="CertificationDialog">
+ <class>CertificationWidget</class>
+ <widget class="QWidget" name="CertificationWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>517</width>
-    <height>441</height>
+    <width>629</width>
+    <height>620</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Certification</string>
+   <string>Form</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QGroupBox" name="groupBox_2">
+    <widget class="QGroupBox" name="groupbox_identity">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
        <horstretch>0</horstretch>
@@ -27,7 +27,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <widget class="QComboBox" name="combo_connection"/>
+       <widget class="QComboBox" name="combo_connections"/>
       </item>
       <item>
        <widget class="QGroupBox" name="groupBox_3">
@@ -123,13 +123,4 @@
  </widget>
  <resources/>
  <connections/>
- <slots>
-  <slot>open_manage_wallet_coins()</slot>
-  <slot>change_displayed_wallet(int)</slot>
-  <slot>transfer_mode_changed(bool)</slot>
-  <slot>recipient_mode_changed(bool)</slot>
-  <slot>change_current_community(int)</slot>
-  <slot>amount_changed()</slot>
-  <slot>relative_amount_changed()</slot>
- </slots>
 </ui>

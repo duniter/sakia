@@ -9,7 +9,7 @@ from sakia.data.processors import BlockchainProcessor
 from duniterpy.api import errors
 
 
-class InformationsModel(QObject):
+class IdentityModel(QObject):
     """
     An component
     """
@@ -19,7 +19,7 @@ class InformationsModel(QObject):
         """
         Constructor of an component
 
-        :param sakia.gui.informations.controller.InformationsController parent: the controller
+        :param sakia.gui.identity.controller.IdentityController parent: the controller
         :param sakia.app.Application app: the app
         :param sakia.data.entities.Connection connection: the user connection of this node
         :param sakia.services.BlockchainService blockchain_service: the service watching the blockchain state
@@ -171,17 +171,6 @@ class InformationsModel(QObject):
         Get community parameters
         """
         return self.blockchain_service.parameters()
-
-    def referentials(self):
-        """
-        Get referentials
-        :return: The list of instances of all referentials
-        :rtype: list
-        """
-        refs_instances = []
-        for ref_class in Referentials:
-             refs_instances.append(ref_class(0, self.connection.currency, self.app, None))
-        return refs_instances
 
     def notifications(self):
         return self.app.parameters.notifications

@@ -42,8 +42,7 @@ class TxHistoryController(QObject):
     def create(cls, parent, app, connection,
                identities_service, blockchain_service, transactions_service, sources_service):
 
-        transfer = TransferController.create(None, app)
-        transfer.integrate_to_main_view(connection)
+        transfer = TransferController.integrate_to_main_view(None, app, connection)
         view = TxHistoryView(parent.view, transfer.view)
         model = TxHistoryModel(None, app, connection, blockchain_service, identities_service,
                                transactions_service, sources_service)

@@ -72,6 +72,14 @@ class TransferController(QObject):
         return transfer
 
     @classmethod
+    def integrate_to_main_view(cls, parent, app, connection):
+        transfer = cls.create(parent, app)
+        transfer.view.combo_connections.setCurrentText(connection.title())
+        transfer.view.groupbox_connection.hide()
+        transfer.view.label_total.hide()
+        return transfer
+
+    @classmethod
     def open_transfer_with_pubkey(cls, parent, app, connection, pubkey):
         transfer = cls.create(parent, app)
         transfer.view.groupbox_connection.show()
@@ -139,11 +147,6 @@ class TransferController(QObject):
         transfer.accepted.connect(dialog.accept)
         transfer.rejected.connect(dialog.reject)
         return dialog.exec()
-
-    def integrate_to_main_view(self, connection):
-        self.view.combo_connections.setCurrentText(connection.title())
-        self.view.groupbox_connection.hide()
-        self.view.label_total.hide()
 
     def selected_pubkey(self):
         """

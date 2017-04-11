@@ -12,7 +12,7 @@ from sakia.models.generic_tree import GenericTreeModel
 from .graphs.wot.controller import WotController
 from .homescreen.controller import HomeScreenController
 from .identities.controller import IdentitiesController
-from .informations.controller import InformationsController
+from .identity.controller import IdentityController
 from .model import NavigationModel
 from .network.controller import NetworkController
 from .txhistory.controller import TxHistoryController
@@ -41,7 +41,7 @@ class NavigationController(QObject):
             'HomeScreen': HomeScreenController,
             'Network': NetworkController,
             'Identities': IdentitiesController,
-            'Informations': InformationsController,
+            'Informations': IdentityController,
             'Wot': WotController
         }
         self.view.current_view_changed.connect(self.handle_view_change)

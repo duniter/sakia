@@ -1,7 +1,7 @@
 import asyncio
 
-from PyQt5.QtCore import Qt, QObject
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtCore import Qt, QObject, pyqtSignal
+from PyQt5.QtWidgets import QApplication, QDialog, QVBoxLayout
 
 from sakia.constants import ROOT_SERVERS
 from sakia.decorators import asyncify
@@ -20,6 +20,8 @@ class CertificationController(QObject):
     """
     The Certification view
     """
+    accepted = pyqtSignal()
+    rejected = pyqtSignal()
 
     view = attr.ib()
     model = attr.ib()
@@ -31,7 +33,7 @@ class CertificationController(QObject):
         super().__init__()
         self.view.button_box.accepted.connect(self.accept)
         self.view.button_box.rejected.connect(self.reject)
-        self.view.combo_connection.currentIndexChanged.connect(self.change_connection)
+        self.view.combo_connections.currentIndexChanged.connect(self.change_connection)
 
     @classmethod
     def create(cls, parent, app):
@@ -62,6 +64,13 @@ class CertificationController(QObject):
         return certification
 
     @classmethod
+    def integrate_to_main_view(cls, parent, app, connection):
+        certification = cls.create(parent, app)
+        certification.view.combo_connections.setCurrentText(connection.title())
+        certification.view.groupbox_identity.hide()
+        return certification
+
+    @classmethod
     def open_dialog(cls, parent, app, connection):
         """
         Certify and identity
@@ -71,10 +80,17 @@ class CertificationController(QObject):
         :param sakia.core.Community community: the community
         :return:
         """
-        dialog = cls.create(parent, app)
-        dialog.set_connection(connection)
-        dialog.refresh()
-        return dialog.exec()
+
+        dialog = QDialog(parent)
+        dialog.setWindowTitle(dialog.tr("Certification"))
+        dialog.setLayout(QVBoxLayout(dialog))
+        certification = cls.create(parent, app)
+        certification.set_connection(connection)
+        certification.refresh()
+        dialog.layout().addWidget(certification.view)
+        certification.accepted.connect(dialog.accept)
+        certification.rejected.connect(dialog.reject)
+        return certification.exec()
 
     @classmethod
     async def certify_identity(cls, parent, app, connection, identity):
@@ -87,7 +103,7 @@ class CertificationController(QObject):
         :return:
         """
         dialog = cls.create(parent, app)
-        dialog.view.combo_connection.setCurrentText(connection.title())
+        dialog.view.combo_connections.setCurrentText(connection.title())
         dialog.user_information.change_identity(identity)
         dialog.refresh()
         return await dialog.async_exec()
@@ -99,7 +115,7 @@ class CertificationController(QObject):
 
     def set_connection(self, connection):
         if connection:
-            self.view.combo_connection.setCurrentText(connection.title())
+            self.view.combo_connections.setCurrentText(connection.title())
             self.password_input.set_connection(connection)
 
     @asyncify

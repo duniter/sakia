@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QFileDialog, QMessageBox
 from PyQt5.QtCore import QT_TRANSLATE_NOOP, Qt, pyqtSignal
-from .certification_uic import Ui_CertificationDialog
+from .certification_uic import Ui_CertificationWidget
 from sakia.gui.widgets import toast
 from sakia.gui.widgets.dialogs import QAsyncMessageBox
 from sakia.constants import ROOT_SERVERS
@@ -8,7 +8,7 @@ from duniterpy.documents import Identity, MalformedDocumentError
 from enum import Enum
 
 
-class CertificationView(QDialog, Ui_CertificationDialog):
+class CertificationView(QDialog, Ui_CertificationWidget):
     """
     The view of the certification component
     """
@@ -56,15 +56,15 @@ class CertificationView(QDialog, Ui_CertificationDialog):
         self.button_import_identity.clicked.connect(self.import_identity_document)
 
     def set_keys(self, connections):
-        self.combo_connection.clear()
+        self.combo_connections.clear()
         for c in connections:
-            self.combo_connection.addItem(c.title())
+            self.combo_connections.addItem(c.title())
 
     def set_selected_key(self, connection):
         """
         :param sakia.data.entities.Connection connection:
         """
-        self.combo_connection.setCurrentText(connection.title())
+        self.combo_connections.setCurrentText(connection.title())
 
     def pubkey_value(self):
         return self.edit_pubkey.text()

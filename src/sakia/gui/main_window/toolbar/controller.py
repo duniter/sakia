@@ -1,6 +1,5 @@
 from PyQt5.QtCore import QObject
 from PyQt5.QtWidgets import QDialog
-from sakia.gui.dialogs.certification.controller import CertificationController
 from sakia.gui.dialogs.connection_cfg.controller import ConnectionConfigController
 from sakia.gui.dialogs.revocation.controller import RevocationController
 from sakia.gui.dialogs.contact.controller import ContactController
@@ -45,10 +44,6 @@ class ToolbarController(QObject):
         model = ToolbarModel(app, navigation.model)
         toolbar = cls(view, model)
         return toolbar
-
-    def open_certification_dialog(self):
-        CertificationController.open_dialog(self, self.model.app,
-                                            self.model.navigation_model.current_connection())
 
     def open_contacts_dialog(self):
         ContactController.open_dialog(self, self.model.app)
