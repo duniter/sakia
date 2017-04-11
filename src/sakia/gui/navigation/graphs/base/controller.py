@@ -67,7 +67,7 @@ class BaseGraphController(QObject):
         Open the node context menu
         :param sakia.data.entities.Identity identity: the identity of the node to open
         """
-        menu = ContextMenu.from_data(self.view, self.model.app, self.model.connection, (identity,))
+        menu = ContextMenu.from_data(self.view, self.model.app, None, (identity,))
         menu.view_identity_in_wot.connect(self.draw_graph)
 
         # Show the context menu.

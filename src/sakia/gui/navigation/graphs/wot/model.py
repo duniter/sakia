@@ -33,12 +33,17 @@ class WotModel(BaseGraphModel):
         :return:
         """
         for pubkey in self._connections_processor.pubkeys():
-            connection_identity = self.identities_service.get_identity(pubkey)
-            if connection_identity:
-                self.identity = connection_identity
-                # create empty graph instance
-                self.wot_graph.offline_init(connection_identity)
-                break
+            if identity:
+                if identity.pubkey == pubkey:
+                    self.identity = identity
+                    self.wot_graph.offline_init(identity)
+                    break
+            else:
+                connection_identity = self.identities_service.get_identity(pubkey)
+                if connection_identity:
+                    self.identity = connection_identity
+                    self.wot_graph.offline_init(connection_identity)
+                    break
         else:
             # create empty graph instance
             if identity:

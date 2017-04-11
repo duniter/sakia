@@ -31,7 +31,7 @@ class BaseGraph(QObject):
         self.app = app
         self.identities_service = identities_service
         self.blockchain_service = blockchain_service
-        self._connections_processors = ConnectionsProcessor.instanciate(app)
+        self._connections_processor = ConnectionsProcessor.instanciate(app)
         # graph empty if None parameter
         self.nx_graph = nx_graph if nx_graph else networkx.DiGraph()
 
@@ -76,7 +76,7 @@ class BaseGraph(QObject):
         """
         # new node
         node_status = NodeStatus.NEUTRAL
-        if node_identity.pubkey in self._connections_processors.pubkeys():
+        if node_identity.pubkey in self._connections_processor.pubkeys():
             node_status += NodeStatus.HIGHLIGHTED
         if node_identity.member is False:
             node_status += NodeStatus.OUT
