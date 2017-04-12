@@ -34,11 +34,7 @@ QGroupBox::title {
       <number>0</number>
      </property>
      <widget class="QWidget" name="page_empty">
-      <layout class="QVBoxLayout" name="verticalLayout_3">
-       <item>
-        <widget class="QWidget" name="widget" native="true"/>
-       </item>
-      </layout>
+      <layout class="QVBoxLayout" name="verticalLayout_3"/>
      </widget>
     </widget>
    </item>

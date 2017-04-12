@@ -84,8 +84,10 @@ class UserInformationController(QObject):
 
     @asyncify
     async def search_identity(self, identity):
+        self.view.show_busy()
         await self.model.load_identity(identity)
         self.refresh()
+        self.view.hide_busy()
 
     def change_identity(self, identity):
         """

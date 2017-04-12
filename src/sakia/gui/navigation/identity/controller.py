@@ -19,7 +19,7 @@ class IdentityController(QObject):
     The informations component
     """
 
-    def __init__(self, parent, view, model):
+    def __init__(self, parent, view, model, certification):
         """
         Constructor of the informations component
 
@@ -29,6 +29,7 @@ class IdentityController(QObject):
         super().__init__(parent)
         self.view = view
         self.model = model
+        self.certification = certification
         self._logger = logging.getLogger('sakia')
         self.view.button_membership.clicked.connect(self.send_join_demand)
 
@@ -47,7 +48,7 @@ class IdentityController(QObject):
         certification = CertificationController.integrate_to_main_view(None, app, connection)
         view = IdentityView(parent.view, certification.view)
         model = IdentityModel(None, app, connection, blockchain_service, identities_service, sources_service)
-        identity = cls(parent, view, model)
+        identity = cls(parent, view, model, certification)
         certification.accepted.connect(view.clear)
         certification.rejected.connect(view.clear)
         identity.refresh_localized_data()

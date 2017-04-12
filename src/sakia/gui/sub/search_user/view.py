@@ -3,6 +3,7 @@ from PyQt5.QtCore import QT_TRANSLATE_NOOP, pyqtSignal, Qt, QStringListModel
 from sakia.data.entities import Contact
 from .search_user_uic import Ui_SearchUserWidget
 import re
+import asyncio
 
 
 class SearchUserView(QWidget, Ui_SearchUserWidget):
@@ -71,9 +72,3 @@ class SearchUserView(QWidget, Ui_SearchUserWidget):
         completer.setModel(model)
         completer.activated.connect(self.search, type=Qt.QueuedConnection)
         self.combobox_search.setCompleter(completer)
-
-    def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Return:
-            return
-
-        super().keyPressEvent(event)
