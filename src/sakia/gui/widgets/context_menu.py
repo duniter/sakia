@@ -39,7 +39,7 @@ class ContextMenu(QObject):
         informations.triggered.connect(lambda checked, i=identity: menu.informations(i))
         menu.qmenu.addAction(informations)
 
-        if identity.uid and menu._connection.pubkey != identity.pubkey:
+        if identity.uid and (not menu._connection or menu._connection.pubkey != identity.pubkey):
             certify = QAction(menu.tr("Certify identity"), menu.qmenu.parent())
             certify.triggered.connect(lambda checked, i=identity: menu.certify_identity(i))
             menu.qmenu.addAction(certify)
@@ -152,9 +152,8 @@ class ContextMenu(QObject):
     def view_wot(self, identity):
         self.view_identity_in_wot.emit(identity)
 
-    @asyncify
-    async def certify_identity(self, identity):
-        await CertificationController.certify_identity(None, self._app, self._connection, identity)
+    def certify_identity(self, identity):
+        CertificationController.certify_identity(None, self._app, self._connection, identity)
 
     def send_again(self, transfer):
         TransferController.send_transfer_again(None, self._app, self._connection, transfer)

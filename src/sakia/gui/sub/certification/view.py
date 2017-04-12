@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QFileDialog, QMessageBox
+from PyQt5.QtWidgets import QWidget, QDialogButtonBox, QFileDialog, QMessageBox
 from PyQt5.QtCore import QT_TRANSLATE_NOOP, Qt, pyqtSignal
 from .certification_uic import Ui_CertificationWidget
 from sakia.gui.widgets import toast
@@ -8,7 +8,7 @@ from duniterpy.documents import Identity, MalformedDocumentError
 from enum import Enum
 
 
-class CertificationView(QDialog, Ui_CertificationWidget):
+class CertificationView(QWidget, Ui_CertificationWidget):
     """
     The view of the certification component
     """

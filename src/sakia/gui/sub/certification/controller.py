@@ -1,5 +1,3 @@
-import asyncio
-
 from PyQt5.QtCore import Qt, QObject, pyqtSignal
 from PyQt5.QtWidgets import QApplication, QDialog, QVBoxLayout
 
@@ -90,10 +88,10 @@ class CertificationController(QObject):
         dialog.layout().addWidget(certification.view)
         certification.accepted.connect(dialog.accept)
         certification.rejected.connect(dialog.reject)
-        return certification.exec()
+        return dialog.exec()
 
     @classmethod
-    async def certify_identity(cls, parent, app, connection, identity):
+    def certify_identity(cls, parent, app, connection, identity):
         """
         Certify and identity
         :param sakia.gui.component.controller.ComponentController parent: the parent
@@ -102,11 +100,18 @@ class CertificationController(QObject):
         :param sakia.data.entities.Identity identity: the identity certified
         :return:
         """
-        dialog = cls.create(parent, app)
-        dialog.view.combo_connections.setCurrentText(connection.title())
-        dialog.user_information.change_identity(identity)
-        dialog.refresh()
-        return await dialog.async_exec()
+        dialog = QDialog(parent)
+        dialog.setWindowTitle(dialog.tr("Certification"))
+        dialog.setLayout(QVBoxLayout(dialog))
+        certification = cls.create(parent, app)
+        if connection:
+            certification.view.combo_connections.setCurrentText(connection.title())
+            certification.user_information.change_identity(identity)
+            certification.refresh()
+        dialog.layout().addWidget(certification.view)
+        certification.accepted.connect(dialog.accept)
+        certification.rejected.connect(dialog.reject)
+        return dialog.exec()
 
     def change_connection(self, index):
         self.model.set_connection(index)
@@ -154,15 +159,14 @@ using cross checking which will help to reveal the problem if needs to be.</br>"
         if result[0]:
             QApplication.restoreOverrideCursor()
             await self.view.show_success(self.model.notification())
-            self.view.accept()
+            self.accepted.emit()
         else:
             await self.view.show_error(self.model.notification(), result[1])
             QApplication.restoreOverrideCursor()
             self.view.button_box.setEnabled(True)
 
-    @asyncify
-    async def reject(self):
-        self.view.reject()
+    def reject(self):
+        self.rejected.emit()
 
     def refresh(self):
         stock = self.model.get_cert_stock()
@@ -208,14 +212,3 @@ using cross checking which will help to reveal the problem if needs to be.</br>"
         Refresh user information
         """
         self.user_information.search_identity(self.search_user.model.identity())
-
-    def async_exec(self):
-        future = asyncio.Future()
-        self.view.finished.connect(lambda r: future.set_result(r))
-        self.view.open()
-        self.refresh()
-        return future
-
-    def exec(self):
-        self.refresh()
-        self.view.exec()

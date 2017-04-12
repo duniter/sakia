@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QDialog, QDialogButtonBox
+from PyQt5.QtWidgets import QWidget, QDialogButtonBox
 from PyQt5.QtGui import QRegExpValidator
 from PyQt5.QtCore import QT_TRANSLATE_NOOP, QRegExp
 from .transfer_uic import Ui_TransferMoneyWidget
@@ -7,7 +7,7 @@ from sakia.gui.widgets import toast
 from sakia.gui.widgets.dialogs import QAsyncMessageBox
 
 
-class TransferView(QDialog, Ui_TransferMoneyWidget):
+class TransferView(QWidget, Ui_TransferMoneyWidget):
     """
     Transfer component view
     """

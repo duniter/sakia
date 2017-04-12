@@ -83,7 +83,8 @@ class TransferController(QObject):
     def open_transfer_with_pubkey(cls, parent, app, connection, pubkey):
         transfer = cls.create(parent, app)
         transfer.view.groupbox_connection.show()
-        transfer.view.combo_connections.setCurrentText(connection.title())
+        if connection:
+            transfer.view.combo_connections.setCurrentText(connection.title())
         transfer.view.edit_pubkey.setText(pubkey)
         transfer.view.radio_pubkey.setChecked(True)
 
