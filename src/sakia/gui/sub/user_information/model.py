@@ -21,9 +21,9 @@ class UserInformationModel(QObject):
         self.app = app
         self.identity = identity
         self.identities_service = self.app.identities_service
-        if identity:
-            self.certs_sent = self._certifications_processor.certifications_sent(identity.currency, identity.pubkey)
-            self.certs_received = self._certifications_processor.certifications_received(identity.currency, identity.pubkey)
+
+    def clear(self):
+        self.identity = None
 
     async def load_identity(self, identity):
         """

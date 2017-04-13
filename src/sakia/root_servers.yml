@@ -1,8 +1,3 @@
-fakenet:
-  display: fakenet
-  nodes:
-    HnFcSms8jzwngtVomTTnzudZx7SHUQY8sVE1y8yBmULk:
-      - "BASIC_MERKLED_API fakenet.cgeek.fr 10900"
 gtest:
   display: ğtest
   nodes:
@@ -13,4 +8,4 @@ g1:
   nodes:
     4aCqwikTaTPBRQLGiLHohuoJLPmLephy9eDtgCWLMwBk:
     - "BMAS g1.duniter.org 443"
-    - "BMA_ENDPOINT_API g1.duniter.org 80"
+    - "BMA_ENDPOINT_API g1.duniter.org 10901"

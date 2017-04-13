@@ -102,6 +102,10 @@ class UserInformationView(QWidget, Ui_UserInformationWidget):
     def hide_busy(self):
         self.busy.hide()
 
+    def clear(self):
+        self.label_properties.setText("")
+        self.label_uid.setText("")
+
     def resizeEvent(self, event):
         self.busy.resize(event.size())
         super().resizeEvent(event)

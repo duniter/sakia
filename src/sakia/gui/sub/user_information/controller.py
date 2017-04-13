@@ -89,6 +89,10 @@ class UserInformationController(QObject):
         self.refresh()
         self.view.hide_busy()
 
+    def clear(self):
+        self.model.clear()
+        self.view.clear()
+
     def change_identity(self, identity):
         """
         Set identity

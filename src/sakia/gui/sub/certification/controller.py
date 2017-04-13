@@ -159,6 +159,9 @@ using cross checking which will help to reveal the problem if needs to be.</br>"
         if result[0]:
             QApplication.restoreOverrideCursor()
             await self.view.show_success(self.model.notification())
+            self.search_user.clear()
+            self.user_information.clear()
+            self.view.clear()
             self.accepted.emit()
         else:
             await self.view.show_error(self.model.notification(), result[1])
@@ -166,6 +169,9 @@ using cross checking which will help to reveal the problem if needs to be.</br>"
             self.view.button_box.setEnabled(True)
 
     def reject(self):
+        self.search_user.clear()
+        self.user_information.clear()
+        self.view.clear()
         self.rejected.emit()
 
     def refresh(self):
@@ -176,24 +182,25 @@ using cross checking which will help to reveal the problem if needs to be.</br>"
 
         if self.model.could_certify():
             if written < stock or stock == 0:
-                if self.password_input.valid():
-                    if not self.user_information.model.identity:
-                        self.view.set_button_box(CertificationView.ButtonBoxState.SELECT_IDENTITY)
-                    elif days+hours+minutes > 0:
-                        if days > 0:
-                            remaining_localized = self.tr("{days} days").format(days=days)
-                        else:
-                            remaining_localized = self.tr("{hours}h {min}min").format(hours=hours, min=minutes)
-                        self.view.set_button_box(CertificationView.ButtonBoxState.REMAINING_TIME_BEFORE_VALIDATION,
-                                                 remaining=remaining_localized)
+                if not self.user_information.model.identity:
+                    self.view.set_button_process(CertificationView.ButtonsState.SELECT_IDENTITY)
+                elif days+hours+minutes > 0:
+                    if days > 0:
+                        remaining_localized = self.tr("{days} days").format(days=days)
                     else:
-                        self.view.set_button_box(CertificationView.ButtonBoxState.OK)
+                        remaining_localized = self.tr("{hours}h {min}min").format(hours=hours, min=minutes)
+                    self.view.set_button_process(CertificationView.ButtonsState.REMAINING_TIME_BEFORE_VALIDATION,
+                                                 remaining=remaining_localized)
                 else:
-                    self.view.set_button_box(CertificationView.ButtonBoxState.WRONG_PASSWORD)
+                    self.view.set_button_process(CertificationView.ButtonsState.OK)
+                    if self.password_input.valid():
+                        self.view.set_button_box(CertificationView.ButtonsState.OK)
+                    else:
+                        self.view.set_button_box(CertificationView.ButtonsState.WRONG_PASSWORD)
             else:
-                self.view.set_button_box(CertificationView.ButtonBoxState.NO_MORE_CERTIFICATION)
+                self.view.set_button_process(CertificationView.ButtonsState.NO_MORE_CERTIFICATION)
         else:
-            self.view.set_button_box(CertificationView.ButtonBoxState.NOT_A_MEMBER)
+            self.view.set_button_process(CertificationView.ButtonsState.NOT_A_MEMBER)
 
     def load_identity_document(self, identity_doc):
         """

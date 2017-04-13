@@ -72,22 +72,6 @@ class IdentityView(QWidget, Ui_IdentityWidget):
                 mstime_remaining_text = self.tr("Expired or never published")
 
             status_color = '#00AA00' if data['membership_state'] else self.tr('#FF0000')
-            description_currency = """<html>
-<body>
-    <p>
-        <span style=" font-size:16pt; font-weight:600;">{currency}</span>
-    </p>
-    <p>{nb_members} {members_label}</p>
-    <p><span style="font-weight:600;">{monetary_mass_label}</span> : {monetary_mass}</p>
-    <p><span style="font-weight:600;">{balance_label}</span> : {balance}</p>
-</body>
-</html>""".format(currency=data['currency'],
-                  nb_members=data['members_count'],
-                  members_label=self.tr("members"),
-                  monetary_mass_label=self.tr("Monetary mass"),
-                  monetary_mass=data['mass'],
-                  balance_label=self.tr("Balance"),
-                  balance=data['amount'])
 
             description_membership = """<html>
 <body>
@@ -109,8 +93,6 @@ class IdentityView(QWidget, Ui_IdentityWidget):
                   outdistanced_text=data['outdistanced'],
                   mstime_remaining_label=self.tr("Membership"),
                   mstime_remaining=mstime_remaining_text)
-
-            self.label_currency.setText(description_currency)
 
             if data['is_identity']:
                 self.label_membership.setText(description_membership)

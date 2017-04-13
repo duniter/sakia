@@ -59,3 +59,6 @@ class SearchUserController(QObject):
         if self.model.select_identity(index):
             self.identity_selected.emit(self.model.identity())
 
+    def clear(self):
+        self.model.clear()
+        self.view.clear()
