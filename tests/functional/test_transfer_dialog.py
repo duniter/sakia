@@ -3,7 +3,7 @@ import pytest
 from PyQt5.QtCore import QLocale, Qt
 from PyQt5.QtTest import QTest
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QMessageBox, QApplication
-from sakia.gui.dialogs.transfer.controller import TransferController
+from sakia.gui.sub.transfer.controller import TransferController
 from duniterpy.documents import Transaction
 
 
@@ -13,7 +13,7 @@ async def test_transfer(application_with_one_connection, fake_server_with_blockc
 
     def close_dialog():
         if transfer_dialog.view.isVisible():
-            transfer_dialog.view.close()
+            transfer_dialog.view.hide()
 
     async def exec_test():
         QTest.mouseClick(transfer_dialog.view.radio_pubkey, Qt.LeftButton)
@@ -30,6 +30,6 @@ async def test_transfer(application_with_one_connection, fake_server_with_blockc
         assert isinstance(fake_server_with_blockchain.forge.pool[0], Transaction)
 
     application_with_one_connection.loop.call_later(10, close_dialog)
-    asyncio.ensure_future(exec_test())
-    await transfer_dialog.async_exec()
+    transfer_dialog.view.show()
+    await exec_test()
     await fake_server_with_blockchain.close()
