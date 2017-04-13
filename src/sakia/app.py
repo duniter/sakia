@@ -155,6 +155,9 @@ class Application(QObject):
 
         self.db.commit()
 
+    async def initialize_blockchain(self):
+        await BlockchainProcessor.instanciate(self).initialize_blockchain(self.currency)
+
     def switch_language(self):
         logging.debug("Loading translations")
         locale = self.parameters.lang

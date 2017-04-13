@@ -138,27 +138,28 @@ class WotScene(BaseScene):
         :param networkx.MultiDiGraph nx_graph: graph to draw
         :param sakia.core.registry.Identity identity: the wot of the identity
         """
-        #  clear scene
-        self.clear()
-        certifiers_graph_pos = WotScene.certifiers_partial_layout(nx_graph, identity.pubkey, scale=200)
-        certified_graph_pos = WotScene.certified_partial_layout(nx_graph, identity.pubkey, scale=200)
+        if identity:
+            #  clear scene
+            self.clear()
+            certifiers_graph_pos = WotScene.certifiers_partial_layout(nx_graph, identity.pubkey, scale=200)
+            certified_graph_pos = WotScene.certified_partial_layout(nx_graph, identity.pubkey, scale=200)
 
-        # create networkx graph
-        for node in nx_graph.nodes(data=True):
-            if node[0] in certifiers_graph_pos:
-                v = WotNode(node, certifiers_graph_pos)
-                self.addItem(v)
-            if node[0] in certified_graph_pos:
-                v = WotNode(node, certified_graph_pos)
-                self.addItem(v)
+            # create networkx graph
+            for node in nx_graph.nodes(data=True):
+                if node[0] in certifiers_graph_pos:
+                    v = WotNode(node, certifiers_graph_pos)
+                    self.addItem(v)
+                if node[0] in certified_graph_pos:
+                    v = WotNode(node, certified_graph_pos)
+                    self.addItem(v)
 
-        for edge in nx_graph.edges(data=True):
-            if edge[0] in certifiers_graph_pos and edge[1] == identity.pubkey:
-                self.addItem(WotEdge(edge[0], edge[1], edge[2], certifiers_graph_pos))
-            if edge[0] == identity.pubkey and edge[1] in certified_graph_pos:
-                self.addItem(WotEdge(edge[0], edge[1], edge[2], certified_graph_pos))
+            for edge in nx_graph.edges(data=True):
+                if edge[0] in certifiers_graph_pos and edge[1] == identity.pubkey:
+                    self.addItem(WotEdge(edge[0], edge[1], edge[2], certifiers_graph_pos))
+                if edge[0] == identity.pubkey and edge[1] in certified_graph_pos:
+                    self.addItem(WotEdge(edge[0], edge[1], edge[2], certified_graph_pos))
 
-        self.update()
+            self.update()
 
     def update_path(self, nx_graph, path):
         path_graph_pos = WotScene.path_partial_layout(nx_graph, path, scale=200)

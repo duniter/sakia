@@ -71,7 +71,7 @@ class ConnectionConfigModel(QObject):
         :return:
         """
         blockchain_processor = BlockchainProcessor.instanciate(self.app)
-        await blockchain_processor.initialize_blockchain(self.app.currency, log_stream)
+        await blockchain_processor.initialize_blockchain(self.app.currency)
 
     async def initialize_sources(self, transactions, dividends, log_stream):
         """

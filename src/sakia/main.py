@@ -7,8 +7,10 @@ import traceback
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QMessageBox
 
+from duniterpy.api.errors import DuniterError
 from sakia.helpers import single_instance_lock, cleanup_lock
 from quamash import QSelectorEventLoop
+from sakia.errors import NoPeerAvailable
 from sakia.app import Application
 from sakia.gui.dialogs.connection_cfg.controller import ConnectionConfigController
 from sakia.gui.main_window.controller import MainWindowController
@@ -93,11 +95,25 @@ if __name__ == '__main__':
     with loop:
         app = Application.startup(sys.argv, sakia, loop)
         app.start_coroutines()
-        if not app.connection_exists():
-            conn_controller = ConnectionConfigController.create_connection(None, app)
-            loop.run_until_complete(conn_controller.async_exec())
-        window = MainWindowController.startup(app)
-        loop.run_forever()
+        try:
+            if not app.blockchain_service.initialized():
+                box = QMessageBox()
+                box.setText("Connecting to the network...")
+                wFlags = box.windowFlags();
+                if Qt.WindowCloseButtonHint == (wFlags & Qt.WindowCloseButtonHint):
+                    wFlags = wFlags ^ Qt.WindowCloseButtonHint
+                    box.setWindowFlags(wFlags)
+                box.show()
+                loop.run_until_complete(app.initialize_blockchain())
+                box.hide()
+        except (DuniterError, NoPeerAvailable) as e:
+            QMessageBox.critical(None, "Error", "Error connecting to the network : {:}".format(str(e)))
+        else:
+            if not app.connection_exists():
+                conn_controller = ConnectionConfigController.create_connection(None, app)
+                loop.run_until_complete(conn_controller.async_exec())
+            window = MainWindowController.startup(app)
+            loop.run_forever()
         try:
             loop.set_exception_handler(None)
             loop.run_until_complete(app.stop_current_profile())
