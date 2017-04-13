@@ -240,7 +240,7 @@ neither your identity from the network."""), QMessageBox.Ok | QMessageBox.Cancel
         if not password or not secret_key:
             return
 
-        raw_document = self.model.generate_revokation(connection, secret_key, password)
+        raw_document, _ = self.model.generate_revocation(connection, secret_key, password)
         # Testable way of using a QFileDialog
         selected_files = await QAsyncFileDialog.get_save_filename(self.view, self.tr("Save a revokation document"),
                                                                   "", self.tr("All text files (*.txt)"))

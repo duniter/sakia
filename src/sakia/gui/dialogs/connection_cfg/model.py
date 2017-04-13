@@ -56,8 +56,8 @@ class ConnectionConfigModel(QObject):
     def insert_or_update_identity(self, identity):
         self.identities_processor.insert_or_update_identity(identity)
 
-    def generate_revokation(self):
-        return self.app.documents_service.generate_revokation(self.connection,
+    def generate_revocation(self):
+        return self.app.documents_service.generate_revocation(self.connection,
                                                               self.connection.salt,
                                                               self.connection.password)
 
@@ -123,17 +123,12 @@ class ConnectionConfigModel(QObject):
         dividends_processor = DividendsProcessor.instanciate(self.app)
         return await dividends_processor.initialize_dividends(identity, transactions, log_stream)
 
-    async def publish_selfcert(self):
+    async def publish_selfcert(self, identity):
         """"
         Publish the self certification of the connection identity
         """
-        identity, identity_doc = self.app.documents_service.generate_identity(self.connection)
-        key = SigningKey(self.connection.salt, self.connection.password, self.connection.scrypt_params)
-        identity_doc.sign([key])
-        identity.signature = identity_doc.signatures[0]
-        self.identities_processor.insert_or_update_identity(identity)
-        result = await self.app.documents_service.broadcast_identity(self.connection, identity_doc)
-        return result, identity
+        result = await self.app.documents_service.broadcast_identity(self.connection, identity.document())
+        return result
 
     async def check_registered(self):
         identities_processor = IdentitiesProcessor.instanciate(self.app)

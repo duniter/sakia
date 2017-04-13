@@ -169,8 +169,8 @@ class NavigationModel(QObject):
         else:
             return None
 
-    def generate_revokation(self, connection, secret_key, password):
-        return self.app.documents_service.generate_revokation(connection, secret_key, password)
+    def generate_revocation(self, connection, secret_key, password):
+        return self.app.documents_service.generate_revocation(connection, secret_key, password)
 
     def identity_published(self, connection):
         return self.app.identities_service.get_identity(connection.pubkey, connection.uid).written

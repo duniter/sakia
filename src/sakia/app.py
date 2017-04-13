@@ -156,6 +156,7 @@ class Application(QObject):
         self.db.commit()
 
     async def initialize_blockchain(self):
+        await asyncio.sleep(2) # Give time for the network to connect to nodes
         await BlockchainProcessor.instanciate(self).initialize_blockchain(self.currency)
 
     def switch_language(self):

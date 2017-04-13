@@ -64,7 +64,6 @@ class ToolbarController(QObject):
             self.model.app.instanciate_services()
             self.model.app.start_coroutines()
             self.model.app.new_connection.emit(connection_config.model.connection)
-            self.enable_actions(True)
 
     def open_about_dialog(self):
         text = self.model.about_text()
