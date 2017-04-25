@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="QWidget" name="Form">
+ <class>AboutMoney</class>
+ <widget class="QWidget" name="AboutMoney">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -62,22 +62,6 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="group_referentials">
-     <property name="title">
-      <string>Referentials</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_2">
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_referentials">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
     <widget class="QGroupBox" name="group_money">
      <property name="title">
       <string>Money</string>
@@ -85,25 +69,6 @@
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
        <widget class="QLabel" name="label_money">
-        <property name="text">
-         <string/>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="group_wot">
-     <property name="title">
-      <string>WoT</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_4">
-      <item>
-       <widget class="QLabel" name="label_wot">
         <property name="text">
          <string/>
         </property>

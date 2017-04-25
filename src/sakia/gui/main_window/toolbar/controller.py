@@ -7,6 +7,7 @@ from sakia.gui.dialogs.plugins_manager.controller import PluginsManagerControlle
 from sakia.gui.preferences import PreferencesDialog
 from .model import ToolbarModel
 from .view import ToolbarView
+from sakia.data.processors import BlockchainProcessor
 import sys
 
 
@@ -28,6 +29,9 @@ class ToolbarController(QObject):
         self.view.action_parameters.triggered.connect(self.open_settings_dialog)
         self.view.action_plugins.triggered.connect(self.open_plugins_manager_dialog)
         self.view.action_about.triggered.connect(self.open_about_dialog)
+        self.view.action_about_wot.triggered.connect(self.open_about_wot_dialog)
+        self.view.action_about_money.triggered.connect(self.open_about_money_dialog)
+        self.view.action_about_referentials.triggered.connect(self.open_about_referentials_dialog)
         self.view.action_revoke_uid.triggered.connect(self.open_revocation_dialog)
         self.view.button_contacts.clicked.connect(self.open_contacts_dialog)
 
@@ -41,7 +45,7 @@ class ToolbarController(QObject):
         :rtype: NavigationController
         """
         view = ToolbarView(None)
-        model = ToolbarModel(app, navigation.model)
+        model = ToolbarModel(app, navigation.model, app.blockchain_service, BlockchainProcessor.instanciate(app))
         toolbar = cls(view, model)
         return toolbar
 
@@ -68,6 +72,21 @@ class ToolbarController(QObject):
     def open_about_dialog(self):
         text = self.model.about_text()
         self.view.show_about(text)
+
+    def open_about_wot_dialog(self):
+        params = self.model.parameters()
+        self.view.show_about_wot(params)
+
+    def open_about_money_dialog(self):
+        params = self.model.parameters()
+        currency = self.model.app.currency
+        localized_data = self.model.get_localized_data()
+        referentials = self.model.referentials()
+        self.view.show_about_money(params, currency, localized_data)
+
+    def open_about_referentials_dialog(self):
+        referentials = self.model.referentials()
+        self.view.show_about_referentials(referentials)
 
     def retranslateUi(self, widget):
         """
