@@ -46,6 +46,9 @@ class ToolbarView(QFrame, Ui_SakiaToolbar):
         self.action_about = QAction(self.tr("About Sakia"), tool_menu)
         tool_menu.addAction(self.action_about)
 
+        self.action_exit = QAction(self.tr("Exit"), tool_menu)
+        tool_menu.addAction(self.action_exit)
+
         self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Minimum)
         self.setMaximumHeight(60)
 

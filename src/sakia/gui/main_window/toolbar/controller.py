@@ -1,4 +1,4 @@
-from PyQt5.QtCore import QObject
+from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtWidgets import QDialog
 from sakia.gui.dialogs.connection_cfg.controller import ConnectionConfigController
 from sakia.gui.dialogs.revocation.controller import RevocationController
@@ -15,6 +15,8 @@ class ToolbarController(QObject):
     """
     The navigation panel
     """
+
+    exit_triggered = pyqtSignal()
 
     def __init__(self, view, model):
         """
@@ -34,6 +36,7 @@ class ToolbarController(QObject):
         self.view.action_about_referentials.triggered.connect(self.open_about_referentials_dialog)
         self.view.action_revoke_uid.triggered.connect(self.open_revocation_dialog)
         self.view.button_contacts.clicked.connect(self.open_contacts_dialog)
+        self.view.action_exit.triggered.connect(self.exit_triggered)
 
     @classmethod
     def create(cls, app, navigation):

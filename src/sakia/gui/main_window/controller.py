@@ -79,6 +79,7 @@ class MainWindowController(QObject):
         toolbar.view.button_network.clicked.connect(navigation.open_network_view)
         toolbar.view.button_identity.clicked.connect(navigation.open_identities_view)
         toolbar.view.button_explore.clicked.connect(navigation.open_wot_view)
+        toolbar.exit_triggered.connect(main_window.view.close)
         #app.version_requested.connect(main_window.latest_version_requested)
         #app.account_imported.connect(main_window.import_account_accepted)
         #app.account_changed.connect(main_window.change_account)
