@@ -79,10 +79,14 @@ class NavigationModel(QObject):
         else:
             title = connection.title()
         if connection.uid:
+            if self.identity_is_member(connection):
+                icon = ':/icons/member'
+            else:
+                icon = ':/icons/not_member'
             node = {
                 'title': title,
                 'component': "Informations",
-                'icon': ':/icons/member',
+                'icon': icon,
                 'dependencies': {
                     'blockchain_service': self.app.blockchain_service,
                     'identities_service': self.app.identities_service,

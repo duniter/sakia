@@ -1,10 +1,10 @@
 import logging
 import math
 
-from PyQt5.QtCore import QLocale, QDateTime, pyqtSignal, QObject
+from PyQt5.QtCore import QLocale, QDateTime, pyqtSignal, QObject, QModelIndex, Qt
 from sakia.errors import NoPeerAvailable
 from sakia.constants import ROOT_SERVERS
-from sakia.money import Referentials
+from .table_model import CertifiersTableModel, CertifiersFilterProxyModel
 from sakia.data.processors import BlockchainProcessor
 from duniterpy.api import errors
 
@@ -33,7 +33,37 @@ class IdentityModel(QObject):
         self.blockchain_service = blockchain_service
         self.identities_service = identities_service
         self.sources_service = sources_service
+        self.table_model = None
+        self.proxy_model = None
         self._logger = logging.getLogger('sakia')
+
+    def init_table_model(self):
+        """
+        Instanciate the table model of the view
+        """
+        certifiers_model = CertifiersTableModel(self, self.connection, self.blockchain_service, self.identities_service)
+        proxy = CertifiersFilterProxyModel(self.app)
+        proxy.setSourceModel(certifiers_model)
+
+        self.table_model = certifiers_model
+        self.proxy_model = proxy
+        self.table_model.init_certifiers()
+        return self.proxy_model
+
+    async def refresh_certifications(self):
+        identity = self.identities_service.get_identity(self.connection.pubkey, self.connection.uid)
+        certifiers = await self.identities_service.load_certifiers_of(identity)
+        await self.identities_service.load_certs_in_lookup(identity, certifiers, [])
+        self.table_model.init_certifiers()
+
+    def table_data(self, index):
+        if index.isValid() and index.row() < self.table_model.rowCount(QModelIndex()):
+            source_index = self.proxy_model.mapToSource(index)
+            identity_col = self.table_model.columns_ids.index('identity')
+            identity_index = self.table_model.index(source_index.row(), identity_col)
+            identity = self.table_model.data(identity_index, Qt.DisplayRole)
+            return True, identity
+        return False, None
 
     def get_localized_data(self):
         localized_data = {}

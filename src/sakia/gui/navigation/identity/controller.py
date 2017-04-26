@@ -1,16 +1,20 @@
 import logging
 
-from PyQt5.QtCore import QObject
+from PyQt5.QtGui import QCursor
+from PyQt5.QtWidgets import QAction
+from PyQt5.QtCore import QObject, pyqtSignal
 from sakia.errors import NoPeerAvailable
 from sakia.constants import ROOT_SERVERS
+from sakia.data.entities import Identity
 from duniterpy.api import errors
 from .model import IdentityModel
 from .view import IdentityView
 
-from sakia.decorators import asyncify
+from sakia.decorators import asyncify, once_at_a_time
 from sakia.gui.sub.certification.controller import CertificationController
 from sakia.gui.sub.password_input import PasswordInputController
 from sakia.gui.widgets import toast
+from sakia.gui.widgets.context_menu import ContextMenu
 from sakia.gui.widgets.dialogs import QAsyncMessageBox, QMessageBox
 
 
@@ -18,6 +22,7 @@ class IdentityController(QObject):
     """
     The informations component
     """
+    view_in_wot = pyqtSignal(Identity)
 
     def __init__(self, parent, view, model, certification):
         """
@@ -52,7 +57,26 @@ class IdentityController(QObject):
         certification.accepted.connect(view.clear)
         certification.rejected.connect(view.clear)
         identity.refresh_localized_data()
+        table_model = model.init_table_model()
+        view.set_table_identities_model(table_model)
+        view.table_certifiers.customContextMenuRequested['QPoint'].connect(identity.identity_context_menu)
+        identity.view_in_wot.connect(app.view_in_wot)
         return identity
+
+    def identity_context_menu(self, point):
+        index = self.view.table_certifiers.indexAt(point)
+        valid, identity = self.model.table_data(index)
+        if valid:
+            menu = ContextMenu.from_data(self.view, self.model.app, None, (identity,))
+            menu.view_identity_in_wot.connect(self.view_in_wot)
+
+            menu.qmenu.addSeparator().setText("Certifications")
+            refresh_certs = QAction(menu.qmenu.tr("Refresh"), menu.qmenu.parent())
+            refresh_certs.triggered.connect(self.refresh_certs)
+            menu.qmenu.addAction(refresh_certs)
+
+            # Show the context menu.
+            menu.qmenu.popup(QCursor.pos())
 
     @asyncify
     async def init_view_text(self):
@@ -67,6 +91,13 @@ class IdentityController(QObject):
     def handle_identity_change(self, identity):
         if identity.pubkey == self.model.connection.pubkey and identity.uid == self.model.connection.uid:
             self.refresh_localized_data()
+
+    @once_at_a_time
+    @asyncify
+    async def refresh_certs(self, checked=False):
+        self.view.table_certifiers.setEnabled(False)
+        await self.model.refresh_certifications()
+        self.view.table_certifiers.setEnabled(True)
 
     def refresh_localized_data(self):
         """

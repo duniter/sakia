@@ -1,5 +1,5 @@
-from PyQt5.QtWidgets import QWidget, QMessageBox
-from PyQt5.QtCore import QEvent, QLocale, pyqtSignal
+from PyQt5.QtWidgets import QWidget, QMessageBox, QAbstractItemView, QHeaderView
+from PyQt5.QtCore import QEvent, QLocale, pyqtSignal, Qt
 from .identity_uic import Ui_IdentityWidget
 from enum import Enum
 from sakia.helpers import timestamp_to_dhms
@@ -24,6 +24,19 @@ class IdentityView(QWidget, Ui_IdentityWidget):
         self.setupUi(self)
         self.stacked_widget.insertWidget(1, certification_view)
         self.button_certify.clicked.connect(lambda c: self.stacked_widget.setCurrentWidget(self.certification_view))
+
+    def set_table_identities_model(self, model):
+        """
+        Set the model of the table view
+        :param PyQt5.QtCore.QAbstractItemModel model: the model of the table view
+        """
+        self.table_certifiers.setModel(model)
+        self.table_certifiers.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.table_certifiers.setSortingEnabled(True)
+        self.table_certifiers.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
+        self.table_certifiers.resizeRowsToContents()
+        self.table_certifiers.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.table_certifiers.setContextMenuPolicy(Qt.CustomContextMenu)
 
     def clear(self):
         self.stacked_widget.setCurrentWidget(self.page_empty)

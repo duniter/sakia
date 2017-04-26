@@ -34,7 +34,21 @@ QGroupBox::title {
       <number>0</number>
      </property>
      <widget class="QWidget" name="page_empty">
-      <layout class="QVBoxLayout" name="verticalLayout_3"/>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <widget class="QTableView" name="table_certifiers">
+         <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+          <bool>true</bool>
+         </attribute>
+         <attribute name="horizontalHeaderStretchLastSection">
+          <bool>true</bool>
+         </attribute>
+         <attribute name="verticalHeaderVisible">
+          <bool>false</bool>
+         </attribute>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </widget>
    </item>
