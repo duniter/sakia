@@ -144,12 +144,14 @@ class ConnectionConfigController(QObject):
             connection_identity = await self.step_key
         elif self.mode == ConnectionConfigController.CONNECT:
             self._logger.debug("Connect mode")
+            self.view.button_next.setText(self.tr("Next"))
             self.view.groupbox_pubkey.hide()
             self.view.button_next.clicked.connect(self.check_connect)
             self.view.stacked_pages.setCurrentWidget(self.view.page_connection)
             connection_identity = await self.step_key
         elif self.mode == ConnectionConfigController.WALLET:
             self._logger.debug("Wallet mode")
+            self.view.button_next.setText(self.tr("Next"))
             self.view.button_next.clicked.connect(self.check_wallet)
             self.view.edit_uid.hide()
             self.view.label_action.hide()
@@ -158,6 +160,7 @@ class ConnectionConfigController(QObject):
             connection_identity = await self.step_key
         elif self.mode == ConnectionConfigController.PUBKEY:
             self._logger.debug("Pubkey mode")
+            self.view.button_next.setText(self.tr("Next"))
             self.view.button_next.clicked.connect(self.check_pubkey)
             if not self.view.label_action.text().endswith(self.tr(" (Optional)")):
                 self.view.label_action.setText(self.view.label_action.text() + self.tr(" (Optional)"))
