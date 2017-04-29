@@ -51,10 +51,9 @@ class WotModel(BaseGraphModel):
                 await self.wot_graph.initialize(self.identity)
 
     def refresh(self, identity):
-        connection_identity = self.identities_service.get_identity(self.connection.pubkey)
-        if self.identity == connection_identity == identity:
+        if self.identity == identity:
             # create empty graph instance
-            self.wot_graph.offline_init(connection_identity, connection_identity)
+            self.wot_graph.offline_init(identity)
             return True
         return False
 

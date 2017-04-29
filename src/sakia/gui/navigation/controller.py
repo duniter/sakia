@@ -138,6 +138,11 @@ class NavigationController(QObject):
         if raw_data and raw_data["component"] == "Informations":
             menu = QMenu(self.view)
             if raw_data['misc']['connection'].uid:
+                action_view_in_wot = QAction(self.tr("View in Web of Trust"), menu)
+                menu.addAction(action_view_in_wot)
+                action_view_in_wot.triggered.connect(lambda c:
+                                                        self.model.view_in_wot(raw_data['misc']['connection']))
+
                 action_gen_revokation = QAction(self.tr("Save revokation document"), menu)
                 menu.addAction(action_gen_revokation)
                 action_gen_revokation.triggered.connect(lambda c:

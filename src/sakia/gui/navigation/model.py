@@ -134,12 +134,16 @@ class NavigationModel(QObject):
 
         return node
 
+    def view_in_wot(self, connection):
+        identity = self.app.identities_service.get_identity(connection.pubkey, connection.uid)
+        self.app.view_in_wot.emit(identity)
+
     def generic_tree(self):
         return GenericTreeModel.create("Navigation", self.navigation[3]['children'])
 
     def add_connection(self, connection):
         raw_node = self.create_node(connection)
-        self.navigation[0]["children"].append(raw_node)
+        self.navigation[3]["children"].append(raw_node)
         return raw_node
 
     def set_current_data(self, raw_data):
@@ -186,7 +190,13 @@ class NavigationModel(QObject):
         for data in self.navigation:
             connected_to = self._current_data['misc'].get('connection', None)
             if connected_to == connection:
-                self._current_data['widget'].disconnect()
+                try:
+                    self._current_data['widget'].disconnect()
+                except TypeError as e:
+                    if "disconnect()" in str(e):
+                        pass
+                    else:
+                        raise
         await self.app.remove_connection(connection)
 
     async def send_leave(self, connection, secret_key, password):

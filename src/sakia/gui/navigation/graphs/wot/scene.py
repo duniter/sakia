@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import QGraphicsScene
 
 from .edge import WotEdge
 from .node import WotNode
+from sakia.helpers import dpi_ratio
 
 from ..base.scene import BaseScene
 
@@ -141,8 +142,9 @@ class WotScene(BaseScene):
         if identity:
             #  clear scene
             self.clear()
-            certifiers_graph_pos = WotScene.certifiers_partial_layout(nx_graph, identity.pubkey, scale=200)
-            certified_graph_pos = WotScene.certified_partial_layout(nx_graph, identity.pubkey, scale=200)
+
+            certifiers_graph_pos = WotScene.certifiers_partial_layout(nx_graph, identity.pubkey, scale=200*dpi_ratio())
+            certified_graph_pos = WotScene.certified_partial_layout(nx_graph, identity.pubkey, scale=200*dpi_ratio())
 
             # create networkx graph
             for node in nx_graph.nodes(data=True):
@@ -162,7 +164,7 @@ class WotScene(BaseScene):
             self.update()
 
     def update_path(self, nx_graph, path):
-        path_graph_pos = WotScene.path_partial_layout(nx_graph, path, scale=200)
+        path_graph_pos = WotScene.path_partial_layout(nx_graph, path, scale=200*dpi_ratio())
         nodes_path = [n for n in nx_graph.nodes(data=True) if n[0] in path[1:]]
         for node in nodes_path:
             v = WotNode(node, path_graph_pos)
