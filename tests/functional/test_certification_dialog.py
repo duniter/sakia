@@ -50,4 +50,5 @@ async def test_certification_init_community(application_with_one_connection, fak
     application_with_one_connection.loop.call_later(10, close_dialog)
     certification_dialog.view.show()
     await exec_test()
+    close_dialog()
     await fake_server_with_blockchain.close()
