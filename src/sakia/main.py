@@ -82,8 +82,12 @@ if __name__ == '__main__':
 
     lock = single_instance_lock()
     if not lock:
-        QMessageBox.critical(None, "Sakia is already running", "Sakia is already running.")
-        sys.exit(1)
+        lock = single_instance_lock()
+        if not lock:
+            QMessageBox.critical(None, "Sakia",
+                             "Sakia is already running.")
+
+            sys.exit(1)
 
     sys.excepthook = exception_handler
 
