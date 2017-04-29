@@ -7,7 +7,7 @@ def click_on_top_message_box():
     topWidgets = QApplication.topLevelWidgets()
     for w in topWidgets:
         if isinstance(w, QMessageBox):
-            QTest.keyClick(w, Qt.Key_Enter)
+            QTest.mouseClick(w.button(QMessageBox.Yes), Qt.LeftButton)
         elif isinstance(w, QDialog) and w.windowTitle() == "Registration":
             QTest.keyClick(w, Qt.Key_Enter)
 
