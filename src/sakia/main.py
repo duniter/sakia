@@ -97,7 +97,7 @@ if __name__ == '__main__':
         app.start_coroutines()
         try:
             if not app.blockchain_service.initialized():
-                box = QMessageBox()
+                box = QMessageBox("Initializing Sakia")
                 box.setText("Connecting to the network...")
                 wFlags = box.windowFlags();
                 if Qt.WindowCloseButtonHint == (wFlags & Qt.WindowCloseButtonHint):

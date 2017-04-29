@@ -146,6 +146,7 @@ class NetworkService(QObject):
         self._must_crawl = True
         first_loop = True
         asyncio.ensure_future(self.discovery_loop())
+        self.refresh_once()
         while self.continue_crawling():
             for connector in self._connectors:
                 if self.continue_crawling():
