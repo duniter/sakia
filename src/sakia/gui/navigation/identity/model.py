@@ -50,8 +50,9 @@ class IdentityModel(QObject):
         self.table_model.init_certifiers()
         return self.proxy_model
 
-    async def refresh_certifications(self):
+    async def refresh_identity_data(self):
         identity = self.identities_service.get_identity(self.connection.pubkey, self.connection.uid)
+        identity = await self.identities_service.load_requirements(identity)
         certifiers = await self.identities_service.load_certifiers_of(identity)
         await self.identities_service.load_certs_in_lookup(identity, certifiers, [])
         self.table_model.init_certifiers()
@@ -165,9 +166,13 @@ class IdentityModel(QObject):
                                                          self.app).localized(False, True)
         outdistanced_text = self.tr("Outdistanced")
         is_identity = False
+        written = False
         is_member = False
         nb_certs = 0
         mstime_remaining = 0
+        identity_expiration = 0
+        identity_expired = False
+        outdistanced = False
         nb_certs_required = self.blockchain_service.parameters().sig_qty
 
         if self.connection.uid:
@@ -177,6 +182,13 @@ class IdentityModel(QObject):
                 if identity:
                     mstime_remaining = self.identities_service.ms_time_remaining(identity)
                     is_member = identity.member
+                    outdistanced = identity.outdistanced
+                    written = identity.written
+                    if not written:
+                        identity_expiration = identity.timestamp + self.parameters().sig_window
+                        identity_expired = identity_expiration < self.blockchain_processor.time(self.connection.currency)
+                        identity_expiration = self.blockchain_processor.adjusted_ts(self.app.currency,
+                                                                                    identity_expiration)
                     nb_certs = len(self.identities_service.certifications_received(identity.pubkey))
                     if not identity.outdistanced:
                         outdistanced_text = self.tr("In WoT range")
@@ -187,7 +199,11 @@ class IdentityModel(QObject):
                     self._logger.error(str(e))
 
         return {
+            'written': written,
+            'idty_expired': identity_expired,
+            'idty_expiration': identity_expiration,
             'amount': localized_amount,
+            'is_outdistanced': outdistanced,
             'outdistanced': outdistanced_text,
             'nb_certs': nb_certs,
             'nb_certs_required': nb_certs_required,

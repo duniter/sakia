@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QWidget, QMessageBox, QAbstractItemView, QHeaderView
-from PyQt5.QtCore import QEvent, QLocale, pyqtSignal, Qt
+from PyQt5.QtCore import QEvent, QLocale, pyqtSignal, Qt, QDateTime
 from .identity_uic import Ui_IdentityWidget
 from enum import Enum
 from sakia.helpers import timestamp_to_dhms
@@ -54,6 +54,17 @@ class IdentityView(QWidget, Ui_IdentityWidget):
                                   message=IdentityView.simple_message[state]))
             self.button_membership.hide()
         else:
+            if data['written']:
+                written_value = self.tr("Identity written in blockchain")
+            else:
+                expiration_text = QLocale.toString(
+                    QLocale(),
+                    QDateTime.fromTime_t(data['idty_expiration']),
+                    QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
+                )
+                written_value = self.tr("Identity not written in blockchain") + \
+                                " (" + self.tr("Expires on : {0}").format(expiration_text) + ")"
+
             status_value = self.tr("Member") if data['membership_state'] else self.tr("Non-Member")
             if data['mstime'] > 0:
                 membership_action_value = self.tr("Renew membership")
@@ -84,28 +95,45 @@ class IdentityView(QWidget, Ui_IdentityWidget):
             else:
                 mstime_remaining_text = self.tr("Expired or never published")
 
-            status_color = '#00AA00' if data['membership_state'] else self.tr('#FF0000')
+            ms_status_color = '#00AA00' if data['membership_state'] else '#FF0000'
+            outdistanced_status_color = '#FF0000' if data['is_outdistanced'] else '#00AA00'
+            if data['written']:
+                written_status_color = "#00AA00"
+            elif data['idty_expired']:
+                written_status_color = "#FF0000"
+            else:
+                written_status_color = '#FF6347'
 
             description_membership = """<html>
 <body>
     <p><span style="font-weight:600;">{status_label}</span>
-     : <span style="color:{status_color};">{status}</span>
+     : <span style="color:{ms_status_color};">{status}</span>
      - <span>{status_info}</span></p>
 </body>
-</html>""".format(status_color=status_color,
+</html>""".format(ms_status_color=ms_status_color,
                   status_label=self.tr("Status"),
                   status=status_value,
                   status_info=status_info)
             description_identity = """<html>
 <body>
-    <p><span style="font-weight:600;">{nb_certs_label}</span> : {nb_certs} ({outdistanced_text})</p>
+    <p><span style="font-weight:600;">{nb_certs_label}</span> : {nb_certs} <span style="color:{outdistanced_status_color};">({outdistanced_text})</span></p>
     <p><span style="font-weight:600;">{mstime_remaining_label}</span> : {mstime_remaining}</p>
 </body>
 </html>""".format(nb_certs_label=self.tr("Certs. received"),
                   nb_certs=data['nb_certs'],
                   outdistanced_text=data['outdistanced'],
+                  outdistanced_status_color=outdistanced_status_color,
                   mstime_remaining_label=self.tr("Membership"),
                   mstime_remaining=mstime_remaining_text)
+
+            self.label_written.setText("""
+<html>
+<body>
+    <p><span style="font-weight:450; color:{written_status_color};">{written_label}</span></p>
+</body>
+</html>
+""".format(written_label=written_value,
+           written_status_color=written_status_color))
 
             if data['is_identity']:
                 self.label_membership.setText(description_membership)

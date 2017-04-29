@@ -37,6 +37,7 @@ class IdentityController(QObject):
         self.certification = certification
         self._logger = logging.getLogger('sakia')
         self.view.button_membership.clicked.connect(self.send_join_demand)
+        self.view.button_refresh.clicked.connect(self.refresh_certs)
 
     @classmethod
     def create(cls, parent, app, connection, blockchain_service, identities_service, sources_service):
@@ -70,11 +71,6 @@ class IdentityController(QObject):
             menu = ContextMenu.from_data(self.view, self.model.app, None, (identity,))
             menu.view_identity_in_wot.connect(self.view_in_wot)
 
-            menu.qmenu.addSeparator().setText("Certifications")
-            refresh_certs = QAction(menu.qmenu.tr("Refresh"), menu.qmenu.parent())
-            refresh_certs.triggered.connect(self.refresh_certs)
-            menu.qmenu.addAction(refresh_certs)
-
             # Show the context menu.
             menu.qmenu.popup(QCursor.pos())
 
@@ -96,7 +92,8 @@ class IdentityController(QObject):
     @asyncify
     async def refresh_certs(self, checked=False):
         self.view.table_certifiers.setEnabled(False)
-        await self.model.refresh_certifications()
+        await self.model.refresh_identity_data()
+        self.refresh_localized_data()
         self.view.table_certifiers.setEnabled(True)
 
     def refresh_localized_data(self):
