@@ -15,8 +15,8 @@ def assert_key_parameters_behaviour(connection_config_dialog, user):
     assert connection_config_dialog.view.button_next.isEnabled() is False
     assert connection_config_dialog.view.button_generate.isEnabled() is False
     QTest.keyClicks(connection_config_dialog.view.edit_password, user.password)
-    connection_config_dialog.view.button_next.isEnabled() is False
-    connection_config_dialog.view.button_generate.isEnabled() is False
+    assert connection_config_dialog.view.button_next.isEnabled() is False
+    assert connection_config_dialog.view.button_generate.isEnabled() is False
     QTest.keyClicks(connection_config_dialog.view.edit_password_repeat, user.password + "wrong")
     assert connection_config_dialog.view.button_next.isEnabled() is False
     assert connection_config_dialog.view.button_generate.isEnabled() is False
