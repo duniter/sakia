@@ -34,17 +34,22 @@ class ToolbarView(QFrame, Ui_SakiaToolbar):
         self.action_plugins = QAction(self.tr("Plugins manager"), tool_menu)
         tool_menu.addAction(self.action_plugins)
 
-        self.action_about_money = QAction(self.tr("About Money"), tool_menu)
-        tool_menu.addAction(self.action_about_money)
+        tool_menu.addSeparator()
 
-        self.action_about_referentials = QAction(self.tr("About Referentials"), tool_menu)
-        tool_menu.addAction(self.action_about_referentials)
+        about_menu = QMenu(self.tr("About"), tool_menu)
+        tool_menu.addMenu(about_menu)
 
-        self.action_about_wot = QAction(self.tr("About Web of Trust"), tool_menu)
-        tool_menu.addAction(self.action_about_wot)
+        self.action_about_money = QAction(self.tr("About Money"), about_menu)
+        about_menu.addAction(self.action_about_money)
 
-        self.action_about = QAction(self.tr("About Sakia"), tool_menu)
-        tool_menu.addAction(self.action_about)
+        self.action_about_referentials = QAction(self.tr("About Referentials"), about_menu)
+        about_menu.addAction(self.action_about_referentials)
+
+        self.action_about_wot = QAction(self.tr("About Web of Trust"), about_menu)
+        about_menu.addAction(self.action_about_wot)
+
+        self.action_about = QAction(self.tr("About Sakia"), about_menu)
+        about_menu.addAction(self.action_about)
 
         self.action_exit = QAction(self.tr("Exit"), tool_menu)
         tool_menu.addAction(self.action_exit)
