@@ -103,6 +103,13 @@
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QPushButton" name="button_cancel">
+           <property name="text">
+            <string>Cancel</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
       </layout>
@@ -148,6 +155,13 @@
              <widget class="QPushButton" name="button_accept">
               <property name="text">
                <string>I accept the above licence</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="button_cancel_licence">
+              <property name="text">
+               <string>Cancel</string>
               </property>
              </widget>
             </item>
