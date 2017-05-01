@@ -5,7 +5,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtTest import QTest
 from sakia.data.processors import ConnectionsProcessor, BlockchainProcessor
 from sakia.gui.dialogs.connection_cfg import ConnectionConfigController
-from tests.helpers import click_on_top_message_box, select_file_dialog, accept_dialog
+from tests.helpers import select_file_dialog, accept_dialog
 
 
 def assert_key_parameters_behaviour(connection_config_dialog, user):
