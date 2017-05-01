@@ -6,7 +6,7 @@ from .toolbar_uic import Ui_SakiaToolbar
 from .about_uic import Ui_AboutPopup
 from .about_money_uic import Ui_AboutMoney
 from .about_wot_uic import Ui_AboutWot
-from sakia.helpers import timestamp_to_dhms
+from sakia.helpers import timestamp_to_dhms, dpi_ratio
 
 
 class ToolbarView(QFrame, Ui_SakiaToolbar):
@@ -56,6 +56,11 @@ class ToolbarView(QFrame, Ui_SakiaToolbar):
 
         self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Minimum)
         self.setMaximumHeight(60)
+        self.button_network.setIconSize(self.button_network.iconSize()*dpi_ratio())
+        self.button_contacts.setIconSize(self.button_contacts.iconSize()*dpi_ratio())
+        self.button_identity.setIconSize(self.button_identity.iconSize()*dpi_ratio())
+        self.button_explore.setIconSize(self.button_explore.iconSize()*dpi_ratio())
+        self.toolbutton_menu.setIconSize(self.toolbutton_menu.iconSize()*dpi_ratio())
 
     async def ask_for_connection(self, connections):
         connections_titles = [c.title() for c in connections]
