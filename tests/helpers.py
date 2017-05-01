@@ -3,6 +3,13 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtTest import QTest
 
 
+
+def click_on_top_message_box_button(button):
+    topWidgets = QApplication.topLevelWidgets()
+    for w in topWidgets:
+        if isinstance(w, QMessageBox):
+            QTest.mouseClick(w.button(button), Qt.LeftButton)
+
 def click_on_top_message_box():
     topWidgets = QApplication.topLevelWidgets()
     for w in topWidgets:

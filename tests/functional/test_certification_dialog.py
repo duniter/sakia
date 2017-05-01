@@ -3,9 +3,9 @@ import pytest
 from duniterpy.documents import Certification
 from PyQt5.QtCore import QLocale, Qt, QEvent
 from PyQt5.QtTest import QTest
-from PyQt5.QtWidgets import QDialogButtonBox
+from PyQt5.QtWidgets import QDialogButtonBox, QMessageBox
 from sakia.gui.sub.certification.controller import CertificationController
-from ..helpers import yes_on_top_message_box
+from ..helpers import click_on_top_message_box_button
 
 
 @pytest.mark.asyncio
@@ -43,7 +43,7 @@ async def test_certification_init_community(application_with_one_connection, fak
         assert certification_dialog.view.button_box.button(QDialogButtonBox.Ok).isEnabled()
         QTest.mouseClick(certification_dialog.view.button_box.button(QDialogButtonBox.Ok), Qt.LeftButton)
         await asyncio.sleep(0.1)
-        yes_on_top_message_box()
+        click_on_top_message_box_button(QMessageBox.Yes)
         await asyncio.sleep(0.2)
         assert isinstance(fake_server_with_blockchain.forge.pool[0], Certification)
 
