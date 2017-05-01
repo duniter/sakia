@@ -5,7 +5,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtTest import QTest
 from sakia.data.processors import ConnectionsProcessor, BlockchainProcessor
 from sakia.gui.dialogs.connection_cfg import ConnectionConfigController
-from tests.helpers import click_on_top_message_box, select_file_dialog
+from tests.helpers import click_on_top_message_box, select_file_dialog, accept_dialog
 
 
 def assert_key_parameters_behaviour(connection_config_dialog, user):
@@ -59,12 +59,11 @@ async def test_register_empty_blockchain(application, fake_server, bob, tmpdir):
         await asyncio.sleep(1)
         select_file_dialog(str(revocation_file))
         await asyncio.sleep(1)
-        click_on_top_message_box()
         await asyncio.sleep(1)
         revocation_file.ensure()
         assert connection_config_dialog.view.stacked_pages.currentWidget() == connection_config_dialog.view.page_services
         assert len(ConnectionsProcessor.instanciate(application).connections()) == 1
-        click_on_top_message_box()
+        accept_dialog("Registration")
 
     application.loop.call_later(10, close_dialog)
     asyncio.ensure_future(exec_test())
@@ -90,12 +89,10 @@ async def test_connect(application, fake_server_with_blockchain, bob):
         assert connection_config_dialog.view.stacked_pages.currentWidget() == connection_config_dialog.view.page_connection
         assert_key_parameters_behaviour(connection_config_dialog, bob)
         QTest.mouseClick(connection_config_dialog.view.button_next, Qt.LeftButton)
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.1)
 
         assert connection_config_dialog.view.stacked_pages.currentWidget() == connection_config_dialog.view.page_services
         assert len(ConnectionsProcessor.instanciate(application).connections()) == 1
-        click_on_top_message_box()
-
     application.loop.call_later(10, close_dialog)
     asyncio.ensure_future(exec_test())
     await connection_config_dialog.async_exec()

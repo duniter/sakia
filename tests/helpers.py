@@ -10,6 +10,13 @@ def click_on_top_message_box_button(button):
         if isinstance(w, QMessageBox):
             QTest.mouseClick(w.button(button), Qt.LeftButton)
 
+def accept_dialog(title):
+    topWidgets = QApplication.topLevelWidgets()
+    for w in topWidgets:
+        if isinstance(w, QDialog) and w.windowTitle() == title:
+            w.accept()
+
+
 def click_on_top_message_box():
     topWidgets = QApplication.topLevelWidgets()
     for w in topWidgets:
