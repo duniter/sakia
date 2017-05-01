@@ -61,11 +61,11 @@ class ToolbarView(QFrame, Ui_SakiaToolbar):
         self.button_identity.setIconSize(self.button_identity.iconSize()*dpi_ratio())
         self.button_explore.setIconSize(self.button_explore.iconSize()*dpi_ratio())
         self.toolbutton_menu.setIconSize(self.toolbutton_menu.iconSize()*dpi_ratio())
-        self.button_network.setSize(self.button_network.size()*dpi_ratio())
-        self.button_contacts.setSize(self.button_contacts.size()*dpi_ratio())
-        self.button_identity.setSize(self.button_identity.size()*dpi_ratio())
-        self.button_explore.setSize(self.button_explore.size()*dpi_ratio())
-        self.toolbutton_menu.setSize(self.toolbutton_menu.size()*dpi_ratio())
+        self.button_network.setFixedHeight(self.button_network.height()*dpi_ratio())
+        self.button_contacts.setFixedHeight(self.button_contacts.height()*dpi_ratio())
+        self.button_identity.setFixedHeight(self.button_identity.height()*dpi_ratio())
+        self.button_explore.setFixedHeight(self.button_explore.height()*dpi_ratio())
+        self.toolbutton_menu.setFixedHeight(self.toolbutton_menu.height()*dpi_ratio())
 
     async def ask_for_connection(self, connections):
         connections_titles = [c.title() for c in connections]
