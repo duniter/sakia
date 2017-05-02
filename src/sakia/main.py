@@ -41,13 +41,13 @@ def async_exception_handler(loop, context):
 
     logging.error('\n'.join(log_lines), exc_info=exc_info)
     for line in log_lines:
-        for ignored in ("Unclosed", "socket.gaierror"):
+        for ignored in ("Unclosed", "socket.gaierror", "[Errno 110]"):
             if ignored in line:
                 return
 
     if exc_info:
         for line in traceback.format_exception(*exc_info):
-            for ignored in ("Unclosed", "socket.gaierror"):
+            for ignored in ("Unclosed", "socket.gaierror", "[Errno 110]"):
                 if ignored in line:
                     return
     exception_message(log_lines, exc_info)
@@ -101,7 +101,8 @@ if __name__ == '__main__':
         app.start_coroutines()
         try:
             if not app.blockchain_service.initialized():
-                box = QMessageBox("Initializing Sakia")
+                box = QMessageBox()
+                box.setWindowTitle("Initialization")
                 box.setText("Connecting to the network...")
                 wFlags = box.windowFlags();
                 if Qt.WindowCloseButtonHint == (wFlags & Qt.WindowCloseButtonHint):

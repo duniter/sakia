@@ -31,6 +31,8 @@ class CertificationController(QObject):
         super().__init__()
         self.view.button_box.accepted.connect(self.accept)
         self.view.button_box.rejected.connect(self.reject)
+        self.view.button_cancel.clicked.connect(self.reject)
+        self.view.button_cancel_licence.clicked.connect(self.reject)
         self.view.combo_connections.currentIndexChanged.connect(self.change_connection)
 
     @classmethod

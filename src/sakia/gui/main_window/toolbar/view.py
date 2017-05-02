@@ -6,7 +6,7 @@ from .toolbar_uic import Ui_SakiaToolbar
 from .about_uic import Ui_AboutPopup
 from .about_money_uic import Ui_AboutMoney
 from .about_wot_uic import Ui_AboutWot
-from sakia.helpers import timestamp_to_dhms
+from sakia.helpers import timestamp_to_dhms, dpi_ratio
 
 
 class ToolbarView(QFrame, Ui_SakiaToolbar):
@@ -34,23 +34,38 @@ class ToolbarView(QFrame, Ui_SakiaToolbar):
         self.action_plugins = QAction(self.tr("Plugins manager"), tool_menu)
         tool_menu.addAction(self.action_plugins)
 
-        self.action_about_money = QAction(self.tr("About Money"), tool_menu)
-        tool_menu.addAction(self.action_about_money)
+        tool_menu.addSeparator()
 
-        self.action_about_referentials = QAction(self.tr("About Referentials"), tool_menu)
-        tool_menu.addAction(self.action_about_referentials)
+        about_menu = QMenu(self.tr("About"), tool_menu)
+        tool_menu.addMenu(about_menu)
 
-        self.action_about_wot = QAction(self.tr("About Web of Trust"), tool_menu)
-        tool_menu.addAction(self.action_about_wot)
+        self.action_about_money = QAction(self.tr("About Money"), about_menu)
+        about_menu.addAction(self.action_about_money)
 
-        self.action_about = QAction(self.tr("About Sakia"), tool_menu)
-        tool_menu.addAction(self.action_about)
+        self.action_about_referentials = QAction(self.tr("About Referentials"), about_menu)
+        about_menu.addAction(self.action_about_referentials)
+
+        self.action_about_wot = QAction(self.tr("About Web of Trust"), about_menu)
+        about_menu.addAction(self.action_about_wot)
+
+        self.action_about = QAction(self.tr("About Sakia"), about_menu)
+        about_menu.addAction(self.action_about)
 
         self.action_exit = QAction(self.tr("Exit"), tool_menu)
         tool_menu.addAction(self.action_exit)
 
         self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Minimum)
         self.setMaximumHeight(60)
+        self.button_network.setIconSize(self.button_network.iconSize()*dpi_ratio())
+        self.button_contacts.setIconSize(self.button_contacts.iconSize()*dpi_ratio())
+        self.button_identity.setIconSize(self.button_identity.iconSize()*dpi_ratio())
+        self.button_explore.setIconSize(self.button_explore.iconSize()*dpi_ratio())
+        self.toolbutton_menu.setIconSize(self.toolbutton_menu.iconSize()*dpi_ratio())
+        self.button_network.setFixedHeight(self.button_network.height()*dpi_ratio())
+        self.button_contacts.setFixedHeight(self.button_contacts.height()*dpi_ratio())
+        self.button_identity.setFixedHeight(self.button_identity.height()*dpi_ratio())
+        self.button_explore.setFixedHeight(self.button_explore.height()*dpi_ratio())
+        self.toolbutton_menu.setFixedHeight(self.toolbutton_menu.height()*dpi_ratio())
 
     async def ask_for_connection(self, connections):
         connections_titles = [c.title() for c in connections]
