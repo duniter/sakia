@@ -135,47 +135,48 @@ class NavigationController(QObject):
         mapped = self.view.splitter.mapFromParent(point)
         index = self.view.tree_view.indexAt(mapped)
         raw_data = self.view.tree_view.model().data(index, GenericTreeModel.ROLE_RAW_DATA)
-        menu = QMenu(self.view)
-        if raw_data['misc']['connection'].uid:
-            action_view_in_wot = QAction(self.tr("View in Web of Trust"), menu)
-            menu.addAction(action_view_in_wot)
-            action_view_in_wot.triggered.connect(lambda c:
-                                                    self.model.view_in_wot(raw_data['misc']['connection']))
+        if raw_data:
+            menu = QMenu(self.view)
+            if raw_data['misc']['connection'].uid:
+                action_view_in_wot = QAction(self.tr("View in Web of Trust"), menu)
+                menu.addAction(action_view_in_wot)
+                action_view_in_wot.triggered.connect(lambda c:
+                                                        self.model.view_in_wot(raw_data['misc']['connection']))
 
-            action_gen_revokation = QAction(self.tr("Save revokation document"), menu)
-            menu.addAction(action_gen_revokation)
-            action_gen_revokation.triggered.connect(lambda c:
-                                                    self.action_save_revokation(raw_data['misc']['connection']))
+                action_gen_revokation = QAction(self.tr("Save revokation document"), menu)
+                menu.addAction(action_gen_revokation)
+                action_gen_revokation.triggered.connect(lambda c:
+                                                        self.action_save_revokation(raw_data['misc']['connection']))
 
-            action_publish_uid = QAction(self.tr("Publish UID"), menu)
-            menu.addAction(action_publish_uid)
-            action_publish_uid.triggered.connect(lambda c:
-                                                    self.publish_uid(raw_data['misc']['connection']))
-            identity_published = self.model.identity_published(raw_data['misc']['connection'])
-            action_publish_uid.setEnabled(not identity_published)
+                action_publish_uid = QAction(self.tr("Publish UID"), menu)
+                menu.addAction(action_publish_uid)
+                action_publish_uid.triggered.connect(lambda c:
+                                                        self.publish_uid(raw_data['misc']['connection']))
+                identity_published = self.model.identity_published(raw_data['misc']['connection'])
+                action_publish_uid.setEnabled(not identity_published)
 
-            action_export_identity = QAction(self.tr("Export identity document"), menu)
-            menu.addAction(action_export_identity)
-            action_export_identity.triggered.connect(lambda c:
-                                                    self.export_identity_document(raw_data['misc']['connection']))
+                action_export_identity = QAction(self.tr("Export identity document"), menu)
+                menu.addAction(action_export_identity)
+                action_export_identity.triggered.connect(lambda c:
+                                                        self.export_identity_document(raw_data['misc']['connection']))
 
-            action_leave = QAction(self.tr("Leave the currency"), menu)
-            menu.addAction(action_leave)
-            action_leave.triggered.connect(lambda c: self.send_leave(raw_data['misc']['connection']))
-            action_leave.setEnabled(self.model.identity_is_member(raw_data['misc']['connection']))
+                action_leave = QAction(self.tr("Leave the currency"), menu)
+                menu.addAction(action_leave)
+                action_leave.triggered.connect(lambda c: self.send_leave(raw_data['misc']['connection']))
+                action_leave.setEnabled(self.model.identity_is_member(raw_data['misc']['connection']))
 
-        copy_pubkey = QAction(menu.tr("Copy pubkey to clipboard"), menu.parent())
-        copy_pubkey.triggered.connect(lambda checked,
-                                             c=raw_data['misc']['connection']: \
-                                          NavigationModel.copy_pubkey_to_clipboard(c))
-        menu.addAction(copy_pubkey)
+            copy_pubkey = QAction(menu.tr("Copy pubkey to clipboard"), menu.parent())
+            copy_pubkey.triggered.connect(lambda checked,
+                                                 c=raw_data['misc']['connection']: \
+                                              NavigationModel.copy_pubkey_to_clipboard(c))
+            menu.addAction(copy_pubkey)
 
-        action_remove = QAction(self.tr("Remove the connection"), menu)
-        menu.addAction(action_remove)
-        action_remove.triggered.connect(lambda c: self.remove_connection(raw_data['misc']['connection']))
-        # Show the context menu.
+            action_remove = QAction(self.tr("Remove the connection"), menu)
+            menu.addAction(action_remove)
+            action_remove.triggered.connect(lambda c: self.remove_connection(raw_data['misc']['connection']))
+            # Show the context menu.
 
-        menu.popup(QCursor.pos())
+            menu.popup(QCursor.pos())
 
     @asyncify
     async def publish_uid(self, connection):

@@ -186,11 +186,11 @@ class ToolbarView(QFrame, Ui_SakiaToolbar):
                 self.tr('Actual growth c = UD(t)/[M(t-1)/N(t)]'),
                 localized_data.get('ud_median_time_minus_1', '####'),
                 self.tr('Penultimate UD date and time (t-1)'),
-                localized_data.get('ud_median_time', '####'),
+                localized_data.get('ud_median_time', '####') + " BAT",
                 self.tr('Last UD date and time (t)'),
-                localized_data.get('next_ud_median_time', '####'),
+                localized_data.get('next_ud_median_time', '####') + " BAT",
                 self.tr('Next UD date and time (t+1)'),
-                localized_data.get('next_ud_reeaval', '####'),
+                localized_data.get('next_ud_reeaval', '####') + " BAT",
                 self.tr('Next UD reevaluation (t+1)')
             )
 

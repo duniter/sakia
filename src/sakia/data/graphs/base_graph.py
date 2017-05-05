@@ -115,13 +115,14 @@ class BaseGraph(QObject):
 
         arc_status = self.arc_status(certification.timestamp)
         sig_validity = self.blockchain_service.parameters().sig_validity
+        expiration = self.blockchain_service.adjusted_ts(certification.timestamp + sig_validity)
         arc = {
             'status': arc_status,
             'tooltip': QLocale.toString(
                 QLocale(),
-                QDateTime.fromTime_t(certification.timestamp + sig_validity).date(),
+                QDateTime.fromTime_t(expiration).date(),
                 QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
-            ),
+            ) + " BAT",
             'cert_time': certification.timestamp,
             'confirmation_text': self.confirmation_text(certification.written_on)
         }
@@ -140,13 +141,14 @@ class BaseGraph(QObject):
 
         arc_status = self.arc_status(certification.timestamp)
         sig_validity = self.blockchain_service.parameters().sig_validity
+        expiration = self.blockchain_service.adjusted_ts(certification.timestamp + sig_validity)
         arc = {
             'status': arc_status,
             'tooltip': QLocale.toString(
                 QLocale(),
-                QDateTime.fromTime_t(certification.timestamp + sig_validity).date(),
+                QDateTime.fromTime_t(expiration).date(),
                 QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
-            ),
+            ) + " BAT",
             'cert_time': certification.timestamp,
             'confirmation_text': self.confirmation_text(certification.written_on)
         }

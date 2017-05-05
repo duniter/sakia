@@ -63,7 +63,7 @@ class IdentityView(QWidget, Ui_IdentityWidget):
                     QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
                 )
                 written_value = self.tr("Identity not written in blockchain") + \
-                                " (" + self.tr("Expires on : {0}").format(expiration_text) + ")"
+                                " (" + self.tr("Expires on : {0}").format(expiration_text) + " BAT)"
 
             status_value = self.tr("Member") if data['membership_state'] else self.tr("Non-Member")
             if data['mstime'] > 0:

@@ -63,7 +63,7 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
                             QLocale(),
                             QDateTime.fromTime_t(ts).date(),
                             QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
-                        )
+                        ) + " BAT"
                     else:
                         return ""
                 if source_index.column() == IdentitiesTableModel.columns_ids.index('publication'):
@@ -73,7 +73,7 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
                             QLocale(),
                             QDateTime.fromTime_t(ts),
                             QLocale.dateTimeFormat(QLocale(), QLocale.LongFormat)
-                        )
+                        ) + " BAT"
                     else:
                         return ""
                 if source_index.column() == IdentitiesTableModel.columns_ids.index('pubkey'):

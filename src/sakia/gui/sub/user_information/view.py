@@ -61,8 +61,8 @@ class UserInformationView(QWidget, Ui_UserInformationWidget):
         text = self.tr("""
             <table cellpadding="5">
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+            <tr><td align="right"><b>{:}</b></td><td>{:} BAT</td></tr>
+            <tr><td align="right"><b>{:}</b></td><td>{:} BAT</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             """).format(

@@ -126,6 +126,9 @@ class BlockchainService(QObject):
     def previous_ud(self):
         return self._blockchain_processor.previous_ud(self.currency)
 
+    def adjusted_ts(self, time):
+        return self._blockchain_processor.adjusted_ts(self.currency, time)
+    
     def next_ud_reeval(self):
         parameters = self._blockchain_processor.parameters(self.currency)
         mediantime = self._blockchain_processor.time(self.currency)

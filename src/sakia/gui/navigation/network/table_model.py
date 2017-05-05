@@ -67,7 +67,9 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
 
         if role == Qt.DisplayRole:
             if index.column() == NetworkTableModel.columns_types.index('is_member'):
-                value = {True: QT_TRANSLATE_NOOP("NetworkTableModel", 'yes'), False: QT_TRANSLATE_NOOP("NetworkTableModel", 'no'), None: QT_TRANSLATE_NOOP("NetworkTableModel", 'offline')}
+                value = {True: QT_TRANSLATE_NOOP("NetworkTableModel", 'yes'),
+                         False: QT_TRANSLATE_NOOP("NetworkTableModel", 'no'),
+                         None: QT_TRANSLATE_NOOP("NetworkTableModel", 'offline')}
                 return value[source_data]
 
             if index.column() == NetworkTableModel.columns_types.index('pubkey'):
@@ -92,7 +94,7 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
                             QLocale(),
                             QDateTime.fromTime_t(ts),
                             QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
-                        )
+                        ) + " BAT"
 
         if role == Qt.TextAlignmentRole:
             if source_index.column() == NetworkTableModel.columns_types.index('address') or source_index.column() == self.sourceModel().columns_types.index('current_block'):

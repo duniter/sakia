@@ -53,7 +53,7 @@ class CertifiersFilterProxyModel(QSortFilterProxyModel):
                             QLocale(),
                             QDateTime.fromTime_t(ts),
                             QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
-                        )
+                        ) + " BAT"
                     else:
                         return ""
                 if source_index.column() == CertifiersTableModel.columns_ids.index('publication'):
@@ -63,7 +63,7 @@ class CertifiersFilterProxyModel(QSortFilterProxyModel):
                             QLocale(),
                             QDateTime.fromTime_t(ts),
                             QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
-                        )
+                        ) + " BAT"
                     else:
                         return ""
                 if source_index.column() == CertifiersTableModel.columns_ids.index('pubkey'):

@@ -101,7 +101,7 @@ class TxFilterProxyModel(QSortFilterProxyModel):
                     QLocale(),
                     QDateTime.fromTime_t(ts).date(),
                     QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
-                )
+                )  + " BAT"
             if source_index.column() == model.columns_types.index('amount'):
                 amount = self.app.current_ref.instance(source_data, model.connection.currency,
                                                        self.app, block_data).diff_localized(False, False)

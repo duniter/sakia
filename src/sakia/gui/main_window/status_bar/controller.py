@@ -61,7 +61,7 @@ class StatusBarController(QObject):
                         QDateTime.fromTime_t(current_time),
                         QLocale.dateTimeFormat(QLocale(), QLocale.NarrowFormat)
                     )
-        self.view.status_label.setText(self.tr("Blockchain sync : {0} ({1})").format(str_time, str(current_block)[:15]))
+        self.view.status_label.setText(self.tr("Blockchain sync : {0} BAT ({1})").format(str_time, str(current_block)[:15]))
 
     def refresh(self):
         """
