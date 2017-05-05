@@ -126,7 +126,6 @@ On Linux, you'll need buildable python-dbus and notify2 :
 ```bash
 pyenv activate sakia-env
 pip install PyQt5
-rm ~/.pyenv/versions/sakia-env/bin/pyuic5 # Because of some bug in binary packages we need to remove this
 pip install -U git+https://github.com/posborne/dbus-python.git
 pip install notify2
 ```
