@@ -14,7 +14,7 @@ then
 
     cp sakia.png ci/travis/debian/opt/sakia/
     cp sakia-${TRAVIS_OS_NAME}.zip ci/travis/debian/opt/sakia/sakia.zip
-
+    cp -r res/linux/usr ci/travis/debian
     fakeroot dpkg-deb --build ci/travis/debian
     mv ci/travis/debian.deb sakia-${TRAVIS_OS_NAME}.deb
 fi
