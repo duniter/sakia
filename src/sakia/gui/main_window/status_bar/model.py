@@ -28,5 +28,6 @@ class StatusBarModel(QObject):
         return self.blockchain_processor.current_buid(self.app.currency)
 
     def current_time(self):
-        return self.blockchain_processor.time(self.app.currency)
+        time = self.blockchain_processor.time(self.app.currency)
+        return self.blockchain_processor.adjusted_ts(self.app.currency, time)
 
