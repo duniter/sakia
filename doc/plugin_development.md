@@ -2,7 +2,7 @@
 
 ## Prepare dev environment
 
-Follow the doc file [Install for developers](https://github.com/duniter/sakia/doc/install_for_developers.md).
+Follow the doc file [Install for developers](https://github.com/duniter/sakia/blob/dev/doc/install_for_developers.md).
 You can use the same pyenv environment to develop your plugin.
 
 ## Plugin structure
