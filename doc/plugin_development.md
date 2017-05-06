@@ -41,7 +41,7 @@ def plugin_exec(app, main_window):
     """
     # Place your init code here
     pass
-```icons
+```
 
 ## Building your plugin
 
