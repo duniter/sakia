@@ -1,5 +1,6 @@
 import pytest
 from sakia.data.entities import Transaction
+from sakia.data.processors import ConnectionsProcessor
 
 
 @pytest.mark.asyncio
@@ -18,7 +19,8 @@ async def test_send_tx_then_validate(application_with_one_connection, fake_serve
     fake_server_with_blockchain.forge.forge_block()
     fake_server_with_blockchain.forge.forge_block()
     new_blocks = fake_server_with_blockchain.forge.blocks[-3:]
-    await application_with_one_connection.transactions_service.handle_new_blocks(new_blocks)
+    connections = ConnectionsProcessor.instanciate(application_with_one_connection).connections()
+    await application_with_one_connection.transactions_service.handle_new_blocks(connections, new_blocks)
     tx_after_parse = application_with_one_connection.transactions_service.transfers(bob.key.pubkey)
     assert tx_after_parse[-1].state is Transaction.VALIDATED
     assert tx_after_parse[-1].written_block == fake_server_with_blockchain.forge.blocks[-3].number
@@ -34,7 +36,8 @@ async def test_receive_tx(application_with_one_connection, fake_server_with_bloc
     fake_server_with_blockchain.forge.forge_block()
     fake_server_with_blockchain.forge.forge_block()
     new_blocks = fake_server_with_blockchain.forge.blocks[-3:]
-    await application_with_one_connection.transactions_service.handle_new_blocks(new_blocks)
+    connections = ConnectionsProcessor.instanciate(application_with_one_connection).connections()
+    await application_with_one_connection.transactions_service.handle_new_blocks(connections, new_blocks)
     tx_after_parse = application_with_one_connection.transactions_service.transfers(bob.key.pubkey)
     assert tx_after_parse[-1].state is Transaction.VALIDATED
     assert len(tx_before_send) + 1 == len(tx_after_parse)
@@ -52,7 +55,8 @@ async def test_issue_dividend(application_with_one_connection, fake_server_with_
     fake_server_with_blockchain.forge.forge_block()
     fake_server_with_blockchain.forge.forge_block()
     new_blocks = fake_server_with_blockchain.forge.blocks[-5:]
-    await application_with_one_connection.transactions_service.handle_new_blocks(new_blocks)
+    connections = ConnectionsProcessor.instanciate(application_with_one_connection).connections()
+    await application_with_one_connection.transactions_service.handle_new_blocks(connections, new_blocks)
     dividends_after_parse = application_with_one_connection.transactions_service.dividends(bob.key.pubkey)
     assert len(dividends_before_send) + 2 == len(dividends_after_parse)
     await fake_server_with_blockchain.close()

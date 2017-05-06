@@ -131,10 +131,11 @@ class Application(QObject):
                                                connections_processor, transactions_processor,
                                                blockchain_processor, bma_connector)
 
-        self.blockchain_service = BlockchainService(self, self.currency, blockchain_processor, bma_connector,
-                                                               self.identities_service,
-                                                               self.transactions_service,
-                                                               self.sources_service)
+        self.blockchain_service = BlockchainService(self, self.currency, blockchain_processor, connections_processor,
+                                                    bma_connector,
+                                                    self.identities_service,
+                                                    self.transactions_service,
+                                                    self.sources_service)
 
         self.network_service = NetworkService.load(self, self.currency, nodes_processor,
                                                     self.blockchain_service,

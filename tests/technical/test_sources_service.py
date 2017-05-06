@@ -1,6 +1,6 @@
 import pytest
 from sakia.data.entities import Transaction
-from sakia.data.processors import TransactionsProcessor
+from sakia.data.processors import TransactionsProcessor, ConnectionsProcessor
 
 
 @pytest.mark.asyncio
@@ -12,8 +12,10 @@ async def test_receive_source(application_with_one_connection, fake_server_with_
     fake_server_with_blockchain.forge.forge_block()
     fake_server_with_blockchain.forge.forge_block()
     new_blocks = fake_server_with_blockchain.forge.blocks[-3:]
-    changed_tx, new_tx, new_ud = await application_with_one_connection.transactions_service.handle_new_blocks(new_blocks)
-    await application_with_one_connection.sources_service.refresh_sources(new_tx, new_ud)
+    connections = ConnectionsProcessor.instanciate(application_with_one_connection).connections()
+    changed_tx, new_tx, new_ud = await application_with_one_connection.transactions_service.handle_new_blocks(connections,
+                                                                                                              new_blocks)
+    await application_with_one_connection.sources_service.refresh_sources(connections, new_tx, new_ud)
     assert amount + 150 == application_with_one_connection.sources_service.amount(bob.key.pubkey)
     await fake_server_with_blockchain.close()
 
@@ -27,8 +29,10 @@ async def test_send_source(application_with_one_connection, fake_server_with_blo
     fake_server_with_blockchain.forge.forge_block()
     fake_server_with_blockchain.forge.forge_block()
     new_blocks = fake_server_with_blockchain.forge.blocks[-3:]
-    changed_tx, new_tx, new_ud = await application_with_one_connection.transactions_service.handle_new_blocks(new_blocks)
-    await application_with_one_connection.sources_service.refresh_sources(new_tx, new_ud)
+    connections = ConnectionsProcessor.instanciate(application_with_one_connection).connections()
+    changed_tx, new_tx, new_ud = await application_with_one_connection.transactions_service.handle_new_blocks(connections,
+                                                                                                              new_blocks)
+    await application_with_one_connection.sources_service.refresh_sources(connections, new_tx, new_ud)
     assert amount - 150 == application_with_one_connection.sources_service.amount(bob.key.pubkey)
     await fake_server_with_blockchain.close()
 
@@ -42,8 +46,10 @@ async def test_destruction(application_with_one_connection, fake_server_with_blo
     fake_server_with_blockchain.forge.forge_block()
     fake_server_with_blockchain.forge.forge_block()
     new_blocks = fake_server_with_blockchain.forge.blocks[-3:]
-    changed_tx, new_tx, new_ud = await application_with_one_connection.transactions_service.handle_new_blocks(new_blocks)
-    await application_with_one_connection.sources_service.refresh_sources(new_tx, new_ud)
+    connections = ConnectionsProcessor.instanciate(application_with_one_connection).connections()
+    changed_tx, new_tx, new_ud = await application_with_one_connection.transactions_service.handle_new_blocks(connections,
+                                                                                                              new_blocks)
+    await application_with_one_connection.sources_service.refresh_sources(connections, new_tx, new_ud)
     assert 0 == application_with_one_connection.sources_service.amount(bob.key.pubkey)
     tx_after_parse = application_with_one_connection.transactions_service.transfers(bob.key.pubkey)
     assert "Too low balance" in [t.comment for t in tx_after_parse]
