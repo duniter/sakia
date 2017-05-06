@@ -49,13 +49,15 @@ To build the plugin, you need :
 
 ### To generate resources (images, qrc, ...)
 
-Generating resources uses [pyrcc5](http://pyqt.sourceforge.net/Docs/PyQt5/resources.html).
+Generating resources uses [pyrcc5](http://pyqt.sourceforge.net/Docs/PyQt5/resources.html).  
+Generating designer ui files uses [pyuic5](http://pyqt.sourceforge.net/Docs/PyQt5/designer.html).
+
 To help you generate your resources, you should copy the `gen_resources.py` file from sakia sources and configure the
  variable `gen_resources`. Replace `'src'` by the name of your plugin package.
 
 ### To import your resources in your code
 
-The generation of the resources build the following python files :
+The generation of the resources builds the following python files :
 
  - `filename.ui` -> `filename_uic.py`
  - `filename.qrc` -> `filename_rc.py`
