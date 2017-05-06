@@ -64,7 +64,7 @@ The `filename_uic.py` file should be imported in the file using the designed wid
 [dialog of the example plugin](https://github.com/Insoleet/sakia-plugin-example/blob/master/plugin_example/main_dialog.py)
 
 The `filename_rc.py` file should be imported in the `__init__.py` file, on the last line. See the
-[__init__.py of the example plugin](https://github.com/Insoleet/sakia-plugin-example/blob/master/plugin_example/__init__.py#L28)
+[\__init__.py of the example plugin](https://github.com/Insoleet/sakia-plugin-example/blob/master/plugin_example/__init__.py#L28)
 
 ### To generate your plugin
 
