@@ -2,7 +2,7 @@
 
 ## Prepare dev environment
 
-Follow the doc file [Install for developers](https://github.com/duniter/sakia/doc/install_for_developers.md).
+Follow the doc file [Install for developers](https://github.com/duniter/sakia/blob/dev/doc/install_for_developers.md).
 You can use the same pyenv environment to develop your plugin.
 
 ## Plugin structure
@@ -57,7 +57,7 @@ To help you generate your resources, you should copy the `gen_resources.py` file
 
 ### To import your resources in your code
 
-The generation of the resources build the following python files :
+The generation of the resources builds the following python files :
 
  - `filename.ui` -> `filename_uic.py`
  - `filename.qrc` -> `filename_rc.py`
@@ -66,7 +66,7 @@ The `filename_uic.py` file should be imported in the file using the designed wid
 [dialog of the example plugin](https://github.com/Insoleet/sakia-plugin-example/blob/master/plugin_example/main_dialog.py)
 
 The `filename_rc.py` file should be imported in the `__init__.py` file, on the last line. See the
-[__init__.py of the example plugin](https://github.com/Insoleet/sakia-plugin-example/blob/master/plugin_example/__init__.py#L28)
+[\__init__.py of the example plugin](https://github.com/Insoleet/sakia-plugin-example/blob/master/plugin_example/__init__.py#L28)
 
 ### To generate your plugin
 
