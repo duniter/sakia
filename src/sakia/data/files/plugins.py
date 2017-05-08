@@ -7,13 +7,14 @@ import importlib
 from ..entities import Plugin
 
 
-@attr.s(frozen=True)
+@attr.s()
 class PluginsDirectory:
     """
     The repository for UserParameters
     """
     _path = attr.ib()
     plugins = attr.ib(default=[])
+    with_plugin = attr.ib(default=None)
     _logger = attr.ib(default=attr.Factory(lambda: logging.getLogger('sakia')))
 
     @classmethod
@@ -23,7 +24,7 @@ class PluginsDirectory:
             os.makedirs(plugins_path)
         return cls(plugins_path)
 
-    def load_or_init(self):
+    def load_or_init(self, with_plugin):
         """
         Init plugins
         """
@@ -44,6 +45,19 @@ class PluginsDirectory:
                         self.plugins.append(Plugin(module_name, "", "",
                                                    False, None, file))
                         self._logger.debug(str(e) + " with sys.path " + str(sys.path))
+            if with_plugin:
+                sys.path.append(with_plugin)
+                module_name = os.path.splitext(os.path.basename(with_plugin))[0]
+                try:
+                    plugin_module = importlib.import_module(module_name)
+                    self.with_plugin = Plugin(plugin_module.PLUGIN_NAME,
+                                               plugin_module.PLUGIN_DESCRIPTION,
+                                               plugin_module.PLUGIN_VERSION,
+                                               True,
+                                               plugin_module,
+                                               with_plugin)
+                except ImportError as e:
+                    self._logger.debug(str(e) + " with sys.path " + str(sys.path))
         except OSError as e:
             self._logger.debug(str(e))
         return self
