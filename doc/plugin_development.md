@@ -82,3 +82,7 @@ To generate your plugin, you must zip everything (generated resources) in a zip 
 The [setup.py](https://github.com/Insoleet/sakia-plugin-example/blob/master/setup.py) file from the
 example plugin is available to help you generate correctly the plugin.
 
+### To test your plugin
+
+To test your plugin, you need to run sakia with the parameter `--withplugin [path to zip file]`. The plugin will
+be loaded automatically on startup but won't be installed to user profile directory.
