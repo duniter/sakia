@@ -23,6 +23,7 @@ def config_path_factory():
 class SakiaOptions:
     config_path = attr.ib(default=attr.Factory(config_path_factory))
     currency = attr.ib(default="gtest")
+    profile = attr.ib(default="Default Profile")
     _logger = attr.ib(default=attr.Factory(lambda: logging.getLogger('sakia')))
 
     @classmethod
@@ -49,12 +50,18 @@ class SakiaOptions:
         parser.add_option("--currency",  dest="currency", default="g1",
                           help="Select a currency between {0}".format(",".join(ROOT_SERVERS.keys())))
 
+        parser.add_option("--profile",  dest="profile", default="Default Profile",
+                          help="Select profile to use")
+
         (options, args) = parser.parse_args(argv)
 
         if options.currency not in ROOT_SERVERS.keys():
             raise RuntimeError("{0} is not a valid currency".format(options.currency))
         else:
             self.currency = options.currency
+
+        if options.profile:
+            self.profile = options.profile
 
         if options.debug:
             self._logger.setLevel(logging.DEBUG)
