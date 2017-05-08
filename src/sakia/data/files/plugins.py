@@ -51,12 +51,13 @@ class PluginsDirectory:
                 try:
                     plugin_module = importlib.import_module(module_name)
                     self.with_plugin = Plugin(plugin_module.PLUGIN_NAME,
-                                               plugin_module.PLUGIN_DESCRIPTION,
-                                               plugin_module.PLUGIN_VERSION,
-                                               True,
-                                               plugin_module,
-                                               with_plugin)
+                                              plugin_module.PLUGIN_DESCRIPTION,
+                                              plugin_module.PLUGIN_VERSION,
+                                              True,
+                                              plugin_module,
+                                              with_plugin)
                 except ImportError as e:
+                    self.with_plugin = Plugin(module_name, "", "", False, None, with_plugin)
                     self._logger.debug(str(e) + " with sys.path " + str(sys.path))
         except OSError as e:
             self._logger.debug(str(e))

@@ -11,6 +11,8 @@ class MainWindowModel(QObject):
         self.app = app
 
     def load_plugins(self, main_window):
-        for plugin in self.app.plugins_dir.plugins + [self.app.plugins_dir.with_plugin]:
+        for plugin in self.app.plugins_dir.plugins:
             if plugin.imported:
                 plugin.module.plugin_exec(self.app, main_window)
+        if self.app.plugins_dir.with_plugin:
+            self.app.plugins_dir.with_plugin.module.plugin_exec(self.app, main_window)
