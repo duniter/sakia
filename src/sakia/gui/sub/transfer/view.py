@@ -73,6 +73,12 @@ class TransferView(QWidget, Ui_TransferMoneyWidget):
     def clear(self):
         self._amount_base = 0
         self.radio_pubkey.setChecked(True)
+        self.edit_pubkey.clear()
+        self.spinbox_amount.setValue(0)
+        self.edit_message.clear()
+        self.password_input.clear()
+        self.search_user.clear()
+        self.user_information_view.clear()
 
     def recipient_mode(self):
         for radio in self.radio_to_mode:

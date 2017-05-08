@@ -22,6 +22,10 @@ class PasswordInputView(QWidget, Ui_PasswordInputWidget):
         self.label_info.setText(text)
         self.button_box.button(QDialogButtonBox.Ok).setEnabled(False)
 
+    def clear(self):
+        self.edit_password.clear()
+        self.edit_secret_key.clear()
+
     def valid(self):
         self.label_info.setText(self.tr("Password is valid"))
         self.button_box.button(QDialogButtonBox.Ok).setEnabled(True)

@@ -67,6 +67,9 @@ class CertificationView(QWidget, Ui_CertificationWidget):
     def clear(self):
         self.stackedWidget.setCurrentIndex(0)
         self.set_button_process(CertificationView.ButtonsState.SELECT_IDENTITY)
+        self.password_input_view.clear()
+        self.search_user_view.clear()
+        self.user_information_view.clear()
 
     def set_keys(self, connections):
         self.combo_connections.clear()

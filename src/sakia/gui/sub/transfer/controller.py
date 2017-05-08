@@ -193,6 +193,7 @@ class TransferController(QObject):
             await self.view.show_success(self.model.notifications(), recipient)
             logging.debug("Restore cursor...")
             QApplication.restoreOverrideCursor()
+            self.view.button_box.setEnabled(True)
 
             # If we sent back a transaction we cancel the first one
             self.model.cancel_previous()
