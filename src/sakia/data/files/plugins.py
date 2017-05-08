@@ -24,7 +24,7 @@ class PluginsDirectory:
             os.makedirs(plugins_path)
         return cls(plugins_path)
 
-    def load_or_init(self, with_plugin):
+    def load_or_init(self, with_plugin=""):
         """
         Init plugins
         """
