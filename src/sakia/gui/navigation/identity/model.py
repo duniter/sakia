@@ -52,9 +52,9 @@ class IdentityModel(QObject):
 
     async def refresh_identity_data(self):
         identity = self.identities_service.get_identity(self.connection.pubkey, self.connection.uid)
-        certified = self.identities_service.certifications_sent(self.connection.pubkey)
         identity = await self.identities_service.load_requirements(identity)
         certifiers = await self.identities_service.load_certifiers_of(identity)
+        certified = await self.identities_service.load_certified_by(identity)
         await self.identities_service.load_certs_in_lookup(identity, certifiers, certified)
         self.table_model.init_certifiers()
 

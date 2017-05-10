@@ -70,6 +70,7 @@ class IdentityController(QObject):
         if valid:
             menu = ContextMenu.from_data(self.view, self.model.app, None, (identity,))
             menu.view_identity_in_wot.connect(self.view_in_wot)
+            menu.identity_information_loaded.connect(self.model.table_model.certifier_loaded)
 
             # Show the context menu.
             menu.qmenu.popup(QCursor.pos())

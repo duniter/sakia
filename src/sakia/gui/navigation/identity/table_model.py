@@ -1,4 +1,5 @@
 from sakia.errors import NoPeerAvailable
+from sakia.data.entities import Identity
 from sakia.data.processors import BlockchainProcessor
 from PyQt5.QtCore import QAbstractTableModel, QSortFilterProxyModel, Qt, \
                         QDateTime, QModelIndex, QLocale, QT_TRANSLATE_NOOP
@@ -119,12 +120,21 @@ class CertifiersTableModel(QAbstractTableModel):
         parameters = self.blockchain_service.parameters()
         publication_date = certification.timestamp
         identity = self.identities_service.get_identity(certification.certifier)
+        if not identity:
+            identity = Identity(currency=certification.currency, pubkey=certification.certifier, uid="")
         written = certification.written_on >= 0
         if written:
             expiration_date = publication_date + parameters.sig_validity
         else:
             expiration_date = publication_date + parameters.sig_window
         return identity.uid, identity.pubkey, publication_date, expiration_date, written, identity
+
+    def certifier_loaded(self, identity):
+        for i, idty in enumerate(self.identities_data):
+            if idty[CertifiersTableModel.columns_ids.index('identity')] == identity:
+                self._certifiers_data[i] = self._certifiers_data(identity)
+                self.dataChanged.emit(self.index(i, 0), self.index(i, len(CertifiersTableModel.columns_ids)))
+                return
 
     def init_certifiers(self):
         """
