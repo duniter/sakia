@@ -29,6 +29,7 @@ if is_darwin:
                                       "libsodium.dylib")
         a.binaries = a.binaries + TOC([('lib/libsodium.dylib', libsodium_path, 'BINARY')])
     a.datas = a.datas + [('sakia/root_servers.yml', 'src/sakia/root_servers.yml', 'DATA')]
+    a.datas = a.datas + [('sakia/g1_licence.html', 'src/sakia/g1_licence.html', 'DATA')]
 
 if is_linux:
     libsodium_path = ctypes.util.find_library('libsodium.so')
