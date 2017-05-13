@@ -1,2 +1,2 @@
-__version_info__ = ('0', '32', '0RC3')
+__version_info__ = ('0', '32', '0RC4')
 __version__ = '.'.join(__version_info__)
