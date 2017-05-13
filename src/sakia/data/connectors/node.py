@@ -107,6 +107,11 @@ class NodeConnector(QObject):
             conn_handler = next(endpoint.conn_handler(self.session, proxy=proxy))
             data = await request(conn_handler, **req_args)
             return data
+        except errors.DuniterError as e:
+            if e.ucode == 1006:
+                self._logger.debug("{0}".format(str(e)))
+            else:
+                raise
         except (ClientError, gaierror, TimeoutError, ConnectionRefusedError, ValueError) as e:
             self._logger.debug("{0}".format(str(e)))
             self.change_state_and_emit(Node.OFFLINE)
@@ -334,8 +339,7 @@ class NodeConnector(QObject):
                                 break
                             self.refresh_peer_data(leaf_data['leaf']['value'])
                         except (AttributeError, ValueError, errors.DuniterError) as e:
-                            self._logger.debug("Incorrect peer data in {leaf}"
-                                          .format(leaf=leaf_hash))
+                            self._logger.debug("Incorrect peer data in {leaf} : {err}".format(leaf=leaf_hash, err=str(e)))
                             self.change_state_and_emit(Node.OFFLINE)
                     else:
                         self.node.merkle_peers_root = peers_data['root']
