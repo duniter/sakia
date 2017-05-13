@@ -142,7 +142,8 @@ class NetworkTableModel(QAbstractTableModel):
         'software',
         'version',
         'is_root',
-        'state'
+        'state',
+        'node'
     )
 
     DESYNCED = 3
@@ -215,7 +216,8 @@ class NetworkTableModel(QAbstractTableModel):
             state = NetworkTableModel.DESYNCED
 
         return (address, port, number, block_hash, block_time, node.uid,
-                node.member, node.pubkey, node.software, node.version, node.root, state)
+                node.member, node.pubkey, node.software, node.version, node.root, state,
+                node)
 
     def init_nodes(self, current_buid=None):
         self._logger.debug("Init nodes table")
