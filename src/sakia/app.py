@@ -52,6 +52,8 @@ class Application(QObject):
     sources_refreshed = pyqtSignal()
     new_blocks_handled = pyqtSignal()
     view_in_wot = pyqtSignal(Identity)
+    refresh_started = pyqtSignal()
+    refresh_finished = pyqtSignal()
 
     qapp = attr.ib()
     loop = attr.ib()

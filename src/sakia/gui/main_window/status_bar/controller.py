@@ -14,8 +14,8 @@ class StatusBarController(QObject):
         """
         Constructor of the navigation component
 
-        :param sakia.gui.status_bar.view.StatusBarView view: the presentation
-        :param sakia.core.status_bar.model.StatusBarModel model: the model
+        :param sakia.gui.main_window.status_bar.view.StatusBarView view: the presentation
+        :param sakia.gui.main_window.status_bar.model.StatusBarModel model: the model
         """
         super().__init__()
         self.view = view
@@ -52,6 +52,12 @@ class StatusBarController(QObject):
         timer = QTimer()
         timer.timeout.connect(self.update_time)
         timer.start(1000)
+
+    def start_loading(self):
+        self.view.start_loading()
+
+    def stop_loading(self):
+        self.view.stop_loading()
 
     def new_blocks_handled(self):
         current_block = self.model.current_block()

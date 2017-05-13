@@ -60,6 +60,7 @@ class BlockchainService(QObject):
         if self._blockchain_processor.initialized(self.currency) and not self._update_lock:
             try:
                 self._update_lock = True
+                self.app.refresh_started.emit()
                 block_numbers = await self.new_blocks(network_blockstamp)
                 while block_numbers:
                     start = self.current_buid().number
@@ -92,6 +93,7 @@ class BlockchainService(QObject):
             except (NoPeerAvailable, DuniterError) as e:
                 self._logger.debug(str(e))
             finally:
+                self.app.refresh_finished.emit()
                 self._update_lock = False
 
     def current_buid(self):

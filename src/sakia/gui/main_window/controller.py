@@ -87,6 +87,8 @@ class MainWindowController(QObject):
             main_window.view.showMaximized()
         else:
             main_window.view.show()
+        app.refresh_started.connect(main_window.status_bar.start_loading)
+        app.refresh_finished.connect(main_window.status_bar.stop_loading)
         main_window.model.load_plugins(main_window)
         main_window.refresh(app.currency)
         return main_window
