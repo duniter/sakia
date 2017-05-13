@@ -126,7 +126,6 @@ class NetworkService(QObject):
         """
         self._connectors.append(node_connector)
         node_connector.changed.connect(self.handle_change, type=Qt.UniqueConnection|Qt.QueuedConnection)
-        node_connector.error.connect(self.handle_error, type=Qt.UniqueConnection|Qt.QueuedConnection)
         node_connector.identity_changed.connect(self.handle_identity_change, type=Qt.UniqueConnection|Qt.QueuedConnection)
         node_connector.neighbour_found.connect(self.handle_new_node, type=Qt.UniqueConnection|Qt.QueuedConnection)
         self._logger.debug("{:} connected".format(node_connector.node.pubkey[:5]))
@@ -153,7 +152,15 @@ class NetworkService(QObject):
                     await connector.init_session()
                     connector.refresh()
                     if not first_loop:
+                        if connector.node.state in (Node.OFFLINE, Node.CORRUPTED) \
+                                and connector.node.last_state_change + 3600 < time.time():
+                            connector.disconnect()
+                            self._processor.delete_node(connector.node)
+                            self._connectors.remove(connector)
+                            self.node_removed.emit(connector.node)
+
                         await asyncio.sleep(15)
+
             first_loop = False
             await asyncio.sleep(15)
 
@@ -218,15 +225,6 @@ class NetworkService(QObject):
         connector = self.sender()
         self._processor.update_node(connector.node)
         self.node_changed.emit(connector.node)
-
-    def handle_error(self):
-        node_connector = self.sender()
-        if node_connector.node.state in (Node.OFFLINE, Node.CORRUPTED) \
-                and node_connector.node.last_state_change + 3600 < time.time():
-            node_connector.disconnect()
-            self._processor.delete_node(node_connector.node)
-            self._connectors.remove(node_connector)
-            self.node_removed.emit(node_connector.node)
 
     def handle_change(self):
         node_connector = self.sender()
