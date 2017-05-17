@@ -89,7 +89,7 @@ class CertificationView(QWidget, Ui_CertificationWidget):
         file_name = QFileDialog.getOpenFileName(self,
                                                 self.tr("Open identity document"), "",
                                                 self.tr("Duniter documents (*.txt)"))
-        if file_name:
+        if file_name and file_name[0]:
             with open(file_name[0], 'r') as open_file:
                 raw_text = open_file.read()
                 try:
