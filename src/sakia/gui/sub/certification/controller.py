@@ -108,8 +108,8 @@ class CertificationController(QObject):
         certification = cls.create(parent, app)
         if connection:
             certification.view.combo_connections.setCurrentText(connection.title())
-            certification.user_information.change_identity(identity)
-            certification.refresh()
+        certification.user_information.change_identity(identity)
+        certification.refresh()
         dialog.layout().addWidget(certification.view)
         certification.accepted.connect(dialog.accept)
         certification.rejected.connect(dialog.reject)

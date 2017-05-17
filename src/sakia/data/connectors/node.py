@@ -240,7 +240,6 @@ class NodeConnector(QObject):
                         self.change_state_and_emit(Node.CORRUPTED)
                         break
 
-                    self._logger.debug("Error in previous block reply of {0} : {1}".format(self.node.pubkey[:5], str(e)))
                 finally:
                     if self.node.current_buid != BlockUID(block_data['number'], block_data['hash']):
                         self.node.current_buid = BlockUID(block_data['number'], block_data['hash'])
