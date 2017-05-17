@@ -52,6 +52,9 @@ class TxHistoryView(QWidget, Ui_TxHistoryWidget):
         self.date_to.setDateTime(maximum)
         self.date_to.setMaximumDateTime(maximum)
 
+    def set_max_pages(self, pages):
+        self.spin_page.setMaximum(pages)
+
     def set_balance(self, balance):
         """
         Display given balance

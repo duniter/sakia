@@ -95,9 +95,9 @@ class Transaction:
     REFUSED = 8
     DROPPED = 16
 
-    currency      = attr.ib(convert=str)
-    pubkey        = attr.ib(convert=str)
-    sha_hash      = attr.ib(convert=str)
+    currency      = attr.ib(convert=str, cmp=True, hash=True)
+    pubkey        = attr.ib(convert=str, cmp=True, hash=True)
+    sha_hash      = attr.ib(convert=str, cmp=True, hash=True)
     written_block = attr.ib(convert=int, cmp=False)
     blockstamp    = attr.ib(convert=block_uid, cmp=False)
     timestamp     = attr.ib(convert=int, cmp=False)

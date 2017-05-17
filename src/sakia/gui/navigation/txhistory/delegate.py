@@ -13,7 +13,7 @@ class TxHistoryDelegate(QStyledItemDelegate):
         style = QApplication.style()
 
         doc = QTextDocument()
-        if index.column() == HistoryTableModel.columns_types.index('uid'):
+        if index.column() == HistoryTableModel.columns_types.index('pubkey'):
             doc.setHtml(option.text)
         else:
             doc.setPlainText(option.text)
@@ -39,7 +39,7 @@ class TxHistoryDelegate(QStyledItemDelegate):
         self.initStyleOption(option, index)
 
         doc = QTextDocument()
-        if index.column() == HistoryTableModel.columns_types.index('uid'):
+        if index.column() == HistoryTableModel.columns_types.index('pubkey'):
             doc.setHtml(option.text)
         else:
             doc.setPlainText("")

@@ -51,6 +51,7 @@ class TxHistoryController(QObject):
         app.referential_changed.connect(txhistory.refresh_balance)
         app.sources_refreshed.connect(txhistory.refresh_balance)
         txhistory.view_in_wot.connect(app.view_in_wot)
+        txhistory.view.spin_page.valueChanged.connect(model.change_page)
         transfer.accepted.connect(view.clear)
         transfer.rejected.connect(view.clear)
         return txhistory
@@ -65,6 +66,7 @@ class TxHistoryController(QObject):
     def refresh(self):
         self.refresh_minimum_maximum()
         self.refresh_balance()
+        self.refresh_pages()
 
     @asyncify
     async def notification_reception(self, received_list):
@@ -78,6 +80,10 @@ class TxHistoryController(QObject):
     def refresh_balance(self):
         localized_amount = self.model.localized_balance()
         self.view.set_balance(localized_amount)
+
+    def refresh_pages(self):
+        pages = self.model.max_pages()
+        self.view.set_max_pages(pages)
 
     def history_context_menu(self, point):
         index = self.view.table_history.indexAt(point)

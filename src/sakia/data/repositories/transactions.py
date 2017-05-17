@@ -1,6 +1,6 @@
 import attr
 
-from ..entities import Transaction
+from ..entities import Transaction, Dividend
 
 
 @attr.s(frozen=True)
