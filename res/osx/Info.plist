@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict><key>CFBundleIdentifier</key>
+<string>sakia</string>
+<key>CFBundlePackageType</key>
+<string>APPL</string>
+<key>CFBundleName</key>
+<string>sakia</string>
+<key>CFBundleExecutable</key>
+<string>MacOS/sakia.bin</string>
+<key>CFBundleInfoDictionaryVersion</key>
+<string>6.0</string>
+<key>CFBundleIconFile</key>
+<string>sakia.ico</string>
+<key>NSHighResolutionCapable</key>
+<string>True</string>
+<key>CFBundleDisplayName</key>
+<string>sakia</string>
+<key>CFBundleShortVersionString</key>
+<string>0.0.0</string>
+<key>LSBackgroundOnly</key>
+<string>False</string>
+<key>LSEnvironment</key>
+<dict>
+<key>LC_ALL</key>
+<string>UTF-8</string>
+</dict>
+</dict>
+</plist>
