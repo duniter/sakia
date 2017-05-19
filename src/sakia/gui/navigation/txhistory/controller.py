@@ -73,7 +73,7 @@ class TxHistoryController(QObject):
         if len(received_list) > 0:
             localized_amount = await self.model.received_amount(received_list)
             text = self.tr("Received {amount} from {number} transfers").format(amount=localized_amount,
-                                                                           number=len(received_list))
+                                                                               number=len(received_list))
             if self.model.notifications():
                 toast.display(self.tr("New transactions received"), text)
 
@@ -108,3 +108,5 @@ class TxHistoryController(QObject):
             self.view.table_history.model().set_period(ts_from, ts_to)
 
             self.refresh_balance()
+            self.refresh_pages()
+

@@ -1,44 +1,54 @@
+import math
 import attr
 
 
 TX_HISTORY_REQUEST = """
 SELECT 
-    transactions.ts,
-    transactions.pubkey,
-    total_amount((amount * -1), amountbase) as amount,
-    transactions.comment ,
-    transactions.sha_hash,
-    transactions.written_on
-    FROM transactions
-    WHERE transactions.currency = ? 
-    and transactions.pubkey =? 
-    AND transactions.ts >= ? 
-    and transactions.ts <= ? 
-    AND transactions.issuers LIKE "%{pubkey}%"
+      transactions.ts,
+      transactions.pubkey,
+      total_amount((amount * -1), amountbase) as amount,
+      transactions.comment ,
+      transactions.sha_hash,
+      transactions.written_on
+    FROM 
+      transactions
+    WHERE 
+      transactions.currency = ? 
+      and transactions.pubkey = ? 
+      AND transactions.ts >= ? 
+      and transactions.ts <= ? 
+      AND transactions.issuers LIKE "%{pubkey}%"
 UNION ALL
 SELECT 
-    transactions.ts,
-    transactions.pubkey,
-    total_amount(amount, amountbase) as amount,
-    transactions.comment ,
-    transactions.sha_hash,
-    transactions.written_on
-    FROM transactions
-    WHERE transactions.currency = ? 
-    and transactions.pubkey =? 
-    AND transactions.ts >= ? 
-    and transactions.ts <= ? 
-    AND transactions.receivers LIKE "%{pubkey}%"
+      transactions.ts,
+      transactions.pubkey,
+      total_amount(amount, amountbase) as amount,
+      transactions.comment ,
+      transactions.sha_hash,
+      transactions.written_on
+    FROM 
+      transactions
+    WHERE 
+      transactions.currency = ? 
+      and transactions.pubkey = ? 
+      AND transactions.ts >= ? 
+      and transactions.ts <= ? 
+      AND transactions.receivers LIKE "%{pubkey}%"
 UNION ALL
 SELECT 
-    dividends.timestamp as ts,
-    dividends.pubkey ,
-    total_amount(amount, base) as amount,
-    NULL as comment,
-    NULL as sha_hash,
-    dividends.block_number AS written_on
-    FROM dividends
-    WHERE dividends.currency = ? and dividends.pubkey =? AND dividends.timestamp >= ? and dividends.timestamp <= ?
+      dividends.timestamp as ts,
+      dividends.pubkey ,
+      total_amount(amount, base) as amount,
+      NULL as comment,
+      NULL as sha_hash,
+      dividends.block_number AS written_on
+    FROM 
+      dividends
+    WHERE 
+      dividends.currency = ? 
+      and dividends.pubkey =? 
+      AND dividends.timestamp >= ? 
+      and dividends.timestamp <= ?
 """
 
 PAGE_LENGTH = 50
@@ -79,10 +89,10 @@ LIMIT {limit} OFFSET {offset}""").format(offset=offset,
         :param str pubkey: the criterions of the lookup
         :rtype: List[sakia.data.entities.Transaction]
         """
-        request = """
+        request = ("""
 SELECT COUNT(*)
 FROM (
-""" + TX_HISTORY_REQUEST + ")"
+""" + TX_HISTORY_REQUEST + ")").format(pubkey=pubkey)
         c = self._conn.execute(request, (currency, pubkey, ts_from, ts_to,
                                                     currency, pubkey, ts_from, ts_to,
                                                     currency, pubkey, ts_from, ts_to))
@@ -119,5 +129,6 @@ FROM (
         :rtype: List[sakia.data.entities.Transaction]
         """
         count = self._transfers_and_dividends_count(currency, pubkey, ts_from, ts_to)
-        return int(count / PAGE_LENGTH) + 1
+        return int(count / PAGE_LENGTH)
+    
 

@@ -84,7 +84,7 @@ class TxHistoryModel(QObject):
         :return: minimum and maximum datetime
         """
         minimum_datetime = QDateTime()
-        minimum_datetime.setTime_t(0)
+        minimum_datetime.setTime_t(1488322800) # First of may 2017
         tomorrow_datetime = QDateTime().currentDateTime().addDays(1)
         return minimum_datetime, tomorrow_datetime
 
