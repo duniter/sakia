@@ -82,7 +82,7 @@ class HistoryTableModel(QAbstractTableModel):
         self.init_transfers()
 
     def set_current_page(self, page):
-        self.current_page = page
+        self.current_page = page - 1
         self.init_transfers()
 
     def pages(self):

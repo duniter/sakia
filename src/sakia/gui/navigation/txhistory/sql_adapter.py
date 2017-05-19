@@ -130,5 +130,5 @@ FROM (
         """
         count = self._transfers_and_dividends_count(currency, pubkey, ts_from, ts_to)
         return int(count / PAGE_LENGTH)
-    
+
 

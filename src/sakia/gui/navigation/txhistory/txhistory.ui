@@ -188,13 +188,6 @@
           </spacer>
          </item>
          <item>
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>Page :</string>
-           </property>
-          </widget>
-         </item>
-         <item>
           <widget class="QSpinBox" name="spin_page"/>
          </item>
         </layout>

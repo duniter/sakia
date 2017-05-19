@@ -16,6 +16,7 @@ class TxHistoryView(QWidget, Ui_TxHistoryWidget):
         self.setupUi(self)
         self.stacked_widget.insertWidget(1, transfer_view)
         self.button_send.clicked.connect(lambda c: self.stacked_widget.setCurrentWidget(self.transfer_view))
+        self.spin_page.setMinimum(1)
 
     def get_time_frame(self):
         """
@@ -53,7 +54,8 @@ class TxHistoryView(QWidget, Ui_TxHistoryWidget):
         self.date_to.setMaximumDateTime(maximum)
 
     def set_max_pages(self, pages):
-        self.spin_page.setMaximum(pages)
+        self.spin_page.setSuffix(self.tr(" / {:} pages").format(pages + 1))
+        self.spin_page.setMaximum(pages + 1)
 
     def set_balance(self, balance):
         """
