@@ -45,10 +45,11 @@ class BlockchainParameters:
     # The dt recomputation of the ud
     dt_reeval = attr.ib(convert=int, default=0, cmp=False, hash=False)
 
+
 @attr.s()
 class Blockchain:
     # Parameters in block 0
-    parameters = attr.ib(default=BlockchainParameters())
+    parameters = attr.ib(default=BlockchainParameters(), cmp=False, hash=False)
     # block number and hash
     current_buid = attr.ib(convert=block_uid, default=BlockUID.empty())
     # Number of members
