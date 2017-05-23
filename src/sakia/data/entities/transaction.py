@@ -21,6 +21,7 @@ def parse_transaction_doc(tx_doc, pubkey, block_number, mediantime, txid):
 
     in_issuers = len([i for i in tx_doc.issuers
                       if i == pubkey]) > 0
+
     in_outputs = len([o for o in tx_doc.outputs
                       if o.conditions.left.pubkey == pubkey]) > 0
 
