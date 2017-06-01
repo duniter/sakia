@@ -94,15 +94,24 @@ If you are running El Capitan (MacOS 10.10), you'll need to run `xcode-select --
 
 #### Pyenv environment 
 
-##### Build python 3.5.0
+##### Build python 3.5.3
+
+Building python 3.5.3 requires libraries of `openssl` and `sqlite3`. On Ubuntu, install it using the following commands : 
+
+```
+apt-get update
+apt-get install libssl-dev
+apt-get install libsqlite3-dev
+```
+
 Restart your shell then prepare your virtualenv: 
 
-On GNU/Linux: `PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install 3.5.1`  
-On MacOS: `env PYTHON_CONFIGURE_OPTS="--enable-framework" pyenv install 3.5.1`
+On GNU/Linux: `PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install 3.5.3`  
+On MacOS: `env PYTHON_CONFIGURE_OPTS="--enable-framework" pyenv install 3.5.3`
 
 Run:
 ```bash
-pyenv shell 3.5.1
+pyenv shell 3.5.3
 pyenv virtualenv sakia-env
 ```
 
@@ -124,7 +133,7 @@ export PYTHONPATH=${PYTHONPATH}:/YOUR_SAKIA_INSTALL_PATH/src
 
 On Linux, you'll need buildable python-dbus and notify2 :  
 ```bash
-pyenv activate sakia-env
+pyenv local sakia-env
 pip install PyQt5
 pip install -U git+https://github.com/posborne/dbus-python.git
 pip install notify2
