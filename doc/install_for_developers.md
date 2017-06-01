@@ -94,15 +94,15 @@ If you are running El Capitan (MacOS 10.10), you'll need to run `xcode-select --
 
 #### Pyenv environment 
 
-##### Build python 3.5.0
+##### Build python 3.5.3
 Restart your shell then prepare your virtualenv: 
 
-On GNU/Linux: `PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install 3.5.1`  
-On MacOS: `env PYTHON_CONFIGURE_OPTS="--enable-framework" pyenv install 3.5.1`
+On GNU/Linux: `PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install 3.5.3`  
+On MacOS: `env PYTHON_CONFIGURE_OPTS="--enable-framework" pyenv install 3.5.3`
 
 Run:
 ```bash
-pyenv shell 3.5.1
+pyenv shell 3.5.3
 pyenv virtualenv sakia-env
 ```
 
