@@ -1,7 +1,7 @@
 import attr
 
 
-@attr.s()
+@attr.s(hash=True)
 class Dividend:
     currency = attr.ib(convert=str, cmp=True, hash=True)
     pubkey = attr.ib(convert=str, cmp=True, hash=True)

@@ -3,7 +3,7 @@ import re
 from sakia.helpers import attrs_tuple_of_str
 
 
-@attr.s()
+@attr.s(hash=True)
 class Contact:
     """
     A contact in the network currency

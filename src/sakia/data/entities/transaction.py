@@ -71,7 +71,7 @@ def parse_transaction_doc(tx_doc, pubkey, block_number, mediantime, txid):
     return transaction
 
 
-@attr.s()
+@attr.s(hash=True)
 class Transaction:
     """
     Transaction entity

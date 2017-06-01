@@ -9,7 +9,8 @@ SELECT
       total_amount((amount * -1), amountbase) as amount,
       transactions.comment ,
       transactions.sha_hash,
-      transactions.written_on
+      transactions.written_on,
+      transactions.txid
     FROM 
       transactions
     WHERE 
@@ -25,7 +26,8 @@ SELECT
       total_amount(amount, amountbase) as amount,
       transactions.comment ,
       transactions.sha_hash,
-      transactions.written_on
+      transactions.written_on,
+      transactions.txid
     FROM 
       transactions
     WHERE 
@@ -41,7 +43,8 @@ SELECT
       total_amount(amount, base) as amount,
       NULL as comment,
       NULL as sha_hash,
-      dividends.block_number AS written_on
+      dividends.block_number AS written_on,
+      0 as txid
     FROM 
       dividends
     WHERE 
@@ -67,7 +70,7 @@ class TxHistorySqlAdapter:
         :rtype: List[sakia.data.entities.Transaction]
         """
         request = (TX_HISTORY_REQUEST + """
-ORDER BY {sort_by} {sort_order}
+ORDER BY {sort_by} {sort_order}, txid {sort_order}
 LIMIT {limit} OFFSET {offset}""").format(offset=offset,
                                          limit=limit,
                                          sort_by=sort_by,

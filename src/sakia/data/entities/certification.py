@@ -2,7 +2,7 @@ import attr
 from duniterpy.documents import block_uid, BlockUID
 
 
-@attr.s()
+@attr.s(hash=True)
 class Certification:
     currency = attr.ib(convert=str)
     certifier = attr.ib(convert=str)

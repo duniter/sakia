@@ -118,7 +118,6 @@ class HistoryTableModel(QAbstractTableModel):
                     if self.connection.pubkey in transfer.receivers:
                         self.transfers_data[i] = self.data_received(transfer)
                         self.dataChanged.emit(self.index(i, 0), self.index(i, len(HistoryTableModel.columns_types)))
-                return
 
     def data_received(self, transfer):
         """
@@ -195,10 +194,11 @@ class HistoryTableModel(QAbstractTableModel):
                 transfer = self.transactions_repo.get_one(currency=self.app.currency,
                                                           pubkey=self.connection.pubkey,
                                                           sha_hash=data[4])
+
                 if transfer.state != Transaction.DROPPED:
-                    if self.connection.pubkey in transfer.issuers:
+                    if data[2] < 0:
                         self.transfers_data.append(self.data_sent(transfer))
-                    if self.connection.pubkey in transfer.receivers:
+                    else:
                         self.transfers_data.append(self.data_received(transfer))
             else:
                 # else we get the dividend depending on the block number

@@ -3,7 +3,7 @@ from duniterpy.documents import block_uid, BlockUID
 from duniterpy.key import ScryptParams
 
 
-@attr.s()
+@attr.s(hash=True)
 class Connection:
     """
     A connection represents a connection to a currency's network

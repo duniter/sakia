@@ -19,7 +19,7 @@ def _tuple_of_endpoints(value):
         raise TypeError("Can't convert {0} to list of endpoints".format(value))
 
 
-@attr.s()
+@attr.s(hash=True)
 class Node:
     """
 

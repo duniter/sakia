@@ -1,7 +1,7 @@
 import attr
 
 
-@attr.s(frozen=True)
+@attr.s(frozen=True, hash=True)
 class Plugin:
     name = attr.ib()
     description = attr.ib(cmp=False, hash=False)

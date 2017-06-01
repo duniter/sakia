@@ -3,7 +3,7 @@ from duniterpy.documents import block_uid, BlockUID
 from duniterpy.documents import Identity as IdentityDoc
 
 
-@attr.s()
+@attr.s(hash=True)
 class Identity:
     currency = attr.ib(convert=str)
     pubkey = attr.ib(convert=str)
