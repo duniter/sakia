@@ -124,7 +124,7 @@ export PYTHONPATH=${PYTHONPATH}:/YOUR_SAKIA_INSTALL_PATH/src
 
 On Linux, you'll need buildable python-dbus and notify2 :  
 ```bash
-pyenv activate sakia-env
+pyenv local sakia-env
 pip install PyQt5
 pip install -U git+https://github.com/posborne/dbus-python.git
 pip install notify2
