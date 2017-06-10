@@ -17,3 +17,8 @@ g1:
     5cnvo5bmR8QbtyNVnkDXWq6n5My6oNLd1o6auJApGCsv:
     - "BASIC_MERKLED_API g1.duniter.inso.ovh 80"
     - "BMAS g1.duniter.inso.ovh 443"
+g1-test:
+  display: ğ1-test
+  nodes:
+    4aCqwikTaTPBRQLGiLHohuoJLPmLephy9eDtgCWLMwBk:
+    - "BMAS g1-test.duniter.org 443"
