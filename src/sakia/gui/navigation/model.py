@@ -181,10 +181,18 @@ class NavigationModel(QObject):
         return self.app.documents_service.generate_revocation(connection, secret_key, password)
 
     def identity_published(self, connection):
-        return self.app.identities_service.get_identity(connection.pubkey, connection.uid).written
+        identity = self.app.identities_service.get_identity(connection.pubkey, connection.uid)
+        if identity:
+            return identity.written
+        else:
+            return False
 
     def identity_is_member(self, connection):
-        return self.app.identities_service.get_identity(connection.pubkey, connection.uid).member
+        identity = self.app.identities_service.get_identity(connection.pubkey, connection.uid)
+        if identity:
+            return identity.member
+        else:
+            return False
 
     async def remove_connection(self, connection):
         for data in self.navigation:
