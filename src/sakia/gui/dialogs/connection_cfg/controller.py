@@ -311,11 +311,7 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
                         else:
                             self.step_key.set_result(found_identity)
                     else:
-                        if registered[0] is False and registered[2] is None:
-                            self.step_key.set_result(None)
-                        elif registered[2]:
-                            self.view.display_info(self.tr("""Your pubkey is associated to an identity.<br/>
-Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
+                        self.step_key.set_result(None)
 
                 except DuniterError as e:
                     self.view.display_info(e.message)
