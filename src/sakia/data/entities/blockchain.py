@@ -2,7 +2,7 @@ import attr
 from duniterpy.documents import block_uid, BlockUID
 
 
-@attr.s(hash=True)
+@attr.s(hash=False)
 class BlockchainParameters:
     # The decimal percent growth of the UD every [dt] period
     c = attr.ib(convert=float, default=0, cmp=False, hash=False)
@@ -46,7 +46,7 @@ class BlockchainParameters:
     dt_reeval = attr.ib(convert=int, default=0, cmp=False, hash=False)
 
 
-@attr.s()
+@attr.s(hash=True)
 class Blockchain:
     # Parameters in block 0
     parameters = attr.ib(default=BlockchainParameters(), cmp=False, hash=False)
