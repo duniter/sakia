@@ -219,6 +219,9 @@ class NavigationModel(QObject):
     def update_identity(self, identity):
         self.app.identities_service.insert_or_update_identity(identity)
 
+    def notifications(self):
+        return self.app.parameters.notifications
+
     @staticmethod
     def copy_pubkey_to_clipboard(connection):
         clipboard = QApplication.clipboard()
