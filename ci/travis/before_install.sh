@@ -33,7 +33,7 @@ then
     ./qt-opensource-linux-x64-5.8.0.run --script $HOME/build/duniter/sakia/ci/travis/qt-installer-noninteractive.qs
 
     wget http://archive.ubuntu.com/ubuntu/pool/universe/libs/libsodium/libsodium18_1.0.11-2_amd64.deb
-    sudo dpkg -i libsodium13_1.0.1-1_amd64.deb
+    sudo dpkg -i libsodium18_1.0.11-2_amd64.deb
     rm -r ~/.pyenv
     git clone https://github.com/yyuu/pyenv.git ~/.pyenv
     echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bash_profile
