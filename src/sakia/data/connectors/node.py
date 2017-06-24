@@ -136,8 +136,7 @@ class NodeConnector(QObject):
             else:
                 closed = True
             await asyncio.sleep(0)
-        await self.session.close()
-        await asyncio.sleep(0)
+        self.session.close()
 
     def refresh(self, manual=False):
         """
