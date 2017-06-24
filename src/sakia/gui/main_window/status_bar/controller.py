@@ -14,8 +14,8 @@ class StatusBarController(QObject):
         """
         Constructor of the navigation component
 
-        :param sakia.gui.status_bar.view.StatusBarView view: the presentation
-        :param sakia.core.status_bar.model.StatusBarModel model: the model
+        :param sakia.gui.main_window.status_bar.view.StatusBarView view: the presentation
+        :param sakia.gui.main_window.status_bar.model.StatusBarModel model: the model
         """
         super().__init__()
         self.view = view
@@ -53,6 +53,12 @@ class StatusBarController(QObject):
         timer.timeout.connect(self.update_time)
         timer.start(1000)
 
+    def start_loading(self):
+        self.view.start_loading()
+
+    def stop_loading(self):
+        self.view.stop_loading()
+
     def new_blocks_handled(self):
         current_block = self.model.current_block()
         current_time = self.model.current_time()
@@ -61,7 +67,7 @@ class StatusBarController(QObject):
                         QDateTime.fromTime_t(current_time),
                         QLocale.dateTimeFormat(QLocale(), QLocale.NarrowFormat)
                     )
-        self.view.status_label.setText(self.tr("Blockchain sync : {0} ({1})").format(str_time, str(current_block)[:15]))
+        self.view.status_label.setText(self.tr("Blockchain sync : {0} BAT ({1})").format(str_time, str(current_block)[:15]))
 
     def refresh(self):
         """

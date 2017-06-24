@@ -1,8 +1,9 @@
 from PyQt5.QtCore import QObject
-from .table_model import HistoryTableModel, TxFilterProxyModel
+from .table_model import HistoryTableModel
 from PyQt5.QtCore import Qt, QDateTime, QTime, pyqtSignal, QModelIndex
 from sakia.errors import NoPeerAvailable
 from duniterpy.api import errors
+from sakia.data.entities import Identity
 
 import logging
 
@@ -31,7 +32,6 @@ class TxHistoryModel(QObject):
         self.transactions_service = transactions_service
         self.sources_service = sources_service
         self._model = None
-        self._proxy = None
 
     def init_history_table_model(self, ts_from, ts_to):
         """
@@ -40,19 +40,21 @@ class TxHistoryModel(QObject):
         :param int ts_to: date to where to filter tx
         :return:
         """
-        self._model = HistoryTableModel(self, self.app, self.connection,
+        self._model = HistoryTableModel(self, self.app, self.connection, ts_from, ts_to,
                                         self.identities_service, self.transactions_service)
-        self._proxy = TxFilterProxyModel(self, ts_from, ts_to, self.blockchain_service)
-        self._proxy.setSourceModel(self._model)
-        self._proxy.setDynamicSortFilter(True)
-        self._proxy.setSortRole(Qt.DisplayRole)
         self._model.init_transfers()
-        self.app.new_transfer.connect(self._model.add_transfer)
-        self.app.new_dividend.connect(self._model.add_dividend)
+        self.app.new_transfer.connect(self._model.init_transfers)
+        self.app.new_dividend.connect(self._model.init_transfers)
         self.app.transaction_state_changed.connect(self._model.change_transfer)
         self.app.referential_changed.connect(self._model.modelReset)
 
-        return self._proxy
+        return self._model
+
+    def change_page(self, page):
+        self._model.set_current_page(page)
+
+    def max_pages(self):
+        return self._model.pages()
 
     def table_data(self, index):
         """
@@ -61,16 +63,18 @@ class TxHistoryModel(QObject):
         :return: tuple containing (Identity, Transfer)
         """
         if index.isValid() and index.row() < self.table_model.rowCount(QModelIndex()):
-            source_index = self.table_model.mapToSource(index)
-
-            pubkey_col = self.table_model.sourceModel().columns_types.index('pubkey')
-            pubkey_index = self.table_model.sourceModel().index(source_index.row(), pubkey_col)
-            pubkeys = self.table_model.sourceModel().data(pubkey_index, Qt.DisplayRole)
-            identities = []
+            pubkey_col = self._model.columns_types.index('pubkey')
+            pubkey_index = self._model.index(index.row(), pubkey_col)
+            pubkeys = self._model.data(pubkey_index, Qt.DisplayRole)
+            identities_or_pubkeys = []
             for pubkey in pubkeys:
-                identities.append(self.identities_service.get_identity(pubkey))
-            transfer = self._model.transfers_data[source_index.row()][self._model.columns_types.index('raw_data')]
-            return True, identities, transfer
+                identity = self.identities_service.get_identity(pubkey)
+                if identity:
+                    identities_or_pubkeys.append(identity)
+                else:
+                    identities_or_pubkeys.append(pubkey)
+            transfer = self._model.transfers_data[index.row()][self._model.columns_types.index('raw_data')]
+            return True,  identities_or_pubkeys, transfer
         return False, [], None
 
     def minimum_maximum_datetime(self):
@@ -80,7 +84,7 @@ class TxHistoryModel(QObject):
         :return: minimum and maximum datetime
         """
         minimum_datetime = QDateTime()
-        minimum_datetime.setTime_t(0)
+        minimum_datetime.setTime_t(1488322800) # First of may 2017
         tomorrow_datetime = QDateTime().currentDateTime().addDays(1)
         return minimum_datetime, tomorrow_datetime
 
@@ -118,7 +122,7 @@ class TxHistoryModel(QObject):
 
     @property
     def table_model(self):
-        return self._proxy
+        return self._model
 
     def notifications(self):
         return self.app.parameters.notifications

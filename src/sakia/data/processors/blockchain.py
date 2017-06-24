@@ -223,14 +223,14 @@ class BlockchainProcessor:
 
         return blocks
 
-    async def initialize_blockchain(self, currency, log_stream):
+    async def initialize_blockchain(self, currency):
         """
         Initialize blockchain for a given currency if no source exists locally
         """
         blockchain = self._repo.get_one(currency=currency)
         if not blockchain:
             blockchain = Blockchain(currency=currency)
-            log_stream("Requesting blockchain parameters")
+            self._logger.debug("Requesting blockchain parameters")
             try:
                 parameters = await self._bma_connector.get(currency, bma.blockchain.parameters)
                 blockchain.parameters.ms_validity = parameters['msValidity']
@@ -256,7 +256,7 @@ class BlockchainProcessor:
             except errors.DuniterError as e:
                 raise
 
-        log_stream("Requesting current block")
+        self._logger.debug("Requesting current block")
         try:
             current_block = await self._bma_connector.get(currency, bma.blockchain.current)
             signed_raw = "{0}{1}\n".format(current_block['raw'], current_block['signature'])
@@ -268,12 +268,12 @@ class BlockchainProcessor:
             if e.ucode != errors.NO_CURRENT_BLOCK:
                 raise
 
-        log_stream("Requesting blocks with dividend")
+        self._logger.debug("Requesting blocks with dividend")
         with_ud = await self._bma_connector.get(currency, bma.blockchain.ud)
         blocks_with_ud = with_ud['result']['blocks']
 
         if len(blocks_with_ud) > 0:
-            log_stream("Requesting last block with dividend")
+            self._logger.debug("Requesting last block with dividend")
             try:
                 index = max(len(blocks_with_ud) - 1, 0)
                 block_number = blocks_with_ud[index]
@@ -289,7 +289,7 @@ class BlockchainProcessor:
                 if e.ucode != errors.NO_CURRENT_BLOCK:
                     raise
 
-            log_stream("Requesting previous block with dividend")
+            self._logger.debug("Requesting previous block with dividend")
             try:
                 index = max(len(blocks_with_ud) - 2, 0)
                 block_number = blocks_with_ud[index]

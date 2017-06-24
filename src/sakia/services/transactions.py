@@ -51,7 +51,7 @@ class TransactionsService(QObject):
             else:
                 logging.debug("Error during transfer parsing")
 
-    def _parse_block(self, block_doc, txid):
+    def _parse_block(self, connections, block_doc, txid):
         """
         Parse a block
         :param duniterpy.documents.Block block_doc: The block
@@ -64,7 +64,6 @@ class TransactionsService(QObject):
             if self._transactions_processor.run_state_transitions(tx, block_doc):
                 transfers_changed.append(tx)
                 self._logger.debug("New transaction validated : {0}".format(tx.sha_hash))
-        connections = self._connections_processor.connections_to(self.currency)
         for conn in connections:
             new_transactions = [t for t in block_doc.transactions
                                 if not self._transactions_processor.find_by_hash(conn.pubkey, t.sha_hash)
@@ -81,7 +80,7 @@ class TransactionsService(QObject):
 
         return transfers_changed, new_transfers
 
-    async def handle_new_blocks(self, blocks):
+    async def handle_new_blocks(self, connections, blocks):
         """
         Refresh last transactions
 
@@ -92,7 +91,7 @@ class TransactionsService(QObject):
         new_transfers = {}
         txid = 0
         for block in blocks:
-            changes, new_tx = self._parse_block(block, txid)
+            changes, new_tx = self._parse_block(connections, block, txid)
             txid += len(new_tx)
             transfers_changed += changes
             for conn in new_tx:
@@ -100,16 +99,16 @@ class TransactionsService(QObject):
                     new_transfers[conn] += new_tx[conn]
                 except KeyError:
                     new_transfers[conn] = new_tx[conn]
-        new_dividends = await self.parse_dividends_history(blocks, new_transfers)
+        new_dividends = await self.parse_dividends_history(connections, blocks, new_transfers)
         return transfers_changed, new_transfers, new_dividends
 
-    async def parse_dividends_history(self, blocks, transactions):
+    async def parse_dividends_history(self, connections, blocks, transactions):
         """
         Request transactions from the network to initialize data for a given pubkey
+        :param List[sakia.data.entities.Connection] connections: the list of connections found by tx parsing
         :param List[duniterpy.documents.Block] blocks: the list of transactions found by tx parsing
         :param List[sakia.data.entities.Transaction] transactions: the list of transactions found by tx parsing
         """
-        connections = self._connections_processor.connections_to(self.currency)
         min_block_number = blocks[0].number
         max_block_number = blocks[-1].number
         dividends = {}

@@ -29,6 +29,7 @@ if is_darwin:
                                       "libsodium.dylib")
         a.binaries = a.binaries + TOC([('lib/libsodium.dylib', libsodium_path, 'BINARY')])
     a.datas = a.datas + [('sakia/root_servers.yml', 'src/sakia/root_servers.yml', 'DATA')]
+    a.datas = a.datas + [('sakia/g1_licence.html', 'src/sakia/g1_licence.html', 'DATA')]
 
 if is_linux:
     libsodium_path = ctypes.util.find_library('libsodium.so')
@@ -40,10 +41,12 @@ if is_linux:
 
     a.binaries = a.binaries + TOC([('libsodium.so', libsodium_path, 'BINARY')])
     a.datas = a.datas + [('sakia/root_servers.yml', 'src/sakia/root_servers.yml', 'DATA')]
+    a.datas = a.datas + [('sakia/g1_licence.html', 'src/sakia/g1_licence.html', 'DATA')]
 
 if is_win:
     a.binaries = a.binaries + TOC([('libsodium.dll', ctypes.util.find_library('libsodium.dll'), 'BINARY')])
-    a.datas = a.datas + [('sakia\\root_servers.yml', 'src\\/sakia\\root_servers.yml', 'DATA')]
+    a.datas = a.datas + [('sakia\\root_servers.yml', 'src\\sakia\\root_servers.yml', 'DATA')]
+    a.datas = a.datas + [('sakia\\g1_licence.html', 'src\\sakia\\g1_licence.html', 'DATA')]
 
 for file in os.listdir(os.path.join("src", "sakia", "data", "repositories")):
     if file.endswith(".sql"):
@@ -94,10 +97,4 @@ if is_darwin:
     app = BUNDLE(exe,
          name='sakia.app',
          icon='sakia.ico',
-         bundle_identifier=None,
-         info_plist={
-        'NSHighResolutionCapable': 'True',
-        'LSBackgroundOnly': 'False'
-        },)
-
-
+         bundle_identifier=None,) # take care, info.plist will be overridden.

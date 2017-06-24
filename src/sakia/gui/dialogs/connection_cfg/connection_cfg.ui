@@ -433,7 +433,7 @@ p, li { white-space: pre-wrap; }
             <item>
              <widget class="QPushButton" name="button_next">
               <property name="text">
-               <string>Next</string>
+               <string>Export revocation document to continue</string>
               </property>
              </widget>
             </item>

@@ -12,7 +12,7 @@ from sakia.models.generic_tree import GenericTreeModel
 from .graphs.wot.controller import WotController
 from .homescreen.controller import HomeScreenController
 from .identities.controller import IdentitiesController
-from .informations.controller import InformationsController
+from .identity.controller import IdentityController
 from .model import NavigationModel
 from .network.controller import NetworkController
 from .txhistory.controller import TxHistoryController
@@ -41,7 +41,7 @@ class NavigationController(QObject):
             'HomeScreen': HomeScreenController,
             'Network': NetworkController,
             'Identities': IdentitiesController,
-            'Informations': InformationsController,
+            'Informations': IdentityController,
             'Wot': WotController
         }
         self.view.current_view_changed.connect(self.handle_view_change)
@@ -63,11 +63,29 @@ class NavigationController(QObject):
         model.setParent(navigation)
         navigation.init_navigation()
         app.new_connection.connect(navigation.add_connection)
-        app.view_in_wot.connect(navigation.view_in_wot)
+        app.view_in_wot.connect(navigation.open_wot_view)
         return navigation
 
-    def view_in_wot(self, connection, _):
-        raw_data = self.model.get_raw_data('Wot', connection=connection)
+    def open_network_view(self, _):
+        raw_data = self.model.get_raw_data('Network')
+        if raw_data:
+            widget = raw_data['widget']
+            if self.view.stacked_widget.indexOf(widget) != -1:
+                self.view.stacked_widget.setCurrentWidget(widget)
+                self.view.current_view_changed.emit(raw_data)
+                return
+
+    def open_wot_view(self, _):
+        raw_data = self.model.get_raw_data('Wot')
+        if raw_data:
+            widget = raw_data['widget']
+            if self.view.stacked_widget.indexOf(widget) != -1:
+                self.view.stacked_widget.setCurrentWidget(widget)
+                self.view.current_view_changed.emit(raw_data)
+                return
+
+    def open_identities_view(self, _):
+        raw_data = self.model.get_raw_data('Identities')
         if raw_data:
             widget = raw_data['widget']
             if self.view.stacked_widget.indexOf(widget) != -1:
@@ -117,9 +135,14 @@ class NavigationController(QObject):
         mapped = self.view.splitter.mapFromParent(point)
         index = self.view.tree_view.indexAt(mapped)
         raw_data = self.view.tree_view.model().data(index, GenericTreeModel.ROLE_RAW_DATA)
-        if raw_data and raw_data["component"] == "Informations":
+        if raw_data:
             menu = QMenu(self.view)
             if raw_data['misc']['connection'].uid:
+                action_view_in_wot = QAction(self.tr("View in Web of Trust"), menu)
+                menu.addAction(action_view_in_wot)
+                action_view_in_wot.triggered.connect(lambda c:
+                                                        self.model.view_in_wot(raw_data['misc']['connection']))
+
                 action_gen_revokation = QAction(self.tr("Save revokation document"), menu)
                 menu.addAction(action_gen_revokation)
                 action_gen_revokation.triggered.connect(lambda c:
@@ -157,7 +180,8 @@ class NavigationController(QObject):
 
     @asyncify
     async def publish_uid(self, connection):
-        identity, identity_doc = self.model.generate_identity(connection)
+        identity = self.model.generate_identity(connection)
+        identity_doc = identity.document()
         if not identity_doc.signatures[0]:
             secret_key, password = await PasswordInputController.open_dialog(self, connection)
             if not password or not secret_key:
@@ -169,13 +193,13 @@ class NavigationController(QObject):
 
         result = await self.model.send_identity(connection, identity_doc)
         if result[0]:
-            if self.app.preferences['notifications']:
+            if self.model.notifications():
                 toast.display(self.tr("UID"), self.tr("Success publishing your UID"))
             else:
                 await QAsyncMessageBox.information(self.view, self.tr("UID"),
                                                         self.tr("Success publishing your UID"))
         else:
-            if self.app.preferences['notifications']:
+            if not self.model.notifications():
                 toast.display(self.tr("UID"), result[1])
             else:
                 await QAsyncMessageBox.critical(self.view, self.tr("UID"),
@@ -222,7 +246,7 @@ neither your identity from the network."""), QMessageBox.Ok | QMessageBox.Cancel
         if not password or not secret_key:
             return
 
-        raw_document = self.model.generate_revokation(connection, secret_key, password)
+        raw_document, _ = self.model.generate_revocation(connection, secret_key, password)
         # Testable way of using a QFileDialog
         selected_files = await QAsyncFileDialog.get_save_filename(self.view, self.tr("Save a revokation document"),
                                                                   "", self.tr("All text files (*.txt)"))
@@ -242,7 +266,8 @@ The publication of this document will remove your identity from the network.</p>
 
     @asyncify
     async def export_identity_document(self, connection):
-        identity, identity_doc = self.model.generate_identity(connection)
+        identity = self.model.generate_identity(connection)
+        identity_doc = identity.document()
         if not identity_doc.signatures[0]:
             secret_key, password = await PasswordInputController.open_dialog(self, connection)
             if not password or not secret_key:

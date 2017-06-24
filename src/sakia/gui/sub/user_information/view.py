@@ -61,8 +61,8 @@ class UserInformationView(QWidget, Ui_UserInformationWidget):
         text = self.tr("""
             <table cellpadding="5">
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
-            <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
+            <tr><td align="right"><b>{:}</b></td><td>{:} BAT</td></tr>
+            <tr><td align="right"><b>{:}</b></td><td>{:} BAT</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             """).format(
@@ -101,6 +101,10 @@ class UserInformationView(QWidget, Ui_UserInformationWidget):
 
     def hide_busy(self):
         self.busy.hide()
+
+    def clear(self):
+        self.label_properties.setText("")
+        self.label_uid.setText("")
 
     def resizeEvent(self, event):
         self.busy.resize(event.size())

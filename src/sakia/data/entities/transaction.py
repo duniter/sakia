@@ -21,10 +21,11 @@ def parse_transaction_doc(tx_doc, pubkey, block_number, mediantime, txid):
 
     in_issuers = len([i for i in tx_doc.issuers
                       if i == pubkey]) > 0
+
     in_outputs = len([o for o in tx_doc.outputs
                       if o.conditions.left.pubkey == pubkey]) > 0
 
-    if len(receivers) == 0:
+    if len(receivers) == 0 and in_issuers:
         receivers = [tx_doc.issuers[0]]
         # Transaction to self
         outputs = [o for o in tx_doc.outputs]
@@ -70,7 +71,7 @@ def parse_transaction_doc(tx_doc, pubkey, block_number, mediantime, txid):
     return transaction
 
 
-@attr.s()
+@attr.s(hash=True)
 class Transaction:
     """
     Transaction entity
@@ -95,9 +96,9 @@ class Transaction:
     REFUSED = 8
     DROPPED = 16
 
-    currency      = attr.ib(convert=str)
-    pubkey        = attr.ib(convert=str)
-    sha_hash      = attr.ib(convert=str)
+    currency      = attr.ib(convert=str, cmp=True, hash=True)
+    pubkey        = attr.ib(convert=str, cmp=True, hash=True)
+    sha_hash      = attr.ib(convert=str, cmp=True, hash=True)
     written_block = attr.ib(convert=int, cmp=False)
     blockstamp    = attr.ib(convert=block_uid, cmp=False)
     timestamp     = attr.ib(convert=int, cmp=False)

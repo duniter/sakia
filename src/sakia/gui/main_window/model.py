@@ -14,3 +14,5 @@ class MainWindowModel(QObject):
         for plugin in self.app.plugins_dir.plugins:
             if plugin.imported:
                 plugin.module.plugin_exec(self.app, main_window)
+        if self.app.plugins_dir.with_plugin and self.app.plugins_dir.with_plugin.module:
+            self.app.plugins_dir.with_plugin.module.plugin_exec(self.app, main_window)

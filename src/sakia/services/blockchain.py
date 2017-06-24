@@ -11,7 +11,7 @@ class BlockchainService(QObject):
     Blockchain service is managing new blocks received
     to update data locally
     """
-    def __init__(self, app, currency, blockchain_processor, bma_connector,
+    def __init__(self, app, currency, blockchain_processor, connections_processor, bma_connector,
                  identities_service, transactions_service, sources_service):
         """
         Constructor the identities service
@@ -19,6 +19,7 @@ class BlockchainService(QObject):
         :param sakia.app.Application app: Sakia application
         :param str currency: The currency name of the community
         :param sakia.data.processors.BlockchainProcessor blockchain_processor: the blockchain processor for given currency
+        :param sakia.data.processors.ConnectionsProcessor connections_processor: the connections processor
         :param sakia.data.connectors.BmaConnector bma_connector: The connector to BMA API
         :param sakia.services.IdentitiesService identities_service: The identities service
         :param sakia.services.TransactionsService transactions_service: The transactions service
@@ -27,6 +28,7 @@ class BlockchainService(QObject):
         super().__init__()
         self.app = app
         self._blockchain_processor = blockchain_processor
+        self._connections_processor = connections_processor
         self._bma_connector = bma_connector
         self.currency = currency
         self._identities_service = identities_service
@@ -58,15 +60,18 @@ class BlockchainService(QObject):
         if self._blockchain_processor.initialized(self.currency) and not self._update_lock:
             try:
                 self._update_lock = True
+                self.app.refresh_started.emit()
                 block_numbers = await self.new_blocks(network_blockstamp)
                 while block_numbers:
                     start = self.current_buid().number
                     self._logger.debug("Parsing from {0}".format(start))
                     blocks = await self._blockchain_processor.next_blocks(start, block_numbers, self.currency)
                     if len(blocks) > 0:
+                        connections = self._connections_processor.connections_to(self.currency)
                         identities = await self._identities_service.handle_new_blocks(blocks)
-                        changed_tx, new_tx, new_dividends = await self._transactions_service.handle_new_blocks(blocks)
-                        destructions = await self._sources_service.refresh_sources(new_tx, new_dividends)
+                        changed_tx, new_tx, new_dividends = await self._transactions_service.handle_new_blocks(connections,
+                                                                                                               blocks)
+                        destructions = await self._sources_service.refresh_sources(connections, new_tx, new_dividends)
                         self.handle_new_blocks(blocks)
                         self.app.db.commit()
                         for tx in changed_tx:
@@ -88,6 +93,7 @@ class BlockchainService(QObject):
             except (NoPeerAvailable, DuniterError) as e:
                 self._logger.debug(str(e))
             finally:
+                self.app.refresh_finished.emit()
                 self._update_lock = False
 
     def current_buid(self):
@@ -126,6 +132,9 @@ class BlockchainService(QObject):
     def previous_ud(self):
         return self._blockchain_processor.previous_ud(self.currency)
 
+    def adjusted_ts(self, time):
+        return self._blockchain_processor.adjusted_ts(self.currency, time)
+    
     def next_ud_reeval(self):
         parameters = self._blockchain_processor.parameters(self.currency)
         mediantime = self._blockchain_processor.time(self.currency)

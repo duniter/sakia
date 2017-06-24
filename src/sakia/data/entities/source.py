@@ -1,7 +1,7 @@
 import attr
 
 
-@attr.s()
+@attr.s(hash=True)
 class Source:
     currency = attr.ib(convert=str)
     pubkey = attr.ib(convert=str)

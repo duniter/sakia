@@ -36,8 +36,13 @@ class SakiaDatabase:
         sqlite3.register_adapter(BlockUID, str)
         sqlite3.register_adapter(bool, int)
         sqlite3.register_converter("BOOLEAN", lambda v: bool(int(v)))
+
+        def total_amount(amount, amount_base):
+            return amount * 10 ** amount_base
+
         db_path = os.path.join(options.config_path, profile_name, options.currency + ".db")
         con = sqlite3.connect(db_path, detect_types=sqlite3.PARSE_DECLTYPES)
+        con.create_function("total_amount", 2, total_amount)
         meta = SakiaDatabase(con, ConnectionsRepo(con), IdentitiesRepo(con),
                              BlockchainsRepo(con), CertificationsRepo(con), TransactionsRepo(con),
                              NodesRepo(con), SourcesRepo(con), DividendsRepo(con), ContactsRepo(con))

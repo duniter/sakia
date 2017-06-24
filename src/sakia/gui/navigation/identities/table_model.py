@@ -63,7 +63,7 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
                             QLocale(),
                             QDateTime.fromTime_t(ts).date(),
                             QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
-                        )
+                        ) + " BAT"
                     else:
                         return ""
                 if source_index.column() == IdentitiesTableModel.columns_ids.index('publication'):
@@ -73,7 +73,7 @@ class IdentitiesFilterProxyModel(QSortFilterProxyModel):
                             QLocale(),
                             QDateTime.fromTime_t(ts),
                             QLocale.dateTimeFormat(QLocale(), QLocale.LongFormat)
-                        )
+                        ) + " BAT"
                     else:
                         return ""
                 if source_index.column() == IdentitiesTableModel.columns_ids.index('pubkey'):
@@ -173,12 +173,8 @@ class IdentitiesTableModel(QAbstractTableModel):
             identities_data.append(self.identity_data(identity))
 
         if len(identities) > 0:
-            try:
-                parameters = self.blockchain_service.parameters()
-                self._sig_validity = parameters.sig_validity
-            except NoPeerAvailable as e:
-                logging.debug(str(e))
-                self._sig_validity = 0
+            parameters = self.blockchain_service.parameters()
+            self._sig_validity = parameters.sig_validity
         self.identities_data = identities_data
         self.endResetModel()
 

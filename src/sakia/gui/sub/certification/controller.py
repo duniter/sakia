@@ -1,7 +1,5 @@
-import asyncio
-
-from PyQt5.QtCore import Qt, QObject
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtCore import Qt, QObject, pyqtSignal
+from PyQt5.QtWidgets import QApplication, QDialog, QVBoxLayout
 
 from sakia.constants import ROOT_SERVERS
 from sakia.decorators import asyncify
@@ -20,6 +18,8 @@ class CertificationController(QObject):
     """
     The Certification view
     """
+    accepted = pyqtSignal()
+    rejected = pyqtSignal()
 
     view = attr.ib()
     model = attr.ib()
@@ -31,7 +31,9 @@ class CertificationController(QObject):
         super().__init__()
         self.view.button_box.accepted.connect(self.accept)
         self.view.button_box.rejected.connect(self.reject)
-        self.view.combo_connection.currentIndexChanged.connect(self.change_connection)
+        self.view.button_cancel.clicked.connect(self.reject)
+        self.view.button_cancel_licence.clicked.connect(self.reject)
+        self.view.combo_connections.currentIndexChanged.connect(self.change_connection)
 
     @classmethod
     def create(cls, parent, app):
@@ -62,6 +64,13 @@ class CertificationController(QObject):
         return certification
 
     @classmethod
+    def integrate_to_main_view(cls, parent, app, connection):
+        certification = cls.create(parent, app)
+        certification.view.combo_connections.setCurrentText(connection.title())
+        certification.view.groupbox_identity.hide()
+        return certification
+
+    @classmethod
     def open_dialog(cls, parent, app, connection):
         """
         Certify and identity
@@ -71,13 +80,20 @@ class CertificationController(QObject):
         :param sakia.core.Community community: the community
         :return:
         """
-        dialog = cls.create(parent, app)
-        dialog.set_connection(connection)
-        dialog.refresh()
+
+        dialog = QDialog(parent)
+        dialog.setWindowTitle(dialog.tr("Certification"))
+        dialog.setLayout(QVBoxLayout(dialog))
+        certification = cls.create(parent, app)
+        certification.set_connection(connection)
+        certification.refresh()
+        dialog.layout().addWidget(certification.view)
+        certification.accepted.connect(dialog.accept)
+        certification.rejected.connect(dialog.reject)
         return dialog.exec()
 
     @classmethod
-    async def certify_identity(cls, parent, app, connection, identity):
+    def certify_identity(cls, parent, app, connection, identity):
         """
         Certify and identity
         :param sakia.gui.component.controller.ComponentController parent: the parent
@@ -86,11 +102,18 @@ class CertificationController(QObject):
         :param sakia.data.entities.Identity identity: the identity certified
         :return:
         """
-        dialog = cls.create(parent, app)
-        dialog.view.combo_connection.setCurrentText(connection.title())
-        dialog.user_information.change_identity(identity)
-        dialog.refresh()
-        return await dialog.async_exec()
+        dialog = QDialog(parent)
+        dialog.setWindowTitle(dialog.tr("Certification"))
+        dialog.setLayout(QVBoxLayout(dialog))
+        certification = cls.create(parent, app)
+        if connection:
+            certification.view.combo_connections.setCurrentText(connection.title())
+        certification.user_information.change_identity(identity)
+        certification.refresh()
+        dialog.layout().addWidget(certification.view)
+        certification.accepted.connect(dialog.accept)
+        certification.rejected.connect(dialog.reject)
+        return dialog.exec()
 
     def change_connection(self, index):
         self.model.set_connection(index)
@@ -99,7 +122,7 @@ class CertificationController(QObject):
 
     def set_connection(self, connection):
         if connection:
-            self.view.combo_connection.setCurrentText(connection.title())
+            self.view.combo_connections.setCurrentText(connection.title())
             self.password_input.set_connection(connection)
 
     @asyncify
@@ -138,15 +161,20 @@ using cross checking which will help to reveal the problem if needs to be.</br>"
         if result[0]:
             QApplication.restoreOverrideCursor()
             await self.view.show_success(self.model.notification())
-            self.view.accept()
+            self.search_user.clear()
+            self.user_information.clear()
+            self.view.clear()
+            self.accepted.emit()
         else:
             await self.view.show_error(self.model.notification(), result[1])
             QApplication.restoreOverrideCursor()
             self.view.button_box.setEnabled(True)
 
-    @asyncify
-    async def reject(self):
-        self.view.reject()
+    def reject(self):
+        self.search_user.clear()
+        self.user_information.clear()
+        self.view.clear()
+        self.rejected.emit()
 
     def refresh(self):
         stock = self.model.get_cert_stock()
@@ -156,24 +184,25 @@ using cross checking which will help to reveal the problem if needs to be.</br>"
 
         if self.model.could_certify():
             if written < stock or stock == 0:
-                if self.password_input.valid():
-                    if not self.user_information.model.identity:
-                        self.view.set_button_box(CertificationView.ButtonBoxState.SELECT_IDENTITY)
-                    elif days+hours+minutes > 0:
-                        if days > 0:
-                            remaining_localized = self.tr("{days} days").format(days=days)
-                        else:
-                            remaining_localized = self.tr("{hours}h {min}min").format(hours=hours, min=minutes)
-                        self.view.set_button_box(CertificationView.ButtonBoxState.REMAINING_TIME_BEFORE_VALIDATION,
-                                                 remaining=remaining_localized)
+                if not self.user_information.model.identity:
+                    self.view.set_button_process(CertificationView.ButtonsState.SELECT_IDENTITY)
+                elif days+hours+minutes > 0:
+                    if days > 0:
+                        remaining_localized = self.tr("{days} days").format(days=days)
                     else:
-                        self.view.set_button_box(CertificationView.ButtonBoxState.OK)
+                        remaining_localized = self.tr("{hours}h {min}min").format(hours=hours, min=minutes)
+                    self.view.set_button_process(CertificationView.ButtonsState.REMAINING_TIME_BEFORE_VALIDATION,
+                                                 remaining=remaining_localized)
                 else:
-                    self.view.set_button_box(CertificationView.ButtonBoxState.WRONG_PASSWORD)
+                    self.view.set_button_process(CertificationView.ButtonsState.OK)
+                    if self.password_input.valid():
+                        self.view.set_button_box(CertificationView.ButtonsState.OK)
+                    else:
+                        self.view.set_button_box(CertificationView.ButtonsState.WRONG_PASSWORD)
             else:
-                self.view.set_button_box(CertificationView.ButtonBoxState.NO_MORE_CERTIFICATION)
+                self.view.set_button_process(CertificationView.ButtonsState.NO_MORE_CERTIFICATION)
         else:
-            self.view.set_button_box(CertificationView.ButtonBoxState.NOT_A_MEMBER)
+            self.view.set_button_process(CertificationView.ButtonsState.NOT_A_MEMBER)
 
     def load_identity_document(self, identity_doc):
         """
@@ -192,14 +221,3 @@ using cross checking which will help to reveal the problem if needs to be.</br>"
         Refresh user information
         """
         self.user_information.search_identity(self.search_user.model.identity())
-
-    def async_exec(self):
-        future = asyncio.Future()
-        self.view.finished.connect(lambda r: future.set_result(r))
-        self.view.open()
-        self.refresh()
-        return future
-
-    def exec(self):
-        self.refresh()
-        self.view.exec()

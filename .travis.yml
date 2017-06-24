@@ -10,7 +10,7 @@ matrix:
     - os: osx
 
 env:
-- PYENV_PYTHON_VERSION=3.5.2
+- PYENV_PYTHON_VERSION=3.5.3
 
 before_install:
 - ci/travis/before_install.sh

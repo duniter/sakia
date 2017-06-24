@@ -1,8 +1,8 @@
 import asyncio
 import logging
 
-from PyQt5.QtCore import Qt, QObject
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtCore import Qt, QObject, pyqtSignal
+from PyQt5.QtWidgets import QApplication, QDialog, QVBoxLayout
 
 from sakia.data.processors import ConnectionsProcessor
 from sakia.decorators import asyncify
@@ -10,6 +10,7 @@ from sakia.gui.sub.password_input import PasswordInputController
 from sakia.gui.sub.search_user.controller import SearchUserController
 from sakia.gui.sub.user_information.controller import UserInformationController
 from sakia.money import Quantitative
+from sakia.gui.widgets.dialogs import dialog_async_exec
 from .model import TransferModel
 from .view import TransferView
 
@@ -18,6 +19,9 @@ class TransferController(QObject):
     """
     The transfer component controller
     """
+
+    accepted = pyqtSignal()
+    rejected = pyqtSignal()
 
     def __init__(self, view, model, search_user, user_information, password_input):
         """
@@ -68,48 +72,81 @@ class TransferController(QObject):
         return transfer
 
     @classmethod
-    def open_dialog(cls, parent, app, connection):
-        dialog = cls.create(parent, app)
+    def integrate_to_main_view(cls, parent, app, connection):
+        transfer = cls.create(parent, app)
+        transfer.view.combo_connections.setCurrentText(connection.title())
+        transfer.view.groupbox_connection.hide()
+        transfer.view.label_total.hide()
+        return transfer
+
+    @classmethod
+    def open_transfer_with_pubkey(cls, parent, app, connection, pubkey):
+        transfer = cls.create(parent, app)
+        transfer.view.groupbox_connection.show()
         if connection:
-            dialog.view.combo_connections.setCurrentText(connection.title())
-        dialog.refresh()
+            transfer.view.combo_connections.setCurrentText(connection.title())
+        transfer.view.edit_pubkey.setText(pubkey)
+        transfer.view.radio_pubkey.setChecked(True)
+
+        transfer.refresh()
+        return transfer
+
+    @classmethod
+    def send_money_to_pubkey(cls, parent, app, connection, pubkey):
+        dialog = QDialog(parent)
+        dialog.setWindowTitle(dialog.tr("Transfer"))
+        dialog.setLayout(QVBoxLayout(dialog))
+        transfer = cls.open_transfer_with_pubkey(parent, app, connection, pubkey)
+
+        dialog.layout().addWidget(transfer.view)
+        transfer.accepted.connect(dialog.accept)
+        transfer.rejected.connect(dialog.reject)
         return dialog.exec()
 
     @classmethod
-    async def send_money_to_identity(cls, parent, app, connection, identity):
-        dialog = cls.create(parent, app)
-        dialog.view.combo_connections.setCurrentText(connection.title())
-        dialog.user_information.change_identity(identity)
-        dialog.view.edit_pubkey.setText(identity.pubkey)
-        dialog.view.radio_pubkey.setChecked(True)
+    def send_money_to_identity(cls, parent, app, connection, identity):
+        dialog = QDialog(parent)
+        dialog.setWindowTitle(dialog.tr("Transfer"))
+        dialog.setLayout(QVBoxLayout(dialog))
+        transfer = cls.open_transfer_with_pubkey(parent, app, connection, identity.pubkey)
 
-        dialog.refresh()
-        return await dialog.async_exec()
+        transfer.user_information.change_identity(identity)
+        dialog.layout().addWidget(transfer.view)
+        transfer.accepted.connect(dialog.accept)
+        transfer.rejected.connect(dialog.reject)
+        return dialog.exec()
 
     @classmethod
     def send_transfer_again(cls, parent, app, connection, resent_transfer):
-        dialog = cls.create(parent, app)
-        dialog.view.combo_connections.setCurrentText(connection.title())
-        dialog.view.edit_pubkey.setText(resent_transfer.receivers[0])
-        dialog.view.radio_pubkey.setChecked(True)
+        dialog = QDialog(parent)
+        dialog.setWindowTitle(dialog.tr("Transfer"))
+        dialog.setLayout(QVBoxLayout(dialog))
+        transfer = cls.create(parent, app)
+        transfer.view.groupbox_connection.show()
+        transfer.view.label_total.show()
+        transfer.view.combo_connections.setCurrentText(connection.title())
+        transfer.view.edit_pubkey.setText(resent_transfer.receivers[0])
+        transfer.view.radio_pubkey.setChecked(True)
 
-        dialog.refresh()
+        transfer.refresh()
 
-        current_base = dialog.model.current_base()
+        current_base = transfer.model.current_base()
         current_base_amount = resent_transfer.amount / pow(10, resent_transfer.amount_base - current_base)
 
-        relative = dialog.model.quant_to_rel(current_base_amount / 100)
-        dialog.view.set_spinboxes_parameters(current_base_amount / 100, relative)
-        dialog.view.change_relative_amount(relative)
-        dialog.view.change_quantitative_amount(current_base_amount / 100)
+        relative = transfer.model.quant_to_rel(current_base_amount / 100)
+        transfer.view.set_spinboxes_parameters(current_base_amount / 100, relative)
+        transfer.view.change_relative_amount(relative)
+        transfer.view.change_quantitative_amount(current_base_amount / 100)
 
         connections_processor = ConnectionsProcessor.instanciate(app)
         wallet_index = connections_processor.connections().index(connection)
-        dialog.view.combo_connections.setCurrentIndex(wallet_index)
-        dialog.view.edit_pubkey.setText(resent_transfer.receivers[0])
-        dialog.view.radio_pubkey.setChecked(True)
-        dialog.view.edit_message.setText(resent_transfer.comment)
-
+        transfer.view.combo_connections.setCurrentIndex(wallet_index)
+        transfer.view.edit_pubkey.setText(resent_transfer.receivers[0])
+        transfer.view.radio_pubkey.setChecked(True)
+        transfer.view.edit_message.setText(resent_transfer.comment)
+        dialog.layout().addWidget(transfer.view)
+        transfer.accepted.connect(dialog.accept)
+        transfer.rejected.connect(dialog.reject)
         return dialog.exec()
 
     def selected_pubkey(self):
@@ -156,12 +193,14 @@ class TransferController(QObject):
             await self.view.show_success(self.model.notifications(), recipient)
             logging.debug("Restore cursor...")
             QApplication.restoreOverrideCursor()
+            self.view.button_box.setEnabled(True)
 
             # If we sent back a transaction we cancel the first one
             self.model.cancel_previous()
             for tx in transactions:
                 self.model.app.new_transfer.emit(self.model.connection, tx)
-            self.view.accept()
+            self.view.clear()
+            self.rejected.emit()
         else:
             await self.view.show_error(self.model.notifications(), result[1])
             for tx in transactions:
@@ -171,7 +210,8 @@ class TransferController(QObject):
             self.view.button_box.setEnabled(True)
 
     def reject(self):
-        self.view.reject()
+        self.view.clear()
+        self.rejected.emit()
 
     def refresh(self):
         amount = self.model.wallet_value()
@@ -208,14 +248,3 @@ class TransferController(QObject):
         self.model.set_connection(index)
         self.password_input.set_connection(self.model.connection)
         self.refresh()
-
-    def async_exec(self):
-        future = asyncio.Future()
-        self.view.finished.connect(lambda r: future.set_result(r))
-        self.view.open()
-        self.refresh()
-        return future
-
-    def exec(self):
-        self.refresh()
-        self.view.exec()

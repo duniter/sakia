@@ -23,6 +23,8 @@ def config_path_factory():
 class SakiaOptions:
     config_path = attr.ib(default=attr.Factory(config_path_factory))
     currency = attr.ib(default="gtest")
+    profile = attr.ib(default="Default Profile")
+    with_plugin = attr.ib(default="")
     _logger = attr.ib(default=attr.Factory(lambda: logging.getLogger('sakia')))
 
     @classmethod
@@ -49,12 +51,27 @@ class SakiaOptions:
         parser.add_option("--currency",  dest="currency", default="g1",
                           help="Select a currency between {0}".format(",".join(ROOT_SERVERS.keys())))
 
+        parser.add_option("--profile",  dest="profile", default="Default Profile",
+                          help="Select profile to use")
+
+        parser.add_option("--withplugin",  dest="with_plugin", default="",
+                          help="Load a plugin (for development purpose)")
+
         (options, args) = parser.parse_args(argv)
 
         if options.currency not in ROOT_SERVERS.keys():
             raise RuntimeError("{0} is not a valid currency".format(options.currency))
         else:
             self.currency = options.currency
+
+        if options.profile:
+            self.profile = options.profile
+
+        if options.with_plugin:
+            if path.isfile(options.with_plugin) and options.with_plugin.endswith(".zip"):
+                self.with_plugin = options.with_plugin
+            else:
+                raise RuntimeError("{:} is not a valid path to a zip file".format(options.with_plugin))
 
         if options.debug:
             self._logger.setLevel(logging.DEBUG)

@@ -1,7 +1,6 @@
 from PyQt5.QtCore import pyqtSignal, QObject
 from sakia.data.entities import Identity
 from sakia.decorators import asyncify
-import re
 from .model import SearchUserModel
 from .view import SearchUserView
 
@@ -60,3 +59,6 @@ class SearchUserController(QObject):
         if self.model.select_identity(index):
             self.identity_selected.emit(self.model.identity())
 
+    def clear(self):
+        self.model.clear()
+        self.view.clear()

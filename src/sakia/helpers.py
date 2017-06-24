@@ -1,5 +1,6 @@
 import re
 from PyQt5.QtCore import QSharedMemory
+from PyQt5.QtWidgets import QApplication
 
 
 def timestamp_to_dhms(ts):
@@ -43,3 +44,9 @@ def attrs_tuple_of_str(ls):
             return tuple([str(a) for a in ls.split('\n')])
         else:
             return tuple()
+
+
+def dpi_ratio():
+    screen = QApplication.screens()[0]
+    dotsPerInch = screen.logicalDotsPerInch()
+    return dotsPerInch / 96

@@ -24,7 +24,7 @@ class WotController(BaseGraphController):
         self.reset()
 
     @classmethod
-    def create(cls, parent, app, connection, blockchain_service, identities_service):
+    def create(cls, parent, app, blockchain_service, identities_service):
         """
         :param sakia.app.Application app:
         :param sakia.data.entities.Connection connection:
@@ -33,11 +33,11 @@ class WotController(BaseGraphController):
         :return:
         """
         view = WotView(parent.view)
-        model = WotModel(None, app, connection, blockchain_service, identities_service)
+        model = WotModel(None, app, blockchain_service, identities_service)
         wot = cls(parent, view, model)
         model.setParent(wot)
         app.identity_changed.connect(wot.handle_identity_change)
-        app.view_in_wot.connect(lambda c, i: wot.center_on_identity(i) if c == connection else None)
+        app.view_in_wot.connect(wot.center_on_identity)
         return wot
 
     def center_on_identity(self, identity):

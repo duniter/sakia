@@ -43,6 +43,8 @@ class NetworkModel(QObject):
         """
         if index.isValid() and index.row() < self.table_model.rowCount(QModelIndex()):
             source_index = self.table_model.mapToSource(index)
-            node = self.network_service.nodes()[source_index.row()]
-            return True, node
+            node_col = NetworkTableModel.columns_types.index('node')
+            node_index = self.table_model.sourceModel().index(source_index.row(), node_col)
+            source_data = self.table_model.sourceModel().data(node_index, Qt.DisplayRole)
+            return True, source_data
         return False, None

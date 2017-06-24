@@ -90,7 +90,7 @@ class CertificationsRepo:
         """
         request = """SELECT * FROM certifications
                   WHERE currency=? AND (certifier=? or certified=?)
-                  AND ((ts + ? < ?) or (written_on == 0 and ts + ? < ?))
+                  AND ((ts + ? < ?) or (written_on == -1 and ts + ? < ?))
                   """
         c = self._conn.execute(request, (currency, pubkey, pubkey,
                                          sig_validity, current_ts,

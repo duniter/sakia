@@ -34,12 +34,42 @@ class NavigationModel(QObject):
                 'misc': {
                 },
                 'children': []
+            },
+            {
+                'title': self.tr('Identities'),
+                'icon': ':/icons/members_icon',
+                'component': "Identities",
+                'dependencies': {
+                    'blockchain_service': self.app.blockchain_service,
+                    'identities_service': self.app.identities_service,
+                },
+                'misc': {
+                }
+            },
+            {
+                'title': self.tr('Web of Trust'),
+                'icon': ':/icons/wot_icon',
+                'component': "Wot",
+                'dependencies': {
+                    'blockchain_service': self.app.blockchain_service,
+                    'identities_service': self.app.identities_service,
+                },
+                'misc': {
+                }
+            },
+            {
+                'title': self.tr('Personal accounts'),
+                'children': []
             }
         ]
 
         self._current_data = self.navigation[0]
         for connection in self.app.db.connections_repo.get_all():
-            self.navigation[0]['children'].append(self.create_node(connection))
+            self.navigation[3]['children'].append(self.create_node(connection))
+        try:
+            self._current_data = self.navigation[0]
+        except IndexError:
+            self._current_data = None
         return self.navigation
 
     def create_node(self, connection):
@@ -48,71 +78,72 @@ class NavigationModel(QObject):
             title = matching_contact.displayed_text()
         else:
             title = connection.title()
-        node = {
-            'title': title,
-            'component': "Informations",
-            'dependencies': {
-                'blockchain_service': self.app.blockchain_service,
-                'identities_service': self.app.identities_service,
-                'sources_service': self.app.sources_service,
-                'connection': connection,
-            },
-            'misc': {
-                'connection': connection
-            },
-            'children': [
-                {
-                    'title': self.tr('Transfers'),
-                    'icon': ':/icons/tx_icon',
-                    'component': "TxHistory",
-                    'dependencies': {
-                        'connection': connection,
-                        'identities_service': self.app.identities_service,
-                        'blockchain_service': self.app.blockchain_service,
-                        'transactions_service': self.app.transactions_service,
-                        "sources_service": self.app.sources_service
-                    },
-                    'misc': {
-                        'connection': connection
-                    }
-                }
-            ]
-        }
         if connection.uid:
-            node["children"] += [{
-                'title': self.tr('Identities'),
-                'icon': ':/icons/members_icon',
-                'component': "Identities",
+            if self.identity_is_member(connection):
+                icon = ':/icons/member'
+            else:
+                icon = ':/icons/not_member'
+            node = {
+                'title': title,
+                'component': "Informations",
+                'icon': icon,
                 'dependencies': {
-                    'connection': connection,
                     'blockchain_service': self.app.blockchain_service,
                     'identities_service': self.app.identities_service,
+                    'sources_service': self.app.sources_service,
+                    'connection': connection,
                 },
                 'misc': {
                     'connection': connection
-                }
-            },
-            {
-                'title': self.tr('Web of Trust'),
-                'icon': ':/icons/wot_icon',
-                'component': "Wot",
+                },
+                'children': [
+                    {
+                        'title': self.tr('Transfers'),
+                        'icon': ':/icons/tx_icon',
+                        'component': "TxHistory",
+                        'dependencies': {
+                            'connection': connection,
+                            'identities_service': self.app.identities_service,
+                            'blockchain_service': self.app.blockchain_service,
+                            'transactions_service': self.app.transactions_service,
+                            "sources_service": self.app.sources_service
+                        },
+                        'misc': {
+                            'connection': connection
+                        }
+                    }
+                ]
+            }
+        else:
+            node = {
+                'title': title,
+                'component': "TxHistory",
+                'icon': ':/icons/tx_icon',
                 'dependencies': {
                     'connection': connection,
-                    'blockchain_service': self.app.blockchain_service,
                     'identities_service': self.app.identities_service,
+                    'blockchain_service': self.app.blockchain_service,
+                    'transactions_service': self.app.transactions_service,
+                    "sources_service": self.app.sources_service
                 },
                 'misc': {
                     'connection': connection
-                }
-            }]
+                },
+                'children': []
+            }
+
         return node
 
+    def view_in_wot(self, connection):
+        identity = self.app.identities_service.get_identity(connection.pubkey, connection.uid)
+        self.app.view_in_wot.emit(identity)
+
     def generic_tree(self):
-        return GenericTreeModel.create("Navigation", self.navigation)
+        return GenericTreeModel.create("Navigation", self.navigation[3]['children'])
 
     def add_connection(self, connection):
         raw_node = self.create_node(connection)
-        self.navigation[0]["children"].append(raw_node)
+        self.navigation[3]["children"].append(raw_node)
         return raw_node
 
     def set_current_data(self, raw_data):
@@ -123,9 +154,12 @@ class NavigationModel(QObject):
 
     def _lookup_raw_data(self, raw_data, component, **kwargs):
         if raw_data['component'] == component:
-            for k in kwargs:
-                if raw_data['misc'].get(k, None) == kwargs[k]:
-                    return raw_data
+            if kwargs:
+                for k in kwargs:
+                    if raw_data['misc'].get(k, None) == kwargs[k]:
+                        return raw_data
+            else:
+                return raw_data
         for c in raw_data.get('children', []):
             children_data = self._lookup_raw_data(c, component, **kwargs)
             if children_data:
@@ -133,7 +167,9 @@ class NavigationModel(QObject):
 
     def get_raw_data(self, component, **kwargs):
         for data in self.navigation:
-            return self._lookup_raw_data(data, component, **kwargs)
+            raw_data = self._lookup_raw_data(data, component, **kwargs)
+            if raw_data:
+                return raw_data
 
     def current_connection(self):
         if self._current_data:
@@ -141,20 +177,34 @@ class NavigationModel(QObject):
         else:
             return None
 
-    def generate_revokation(self, connection, secret_key, password):
-        return self.app.documents_service.generate_revokation(connection, secret_key, password)
+    def generate_revocation(self, connection, secret_key, password):
+        return self.app.documents_service.generate_revocation(connection, secret_key, password)
 
     def identity_published(self, connection):
-        return self.app.identities_service.get_identity(connection.pubkey, connection.uid).written
+        identity = self.app.identities_service.get_identity(connection.pubkey, connection.uid)
+        if identity:
+            return identity.written
+        else:
+            return False
 
     def identity_is_member(self, connection):
-        return self.app.identities_service.get_identity(connection.pubkey, connection.uid).member
+        identity = self.app.identities_service.get_identity(connection.pubkey, connection.uid)
+        if identity:
+            return identity.member
+        else:
+            return False
 
     async def remove_connection(self, connection):
         for data in self.navigation:
             connected_to = self._current_data['misc'].get('connection', None)
             if connected_to == connection:
-                self._current_data['widget'].disconnect()
+                try:
+                    self._current_data['widget'].disconnect()
+                except TypeError as e:
+                    if "disconnect()" in str(e):
+                        pass
+                    else:
+                        raise
         await self.app.remove_connection(connection)
 
     async def send_leave(self, connection, secret_key, password):
@@ -168,6 +218,9 @@ class NavigationModel(QObject):
 
     def update_identity(self, identity):
         self.app.identities_service.insert_or_update_identity(identity)
+
+    def notifications(self):
+        return self.app.parameters.notifications
 
     @staticmethod
     def copy_pubkey_to_clipboard(connection):

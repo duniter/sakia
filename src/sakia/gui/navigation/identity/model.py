@@ -1,15 +1,15 @@
 import logging
 import math
 
-from PyQt5.QtCore import QLocale, QDateTime, pyqtSignal, QObject
+from PyQt5.QtCore import QLocale, QDateTime, pyqtSignal, QObject, QModelIndex, Qt
 from sakia.errors import NoPeerAvailable
 from sakia.constants import ROOT_SERVERS
-from sakia.money import Referentials
+from .table_model import CertifiersTableModel, CertifiersFilterProxyModel
 from sakia.data.processors import BlockchainProcessor
 from duniterpy.api import errors
 
 
-class InformationsModel(QObject):
+class IdentityModel(QObject):
     """
     An component
     """
@@ -19,7 +19,7 @@ class InformationsModel(QObject):
         """
         Constructor of an component
 
-        :param sakia.gui.informations.controller.InformationsController parent: the controller
+        :param sakia.gui.identity.controller.IdentityController parent: the controller
         :param sakia.app.Application app: the app
         :param sakia.data.entities.Connection connection: the user connection of this node
         :param sakia.services.BlockchainService blockchain_service: the service watching the blockchain state
@@ -33,7 +33,39 @@ class InformationsModel(QObject):
         self.blockchain_service = blockchain_service
         self.identities_service = identities_service
         self.sources_service = sources_service
+        self.table_model = None
+        self.proxy_model = None
         self._logger = logging.getLogger('sakia')
+
+    def init_table_model(self):
+        """
+        Instanciate the table model of the view
+        """
+        certifiers_model = CertifiersTableModel(self, self.connection, self.blockchain_service, self.identities_service)
+        proxy = CertifiersFilterProxyModel(self.app)
+        proxy.setSourceModel(certifiers_model)
+
+        self.table_model = certifiers_model
+        self.proxy_model = proxy
+        self.table_model.init_certifiers()
+        return self.proxy_model
+
+    async def refresh_identity_data(self):
+        identity = self.identities_service.get_identity(self.connection.pubkey, self.connection.uid)
+        identity = await self.identities_service.load_requirements(identity)
+        certifiers = await self.identities_service.load_certifiers_of(identity)
+        certified = await self.identities_service.load_certified_by(identity)
+        await self.identities_service.load_certs_in_lookup(identity, certifiers, certified)
+        self.table_model.init_certifiers()
+
+    def table_data(self, index):
+        if index.isValid() and index.row() < self.table_model.rowCount(QModelIndex()):
+            source_index = self.proxy_model.mapToSource(index)
+            identity_col = self.table_model.columns_ids.index('identity')
+            identity_index = self.table_model.index(source_index.row(), identity_col)
+            identity = self.table_model.data(identity_index, Qt.DisplayRole)
+            return True, identity
+        return False, None
 
     def get_localized_data(self):
         localized_data = {}
@@ -135,9 +167,13 @@ class InformationsModel(QObject):
                                                          self.app).localized(False, True)
         outdistanced_text = self.tr("Outdistanced")
         is_identity = False
+        written = False
         is_member = False
         nb_certs = 0
         mstime_remaining = 0
+        identity_expiration = 0
+        identity_expired = False
+        outdistanced = False
         nb_certs_required = self.blockchain_service.parameters().sig_qty
 
         if self.connection.uid:
@@ -147,6 +183,13 @@ class InformationsModel(QObject):
                 if identity:
                     mstime_remaining = self.identities_service.ms_time_remaining(identity)
                     is_member = identity.member
+                    outdistanced = identity.outdistanced
+                    written = identity.written
+                    if not written:
+                        identity_expiration = identity.timestamp + self.parameters().sig_window
+                        identity_expired = identity_expiration < self.blockchain_processor.time(self.connection.currency)
+                        identity_expiration = self.blockchain_processor.adjusted_ts(self.app.currency,
+                                                                                    identity_expiration)
                     nb_certs = len(self.identities_service.certifications_received(identity.pubkey))
                     if not identity.outdistanced:
                         outdistanced_text = self.tr("In WoT range")
@@ -157,7 +200,11 @@ class InformationsModel(QObject):
                     self._logger.error(str(e))
 
         return {
+            'written': written,
+            'idty_expired': identity_expired,
+            'idty_expiration': identity_expiration,
             'amount': localized_amount,
+            'is_outdistanced': outdistanced,
             'outdistanced': outdistanced_text,
             'nb_certs': nb_certs,
             'nb_certs_required': nb_certs_required,
@@ -171,17 +218,6 @@ class InformationsModel(QObject):
         Get community parameters
         """
         return self.blockchain_service.parameters()
-
-    def referentials(self):
-        """
-        Get referentials
-        :return: The list of instances of all referentials
-        :rtype: list
-        """
-        refs_instances = []
-        for ref_class in Referentials:
-             refs_instances.append(ref_class(0, self.connection.currency, self.app, None))
-        return refs_instances
 
     def notifications(self):
         return self.app.parameters.notifications

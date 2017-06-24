@@ -7,154 +7,8 @@ from PyQt5.QtGui import QFont, QColor
 from sakia.data.entities import Transaction
 from sakia.constants import MAX_CONFIRMATIONS
 from sakia.data.processors import BlockchainProcessor
-
-
-class TxFilterProxyModel(QSortFilterProxyModel):
-    def __init__(self, parent, ts_from, ts_to, blockchain_service):
-        """
-        History of all transactions
-        :param PyQt5.QtWidgets.QWidget parent: parent widget
-        :param int ts_from: the min timestamp of latest tx
-        :param in ts_to: the max timestamp of most recent tx
-        :param sakia.services.BlockchainService blockchain_service: the blockchain service
-        """
-        super().__init__(parent)
-        self.app = None
-        self.ts_from = ts_from
-        self.ts_to = ts_to
-        self.blockchain_service = blockchain_service
-        self.blockchain_processor = BlockchainProcessor.instanciate(blockchain_service.app)
-
-    def set_period(self, ts_from, ts_to):
-        """
-        Filter table by given timestamps
-        """
-        logging.debug("Filtering from {0} to {1}".format(
-            datetime.datetime.fromtimestamp(ts_from).isoformat(' '),
-            datetime.datetime.fromtimestamp(ts_to).isoformat(' '))
-        )
-        self.beginResetModel()
-        self.ts_from = ts_from
-        self.ts_to = ts_to
-        self.endResetModel()
-
-    def filterAcceptsRow(self, sourceRow, sourceParent):
-        def in_period(date_ts):
-            return date_ts in range(self.ts_from, self.ts_to)
-
-        source_model = self.sourceModel()
-        date_col = source_model.columns_types.index('date')
-        source_index = source_model.index(sourceRow, date_col)
-        date = source_model.data(source_index, Qt.DisplayRole)
-
-        return in_period(date)
-
-    def columnCount(self, parent):
-        return self.sourceModel().columnCount(None) - 6
-
-    def setSourceModel(self, source_model):
-        self.app = source_model.app
-        super().setSourceModel(source_model)
-
-    def lessThan(self, left, right):
-        """
-        Sort table by given column number.
-        """
-        source_model = self.sourceModel()
-        left_data = source_model.data(left, Qt.DisplayRole)
-        right_data = source_model.data(right, Qt.DisplayRole)
-        if left_data == "":
-            return self.sortOrder() == Qt.DescendingOrder
-        elif right_data == "":
-            return self.sortOrder() == Qt.AscendingOrder
-        if left_data == right_data:
-            txid_col = source_model.columns_types.index('txid')
-            txid_left = source_model.index(left.row(), txid_col)
-            txid_right = source_model.index(right.row(), txid_col)
-            return txid_left < txid_right
-
-        return left_data < right_data
-
-    def data(self, index, role):
-        source_index = self.mapToSource(index)
-        model = self.sourceModel()
-        source_data = model.data(source_index, role)
-        state_col = model.columns_types.index('state')
-        state_index = model.index(source_index.row(), state_col)
-        state_data = model.data(state_index, Qt.DisplayRole)
-
-        block_col = model.columns_types.index('block_number')
-        block_index = model.index(source_index.row(), block_col)
-        block_data = model.data(block_index, Qt.DisplayRole)
-
-        if state_data == Transaction.VALIDATED and block_data:
-            current_confirmations = self.blockchain_service.current_buid().number - block_data
-        else:
-            current_confirmations = 0
-
-        if role == Qt.DisplayRole:
-            if source_index.column() == model.columns_types.index('uid'):
-                return "<p>" + source_data.replace('\n', "<br>") + "</p>"
-            if source_index.column() == model.columns_types.index('date'):
-                ts = self.blockchain_processor.adjusted_ts(model.connection.currency, source_data)
-                return QLocale.toString(
-                    QLocale(),
-                    QDateTime.fromTime_t(ts).date(),
-                    QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
-                )
-            if source_index.column() == model.columns_types.index('amount'):
-                amount = self.app.current_ref.instance(source_data, model.connection.currency,
-                                                       self.app, block_data).diff_localized(False, False)
-                return amount
-            return source_data
-
-        if role == Qt.FontRole:
-            font = QFont()
-            if state_data == Transaction.AWAITING or \
-                    (state_data == Transaction.VALIDATED and current_confirmations < MAX_CONFIRMATIONS):
-                font.setItalic(True)
-            elif state_data == Transaction.REFUSED:
-                font.setItalic(True)
-            elif state_data == Transaction.TO_SEND:
-                font.setBold(True)
-            else:
-                font.setItalic(False)
-            return font
-
-        if role == Qt.ForegroundRole:
-            if state_data == Transaction.REFUSED:
-                return QColor(Qt.darkGray)
-            elif state_data == Transaction.TO_SEND:
-                return QColor(Qt.blue)
-            if source_index.column() == model.columns_types.index('amount'):
-                if source_data < 0:
-                    return QColor(Qt.darkRed)
-                elif state_data == HistoryTableModel.DIVIDEND:
-                    return QColor(Qt.darkBlue)
-            if state_data == Transaction.AWAITING or \
-                    (state_data == Transaction.VALIDATED and current_confirmations == 0):
-                return QColor("#ffb000")
-
-        if role == Qt.TextAlignmentRole:
-            if self.sourceModel().columns_types.index('amount'):
-                return Qt.AlignRight | Qt.AlignVCenter
-            if source_index.column() == model.columns_types.index('date'):
-                return Qt.AlignCenter
-
-        if role == Qt.ToolTipRole:
-            if source_index.column() == model.columns_types.index('date'):
-                ts = self.blockchain_processor.adjusted_ts(model.connection.currency, source_data)
-                return QDateTime.fromTime_t(ts).toString(Qt.SystemLocaleLongDate)
-
-            if state_data == Transaction.VALIDATED or state_data == Transaction.AWAITING:
-                if current_confirmations >= MAX_CONFIRMATIONS:
-                    return None
-                elif self.app.parameters.expert_mode:
-                    return self.tr("{0} / {1} confirmations").format(current_confirmations, MAX_CONFIRMATIONS)
-                else:
-                    confirmation = current_confirmations / MAX_CONFIRMATIONS * 100
-                    confirmation = 100 if confirmation > 100 else confirmation
-                    return self.tr("Confirming... {0} %").format(QLocale().toString(float(confirmation), 'f', 0))
+from .sql_adapter import TxHistorySqlAdapter
+from sakia.data.repositories import TransactionsRepo, DividendsRepo
 
 
 class HistoryTableModel(QAbstractTableModel):
@@ -166,7 +20,7 @@ class HistoryTableModel(QAbstractTableModel):
 
     columns_types = (
         'date',
-        'uid',
+        'pubkey',
         'amount',
         'comment',
         'state',
@@ -177,14 +31,21 @@ class HistoryTableModel(QAbstractTableModel):
         'raw_data'
     )
 
+    columns_to_sql = {
+        'date': "ts",
+        "pubkey": "pubkey",
+        "amount": "amount",
+        "comment": "comment"
+    }
+
     columns_headers = (
         QT_TRANSLATE_NOOP("HistoryTableModel", 'Date'),
-        QT_TRANSLATE_NOOP("HistoryTableModel", 'UID/Public key'),
+        QT_TRANSLATE_NOOP("HistoryTableModel", 'Public key'),
         QT_TRANSLATE_NOOP("HistoryTableModel", 'Amount'),
         QT_TRANSLATE_NOOP("HistoryTableModel", 'Comment')
     )
 
-    def __init__(self, parent, app, connection, identities_service, transactions_service):
+    def __init__(self, parent, app, connection, ts_from, ts_to,  identities_service, transactions_service):
         """
         History of all transactions
         :param PyQt5.QtWidgets.QWidget parent: parent widget
@@ -198,37 +59,50 @@ class HistoryTableModel(QAbstractTableModel):
         self.connection = connection
         self.blockchain_processor = BlockchainProcessor.instanciate(app)
         self.identities_service = identities_service
-        self.transactions_service = transactions_service
+        self.sql_adapter = TxHistorySqlAdapter(self.app.db.conn)
+        self.transactions_repo = TransactionsRepo(self.app.db.conn)
+        self.dividends_repo = DividendsRepo(self.app.db.conn)
+        self.current_page = 0
+        self.ts_from = ts_from
+        self.ts_to = ts_to
+        self.main_column_id = HistoryTableModel.columns_types[0]
+        self.order = Qt.AscendingOrder
         self.transfers_data = []
 
-    def transfers(self):
+    def set_period(self, ts_from, ts_to):
+        """
+        Filter table by given timestamps
+        """
+        logging.debug("Filtering from {0} to {1}".format(
+            datetime.datetime.fromtimestamp(ts_from).isoformat(' '),
+            datetime.datetime.fromtimestamp(ts_to).isoformat(' '))
+        )
+        self.ts_from = ts_from
+        self.ts_to = ts_to
+        self.init_transfers()
+
+    def set_current_page(self, page):
+        self.current_page = page - 1
+        self.init_transfers()
+
+    def pages(self):
+        return self.sql_adapter.pages(self.app.currency,
+                                      self.connection.pubkey,
+                                      ts_from=self.ts_from,
+                                      ts_to=self.ts_to)
+
+    def transfers_and_dividends(self):
         """
         Transfer
         :rtype: List[sakia.data.entities.Transfer]
         """
-        return self.transactions_service.transfers(self.connection.pubkey)
-
-    def dividends(self):
-        """
-        Transfer
-        :rtype: List[sakia.data.entities.Dividend]
-        """
-        return self.transactions_service.dividends(self.connection.pubkey)
-
-    def add_transfer(self, connection, transfer):
-        if self.connection == connection:
-            self.beginInsertRows(QModelIndex(), len(self.transfers_data), len(self.transfers_data))
-            if self.connection.pubkey in transfer.issuers:
-                self.transfers_data.append(self.data_sent(transfer))
-            if self.connection.pubkey in transfer.receivers:
-                self.transfers_data.append(self.data_received(transfer))
-            self.endInsertRows()
-
-    def add_dividend(self, connection, dividend):
-        if self.connection == connection:
-            self.beginInsertRows(QModelIndex(), len(self.transfers_data), len(self.transfers_data))
-            self.transfers_data.append(self.data_dividend(dividend))
-            self.endInsertRows()
+        return self.sql_adapter.transfers_and_dividends(self.app.currency,
+                                                        self.connection.pubkey,
+                                                        page=self.current_page,
+                                                        ts_from=self.ts_from,
+                                                        ts_to=self.ts_to,
+                                                        sort_by=HistoryTableModel.columns_to_sql[self.main_column_id],
+                                                        sort_order= "ASC" if Qt.AscendingOrder else "DESC")
 
     def change_transfer(self, transfer):
         for i, data in enumerate(self.transfers_data):
@@ -244,7 +118,6 @@ class HistoryTableModel(QAbstractTableModel):
                     if self.connection.pubkey in transfer.receivers:
                         self.transfers_data[i] = self.data_received(transfer)
                         self.dataChanged.emit(self.index(i, 0), self.index(i, len(HistoryTableModel.columns_types)))
-                return
 
     def data_received(self, transfer):
         """
@@ -260,7 +133,7 @@ class HistoryTableModel(QAbstractTableModel):
         for issuer in transfer.issuers:
             identity = self.identities_service.get_identity(issuer)
             if identity:
-                senders.append(identity.uid)
+                senders.append(issuer + " (" + identity.uid + ")")
             else:
                 senders.append(issuer)
 
@@ -284,7 +157,7 @@ class HistoryTableModel(QAbstractTableModel):
         for receiver in transfer.receivers:
             identity = self.identities_service.get_identity(receiver)
             if identity:
-                receivers.append(identity.uid)
+                receivers.append(receiver + " (" + identity.uid + ")")
             else:
                 receivers.append(receiver)
 
@@ -304,7 +177,7 @@ class HistoryTableModel(QAbstractTableModel):
         amount = dividend.amount * 10**dividend.base
         identity = self.identities_service.get_identity(dividend.pubkey)
         if identity:
-            receiver = identity.uid
+            receiver = dividend.pubkey + " (" + identity.uid + ")"
         else:
             receiver = dividend.pubkey
 
@@ -315,28 +188,41 @@ class HistoryTableModel(QAbstractTableModel):
     def init_transfers(self):
         self.beginResetModel()
         self.transfers_data = []
-        transfers = self.transfers()
-        for transfer in transfers:
-            if transfer.state != Transaction.DROPPED:
-                if self.connection.pubkey in transfer.issuers:
-                    self.transfers_data.append(self.data_sent(transfer))
-                if self.connection.pubkey in transfer.receivers:
-                    self.transfers_data.append(self.data_received(transfer))
-        dividends = self.dividends()
-        for dividend in dividends:
-            self.transfers_data.append(self.data_dividend(dividend))
+        transfers_and_dividends = self.transfers_and_dividends()
+        for data in transfers_and_dividends:
+            if data[4]: # If data is transfer, it has a sha_hash column
+                transfer = self.transactions_repo.get_one(currency=self.app.currency,
+                                                          pubkey=self.connection.pubkey,
+                                                          sha_hash=data[4])
+
+                if transfer.state != Transaction.DROPPED:
+                    if data[2] < 0:
+                        self.transfers_data.append(self.data_sent(transfer))
+                    else:
+                        self.transfers_data.append(self.data_received(transfer))
+            else:
+                # else we get the dividend depending on the block number
+                dividend = self.dividends_repo.get_one(currency=self.app.currency,
+                                                       pubkey=self.connection.pubkey,
+                                                       block_number=data[5])
+                self.transfers_data.append(self.data_dividend(dividend))
         self.endResetModel()
 
     def rowCount(self, parent):
         return len(self.transfers_data)
 
     def columnCount(self, parent):
-        return len(HistoryTableModel.columns_types)
+        return len(HistoryTableModel.columns_types) - 6
+
+    def sort(self, main_column, order):
+        self.main_column_id = self.columns_types[main_column]
+        self.order = order
+        self.init_transfers()
 
     def headerData(self, section, orientation, role):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             if HistoryTableModel.columns_types[section] == 'amount':
-                dividend, base = self.blockchain_processor.last_ud(self.transactions_service.currency)
+                dividend, base = self.blockchain_processor.last_ud(self.app.currency)
                 header = '{:}'.format(HistoryTableModel.columns_headers[section])
                 if self.app.current_ref.base_str(base):
                     header += " ({:})".format(self.app.current_ref.base_str(base))
@@ -350,8 +236,78 @@ class HistoryTableModel(QAbstractTableModel):
         if not index.isValid():
             return QVariant()
 
-        if role in (Qt.DisplayRole, Qt.ForegroundRole, Qt.ToolTipRole):
-            return self.transfers_data[row][col]
+        source_data = self.transfers_data[row][col]
+        state_data = self.transfers_data[row][HistoryTableModel.columns_types.index('state')]
+        block_data = self.transfers_data[row][HistoryTableModel.columns_types.index('block_number')]
+
+        if state_data == Transaction.VALIDATED and block_data:
+            current_confirmations = self.blockchain_processor.current_buid(self.app.currency).number - block_data
+        else:
+            current_confirmations = 0
+
+        if role == Qt.DisplayRole:
+            if col == HistoryTableModel.columns_types.index('pubkey'):
+                return "<p>" + source_data.replace('\n', "<br>") + "</p>"
+            if col == HistoryTableModel.columns_types.index('date'):
+                ts = self.blockchain_processor.adjusted_ts(self.connection.currency, source_data)
+                return QLocale.toString(
+                    QLocale(),
+                    QDateTime.fromTime_t(ts).date(),
+                    QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
+                ) + " BAT"
+            if col == HistoryTableModel.columns_types.index('amount'):
+                amount = self.app.current_ref.instance(source_data, self.connection.currency,
+                                                       self.app, block_data).diff_localized(False, False)
+                return amount
+            return source_data
+
+        if role == Qt.FontRole:
+            font = QFont()
+            if state_data == Transaction.AWAITING or \
+                    (state_data == Transaction.VALIDATED and current_confirmations < MAX_CONFIRMATIONS):
+                font.setItalic(True)
+            elif state_data == Transaction.REFUSED:
+                font.setItalic(True)
+            elif state_data == Transaction.TO_SEND:
+                font.setBold(True)
+            else:
+                font.setItalic(False)
+            return font
+
+        if role == Qt.ForegroundRole:
+            if state_data == Transaction.REFUSED:
+                return QColor(Qt.darkGray)
+            elif state_data == Transaction.TO_SEND:
+                return QColor(Qt.blue)
+            if col == HistoryTableModel.columns_types.index('amount'):
+                if source_data < 0:
+                    return QColor(Qt.darkRed)
+                elif state_data == HistoryTableModel.DIVIDEND:
+                    return QColor(Qt.darkBlue)
+            if state_data == Transaction.AWAITING or \
+                    (state_data == Transaction.VALIDATED and current_confirmations == 0):
+                return QColor("#ffb000")
+
+        if role == Qt.TextAlignmentRole:
+            if HistoryTableModel.columns_types.index('amount'):
+                return Qt.AlignRight | Qt.AlignVCenter
+            if col == HistoryTableModel.columns_types.index('date'):
+                return Qt.AlignCenter
+
+        if role == Qt.ToolTipRole:
+            if col == HistoryTableModel.columns_types.index('date'):
+                ts = self.blockchain_processor.adjusted_ts(self.connection.currency, source_data)
+                return QDateTime.fromTime_t(ts).toString(Qt.SystemLocaleLongDate)
+
+            if state_data == Transaction.VALIDATED or state_data == Transaction.AWAITING:
+                if current_confirmations >= MAX_CONFIRMATIONS:
+                    return None
+                elif self.app.parameters.expert_mode:
+                    return self.tr("{0} / {1} confirmations").format(current_confirmations, MAX_CONFIRMATIONS)
+                else:
+                    confirmation = current_confirmations / MAX_CONFIRMATIONS * 100
+                    confirmation = 100 if confirmation > 100 else confirmation
+                    return self.tr("Confirming... {0} %").format(QLocale().toString(float(confirmation), 'f', 0))
 
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled

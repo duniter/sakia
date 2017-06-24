@@ -51,7 +51,9 @@ class Application(QObject):
     referential_changed = pyqtSignal()
     sources_refreshed = pyqtSignal()
     new_blocks_handled = pyqtSignal()
-    view_in_wot = pyqtSignal(Connection, Identity)
+    view_in_wot = pyqtSignal(Identity)
+    refresh_started = pyqtSignal()
+    refresh_finished = pyqtSignal()
 
     qapp = attr.ib()
     loop = attr.ib()
@@ -85,7 +87,7 @@ class Application(QObject):
         app = cls(qapp, loop, options, app_data, None, None, options.currency, None)
         #app.set_proxy()
         app.get_last_version()
-        app.load_profile(app_data.default)
+        app.load_profile(options.profile)
         app.start_coroutines()
         app.documents_service = DocumentsService.instanciate(app)
         app.switch_language()
@@ -97,7 +99,7 @@ class Application(QObject):
         :param profile_name:
         :return:
         """
-        self.plugins_dir = PluginsDirectory.in_config_path(self.options.config_path, profile_name).load_or_init()
+        self.plugins_dir = PluginsDirectory.in_config_path(self.options.config_path, profile_name).load_or_init(self.options.with_plugin)
         self.parameters = UserParametersFile.in_config_path(self.options.config_path, profile_name).load_or_init()
         self.db = SakiaDatabase.load_or_init(self.options, profile_name)
 
@@ -131,10 +133,11 @@ class Application(QObject):
                                                connections_processor, transactions_processor,
                                                blockchain_processor, bma_connector)
 
-        self.blockchain_service = BlockchainService(self, self.currency, blockchain_processor, bma_connector,
-                                                               self.identities_service,
-                                                               self.transactions_service,
-                                                               self.sources_service)
+        self.blockchain_service = BlockchainService(self, self.currency, blockchain_processor, connections_processor,
+                                                    bma_connector,
+                                                    self.identities_service,
+                                                    self.transactions_service,
+                                                    self.sources_service)
 
         self.network_service = NetworkService.load(self, self.currency, nodes_processor,
                                                     self.blockchain_service,
@@ -154,6 +157,10 @@ class Application(QObject):
         TransactionsProcessor.instanciate(self).cleanup_connection(connection, connections_processor.pubkeys())
 
         self.db.commit()
+
+    async def initialize_blockchain(self):
+        await asyncio.sleep(2) # Give time for the network to connect to nodes
+        await BlockchainProcessor.instanciate(self).initialize_blockchain(self.currency)
 
     def switch_language(self):
         logging.debug("Loading translations")
@@ -207,7 +214,7 @@ class Application(QObject):
                         logging.debug("Found version : {0}".format(latest_version))
                         logging.debug("Current version : {0}".format(__version__))
                         self.available_version = version
-        except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+        except (aiohttp.errors.ClientError, aiohttp.errors.ServerDisconnectedError, asyncio.TimeoutError) as e:
             self._logger.debug("Could not connect to github : {0}".format(str(e)))
 
     def save_parameters(self, parameters):

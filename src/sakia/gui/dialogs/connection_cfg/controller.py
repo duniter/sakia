@@ -144,12 +144,14 @@ class ConnectionConfigController(QObject):
             connection_identity = await self.step_key
         elif self.mode == ConnectionConfigController.CONNECT:
             self._logger.debug("Connect mode")
+            self.view.button_next.setText(self.tr("Next"))
             self.view.groupbox_pubkey.hide()
             self.view.button_next.clicked.connect(self.check_connect)
             self.view.stacked_pages.setCurrentWidget(self.view.page_connection)
             connection_identity = await self.step_key
         elif self.mode == ConnectionConfigController.WALLET:
             self._logger.debug("Wallet mode")
+            self.view.button_next.setText(self.tr("Next"))
             self.view.button_next.clicked.connect(self.check_wallet)
             self.view.edit_uid.hide()
             self.view.label_action.hide()
@@ -158,6 +160,7 @@ class ConnectionConfigController(QObject):
             connection_identity = await self.step_key
         elif self.mode == ConnectionConfigController.PUBKEY:
             self._logger.debug("Pubkey mode")
+            self.view.button_next.setText(self.tr("Next"))
             self.view.button_next.clicked.connect(self.check_pubkey)
             if not self.view.label_action.text().endswith(self.tr(" (Optional)")):
                 self.view.label_action.setText(self.view.label_action.text() + self.tr(" (Optional)"))
@@ -169,19 +172,18 @@ class ConnectionConfigController(QObject):
         self.view.progress_bar.setValue(0)
         self.view.progress_bar.setMaximum(3)
         try:
-            await self.model.initialize_blockchain(self.view.stream_log)
-            self.view.progress_bar.setValue(1)
+            self.view.progress_bar.setValue(0)
             if self.mode == ConnectionConfigController.REGISTER:
                 self.view.display_info(self.tr("Broadcasting identity..."))
                 self.view.stream_log("Broadcasting identity...")
-                result, connection_identity = await self.model.publish_selfcert()
+                result = await self.model.publish_selfcert(connection_identity)
                 if result[0]:
                     await self.view.show_success(self.model.notification())
                 else:
                     self.view.show_error(self.model.notification(), result[1])
                     raise StopIteration()
 
-            self.view.progress_bar.setValue(2)
+            self.view.progress_bar.setValue(1)
 
             if self.mode in (ConnectionConfigController.REGISTER,
                         ConnectionConfigController.CONNECT,
@@ -195,6 +197,7 @@ class ConnectionConfigController(QObject):
                 self.view.stream_log("Initializing certifications informations...")
                 await self.model.initialize_certifications(connection_identity, log_stream=self.view.stream_log)
 
+            self.view.progress_bar.setValue(2)
             self.view.stream_log("Initializing transactions history...")
             transactions = await self.model.initialize_transactions(self.model.connection,
                                                                     log_stream=self.view.stream_log)
@@ -211,8 +214,6 @@ class ConnectionConfigController(QObject):
 
             if self.mode == ConnectionConfigController.REGISTER:
                 await self.view.show_register_message(self.model.blockchain_parameters())
-                await self.export_identity_document()
-                await self.action_save_revokation()
         except (NoPeerAvailable, DuniterError, StopIteration) as e:
             if not isinstance(e, StopIteration):
                 self.view.show_error(self.model.notification(), str(e))
@@ -269,10 +270,10 @@ class ConnectionConfigController(QObject):
         self.view.label_info.setText("")
         return True
 
-    async def action_save_revokation(self):
-        raw_document = self.model.generate_revokation()
+    async def action_save_revocation(self):
+        raw_document, identity = self.model.generate_revocation()
         # Testable way of using a QFileDialog
-        selected_files = await QAsyncFileDialog.get_save_filename(self.view, self.tr("Save a revokation document"),
+        selected_files = await QAsyncFileDialog.get_save_filename(self.view, self.tr("Save a revocation document"),
                                                                   "", self.tr("All text files (*.txt)"))
         if selected_files:
             path = selected_files[0]
@@ -282,28 +283,12 @@ class ConnectionConfigController(QObject):
                 save_file.write(raw_document)
 
             dialog = QMessageBox(QMessageBox.Information, self.tr("Revokation file"),
-                                 self.tr("""<div>Your revokation document has been saved.</div>
+                                 self.tr("""<div>Your revocation document has been saved.</div>
 <div><b>Please keep it in a safe place.</b></div>
 The publication of this document will remove your identity from the network.</p>"""), QMessageBox.Ok)
             dialog.setTextFormat(Qt.RichText)
-            await dialog_async_exec(dialog)
-
-    async def export_identity_document(self):
-        identity, identity_doc = self.model.generate_identity()
-        selected_files = await QAsyncFileDialog.get_save_filename(self.view, self.tr("Save an identity document"),
-                                                                  "", self.tr("All text files (*.txt)"))
-        if selected_files:
-            path = selected_files[0]
-            if not path.endswith('.txt'):
-                path = "{0}.txt".format(path)
-            with open(path, 'w') as save_file:
-                save_file.write(identity_doc.signed_raw())
-
-            dialog = QMessageBox(QMessageBox.Information, self.tr("Identity file"),
-                                 self.tr("""<div>Your identity document has been saved.</div>
-Share this document to your friends for them to certify you.</p>"""), QMessageBox.Ok)
-            dialog.setTextFormat(Qt.RichText)
-            await dialog_async_exec(dialog)
+            return True, identity
+        return False, identity
 
     @asyncify
     async def check_pubkey(self, checked=False):
@@ -326,11 +311,7 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
                         else:
                             self.step_key.set_result(found_identity)
                     else:
-                        if registered[0] is False and registered[2] is None:
-                            self.step_key.set_result(None)
-                        elif registered[2]:
-                            self.view.display_info(self.tr("""Your pubkey is associated to an identity.<br/>
-Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
+                        self.step_key.set_result(None)
 
                 except DuniterError as e:
                     self.view.display_info(e.message)
@@ -415,7 +396,11 @@ Yours : {0}, the network : {1}""".format(registered[1], registered[2])))
                 try:
                     registered, found_identity = await self.model.check_registered()
                     if registered[0] is False and registered[2] is None:
-                        self.step_key.set_result(None)
+                        result, identity = await self.action_save_revocation()
+                        if result:
+                            self.step_key.set_result(identity)
+                        else:
+                            self.view.display_info("Saving your revocation document on your disk is mandatory.")
                     elif registered[0] is False and registered[2]:
                         self.view.display_info(self.tr("""Your pubkey or UID was already found on the network.
         Yours : {0}, the network : {1}""".format(registered[1], registered[2])))

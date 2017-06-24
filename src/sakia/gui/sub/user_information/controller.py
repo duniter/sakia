@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QDialog, QTabWidget, QVBoxLayout
 from PyQt5.QtCore import QObject, pyqtSignal
 from sakia.decorators import asyncify
+from sakia.data.entities import Identity
 from sakia.gui.widgets.dialogs import dialog_async_exec, QAsyncMessageBox
 from .model import UserInformationModel
 from .view import UserInformationView
@@ -11,7 +12,7 @@ class UserInformationController(QObject):
     """
     The homescreen view
     """
-    identity_loaded = pyqtSignal()
+    identity_loaded = pyqtSignal(Identity)
 
     def __init__(self, parent, view, model):
         """
@@ -72,7 +73,7 @@ class UserInformationController(QObject):
                                                       self.model.identity.membership_timestamp,
                                                       self.model.mstime_remaining(), await self.model.nb_certs())
                 self.view.hide_busy()
-                self.identity_loaded.emit()
+                self.identity_loaded.emit(self.model.identity)
         except RuntimeError as e:
             # object can be deleted by Qt during asynchronous ops
             # we don't care of this error
@@ -84,8 +85,14 @@ class UserInformationController(QObject):
 
     @asyncify
     async def search_identity(self, identity):
+        self.view.show_busy()
         await self.model.load_identity(identity)
         self.refresh()
+        self.view.hide_busy()
+
+    def clear(self):
+        self.model.clear()
+        self.view.clear()
 
     def change_identity(self, identity):
         """

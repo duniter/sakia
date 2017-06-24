@@ -10,9 +10,13 @@ class TxHistoryView(QWidget, Ui_TxHistoryWidget):
     The view of TxHistory component
     """
 
-    def __init__(self, parent):
+    def __init__(self, parent, transfer_view):
         super().__init__(parent)
+        self.transfer_view = transfer_view
         self.setupUi(self)
+        self.stacked_widget.insertWidget(1, transfer_view)
+        self.button_send.clicked.connect(lambda c: self.stacked_widget.setCurrentWidget(self.transfer_view))
+        self.spin_page.setMinimum(1)
 
     def get_time_frame(self):
         """
@@ -49,6 +53,10 @@ class TxHistoryView(QWidget, Ui_TxHistoryWidget):
         self.date_to.setDateTime(maximum)
         self.date_to.setMaximumDateTime(maximum)
 
+    def set_max_pages(self, pages):
+        self.spin_page.setSuffix(self.tr(" / {:} pages").format(pages + 1))
+        self.spin_page.setMaximum(pages + 1)
+
     def set_balance(self, balance):
         """
         Display given balance
@@ -59,6 +67,9 @@ class TxHistoryView(QWidget, Ui_TxHistoryWidget):
         self.label_balance.setText(
             "{:}".format(balance)
         )
+
+    def clear(self):
+        self.stacked_widget.setCurrentWidget(self.page_history)
 
     def changeEvent(self, event):
         """

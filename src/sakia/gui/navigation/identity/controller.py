@@ -1,24 +1,30 @@
 import logging
 
-from PyQt5.QtCore import QObject
+from PyQt5.QtGui import QCursor
+from PyQt5.QtWidgets import QAction
+from PyQt5.QtCore import QObject, pyqtSignal
 from sakia.errors import NoPeerAvailable
 from sakia.constants import ROOT_SERVERS
+from sakia.data.entities import Identity
 from duniterpy.api import errors
-from .model import InformationsModel
-from .view import InformationsView
+from .model import IdentityModel
+from .view import IdentityView
 
-from sakia.decorators import asyncify
+from sakia.decorators import asyncify, once_at_a_time
+from sakia.gui.sub.certification.controller import CertificationController
 from sakia.gui.sub.password_input import PasswordInputController
 from sakia.gui.widgets import toast
+from sakia.gui.widgets.context_menu import ContextMenu
 from sakia.gui.widgets.dialogs import QAsyncMessageBox, QMessageBox
 
 
-class InformationsController(QObject):
+class IdentityController(QObject):
     """
     The informations component
     """
+    view_in_wot = pyqtSignal(Identity)
 
-    def __init__(self, parent, view, model):
+    def __init__(self, parent, view, model, certification):
         """
         Constructor of the informations component
 
@@ -28,15 +34,10 @@ class InformationsController(QObject):
         super().__init__(parent)
         self.view = view
         self.model = model
+        self.certification = certification
         self._logger = logging.getLogger('sakia')
         self.view.button_membership.clicked.connect(self.send_join_demand)
-
-    @property
-    def informations_view(self):
-        """
-        :rtype: sakia.gui.informations.view.InformationsView
-        """
-        return self.view
+        self.view.button_refresh.clicked.connect(self.refresh_certs)
 
     @classmethod
     def create(cls, parent, app, connection, blockchain_service, identities_service, sources_service):
@@ -50,37 +51,51 @@ class InformationsController(QObject):
         :param sources_service:
         :return:
         """
-        view = InformationsView(parent.view)
-        model = InformationsModel(None, app, connection, blockchain_service, identities_service, sources_service)
-        informations = cls(parent, view, model)
-        model.setParent(informations)
-        informations.init_view_text()
-        view.retranslate_required.connect(informations.refresh_localized_data)
-        app.identity_changed.connect(informations.handle_identity_change)
-        app.new_transfer.connect(informations.refresh_localized_data)
-        app.new_dividend.connect(informations.refresh_localized_data)
-        app.referential_changed.connect(informations.refresh_localized_data)
-        app.sources_refreshed.connect(informations.refresh_localized_data)
-        return informations
+        certification = CertificationController.integrate_to_main_view(None, app, connection)
+        view = IdentityView(parent.view, certification.view)
+        model = IdentityModel(None, app, connection, blockchain_service, identities_service, sources_service)
+        identity = cls(parent, view, model, certification)
+        certification.accepted.connect(view.clear)
+        certification.rejected.connect(view.clear)
+        identity.refresh_localized_data()
+        table_model = model.init_table_model()
+        view.set_table_identities_model(table_model)
+        view.table_certifiers.customContextMenuRequested['QPoint'].connect(identity.identity_context_menu)
+        identity.view_in_wot.connect(app.view_in_wot)
+        return identity
+
+    def identity_context_menu(self, point):
+        index = self.view.table_certifiers.indexAt(point)
+        valid, identity = self.model.table_data(index)
+        if valid:
+            menu = ContextMenu.from_data(self.view, self.model.app, None, (identity,))
+            menu.view_identity_in_wot.connect(self.view_in_wot)
+            menu.identity_information_loaded.connect(self.model.table_model.certifier_loaded)
+
+            # Show the context menu.
+            menu.qmenu.popup(QCursor.pos())
 
     @asyncify
     async def init_view_text(self):
         """
         Initialization of text in informations view
         """
-        referentials = self.model.referentials()
-        self.view.set_rules_text_no_dividend()
-        self.view.set_general_text_no_dividend()
-        self.view.set_text_referentials(referentials)
         params = self.model.parameters()
         if params:
             self.view.set_money_text(params, ROOT_SERVERS[self.model.connection.currency]["display"])
-            self.view.set_wot_text(params)
             self.refresh_localized_data()
 
     def handle_identity_change(self, identity):
         if identity.pubkey == self.model.connection.pubkey and identity.uid == self.model.connection.uid:
             self.refresh_localized_data()
+
+    @once_at_a_time
+    @asyncify
+    async def refresh_certs(self, checked=False):
+        self.view.table_certifiers.setEnabled(False)
+        await self.model.refresh_identity_data()
+        self.refresh_localized_data()
+        self.view.table_certifiers.setEnabled(True)
 
     def refresh_localized_data(self):
         """
@@ -90,18 +105,15 @@ class InformationsController(QObject):
         try:
             simple_data = self.model.get_identity_data()
             all_data = {**simple_data, **localized_data}
-            self.view.set_simple_informations(all_data, InformationsView.CommunityState.READY)
+            self.view.set_simple_informations(all_data, IdentityView.CommunityState.READY)
         except NoPeerAvailable as e:
             self._logger.debug(str(e))
-            self.view.set_simple_informations(all_data, InformationsView.CommunityState.OFFLINE)
+            self.view.set_simple_informations(all_data, IdentityView.CommunityState.OFFLINE)
         except errors.DuniterError as e:
             if e.ucode == errors.BLOCK_NOT_FOUND:
-                self.view.set_simple_informations(all_data, InformationsView.CommunityState.NOT_INIT)
+                self.view.set_simple_informations(all_data, IdentityView.CommunityState.NOT_INIT)
             else:
                 self._logger.debug(str(e))
-
-        self.view.set_general_text(localized_data)
-        self.view.set_rules_text(localized_data)
 
     @asyncify
     async def send_join_demand(self, checked=False):

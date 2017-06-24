@@ -70,3 +70,7 @@ class SearchUserModel(QObject):
             return False
         self._current_identity = self._nodes[index]
         return True
+
+    def clear(self):
+        self._current_identity = None
+        self._nodes = list()

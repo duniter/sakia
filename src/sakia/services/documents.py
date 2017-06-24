@@ -63,21 +63,8 @@ class DocumentsService:
             identity.blockstamp = block_uid
             timestamp = self._blockchain_processor.time(connection.currency)
             identity.timestamp = timestamp
-            identity_doc = IdentityDoc(10,
-                               connection.currency,
-                               connection.pubkey,
-                               connection.uid,
-                               block_uid,
-                               None)
-        else:
-            identity_doc = IdentityDoc(10,
-                               connection.currency,
-                               connection.pubkey,
-                               connection.uid,
-                               identity.blockstamp,
-                               identity.signature)
 
-        return identity, identity_doc
+        return identity
 
     async def broadcast_identity(self, connection, identity_doc):
         """
@@ -205,9 +192,9 @@ class DocumentsService:
         result = await parse_bma_responses(responses)
         return result
 
-    def generate_revokation(self, connection, secret_key, password):
+    def generate_revocation(self, connection, secret_key, password):
         """
-        Generate account revokation document for given community
+        Generate account revocation document for given community
 
         :param sakia.data.entities.Connection connection: The connection of the identity
         :param str secret_key: The account SigningKey secret key
@@ -215,12 +202,20 @@ class DocumentsService:
         """
         document = Revocation(10, connection.currency, connection.pubkey, "")
         identity = self._identities_processor.get_identity(connection.currency, connection.pubkey, connection.uid)
+        if not identity:
+            identity = self.generate_identity(connection)
+            identity_doc = identity.document()
+            key = SigningKey(connection.salt, connection.password, connection.scrypt_params)
+            identity_doc.sign([key])
+            identity.signature = identity_doc.signatures[0]
+            self._identities_processor.insert_or_update_identity(identity)
+
         self_cert = identity.document()
 
         key = SigningKey(secret_key, password, connection.scrypt_params)
 
         document.sign(self_cert, [key])
-        return document.signed_raw(self_cert)
+        return document.signed_raw(self_cert), identity
 
     def tx_sources(self, amount, amount_base, currency, pubkey):
         """
@@ -435,6 +430,7 @@ class DocumentsService:
 
             for i, tx in enumerate(tx_entities):
                 logging.debug("Transaction : [{0}]".format(tx.raw))
+                tx.txid = i
                 tx_res, tx_entities[i] = await self._transactions_processor.send(tx, connection.currency)
 
                 # Result can be negative if a tx is not accepted by the network

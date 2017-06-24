@@ -159,14 +159,14 @@ class SourcesServices(QObject):
                 block_number = tx.written_block
         return destructions
 
-    async def refresh_sources(self, transactions, dividends):
+    async def refresh_sources(self, connections, transactions, dividends):
         """
 
-        :param list[sakia.data.entities.Transaction] transactions:
-        :param list[sakia.data.entities.Dividend] dividends:
+        :param list[sakia.data.entities.Connection] connections:
+        :param dict[sakia.data.entities.Transaction] transactions:
+        :param dict[sakia.data.entities.Dividend] dividends:
         :return: the destruction of sources
         """
-        connections = self._connections_processor.connections_to(self.currency)
         destructions = {}
         for conn in connections:
             destructions[conn] = []
