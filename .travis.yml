@@ -20,7 +20,6 @@ script:
 - ci/travis/test.sh
 after_success:
 - ci/travis/after_success.sh
-before_deploy:
 - ci/travis/before_deploy.sh
 
 deploy:
