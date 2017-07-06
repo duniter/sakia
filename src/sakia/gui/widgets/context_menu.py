@@ -4,6 +4,7 @@ from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtWidgets import QMenu, QAction, QApplication, QMessageBox
 
 from duniterpy.documents.constants import pubkey_regex
+from duniterpy.documents.crc_pubkey import CRCPubkey
 from sakia.data.entities import Identity, Transaction, Dividend
 from sakia.data.processors import BlockchainProcessor, TransactionsProcessor
 from sakia.decorators import asyncify
@@ -54,6 +55,10 @@ class ContextMenu(QObject):
 
         copy_pubkey = QAction(menu.qmenu.tr("Copy pubkey to clipboard"), menu.qmenu.parent())
         copy_pubkey.triggered.connect(lambda checked, i=identity: ContextMenu.copy_pubkey_to_clipboard(i))
+        menu.qmenu.addAction(copy_pubkey)
+
+        copy_pubkey = QAction(menu.qmenu.tr("Copy pubkey to clipboard (with CRC)"), menu.qmenu.parent())
+        copy_pubkey.triggered.connect(lambda checked, i=identity: ContextMenu.copy_pubkey_to_clipboard_with_crc(i))
         menu.qmenu.addAction(copy_pubkey)
 
         if identity.uid and menu._app.parameters.expert_mode:
@@ -134,6 +139,14 @@ class ContextMenu(QObject):
             clipboard.setText(identity_or_pubkey.pubkey)
         else:
             clipboard.setText(identity_or_pubkey)
+
+    @staticmethod
+    def copy_pubkey_to_clipboard_with_crc(identity_or_pubkey):
+        clipboard = QApplication.clipboard()
+        if isinstance(identity_or_pubkey, Identity):
+            clipboard.setText(str(CRCPubkey.from_pubkey(identity_or_pubkey.pubkey)))
+        else:
+            clipboard.setText(str(CRCPubkey.from_pubkey(identity_or_pubkey)))
 
     def informations(self, identity):
         if identity.uid:

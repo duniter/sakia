@@ -17,6 +17,7 @@ class TransferView(QWidget, Ui_TransferMoneyWidget):
         OK = 1
         WRONG_PASSWORD = 2
         NO_RECEIVER = 3
+        WRONG_RECIPIENT = 4
 
     class RecipientMode(Enum):
         PUBKEY = 1
@@ -29,7 +30,8 @@ class TransferView(QWidget, Ui_TransferMoneyWidget):
                                    QT_TRANSLATE_NOOP("TransferView", "No amount. Please give the transfer amount")),
         ButtonBoxState.OK: (True, QT_TRANSLATE_NOOP("CertificationView", "&Ok")),
         ButtonBoxState.WRONG_PASSWORD: (False, QT_TRANSLATE_NOOP("TransferView", "Please enter correct password")),
-        ButtonBoxState.NO_RECEIVER: (False, QT_TRANSLATE_NOOP("TransferView", "Please enter a receiver"))
+        ButtonBoxState.NO_RECEIVER: (False, QT_TRANSLATE_NOOP("TransferView", "Please enter a receiver")),
+        ButtonBoxState.WRONG_RECIPIENT: (False, QT_TRANSLATE_NOOP("TransferView", "Incorrect receiver address or pubkey"))
 
     }
 

@@ -4,6 +4,7 @@ import logging
 from PyQt5.QtCore import Qt, QObject, pyqtSignal
 from PyQt5.QtWidgets import QApplication, QDialog, QVBoxLayout
 
+from duniterpy.documents.crc_pubkey import CRCPubkey
 from sakia.data.processors import ConnectionsProcessor
 from sakia.decorators import asyncify
 from sakia.gui.sub.password_input import PasswordInputController
@@ -41,6 +42,7 @@ class TransferController(QObject):
         self.view.button_box.accepted.connect(self.accept)
         self.view.button_box.rejected.connect(self.reject)
         self.view.radio_pubkey.toggled.connect(self.refresh)
+        self.view.edit_pubkey.textChanged.connect(self.refresh)
         self.view.combo_connections.currentIndexChanged.connect(self.change_current_connection)
         self.view.spinbox_amount.valueChanged.connect(self.handle_amount_change)
         self.view.spinbox_relative.valueChanged.connect(self.handle_relative_change)
@@ -149,6 +151,16 @@ class TransferController(QObject):
         transfer.rejected.connect(dialog.reject)
         return dialog.exec()
 
+    def valid_crc_pubkey(self):
+        if self.view.pubkey_value():
+            try:
+                crc_pubkey = CRCPubkey.from_str(self.view.pubkey_value())
+                return crc_pubkey.is_valid()
+            except ValueError:
+                return False
+        else:
+            return False
+
     def selected_pubkey(self):
         """
         Get selected pubkey in the widgets of the window
@@ -166,8 +178,13 @@ class TransferController(QObject):
             index = self.view.contact_selected()
             if index >= 0:
                 pubkey = self.model.contacts()[index].pubkey
-        else:
-            pubkey = self.view.pubkey_value()
+        elif self.view.pubkey_value():
+            try:
+                crc_pubkey = CRCPubkey.from_str(self.view.pubkey_value())
+                if crc_pubkey.is_valid():
+                    pubkey = crc_pubkey.pubkey
+            except ValueError:
+                pubkey = self.view.pubkey_value()
         return pubkey
 
     @asyncify
@@ -223,7 +240,10 @@ class TransferController(QObject):
         if amount == 0:
             self.view.set_button_box(TransferView.ButtonBoxState.NO_AMOUNT)
         if not self.selected_pubkey():
-            self.view.set_button_box(TransferView.ButtonBoxState.NO_RECEIVER)
+            if self.view.pubkey_value() and not self.valid_crc_pubkey():
+                    self.view.set_button_box(TransferView.ButtonBoxState.WRONG_RECIPIENT)
+            else:
+                self.view.set_button_box(TransferView.ButtonBoxState.NO_RECEIVER)
         elif self.password_input.valid():
             self.view.set_button_box(TransferView.ButtonBoxState.OK)
         else:
