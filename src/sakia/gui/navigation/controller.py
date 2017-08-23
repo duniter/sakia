@@ -168,8 +168,14 @@ class NavigationController(QObject):
             copy_pubkey = QAction(menu.tr("Copy pubkey to clipboard"), menu.parent())
             copy_pubkey.triggered.connect(lambda checked,
                                                  c=raw_data['misc']['connection']: \
-                                              NavigationModel.copy_pubkey_to_clipboard(c))
+                                                 NavigationModel.copy_pubkey_to_clipboard(c))
             menu.addAction(copy_pubkey)
+
+            copy_pubkey_crc = QAction(menu.tr("Copy pubkey to clipboard (with CRC)"), menu.parent())
+            copy_pubkey_crc.triggered.connect(lambda checked,
+                                                     c=raw_data['misc']['connection']: \
+                                              NavigationModel.copy_pubkey_to_clipboard_with_crc(c))
+            menu.addAction(copy_pubkey_crc)
 
             action_remove = QAction(self.tr("Remove the connection"), menu)
             menu.addAction(action_remove)

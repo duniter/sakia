@@ -101,6 +101,10 @@ class ContextMenu(QObject):
             copy_pubkey.triggered.connect(lambda checked, p=str_value: ContextMenu.copy_pubkey_to_clipboard(p))
             menu.qmenu.addAction(copy_pubkey)
 
+            copy_pubkey = QAction(menu.qmenu.tr("Copy pubkey to clipboard (with CRC)"), menu.qmenu.parent())
+            copy_pubkey.triggered.connect(lambda checked, p=str_value: ContextMenu.copy_pubkey_to_clipboard_with_crc(p))
+            menu.qmenu.addAction(copy_pubkey)
+
             if menu._connection.pubkey != str_value:
                 send_money = QAction(menu.qmenu.tr("Send money"), menu.qmenu.parent())
                 send_money.triggered.connect(lambda checked, p=str_value: menu.send_money(p))

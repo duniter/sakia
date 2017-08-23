@@ -2,6 +2,7 @@ from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtWidgets import QApplication
 from sakia.models.generic_tree import GenericTreeModel
 from sakia.data.processors import ContactsProcessor
+from duniterpy.documents.crc_pubkey import CRCPubkey
 
 
 class NavigationModel(QObject):
@@ -226,3 +227,8 @@ class NavigationModel(QObject):
     def copy_pubkey_to_clipboard(connection):
         clipboard = QApplication.clipboard()
         clipboard.setText(connection.pubkey)
+
+    @staticmethod
+    def copy_pubkey_to_clipboard_with_crc(connection):
+        clipboard = QApplication.clipboard()
+        clipboard.setText(str(CRCPubkey.from_pubkey(connection.pubkey)))
