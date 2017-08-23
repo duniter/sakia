@@ -63,6 +63,7 @@ class DocumentsService:
             identity.blockstamp = block_uid
             timestamp = self._blockchain_processor.time(connection.currency)
             identity.timestamp = timestamp
+            identity.signature = None
 
         return identity
 

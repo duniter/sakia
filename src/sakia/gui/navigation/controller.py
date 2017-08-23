@@ -182,7 +182,7 @@ class NavigationController(QObject):
     async def publish_uid(self, connection):
         identity = self.model.generate_identity(connection)
         identity_doc = identity.document()
-        if not identity_doc.signatures[0]:
+        if not identity_doc.signatures:
             secret_key, password = await PasswordInputController.open_dialog(self, connection)
             if not password or not secret_key:
                 return
