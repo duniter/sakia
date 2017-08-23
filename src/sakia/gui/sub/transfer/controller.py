@@ -241,7 +241,7 @@ class TransferController(QObject):
             self.view.set_button_box(TransferView.ButtonBoxState.NO_AMOUNT)
         if not self.selected_pubkey():
             if self.view.pubkey_value() and not self.valid_crc_pubkey():
-                    self.view.set_button_box(TransferView.ButtonBoxState.WRONG_RECIPIENT)
+                self.view.set_button_box(TransferView.ButtonBoxState.WRONG_RECIPIENT)
             else:
                 self.view.set_button_box(TransferView.ButtonBoxState.NO_RECEIVER)
         elif self.password_input.valid():
