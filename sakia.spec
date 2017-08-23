@@ -34,10 +34,10 @@ if is_darwin:
 if is_linux:
     libsodium_path = ctypes.util.find_library('libsodium.so')
     if not libsodium_path:
-        if os.path.isfile('/usr/lib/x86_64-linux-gnu/libsodium.so.18.1.1'):
-            libsodium_path = "/usr/lib/x86_64-linux-gnu/libsodium.so.18.1.1"
-        if os.path.isfile('/usr/lib/i386-linux-gnu/libsodium.so.18.1.1'):
-            libsodium_path = "/usr/lib/i386-linux-gnu/libsodium.so.18.1.1"
+        if os.path.isfile('/usr/lib/x86_64-linux-gnu/libsodium.so.18.3.0'):
+            libsodium_path = "/usr/lib/x86_64-linux-gnu/libsodium.so.18.3.0"
+        if os.path.isfile('/usr/lib/x86_64-linux-gnu/libsodium.so.18.3.0'):
+            libsodium_path = "/usr/lib/x86_64-linux-gnu/libsodium.so.18.3.0"
 
     a.binaries = a.binaries + TOC([('libsodium.so', libsodium_path, 'BINARY')])
     a.datas = a.datas + [('sakia/root_servers.yml', 'src/sakia/root_servers.yml', 'DATA')]
