@@ -32,5 +32,5 @@ async def test_transfer(application_with_one_connection, fake_server_with_blockc
     application_with_one_connection.loop.call_later(10, close_dialog)
     transfer_dialog.view.show()
     await exec_test()
-    close_dialog()
-    await fake_server_with_blockchain.close()
+    #close_dialog()
+    #await fake_server_with_blockchain.close()

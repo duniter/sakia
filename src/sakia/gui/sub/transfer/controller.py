@@ -1,10 +1,11 @@
-import asyncio
+import re
 import logging
 
 from PyQt5.QtCore import Qt, QObject, pyqtSignal
 from PyQt5.QtWidgets import QApplication, QDialog, QVBoxLayout
 
-from duniterpy.documents.crc_pubkey import CRCPubkey
+from duniterpy.documents.constants import pubkey_regex
+from duniterpy.documents import CRCPubkey
 from sakia.data.processors import ConnectionsProcessor
 from sakia.decorators import asyncify
 from sakia.gui.sub.password_input import PasswordInputController
@@ -156,7 +157,7 @@ class TransferController(QObject):
             try:
                 crc_pubkey = CRCPubkey.from_str(self.view.pubkey_value())
                 return crc_pubkey.is_valid()
-            except ValueError:
+            except AttributeError:
                 return False
         else:
             return False
@@ -183,8 +184,10 @@ class TransferController(QObject):
                 crc_pubkey = CRCPubkey.from_str(self.view.pubkey_value())
                 if crc_pubkey.is_valid():
                     pubkey = crc_pubkey.pubkey
-            except ValueError:
-                pubkey = self.view.pubkey_value()
+            except AttributeError:
+                result = re.compile("^({0})$".format(pubkey_regex)).match(self.view.pubkey_value())
+                if result:
+                    pubkey = self.view.pubkey_value()
         return pubkey
 
     @asyncify
