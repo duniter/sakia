@@ -5,14 +5,15 @@ from logging import FileHandler, StreamHandler
 from logging.handlers import RotatingFileHandler
 from optparse import OptionParser
 from os import environ, path, makedirs
+import sys
 
 
 def config_path_factory():
-    if "XDG_CONFIG_HOME" in environ:
+    if sys.platform.startswith("darwin") and "XDG_CONFIG_HOME" in environ:
         env_path = environ["XDG_CONFIG_HOME"]
-    elif "HOME" in environ:
+    elif sys.platform.startswith("linux") and "HOME" in environ:
         env_path = path.join(environ["HOME"], ".config")
-    elif "APPDATA" in environ:
+    elif sys.platform.startswith("win32") and"APPDATA" in environ:
         env_path = environ["APPDATA"]
     else:
         env_path = path.dirname(__file__)
