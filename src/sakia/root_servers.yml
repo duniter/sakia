@@ -1,8 +1,3 @@
-gtest:
-  display: ğtest
-  nodes:
-    C4orqutdb3Nveur3xN5L2TduT1j8d2EZkJsWLmWuD2Sv:
-    - "BASIC_MERKLED_API gtest.duniter.org 10900"
 g1:
   display: ğ1
   nodes:
@@ -22,3 +17,7 @@ g1-test:
   nodes:
     4aCqwikTaTPBRQLGiLHohuoJLPmLephy9eDtgCWLMwBk:
     - "BMAS g1-test.duniter.org 443"
+    2RbXrLkmtgWMcis8NWhPvM7BAGT4xLK5mFRkHiYi2Vc7:
+    - "BASIC_MERKLED_API gtest.duniter.inso.ovh 80"
+    3dnbnYY9i2bHMQUGyFp5GVvJ2wBkVpus31cDJA5cfRpj:
+    - "BASIC_MERKLED_API g1-test.cgeek.fr 80"
