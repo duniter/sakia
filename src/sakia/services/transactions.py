@@ -44,8 +44,8 @@ class TransactionsService(QObject):
             txid = self._transactions_processor.next_txid(transaction.currency, -1)
             tx = parse_transaction_doc(transaction.txdoc(), pubkey,
                                        transaction.blockstamp.number,  transaction.timestamp, txid+1)
-            tx.state = Transaction.AWAITING
             if tx:
+                tx.state = Transaction.AWAITING
                 self._transactions_processor.commit(tx)
                 return tx
             else:
