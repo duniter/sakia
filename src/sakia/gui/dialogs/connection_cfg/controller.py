@@ -237,15 +237,14 @@ class ConnectionConfigController(QObject):
                 self.view.label_info.setText(self.tr("Forbidden : pubkey is too long"))
                 return False
         else:
-            if self.model.app.parameters.expert_mode:
-                return True
-
-            if len(self.view.edit_salt.text()) < 6:
-                self.view.label_info.setText(self.tr("Forbidden : salt is too short"))
+            if self.view.edit_password.text() != \
+                    self.view.edit_password_repeat.text():
+                self.view.label_info.setText(self.tr("Error : passwords are different"))
                 return False
 
-            if len(self.view.edit_password.text()) < 6:
-                self.view.label_info.setText(self.tr("Forbidden : password is too short"))
+            if self.view.edit_salt.text() != \
+                    self.view.edit_salt_bis.text():
+                self.view.label_info.setText(self.tr("Error : secret keys are different"))
                 return False
 
             if detect_non_printable(self.view.edit_salt.text()):
@@ -257,14 +256,15 @@ class ConnectionConfigController(QObject):
                     self.tr("Forbidden : Invalid characters in password field"))
                 return False
 
-            if self.view.edit_password.text() != \
-                    self.view.edit_password_repeat.text():
-                self.view.label_info.setText(self.tr("Error : passwords are different"))
+            if self.model.app.parameters.expert_mode:
+                return True
+
+            if len(self.view.edit_salt.text()) < 6:
+                self.view.label_info.setText(self.tr("Forbidden : salt is too short"))
                 return False
 
-            if self.view.edit_salt.text() != \
-                    self.view.edit_salt_bis.text():
-                self.view.label_info.setText(self.tr("Error : secret keys are different"))
+            if len(self.view.edit_password.text()) < 6:
+                self.view.label_info.setText(self.tr("Forbidden : password is too short"))
                 return False
 
         self.view.label_info.setText("")
