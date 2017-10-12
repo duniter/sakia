@@ -147,6 +147,22 @@ class ConnectionConfigView(QDialog, Ui_ConnectionConfigurationDialog):
         """
         self.plain_text_edit.insertPlainText("\n" + log)
 
+    def progress(self, step_ratio):
+        """
+
+        :param float ratio: the ratio of progress of current step (between 0 and 1)
+        :return:
+        """
+        value = self.progress_bar.value()
+        self.progress_bar.setValue(value + 1000000*step_ratio)
+
+    def set_progress_steps(self, steps):
+        self.progress_bar.setValue(0)
+        self.progress_bar.setMaximum(steps*1000000)
+
+    def set_step(self, step):
+        self.progress_bar.setValue(step * 1000000)
+
     async def show_register_message(self, blockchain_parameters):
         """
 

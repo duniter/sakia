@@ -36,18 +36,20 @@ class DividendsProcessor:
             self._logger.debug("Dividend already in db")
         return False
 
-    async def initialize_dividends(self, connection, transactions, log_stream):
+    async def initialize_dividends(self, connection, transactions, log_stream, progress):
         """
         Request transactions from the network to initialize data for a given pubkey
         :param sakia.data.entities.Connection connection:
         :param List[sakia.data.entities.Transaction] transactions: the list of transactions found by tx processor
         :param function log_stream:
+        :param function progress: progress callback
         """
         history_data = await self._bma_connector.get(connection.currency, bma.ud.history,
                                                      req_args={'pubkey': connection.pubkey})
         log_stream("Found {0} available dividends".format(len(history_data["history"]["history"])))
         block_numbers = []
         dividends = []
+        nb_ud_tx = len(history_data["history"]["history"]) + len(transactions)
         for ud_data in history_data["history"]["history"]:
             dividend = Dividend(currency=connection.currency,
                                 pubkey=connection.pubkey,
@@ -56,6 +58,7 @@ class DividendsProcessor:
                                 amount=ud_data["amount"],
                                 base=ud_data["base"])
             log_stream("Dividend of block {0}".format(dividend.block_number))
+            progress(1/nb_ud_tx)
             block_numbers.append(dividend.block_number)
             try:
                 dividends.append(dividend)
@@ -76,6 +79,7 @@ class DividendsProcessor:
                                         amount=block["dividend"],
                                         base=block["unitbase"])
                     log_stream("Dividend of block {0}".format(dividend.block_number))
+                    progress(1/nb_ud_tx)
                     try:
                         dividends.append(dividend)
                         self._repo.insert(dividend)

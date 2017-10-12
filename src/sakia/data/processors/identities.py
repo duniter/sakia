@@ -131,13 +131,15 @@ class IdentitiesProcessor:
         except sqlite3.IntegrityError:
             self._identities_repo.update(identity)
 
-    async def initialize_identity(self, identity, log_stream):
+    async def initialize_identity(self, identity, log_stream, progress):
         """
         Initialize memberships and other data for given identity
         :param sakia.data.entities.Identity identity:
-        :param function log_stream:
+        :param function log_stream: callback to log text
+        :param function progress: callback for progressbar
         """
         log_stream("Requesting membership data")
+        progress(1/3)
         try:
             memberships_data = await self._bma_connector.get(identity.currency, bma.blockchain.memberships,
                                                              req_args={'search': identity.pubkey})
@@ -150,6 +152,7 @@ class IdentitiesProcessor:
                         identity.membership_type = ms['membership']
                         identity.membership_written_on = ms['written']
 
+                progress(1 / 3)
                 if identity.membership_buid:
                     log_stream("Requesting membership timestamp")
                     ms_block_data = await self._bma_connector.get(identity.currency, bma.blockchain.block,
@@ -159,6 +162,7 @@ class IdentitiesProcessor:
 
                 log_stream("Requesting identity requirements status")
 
+                progress(1 / 3)
                 requirements_data = await self._bma_connector.get(identity.currency, bma.wot.requirements,
                                                                   req_args={'search': identity.pubkey})
                 identity_data = next((data for data in requirements_data["identities"]

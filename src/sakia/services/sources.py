@@ -105,7 +105,8 @@ class SourcesServices(QObject):
                 self._transactions_processor.commit(destruction)
                 return destruction
 
-    async def refresh_sources_of_pubkey(self, pubkey, transactions, dividends, unit_base, log_stream=None):
+    async def refresh_sources_of_pubkey(self, pubkey, transactions, dividends, unit_base, log_stream=None,
+                                        progress=None):
         """
         Refresh the sources for a given pubkey
         :param str pubkey:
@@ -128,10 +129,13 @@ class SourcesServices(QObject):
         except StopIteration:
             ud = None
 
+        nb_tx_ud = len(transactions) + len(dividends)
         destructions = []
         while tx or ud:
             if log_stream:
                 log_stream("Parsing info ud/tx of {:}".format(block_number))
+            if progress:
+                progress(1/nb_tx_ud)
             if tx and tx.written_block == block_number:
                 self.parse_transaction(pubkey, tx)
                 try:

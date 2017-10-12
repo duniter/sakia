@@ -169,10 +169,8 @@ class ConnectionConfigController(QObject):
             connection_identity = await self.step_key
 
         self.view.stacked_pages.setCurrentWidget(self.view.page_services)
-        self.view.progress_bar.setValue(0)
-        self.view.progress_bar.setMaximum(3)
+        self.view.set_progress_steps(6)
         try:
-            self.view.progress_bar.setValue(0)
             if self.mode == ConnectionConfigController.REGISTER:
                 self.view.display_info(self.tr("Broadcasting identity..."))
                 self.view.stream_log("Broadcasting identity...")
@@ -183,7 +181,7 @@ class ConnectionConfigController(QObject):
                     self.view.show_error(self.model.notification(), result[1])
                     raise StopIteration()
 
-            self.view.progress_bar.setValue(1)
+            self.view.set_step(1)
 
             if self.mode in (ConnectionConfigController.REGISTER,
                         ConnectionConfigController.CONNECT,
@@ -193,21 +191,32 @@ class ConnectionConfigController(QObject):
                 self.model.insert_or_update_connection()
                 self.model.insert_or_update_identity(connection_identity)
                 self.view.stream_log("Initializing identity informations...")
-                await self.model.initialize_identity(connection_identity, log_stream=self.view.stream_log)
+                await self.model.initialize_identity(connection_identity,
+                                                     log_stream=self.view.stream_log,
+                                                     progress=self.view.progress)
                 self.view.stream_log("Initializing certifications informations...")
-                await self.model.initialize_certifications(connection_identity, log_stream=self.view.stream_log)
+                self.view.set_step(2)
+                await self.model.initialize_certifications(connection_identity,
+                                                           log_stream=self.view.stream_log,
+                                                           progress=self.view.progress)
 
-            self.view.progress_bar.setValue(2)
+            self.view.set_step(3)
             self.view.stream_log("Initializing transactions history...")
             transactions = await self.model.initialize_transactions(self.model.connection,
-                                                                    log_stream=self.view.stream_log)
+                                                                    log_stream=self.view.stream_log,
+                                                                    progress=self.view.progress)
+            self.view.set_step(4)
             self.view.stream_log("Initializing dividends history...")
             dividends = await self.model.initialize_dividends(self.model.connection, transactions,
-                                                              log_stream=self.view.stream_log)
+                                                              log_stream=self.view.stream_log,
+                                                              progress=self.view.progress)
 
-            self.view.progress_bar.setValue(3)
-            await self.model.initialize_sources(transactions, dividends, self.view.stream_log)
+            self.view.set_step(5)
+            await self.model.initialize_sources(transactions, dividends,
+                                                log_stream=self.view.stream_log,
+                                                progress=self.view.progress)
 
+            self.view.set_step(6)
             self._logger.debug("Validate changes")
             self.model.insert_or_update_connection()
             self.model.app.db.commit()

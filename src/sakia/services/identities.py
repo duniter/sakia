@@ -234,11 +234,12 @@ class IdentitiesService(QObject):
             logging.debug(str(e))
         return certifications
 
-    async def initialize_certifications(self, identity, log_stream):
+    async def initialize_certifications(self, identity, log_stream, progress):
         """
         Initialize certifications to and from a given identity
         :param sakia.data.entities.Identity identity:
         :param function log_stream:
+        :param function progress:
         """
         log_stream("Requesting certifiers of data")
         certifiers = await self.load_certifiers_of(identity)
@@ -256,6 +257,7 @@ class IdentitiesService(QObject):
         for cert in certifiers:
             log_stream("Requesting identity... {0}/{1}".format(i, nb_certs))
             i += 1
+            progress(1/nb_certs)
             certifier = self.get_identity(cert.certifier)
             if not certifier:
                 certifier = await self.find_from_pubkey(cert.certifier)
@@ -265,6 +267,7 @@ class IdentitiesService(QObject):
         for cert in certified:
             log_stream("Requesting identity... {0}/{1}".format(i, nb_certs))
             i += 1
+            progress(1/nb_certs)
             certified = self.get_identity(cert.certified)
             if not certified:
                 certified = await self.find_from_pubkey(cert.certified)

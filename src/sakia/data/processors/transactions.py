@@ -125,11 +125,12 @@ class TransactionsProcessor:
         self.run_state_transitions(tx, [r.status for r in responses if not isinstance(r, BaseException)])
         return result, tx
 
-    async def initialize_transactions(self, connection, log_stream):
+    async def initialize_transactions(self, connection, log_stream, progress):
         """
         Request transactions from the network to initialize data for a given pubkey
         :param sakia.data.entities.Connection connection:
         :param function log_stream:
+        :param function progress: progress callback
         """
         history_data = await self._bma_connector.get(connection.currency, bma.tx.history,
                                                      req_args={'pubkey': connection.pubkey})
@@ -140,6 +141,7 @@ class TransactionsProcessor:
         for sent_data in history_data["history"]["sent"] + history_data["history"]["received"]:
             sent = TransactionDoc.from_bma_history(history_data["currency"], sent_data)
             log_stream("{0}/{1} transactions".format(txid, nb_tx))
+            progress(1 / nb_tx)
             try:
                 tx = parse_transaction_doc(sent, connection.pubkey, sent_data["block_number"],
                                            sent_data["time"], txid)
