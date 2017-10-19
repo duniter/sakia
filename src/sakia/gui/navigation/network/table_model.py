@@ -2,7 +2,7 @@ from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QSortFilterProxyMode
     QDateTime, QLocale, QT_TRANSLATE_NOOP, QModelIndex, pyqtSignal
 from PyQt5.QtGui import QColor, QFont, QIcon
 from sakia.data.entities import Node
-from duniterpy.documents import BMAEndpoint, SecuredBMAEndpoint
+from duniterpy.documents import BMAEndpoint, SecuredBMAEndpoint, WS2PEndpoint, UnknownEndpoint
 from sakia.data.processors import BlockchainProcessor
 import logging
 
@@ -82,10 +82,11 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
                     return source_data
 
             if index.column() == NetworkTableModel.columns_types.index('address') \
-                    or index.column() == NetworkTableModel.columns_types.index('port'):
-                return "<p>" + source_data.replace('\n', "<br>") + "</p>"
+                    or index.column() == NetworkTableModel.columns_types.index('port') \
+                    or index.column() == NetworkTableModel.columns_types.index('api'):
+                    return "<p>" + source_data.replace('\n', "<br>") + "</p>"
 
-            if index.column() == NetworkTableModel.columns_types.index('current_hash') :
+            if index.column() == NetworkTableModel.columns_types.index('current_hash'):
                 return source_data[:10]
 
             if index.column() == NetworkTableModel.columns_types.index('current_time') and source_data:
@@ -97,7 +98,8 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
                         ) + " BAT"
 
         if role == Qt.TextAlignmentRole:
-            if source_index.column() == NetworkTableModel.columns_types.index('address') or source_index.column() == self.sourceModel().columns_types.index('current_block'):
+            if source_index.column() == NetworkTableModel.columns_types.index('address') \
+                    or source_index.column() == self.sourceModel().columns_types.index('current_block'):
                 return Qt.AlignRight | Qt.AlignVCenter
             if source_index.column() == NetworkTableModel.columns_types.index('is_member'):
                 return Qt.AlignCenter
@@ -121,6 +123,7 @@ class NetworkTableModel(QAbstractTableModel):
     header_names = {
         'address': QT_TRANSLATE_NOOP("NetworkTableModel", 'Address'),
         'port': QT_TRANSLATE_NOOP("NetworkTableModel", 'Port'),
+        'api': QT_TRANSLATE_NOOP('NetworkTableModel', 'API'),
         'current_block': QT_TRANSLATE_NOOP("NetworkTableModel", 'Block'),
         'current_hash': QT_TRANSLATE_NOOP("NetworkTableModel", 'Hash'),
         'current_time': QT_TRANSLATE_NOOP("NetworkTableModel", 'Time'),
@@ -133,6 +136,7 @@ class NetworkTableModel(QAbstractTableModel):
     columns_types = (
         'address',
         'port',
+        'api',
         'current_block',
         'current_hash',
         'current_time',
@@ -193,8 +197,15 @@ class NetworkTableModel(QAbstractTableModel):
 
         addresses = []
         ports = []
+        api_list = []
         for e in node.endpoints:
-            if type(e) in (BMAEndpoint, SecuredBMAEndpoint):
+
+            if isinstance(e, UnknownEndpoint):
+                api_list.append(e.api)
+            else:
+                api_list.append(type(e).API)
+
+            if isinstance(e, BMAEndpoint) or isinstance(e, SecuredBMAEndpoint):
                 if e.server:
                     addresses.append(e.server)
                 elif e.ipv6:
@@ -202,8 +213,13 @@ class NetworkTableModel(QAbstractTableModel):
                 elif e.ipv4:
                     addresses.append(e.ipv4)
                 ports.append(str(e.port))
+            elif isinstance(e, WS2PEndpoint):
+                addresses.append(e.server)
+                ports.append(str(e.port))
+
         address = "\n".join(addresses)
         port = "\n".join(ports)
+        api = "\n".join(api_list)
 
         if node.current_buid:
             number, block_hash, block_time = node.current_buid.number, node.current_buid.sha_hash, node.current_ts
@@ -215,7 +231,7 @@ class NetworkTableModel(QAbstractTableModel):
         if node.state == Node.ONLINE and node.current_buid != current_buid:
             state = NetworkTableModel.DESYNCED
 
-        return (address, port, number, block_hash, block_time, node.uid,
+        return (address, port, api, number, block_hash, block_time, node.uid,
                 node.member, node.pubkey, node.software, node.version, node.root, state,
                 node)
 

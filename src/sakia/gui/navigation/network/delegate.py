@@ -12,7 +12,8 @@ class NetworkDelegate(QStyledItemDelegate):
 
         doc = QTextDocument()
         if index.column() in (NetworkTableModel.columns_types.index('address'),
-                              NetworkTableModel.columns_types.index('port')):
+                              NetworkTableModel.columns_types.index('port'),
+                              NetworkTableModel.columns_types.index('api')):
             doc.setHtml(option.text)
         else:
             doc.setPlainText(option.text)
@@ -35,7 +36,8 @@ class NetworkDelegate(QStyledItemDelegate):
 
         doc = QTextDocument()
         if index.column() in (NetworkTableModel.columns_types.index('address'),
-                              NetworkTableModel.columns_types.index('port')):
+                              NetworkTableModel.columns_types.index('port'),
+                              NetworkTableModel.columns_types.index('api')):
             doc.setHtml(option.text)
         else:
             doc.setPlainText("")
