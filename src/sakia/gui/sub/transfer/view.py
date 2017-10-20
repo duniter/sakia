@@ -96,6 +96,13 @@ class TransferView(QWidget, Ui_TransferMoneyWidget):
             self.combo_connections.addItem(conn.title())
             self.combo_local_keys.addItem(conn.title())
 
+    def add_key(self, conn):
+        self.combo_local_keys.addItem(conn.title())
+
+    def remove_key(self, conn):
+        index_local_key = self.combo_local_keys.findText(conn.title())
+        self.combo_local_keys.removeItem(index_local_key)
+
     def local_key_selected(self):
         return self.combo_local_keys.currentIndex()
 

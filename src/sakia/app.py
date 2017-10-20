@@ -48,6 +48,7 @@ class Application(QObject):
     transaction_state_changed = pyqtSignal(Transaction)
     identity_changed = pyqtSignal(Identity)
     new_connection = pyqtSignal(Connection)
+    connection_removed = pyqtSignal(Connection)
     referential_changed = pyqtSignal()
     sources_refreshed = pyqtSignal()
     new_blocks_handled = pyqtSignal()
@@ -157,6 +158,7 @@ class Application(QObject):
         TransactionsProcessor.instanciate(self).cleanup_connection(connection, connections_processor.pubkeys())
 
         self.db.commit()
+        self.connection_removed.emit(connection)
 
     async def initialize_blockchain(self):
         await asyncio.sleep(2) # Give time for the network to connect to nodes

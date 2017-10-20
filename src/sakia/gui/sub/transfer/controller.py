@@ -53,7 +53,7 @@ class TransferController(QObject):
         """
         Instanciate a transfer component
         :param sakia.gui.component.controller.ComponentController parent:
-        :param sakia.core.Application app:
+        :param sakia.app.Application app:
         :return: a new Transfer controller
         :rtype: TransferController
         """
@@ -70,7 +70,8 @@ class TransferController(QObject):
 
         view.set_keys(transfer.model.available_connections())
         view.set_contacts(transfer.model.contacts())
-        view.radio_pubkey.toggle()
+        app.new_connection.connect(view.add_key)
+        app.connection_removed.connect(view.remove_key)
 
         return transfer
 
@@ -78,6 +79,7 @@ class TransferController(QObject):
     def integrate_to_main_view(cls, parent, app, connection):
         transfer = cls.create(parent, app)
         transfer.view.combo_connections.setCurrentText(connection.title())
+        transfer.view.radio_pubkey.toggle()
         transfer.view.groupbox_connection.hide()
         transfer.view.label_total.hide()
         return transfer
@@ -90,6 +92,7 @@ class TransferController(QObject):
             transfer.view.combo_connections.setCurrentText(connection.title())
         transfer.view.edit_pubkey.setText(pubkey)
         transfer.view.radio_pubkey.setChecked(True)
+        transfer.view.radio_pubkey.toggle()
 
         transfer.refresh()
         return transfer
@@ -113,6 +116,7 @@ class TransferController(QObject):
         dialog.setLayout(QVBoxLayout(dialog))
         transfer = cls.open_transfer_with_pubkey(parent, app, connection, identity.pubkey)
 
+        transfer.view.radio_search.toggle()
         transfer.user_information.change_identity(identity)
         dialog.layout().addWidget(transfer.view)
         transfer.accepted.connect(dialog.accept)
@@ -145,7 +149,7 @@ class TransferController(QObject):
         wallet_index = connections_processor.connections().index(connection)
         transfer.view.combo_connections.setCurrentIndex(wallet_index)
         transfer.view.edit_pubkey.setText(resent_transfer.receivers[0])
-        transfer.view.radio_pubkey.setChecked(True)
+        transfer.view.radio_pubkey.toggle()
         transfer.view.edit_message.setText(resent_transfer.comment)
         dialog.layout().addWidget(transfer.view)
         transfer.accepted.connect(dialog.accept)
