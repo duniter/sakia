@@ -50,7 +50,7 @@ then
     env PYTHON_CONFIGURE_OPTS="--enable-framework" pyenv install $PYENV_PYTHON_VERSION
 elif [ $TRAVIS_OS_NAME == "linux" ]
 then
-    PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install $PYENV_PYTHON_VERSION
+    PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install --force $PYENV_PYTHON_VERSION
 fi
 
 pyenv shell $PYENV_PYTHON_VERSION
