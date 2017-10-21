@@ -194,7 +194,7 @@ class Application(QObject):
     @asyncify
     async def get_last_version(self):
         try:
-            with aiohttp.ClientSession() as session:
+            async with aiohttp.ClientSession() as session:
                 with aiohttp.Timeout(15):
                     response = await session.get("https://api.github.com/repos/duniter/sakia/releases",
                                                  proxy=self.parameters.proxy())
