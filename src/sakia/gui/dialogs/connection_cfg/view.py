@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QDialog
-from PyQt5.QtCore import pyqtSignal, Qt
+from PyQt5.QtCore import pyqtSignal, Qt, QElapsedTimer, QDateTime, QCoreApplication
 from .connection_cfg_uic import Ui_ConnectionConfigurationDialog
 from .congratulation_uic import Ui_CongratulationPopup
 from duniterpy.key import SigningKey, ScryptParams
@@ -22,6 +22,9 @@ class ConnectionConfigView(QDialog, Ui_ConnectionConfigurationDialog):
         """
         super().__init__(parent)
         self.setupUi(self)
+        self.last_speed = 0.1
+        self.average_speed = 1
+        self.timer = QElapsedTimer()
         self.edit_uid.textChanged.connect(self.values_changed)
         self.edit_password.textChanged.connect(self.values_changed)
         self.edit_password_repeat.textChanged.connect(self.values_changed)
@@ -153,11 +156,22 @@ class ConnectionConfigView(QDialog, Ui_ConnectionConfigurationDialog):
         :param float ratio: the ratio of progress of current step (between 0 and 1)
         :return:
         """
+        QCoreApplication.processEvents()
         value = self.progress_bar.value()
-        self.progress_bar.setValue(value + 1000000*step_ratio)
+        next_value = value + 1000000*step_ratio
+        SMOOTHING_FACTOR = 0.005
+        speed_percent_by_ms = (next_value - value) / self.timer.elapsed()
+        self.average_speed = SMOOTHING_FACTOR * self.last_speed + (1 - SMOOTHING_FACTOR) * self.average_speed
+        remaining = (self.progress_bar.maximum() - next_value) / self.average_speed
+        self.last_speed = speed_percent_by_ms
+        displayed_remaining_time = QDateTime.fromTime_t(remaining).toUTC().toString("hh:mm:ss")
+        self.progress_bar.setFormat(self.tr("{0} scs remaining...".format(displayed_remaining_time)))
+        self.progress_bar.setValue(next_value)
+        self.timer.restart()
 
     def set_progress_steps(self, steps):
         self.progress_bar.setValue(0)
+        self.timer.start()
         self.progress_bar.setMaximum(steps*1000000)
 
     def set_step(self, step):

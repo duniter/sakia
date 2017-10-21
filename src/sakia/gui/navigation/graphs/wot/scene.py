@@ -77,7 +77,10 @@ class WotScene(BaseScene):
         y = 0
         x = -1 * scale
         # sort by text
-        sort_certifier = sorted(certifier, key=lambda node_: node_[1]['text'].lower())
+        try:
+            sort_certifier = sorted(certifier, key=lambda node_: node_[1]['attr_dict']['text'].lower())
+        except KeyError as e:
+            print(e)
         # add nodes and arcs
         for n in sort_certifier:
             y += 0.25 * scale
@@ -104,7 +107,7 @@ class WotScene(BaseScene):
         y = 0
         x = 1 * scale
         # sort by text
-        sort_certified = sorted(certified, key=lambda node_: node_[1]['text'].lower())
+        sort_certified = sorted(certified, key=lambda node_: node_[1]['attr_dict']['text'].lower())
         # add nodes and arcs
         for n in sort_certified:
             y += 0.25 * scale
@@ -157,9 +160,9 @@ class WotScene(BaseScene):
 
             for edge in nx_graph.edges(data=True):
                 if edge[0] in certifiers_graph_pos and edge[1] == identity.pubkey:
-                    self.addItem(WotEdge(edge[0], edge[1], edge[2], certifiers_graph_pos))
+                    self.addItem(WotEdge(edge[0], edge[1], edge[2]['attr_dict'], certifiers_graph_pos))
                 if edge[0] == identity.pubkey and edge[1] in certified_graph_pos:
-                    self.addItem(WotEdge(edge[0], edge[1], edge[2], certified_graph_pos))
+                    self.addItem(WotEdge(edge[0], edge[1], edge[2]['attr_dict'], certified_graph_pos))
 
             self.update()
 

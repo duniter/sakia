@@ -17,7 +17,7 @@ class BaseNode(QGraphicsEllipseItem):
 
         super().__init__()
 
-        self.metadata = nx_node[1]
+        self.metadata = nx_node[1]['attr_dict']
         self.id = nx_node[0]
         # unpack tuple
         x, y = pos[nx_node[0]]
