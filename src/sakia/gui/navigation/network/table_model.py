@@ -112,6 +112,9 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
                 font.setBold(True)
                 return font
 
+        if role == Qt.BackgroundColorRole and self.app.parameters.dark_theme:
+            return source_data.darker()
+
         return source_data
 
 
@@ -296,6 +299,7 @@ class NetworkTableModel(QAbstractTableModel):
             return node[col]
         if role == Qt.BackgroundColorRole:
             return NetworkTableModel.node_colors[node[NetworkTableModel.columns_types.index('state')]]
+
         if role == Qt.ToolTipRole:
             return NetworkTableModel.node_states[node[NetworkTableModel.columns_types.index('state')]]()
 

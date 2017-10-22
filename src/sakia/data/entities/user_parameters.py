@@ -19,6 +19,7 @@ class UserParameters:
     proxy_port = attr.ib(convert=int, default=8080)
     proxy_user = attr.ib(convert=str, default="")
     proxy_password = attr.ib(convert=str, default="")
+    dark_theme = attr.ib(convert=bool, default=False)
 
     def proxy(self):
         if self.enable_proxy is True:

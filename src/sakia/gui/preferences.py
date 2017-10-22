@@ -49,6 +49,8 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
         self.edit_proxy_username.setText(self.app.parameters.proxy_user)
         self.edit_proxy_password.setText(self.app.parameters.proxy_password)
 
+        self.checkbox_dark_theme.setChecked(self.app.parameters.dark_theme)
+
     def handle_proxy_change(self):
         self.spinbox_proxy_port.setEnabled(self.checkbox_proxy.isChecked())
         self.edit_proxy_address.setEnabled(self.checkbox_proxy.isChecked())
@@ -64,7 +66,8 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
                                     proxy_address=self.edit_proxy_address.text(),
                                     proxy_port=self.spinbox_proxy_port.value(),
                                     proxy_user=self.edit_proxy_username.text(),
-                                    proxy_password=self.edit_proxy_password.text())
+                                    proxy_password=self.edit_proxy_password.text(),
+                                    dark_theme=self.checkbox_dark_theme.isChecked())
         self.app.save_parameters(parameters)
       # change UI translation
         self.app.switch_language()
