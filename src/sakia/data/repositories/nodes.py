@@ -1,6 +1,6 @@
 import attr
 
-from duniterpy.documents import BlockUID, block_uid
+from duniterpy.documents import BlockUID, block_uid, MalformedDocumentError
 from ..entities import Node
 
 
@@ -98,7 +98,13 @@ class NodesRepo:
         c = self._conn.execute(request, tuple(values))
         datas = c.fetchall()
         if datas:
-            return [Node(*data) for data in datas]
+            nodes = []
+            for data in datas:
+                try:
+                    nodes.append(Node(*data))
+                except MalformedDocumentError:
+                    pass
+            return nodes
         return []
 
     def drop(self, node):
