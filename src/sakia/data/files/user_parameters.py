@@ -31,7 +31,7 @@ class UserParametersFile:
             json.dump(attr.asdict(user_parameters), outfile, indent=4)
         return user_parameters
 
-    def load_or_init(self):
+    def load_or_init(self, profile_name):
         """
         Update an existing user_parameters in the database
         :param sakia.data.entities.UserParameters user_parameters: the user_parameters to update
@@ -39,6 +39,7 @@ class UserParametersFile:
         try:
             with open(self._file, 'r') as json_data:
                 user_parameters = UserParameters(**json.load(json_data))
+                user_parameters.profile_name = profile_name
         except OSError:
-            user_parameters = UserParameters()
+            user_parameters = UserParameters(profile_name=profile_name)
         return user_parameters

@@ -10,5 +10,5 @@ def test_init_save_load():
     user_parameters_file = UserParametersFile(file)
     user_parameters.proxy_address = "test.fr"
     user_parameters_file.save(user_parameters)
-    user_parameters_2 = user_parameters_file.load_or_init()
+    user_parameters_2 = user_parameters_file.load_or_init("Default Profile")
     assert user_parameters == user_parameters_2

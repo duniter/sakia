@@ -101,7 +101,7 @@ class Application(QObject):
         :return:
         """
         self.plugins_dir = PluginsDirectory.in_config_path(self.options.config_path, profile_name).load_or_init(self.options.with_plugin)
-        self.parameters = UserParametersFile.in_config_path(self.options.config_path, profile_name).load_or_init()
+        self.parameters = UserParametersFile.in_config_path(self.options.config_path, profile_name).load_or_init(profile_name)
         self.db = SakiaDatabase.load_or_init(self.options, profile_name)
 
         self.instanciate_services()

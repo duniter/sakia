@@ -56,7 +56,8 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
         self.edit_proxy_address.setEnabled(self.checkbox_proxy.isChecked())
 
     def accept(self):
-        parameters = UserParameters(lang=self.combo_language.currentText(),
+        parameters = UserParameters(profile_name=self.app.parameters.profile_name,
+                                    lang=self.combo_language.currentText(),
                                     referential=self.combo_referential.currentIndex(),
                                     expert_mode=self.checkbox_expertmode.isChecked(),
                                     maximized=self.checkbox_maximize.isChecked(),
