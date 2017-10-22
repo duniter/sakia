@@ -364,6 +364,7 @@ class NodeConnector(QObject):
 
     def change_state_and_emit(self, new_state):
         if self.node.state != new_state:
+            self._logger.debug("Changing state {0} > {1}".format(self.node.state, new_state))
             self.node.last_state_change = time.time()
             self.node.state = new_state
             self.changed.emit()

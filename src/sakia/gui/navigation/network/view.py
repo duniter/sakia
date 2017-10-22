@@ -25,7 +25,7 @@ class NetworkView(QWidget, Ui_NetworkWidget):
         :param PyQt5.QtCore.QAbstractTableModel model: the model of the table view
         """
         self.table_network.setModel(model)
-        self.table_network.sortByColumn(2, Qt.DescendingOrder)
+        self.table_network.sortByColumn(3, Qt.DescendingOrder)
         self.table_network.setItemDelegate(NetworkDelegate())
         self.table_network.resizeColumnsToContents()
         self.table_network.resizeRowsToContents()

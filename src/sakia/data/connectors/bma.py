@@ -183,6 +183,8 @@ class BmaConnector:
                     for i in range(0, int(nb_verification)+1):
                         node = next(nodes_generator)
                         endpoints = filter_endpoints(request, [node])
+                        if not endpoints:
+                            continue
                         endpoint = random.choice(endpoints)
                         self._logger.debug(
                             "Requesting {0} on endpoint {1}".format(str(request.__name__), str(endpoint)))

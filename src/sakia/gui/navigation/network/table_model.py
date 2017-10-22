@@ -214,6 +214,12 @@ class NetworkTableModel(QAbstractTableModel):
                     addresses.append(e.ipv4)
                 ports.append(str(e.port))
             elif isinstance(e, WS2PEndpoint):
+                addresses.append(e.server + " [" + e.ws2pid + "]")
+                ports.append(str(e.port))
+            elif isinstance(e, UnknownEndpoint):
+                addresses.append(" ".join(e.properties))
+                ports.append("-")
+            else:
                 addresses.append(e.server)
                 ports.append(str(e.port))
 
