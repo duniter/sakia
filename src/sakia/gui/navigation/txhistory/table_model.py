@@ -275,18 +275,25 @@ class HistoryTableModel(QAbstractTableModel):
             return font
 
         if role == Qt.ForegroundRole:
+            color = None
             if state_data == Transaction.REFUSED:
-                return QColor(Qt.darkGray)
+                color = QColor(Qt.darkGray)
             elif state_data == Transaction.TO_SEND:
-                return QColor(Qt.blue)
+                color = QColor(Qt.blue)
             if col == HistoryTableModel.columns_types.index('amount'):
                 if source_data < 0:
-                    return QColor(Qt.darkRed)
+                    color = QColor(Qt.darkRed)
                 elif state_data == HistoryTableModel.DIVIDEND:
-                    return QColor(Qt.darkBlue)
+                    color = QColor(Qt.darkBlue)
             if state_data == Transaction.AWAITING or \
                     (state_data == Transaction.VALIDATED and current_confirmations == 0):
-                return QColor("#ffb000")
+                color = QColor("#ffb000")
+            if color:
+                if self.app.parameters.dark_theme:
+                    return color.lighter(300)
+                else:
+                    return color
+
 
         if role == Qt.TextAlignmentRole:
             if HistoryTableModel.columns_types.index('amount'):
