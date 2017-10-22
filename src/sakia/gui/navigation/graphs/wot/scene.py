@@ -47,7 +47,7 @@ class WotScene(BaseScene):
         y = 0
         x = 1 * scale
         # sort by text
-        sort_certified = sorted(certified, key=lambda node_: node_[1]['text'].lower())
+        sort_certified = sorted(certified, key=lambda node_: node_[1]['attr_dict']['text'].lower())
         # add nodes and arcs
         for n in sort_certified:
             y += 0.25 * scale
@@ -77,10 +77,7 @@ class WotScene(BaseScene):
         y = 0
         x = -1 * scale
         # sort by text
-        try:
-            sort_certifier = sorted(certifier, key=lambda node_: node_[1]['attr_dict']['text'].lower())
-        except KeyError as e:
-            print(e)
+        sort_certifier = sorted(certifier, key=lambda node_: node_[1]['attr_dict']['text'].lower())
         # add nodes and arcs
         for n in sort_certifier:
             y += 0.25 * scale
