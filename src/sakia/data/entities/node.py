@@ -10,11 +10,14 @@ def _tuple_of_endpoints(value):
         l = [endpoint(e) for e in value]
         return tuple(l)
     elif isinstance(value, str):
-        list_of_str = value.split('\n')
-        conv = []
-        for s in list_of_str:
-            conv.append(endpoint(s))
-        return conv
+        if value:
+            list_of_str = value.split('\n')
+            conv = []
+            for s in list_of_str:
+                conv.append(endpoint(s))
+            return conv
+        else:
+            return []
     else:
         raise TypeError("Can't convert {0} to list of endpoints".format(value))
 
