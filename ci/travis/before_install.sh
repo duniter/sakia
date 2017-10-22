@@ -27,7 +27,8 @@ then
             libxcb-xfixes0-dev libxrender-dev libxcb-shape0-dev libxcb-randr0-dev libxcb-render-util0 \
             libxcb-render-util0-dev libxcb-glx0-dev libgl1-mesa-dri libegl1-mesa libpcre3 libgles2-mesa-dev \
             freeglut3-dev libfreetype6-dev xorg-dev xserver-xorg-input-void xserver-xorg-video-dummy xpra libosmesa6-dev \
-            curl libdbus-1-dev libdbus-glib-1-dev autoconf automake libtool libgstreamer-plugins-base0.10-0 dunst fakeroot
+            curl libdbus-1-dev libdbus-glib-1-dev autoconf automake libtool libgstreamer-plugins-base0.10-0 dunst fakeroot \
+            dbus-x11
     wget https://download.qt.io/official_releases/qt/5.8/5.8.0/qt-opensource-linux-x64-5.8.0.run
     chmod +x qt-opensource-linux-x64-5.8.0.run
     ./qt-opensource-linux-x64-5.8.0.run --script $HOME/build/duniter/sakia/ci/travis/qt-installer-noninteractive.qs
@@ -40,6 +41,8 @@ then
     echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bash_profile
 
     ldconfig -p
+    #export $(dbus-launch)
+
 fi
 
 eval "$(pyenv init -)"
