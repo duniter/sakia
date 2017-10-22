@@ -40,6 +40,6 @@ class UserParametersFile:
             with open(self._file, 'r') as json_data:
                 user_parameters = UserParameters(**json.load(json_data))
                 user_parameters.profile_name = profile_name
-        except OSError:
+        except (OSError, json.decoder.JSONDecodeError):
             user_parameters = UserParameters(profile_name=profile_name)
         return user_parameters
