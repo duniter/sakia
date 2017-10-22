@@ -40,6 +40,8 @@ then
     echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bash_profile
 
     ldconfig -p
+    export $(dbus-launch)
+
 fi
 
 eval "$(pyenv init -)"
