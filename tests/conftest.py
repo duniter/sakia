@@ -147,7 +147,7 @@ def simple_blockchain_forge(simple_forge, alice, bob):
     simple_forge.forge_block()
     simple_forge.set_member(alice.key.pubkey, True)
     simple_forge.set_member(bob.key.pubkey, True)
-    for i in range(0, 100):
+    for i in range(0, 10):
         new_user = mirage.User.create("test_currency", "user{0}".format(i),
                                        "salt{0}".format(i), "password{0}".format(i),
                                       simple_forge.blocks[-1].blockUID)
@@ -158,6 +158,14 @@ def simple_blockchain_forge(simple_forge, alice, bob):
         simple_forge.generate_dividend()
         simple_forge.forge_block()
     return simple_forge
+
+
+@pytest.fixture
+def big_blockchain_forge(simple_blockchain_forge):
+    for i in range(0, 100):
+        simple_blockchain_forge.generate_dividend()
+        simple_blockchain_forge.forge_block()
+    return simple_blockchain_forge
 
 
 @pytest.fixture
@@ -230,7 +238,7 @@ def application_with_one_connection(application, simple_blockchain_forge, bob):
 
 
 @pytest.fixture
-def application_with_two_connections(application_with_one_connection, simple_blockchain_forge, john):
+def application_with_two_connections(application_with_one_connection, big_blockchain_forge, bob, john):
     connection = Connection(currency="test_currency",
                       pubkey=john.key.pubkey, uid="",
                       scrypt_N=mirage.User.SCRYPT_PARAMS.N,
@@ -238,6 +246,19 @@ def application_with_two_connections(application_with_one_connection, simple_blo
                       scrypt_p=mirage.User.SCRYPT_PARAMS.p,
                       blockstamp=str(BlockUID.empty()))
     application_with_one_connection.db.connections_repo.insert(connection)
+
+    for s in big_blockchain_forge.user_identities[bob.key.pubkey].sources:
+        try:
+            application_with_one_connection.db.sources_repo.insert(Source(currency=big_blockchain_forge.currency,
+                                                  pubkey=bob.key.pubkey,
+                                                  identifier=s.origin_id,
+                                                  noffset=s.index,
+                                                  type=s.source,
+                                                  amount=s.amount,
+                                                  base=s.base))
+        except sqlite3.IntegrityError:
+            pass
+
     return application_with_one_connection
 
 def unitttest_exception_handler(exceptions, loop, context):
