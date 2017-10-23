@@ -12,7 +12,7 @@ call pyuic5 --version
 pyrcc5 -version
 
 pip install -r requirements.txt
-pip install pyinstaller
+pip install pyinstaller==3.2
 pip install six
 pip install packaging
 
