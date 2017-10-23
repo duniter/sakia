@@ -147,7 +147,7 @@ def simple_blockchain_forge(simple_forge, alice, bob):
     simple_forge.forge_block()
     simple_forge.set_member(alice.key.pubkey, True)
     simple_forge.set_member(bob.key.pubkey, True)
-    for i in range(0, 10):
+    for i in range(0, 100):
         new_user = mirage.User.create("test_currency", "user{0}".format(i),
                                        "salt{0}".format(i), "password{0}".format(i),
                                       simple_forge.blocks[-1].blockUID)
@@ -227,6 +227,18 @@ def application_with_one_connection(application, simple_blockchain_forge, bob):
 
     return application
 
+
+
+@pytest.fixture
+def application_with_two_connections(application_with_one_connection, simple_blockchain_forge, john):
+    connection = Connection(currency="test_currency",
+                      pubkey=john.key.pubkey, uid="",
+                      scrypt_N=mirage.User.SCRYPT_PARAMS.N,
+                      scrypt_r=mirage.User.SCRYPT_PARAMS.r,
+                      scrypt_p=mirage.User.SCRYPT_PARAMS.p,
+                      blockstamp=str(BlockUID.empty()))
+    application_with_one_connection.db.connections_repo.insert(connection)
+    return application_with_one_connection
 
 def unitttest_exception_handler(exceptions, loop, context):
     """

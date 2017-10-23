@@ -282,7 +282,7 @@ class BmaConnector:
         replies = []
 
         if len(endpoints) > 0:
-            with aiohttp.ClientSession() as session:
+            async with aiohttp.ClientSession() as session:
                 for endpoint in endpoints:
                     self._logger.debug("Trying to connect to : " + str(endpoint))
                     reply = asyncio.ensure_future(request(next(endpoint.conn_handler(session,

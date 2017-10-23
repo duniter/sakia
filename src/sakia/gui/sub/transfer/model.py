@@ -99,7 +99,9 @@ class TransferModel(QObject):
                 if conn.pubkey == recipient:
                     self.app.sources_service.parse_transaction(recipient, transaction)
                     new_tx = self.app.transactions_service.parse_sent_transaction(recipient, transaction)
-                    self.app.new_transfer.emit(conn, new_tx)
+                    # Not all connections are concerned by chained tx
+                    if new_tx:
+                        self.app.new_transfer.emit(conn, new_tx)
             self.app.sources_refreshed.emit()
             self.app.db.commit()
         return result, transactions
