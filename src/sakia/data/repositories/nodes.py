@@ -72,10 +72,7 @@ class NodesRepo:
         c = self._conn.execute(request, tuple(values))
         data = c.fetchone()
         if data:
-            try:
-                return Node(*data)
-            except MalformedDocumentError:
-                pass
+            return Node(*data)
 
     def get_all(self, **search):
         """
@@ -101,13 +98,7 @@ class NodesRepo:
         c = self._conn.execute(request, tuple(values))
         datas = c.fetchall()
         if datas:
-            nodes = []
-            for data in datas:
-                try:
-                    nodes.append(Node(*data))
-                except MalformedDocumentError:
-                    pass
-            return nodes
+            return [Node(*data) for data in datas]
         return []
 
     def drop(self, node):
