@@ -33,6 +33,7 @@ class ConnectionConfigView(QDialog, Ui_ConnectionConfigurationDialog):
         self.edit_salt.textChanged.connect(self.values_changed)
         self.edit_pubkey.textChanged.connect(self.values_changed)
         self.button_generate.clicked.connect(self.action_show_pubkey)
+        self.text_license.setReadOnly(True)
 
         self.combo_scrypt_params.currentIndexChanged.connect(self.handle_combo_change)
         self.scrypt_params = ScryptParams(4096, 16, 1)
@@ -150,7 +151,7 @@ class ConnectionConfigView(QDialog, Ui_ConnectionConfigurationDialog):
         Add log to
         :param str log:
         """
-        self.plain_text_edit.insertPlainText("\n" + log)
+        self.plain_text_edit.appendPlainText(log)
 
     def progress(self, step_ratio):
         """
