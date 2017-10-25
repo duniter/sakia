@@ -1,3 +1,4 @@
+import asyncio
 from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtWidgets import QDialog
 
@@ -77,4 +78,9 @@ class PreferencesDialog(QDialog, Ui_PreferencesDialog):
     def reject(self):
         super().reject()
 
+    def async_exec(self):
+        future = asyncio.Future()
+        self.finished.connect(lambda r: future.set_result(r))
+        self.open()
+        return future
 

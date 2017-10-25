@@ -1,6 +1,7 @@
 import attr
 import datetime
 import logging
+import socket
 import i18n_rc
 
 import aiohttp
@@ -216,7 +217,7 @@ class Application(QObject):
                         logging.debug("Found version : {0}".format(latest_version))
                         logging.debug("Current version : {0}".format(__version__))
                         self.available_version = version
-        except (aiohttp.ClientError, aiohttp.ServerDisconnectedError, asyncio.TimeoutError) as e:
+        except (aiohttp.ClientError, aiohttp.ServerDisconnectedError, asyncio.TimeoutError, socket.gaierror) as e:
             self._logger.debug("Could not connect to github : {0}".format(str(e)))
 
     def save_parameters(self, parameters):

@@ -14,6 +14,8 @@ from sakia.errors import NoPeerAvailable
 from sakia.app import Application
 from sakia.gui.dialogs.connection_cfg.controller import ConnectionConfigController
 from sakia.gui.main_window.controller import MainWindowController
+from sakia.gui.preferences import PreferencesDialog
+from sakia.gui.widgets import QAsyncMessageBox
 
 
 def async_exception_handler(loop, context):
@@ -99,20 +101,26 @@ if __name__ == '__main__':
     with loop:
         app = Application.startup(sys.argv, sakia, loop)
         app.start_coroutines()
-        try:
-            if not app.blockchain_service.initialized():
+        keep_trying = True
+        while not app.blockchain_service.initialized():
+            try:
                 box = QMessageBox()
                 box.setWindowTitle("Initialization")
                 box.setText("Connecting to the network...")
-                wFlags = box.windowFlags();
+                wFlags = box.windowFlags()
                 if Qt.WindowCloseButtonHint == (wFlags & Qt.WindowCloseButtonHint):
                     wFlags = wFlags ^ Qt.WindowCloseButtonHint
                     box.setWindowFlags(wFlags)
                 box.show()
                 loop.run_until_complete(app.initialize_blockchain())
                 box.hide()
-        except (DuniterError, NoPeerAvailable) as e:
-            QMessageBox.critical(None, "Error", "Error connecting to the network : {:}".format(str(e)))
+            except (DuniterError, NoPeerAvailable) as e:
+                reply = QMessageBox.critical(None, "Error", "Error connecting to the network : {:}. Keep Trying ?".format(str(e)),
+                                             QMessageBox.Ok | QMessageBox.Abort)
+                if reply == QMessageBox.Ok:
+                    loop.run_until_complete(PreferencesDialog(app).async_exec())
+                else:
+                    break
         else:
             if not app.connection_exists():
                 conn_controller = ConnectionConfigController.create_connection(None, app)
