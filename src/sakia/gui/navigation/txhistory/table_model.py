@@ -91,6 +91,9 @@ class HistoryTableModel(QAbstractTableModel):
                                       ts_from=self.ts_from,
                                       ts_to=self.ts_to)
 
+    def pubkeys(self, row):
+        return self.transfers_data[row][HistoryTableModel.columns_types.index('pubkey')].split('\n')
+
     def transfers_and_dividends(self):
         """
         Transfer
@@ -293,7 +296,6 @@ class HistoryTableModel(QAbstractTableModel):
                     return color.lighter(300)
                 else:
                     return color
-
 
         if role == Qt.TextAlignmentRole:
             if HistoryTableModel.columns_types.index('amount'):

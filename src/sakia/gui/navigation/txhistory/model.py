@@ -63,9 +63,7 @@ class TxHistoryModel(QObject):
         :return: tuple containing (Identity, Transfer)
         """
         if index.isValid() and index.row() < self.table_model.rowCount(QModelIndex()):
-            pubkey_col = self._model.columns_types.index('pubkey')
-            pubkey_index = self._model.index(index.row(), pubkey_col)
-            pubkeys = self._model.data(pubkey_index, Qt.DisplayRole)
+            pubkeys = self._model.pubkeys(index.row())
             identities_or_pubkeys = []
             for pubkey in pubkeys:
                 identity = self.identities_service.get_identity(pubkey)

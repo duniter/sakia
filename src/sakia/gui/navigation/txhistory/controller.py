@@ -91,9 +91,12 @@ class TxHistoryController(QObject):
         if valid:
             menu = ContextMenu.from_data(self.view, self.model.app, self.model.connection, identities + [transfer])
             menu.view_identity_in_wot.connect(self.view_in_wot)
+            cursor = QCursor.pos()
+            _x = cursor.x()
+            _y = cursor.y()
 
             # Show the context menu.
-            menu.qmenu.popup(QCursor.pos())
+            menu.qmenu.popup(cursor)
 
     def dates_changed(self):
         self._logger.debug("Changed dates")
