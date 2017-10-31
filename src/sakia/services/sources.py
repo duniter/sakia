@@ -115,8 +115,10 @@ class SourcesServices(QObject):
         :param int unit_base: the unit base of the destruction. None to look for the past uds
         :return: the destruction of sources
         """
-        sorted_tx = (s for s in sorted(transactions, key=lambda t: t.written_block))
-        sorted_ud = (u for u in sorted(dividends, key=lambda d: d.block_number))
+        unique_tx = {s.written_block: s for s in transactions}
+        unique_ud = {u.block_number: u for u in dividends}
+        sorted_tx = (s for s in sorted(unique_tx.values(), key=lambda t: t.written_block))
+        sorted_ud = (u for u in sorted(unique_ud.values(), key=lambda d: d.block_number))
         try:
             tx = next(sorted_tx)
             block_number = max(tx.written_block, 0)

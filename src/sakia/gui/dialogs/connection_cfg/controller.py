@@ -184,8 +184,8 @@ class ConnectionConfigController(QObject):
             self.view.set_step(1)
 
             if self.mode in (ConnectionConfigController.REGISTER,
-                        ConnectionConfigController.CONNECT,
-                        ConnectionConfigController.PUBKEY) and connection_identity:
+                             ConnectionConfigController.CONNECT,
+                             ConnectionConfigController.PUBKEY) and connection_identity:
                 self.view.stream_log("Saving identity...")
                 self.model.connection.blockstamp = connection_identity.blockstamp
                 self.model.insert_or_update_connection()
