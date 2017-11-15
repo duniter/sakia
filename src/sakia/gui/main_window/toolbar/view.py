@@ -208,11 +208,11 @@ class ToolbarView(QFrame, Ui_SakiaToolbar):
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             </table>
             """).format(
-                self.tr('{:2.0%} / {:} days').format(localized_data['growth'], localized_data['days_per_dividend']),
+                self.tr('{:2.2%} / {:} days').format(localized_data['growth'], localized_data['days_per_dividend']),
                 self.tr('Fundamental growth (c) / Delta time (dt)'),
                 self.tr('UDĞ(t) = UDĞ(t-1) + c²*M(t-1)/N(t-1)'),
                 self.tr('Universal Dividend (formula)'),
-                self.tr('{:} = {:} + {:2.0%}²* {:} / {:}').format(
+                self.tr('{:} = {:} + {:2.2%}² * {:} / {:}').format(
                     localized_data.get('ud_plus_1', '####'),
                     localized_data.get('ud', '####'),
                     localized_data.get('growth', '####'),
@@ -261,7 +261,7 @@ class ToolbarView(QFrame, Ui_SakiaToolbar):
         # set infos in label
         return self.tr("""
             <table cellpadding="5">
-            <tr><td align="right"><b>{:2.0%} / {:} days</b></td><td>{:}</td></tr>
+            <tr><td align="right"><b>{:2.2%} / {:} days</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:} {:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
             <tr><td align="right"><b>{:}</b></td><td>{:}</td></tr>
