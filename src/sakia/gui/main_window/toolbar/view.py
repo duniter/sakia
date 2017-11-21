@@ -173,13 +173,13 @@ class ToolbarView(QFrame, Ui_SakiaToolbar):
                 localized_data.get('ud', '####'),
                 self.tr('Universal Dividend UD(t) in'),
                 localized_data['diff_units'],
-                localized_data.get('mass_minus_1', "###"),
-                self.tr('Monetary Mass M(t-1) in'),
+                localized_data.get('mass', "###"),
+                self.tr('Monetary Mass M in'),
                 localized_data['units'],
                 localized_data.get('members_count', '####'),
-                self.tr('Members N(t)'),
+                self.tr('Members N'),
                 localized_data.get('mass_minus_1_per_member', '####'),
-                self.tr('Monetary Mass per member M(t-1)/N(t) in'),
+                self.tr('Monetary Mass per member M(t-1)/N(t-1) in'),
                 localized_data['diff_units'],
                 localized_data.get('actual_growth', 0),
                 localized_data.get('days_per_dividend', '####'),
@@ -216,8 +216,8 @@ class ToolbarView(QFrame, Ui_SakiaToolbar):
                     localized_data.get('ud_plus_1', '####'),
                     localized_data.get('ud', '####'),
                     localized_data.get('growth', '####'),
-                    localized_data.get('mass', '####'),
-                    localized_data.get('members_count', '####')
+                    localized_data.get('mass_minus_1', '####'),
+                    localized_data.get('members_count_minus_1', '####')
                 ),
                 self.tr('Universal Dividend (computed)')
             )

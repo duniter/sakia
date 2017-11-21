@@ -101,6 +101,13 @@ class BlockchainProcessor:
         """
         return self._repo.get_one(currency=currency).current_members_count
 
+    def last_mass(self, currency):
+        """
+        Get the last ud value and base
+        :rtype: int, int
+        """
+        return self._repo.get_one(currency=currency).last_mass
+
     def last_members_count(self, currency):
         """
         Get the last ud value and base
@@ -264,6 +271,7 @@ class BlockchainProcessor:
             blockchain.current_buid = block.blockUID
             blockchain.median_time = block.mediantime
             blockchain.current_members_count = block.members_count
+            blockchain.current_mass = current_block['monetaryMass']
         except errors.DuniterError as e:
             if e.ucode != errors.NO_CURRENT_BLOCK:
                 raise
@@ -275,26 +283,36 @@ class BlockchainProcessor:
         if len(blocks_with_ud) > 0:
             self._logger.debug("Requesting last block with dividend")
             try:
-                index = max(len(blocks_with_ud) - 1, 0)
-                block_number = blocks_with_ud[index]
+                nb_previous_reevaluations = int((blockchain.median_time - blockchain.parameters.ud_reeval_time_0)
+                                                / blockchain.parameters.dt_reeval)
+
+                last_reeval_offset = (blockchain.median_time -
+                                      (blockchain.parameters.ud_reeval_time_0 +
+                                       nb_previous_reevaluations * blockchain.parameters.dt_reeval)
+                                      )
+
+                dt_reeval_block_target = max(blockchain.current_buid.number - int(last_reeval_offset
+                                                                                  / blockchain.parameters.avg_gen_time),
+                                             0)
+                last_ud_reeval_block_number = [b for b in blocks_with_ud if b <= dt_reeval_block_target][-1]
+
                 block_with_ud = await self._bma_connector.get(currency, bma.blockchain.block,
-                                                              req_args={'number': block_number})
+                                                              req_args={'number': last_ud_reeval_block_number})
                 if block_with_ud:
                     blockchain.last_members_count = block_with_ud['membersCount']
                     blockchain.last_ud = block_with_ud['dividend']
                     blockchain.last_ud_base = block_with_ud['unitbase']
                     blockchain.last_ud_time = block_with_ud['medianTime']
-                    blockchain.current_mass = block_with_ud['monetaryMass']
-            except errors.DuniterError as e:
-                if e.ucode != errors.NO_CURRENT_BLOCK:
-                    raise
+                    blockchain.last_mass = block_with_ud['monetaryMass']
 
-            self._logger.debug("Requesting previous block with dividend")
-            try:
-                index = max(len(blocks_with_ud) - 2, 0)
-                block_number = blocks_with_ud[index]
+                self._logger.debug("Requesting previous block with dividend")
+                dt_reeval_block_target = max(dt_reeval_block_target - int(blockchain.parameters.dt_reeval
+                                                                          / blockchain.parameters.avg_gen_time),
+                                             0)
+                previous_ud_reeval_block_number = [b for b in blocks_with_ud if b <= dt_reeval_block_target][-1]
+
                 block_with_ud = await self._bma_connector.get(currency, bma.blockchain.block,
-                                                              req_args={'number': block_number})
+                                                              req_args={'number': previous_ud_reeval_block_number})
                 blockchain.previous_mass = block_with_ud['monetaryMass']
                 blockchain.previous_members_count = block_with_ud['membersCount']
                 blockchain.previous_ud = block_with_ud['dividend']
@@ -321,12 +339,13 @@ class BlockchainProcessor:
                 blockchain.median_time = block.mediantime
                 blockchain.current_members_count = block.members_count
                 if block.ud:
-                    blockchain.previous_mass = blockchain.current_mass
+                    blockchain.current_mass += (block.ud * 10**block.unit_base) * block.members_count
+                if block.ud and blockchain.last_ud_time + blockchain.parameters.dt_reeval >= block.mediantime:
+                    blockchain.previous_mass = blockchain.last_mass
                     blockchain.previous_members_count = blockchain.last_members_count
                     blockchain.previous_ud = blockchain.last_ud
                     blockchain.previous_ud_base = blockchain.last_ud_base
                     blockchain.previous_ud_time = blockchain.last_ud_time
-                    blockchain.current_mass += (block.ud * 10**block.unit_base) * block.members_count
                     blockchain.last_members_count = block.members_count
                     blockchain.last_ud = block.ud
                     blockchain.last_ud_base = block.unit_base

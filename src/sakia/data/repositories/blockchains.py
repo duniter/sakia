@@ -35,6 +35,7 @@ class BlockchainsRepo:
                           current_members_count=?,
                           current_mass=?,
                           median_time=?,
+                          last_mass=?,
                           last_members_count=?,
                           last_ud=?,
                           last_ud_base=?,

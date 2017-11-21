@@ -111,6 +111,9 @@ class BlockchainService(QObject):
     def current_mass(self):
         return self._blockchain_processor.current_mass(self.currency)
 
+    def last_monetary_mass(self):
+        return self._blockchain_processor.last_mass(self.currency)
+
     def last_ud(self):
         return self._blockchain_processor.last_ud(self.currency)
 
@@ -153,7 +156,8 @@ class BlockchainService(QObject):
         """
         parameters = self.parameters()
         if self.last_members_count():
-            next_ud = parameters.c * self.current_mass() / self.last_members_count()
+            last_ud = self.last_ud()[0] * 10**self.last_ud()[1]
+            next_ud = last_ud + parameters.c * parameters.c * self.previous_monetary_mass() / self.last_members_count()
         else:
             next_ud = parameters.ud0
         return math.ceil(next_ud)

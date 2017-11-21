@@ -15,6 +15,7 @@ class ToolbarModel(QObject):
 
     :param sakia.app.Application app: the application
     :param sakia.gui.navigation.model.NavigationModel navigation_model: The navigation model
+    :param sakia.services.BlockchainService blockchain_service: The blockchain service
     """
 
     app = attr.ib()
@@ -76,12 +77,10 @@ class ToolbarModel(QObject):
         localized_data['growth'] = params.c
         localized_data['days_per_dividend'] = QLocale().toString(params.dt / 86400, 'f', 2)
 
+        last_mass = self.blockchain_service.last_monetary_mass()
         last_ud, last_ud_base = self.blockchain_service.last_ud()
-        members_count = self.blockchain_service.last_members_count()
-        previous_ud, previous_ud_base = self.blockchain_service.previous_ud()
-        previous_ud_time = self.blockchain_service.previous_ud_time()
-        previous_monetary_mass = self.blockchain_service.previous_monetary_mass()
-        previous_members_count = self.blockchain_service.previous_members_count()
+        last_members_count = self.blockchain_service.last_members_count()
+        last_ud_time = self.blockchain_service.last_ud_time()
 
         localized_data['units'] = self.app.current_ref.instance(0,
                                                                 self.app.currency,
@@ -132,26 +131,27 @@ class ToolbarModel(QObject):
                 QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
             )
 
-            if previous_ud:
-                mass_minus_1_per_member = (float(0) if previous_ud == 0 or previous_members_count == 0 else
-                                           previous_monetary_mass / previous_members_count)
+            if last_ud:
+                mass_minus_1_per_member = (float(0) if last_ud == 0 or last_members_count == 0 else
+                                           last_mass / last_members_count)
+                localized_data['members_count_minus_1'] = last_members_count
                 localized_data['mass_minus_1_per_member'] = self.app.current_ref.instance(mass_minus_1_per_member,
                                                   self.app.currency, self.app) \
                                                   .localized(False, True)
-                localized_data['mass_minus_1'] = self.app.current_ref.instance(previous_monetary_mass,
+                localized_data['mass_minus_1'] = self.app.current_ref.instance(last_mass,
                                                   self.app.currency, self.app) \
                                                   .localized(False, True)
                 # avoid divide by zero !
-                if members_count == 0 or previous_members_count == 0:
+                if last_members_count == 0:
                     localized_data['actual_growth'] = float(0)
                 else:
                     localized_data['actual_growth'] = (last_ud * math.pow(10, last_ud_base)) / (
-                    previous_monetary_mass / members_count)
+                    last_mass / last_members_count)
 
-                previous_ud_time = self.blockchain_processor.adjusted_ts(self.app.currency, previous_ud_time)
+                last_ud_time = self.blockchain_processor.adjusted_ts(self.app.currency, last_ud_time)
                 localized_data['ud_median_time_minus_1'] = QLocale.toString(
                     QLocale(),
-                    QDateTime.fromTime_t(previous_ud_time),
+                    QDateTime.fromTime_t(last_ud_time),
                     QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
                 )
         return localized_data

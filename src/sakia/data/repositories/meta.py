@@ -74,7 +74,8 @@ class SakiaDatabase:
             self.add_sentry_property,
             self.add_last_state_change_property,
             self.refactor_transactions,
-            self.drop_incorrect_nodes
+            self.drop_incorrect_nodes,
+            self.insert_last_mass_attribute
         ]
 
     def upgrade_database(self, to=0):
@@ -167,6 +168,12 @@ class SakiaDatabase:
                                          currency=? AND pubkey=?""", (data[0], data[1]))
                 finally:
                     data = c.fetchone()
+
+    def insert_last_mass_attribute(self):
+        self._logger.debug("Insert last_mass attribute")
+        sql_file = open(os.path.join(os.path.dirname(__file__), '005_add_lass_monetary_mass.sql'), 'r')
+        with self.conn:
+            self.conn.executescript(sql_file.read())
 
     def version(self):
         with self.conn:
