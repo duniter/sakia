@@ -1,7 +1,7 @@
 git+https://github.com/Insoleet/quamash.git@master
 asynctest
 networkx
-attrs
+attrs<=17.2
 duniter-mirage
 duniterpy>=0.40
 pytest

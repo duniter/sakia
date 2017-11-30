@@ -294,30 +294,34 @@ class BlockchainProcessor:
                 dt_reeval_block_target = max(blockchain.current_buid.number - int(last_reeval_offset
                                                                                   / blockchain.parameters.avg_gen_time),
                                              0)
-                last_ud_reeval_block_number = [b for b in blocks_with_ud if b <= dt_reeval_block_target][-1]
+                try:
+                    last_ud_reeval_block_number = [b for b in blocks_with_ud if b <= dt_reeval_block_target][-1]
+                except IndexError:
+                    last_ud_reeval_block_number = 0
 
-                block_with_ud = await self._bma_connector.get(currency, bma.blockchain.block,
-                                                              req_args={'number': last_ud_reeval_block_number})
-                if block_with_ud:
-                    blockchain.last_members_count = block_with_ud['membersCount']
-                    blockchain.last_ud = block_with_ud['dividend']
-                    blockchain.last_ud_base = block_with_ud['unitbase']
-                    blockchain.last_ud_time = block_with_ud['medianTime']
-                    blockchain.last_mass = block_with_ud['monetaryMass']
+                if last_ud_reeval_block_number:
+                    block_with_ud = await self._bma_connector.get(currency, bma.blockchain.block,
+                                                                  req_args={'number': last_ud_reeval_block_number})
+                    if block_with_ud:
+                        blockchain.last_members_count = block_with_ud['membersCount']
+                        blockchain.last_ud = block_with_ud['dividend']
+                        blockchain.last_ud_base = block_with_ud['unitbase']
+                        blockchain.last_ud_time = block_with_ud['medianTime']
+                        blockchain.last_mass = block_with_ud['monetaryMass']
 
-                self._logger.debug("Requesting previous block with dividend")
-                dt_reeval_block_target = max(dt_reeval_block_target - int(blockchain.parameters.dt_reeval
-                                                                          / blockchain.parameters.avg_gen_time),
-                                             0)
-                previous_ud_reeval_block_number = [b for b in blocks_with_ud if b <= dt_reeval_block_target][-1]
+                    self._logger.debug("Requesting previous block with dividend")
+                    dt_reeval_block_target = max(dt_reeval_block_target - int(blockchain.parameters.dt_reeval
+                                                                              / blockchain.parameters.avg_gen_time),
+                                                 0)
+                    previous_ud_reeval_block_number = [b for b in blocks_with_ud if b <= dt_reeval_block_target][-1]
 
-                block_with_ud = await self._bma_connector.get(currency, bma.blockchain.block,
-                                                              req_args={'number': previous_ud_reeval_block_number})
-                blockchain.previous_mass = block_with_ud['monetaryMass']
-                blockchain.previous_members_count = block_with_ud['membersCount']
-                blockchain.previous_ud = block_with_ud['dividend']
-                blockchain.previous_ud_base = block_with_ud['unitbase']
-                blockchain.previous_ud_time = block_with_ud['medianTime']
+                    block_with_ud = await self._bma_connector.get(currency, bma.blockchain.block,
+                                                                  req_args={'number': previous_ud_reeval_block_number})
+                    blockchain.previous_mass = block_with_ud['monetaryMass']
+                    blockchain.previous_members_count = block_with_ud['membersCount']
+                    blockchain.previous_ud = block_with_ud['dividend']
+                    blockchain.previous_ud_base = block_with_ud['unitbase']
+                    blockchain.previous_ud_time = block_with_ud['medianTime']
             except errors.DuniterError as e:
                 if e.ucode != errors.NO_CURRENT_BLOCK:
                     raise
