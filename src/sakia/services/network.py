@@ -147,18 +147,20 @@ class NetworkService(QObject):
         asyncio.ensure_future(self.discovery_loop())
         self.refresh_once()
         while self.continue_crawling():
+            if not first_loop:
+                for connector in self._connectors:
+                    if connector.node.state in (Node.OFFLINE, Node.CORRUPTED) \
+                            and connector.node.last_state_change + 3600 < time.time():
+                        connector.disconnect()
+                        self._processor.delete_node(connector.node)
+                        self._connectors.remove(connector)
+                        self.node_removed.emit(connector.node)
+
             for connector in self._connectors:
                 if self.continue_crawling():
                     await connector.init_session()
                     connector.refresh()
                     if not first_loop:
-                        if connector.node.state in (Node.OFFLINE, Node.CORRUPTED) \
-                                and connector.node.last_state_change + 3600 < time.time():
-                            connector.disconnect()
-                            self._processor.delete_node(connector.node)
-                            self._connectors.remove(connector)
-                            self.node_removed.emit(connector.node)
-
                         await asyncio.sleep(15)
 
             first_loop = False
