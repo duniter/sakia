@@ -82,15 +82,6 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     sakia = QApplication(sys.argv)
 
-    lock = single_instance_lock()
-    if not lock:
-        lock = single_instance_lock()
-        if not lock:
-            QMessageBox.critical(None, "Sakia",
-                             "Sakia is already running.")
-
-            sys.exit(1)
-
     sys.excepthook = exception_handler
 
     sakia.setStyle('Fusion')
@@ -100,7 +91,17 @@ if __name__ == '__main__':
 
     with loop:
         app = Application.startup(sys.argv, sakia, loop)
+
+        lock = single_instance_lock(app.currency)
+        if not lock:
+            lock = single_instance_lock(app.currency)
+            if not lock:
+                QMessageBox.critical(None, "Sakia",
+                                 "Sakia is already running.")
+
+                sys.exit(1)
         app.start_coroutines()
+        app.get_last_version()
         keep_trying = True
         while not app.blockchain_service.initialized():
             try:

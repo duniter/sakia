@@ -88,9 +88,7 @@ class Application(QObject):
         app_data = AppDataFile.in_config_path(options.config_path).load_or_init()
         app = cls(qapp, loop, options, app_data, None, None, options.currency, None)
         #app.set_proxy()
-        app.get_last_version()
         app.load_profile(options.profile)
-        app.start_coroutines()
         app.documents_service = DocumentsService.instanciate(app)
         app.switch_language()
         return app

@@ -1,4 +1,5 @@
 import re
+import hashlib
 from PyQt5.QtCore import QSharedMemory
 from PyQt5.QtWidgets import QApplication
 
@@ -17,8 +18,11 @@ def detect_non_printable(data):
         return True
 
 
-def single_instance_lock():
-    sharedMemory = QSharedMemory("77rWEV37vupNhQs6ktDREthqSciyV77OYrqPBSwV755JFIhl9iOywB7G5DkAKU8Y")
+def single_instance_lock(currency):
+    key = hashlib.sha256(currency.encode('utf-8')
+                         + "77rWEV37vupNhQs6ktDREthqSciyV77OYrqPBSwV755JFIhl9iOywB7G5DkAKU8Y".encode('utf-8'))\
+        .hexdigest()
+    sharedMemory = QSharedMemory(key)
     if sharedMemory.attach(QSharedMemory.ReadOnly):
         sharedMemory.detach()
         return None
