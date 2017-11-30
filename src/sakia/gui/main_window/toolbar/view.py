@@ -190,7 +190,7 @@ class ToolbarView(QFrame, Ui_SakiaToolbar):
                 self.tr('Last UD date and time (t)'),
                 localized_data.get('next_ud_median_time', '####') + " BAT",
                 self.tr('Next UD date and time (t+1)'),
-                localized_data.get('next_ud_reeaval', '####') + " BAT",
+                localized_data.get('next_ud_reeval', '####') + " BAT",
                 self.tr('Next UD reevaluation (t+1)')
             )
 

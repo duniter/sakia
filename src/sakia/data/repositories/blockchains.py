@@ -69,7 +69,7 @@ class BlockchainsRepo:
         c = self._conn.execute(request, tuple(values))
         data = c.fetchone()
         if data:
-            return Blockchain(BlockchainParameters(*data[:19]), *data[20:])
+            return Blockchain(BlockchainParameters(*data[:20]), *data[20:])
 
     def get_all(self, offset=0, limit=1000, sort_by="currency", sort_order="ASC", **search) -> List[Blockchain]:
         """
