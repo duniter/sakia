@@ -39,7 +39,8 @@ then
     git clone https://github.com/pyenv/pyenv.git ~/.pyenv
     echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bash_profile
     echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bash_profile
-
+    export PYENV_ROOT="$HOME/.pyenv"
+    export PATH="$PYENV_ROOT/bin:$PATH"
     ldconfig -p
     #export $(dbus-launch)
 

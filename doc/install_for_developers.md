@@ -56,7 +56,7 @@ python src/sakia/main.py
 
 * Linux : 
 ```bash
-curl -L https://raw.githubusercontent.com/yyuu/pyenv-installer/master/bin/pyenv-installer | bash
+curl -L https://raw.githubusercontent.com/pyenv/pyenv-installer/master/bin/pyenv-installer | bash
 ```
 
 Add in `~/.bash_profile`, in `~/.bashrc` on Fedora:
