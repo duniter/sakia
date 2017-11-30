@@ -23,6 +23,15 @@ class NavigationModel(QObject):
         self._current_data = None
         self._contacts_processor = ContactsProcessor.instanciate(self.app)
 
+    def handle_identity_change(self, identity):
+        for node in self.navigation[3]['children']:
+            if node['component'] == "Informations":
+                connection = node["misc"]["connection"]
+                if connection.pubkey == identity.pubkey and connection.uid == identity.uid:
+                    icon = self.identity_icon(connection)
+                    node["icon"] = icon
+                    return node
+
     def init_navigation_data(self):
         self.navigation = [
             {
@@ -80,14 +89,10 @@ class NavigationModel(QObject):
         else:
             title = connection.title()
         if connection.uid:
-            if self.identity_is_member(connection):
-                icon = ':/icons/member'
-            else:
-                icon = ':/icons/not_member'
             node = {
                 'title': title,
                 'component': "Informations",
-                'icon': icon,
+                'icon': self.identity_icon(connection),
                 'dependencies': {
                     'blockchain_service': self.app.blockchain_service,
                     'identities_service': self.app.identities_service,
@@ -134,6 +139,12 @@ class NavigationModel(QObject):
             }
 
         return node
+
+    def identity_icon(self, connection):
+        if self.identity_is_member(connection):
+            return ':/icons/member'
+        else:
+            return ':/icons/not_member'
 
     def view_in_wot(self, connection):
         identity = self.app.identities_service.get_identity(connection.pubkey, connection.uid)

@@ -67,6 +67,9 @@ class IdentitiesService(QObject):
             return 0
 
     def _get_connections_identities(self):
+        """
+        :rtype: List of sakia.data.entities.Identity
+        """
         connections = self._connections_processor.connections_with_uids(self.currency)
         identities = []
         for c in connections:
@@ -278,6 +281,21 @@ class IdentitiesService(QObject):
         for idty in identities:
             self._identities_processor.insert_or_update_identity(idty)
 
+    def _parse_median_time(self, block):
+        """
+        Parse revoked pubkeys found in a block and refresh local data
+
+        :param duniterpy.documents.Block block: the block received
+        :return: list of identities updated
+        """
+        identities = []
+        connections_identities = self._get_connections_identities()
+        parameters = self._blockchain_processor.parameters(block.currency)
+        for idty in connections_identities:
+            if idty.member and idty.membership_timestamp + parameters.ms_validity < block.mediantime:
+                identities.append(idty)
+        return identities
+
     def _parse_revocations(self, block):
         """
         Parse revoked pubkeys found in a block and refresh local data
@@ -423,6 +441,7 @@ class IdentitiesService(QObject):
         need_refresh += self._parse_identities(block)
         need_refresh += self._parse_memberships(block)
         need_refresh += await self._parse_certifications(block)
+        need_refresh += self._parse_median_time(block)
         return set(need_refresh)
 
     async def handle_new_blocks(self, blocks):

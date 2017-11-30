@@ -62,6 +62,7 @@ class IdentityController(QObject):
         view.set_table_identities_model(table_model)
         view.table_certifiers.customContextMenuRequested['QPoint'].connect(identity.identity_context_menu)
         identity.view_in_wot.connect(app.view_in_wot)
+        app.identity_changed.connect(identity.handle_identity_change)
         return identity
 
     def identity_context_menu(self, point):

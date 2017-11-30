@@ -64,6 +64,7 @@ class NavigationController(QObject):
         navigation.init_navigation()
         app.new_connection.connect(navigation.add_connection)
         app.view_in_wot.connect(navigation.open_wot_view)
+        app.identity_changed.connect(navigation.handle_identity_change)
         return navigation
 
     def open_network_view(self, _):
@@ -111,6 +112,11 @@ class NavigationController(QObject):
             self.parse_node(node)
 
         self.view.set_model(self.model)
+
+    def handle_identity_change(self, identity):
+        node = self.model.handle_identity_change(identity)
+        if node:
+            self.view.update_connection(node)
 
     def handle_view_change(self, raw_data):
         """

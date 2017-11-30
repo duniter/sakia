@@ -49,3 +49,6 @@ class NavigationView(QFrame, Ui_Navigation):
     def add_connection(self, raw_data):
         self.tree_view.model().insert_node(raw_data)
         self.tree_view.expandAll()
+
+    def update_connection(self, raw_data):
+        self.tree_view.model().modelReset.emit()
