@@ -94,9 +94,9 @@ If you are running El Capitan (MacOS 10.10), you'll need to run `xcode-select --
 
 #### Pyenv environment 
 
-##### Build python 3.5.3
+##### Build python 3.5.4
 
-Building python 3.5.3 requires libraries of `openssl` and `sqlite3`. On Ubuntu, install it using the following commands : 
+Building python 3.5.4 requires libraries of `openssl` and `sqlite3`. On Ubuntu, install it using the following commands : 
 
 ```
 apt-get update
@@ -106,12 +106,12 @@ apt-get install libsqlite3-dev
 
 Restart your shell then prepare your virtualenv: 
 
-On GNU/Linux: `PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install 3.5.3`  
-On MacOS: `env PYTHON_CONFIGURE_OPTS="--enable-framework" pyenv install 3.5.3`
+On GNU/Linux: `PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install 3.5.4`  
+On MacOS: `env PYTHON_CONFIGURE_OPTS="--enable-framework" pyenv install 3.5.4`
 
 Run:
 ```bash
-pyenv shell 3.5.3
+pyenv shell 3.5.4
 pyenv virtualenv sakia-env
 ```
 
