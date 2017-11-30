@@ -336,9 +336,17 @@ class NodeConnector(QObject):
                             if not leaf_data:
                                 break
                             self.refresh_peer_data(leaf_data['leaf']['value'])
-                        except (AttributeError, ValueError, errors.DuniterError) as e:
+                        except (AttributeError, ValueError) as e:
                             self._logger.debug("Incorrect peer data in {leaf} : {err}".format(leaf=leaf_hash, err=str(e)))
                             self.change_state_and_emit(Node.OFFLINE)
+                        except errors.DuniterError as e:
+                            if e.ucode == 2012:
+                                # Since with multinodes, peers or not the same on all nodes, sometimes this request results
+                                # in peer not found error
+                                self._logger.debug(str(e))
+                            else:
+                                self.change_state_and_emit(Node.OFFLINE)
+                                self._logger.debug("Incorrect peer data in {leaf} : {err}".format(leaf=leaf_hash, err=str(e)))
                     else:
                         self.node.merkle_peers_root = peers_data['root']
                         self.node.merkle_peers_leaves = tuple(peers_data['leaves'])
