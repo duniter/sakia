@@ -13,9 +13,11 @@ import asyncio
 class DividendsProcessor:
     """
     :param sakia.data.repositories.DividendsRepo _repo: the repository of the sources
+    :param sakia.data.repositories.BlockchainsRepo _blockchain_repo: the repository of the sources
     :param sakia.data.connectors.bma.BmaConnector _bma_connector: the bma connector
     """
     _repo = attr.ib()
+    _blockchain_repo = attr.ib()
     _bma_connector = attr.ib()
     _logger = attr.ib(default=attr.Factory(lambda: logging.getLogger('sakia')))
 
@@ -25,7 +27,7 @@ class DividendsProcessor:
         Instanciate a blockchain processor
         :param sakia.app.Application app: the app
         """
-        return cls(app.db.dividends_repo,
+        return cls(app.db.dividends_repo, app.db.blockchains_repo,
                    BmaConnector(NodesProcessor(app.db.nodes_repo), app.parameters))
 
     def commit(self, dividend):
@@ -44,6 +46,7 @@ class DividendsProcessor:
         :param function log_stream:
         :param function progress: progress callback
         """
+        blockchain = self._blockchain_repo.get_one(currency=connection.currency)
         history_data = await self._bma_connector.get(connection.currency, bma.ud.history,
                                                      req_args={'pubkey': connection.pubkey})
         log_stream("Found {0} available dividends".format(len(history_data["history"]["history"])))
@@ -70,14 +73,14 @@ class DividendsProcessor:
             txdoc = Transaction.from_signed_raw(tx.raw)
             for input in txdoc.inputs:
                 if input.source == "D" and input.origin_id == connection.pubkey and input.index not in block_numbers:
-                    block = await self._bma_connector.get(connection.currency,
-                                                          bma.blockchain.block, req_args={'number': input.index})
+                    diff_blocks = blockchain.current_buid.number - input.index
+                    ud_mediantime = blockchain.median_time - diff_blocks*blockchain.parameters.avg_gen_time
                     dividend = Dividend(currency=connection.currency,
                                         pubkey=connection.pubkey,
                                         block_number=input.index,
-                                        timestamp=block["medianTime"],
-                                        amount=block["dividend"],
-                                        base=block["unitbase"])
+                                        timestamp=ud_mediantime,
+                                        amount=input.amount,
+                                        base=input.base)
                     log_stream("Dividend of block {0}".format(dividend.block_number))
                     progress(1/nb_ud_tx)
                     try:

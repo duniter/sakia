@@ -1,4 +1,4 @@
-git+https://github.com/Insoleet/quamash.git@sakia
+quamash
 asynctest
 networkx
 attrs<=17.2

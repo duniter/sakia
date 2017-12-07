@@ -3,7 +3,7 @@ from duniterpy.api import bma, errors
 from duniterpy.documents import Transaction as TransactionDoc
 from duniterpy.documents import BlockUID
 import logging
-from sakia.data.entities import Source, Transaction
+from sakia.data.entities import Source, Transaction,Dividend
 import hashlib
 
 
@@ -36,7 +36,7 @@ class SourcesServices(QObject):
     def amount(self, pubkey):
         return self._sources_processor.amount(self.currency, pubkey)
 
-    def parse_transaction(self, pubkey, transaction):
+    def parse_transaction_outputs(self, pubkey, transaction):
         """
         Parse a transaction
         :param sakia.data.entities.Transaction transaction:
@@ -52,6 +52,13 @@ class SourcesServices(QObject):
                                 amount=output.amount,
                                 base=output.base)
                 self._sources_processor.insert(source)
+
+    def parse_transaction_inputs(self, pubkey, transaction):
+        """
+        Parse a transaction
+        :param sakia.data.entities.Transaction transaction:
+        """
+        txdoc = TransactionDoc.from_signed_raw(transaction.raw)
         for index, input in enumerate(txdoc.inputs):
             source = Source(currency=self.currency,
                             pubkey=txdoc.issuers[0],
@@ -115,54 +122,46 @@ class SourcesServices(QObject):
         :param int unit_base: the unit base of the destruction. None to look for the past uds
         :return: the destruction of sources
         """
-        unique_tx = {s.written_block: s for s in transactions}
-        unique_ud = {u.block_number: u for u in dividends}
-        sorted_tx = (s for s in sorted(unique_tx.values(), key=lambda t: t.written_block))
-        sorted_ud = (u for u in sorted(unique_ud.values(), key=lambda d: d.block_number))
-        try:
-            tx = next(sorted_tx)
-            block_number = max(tx.written_block, 0)
-        except StopIteration:
-            tx = None
-            block_number = 0
-        try:
-            ud = next(sorted_ud)
-            block_number = min(block_number, ud.block_number)
-        except StopIteration:
-            ud = None
+        tx_ud_data = {}
+        for tx in transactions:
+            try:
+                tx_ud_data[tx.written_block].append(tx)
+            except:
+                tx_ud_data[tx.written_block] = [tx]
+        for ud in dividends:
+            try:
+                tx_ud_data[ud.block_number].append(ud)
+            except:
+                tx_ud_data[ud.block_number] = [ud]
+
+        blocks = sorted(b for b in tx_ud_data.keys())
 
         nb_tx_ud = len(transactions) + len(dividends)
+        udblocks = await self._bma_connector.get(self.currency, bma.blockchain.ud)
         destructions = []
-        while tx or ud:
+        for block_number in blocks:
             if log_stream:
                 log_stream("Parsing info ud/tx of {:}".format(block_number))
             if progress:
                 progress(1/nb_tx_ud)
-            if tx and tx.written_block == block_number:
-                self.parse_transaction(pubkey, tx)
-                try:
-                    tx = next(sorted_tx)
-                except StopIteration:
-                    tx = None
-            if ud and ud.block_number == block_number:
-                self._parse_ud(pubkey, ud)
-                try:
-                    ud = next(sorted_ud)
-                except StopIteration:
-                    ud = None
+
+            for data in tx_ud_data[block_number]:
+                if isinstance(data, Dividend):
+                    self._parse_ud(pubkey, data)
+                if isinstance(data, Transaction):
+                    self.parse_transaction_outputs(pubkey, data)
+
+            for data in tx_ud_data[block_number]:
+                if isinstance(data, Transaction):
+                    self.parse_transaction_inputs(pubkey, data)
+
             if not unit_base:
-                _, destruction_base = await self._blockchain_processor.ud_before(self.currency, block_number)
+                _, destruction_base = await self._blockchain_processor.ud_before(self.currency, block_number, udblocks)
             else:
                 destruction_base = unit_base
             destruction = await self.check_destruction(pubkey, block_number, destruction_base)
             if destruction:
                 destructions.append(destruction)
-            if ud and tx:
-                block_number = min(ud.block_number, tx.written_block)
-            elif ud:
-                block_number = ud.block_number
-            elif tx:
-                block_number = tx.written_block
         return destructions
 
     async def refresh_sources(self, connections, transactions, dividends):

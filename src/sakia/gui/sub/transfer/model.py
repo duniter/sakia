@@ -94,10 +94,10 @@ class TransferModel(QObject):
         result, transactions = await self.app.documents_service.send_money(self.connection, secret_key, password,
                                                              recipient, amount, amount_base, comment)
         for transaction in transactions:
-            self.app.sources_service.parse_transaction(self.connection.pubkey, transaction)
+            self.app.sources_service.parse_transaction_outputs(self.connection.pubkey, transaction)
             for conn in self._connections_processor.connections():
                 if conn.pubkey == recipient:
-                    self.app.sources_service.parse_transaction(recipient, transaction)
+                    self.app.sources_service.parse_transaction_inputs(recipient, transaction)
                     new_tx = self.app.transactions_service.parse_sent_transaction(recipient, transaction)
                     # Not all connections are concerned by chained tx
                     if new_tx:

@@ -12,7 +12,7 @@ import asyncio
 
 @attr.s
 class BlockchainProcessor:
-    _repo = attr.ib()  # :type sakia.data.repositories.CertificationsRepo
+    _repo = attr.ib()  # :type sakia.data.repositories.BlockchainsRepo
     _bma_connector = attr.ib()  # :type sakia.data.connectors.bma.BmaConnector
     _logger = attr.ib(default=attr.Factory(lambda: logging.getLogger('sakia')))
 
@@ -29,11 +29,19 @@ class BlockchainProcessor:
     def initialized(self, currency):
         return self._repo.get_one(currency=currency) is not None
 
-    async def ud_before(self, currency, block_number):
+    async def ud_before(self, currency, block_number, udblocks=[]):
+        """
+
+        :param currency:
+        :param block_number:
+        :param udblocks: /blockchain/ud/history data of given key
+        :return:
+        """
         try:
-            udblocks = await self._bma_connector.get(currency, bma.blockchain.ud)
-            blocks = udblocks['result']['blocks']
-            ud_block_number = next(b for b in blocks if b <= block_number)
+            if not udblocks:
+                udblocks = await self._bma_connector.get(currency, bma.blockchain.ud)
+            udblocks = udblocks['result']['blocks']
+            ud_block_number = next(b for b in udblocks if b <= block_number)
             block = await self._bma_connector.get(currency, bma.blockchain.block, {'number': ud_block_number})
             return block['dividend'], block['unitbase']
         except StopIteration:
@@ -257,6 +265,7 @@ class BlockchainProcessor:
                 blockchain.parameters.sig_qty = parameters['sigQty']
                 blockchain.parameters.sig_period = parameters['sigPeriod']
                 blockchain.parameters.ud0 = parameters['ud0']
+                blockchain.parameters.ud_time_0 = parameters['udTime0']
                 blockchain.parameters.dt_reeval = parameters['dtReeval']
                 blockchain.parameters.ud_reeval_time_0 = parameters['udReevalTime0']
                 blockchain.parameters.xpercent = parameters['xpercent']
