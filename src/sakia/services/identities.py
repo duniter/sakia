@@ -75,7 +75,7 @@ class IdentitiesService(QObject):
         for c in connections:
             identities.append(self._identities_processor.get_identity(self.currency, c.pubkey))
         return identities
-    
+
     def is_identity_of_connection(self, identity):
         return identity.pubkey in self._connections_processor.pubkeys()
 
@@ -485,7 +485,7 @@ class IdentitiesService(QObject):
         """
         Get the list of certifications received by a given identity
         :param str pubkey: the pubkey
-        :rtype: List[sakia.data.entities.Certifications]
+        :rtype: list[Certification]
         """
         return self._certs_processor.certifications_received(self.currency, pubkey)
 
@@ -493,6 +493,6 @@ class IdentitiesService(QObject):
         """
         Get the list of certifications received by a given identity
         :param str pubkey: the pubkey
-        :rtype: List[sakia.data.entities.Certifications]
+        :rtype: list[Certification]
         """
         return self._certs_processor.certifications_sent(self.currency, pubkey)
