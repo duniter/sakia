@@ -1,5 +1,5 @@
 from sakia.errors import NoPeerAvailable
-from sakia.data.entities import Identity
+from sakia.data.entities import Identity, Certification
 from sakia.data.processors import BlockchainProcessor
 from PyQt5.QtCore import QAbstractTableModel, QSortFilterProxyModel, Qt, \
                         QDateTime, QModelIndex, QLocale, QT_TRANSLATE_NOOP
@@ -16,7 +16,7 @@ class CertifiersFilterProxyModel(QSortFilterProxyModel):
 
     def columnCount(self, parent):
         return len(CertifiersTableModel.columns_ids) - 2
-    
+
     def lessThan(self, left, right):
         """
         Sort table by given column number.
@@ -108,37 +108,11 @@ class CertifiersTableModel(QAbstractTableModel):
         self.connection = connection
         self.blockchain_service = blockchain_service
         self.identities_service = identities_service
-        self._certifiers_data = []
-
-    def certifier_data(self, certification):
-        """
-        Return the identity in the form a tuple to display
-        :param sakia.data.entities.Certification certification: The certification to get data from
-        :return: The certification data in the form of a tuple
-        :rtype: tuple
-        """
-        parameters = self.blockchain_service.parameters()
-        publication_date = certification.timestamp
-        identity = self.identities_service.get_identity(certification.certifier)
-        if not identity:
-            identity = Identity(currency=certification.currency, pubkey=certification.certifier, uid="")
-        written = certification.written_on >= 0
-        if written:
-            expiration_date = publication_date + parameters.sig_validity
-        else:
-            expiration_date = publication_date + parameters.sig_window
-        return identity.uid, identity.pubkey, publication_date, expiration_date, written, identity
-
-    def certifier_loaded(self, identity):
-        for i, idty in enumerate(self.identities_data):
-            if idty[CertifiersTableModel.columns_ids.index('identity')] == identity:
-                self._certifiers_data[i] = self._certifiers_data(identity)
-                self.dataChanged.emit(self.index(i, 0), self.index(i, len(CertifiersTableModel.columns_ids)))
-                return
+        self._certifiers_data = list()
 
     def init_certifiers(self):
         """
-        Change the identities to display
+        Init table with data to display
         """
         self.beginResetModel()
         certifications = self.identities_service.certifications_received(self.connection.pubkey)
@@ -149,6 +123,41 @@ class CertifiersTableModel(QAbstractTableModel):
 
         self._certifiers_data = certifiers_data
         self.endResetModel()
+
+    def certifier_data(self, certification: Certification) -> tuple:
+        """
+        Return the identity in the form a tuple to display
+        :param Certification certification: The certification to get data from
+        :return: The certification data in the form of a tuple
+        :rtype: tuple
+        """
+        parameters = self.blockchain_service.parameters()
+        publication_date = certification.timestamp
+        written = certification.written_on >= 0
+
+        if written:
+            expiration_date = publication_date + parameters.sig_validity
+        else:
+            expiration_date = publication_date + parameters.sig_window
+
+        identity = self.identities_service.get_identity(certification.certifier)
+        if not identity:
+            identity = Identity(currency=certification.currency, pubkey=certification.certifier, uid="")
+
+        return identity.uid, identity.pubkey, publication_date, expiration_date, written, identity
+
+    def certifier_loaded(self, identity: Identity):
+        """
+        Update identity of certifier after closing information window
+
+        :param Identity identity: Updated identity of the certifier
+        :return:
+        """
+        for i, certifier_data in enumerate(self._certifiers_data):
+            if certifier_data[CertifiersTableModel.columns_ids.index('identity')] == identity:
+                self._certifiers_data[i] = update_certifier_data_from_identity(certifier_data, identity)
+                self.dataChanged.emit(self.index(i, 0), self.index(i, len(CertifiersTableModel.columns_ids)))
+                return
 
     def rowCount(self, parent):
         return len(self._certifiers_data)
@@ -170,3 +179,24 @@ class CertifiersTableModel(QAbstractTableModel):
 
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled
+
+
+#######################
+# STATIC FUNCTIONS
+#######################
+
+
+def update_certifier_data_from_identity(certifier_data: tuple, identity: Identity) -> tuple:
+    """
+    Return certifier data from updated identity
+
+    :param tuple certifier_data: Certifier data list
+    :param Identity identity: Identity of the certifier
+    :return tuple:
+    """
+    return identity.uid, \
+        identity.pubkey, \
+        certifier_data[CertifiersTableModel.columns_ids.index('publication')], \
+        certifier_data[CertifiersTableModel.columns_ids.index('expiration')], \
+        certifier_data[CertifiersTableModel.columns_ids.index('written')], \
+        identity
