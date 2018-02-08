@@ -1,3 +1,4 @@
+import sys
 from PyQt5.QtWidgets import QMessageBox, QFileDialog
 import asyncio
 
@@ -13,7 +14,9 @@ class QAsyncFileDialog:
     @staticmethod
     async def get_save_filename(parent, title, url, filtr):
         dialog = QFileDialog(parent, title, url, filtr)
-        dialog.setOption(QFileDialog.DontUseNativeDialog, True)
+        # Fix linux crash if not native QFileDialog is async...
+        if sys.platform != 'linux':
+            dialog.setOption(QFileDialog.DontUseNativeDialog, True)
         dialog.setAcceptMode(QFileDialog.AcceptSave)
         result = await dialog_async_exec(dialog)
         if result == QFileDialog.AcceptSave:
