@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>469</width>
-    <height>330</height>
+    <width>711</width>
+    <height>326</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -27,7 +27,7 @@
        <item>
         <widget class="QPushButton" name="button_app">
          <property name="text">
-          <string/>
+          <string>Display</string>
          </property>
          <property name="icon">
           <iconset resource="../../../res/icons/icons.qrc">
@@ -47,7 +47,7 @@
        <item>
         <widget class="QPushButton" name="button_display">
          <property name="text">
-          <string/>
+          <string>General</string>
          </property>
          <property name="icon">
           <iconset resource="../../../res/icons/icons.qrc">
@@ -67,7 +67,7 @@
        <item>
         <widget class="QPushButton" name="button_network">
          <property name="text">
-          <string/>
+          <string>Network</string>
          </property>
          <property name="icon">
           <iconset resource="../../../res/icons/icons.qrc">
