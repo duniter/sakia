@@ -322,7 +322,11 @@ class BlockchainProcessor:
                     dt_reeval_block_target = max(dt_reeval_block_target - int(blockchain.parameters.dt_reeval
                                                                               / blockchain.parameters.avg_gen_time),
                                                  0)
-                    previous_ud_reeval_block_number = [b for b in blocks_with_ud if b <= dt_reeval_block_target][-1]
+
+                    try:
+                        previous_ud_reeval_block_number = [b for b in blocks_with_ud if b <= dt_reeval_block_target][-1]
+                    except IndexError:
+                        previous_ud_reeval_block_number = min(blocks_with_ud)
 
                     block_with_ud = await self._bma_connector.get(currency, bma.blockchain.block,
                                                                   req_args={'number': previous_ud_reeval_block_number})
