@@ -75,7 +75,7 @@ class IdentitiesService(QObject):
         for c in connections:
             identities.append(self._identities_processor.get_identity(self.currency, c.pubkey))
         return identities
-    
+
     def is_identity_of_connection(self, identity):
         return identity.pubkey in self._connections_processor.pubkeys()
 
@@ -237,30 +237,36 @@ class IdentitiesService(QObject):
             logging.debug(str(e))
         return certifications
 
-    async def initialize_certifications(self, identity, log_stream, progress):
+    async def initialize_certifications(self, identity, log_stream=None, progress=None):
         """
         Initialize certifications to and from a given identity
         :param sakia.data.entities.Identity identity:
-        :param function log_stream:
-        :param function progress:
+        :param function log_stream: Logger function
+        :param function progress: Progress function for progress bar
         """
-        log_stream("Requesting certifiers of data")
+        if log_stream:
+            log_stream("Requesting certifiers of data")
         certifiers = await self.load_certifiers_of(identity)
 
-        log_stream("Requesting certified by data")
+        if log_stream:
+            log_stream("Requesting certified by data")
         certified = await self.load_certified_by(identity)
 
-        log_stream("Requesting lookup data")
+        if log_stream:
+            log_stream("Requesting lookup data")
         certifiers, certified = await self.load_certs_in_lookup(identity, certifiers, certified)
 
-        log_stream("Requesting identities of certifications")
+        if log_stream:
+            log_stream("Requesting identities of certifications")
         identities = []
         i = 0
         nb_certs = len(certified + certifiers)
         for cert in certifiers:
-            log_stream("Requesting identity... {0}/{1}".format(i, nb_certs))
+            if log_stream:
+                log_stream("Requesting identity... {0}/{1}".format(i, nb_certs))
             i += 1
-            progress(1/nb_certs)
+            if progress:
+                progress(1/nb_certs)
             certifier = self.get_identity(cert.certifier)
             if not certifier:
                 certifier = await self.find_from_pubkey(cert.certifier)
@@ -268,16 +274,18 @@ class IdentitiesService(QObject):
                 identities.append(certifier)
 
         for cert in certified:
-            log_stream("Requesting identity... {0}/{1}".format(i, nb_certs))
+            if log_stream:
+                log_stream("Requesting identity... {0}/{1}".format(i, nb_certs))
             i += 1
-            progress(1/nb_certs)
+            if progress:
+                progress(1/nb_certs)
             certified = self.get_identity(cert.certified)
             if not certified:
                 certified = await self.find_from_pubkey(cert.certified)
                 certified = await self.load_requirements(certified)
                 identities.append(certified)
-
-        log_stream("Commiting identities...")
+        if log_stream:
+            log_stream("Commiting identities...")
         for idty in identities:
             self._identities_processor.insert_or_update_identity(idty)
 
@@ -485,7 +493,7 @@ class IdentitiesService(QObject):
         """
         Get the list of certifications received by a given identity
         :param str pubkey: the pubkey
-        :rtype: List[sakia.data.entities.Certifications]
+        :rtype: list[Certification]
         """
         return self._certs_processor.certifications_received(self.currency, pubkey)
 
@@ -493,6 +501,6 @@ class IdentitiesService(QObject):
         """
         Get the list of certifications received by a given identity
         :param str pubkey: the pubkey
-        :rtype: List[sakia.data.entities.Certifications]
+        :rtype: list[Certification]
         """
         return self._certs_processor.certifications_sent(self.currency, pubkey)

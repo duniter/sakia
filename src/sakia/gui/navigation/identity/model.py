@@ -53,9 +53,11 @@ class IdentityModel(QObject):
     async def refresh_identity_data(self):
         identity = self.identities_service.get_identity(self.connection.pubkey, self.connection.uid)
         identity = await self.identities_service.load_requirements(identity)
-        certifiers = await self.identities_service.load_certifiers_of(identity)
-        certified = await self.identities_service.load_certified_by(identity)
-        await self.identities_service.load_certs_in_lookup(identity, certifiers, certified)
+
+        # update identities in database from the network
+        await self.identities_service.initialize_certifications(identity, None, None)
+
+        # update identities from database
         self.table_model.init_certifiers()
 
     def table_data(self, index):
