@@ -27,7 +27,7 @@
        <item>
         <widget class="QPushButton" name="button_app">
          <property name="text">
-          <string>Display</string>
+          <string>General</string>
          </property>
          <property name="icon">
           <iconset resource="../../../res/icons/icons.qrc">
@@ -47,7 +47,7 @@
        <item>
         <widget class="QPushButton" name="button_display">
          <property name="text">
-          <string>General</string>
+          <string>Display</string>
          </property>
          <property name="icon">
           <iconset resource="../../../res/icons/icons.qrc">
