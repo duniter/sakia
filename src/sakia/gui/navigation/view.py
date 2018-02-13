@@ -52,3 +52,4 @@ class NavigationView(QFrame, Ui_Navigation):
 
     def update_connection(self, raw_data):
         self.tree_view.model().modelReset.emit()
+        self.tree_view.expandAll()
