@@ -7,3 +7,4 @@ duniterpy>=0.40
 pytest
 pytest-asyncio<0.6
 pyyaml
+aiohttp<3
