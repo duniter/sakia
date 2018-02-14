@@ -266,6 +266,8 @@ class ConnectionConfigController(QObject):
                 return False
 
             if self.model.app.parameters.expert_mode:
+                self.view.label_info.setText(
+                    self.tr(""))
                 return True
 
             if len(self.view.edit_salt.text()) < 6:
