@@ -29,9 +29,9 @@ then
             freeglut3-dev libfreetype6-dev xorg-dev xserver-xorg-input-void xserver-xorg-video-dummy xpra libosmesa6-dev \
             curl libdbus-1-dev libdbus-glib-1-dev autoconf automake libtool libgstreamer-plugins-base0.10-0 dunst fakeroot \
             dbus-x11
-    wget https://download.qt.io/official_releases/qt/5.8/5.8.0/qt-opensource-linux-x64-5.8.0.run
-    chmod +x qt-opensource-linux-x64-5.8.0.run
-    ./qt-opensource-linux-x64-5.8.0.run --script $HOME/build/duniter/sakia/ci/travis/qt-installer-noninteractive.qs
+    wget https://download.qt.io/official_releases/qt/5.9/5.9.4/qt-opensource-linux-x64-5.9.4.run
+    chmod +x qt-opensource-linux-x64-5.9.4.run
+    ./qt-opensource-linux-x64-5.9.4.run --script $HOME/build/duniter/sakia/ci/travis/qt-installer-noninteractive.qs
 
     wget http://archive.ubuntu.com/ubuntu/pool/universe/libs/libsodium/libsodium18_1.0.13-1_amd64.deb
     sudo dpkg -i libsodium18_1.0.13-1_amd64.deb
