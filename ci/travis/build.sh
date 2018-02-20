@@ -12,7 +12,6 @@ pyenv rehash
 pip install coveralls
 pip install pytest-cov
 pip install pyinstaller==3.2
-pip install PyQt5==5.8.2
 pip install -r requirements.txt
 if [ $TRAVIS_OS_NAME == "linux" ]
 then
