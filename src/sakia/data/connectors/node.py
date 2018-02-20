@@ -136,7 +136,7 @@ class NodeConnector(QObject):
             else:
                 closed = True
             await asyncio.sleep(0)
-        self.session.close()
+        await self.session.close()
 
     def refresh(self, manual=False):
         """
@@ -166,13 +166,13 @@ class NodeConnector(QObject):
                         self._connected['block'] = True
                         self._logger.debug("Connected successfully to block ws")
                         async for msg in ws:
-                            if msg.tp == aiohttp.WSMsgType.TEXT:
+                            if msg.type == aiohttp.WSMsgType.TEXT:
                                 self._logger.debug("Received a block")
                                 block_data = bma.parse_text(msg.data, bma.ws.WS_BLOCk_SCHEMA)
                                 await self.refresh_block(block_data)
-                            elif msg.tp == aiohttp.WSMsgType.CLOSED:
+                            elif msg.type == aiohttp.WSMsgType.CLOSED:
                                 break
-                            elif msg.tp == aiohttp.WSMsgType.ERROR:
+                            elif msg.type == aiohttp.WSMsgType.ERROR:
                                 break
                 except (aiohttp.WSServerHandshakeError, ValueError) as e:
                     self._logger.debug("Websocket block {0} : {1}".format(type(e).__name__, str(e)))
@@ -290,13 +290,13 @@ class NodeConnector(QObject):
                         self._connected['peer'] = True
                         self._logger.debug("Connected successfully to peer ws")
                         async for msg in ws:
-                            if msg.tp == aiohttp.WSMsgType.TEXT:
+                            if msg.type == aiohttp.WSMsgType.TEXT:
                                 self._logger.debug("Received a peer")
                                 peer_data = bma.parse_text(msg.data, bma.ws.WS_PEER_SCHEMA)
                                 self.refresh_peer_data(peer_data)
-                            elif msg.tp == aiohttp.WSMsgType.CLOSED:
+                            elif msg.type == aiohttp.WSMsgType.CLOSED:
                                 break
-                            elif msg.tp == aiohttp.WSMsgType.ERROR:
+                            elif msg.type == aiohttp.WSMsgType.ERROR:
                                 break
                 except (aiohttp.WSServerHandshakeError, ValueError) as e:
                     self._logger.debug("Websocket peer {0} : {1}"

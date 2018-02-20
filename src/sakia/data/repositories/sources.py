@@ -8,7 +8,7 @@ class SourcesRepo:
     """The repository for Communities entities.
     """
     _conn = attr.ib()  # :type sqlite3.Connection
-    _primary_keys = (Source.currency, Source.pubkey, Source.identifier, Source.noffset)
+    _primary_keys = (attr.fields(Source).currency, attr.fields(Source).pubkey, attr.fields(Source).identifier, attr.fields(Source).noffset)
 
     def insert(self, source):
         """

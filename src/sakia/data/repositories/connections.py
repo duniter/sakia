@@ -9,14 +9,15 @@ class ConnectionsRepo:
     The repository for Connections entities.
     """
     _conn = attr.ib()  # :type sqlite3.Connection
-    _primary_keys = (Connection.currency, Connection.pubkey)
+    _primary_keys = (attr.fields(Connection).currency, attr.fields(Connection).pubkey)
 
     def insert(self, connection):
         """
         Commit a connection to the database
         :param sakia.data.entities.Connection connection: the connection to commit
         """
-        connection_tuple = attr.astuple(connection, filter=attr.filters.exclude(Connection.password, Connection.salt))
+        connection_tuple = attr.astuple(connection, filter=attr.filters.exclude(attr.fields(Connection).password,
+                                                                                attr.fields(Connection).salt))
         values = ",".join(['?'] * len(connection_tuple))
         self._conn.execute("INSERT INTO connections VALUES ({0})".format(values), connection_tuple)
 
@@ -25,7 +26,8 @@ class ConnectionsRepo:
         Update an existing connection in the database
         :param sakia.data.entities.Connection connection: the certification to update
         """
-        updated_fields = attr.astuple(connection, filter=attr.filters.exclude(Connection.password, Connection.salt,
+        updated_fields = attr.astuple(connection, filter=attr.filters.exclude(attr.fields(Connection).password,
+                                                                              attr.fields(Connection).salt,
                                                                               *ConnectionsRepo._primary_keys))
         where_fields = attr.astuple(connection, filter=attr.filters.include(*ConnectionsRepo._primary_keys))
 

@@ -9,7 +9,7 @@ class ContactsRepo:
     The repository for Contacts entities.
     """
     _conn = attr.ib()  # :type sqlite3.Contact
-    _primary_keys = (Contact.contact_id,)
+    _primary_keys = (attr.fields(Contact).contact_id,)
 
     def insert(self, contact):
         """

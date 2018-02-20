@@ -8,7 +8,7 @@ class DividendsRepo:
     """The repository for Communities entities.
     """
     _conn = attr.ib()  # :type sqlite3.Connection
-    _primary_keys = (Dividend.currency, Dividend.pubkey, Dividend.block_number)
+    _primary_keys = (attr.fields(Dividend).currency, attr.fields(Dividend).pubkey, attr.fields(Dividend).block_number)
 
     def insert(self, dividend):
         """

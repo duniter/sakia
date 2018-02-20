@@ -10,7 +10,7 @@ class BlockchainsRepo:
     """The repository for Blockchain entities.
     """
     _conn = attr.ib()  # :type sqlite3.Connection
-    _primary_keys = (Blockchain.currency,)
+    _primary_keys = (attr.fields(Blockchain).currency,)
 
     def insert(self, blockchain):
         """
@@ -18,7 +18,7 @@ class BlockchainsRepo:
         :param sakia.data.entities.Blockchain blockchain: the blockchain to commit
         """
         blockchain_tuple = attr.astuple(blockchain.parameters) \
-                           + attr.astuple(blockchain, filter=attr.filters.exclude(Blockchain.parameters))
+                           + attr.astuple(blockchain, filter=attr.filters.exclude(attr.fields(Blockchain).parameters))
         values = ",".join(['?'] * len(blockchain_tuple))
         self._conn.execute("INSERT INTO blockchains VALUES ({0})".format(values), blockchain_tuple)
 
@@ -28,7 +28,7 @@ class BlockchainsRepo:
         :param sakia.data.entities.Blockchain blockchain: the blockchain to update
         """
         updated_fields = attr.astuple(blockchain, filter=attr.filters.exclude(
-            Blockchain.parameters, *BlockchainsRepo._primary_keys))
+            attr.fields(Blockchain).parameters, *BlockchainsRepo._primary_keys))
         where_fields = attr.astuple(blockchain, filter=attr.filters.include(*BlockchainsRepo._primary_keys))
         self._conn.execute("""UPDATE blockchains SET
                           current_buid=?,

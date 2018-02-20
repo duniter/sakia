@@ -10,7 +10,7 @@ class IdentitiesRepo:
     """The repository for Identities entities.
     """
     _conn = attr.ib()  # :type sqlite3.Connection
-    _primary_keys = (Identity.currency, Identity.pubkey, Identity.uid, Identity.blockstamp)
+    _primary_keys = (attr.fields(Identity).currency, attr.fields(Identity).pubkey, attr.fields(Identity).uid, attr.fields(Identity).blockstamp)
 
     def insert(self, identity):
         """

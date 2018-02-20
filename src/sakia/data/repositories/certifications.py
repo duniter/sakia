@@ -8,8 +8,8 @@ class CertificationsRepo:
     """The repository for Communities entities.
     """
     _conn = attr.ib()  # :type sqlite3.Connection
-    _primary_keys = (Certification.currency, Certification.certified,
-                     Certification.certifier, Certification.block,)
+    _primary_keys = (attr.fields(Certification).currency, attr.fields(Certification).certified,
+                     attr.fields(Certification).certifier, attr.fields(Certification).block,)
 
     def insert(self, certification):
         """

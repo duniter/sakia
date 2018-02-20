@@ -9,7 +9,7 @@ class NodesRepo:
     """The repository for Communities entities.
     """
     _conn = attr.ib()  # :type sqlite3.Connection
-    _primary_keys = (Node.currency, Node.pubkey)
+    _primary_keys = (attr.fields(Node).currency, attr.fields(Node).pubkey)
 
     def insert(self, node):
         """

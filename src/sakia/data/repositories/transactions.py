@@ -8,7 +8,7 @@ class TransactionsRepo:
     """The repository for Communities entities.
     """
     _conn = attr.ib()  # :type sqlite3.Connection
-    _primary_keys = (Transaction.currency, Transaction.pubkey, Transaction.sha_hash,)
+    _primary_keys = (attr.fields(Transaction).currency, attr.fields(Transaction).pubkey, attr.fields(Transaction).sha_hash,)
 
     def insert(self, transaction):
         """

@@ -1,10 +1,11 @@
 quamash
 asynctest
 networkx
-attrs<=17.2
+attrs
 duniter-mirage
 duniterpy>=0.40
 pytest
 pytest-asyncio<0.6
 pyyaml
-aiohttp<3
+aiohttp
+async_timeout

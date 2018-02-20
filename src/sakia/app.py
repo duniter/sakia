@@ -3,7 +3,7 @@ import datetime
 import logging
 import socket
 import i18n_rc
-
+import async_timeout
 import aiohttp
 from PyQt5.QtCore import QObject, pyqtSignal, QTranslator, QCoreApplication, QLocale, Qt
 from . import __version__
@@ -194,7 +194,7 @@ class Application(QObject):
     async def get_last_version(self):
         try:
             async with aiohttp.ClientSession() as session:
-                with aiohttp.Timeout(15):
+                async with async_timeout.timeout(10):
                     response = await session.get("https://api.github.com/repos/duniter/sakia/releases",
                                                  proxy=self.parameters.proxy())
                     if response.status == 200:
