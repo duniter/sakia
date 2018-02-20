@@ -31,7 +31,7 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../../../../../../res/icons/icons.qrc"/>
+  <include location="../../../../../../res/icons/sakia.icons.qrc"/>
  </resources>
  <connections/>
  <slots>

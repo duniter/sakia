@@ -30,7 +30,7 @@
           <string>General</string>
          </property>
          <property name="icon">
-          <iconset resource="../../../res/icons/icons.qrc">
+          <iconset>
            <normaloff>:/icons/settings_app_icon</normaloff>:/icons/settings_app_icon</iconset>
          </property>
          <property name="iconSize">
@@ -50,7 +50,7 @@
           <string>Display</string>
          </property>
          <property name="icon">
-          <iconset resource="../../../res/icons/icons.qrc">
+          <iconset>
            <normaloff>:/icons/settings_display_icon</normaloff>:/icons/settings_display_icon</iconset>
          </property>
          <property name="iconSize">
@@ -70,7 +70,7 @@
           <string>Network</string>
          </property>
          <property name="icon">
-          <iconset resource="../../../res/icons/icons.qrc">
+          <iconset>
            <normaloff>:/icons/settings_network_icon</normaloff>:/icons/settings_network_icon</iconset>
          </property>
          <property name="iconSize">
@@ -414,7 +414,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../../../res/icons/icons.qrc"/>
+  <include location="../../../res/icons/sakia.icons.qrc"/>
  </resources>
  <connections>
   <connection>

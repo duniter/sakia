@@ -84,7 +84,7 @@ QGroupBox::title {
              <string/>
             </property>
             <property name="pixmap">
-             <pixmap resource="../../../../../res/icons/icons.qrc">:/icons/member_icon</pixmap>
+             <pixmap resource="../../../../../res/icons/sakia.icons.qrc">:/icons/member_icon</pixmap>
             </property>
             <property name="scaledContents">
              <bool>true</bool>
@@ -114,9 +114,9 @@ QGroupBox::title {
   </layout>
  </widget>
  <resources>
-  <include location="../../../../../res/icons/icons.qrc"/>
-  <include location="../../../../../res/icons/icons.qrc"/>
-  <include location="../../../../../res/icons/icons.qrc"/>
+  <include location="../../../../../res/icons/sakia.icons.qrc"/>
+  <include location="../../../../../res/icons/sakia.icons.qrc"/>
+  <include location="../../../../../res/icons/sakia.icons.qrc"/>
  </resources>
  <connections/>
 </ui>

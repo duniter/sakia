@@ -36,7 +36,7 @@
       <string/>
      </property>
      <property name="icon">
-      <iconset resource="../../../../../res/icons/icons.qrc">
+      <iconset resource="../../../../../res/icons/sakia.icons.qrc">
        <normaloff>:/icons/home_icon</normaloff>:/icons/home_icon</iconset>
      </property>
     </widget>
@@ -44,7 +44,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../../../../../res/icons/icons.qrc"/>
+  <include location="../../../../../res/icons/sakia.icons.qrc"/>
  </resources>
  <connections/>
 </ui>

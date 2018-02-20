@@ -22,7 +22,7 @@
   <layout class="QVBoxLayout" name="verticalLayout"/>
  </widget>
  <resources>
-  <include location="../../../../res/icons/icons.qrc"/>
+  <include location="../../../../res/icons/sakia.icons.qrc"/>
  </resources>
  <connections/>
 </ui>

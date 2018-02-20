@@ -5,7 +5,7 @@ import sys, os, multiprocessing, subprocess
 
 root_path = os.path.abspath(os.path.join(os.path.dirname(__file__)))
 resources = os.path.abspath(os.path.join(os.path.dirname(__file__), 'res'))
-gen_resources = os.path.abspath(os.path.join(os.path.dirname(__file__), 'src'))
+gen_resources = os.path.abspath(os.path.join(os.path.dirname(__file__), 'src/sakia'))
 
 def convert_ui(args, **kwargs):
     subprocess.call(args, **kwargs)
@@ -22,7 +22,10 @@ def build_resources():
                     exe = 'pyuic5'
                 elif f.endswith('.qrc'):
                     source = os.path.join(root, f)
-                    dest = os.path.join(gen_resources, os.path.splitext(os.path.basename(source))[0]+'_rc.py')
+                    filename = os.path.splitext(os.path.basename(source))[0]
+                    # we remove "sakia." from the rc filename
+                    # its only named like this so that imports are corrects in uic files
+                    dest = os.path.join(gen_resources, filename.replace('sakia.', '')+'_rc.py')
                     exe = 'pyrcc5'
                 else:
                     continue

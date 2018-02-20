@@ -2,7 +2,7 @@ import attr
 import datetime
 import logging
 import socket
-import i18n_rc
+import sakia.i18n_rc
 import async_timeout
 import aiohttp
 from PyQt5.QtCore import QObject, pyqtSignal, QTranslator, QCoreApplication, QLocale, Qt

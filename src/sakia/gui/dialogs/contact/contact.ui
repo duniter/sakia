@@ -54,7 +54,7 @@
            <string>Delete selected contact</string>
           </property>
           <property name="icon">
-           <iconset resource="../../../../../res/icons/icons.qrc">
+           <iconset resource="../../../../../res/icons/sakia.icons.qrc">
             <normaloff>:/icons/not_member</normaloff>:/icons/not_member</iconset>
           </property>
          </widget>
@@ -172,7 +172,7 @@
               <string>Save</string>
              </property>
              <property name="icon">
-              <iconset resource="../../../../../res/icons/icons.qrc">
+              <iconset resource="../../../../../res/icons/sakia.icons.qrc">
                <normaloff>:/icons/add_account_icon</normaloff>:/icons/add_account_icon</iconset>
              </property>
              <property name="iconSize">
@@ -207,7 +207,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../../../../../res/icons/icons.qrc"/>
+  <include location="../../../../../res/icons/sakia.icons.qrc"/>
  </resources>
  <connections/>
  <slots>

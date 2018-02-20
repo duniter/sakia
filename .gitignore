@@ -41,6 +41,8 @@ nosetests.xml
 src/sakia/gen_resources/*
 src/icons_rc.py
 src/i18n_rc.py
+src/sakia/icons_rc.py
+src/sakia/i18n_rc.py
 res/i18n/qm
 res/i18n/lang-*
 out

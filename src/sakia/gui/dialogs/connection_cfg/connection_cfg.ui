@@ -35,7 +35,7 @@
             <string>Register a new identity</string>
            </property>
            <property name="icon">
-            <iconset resource="../../../../../res/icons/icons.qrc">
+            <iconset resource="../../../../../res/icons/sakia.icons.qrc">
              <normaloff>:/icons/new_membership</normaloff>:/icons/new_membership</iconset>
            </property>
            <property name="iconSize">
@@ -52,7 +52,7 @@
             <string>Connect with an existing identity</string>
            </property>
            <property name="icon">
-            <iconset resource="../../../../../res/icons/icons.qrc">
+            <iconset resource="../../../../../res/icons/sakia.icons.qrc">
              <normaloff>:/icons/connect_icon</normaloff>:/icons/connect_icon</iconset>
            </property>
            <property name="iconSize">
@@ -69,7 +69,7 @@
             <string>Connect a wallet</string>
            </property>
            <property name="icon">
-            <iconset resource="../../../../../res/icons/icons.qrc">
+            <iconset resource="../../../../../res/icons/sakia.icons.qrc">
              <normaloff>:/icons/wallet_icon</normaloff>:/icons/wallet_icon</iconset>
            </property>
            <property name="iconSize">
@@ -86,7 +86,7 @@
             <string>Connect using a public key</string>
            </property>
            <property name="icon">
-            <iconset resource="../../../../../res/icons/icons.qrc">
+            <iconset resource="../../../../../res/icons/sakia.icons.qrc">
              <normaloff>:/icons/duniter_info_icon</normaloff>:/icons/duniter_info_icon</iconset>
            </property>
            <property name="iconSize">
@@ -484,7 +484,7 @@ p, li { white-space: pre-wrap; }
   </layout>
  </widget>
  <resources>
-  <include location="../../../../../res/icons/icons.qrc"/>
+  <include location="../../../../../res/icons/sakia.icons.qrc"/>
  </resources>
  <connections/>
  <slots>

@@ -90,7 +90,7 @@
            <string>Send money</string>
           </property>
           <property name="icon">
-           <iconset resource="../../../../../res/icons/icons.qrc">
+           <iconset resource="../../../../../res/icons/sakia.icons.qrc">
             <normaloff>:/icons/payment_icon</normaloff>:/icons/payment_icon</iconset>
           </property>
           <property name="iconSize">
@@ -207,7 +207,7 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../../../../../res/icons/icons.qrc"/>
+  <include location="../../../../../res/icons/sakia.icons.qrc"/>
  </resources>
  <connections/>
 </ui>

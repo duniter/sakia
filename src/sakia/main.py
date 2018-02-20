@@ -77,7 +77,8 @@ def exception_message(log_lines, exc_info):
 
     mb.exec()
 
-if __name__ == '__main__':
+
+def main():
     # activate ctrl-c interrupt
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     sakia = QApplication(sys.argv)
@@ -138,3 +139,6 @@ if __name__ == '__main__':
     cleanup_lock(lock)
     sys.exit()
 
+
+if __name__ == '__main__':
+    main()

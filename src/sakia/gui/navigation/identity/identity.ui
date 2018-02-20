@@ -76,7 +76,7 @@ QGroupBox::title {
         <string>Certify an identity</string>
        </property>
        <property name="icon">
-        <iconset resource="../../../../../res/icons/icons.qrc">
+        <iconset resource="../../../../../res/icons/sakia.icons.qrc">
          <normaloff>:/icons/certification_icon</normaloff>:/icons/certification_icon</iconset>
        </property>
       </widget>
@@ -117,7 +117,7 @@ QGroupBox::title {
            <string/>
           </property>
           <property name="icon">
-           <iconset resource="../../../../../res/icons/icons.qrc">
+           <iconset resource="../../../../../res/icons/sakia.icons.qrc">
             <normaloff>:/icons/refresh_icon</normaloff>:/icons/refresh_icon</iconset>
           </property>
          </widget>
@@ -155,7 +155,7 @@ QGroupBox::title {
            <string>Renew membership</string>
           </property>
           <property name="icon">
-           <iconset resource="../../../../../res/icons/icons.qrc">
+           <iconset resource="../../../../../res/icons/sakia.icons.qrc">
             <normaloff>:/icons/renew_membership</normaloff>:/icons/renew_membership</iconset>
           </property>
           <property name="iconSize">
@@ -187,7 +187,7 @@ QGroupBox::title {
   </layout>
  </widget>
  <resources>
-  <include location="../../../../../res/icons/icons.qrc"/>
+  <include location="../../../../../res/icons/sakia.icons.qrc"/>
  </resources>
  <connections/>
 </ui>

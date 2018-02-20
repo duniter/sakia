@@ -14,7 +14,7 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../icons/icons.qrc">
+   <iconset resource="../icons/sakia.icons.qrc">
     <normaloff>:/icons/cutecoin_logo</normaloff>:/icons/cutecoin_logo</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
@@ -40,7 +40,7 @@
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources>
-  <include location="../icons/icons.qrc"/>
+  <include location="../icons/sakia.icons.qrc"/>
  </resources>
  <connections/>
 </ui>

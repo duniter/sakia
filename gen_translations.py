@@ -1,6 +1,6 @@
 import sys, os, multiprocessing, subprocess, time, shutil
 
-gen_resources = os.path.abspath(os.path.join(os.path.dirname(__file__), 'src'))
+gen_resources = os.path.abspath(os.path.join(os.path.dirname(__file__), 'src/sakia'))
 ts = os.path.abspath(os.path.join(os.path.dirname(__file__), 'res', 'i18n', 'ts'))
 qm = os.path.abspath(os.path.join(os.path.dirname(__file__), 'res', 'i18n', 'qm'))
 if not os.path.exists(qm):
