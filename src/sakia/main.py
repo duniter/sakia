@@ -88,6 +88,7 @@ def main():
     sakia.setStyle('Fusion')
     loop = QSelectorEventLoop(sakia)
     loop.set_exception_handler(async_exception_handler)
+    #loop.set_debug(True)
     asyncio.set_event_loop(loop)
 
     with loop:

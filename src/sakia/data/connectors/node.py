@@ -118,6 +118,11 @@ class NodeConnector(QObject):
         except jsonschema.ValidationError as e:
             self._logger.debug(str(e))
             self.change_state_and_emit(Node.CORRUPTED)
+        except RuntimeError:
+            if self.session.closed:
+                pass
+            else:
+                raise
 
     async def init_session(self):
         if not self.session:
@@ -137,6 +142,7 @@ class NodeConnector(QObject):
                 closed = True
             await asyncio.sleep(0)
         await self.session.close()
+        await asyncio.sleep(0)
 
     def refresh(self, manual=False):
         """
@@ -184,6 +190,11 @@ class NodeConnector(QObject):
                     self._logger.debug(str(e))
                     self._logger.debug("Validation error")
                     self.change_state_and_emit(Node.CORRUPTED)
+                except RuntimeError:
+                    if self.session.closed:
+                        pass
+                    else:
+                        raise
                 finally:
                     self._connected['block'] = False
                     self._ws_tasks['block'] = None
@@ -308,6 +319,11 @@ class NodeConnector(QObject):
                 except jsonschema.ValidationError as e:
                     self._logger.debug(str(e))
                     self.change_state_and_emit(Node.CORRUPTED)
+                except RuntimeError:
+                    if self.session.closed:
+                        pass
+                    else:
+                        raise
                 finally:
                     self._connected['peer'] = False
                     self._ws_tasks['peer'] = None
