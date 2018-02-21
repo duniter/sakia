@@ -77,7 +77,7 @@ setup(
     ],
     install_requires=install_requires,
     dependency_links=dependency_links,
-    packages=find_packages('src'),
+    packages=find_packages('src', exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
     package_dir={'sakia': 'src/sakia',
                  'i18n_rc': 'src/i18n_rc',
                  'icons_rc': 'src/icons_rc'},
