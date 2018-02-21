@@ -18,6 +18,30 @@ from sakia.gui.preferences import PreferencesDialog
 from sakia.gui.widgets import QAsyncMessageBox
 
 
+
+def exit_exception_handler(loop, context):
+    """
+    An exception handler which prints only on debug (used when exiting)
+    :param loop: the asyncio loop
+    :param context: the exception context
+    """
+
+    logging.debug('Exception handler executing')
+    message = context.get('message')
+    if not message:
+        message = 'Unhandled exception in event loop'
+
+    try:
+        exception = context['exception']
+    except KeyError:
+        exc_info = False
+    else:
+        exc_info = (type(exception), exception, exception.__traceback__)
+
+    logging.debug("An unhandled exception occured : {0}".format(message),
+                  exc_info=exc_info)
+
+
 def async_exception_handler(loop, context):
     """
     An exception handler which exits the program if the exception
@@ -85,7 +109,7 @@ def main():
 
     sys.excepthook = exception_handler
 
-    sakia.setStyle('Fusion')
+    #sakia.setStyle('Fusion')
     loop = QSelectorEventLoop(sakia)
     loop.set_exception_handler(async_exception_handler)
     #loop.set_debug(True)
@@ -131,7 +155,7 @@ def main():
             window = MainWindowController.startup(app)
             loop.run_forever()
         try:
-            loop.set_exception_handler(None)
+            loop.set_exception_handler(exit_exception_handler)
             loop.run_until_complete(app.stop_current_profile())
             logging.debug("Application stopped")
         except asyncio.CancelledError:

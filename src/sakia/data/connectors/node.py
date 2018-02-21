@@ -113,10 +113,10 @@ class NodeConnector(QObject):
             else:
                 raise
         except (ClientError, gaierror, TimeoutError, ConnectionRefusedError, ValueError) as e:
-            self._logger.debug("{0}".format(str(e)))
+            self._logger.debug("{:}:{:}".format(str(e.__class__.__name__), str(e)))
             self.change_state_and_emit(Node.OFFLINE)
         except jsonschema.ValidationError as e:
-            self._logger.debug(str(e))
+            self._logger.debug("{:}:{:}".format(str(e.__class__.__name__), str(e)))
             self.change_state_and_emit(Node.CORRUPTED)
         except RuntimeError:
             if self.session.closed:
@@ -187,8 +187,7 @@ class NodeConnector(QObject):
                     self._logger.debug("{0} : {1}".format(str(e), self.node.pubkey[:5]))
                     self.change_state_and_emit(Node.OFFLINE)
                 except jsonschema.ValidationError as e:
-                    self._logger.debug(str(e))
-                    self._logger.debug("Validation error")
+                    self._logger.debug("{:}:{:}".format(str(e.__class__.__name__), str(e)))
                     self.change_state_and_emit(Node.CORRUPTED)
                 except RuntimeError:
                     if self.session.closed:
@@ -220,8 +219,11 @@ class NodeConnector(QObject):
                     self.change_state_and_emit(Node.CORRUPTED)
                     self._logger.debug("Error in block reply :  {0}".format(str(e)))
         else:
-            self._logger.debug("Could not connect to any BMA endpoint")
-            self.change_state_and_emit(Node.OFFLINE)
+            if self.session.closed:
+                pass
+            else:
+                self._logger.debug("Could not connect to any BMA endpoint")
+                self.change_state_and_emit(Node.OFFLINE)
 
     async def refresh_block(self, block_data):
         """
@@ -258,8 +260,11 @@ class NodeConnector(QObject):
                                                                         block_data['number']))
                         self.changed.emit()
             else:
-                self._logger.debug("Could not connect to any BMA endpoint")
-                self.change_state_and_emit(Node.OFFLINE)
+                if self.session.closed:
+                    pass
+                else:
+                    self._logger.debug("Could not connect to any BMA endpoint")
+                    self.change_state_and_emit(Node.OFFLINE)
         else:
             self.change_state_and_emit(Node.ONLINE)
 
@@ -283,8 +288,11 @@ class NodeConnector(QObject):
                 self._logger.debug("Error in summary : {:}".format(str(e)))
                 self.change_state_and_emit(Node.OFFLINE)
         else:
-            self._logger.debug("Could not connect to any BMA endpoint")
-            self.change_state_and_emit(Node.OFFLINE)
+            if self.session.closed:
+                pass
+            else:
+                self._logger.debug("Could not connect to any BMA endpoint")
+                self.change_state_and_emit(Node.OFFLINE)
 
     async def connect_peers(self):
         """
@@ -314,10 +322,10 @@ class NodeConnector(QObject):
                                        .format(type(e).__name__, str(e)))
                     await self.request_peers()
                 except (ClientError, gaierror, TimeoutError) as e:
-                    self._logger.debug("{0}".format(str(e)))
+                    self._logger.debug("{:}:{:}".format(str(e.__class__.__name__), str(e)))
                     self.change_state_and_emit(Node.OFFLINE)
                 except jsonschema.ValidationError as e:
-                    self._logger.debug(str(e))
+                    self._logger.debug("{:}:{:}".format(str(e.__class__.__name__), str(e)))
                     self.change_state_and_emit(Node.CORRUPTED)
                 except RuntimeError:
                     if self.session.closed:
@@ -359,7 +367,7 @@ class NodeConnector(QObject):
                             if e.ucode == 2012:
                                 # Since with multinodes, peers or not the same on all nodes, sometimes this request results
                                 # in peer not found error
-                                self._logger.debug(str(e))
+                                self._logger.debug("{:}:{:}".format(str(e.__class__.__name__), str(e)))
                             else:
                                 self.change_state_and_emit(Node.OFFLINE)
                                 self._logger.debug("Incorrect peer data in {leaf} : {err}".format(leaf=leaf_hash, err=str(e)))
@@ -371,8 +379,11 @@ class NodeConnector(QObject):
                 self._logger.debug("Error in peers reply : {0}".format(str(e)))
                 self.change_state_and_emit(Node.OFFLINE)
         else:
-            self._logger.debug("Could not connect to any BMA endpoint")
-            self.change_state_and_emit(Node.OFFLINE)
+            if self.session.closed:
+                pass
+            else:
+                self._logger.debug("Could not connect to any BMA endpoint")
+                self.change_state_and_emit(Node.OFFLINE)
 
     def refresh_peer_data(self, peer_data):
         if "raw" in peer_data:
@@ -382,7 +393,7 @@ class NodeConnector(QObject):
                 peer_doc = Peer.from_signed_raw(str_doc)
                 self.neighbour_found.emit(peer_doc)
             except MalformedDocumentError as e:
-                self._logger.debug(str(e))
+                self._logger.debug("{:}:{:}".format(str(e.__class__.__name__), str(e)))
         else:
             self._logger.debug("Incorrect leaf reply")
 
