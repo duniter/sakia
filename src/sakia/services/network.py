@@ -151,6 +151,7 @@ class NetworkService(QObject):
                 for connector in self._connectors:
                     if connector.node.state in (Node.OFFLINE, Node.CORRUPTED) \
                             and connector.node.last_state_change + 3600 < time.time():
+                        await connector.close_ws()
                         connector.disconnect()
                         self._processor.delete_node(connector.node)
                         self._connectors.remove(connector)
