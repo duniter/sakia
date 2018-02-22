@@ -11,7 +11,7 @@ pip install --upgrade pip
 pyenv rehash
 pip install coveralls
 pip install pytest-cov
-pip install pyinstaller==3.2
+pip install pyinstaller==3.3.1
 pip install -r requirements.txt
 if [ $TRAVIS_OS_NAME == "linux" ]
 then
@@ -34,7 +34,6 @@ if [ $TRAVIS_OS_NAME == "osx" ]
 then
     pyinstaller sakia.spec
     cp -rv dist/sakia/* dist/sakia.app/Contents/MacOS
-    cp -va dist/sakia/* dist/sakia.app/Contents/MacOS
     cp -v res/osx/Info.plist dist/sakia.app/Contents/
     rm -rfv dist/sakia
 elif [ $TRAVIS_OS_NAME == "linux" ]
