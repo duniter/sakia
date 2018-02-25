@@ -45,6 +45,7 @@ push_to_github:
 
 build: &build
   <<: *pyenv
+  <<: *qt5
   stage: build
   script:
     - pip install -r requirements.txt
@@ -54,6 +55,7 @@ build: &build
     - py.test
 test:
   <<: *pyenv
+  <<: *qt5
   stage: test
   script:
     - pip install coveralls
@@ -64,6 +66,7 @@ test:
 
 releases:
   <<: *pyenv
+  <<: *qt5
   stage: release
   when: manual
   script:
