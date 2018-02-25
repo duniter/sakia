@@ -36,8 +36,10 @@ push_to_github:
     - export PATH="$PYENV_ROOT/bin:$PATH"
     - eval "$(pyenv init -)"
     - pyenv shell $PYENV_PYTHON_VERSION
+    - ls -l /opt/qt/
+    - ls -l /opt/qt/5.9
+    - ls -l /opt/qt/5.9/5.9
     - export PATH=/opt/qt/5.9/5.9/gcc_64/bin:$PATH
-    - ls -l /opt/qt/5.9/5.9/gcc_64/bin
 
 build: &build
   <<: *env
