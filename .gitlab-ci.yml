@@ -28,7 +28,7 @@ push_to_github:
     - mv packed-refs-new packed-refs
     - bash -c "git push --force --mirror github 2>&1 | grep -v duniter-gitlab; echo $?"
 
-.pyenv: &pyenv
+.env: &env
   tags:
     - redshift-docker-python
   before_script:
@@ -36,16 +36,10 @@ push_to_github:
     - export PATH="$PYENV_ROOT/bin:$PATH"
     - eval "$(pyenv init -)"
     - pyenv shell $PYENV_PYTHON_VERSION
-
-.qt5: &qt5
-  tags:
-    - redshift-docker-python
-  before_script:
     - export PATH=/opt/qt/5.9/5.9/gcc_64/bin:$PATH
 
 build: &build
-  <<: *pyenv
-  <<: *qt5
+  <<: *env
   stage: build
   script:
     - pip install -r requirements.txt
@@ -54,8 +48,7 @@ build: &build
     - python setup.py sdist bdist_wheel
     - py.test
 test:
-  <<: *pyenv
-  <<: *qt5
+  <<: *env
   stage: test
   script:
     - pip install coveralls
@@ -65,8 +58,7 @@ test:
     - py.test --cov=sakia tests/
 
 releases:
-  <<: *pyenv
-  <<: *qt5
+  <<: *env
   stage: release
   when: manual
   script:
