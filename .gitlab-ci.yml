@@ -1,0 +1,74 @@
+stages:
+  - github-sync
+  - prepare
+  - build
+  - test
+  - release
+
+variables:
+    PYENV_PYTHON_VERSION: 3.5.5
+
+image: registry.duniter.org/docker/python3/duniterpy-builder:0.0.5
+
+push_to_github:
+  stage: github-sync
+  variables:
+    GIT_STRATEGY: none
+  tags:
+    - github
+  script:
+    - rm -rf ./*
+    - rm -rf .git
+    - git clone --mirror $CI_REPOSITORY_URL .
+    - git remote add github $GITHUB_URL_AND_KEY
+    - git config --global user.email "contact@duniter.org"
+    - git config --global user.name "Duniter"
+    # Job would fail if we don't remove refs about pull requests
+    - bash -c "cat packed-refs | grep -v 'refs/pull' > packed-refs-new; echo 'Removed pull refs.'"
+    - mv packed-refs-new packed-refs
+    - bash -c "git push --force --mirror github 2>&1 | grep -v duniter-gitlab; echo $?"
+
+.pyenv: &pyenv
+  tags:
+    - redshift-docker-python
+  before_script:
+    - export PYENV_ROOT="$HOME/.pyenv"
+    - export PATH="$PYENV_ROOT/bin:$PATH"
+    - eval "$(pyenv init -)"
+    - pyenv shell $PYENV_PYTHON_VERSION
+
+.qt5: &qt5
+  tags:
+    - redshift-docker-python
+  before_script:
+    - export PATH=/opt/qt/5.9/5.9/gcc_64/bin:$PATH
+
+build: &build
+  <<: *pyenv
+  stage: build
+  script:
+    - pip install -r requirements.txt
+    - python gen_resources.py
+    - python gen_translations.py --lrelease
+    - python setup.py sdist bdist_wheel
+    - py.test
+test:
+  <<: *pyenv
+  stage: test
+  script:
+    - pip install coveralls
+    - pip install -r requirements.txt
+    - python gen_resources.py
+    - python gen_translations.py --lrelease
+    - py.test --cov=sakia tests/
+
+releases:
+  <<: *pyenv
+  stage: release
+  when: manual
+  script:
+    - pip install -r requirements.txt
+    - pip install wheel
+    - pip install twine
+    - python setup.py sdist bdist_wheel
+    - twine upload dist/* --username duniter --password $PYPI_PASSWORD
