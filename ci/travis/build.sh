@@ -12,6 +12,7 @@ pyenv rehash
 pip install coveralls
 pip install pytest-cov
 pip install pyinstaller==3.3.1
+pip install wheel
 pip install -r requirements.txt
 if [ $TRAVIS_OS_NAME == "linux" ]
 then
@@ -40,4 +41,5 @@ elif [ $TRAVIS_OS_NAME == "linux" ]
 then
     pyinstaller sakia.spec
     rm -f dist/sakia/libdrm.so.2
+    python setup.py bdist_wheel
 fi

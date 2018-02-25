@@ -38,6 +38,7 @@ deploy:
     file:
       - sakia-${TRAVIS_OS_NAME}.deb
       - sakia-${TRAVIS_OS_NAME}.zip
+      - sakia-${TRAVIS_TAG}-py3-none-any.whl
     skip_cleanup: true
     on:
       tags: true
