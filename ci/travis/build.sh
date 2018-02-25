@@ -39,4 +39,5 @@ then
 elif [ $TRAVIS_OS_NAME == "linux" ]
 then
     pyinstaller sakia.spec
+    rm -f dist/sakia/libdrm.so.2
 fi
