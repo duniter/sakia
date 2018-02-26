@@ -21,8 +21,6 @@ from sakia.services import DocumentsService
 
 _application_ = []
 
-locale.setlocale(locale.LC_ALL, 'C.UTF-8')
-
 @pytest.yield_fixture
 def event_loop():
     qapplication = get_application()
