@@ -40,25 +40,16 @@ push_to_github:
     - export DISPLAY=:99
 
 
-build: &build
+build_and_test: &build_and_test
   <<: *env
-  stage: build
+  stage: build_and_test
   script:
     - pip install wheel
+    - pip install pytest-cov
     - pip install -r requirements.txt
     - python gen_resources.py
     - python gen_translations.py --lrelease
     - python setup.py bdist_wheel
-    - py.test
-
-test:
-  <<: *env
-  stage: test
-  script:
-    - pip install coveralls
-    - pip install -r requirements.txt
-    - python gen_resources.py
-    - python gen_translations.py --lrelease
     - py.test --cov=sakia tests/
 
 releases:
