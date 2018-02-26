@@ -1,3 +1,4 @@
+import locale
 import asyncio
 import logging
 import signal

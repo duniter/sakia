@@ -5,6 +5,7 @@ import sqlite3
 import mirage
 import sys
 import os
+import locale
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 
@@ -19,7 +20,6 @@ from sakia.data.repositories import *
 from sakia.services import DocumentsService
 
 _application_ = []
-
 
 @pytest.yield_fixture
 def event_loop():
