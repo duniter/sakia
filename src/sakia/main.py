@@ -1,3 +1,4 @@
+import locale
 import asyncio
 import logging
 import signal
@@ -104,6 +105,7 @@ def exception_message(log_lines, exc_info):
 
 def main():
     # activate ctrl-c interrupt
+    locale.setlocale(locale.LC_ALL, 'C.UTF-8')
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     sakia = QApplication(sys.argv)
 

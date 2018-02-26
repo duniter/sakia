@@ -5,6 +5,7 @@ import sqlite3
 import mirage
 import sys
 import os
+import locale
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 
@@ -20,6 +21,7 @@ from sakia.services import DocumentsService
 
 _application_ = []
 
+locale.setlocale(locale.LC_ALL, 'C.UTF-8')
 
 @pytest.yield_fixture
 def event_loop():
