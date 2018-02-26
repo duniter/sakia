@@ -29,7 +29,7 @@ then
             dbus-x11
     wget https://download.qt.io/official_releases/qt/5.9/5.9.4/qt-opensource-linux-x64-5.9.4.run
     chmod +x qt-opensource-linux-x64-5.9.4.run
-    ./qt-opensource-linux-x64-5.9.4.run --script $HOME/build/duniter/sakia/ci/travis/qt-installer-noninteractive.qs
+    ./qt-opensource-linux-x64-5.9.4.run -v --script $HOME/build/duniter/sakia/ci/travis/qt-installer-noninteractive.qs
 
     wget http://archive.ubuntu.com/ubuntu/pool/universe/libs/libsodium/libsodium18_1.0.13-1_amd64.deb
     sudo dpkg -i libsodium18_1.0.13-1_amd64.deb

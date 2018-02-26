@@ -8,7 +8,7 @@ stages:
 variables:
     PYENV_PYTHON_VERSION: 3.5.5
 
-image: registry.duniter.org/docker/python3/duniterpy-builder:0.0.5
+image: registry.duniter.org/docker/python3/duniterpy-builder:0.0.6
 
 push_to_github:
   stage: github-sync
@@ -36,11 +36,7 @@ push_to_github:
     - export PATH="$PYENV_ROOT/bin:$PATH"
     - eval "$(pyenv init -)"
     - pyenv shell $PYENV_PYTHON_VERSION
-    - ls -l /opt/qt/
-    - ls -l /opt/qt/5.9
-    - ls -l /opt/qt/5.9/dist
-    - ls -l /opt/qt/5.9/5.9
-    - export PATH=/opt/qt/5.9/5.9/gcc_64/bin:$PATH
+    - export PATH=/opt/qt/5.9/5.9.4/gcc_64/bin:$PATH
 
 build: &build
   <<: *env
