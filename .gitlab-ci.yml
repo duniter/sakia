@@ -1,8 +1,6 @@
 stages:
   - github-sync
-  - prepare
-  - build
-  - test
+  - build_and_test
   - release
 
 variables:

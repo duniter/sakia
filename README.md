@@ -3,11 +3,9 @@
 ![sakia logo](https://raw.github.com/duniter/sakia/master/sakia.png)
 
 # Sakia
-[![Coverage Status](https://coveralls.io/repos/duniter/sakia/badge.svg?branch=dev)](https://coveralls.io/r/duniter/sakia)
+ [![pipeline status](https://git.duniter.org/clients/python/sakia/badges/gitlab/pipeline.svg)](https://git.duniter.org/clients/python/sakia/commits/gitlab)
  [![Build Status](https://travis-ci.org/duniter/sakia.svg?branch=travis)](https://travis-ci.org/duniter/sakia)
  [![Build status](https://ci.appveyor.com/api/projects/status/pvl18xon8pvu2c8w/branch/dev?svg=true)](https://ci.appveyor.com/project/Insoleet/sakia-bee4m/branch/dev)
- [![Translation status](http://weblate.duniter.org/widgets/sakia/-/svg-badge.svg)](http://weblate.duniter.org/engage/sakia/?utm_source=widget)
- [![Code Issues](https://www.quantifiedcode.com/api/v1/project/3fff212226eb4027a586bc32e32d909b/badge.svg)](https://www.quantifiedcode.com/app/project/3fff212226eb4027a586bc32e32d909b)
 
 ========
 
