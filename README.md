@@ -3,6 +3,7 @@
 ![sakia logo](https://raw.github.com/duniter/sakia/master/sakia.png)
 
 # Sakia
+ [![coverage report](https://git.duniter.org/clients/python/sakia/badges/gitlab/coverage.svg)](https://git.duniter.org/clients/python/sakia/commits/gitlab)
  [![pipeline status](https://git.duniter.org/clients/python/sakia/badges/gitlab/pipeline.svg)](https://git.duniter.org/clients/python/sakia/commits/gitlab)
  [![Build Status](https://travis-ci.org/duniter/sakia.svg?branch=travis)](https://travis-ci.org/duniter/sakia)
  [![Build status](https://ci.appveyor.com/api/projects/status/pvl18xon8pvu2c8w/branch/dev?svg=true)](https://ci.appveyor.com/project/Insoleet/sakia-bee4m/branch/dev)
