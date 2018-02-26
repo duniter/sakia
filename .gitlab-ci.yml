@@ -8,7 +8,7 @@ stages:
 variables:
     PYENV_PYTHON_VERSION: 3.5.5
 
-image: registry.duniter.org/docker/python3/duniterpy-builder:0.0.6
+image: registry.duniter.org/docker/python3/duniterpy-builder:0.0.7
 
 push_to_github:
   stage: github-sync
@@ -37,10 +37,7 @@ push_to_github:
     - eval "$(pyenv init -)"
     - pyenv shell $PYENV_PYTHON_VERSION
     - export PATH=/opt/qt/5.9/5.9.4/gcc_64/bin:$PATH
-    - export XVFBARGS="-screen 0 1280x1024x24"
     - export DISPLAY=:99
-    - /etc/init.d/xvfb start
-    - sleep 3
 
 
 build: &build
