@@ -42,11 +42,13 @@ build: &build
   <<: *env
   stage: build
   script:
+    - pip install wheel
     - pip install -r requirements.txt
     - python gen_resources.py
     - python gen_translations.py --lrelease
-    - python setup.py sdist bdist_wheel
+    - python setup.py bdist_wheel
     - py.test
+
 test:
   <<: *env
   stage: test
@@ -65,5 +67,5 @@ releases:
     - pip install -r requirements.txt
     - pip install wheel
     - pip install twine
-    - python setup.py sdist bdist_wheel
+    - python setup.py bdist_wheel
     - twine upload dist/* --username duniter --password $PYPI_PASSWORD
