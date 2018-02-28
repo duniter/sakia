@@ -13,17 +13,7 @@
 Python3 and PyQt5 Client for [duniter](http://www.duniter.org) project.
 
 
-## Goal features
-  * duniter account management via wallets and communities
-  * Multi-currency
-  * Multi-community
-  * Multi-wallets
-  * Contacts management
-  * User-friendly money transfer
-  * Community membership management
-
-## Current state
-### Done (master branch)
+### Features
   * Accounts management
   * Communities viewing
   * Money Transfer
@@ -35,21 +25,28 @@ Python3 and PyQt5 Client for [duniter](http://www.duniter.org) project.
 
 ### Dependencies
   * Dependencies :
+   * Qt5
    * [python3](https://www.python.org/downloads/)
-   * [cx_freeze for python 3](http://cx-freeze.sourceforge.net/)
-   * [pyqt5](http://www.riverbankcomputing.co.uk/software/pyqt/download5)
    * [libsodium](http://doc.libsodium.org/installation/README.html)
-  * Python libraries dependencies :
-   * __duniterpy__
 
   * General tips : use pyenv to build sakia, as described in the [wiki](https://github.com/duniter/sakia/wiki/Cutecoin-install-for-developpers)
 
-### Build scripts
-  * Run __python3 gen_resources.py__ in sakia folder
-  * Run __python3 gen_translations.py__ in sakia folder
-  * Run __python3 setup.py build__ in sakia folder
-  * The executable is generated in "build" folder, named "sakia"
+### Wheel Build scripts
+  * Install __wheel__ with `pip install wheel`
+  * Run `python3 gen_resources.py` in sakia folder
+  * Run `python3 gen_translations.py` in sakia folder
+  * To build the wheel : Run `python3 setup.py bdist_wheel` in sakia folder
+  
+### Pyinstaller Build scripts
+  * Install __pyinstaller__ with `pip install pyinstaller`
+  * Run `python3 gen_resources.py` in sakia folder
+  * Run `python3 gen_translations.py` in sakia folder
+  * To build the binaries : Run `pyinstall sakia.spec`
 
+### Install with pip
+  * Run `pip install sakia`
+  * start "sakia" :)
+ 
 ### Download latest release
   * Go to [current release](https://github.com/duniter/sakia/releases)
   * Download corresponding package to your operating system
