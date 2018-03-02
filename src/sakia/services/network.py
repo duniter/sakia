@@ -182,7 +182,7 @@ class NetworkService(QObject):
                 await asyncio.sleep(2)
             else:
                 node, updated = self._processor.update_peer(self.currency, peer)
-                if not node:
+                if not node and peer.blockUID.number + 2400 > self.current_buid().number:
                     self._logger.debug("New node found : {0}".format(peer.pubkey[:5]))
                     try:
                         connector = NodeConnector.from_peer(self.currency, peer, self._app.parameters)
