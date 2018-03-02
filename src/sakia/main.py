@@ -68,13 +68,13 @@ def async_exception_handler(loop, context):
 
     logging.error('\n'.join(log_lines), exc_info=exc_info)
     for line in log_lines:
-        for ignored in ("Unclosed", "socket.gaierror", "[Errno 110]"):
+        for ignored in ("feed_appdata", "do_handshake", "Unclosed", "socket.gaierror", "[Errno 110]"):
             if ignored in line:
                 return
 
     if exc_info:
         for line in traceback.format_exception(*exc_info):
-            for ignored in ("Unclosed", "socket.gaierror", "[Errno 110]"):
+            for ignored in ("feed_appdata", "do_handshake", "Unclosed", "socket.gaierror", "[Errno 110]"):
                 if ignored in line:
                     return
     exception_message(log_lines, exc_info)
