@@ -65,7 +65,7 @@ async def test_register_empty_blockchain(application, fake_server, bob, tmpdir):
         assert len(ConnectionsProcessor.instanciate(application).connections()) == 1
         accept_dialog("Registration")
 
-    application.loop.call_later(10, close_dialog)
+    application.loop.call_later(30, close_dialog)
     asyncio.ensure_future(exec_test())
     await connection_config_dialog.async_exec()
     await fake_server.close()

@@ -102,7 +102,7 @@ def fake_server(application, event_loop):
                                           uid="",
                                           current_buid=BlockUID.empty(),
                                           current_ts=0,
-                                          state=Node.ONLINE,
+                                          state=0,
                                           software="duniter",
                                           version="0.40.2"))
     application.instanciate_services()

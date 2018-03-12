@@ -165,7 +165,15 @@ class BmaConnector:
 
     async def _verified_request(self, node, request):
         try:
-            return await request
+            res = await request
+            self._nodes_processor.handle_success(node)
+            return res
+        except errors.DuniterError as e:
+            if e.ucode == errors.HTTP_LIMITATION:
+                self._logger.debug("Exception in responses : " + str(e))
+                self._nodes_processor.handle_failure(node)
+            else:
+                return e
         except BaseException as e:
             self._logger.debug(str(e))
             self._nodes_processor.handle_failure(node)
@@ -233,6 +241,7 @@ class BmaConnector:
             else:
                 return _best_answer(answers, answers_data, nb_verification)
 
+        nodes = self._nodes_processor.nodes(currency)
         raise NoPeerAvailable("", len(synced_nodes))
 
     async def simple_get(self, currency, request, req_args):

@@ -87,7 +87,7 @@ class NetworkService(QObject):
                     sample.append(n)
                     continue
 
-        for node in random.sample(sample, 6):
+        for node in random.sample(sample, min(len(sample), 6)):
             connectors.append(NodeConnector(node, app.parameters))
         network = cls(app, currency, node_processor, connectors, blockchain_service, identities_service)
         return network
@@ -176,7 +176,7 @@ class NetworkService(QObject):
                                     sample.append(n)
                                     continue
 
-                        for node in random.sample(sample, 1):
+                        for node in random.sample(sample, min(len(sample), 1)):
                             self.add_connector(NodeConnector(node, self.app.parameters))
 
 
