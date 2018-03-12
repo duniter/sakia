@@ -168,6 +168,17 @@ class NetworkService(QObject):
                                 self._connectors.remove(connector)
                         self._processor.delete_node(connector.node)
                         self.node_removed.emit(connector.node)
+                    if len(self._connectors) < 6:
+                        sample = []
+                        for n in self._processor.online_nodes(self.currency):
+                            for e in n.endpoints:
+                                if isinstance(e, BMAEndpoint):
+                                    sample.append(n)
+                                    continue
+
+                        for node in random.sample(sample, 1):
+                            self.add_connector(NodeConnector(node, self.app.parameters))
+
 
                 self.run_ws2p_check()
             first_loop = False
