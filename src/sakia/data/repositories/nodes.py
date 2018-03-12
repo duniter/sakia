@@ -111,14 +111,61 @@ class NodesRepo:
                               WHERE
                               currency=? AND pubkey=?""", where_fields)
 
+    def get_offline_nodes(self, currency):
+        c = self._conn.execute("SELECT * FROM nodes WHERE currency == ? AND state > ?;",
+                               (currency, Node.FAILURE_THRESHOLD))
+        datas = c.fetchall()
+        if datas:
+            return [Node(*data) for data in datas]
+        return []
+
+    def get_synced_nodes(self, currency, current_buid):
+        c = self._conn.execute("SELECT * FROM nodes "
+                               "WHERE currency == ? "
+                               "AND state <= ?"
+                               "AND current_buid == ?",
+                               (currency, Node.FAILURE_THRESHOLD, current_buid))
+        datas = c.fetchall()
+        if datas:
+            return [Node(*data) for data in datas]
+        return []
+
+    def get_synced_members_nodes(self, currency, current_buid):
+        c = self._conn.execute("SELECT * FROM nodes "
+                               "WHERE currency == ? "
+                               "AND state <= ?"
+                               "AND current_buid == ?"
+                               "AND member == 1",
+                               (currency, Node.FAILURE_THRESHOLD, current_buid))
+        datas = c.fetchall()
+        if datas:
+            return [Node(*data) for data in datas]
+        return []
+
+    def get_online_nodes(self, currency):
+        c = self._conn.execute("SELECT * FROM nodes WHERE currency == ? AND state <= ?;",
+                               (currency, Node.FAILURE_THRESHOLD))
+        datas = c.fetchall()
+        if datas:
+            return [Node(*data) for data in datas]
+        return []
+
     def current_buid(self, currency):
-        c = self._conn.execute("""SELECT `current_buid`,
+        req = """SELECT `current_buid`,
              COUNT(`current_buid`) AS `value_occurrence`
     FROM     `nodes`
     WHERE state == 1 AND member == 1 AND currency == ?
     GROUP BY `current_buid`
     ORDER BY `value_occurrence` DESC
-    LIMIT    1;""", (currency,))
+    LIMIT    1;"""
+
+        c = self._conn.execute("""SELECT `current_buid`,
+             COUNT(`current_buid`) AS `value_occurrence`
+    FROM     `nodes`
+    WHERE state <= ? AND member == 1 AND currency == ?
+    GROUP BY `current_buid`
+    ORDER BY `value_occurrence` DESC
+    LIMIT    1;""", (Node.FAILURE_THRESHOLD, currency,))
         data = c.fetchone()
         if data:
             return block_uid(data[0])
@@ -126,10 +173,10 @@ class NodesRepo:
             c = self._conn.execute("""SELECT `current_buid`,
              COUNT(`current_buid`) AS `value_occurrence`
     FROM     `nodes`
-    WHERE state == 1 AND currency == ?
+    WHERE state <= ? AND currency == ?
     GROUP BY `current_buid`
     ORDER BY `value_occurrence` DESC
-    LIMIT    1;""", (currency,))
+    LIMIT    1;""", (Node.FAILURE_THRESHOLD, currency,))
             data = c.fetchone()
             if data:
                 return block_uid(data[0])

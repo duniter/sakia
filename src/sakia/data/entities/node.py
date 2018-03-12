@@ -27,16 +27,16 @@ class Node:
     """
 
     A node can have multiple states :
-    - ONLINE : The node is available for requests
-    - OFFLINE: The node is disconnected
+    - ONLINE <= 3: The node is available for requests
+    - OFFLINE > 3: The node is disconnected
     - DESYNCED : The node is online but is desynced from the network
-    - CORRUPTED : The node is corrupted, some weird behaviour is going on
     """
     MERKLE_EMPTY_ROOT = "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
 
-    ONLINE = 1
-    OFFLINE = 2
-    CORRUPTED = 4
+    FAILURE_THRESHOLD = 3
+
+    def online(self):
+        return self.state <= Node.FAILURE_THRESHOLD
 
     # The currency handled by this node
     currency = attr.ib(convert=str)
@@ -55,7 +55,7 @@ class Node:
     # The previous block uid in /blockchain/current
     previous_buid = attr.ib(convert=block_uid, cmp=False, default=None, hash=False)
     # The state of the node in Sakia
-    state = attr.ib(convert=int, cmp=False, default=OFFLINE, hash=False)
+    state = attr.ib(convert=int, cmp=False, default=0, hash=False)
     # The version of the software in /node/summary
     software = attr.ib(convert=str, cmp=False, default="", hash=False)
     # The version of the software in /node/summary

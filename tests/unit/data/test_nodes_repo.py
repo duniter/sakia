@@ -15,7 +15,7 @@ UNKNOWNAPI some useless information""",
                      current_buid="15-76543400E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67",
                      current_ts=12376543345,
                      previous_buid="14-AEFFCB00E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67",
-                     state=Node.ONLINE,
+                     state=0,
                      software="duniter",
                      version="0.30.17")
     nodes_repo.insert(inserted)
@@ -28,7 +28,7 @@ UNKNOWNAPI some useless information""",
     assert node.endpoints[2] == UnknownEndpoint("UNKNOWNAPI", ["some", "useless", "information"])
     assert node.previous_buid == block_uid("14-AEFFCB00E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67")
     assert node.current_buid == block_uid("15-76543400E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67")
-    assert node.state == Node.ONLINE
+    assert node.state == 0
     assert node.software == "duniter"
     assert node.version == "0.30.17"
     assert node.merkle_peers_root == Node.MERKLE_EMPTY_ROOT
@@ -51,7 +51,7 @@ UNKNOWNAPI some useless information""",
                            "15-76543400E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67",
                            12376543345,
                            "14-AEFFCB00E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67",
-                           Node.ONLINE,
+                           0,
                            "duniter",
                            "0.30.17"))
     nodes_repo.insert(Node("testcurrency",
@@ -62,7 +62,7 @@ UNKNOWNAPI some useless information""",
                            "18-76543400E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67",
                            12376543345,
                            "12-AEFFCB00E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67",
-                           Node.ONLINE,
+                           0,
                            "duniter",
                            "0.30.2a5"))
     nodes = nodes_repo.get_all(currency="testcurrency")
@@ -83,7 +83,7 @@ UNKNOWNAPI some useless information""",
                 "15-76543400E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67",
                 12376543345,
                 "14-AEFFCB00E78B56CC21FB1DDC6CBAB24E0FACC9A798F5ED8736EA007F38617D67",
-                Node.ONLINE,
+                0,
                 "duniter")
     nodes_repo.insert(node)
     node.previous_buid = node.current_buid

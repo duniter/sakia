@@ -4,6 +4,7 @@ from sakia.constants import ROOT_SERVERS
 from ..entities import Node
 from duniterpy.documents import BlockUID, endpoint
 import logging
+import time
 
 
 @attr.s
@@ -21,7 +22,7 @@ class NodesProcessor:
                             pubkey=pubkey,
                             endpoints=ROOT_SERVERS[currency]["nodes"][pubkey],
                             peer_blockstamp=BlockUID.empty(),
-                            state=Node.ONLINE)
+                            state=0)
                 self._repo.insert(node)
 
     def current_buid(self, currency):
@@ -37,20 +38,20 @@ class NodesProcessor:
         Get nodes which are in the ONLINE state.
         """
         current_buid = self._repo.current_buid(currency=currency)
-        return self._repo.get_all(currency=currency, state=Node.ONLINE, current_buid=current_buid)
+        return self._repo.get_synced_nodes(currency, current_buid)
 
     def synced_members_nodes(self, currency):
         """
         Get nodes which are in the ONLINE state.
         """
         current_buid = self._repo.current_buid(currency=currency)
-        return self._repo.get_all(currency=currency, state=Node.ONLINE, member=True, current_buid=current_buid)
+        return self._repo.get_synced_members_nodes(currency, current_buid)
 
     def online_nodes(self, currency):
         """
         Get nodes which are in the ONLINE state.
         """
-        return self._repo.get_all(currency=currency, state=Node.ONLINE)
+        return self._repo.get_online_nodes(currency)
 
     def delete_node(self, node):
         self._repo.drop(node)
@@ -144,7 +145,7 @@ class NodesProcessor:
                 logging.debug("Update node : {0}".format(head.pubkey[:5]))
                 node.previous_buid = node.current_buid
                 node.current_buid = head.blockstamp
-                node.state = Node.ONLINE
+                node.state = 0
                 self._repo.update(node)
                 return node, True
         return node, False
@@ -164,6 +165,18 @@ class NodesProcessor:
             self._repo.update(node)
             return node, True
         return node, False
+
+    def handle_success(self, node):
+        if not node.online():
+            node.last_state_change = time.time()
+        node.state = 0
+        self.update_node(node)
+
+    def handle_failure(self, node, weight=1):
+        if node.state + weight > Node.FAILURE_THRESHOLD and node.online():
+            node.last_state_change = time.time()
+        node.state += weight
+        self.update_node(node)
 
     def drop_all(self, currency):
         nodes = self._repo.get_all()

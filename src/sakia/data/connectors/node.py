@@ -31,12 +31,11 @@ class NodeConnector(QObject):
     A node is a peer send from the client point of view.
     """
     changed = pyqtSignal()
-    error = pyqtSignal()
+    success = pyqtSignal()
+    failure = pyqtSignal(int)
     identity_changed = pyqtSignal()
     neighbour_found = pyqtSignal(Peer)
     block_found = pyqtSignal(BlockUID)
-    
-    FAILURE_THRESHOLD = 3
 
     def __init__(self, node, user_parameters, session=None):
         """
@@ -101,7 +100,8 @@ class NodeConnector(QObject):
         if currency and peer.currency != currency:
             raise InvalidNodeCurrency(currency, peer.currency)
 
-        node = Node(peer.currency, peer.pubkey, peer.endpoints, peer.blockUID, last_state_change=time.time())
+        node = Node(peer.currency, peer.pubkey, peer.endpoints, peer.blockUID,
+                    current_buid=peer.blockUID, last_state_change=time.time())
         logging.getLogger('sakia').debug("Node from peer : {:}".format(str(node)))
 
         return cls(node, user_parameters, session=None)
@@ -121,7 +121,7 @@ class NodeConnector(QObject):
             self.handle_failure()
         except jsonschema.ValidationError as e:
             self._logger.debug("{:}:{:}".format(str(e.__class__.__name__), str(e)))
-            self.change_state_and_emit(Node.CORRUPTED)
+            self.handle_failure(weight=3)
         except RuntimeError:
             if self.session.closed:
                 pass
@@ -197,7 +197,7 @@ class NodeConnector(QObject):
                     self.handle_failure()
                 except jsonschema.ValidationError as e:
                     self._logger.debug("{:}:{:}".format(str(e.__class__.__name__), str(e)))
-                    self.change_state_and_emit(Node.CORRUPTED)
+                    self.handle_failure(weight=3)
                 except RuntimeError:
                     if self.session.closed:
                         pass
@@ -270,7 +270,6 @@ class NodeConnector(QObject):
                                                      proxy=self._user_parameters.proxy())
                 if not peers_data:
                     continue
-                self.node.state = Node.ONLINE
                 if peers_data['root'] != self.node.merkle_peers_root:
                     leaves = [leaf for leaf in peers_data['leaves']
                               if leaf not in self.node.merkle_peers_leaves]
@@ -333,7 +332,7 @@ class NodeConnector(QObject):
                                                      proxy=self._user_parameters.proxy())
                 if not heads_data:
                     continue
-                self.node.state = Node.ONLINE
+                self.handle_success()
                 return heads_data # Break endpoints loop
             except errors.DuniterError as e:
                 self._logger.debug("Error in peers reply : {0}".format(str(e)))
@@ -344,19 +343,9 @@ class NodeConnector(QObject):
             else:
                 self._logger.debug("Could not connect to any BMA endpoint")
                 self.handle_failure()
-        
-    def handle_success(self):
-        self.failure_count = 0
-        self.change_state_and_emit(Node.ONLINE)
-        
-    def handle_failure(self, weight=1):
-        self.failure_count += weight
-        if self.failure_count > NodeConnector.FAILURE_THRESHOLD:
-            self.change_state_and_emit(Node.OFFLINE)
 
-    def change_state_and_emit(self, new_state):
-        if self.node.state != new_state:
-            self._logger.debug("Changing state {0} > {1}".format(self.node.state, new_state))
-            self.node.last_state_change = time.time()
-            self.node.state = new_state
-            self.changed.emit()
+    def handle_success(self):
+        self.success.emit()
+
+    def handle_failure(self, weight=1):
+        self.failure.emit(weight)

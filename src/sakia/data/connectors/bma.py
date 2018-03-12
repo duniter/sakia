@@ -163,6 +163,14 @@ class BmaConnector:
     _user_parameters = attr.ib()
     _logger = attr.ib(default=attr.Factory(lambda: logging.getLogger('sakia')))
 
+    async def _verified_request(self, node, request):
+        try:
+            return await request
+        except BaseException as e:
+            self._logger.debug(str(e))
+            self._nodes_processor.handle_failure(node)
+            return e
+
     async def verified_get(self, currency, request, req_args):
         synced_nodes = self._nodes_processor.synced_members_nodes(currency)
         if not synced_nodes:
@@ -171,7 +179,7 @@ class BmaConnector:
         nodes_generator = (n for n in synced_nodes)
         answers = {}
         answers_data = {}
-        nb_verification = min(max(1, 0.66 * len(synced_nodes)), 10)
+        nb_verification = min(max(1, 0.66 * len(synced_nodes)), 6)
         # We try to find agreeing nodes from one 1 to 66% of nodes, max 10
         session = aiohttp.ClientSession()
         filtered_data = {}
@@ -180,7 +188,7 @@ class BmaConnector:
                 futures = []
 
                 try:
-                    for i in range(0, int(nb_verification)+1):
+                    for i in range(0, int(nb_verification*1.4)+1):
                         node = next(nodes_generator)
                         endpoints = filter_endpoints(request, [node])
                         if not endpoints:
@@ -188,9 +196,9 @@ class BmaConnector:
                         endpoint = random.choice(endpoints)
                         self._logger.debug(
                             "Requesting {0} on endpoint {1}".format(str(request.__name__), str(endpoint)))
-                        futures.append(request(next(
+                        futures.append(self._verified_request(node, request(next(
                             endpoint.conn_handler(session, proxy=self._user_parameters.proxy())),
-                            **req_args))
+                            **req_args)))
                 except StopIteration:
                     # When no more node is available, we go out of the while loop
                     break

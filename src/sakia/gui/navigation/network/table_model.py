@@ -142,26 +142,25 @@ class NetworkTableModel(QAbstractTableModel):
         'node'
     )
 
+    ONLINE = 0
+    OFFLINE = 1
     DESYNCED = 3
 
     node_colors = {
-        Node.ONLINE: QColor('#99ff99'),
-        Node.OFFLINE: QColor('#ff9999'),
-        DESYNCED: QColor('#ffbd81'),
-        Node.CORRUPTED: QColor(Qt.lightGray)
+        ONLINE: QColor('#99ff99'),
+        OFFLINE: QColor('#ff9999'),
+        DESYNCED: QColor('#ffbd81')
     }
 
     node_icons = {
-        Node.ONLINE: ":/icons/synchronized",
-        Node.OFFLINE: ":/icons/offline",
-        DESYNCED: ":/icons/forked",
-        Node.CORRUPTED: ":/icons/corrupted"
+        ONLINE: ":/icons/synchronized",
+        OFFLINE: ":/icons/offline",
+        DESYNCED: ":/icons/forked"
     }
     node_states = {
-        Node.ONLINE: lambda: QT_TRANSLATE_NOOP("NetworkTableModel", 'Online'),
-        Node.OFFLINE: lambda: QT_TRANSLATE_NOOP("NetworkTableModel", 'Offline'),
-        DESYNCED: lambda: QT_TRANSLATE_NOOP("NetworkTableModel", 'Unsynchronized'),
-        Node.CORRUPTED: lambda: QT_TRANSLATE_NOOP("NetworkTableModel", 'Corrupted')
+        ONLINE: lambda: QT_TRANSLATE_NOOP("NetworkTableModel", 'Online'),
+        OFFLINE: lambda: QT_TRANSLATE_NOOP("NetworkTableModel", 'Offline'),
+        DESYNCED: lambda: QT_TRANSLATE_NOOP("NetworkTableModel", 'Unsynchronized')
     }
     
     def __init__(self, network_service, parent=None):
@@ -226,7 +225,11 @@ class NetworkTableModel(QAbstractTableModel):
         state = node.state
         if not current_buid:
             current_buid = self.network_service.current_buid()
-        if node.state == Node.ONLINE and node.current_buid != current_buid:
+        if node.online():
+            state = NetworkTableModel.ONLINE
+        else:
+            state = NetworkTableModel.OFFLINE
+        if node.online() and node.current_buid != current_buid:
             state = NetworkTableModel.DESYNCED
 
         return (address, port, api, number, block_hash, node.uid,

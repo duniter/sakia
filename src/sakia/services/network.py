@@ -159,22 +159,17 @@ class NetworkService(QObject):
         self.refresh_once()
         while self.continue_crawling():
             if not first_loop:
-                for connector in self._connectors:
-                    if connector.node.state in (Node.OFFLINE, Node.CORRUPTED) \
-                            and connector.node.last_state_change + 3600 < time.time():
-                        await connector.close_ws()
-                        connector.disconnect()
+                for node in self._processor.nodes(self.currency):
+                    if node.state > Node.FAILURE_THRESHOLD and node.last_state_change + 3600 < time.time():
+                        for connector in self._connectors:
+                            if connector.node.pubkey == node.pubkey:
+                                await connector.close_ws()
+                                connector.disconnect()
+                                self._connectors.remove(connector)
                         self._processor.delete_node(connector.node)
-                        self._connectors.remove(connector)
                         self.node_removed.emit(connector.node)
 
-            for connector in self._connectors:
-                if self.continue_crawling() and len(self._connectors) <= 10:
-                    await connector.init_session()
-                    connector.refresh()
-                    if not first_loop:
-                        await asyncio.sleep(15)
-
+                self.run_ws2p_check()
             first_loop = False
             await asyncio.sleep(15)
 
@@ -193,25 +188,26 @@ class NetworkService(QObject):
                 await asyncio.sleep(2)
             else:
                 node, updated = self._processor.update_peer(self.currency, peer)
-                if not node and peer.blockUID.number + 2400 > self.current_buid().number:
-                    self._logger.debug("New node found : {0}".format(peer.pubkey[:5]))
-                    try:
-                        connector = NodeConnector.from_peer(self.currency, peer, self._app.parameters)
-                        node = connector.node
-                        self._processor.insert_node(connector.node)
-                        self.new_node_found.emit(node)
-                    except InvalidNodeCurrency as e:
-                        self._logger.debug(str(e))
-                if node and updated and self._blockchain_service.initialized():
-                    try:
-                        identity = await self._identities_service.find_from_pubkey(node.pubkey)
-                        identity = await self._identities_service.load_requirements(identity)
-                        node.member = identity.member
-                        node.uid = identity.uid
-                        self._processor.update_node(node)
-                        self.node_changed.emit(node)
-                    except errors.DuniterError as e:
-                        self._logger.error(e.message)
+                if peer.blockUID.number + 2400 > self.current_buid().number:
+                    if not node:
+                        self._logger.debug("New node found : {0}".format(peer.pubkey[:5]))
+                        try:
+                            connector = NodeConnector.from_peer(self.currency, peer, self._app.parameters)
+                            node = connector.node
+                            self._processor.insert_node(connector.node)
+                            self.new_node_found.emit(node)
+                        except InvalidNodeCurrency as e:
+                            self._logger.debug(str(e))
+                    if self._blockchain_service.initialized():
+                        try:
+                            identity = await self._identities_service.find_from_pubkey(node.pubkey)
+                            identity = await self._identities_service.load_requirements(identity)
+                            node.member = identity.member
+                            node.uid = identity.uid
+                            self._processor.update_node(node)
+                            self.node_changed.emit(node)
+                        except errors.DuniterError as e:
+                            self._logger.error(e.message)
 
     def handle_new_node(self, peer):
         key = VerifyingKey(peer.pubkey)
@@ -230,10 +226,13 @@ class NetworkService(QObject):
         self.node_changed.emit(connector.node)
 
     def handle_new_block(self, block_uid):
+        if self.current_buid() != block_uid:
+            self.run_ws2p_check()
+
+    def run_ws2p_check(self):
         if not self._ws2p_heads_refreshing:
             self._ws2p_heads_refreshing = True
-            if self.current_buid() != block_uid:
-                asyncio.async(self.check_ws2p_heads())
+            asyncio.async(self.check_ws2p_heads())
 
     async def check_ws2p_heads(self):
         await asyncio.sleep(5)
@@ -248,13 +247,15 @@ class NetworkService(QObject):
             if isinstance(r, errors.DuniterError):
                 self._logger.debug("Exception in responses : " + str(r))
                 continue
+            elif isinstance(r, BaseException):
+                self._logger.debug("Exception in responses : " + str(r))
             else:
                 if r:
                     for head_data in r["heads"]:
                         if "messageV2" in head_data:
-                            head = HeadV2.from_inline(head_data["messageV2"], head_data["sigV2"])
+                            head, _ = HeadV2.from_inline(head_data["messageV2"], head_data["sigV2"])
                         else:
-                            head = HeadV1.from_inline(head_data["messageV2"], head_data["sigV2"])
+                            head, _ = HeadV1.from_inline(head_data["message"], head_data["sig"])
 
                         VerifyingKey(head.pubkey).verify_ws2p_head(head)
                         if head.pubkey in ws2p_heads:
@@ -283,3 +284,13 @@ class NetworkService(QObject):
         node_connector = self.sender()
         self._processor.update_node(node_connector.node)
         self.node_changed.emit(node_connector.node)
+
+    def handle_success(self):
+        node_connector = self.sender()
+        self._processor.handle_success(node_connector.node)
+        self.changed.emit()
+
+    def handle_failure(self, weight=1):
+        node_connector = self.sender()
+        self._processor.handle_failure(node_connector.node, weight)
+        self.changed.emit()
