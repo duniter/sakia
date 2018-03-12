@@ -1,10 +1,12 @@
 import asyncio
 import logging
 import time
+import random
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt
 from duniterpy.api import errors
-from duniterpy.documents import BlockUID
+from duniterpy.documents.ws2p.heads import *
+from duniterpy.documents.peer import BMAEndpoint
 from duniterpy.key import VerifyingKey
 from sakia.data.connectors import NodeConnector
 from sakia.data.entities import Node
@@ -43,6 +45,7 @@ class NetworkService(QObject):
             self.add_connector(c)
         self.currency = currency
         self._must_crawl = False
+        self._ws2p_heads_refreshing = False
         self._block_found = self._processor.current_buid(self.currency)
         self._discovery_stack = []
         self._blockchain_service = blockchain_service
@@ -77,7 +80,14 @@ class NetworkService(QObject):
         """
 
         connectors = []
-        for node in node_processor.nodes(currency):
+        sample = []
+        for n in node_processor.online_nodes(currency):
+            for e in n.endpoints:
+                if isinstance(e, BMAEndpoint):
+                    sample.append(n)
+                    continue
+
+        for node in random.sample(sample, 6):
             connectors.append(NodeConnector(node, app.parameters))
         network = cls(app, currency, node_processor, connectors, blockchain_service, identities_service)
         return network
@@ -125,6 +135,7 @@ class NetworkService(QObject):
         Add a nod to the network.
         """
         self._connectors.append(node_connector)
+        node_connector.block_found.connect(self.handle_new_block, type=Qt.UniqueConnection|Qt.QueuedConnection)
         node_connector.changed.connect(self.handle_change, type=Qt.UniqueConnection|Qt.QueuedConnection)
         node_connector.identity_changed.connect(self.handle_identity_change, type=Qt.UniqueConnection|Qt.QueuedConnection)
         node_connector.neighbour_found.connect(self.handle_new_node, type=Qt.UniqueConnection|Qt.QueuedConnection)
@@ -158,7 +169,7 @@ class NetworkService(QObject):
                         self.node_removed.emit(connector.node)
 
             for connector in self._connectors:
-                if self.continue_crawling():
+                if self.continue_crawling() and len(self._connectors) <= 10:
                     await connector.init_session()
                     connector.refresh()
                     if not first_loop:
@@ -188,30 +199,19 @@ class NetworkService(QObject):
                         connector = NodeConnector.from_peer(self.currency, peer, self._app.parameters)
                         node = connector.node
                         self._processor.insert_node(connector.node)
-                        await connector.init_session()
-                        connector.refresh(manual=True)
-                        self.add_connector(connector)
                         self.new_node_found.emit(node)
                     except InvalidNodeCurrency as e:
                         self._logger.debug(str(e))
                 if node and updated and self._blockchain_service.initialized():
                     try:
-                        connector = next(conn for conn in self._connectors if conn.node == node)
-                    except StopIteration:
-                        self._logger.warning("A node not associated to"
-                                             " a connector was encoutered : {:}"
-                                             .format(node.pubkey[:7]))
-                    else:
-                        connector.refresh_summary()
-                        try:
-                            identity = await self._identities_service.find_from_pubkey(node.pubkey)
-                            identity = await self._identities_service.load_requirements(identity)
-                            node.member = identity.member
-                            node.uid = identity.uid
-                            self._processor.update_node(node)
-                            self.node_changed.emit(node)
-                        except errors.DuniterError as e:
-                            self._logger.error(e.message)
+                        identity = await self._identities_service.find_from_pubkey(node.pubkey)
+                        identity = await self._identities_service.load_requirements(identity)
+                        node.member = identity.member
+                        node.uid = identity.uid
+                        self._processor.update_node(node)
+                        self.node_changed.emit(node)
+                    except errors.DuniterError as e:
+                        self._logger.error(e.message)
 
     def handle_new_node(self, peer):
         key = VerifyingKey(peer.pubkey)
@@ -229,26 +229,57 @@ class NetworkService(QObject):
         self._processor.update_node(connector.node)
         self.node_changed.emit(connector.node)
 
+    def handle_new_block(self, block_uid):
+        if not self._ws2p_heads_refreshing:
+            self._ws2p_heads_refreshing = True
+            if self.current_buid() != block_uid:
+                asyncio.async(self.check_ws2p_heads())
+
+    async def check_ws2p_heads(self):
+        await asyncio.sleep(5)
+        futures = []
+        for connector in self._connectors:
+            futures.append(connector.request_ws2p_heads())
+
+        responses = await asyncio.gather(*futures, return_exceptions=True)
+
+        ws2p_heads = {}
+        for r in responses:
+            if isinstance(r, errors.DuniterError):
+                self._logger.debug("Exception in responses : " + str(r))
+                continue
+            else:
+                if r:
+                    for head_data in r["heads"]:
+                        if "messageV2" in head_data:
+                            head = HeadV2.from_inline(head_data["messageV2"], head_data["sigV2"])
+                        else:
+                            head = HeadV1.from_inline(head_data["messageV2"], head_data["sigV2"])
+
+                        VerifyingKey(head.pubkey).verify_ws2p_head(head)
+                        if head.pubkey in ws2p_heads:
+                            if ws2p_heads[head.pubkey].blockstamp < head.blockstamp:
+                                ws2p_heads[head.pubkey] = head
+                        else:
+                            ws2p_heads[head.pubkey] = head
+
+        for head in ws2p_heads.values():
+            node, updated = self._processor.update_ws2p(self.currency, head)
+            if node and updated:
+                self.node_changed.emit(node)
+
+        self._ws2p_heads_refreshing = False
+
+        current_buid = self._processor.current_buid(self.currency)
+        self._logger.debug("{0} -> {1}".format(self._block_found.sha_hash[:10], current_buid.sha_hash[:10]))
+        if self._block_found.sha_hash != current_buid.sha_hash:
+            self._logger.debug("Latest block changed : {0}".format(current_buid.number))
+            self.latest_block_changed.emit(current_buid)
+            self._logger.debug("Start refresh")
+            self._block_found = current_buid
+            asyncio.ensure_future(self._blockchain_service.handle_blockchain_progress(self._block_found))
+
     def handle_change(self):
         node_connector = self.sender()
         self._processor.update_node(node_connector.node)
         self.node_changed.emit(node_connector.node)
-
-        if node_connector.node.state == Node.ONLINE:
-            current_buid = self._processor.current_buid(self.currency)
-            self._logger.debug("{0} -> {1}".format(self._block_found.sha_hash[:10], current_buid.sha_hash[:10]))
-            if self._block_found.sha_hash != current_buid.sha_hash:
-                self._logger.debug("Latest block changed : {0}".format(current_buid.number))
-                self.latest_block_changed.emit(current_buid)
-                # If new latest block is lower than the previously found one
-                # or if the previously found block is different locally
-                # than in the main chain, we declare a rollback
-                if current_buid < self._block_found \
-                   or node_connector.node.previous_buid != self._block_found:
-                    self._logger.debug("Start rollback")
-                    self._block_found = current_buid
-                    #TODO: self._blockchain_service.rollback()
-                else:
-                    self._logger.debug("Start refresh")
-                    self._block_found = current_buid
-                    asyncio.ensure_future(self._blockchain_service.handle_blockchain_progress(self._block_found))

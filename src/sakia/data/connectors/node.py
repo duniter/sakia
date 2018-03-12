@@ -34,6 +34,7 @@ class NodeConnector(QObject):
     error = pyqtSignal()
     identity_changed = pyqtSignal()
     neighbour_found = pyqtSignal(Peer)
+    block_found = pyqtSignal(BlockUID)
     
     FAILURE_THRESHOLD = 3
 
@@ -183,14 +184,14 @@ class NodeConnector(QObject):
                             if msg.type == aiohttp.WSMsgType.TEXT:
                                 self._logger.debug("Received a block")
                                 block_data = bma.parse_text(msg.data, bma.ws.WS_BLOCk_SCHEMA)
-                                await self.refresh_block(block_data)
+                                self.block_found.emit(BlockUID(block_data['number'], block_data['hash']))
                             elif msg.type == aiohttp.WSMsgType.CLOSED:
                                 break
                             elif msg.type == aiohttp.WSMsgType.ERROR:
                                 break
                 except (aiohttp.WSServerHandshakeError, ValueError) as e:
                     self._logger.debug("Websocket block {0} : {1}".format(type(e).__name__, str(e)))
-                    await self.request_current_block()
+                    self.handle_failure()
                 except (ClientError, gaierror, TimeoutError) as e:
                     self._logger.debug("{0} : {1}".format(str(e), self.node.pubkey[:5]))
                     self.handle_failure()
@@ -210,102 +211,6 @@ class NodeConnector(QObject):
                 finally:
                     self._connected['block'] = False
                     self._ws_tasks['block'] = None
-
-    async def request_current_block(self):
-        """
-        Request a node on the HTTP GET interface
-        If an error occurs, the node is considered offline
-        """
-        for endpoint in [e for e in self.node.endpoints if isinstance(e, BMAEndpoint)]:
-            try:
-                block_data = await self.safe_request(endpoint, bma.blockchain.current,
-                                                     proxy=self._user_parameters.proxy())
-                if not block_data:
-                    continue
-                await self.refresh_block(block_data)
-                return  # Do not try any more endpoint
-            except errors.DuniterError as e:
-                if e.ucode == errors.BLOCK_NOT_FOUND:
-                    self.node.previous_buid = BlockUID.empty()
-                    self.handle_success()
-                else:
-                    self.change_state_and_emit(Node.CORRUPTED)
-                    self._logger.debug("Error in block reply :  {0}".format(str(e)))
-        else:
-            if self.session.closed:
-                pass
-            else:
-                self._logger.debug("Could not connect to any BMA endpoint")
-                self.handle_failure()
-
-    async def refresh_block(self, block_data):
-        """
-        Refresh the blocks of this node
-        :param dict block_data: The block data in json format
-        """
-        if not self.node.current_buid or self.node.current_buid.sha_hash != block_data['hash']:
-            for endpoint in [e for e in self.node.endpoints if isinstance(e, BMAEndpoint)]:
-                conn_handler = next(endpoint.conn_handler(self.session,
-                                                     proxy=self._user_parameters.proxy()))
-                self._logger.debug("Requesting {0}".format(conn_handler))
-                try:
-                    previous_block = await self.safe_request(endpoint, bma.blockchain.block,
-                                                             proxy=self._user_parameters.proxy(),
-                                                             req_args={'number': self.node.current_buid.number})
-                    if not previous_block:
-                        continue
-                    self.node.previous_buid = BlockUID(previous_block['number'], previous_block['hash'])
-                    break  # Do not try any more endpoint
-                except errors.DuniterError as e:
-                    if e.ucode == errors.BLOCK_NOT_FOUND:
-                        self.node.previous_buid = BlockUID.empty()
-                        # we don't change state here
-                        break
-                    else:
-                        self.change_state_and_emit(Node.CORRUPTED)
-                        break
-
-                finally:
-                    if self.node.current_buid != BlockUID(block_data['number'], block_data['hash']):
-                        self.node.current_buid = BlockUID(block_data['number'], block_data['hash'])
-                        self.node.current_ts = block_data['medianTime']
-                        self._logger.debug("Changed block {0} -> {1}".format(self.node.current_buid.number,
-                                                                        block_data['number']))
-                        self.changed.emit()
-            else:
-                if self.session.closed:
-                    pass
-                else:
-                    self._logger.debug("Could not connect to any BMA endpoint")
-                    self.handle_failure()
-        else:
-            self.handle_success()
-
-    @asyncify
-    async def refresh_summary(self):
-        """
-        Refresh the summary of this node
-        """
-        for endpoint in [e for e in self.node.endpoints if isinstance(e, BMAEndpoint)]:
-            try:
-                summary_data = await self.safe_request(endpoint, bma.node.summary,
-                                                       proxy=self._user_parameters.proxy())
-                if not summary_data:
-                    continue
-                self.node.software = summary_data["duniter"]["software"]
-                self.node.version = summary_data["duniter"]["version"]
-                self.node.state = Node.ONLINE
-                self.identity_changed.emit()
-                return  # Break endpoints loop
-            except errors.DuniterError as e:
-                self._logger.debug("Error in summary : {:}".format(str(e)))
-                self.handle_failure()
-        else:
-            if self.session.closed:
-                pass
-            else:
-                self._logger.debug("Could not connect to any BMA endpoint")
-                self.handle_failure()
 
     async def connect_peers(self):
         """
@@ -417,6 +322,28 @@ class NodeConnector(QObject):
                 self._logger.debug("{:}:{:}".format(str(e.__class__.__name__), str(e)))
         else:
             self._logger.debug("Incorrect leaf reply")
+
+    async def request_ws2p_heads(self):
+        """
+        Refresh the list of peers knew by this node
+        """
+        for endpoint in [e for e in self.node.endpoints if isinstance(e, BMAEndpoint)]:
+            try:
+                heads_data = await self.safe_request(endpoint, bma.network.heads,
+                                                     proxy=self._user_parameters.proxy())
+                if not heads_data:
+                    continue
+                self.node.state = Node.ONLINE
+                return heads_data # Break endpoints loop
+            except errors.DuniterError as e:
+                self._logger.debug("Error in peers reply : {0}".format(str(e)))
+                self.handle_failure()
+        else:
+            if self.session.closed:
+                pass
+            else:
+                self._logger.debug("Could not connect to any BMA endpoint")
+                self.handle_failure()
         
     def handle_success(self):
         self.failure_count = 0

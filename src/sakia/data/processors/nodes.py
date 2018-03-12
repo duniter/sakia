@@ -131,6 +131,24 @@ class NodesProcessor:
             ratio_synced = synced / total
         return ratio_synced
 
+    def update_ws2p(self, currency, head):
+        """
+        Update the peer of a node
+        :param str currency: the currency of the peer
+        :param head:
+        :return:
+        """
+        node = self._repo.get_one(pubkey=head.pubkey, currency=currency)
+        if node:
+            if node.current_buid < head.blockstamp:
+                logging.debug("Update node : {0}".format(head.pubkey[:5]))
+                node.previous_buid = node.current_buid
+                node.current_buid = head.blockstamp
+                node.state = Node.ONLINE
+                self._repo.update(node)
+                return node, True
+        return node, False
+
     def update_peer(self, currency, peer):
         """
         Update the peer of a node

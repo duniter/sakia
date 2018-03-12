@@ -31,8 +31,7 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
             left_data = int(left_data.split('\n')[0]) if left_data != '' else 0
             right_data = int(right_data.split('\n')[0]) if right_data != '' else 0
 
-        if left.column() in (NetworkTableModel.columns_types.index('current_block'),
-                             NetworkTableModel.columns_types.index('current_time')):
+        if left.column() == NetworkTableModel.columns_types.index('current_block'):
             left_data = int(left_data) if left_data != '' else 0
             right_data = int(right_data) if right_data != '' else 0
             if left_data == right_data:
@@ -89,14 +88,6 @@ class NetworkFilterProxyModel(QSortFilterProxyModel):
             if index.column() == NetworkTableModel.columns_types.index('current_hash'):
                 return source_data[:10]
 
-            if index.column() == NetworkTableModel.columns_types.index('current_time') and source_data:
-                ts = self.blockchain_processor.adjusted_ts(self.app.currency, source_data)
-                return QLocale.toString(
-                            QLocale(),
-                            QDateTime.fromTime_t(ts),
-                            QLocale.dateTimeFormat(QLocale(), QLocale.ShortFormat)
-                        ) + " BAT"
-
         if role == Qt.TextAlignmentRole:
             if source_index.column() == NetworkTableModel.columns_types.index('address') \
                     or source_index.column() == self.sourceModel().columns_types.index('current_block'):
@@ -129,7 +120,6 @@ class NetworkTableModel(QAbstractTableModel):
         'api': QT_TRANSLATE_NOOP('NetworkTableModel', 'API'),
         'current_block': QT_TRANSLATE_NOOP("NetworkTableModel", 'Block'),
         'current_hash': QT_TRANSLATE_NOOP("NetworkTableModel", 'Hash'),
-        'current_time': QT_TRANSLATE_NOOP("NetworkTableModel", 'Time'),
         'uid': QT_TRANSLATE_NOOP("NetworkTableModel", 'UID'),
         'is_member': QT_TRANSLATE_NOOP("NetworkTableModel", 'Member'),
         'pubkey': QT_TRANSLATE_NOOP("NetworkTableModel", 'Pubkey'),
@@ -142,7 +132,6 @@ class NetworkTableModel(QAbstractTableModel):
         'api',
         'current_block',
         'current_hash',
-        'current_time',
         'uid',
         'is_member',
         'pubkey',
@@ -231,16 +220,16 @@ class NetworkTableModel(QAbstractTableModel):
         api = "\n".join(api_list)
 
         if node.current_buid:
-            number, block_hash, block_time = node.current_buid.number, node.current_buid.sha_hash, node.current_ts
+            number, block_hash = node.current_buid.number, node.current_buid.sha_hash
         else:
-            number, block_hash, block_time = "", "", ""
+            number, block_hash = "", ""
         state = node.state
         if not current_buid:
             current_buid = self.network_service.current_buid()
         if node.state == Node.ONLINE and node.current_buid != current_buid:
             state = NetworkTableModel.DESYNCED
 
-        return (address, port, api, number, block_hash, block_time, node.uid,
+        return (address, port, api, number, block_hash, node.uid,
                 node.member, node.pubkey, node.software, node.version, node.root, state,
                 node)
 
