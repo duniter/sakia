@@ -248,6 +248,9 @@ class BmaConnector:
                     ValueError, jsonschema.ValidationError) as e:
                 self._logger.debug(str(e))
                 tries += 1
+            except AttributeError as e:
+                if ("feed_appdata", "do_handshake") in str(e):
+                    self._logger.debug(str(e))
         raise NoPeerAvailable("", len(endpoints))
 
     async def get(self, currency, request, req_args={}, verify=True):

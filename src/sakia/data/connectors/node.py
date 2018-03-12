@@ -126,6 +126,11 @@ class NodeConnector(QObject):
                 pass
             else:
                 raise
+        except AttributeError as e:
+            if ("feed_appdata", "do_handshake") in str(e):
+                self._logger.debug(str(e))
+            else:
+                raise
 
     async def init_session(self):
         if not self.session:
@@ -195,6 +200,11 @@ class NodeConnector(QObject):
                 except RuntimeError:
                     if self.session.closed:
                         pass
+                    else:
+                        raise
+                except AttributeError as e:
+                    if ("feed_appdata", "do_handshake") in str(e):
+                        self._logger.debug(str(e))
                     else:
                         raise
                 finally:
@@ -335,6 +345,11 @@ class NodeConnector(QObject):
                         pass
                     else:
                         raise
+                except AttributeError as e:
+                    if ("feed_appdata", "do_handshake") in str(e):
+                        self._logger.debug(str(e))
+                    else:
+                        raise
                 finally:
                     self._connected['peer'] = False
                     self._ws_tasks['peer'] = None
@@ -364,8 +379,11 @@ class NodeConnector(QObject):
                                 break
                             self.refresh_peer_data(leaf_data['leaf']['value'])
                         except (AttributeError, ValueError) as e:
-                            self._logger.debug("Incorrect peer data in {leaf} : {err}".format(leaf=leaf_hash, err=str(e)))
-                            self.handle_failure()
+                            if ("feed_appdata", "do_handshake") in str(e):
+                                self._logger.debug(str(e))
+                            else:
+                                self._logger.debug("Incorrect peer data in {leaf} : {err}".format(leaf=leaf_hash, err=str(e)))
+                                self.handle_failure()
                         except errors.DuniterError as e:
                             if e.ucode == 2012:
                                 # Since with multinodes, peers or not the same on all nodes, sometimes this request results
