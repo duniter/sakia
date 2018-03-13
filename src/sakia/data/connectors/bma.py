@@ -187,7 +187,7 @@ class BmaConnector:
         nodes_generator = (n for n in synced_nodes)
         answers = {}
         answers_data = {}
-        nb_verification = min(max(1, 0.66 * len(synced_nodes)), 6)
+        nb_verification = min(max(1, 0.66 * len(synced_nodes)), 3)
         # We try to find agreeing nodes from one 1 to 66% of nodes, max 10
         session = aiohttp.ClientSession()
         filtered_data = {}

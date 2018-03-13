@@ -6,6 +6,7 @@ from PyQt5.QtCore import QLocale, QDateTime, QObject, QT_TRANSLATE_NOOP
 from sakia.errors import NoPeerAvailable
 from .constants import EdgeStatus, NodeStatus
 from sakia.constants import MAX_CONFIRMATIONS
+import asyncio
 
 
 def sentry_display(identity):
@@ -194,10 +195,14 @@ class BaseGraph(QObject):
             #  add certifiers of uid
             for certification in tuple(certifier_list):
                 certifier = self.identities_service.get_identity(certification.certifier)
+                futures = [self.node_status(certifier)]
                 if not certifier:
-                    certifier = await self.identities_service.find_from_pubkey(certification.certifier)
-                    self.identities_service.insert_or_update_identity(certifier)
-                node_status = await self.node_status(certifier)
+                    futures.append(self.identities_service.find_from_pubkey(certification.certifier))
+                results = await asyncio.gather(*futures)
+                node_status = results[0]
+                if not certifier:
+                    certifier = results[1]
+                self.identities_service.insert_or_update_identity(certifier)
                 self.add_certifier_node(certifier, identity, certification, node_status)
         except NoPeerAvailable as e:
             logging.debug(str(e))
@@ -213,10 +218,14 @@ class BaseGraph(QObject):
             # add certified by uid
             for certification in tuple(certified_list):
                 certified = self.identities_service.get_identity(certification.certified)
+                futures = [self.node_status(certified)]
                 if not certified:
-                    certified = await self.identities_service.find_from_pubkey(certification.certified)
-                    self.identities_service.insert_or_update_identity(certified)
-                node_status = await self.node_status(certified)
+                    futures.append(self.identities_service.find_from_pubkey(certification.certified))
+                results = await asyncio.gather(*futures)
+                node_status = results[0]
+                if not certified:
+                    certified = results[1]
+                self.identities_service.insert_or_update_identity(certified)
                 self.add_certified_node(identity, certified, certification, node_status)
 
         except NoPeerAvailable as e:

@@ -151,21 +151,13 @@ class NodesRepo:
         return []
 
     def current_buid(self, currency):
-        req = """SELECT `current_buid`,
-             COUNT(`current_buid`) AS `value_occurrence`
-    FROM     `nodes`
-    WHERE state == 1 AND member == 1 AND currency == ?
-    GROUP BY `current_buid`
-    ORDER BY `value_occurrence` DESC
-    LIMIT    1;"""
-
         c = self._conn.execute("""SELECT `current_buid`,
              COUNT(`current_buid`) AS `value_occurrence`
     FROM     `nodes`
-    WHERE state <= ? AND member == 1 AND currency == ?
+    WHERE member == 1 AND currency == ?
     GROUP BY `current_buid`
     ORDER BY `value_occurrence` DESC
-    LIMIT    1;""", (Node.FAILURE_THRESHOLD, currency,))
+    LIMIT    1;""", (currency,))
         data = c.fetchone()
         if data:
             return block_uid(data[0])
@@ -173,10 +165,10 @@ class NodesRepo:
             c = self._conn.execute("""SELECT `current_buid`,
              COUNT(`current_buid`) AS `value_occurrence`
     FROM     `nodes`
-    WHERE state <= ? AND currency == ?
+    WHERE currency == ?
     GROUP BY `current_buid`
     ORDER BY `value_occurrence` DESC
-    LIMIT    1;""", (Node.FAILURE_THRESHOLD, currency,))
+    LIMIT    1;""", (currency,))
             data = c.fetchone()
             if data:
                 return block_uid(data[0])

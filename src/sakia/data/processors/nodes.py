@@ -145,7 +145,6 @@ class NodesProcessor:
                 logging.debug("Update node : {0}".format(head.pubkey[:5]))
                 node.previous_buid = node.current_buid
                 node.current_buid = head.blockstamp
-                node.state = 0
                 self._repo.update(node)
                 return node, True
         return node, False
@@ -169,7 +168,7 @@ class NodesProcessor:
     def handle_success(self, node):
         if not node.online():
             node.last_state_change = time.time()
-        node.state = 0
+        node.state = node.state - 1
         self.update_node(node)
 
     def handle_failure(self, node, weight=1):

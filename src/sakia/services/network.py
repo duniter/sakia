@@ -216,6 +216,7 @@ class NetworkService(QObject):
                             node.member = identity.member
                             node.uid = identity.uid
                             self._processor.update_node(node)
+                            self._processor.handle_success(node)
                             self.node_changed.emit(node)
                         except errors.DuniterError as e:
                             self._logger.error(e.message)
