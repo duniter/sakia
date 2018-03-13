@@ -123,8 +123,7 @@ class IdentitiesService(QObject):
         :param dict[sakia.data.entities.Certification] certified: the list of certified got in /wot/certified-by
         """
         try:
-            lookup_data = await self._bma_connector.get(self.currency, bma.wot.lookup,
-                                                 {'search': identity.pubkey})
+            lookup_data = await self._bma_connector.get(self.currency, bma.wot.lookup, {'search': identity.pubkey})
             for result in lookup_data['results']:
                 if result["pubkey"] == identity.pubkey:
                     for uid_data in result['uids']:
@@ -156,9 +155,9 @@ class IdentitiesService(QObject):
                                          timestamp=0,
                                          signature=signed_data['signature'])
                     certified_idty = Identity(currency=self.currency,
-                                         pubkey=signed_data["pubkey"],
-                                         uid=signed_data["uid"],
-                                         member=signed_data["isMember"])
+                                              pubkey=signed_data["pubkey"],
+                                              uid=signed_data["uid"],
+                                              member=signed_data["isMember"])
                     if cert not in certified:
                         certified[cert] = certified_idty
                         # We save connections pubkeys
@@ -276,7 +275,7 @@ class IdentitiesService(QObject):
             log_stream("Requesting identities of certifications")
         identities = []
         i = 0
-        nb_certs = len(certified.keys() + certifiers.keys())
+        nb_certs = len(certified) + len(certifiers)
         for cert in certifiers:
             if log_stream:
                 log_stream("Requesting identity... {0}/{1}".format(i, nb_certs))
