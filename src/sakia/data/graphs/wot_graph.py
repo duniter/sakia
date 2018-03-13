@@ -44,7 +44,9 @@ class WoTGraph(BaseGraph):
 
         # populate graph with certifiers-of
         certifier_list = self.identities_service.certifications_received(center_identity.pubkey)
-        self.add_offline_certifier_list(certifier_list, center_identity)
+        certifier_list = {c: self.identities_service.get_identity(c.certifier) for c in certifier_list}
+        self.add_certifier_list(certifier_list, center_identity)
         # populate graph with certified-by
         certified_list = self.identities_service.certifications_sent(center_identity.pubkey)
-        self.add_offline_certified_list(certified_list, center_identity)
+        certified_list = {c: self.identities_service.get_identity(c.certified) for c in certified_list}
+        self.add_certified_list(certified_list, center_identity)

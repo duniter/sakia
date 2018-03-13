@@ -139,34 +139,6 @@ class BaseGraph(QObject):
 
         self.nx_graph.add_edge(identity.pubkey, certified.pubkey, attr_dict=arc)
 
-    def add_offline_certifier_list(self, certifier_list, identity):
-        """
-        Add list of certifiers to graph
-        :param List[sakia.data.entities.Certification] certifier_list: List of certified from api
-        :param sakia.data.entities.Identity identity:   identity instance which is certified
-        :return:
-        """
-        #  add certifiers of uid
-        for certification in tuple(certifier_list):
-            certifier = self.identities_service.get_identity(certification.certifier)
-            if certifier:
-                node_status = self.node_status(certifier)
-                self.add_certifier_node(certifier, identity, certification, node_status)
-
-    def add_offline_certified_list(self, certified_list, identity):
-        """
-        Add list of certified from api to graph
-        :param List[sakia.data.entities.Certification] certified_list: List of certified from api
-        :param identity identity:   identity instance which is certifier
-        :return:
-        """
-        # add certified by uid
-        for certification in tuple(certified_list):
-            certified = self.identities_service.get_identity(certification.certified)
-            if certified:
-                node_status = self.node_status(certified)
-                self.add_certified_node(identity, certified, certification, node_status)
-
     def add_certifier_list(self, certifier_list, identity):
         """
         Add list of certifiers to graph
