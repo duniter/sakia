@@ -51,27 +51,10 @@ class BaseGraph(QObject):
         else:
             return EdgeStatus.STRONG
 
-    async def node_status(self, node_identity):
+    def node_status(self, node_identity):
         """
         Return the status of the node depending
         :param sakia.core.registry.Identity node_identity: The identity of the node
-        :return: HIGHLIGHTED if node_identity is account_identity and OUT if the node_identity is not a member
-        :rtype: sakia.core.graph.constants.NodeStatus
-        """
-        # new node
-        node_status = NodeStatus.NEUTRAL
-        node_identity = await self.identities_service.load_requirements(node_identity)
-        if node_identity.pubkey in self._connections_processor.pubkeys():
-            node_status += NodeStatus.HIGHLIGHTED
-        if node_identity.member is False:
-            node_status += NodeStatus.OUT
-        return node_status
-
-    def offline_node_status(self, node_identity):
-        """
-        Return the status of the node depending on its requirements. No network request.
-        :param sakia.core.registry.Identity node_identity: The identity of the node
-        :param sakia.core.registry.Identity account_identity: The identity of the account displayed
         :return: HIGHLIGHTED if node_identity is account_identity and OUT if the node_identity is not a member
         :rtype: sakia.core.graph.constants.NodeStatus
         """
@@ -167,7 +150,7 @@ class BaseGraph(QObject):
         for certification in tuple(certifier_list):
             certifier = self.identities_service.get_identity(certification.certifier)
             if certifier:
-                node_status = self.offline_node_status(certifier)
+                node_status = self.node_status(certifier)
                 self.add_certifier_node(certifier, identity, certification, node_status)
 
     def add_offline_certified_list(self, certified_list, identity):
@@ -181,10 +164,10 @@ class BaseGraph(QObject):
         for certification in tuple(certified_list):
             certified = self.identities_service.get_identity(certification.certified)
             if certified:
-                node_status = self.offline_node_status(certified)
+                node_status = self.node_status(certified)
                 self.add_certified_node(identity, certified, certification, node_status)
 
-    async def add_certifier_list(self, certifier_list, identity):
+    def add_certifier_list(self, certifier_list, identity):
         """
         Add list of certifiers to graph
         :param List[sakia.data.entities.Certification] certifier_list: List of certified from api
@@ -193,21 +176,16 @@ class BaseGraph(QObject):
         """
         try:
             #  add certifiers of uid
-            for certification in tuple(certifier_list):
+            for certification in certifier_list:
                 certifier = self.identities_service.get_identity(certification.certifier)
-                futures = [self.node_status(certifier)]
                 if not certifier:
-                    futures.append(self.identities_service.find_from_pubkey(certification.certifier))
-                results = await asyncio.gather(*futures)
-                node_status = results[0]
-                if not certifier:
-                    certifier = results[1]
-                self.identities_service.insert_or_update_identity(certifier)
+                    certifier = certifier_list[certification]
+                node_status = self.node_status(certifier)
                 self.add_certifier_node(certifier, identity, certification, node_status)
         except NoPeerAvailable as e:
             logging.debug(str(e))
 
-    async def add_certified_list(self, certified_list, identity):
+    def add_certified_list(self, certified_list, identity):
         """
         Add list of certified from api to graph
         :param List[sakia.data.entities.Certification] certified_list: List of certified from api
@@ -218,14 +196,9 @@ class BaseGraph(QObject):
             # add certified by uid
             for certification in tuple(certified_list):
                 certified = self.identities_service.get_identity(certification.certified)
-                futures = [self.node_status(certified)]
                 if not certified:
-                    futures.append(self.identities_service.find_from_pubkey(certification.certified))
-                results = await asyncio.gather(*futures)
-                node_status = results[0]
-                if not certified:
-                    certified = results[1]
-                self.identities_service.insert_or_update_identity(certified)
+                    certified = certified_list[certification]
+                node_status = self.node_status(certified)
                 self.add_certified_node(identity, certified, certification, node_status)
 
         except NoPeerAvailable as e:

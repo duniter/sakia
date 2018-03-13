@@ -18,30 +18,27 @@ class WoTGraph(BaseGraph):
 
     async def initialize(self, center_identity):
         self.nx_graph.clear()
-        node_status = await self.node_status(center_identity)
+        node_status = self.node_status(center_identity)
 
         self.add_identity(center_identity, node_status)
 
         # create Identity from node metadata
-        certifier_coro = asyncio.ensure_future(self.identities_service.load_certifiers_of(center_identity))
-        certified_coro = asyncio.ensure_future(self.identities_service.load_certified_by(center_identity))
+        certifier_coro = self.identities_service.load_certifiers_of(center_identity)
+        certified_coro = self.identities_service.load_certified_by(center_identity)
 
         certifier_list, certified_list = await asyncio.gather(*[certifier_coro, certified_coro])
 
-        certified_list, certified_list = await self.identities_service.load_certs_in_lookup(center_identity,
+        certifier_list, certified_list = await self.identities_service.load_certs_in_lookup(center_identity,
                                                                                             certifier_list,
                                                                                             certified_list)
 
         # populate graph with certifiers-of
-        certifier_coro = asyncio.ensure_future(self.add_certifier_list(certifier_list, center_identity))
+        self.add_certifier_list(certifier_list, center_identity)
         # populate graph with certified-by
-        certified_coro = asyncio.ensure_future(self.add_certified_list(certified_list, center_identity))
-
-        await asyncio.gather(*[certifier_coro, certified_coro], return_exceptions=True)
-        await asyncio.sleep(0)
+        self.add_certified_list(certified_list, center_identity)
 
     def offline_init(self, center_identity):
-        node_status = self.offline_node_status(center_identity)
+        node_status = self.node_status(center_identity)
 
         self.add_identity(center_identity, node_status)
 

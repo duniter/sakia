@@ -180,10 +180,8 @@ class BmaConnector:
             return e
 
     async def verified_get(self, currency, request, req_args):
-        synced_nodes = self._nodes_processor.synced_members_nodes(currency)
-        if not synced_nodes:
-            # If no node is known as a member, lookup synced nodes as a fallback
-            synced_nodes = self._nodes_processor.synced_nodes(currency)
+        # If no node is known as a member, lookup synced nodes as a fallback
+        synced_nodes = self._nodes_processor.synced_nodes(currency)
         nodes_generator = (n for n in synced_nodes)
         answers = {}
         answers_data = {}
@@ -241,7 +239,6 @@ class BmaConnector:
             else:
                 return _best_answer(answers, answers_data, nb_verification)
 
-        nodes = self._nodes_processor.nodes(currency)
         raise NoPeerAvailable("", len(synced_nodes))
 
     async def simple_get(self, currency, request, req_args):

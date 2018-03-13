@@ -151,16 +151,22 @@ class NodesRepo:
         return []
 
     def current_buid(self, currency):
-        c = self._conn.execute("""SELECT `current_buid`,
-             COUNT(`current_buid`) AS `value_occurrence`
-    FROM     `nodes`
-    WHERE member == 1 AND currency == ?
-    GROUP BY `current_buid`
-    ORDER BY `value_occurrence` DESC
-    LIMIT    1;""", (currency,))
+        c = self._conn.execute("""SELECT COUNT(`uid`)
+        FROM `nodes`
+        WHERE member == 1 AND currency == ?
+        LIMIT 1;""", (currency,))
         data = c.fetchone()
-        if data:
-            return block_uid(data[0])
+        if data and data[0] > 3:
+            c = self._conn.execute("""SELECT `current_buid`,
+                 COUNT(`current_buid`) AS `value_occurrence`
+        FROM     `nodes`
+        WHERE member == 1 AND currency == ?
+        GROUP BY `current_buid`
+        ORDER BY `value_occurrence` DESC
+        LIMIT    1;""", (currency,))
+            data = c.fetchone()
+            if data:
+                return block_uid(data[0])
         else:
             c = self._conn.execute("""SELECT `current_buid`,
              COUNT(`current_buid`) AS `value_occurrence`

@@ -3,7 +3,7 @@ import asyncio
 from duniterpy.api import bma, errors
 from duniterpy.documents import BlockUID, block_uid
 from sakia.errors import NoPeerAvailable
-from sakia.data.entities import Certification
+from sakia.data.entities import Certification, Identity
 import logging
 
 
@@ -119,8 +119,8 @@ class IdentitiesService(QObject):
     async def load_certs_in_lookup(self, identity, certifiers, certified):
         """
         :param sakia.data.entities.Identity identity: the identity
-        :param list[sakia.data.entities.Certification] certifiers: the list of certifiers got in /wot/certifiers-of
-        :param list[sakia.data.entities.Certification] certified: the list of certified got in /wot/certified-by
+        :param dict[sakia.data.entities.Certification] certifiers: the list of certifiers got in /wot/certifiers-of
+        :param dict[sakia.data.entities.Certification] certified: the list of certified got in /wot/certified-by
         """
         try:
             lookup_data = await self._bma_connector.get(self.currency, bma.wot.lookup,
@@ -137,10 +137,14 @@ class IdentitiesService(QObject):
                                                          block=other_data["meta"]["block_number"],
                                                          timestamp=0,
                                                          signature=other_data['signature'])
+                                    certifier = Identity(currency=self.currency,
+                                                         pubkey=other_data["pubkey"],
+                                                         uid=other_data["uids"][0],
+                                                         member=other_data["isMember"])
                                     if cert not in certifiers:
                                         cert.timestamp = await self._blockchain_processor.timestamp(self.currency,
                                                                                                     cert.block)
-                                        certifiers.append(cert)
+                                        certifiers[cert] = certifier
                                         # We save connections pubkeys
                                         if self.is_identity_of_connection(identity):
                                             self._certs_processor.insert_or_update_certification(cert)
@@ -151,8 +155,12 @@ class IdentitiesService(QObject):
                                          block=signed_data["cert_time"]["block"],
                                          timestamp=0,
                                          signature=signed_data['signature'])
+                    certified_idty = Identity(currency=self.currency,
+                                         pubkey=signed_data["pubkey"],
+                                         uid=signed_data["uid"],
+                                         member=signed_data["isMember"])
                     if cert not in certified:
-                        certified.append(cert)
+                        certified[cert] = certified_idty
                         # We save connections pubkeys
                         if self.is_identity_of_connection(identity):
                             cert.timestamp = await self._blockchain_processor.timestamp(self.currency,
@@ -170,7 +178,7 @@ class IdentitiesService(QObject):
         It does nothing if the identity is already written and updated with blockchain lookups
         :param sakia.data.entities.Identity identity: the identity
         """
-        certifications = []
+        certifications = {}
         try:
             data = await self._bma_connector.get(self.currency, bma.wot.certifiers_of,
                                                  {'search': identity.pubkey})
@@ -181,9 +189,13 @@ class IdentitiesService(QObject):
                                      block=certifier_data["cert_time"]["block"],
                                      timestamp=certifier_data["cert_time"]["medianTime"],
                                      signature=certifier_data['signature'])
+                certifier = Identity(currency=self.currency,
+                                     pubkey=certifier_data["pubkey"],
+                                     uid=certifier_data["uid"],
+                                     member=certifier_data["isMember"])
                 if certifier_data['written']:
                     cert.written_on = certifier_data['written']['number']
-                certifications.append(cert)
+                certifications[cert] = certifier
                 # We save connections pubkeys
                 if identity.pubkey in self._connections_processor.pubkeys():
                     self._certs_processor.insert_or_update_certification(cert)
@@ -207,7 +219,7 @@ class IdentitiesService(QObject):
         It does nothing if the identity is already written and updated with blockchain lookups
         :param sakia.data.entities.Identity identity: the identity
         """
-        certifications = []
+        certifications = {}
         try:
             data = await self._bma_connector.get(self.currency, bma.wot.certified_by, {'search': identity.pubkey})
             for certified_data in data['certifications']:
@@ -217,9 +229,13 @@ class IdentitiesService(QObject):
                                      block=certified_data["cert_time"]["block"],
                                      timestamp=certified_data["cert_time"]["medianTime"],
                                      signature=certified_data['signature'])
+                certified = Identity(currency=self.currency,
+                                     pubkey=certified_data["pubkey"],
+                                     uid=certified_data["uid"],
+                                     member=certified_data["isMember"])
                 if certified_data['written']:
                     cert.written_on = certified_data['written']['number']
-                certifications.append(cert)
+                certifications[cert] = certified
                 # We save connections pubkeys
                 if identity.pubkey in self._connections_processor.pubkeys():
                     self._certs_processor.insert_or_update_certification(cert)
@@ -241,8 +257,8 @@ class IdentitiesService(QObject):
         """
         Initialize certifications to and from a given identity
         :param sakia.data.entities.Identity identity:
-        :param function log_stream: Logger function
-        :param function progress: Progress function for progress bar
+        :param callable log_stream: Logger function
+        :param callable progress: Progress function for progress bar
         """
         if log_stream:
             log_stream("Requesting certifiers of data")
@@ -260,7 +276,7 @@ class IdentitiesService(QObject):
             log_stream("Requesting identities of certifications")
         identities = []
         i = 0
-        nb_certs = len(certified + certifiers)
+        nb_certs = len(certified.keys() + certifiers.keys())
         for cert in certifiers:
             if log_stream:
                 log_stream("Requesting identity... {0}/{1}".format(i, nb_certs))

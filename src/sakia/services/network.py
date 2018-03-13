@@ -199,33 +199,33 @@ class NetworkService(QObject):
                 await asyncio.sleep(2)
             else:
                 node, updated = self._processor.update_peer(self.currency, peer)
-                if peer.blockUID.number + 2400 > self.current_buid().number:
-                    if not node:
-                        self._logger.debug("New node found : {0}".format(peer.pubkey[:5]))
-                        try:
-                            connector = NodeConnector.from_peer(self.currency, peer, self._app.parameters)
-                            node = connector.node
-                            self._processor.insert_node(connector.node)
-                            self.new_node_found.emit(node)
-                        except InvalidNodeCurrency as e:
-                            self._logger.debug(str(e))
-                    if self._blockchain_service.initialized():
-                        try:
-                            identity = await self._identities_service.find_from_pubkey(node.pubkey)
-                            identity = await self._identities_service.load_requirements(identity)
-                            node.member = identity.member
-                            node.uid = identity.uid
-                            self._processor.update_node(node)
-                            self._processor.handle_success(node)
-                            self.node_changed.emit(node)
-                        except errors.DuniterError as e:
-                            self._logger.error(e.message)
+                if not node:
+                    self._logger.debug("New node found : {0}".format(peer.pubkey[:5]))
+                    try:
+                        connector = NodeConnector.from_peer(self.currency, peer, self._app.parameters)
+                        node = connector.node
+                        self._processor.insert_node(connector.node)
+                        self.new_node_found.emit(node)
+                    except InvalidNodeCurrency as e:
+                        self._logger.debug(str(e))
+                if self._blockchain_service.initialized():
+                    try:
+                        identity = await self._identities_service.find_from_pubkey(node.pubkey)
+                        identity = await self._identities_service.load_requirements(identity)
+                        node.member = identity.member
+                        node.uid = identity.uid
+                        self._processor.update_node(node)
+                        self._processor.handle_success(node)
+                        self.node_changed.emit(node)
+                    except errors.DuniterError as e:
+                        self._logger.error(e.message)
 
     def handle_new_node(self, peer):
         key = VerifyingKey(peer.pubkey)
         if key.verify_document(peer):
             if len(self._discovery_stack) < 1000 \
-               and peer.signatures[0] not in [p.signatures[0] for p in self._discovery_stack]:
+               and peer.blockUID.number + 2400 > self.current_buid().number \
+               and peer.signatures not in [p.signatures[0] for p in self._discovery_stack]:
                 self._logger.debug("Stacking new peer document : {0}".format(peer.pubkey))
                 self._discovery_stack.append(peer)
         else:
