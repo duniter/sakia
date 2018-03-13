@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import QAction, QMenu
 from PyQt5.QtGui import QCursor, QDesktopServices
 from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 from duniterpy.api import bma
+from duniterpy.documents import BMAEndpoint
 
 
 class NetworkController(QObject):
@@ -70,7 +71,9 @@ class NetworkController(QObject):
     @pyqtSlot()
     def open_node_in_browser(self):
         node = self.sender().data()
-        conn_handler = next(node.endpoints[0].conn_handler())
-        peering_url = bma.API(conn_handler, bma.network.URL_PATH).reverse_url(conn_handler.http_scheme, '/peering')
-        url = QUrl(peering_url)
-        QDesktopServices.openUrl(url)
+        bma_endpoints = [e for e in node.endpoints if isinstance(e, BMAEndpoint)]
+        if bma_endpoints:
+            conn_handler = next(bma_endpoints[0].conn_handler())
+            peering_url = bma.API(conn_handler, bma.network.URL_PATH).reverse_url(conn_handler.http_scheme, '/peering')
+            url = QUrl(peering_url)
+            QDesktopServices.openUrl(url)
