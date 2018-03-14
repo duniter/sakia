@@ -150,6 +150,17 @@ class NodesRepo:
             return [Node(*data) for data in datas]
         return []
 
+    def get_offline_synced_nodes(self, currency, current_buid):
+        c = self._conn.execute("SELECT * FROM nodes "
+                               "WHERE currency == ? "
+                               "AND state > ?"
+                               "AND current_buid == ?",
+                               (currency, Node.FAILURE_THRESHOLD, current_buid))
+        datas = c.fetchall()
+        if datas:
+            return [Node(*data) for data in datas]
+        return []
+
     def current_buid(self, currency):
         c = self._conn.execute("""SELECT COUNT(`uid`)
         FROM `nodes`

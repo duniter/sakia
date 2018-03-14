@@ -209,13 +209,13 @@ class NetworkService(QObject):
                     except InvalidNodeCurrency as e:
                         self._logger.debug(str(e))
                 if self._blockchain_service.initialized():
+                    self._processor.handle_success(node)
                     try:
                         identity = await self._identities_service.find_from_pubkey(node.pubkey)
                         identity = await self._identities_service.load_requirements(identity)
                         node.member = identity.member
                         node.uid = identity.uid
                         self._processor.update_node(node)
-                        self._processor.handle_success(node)
                         self.node_changed.emit(node)
                     except errors.DuniterError as e:
                         self._logger.error(e.message)

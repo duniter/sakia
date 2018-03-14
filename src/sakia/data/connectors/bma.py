@@ -182,6 +182,8 @@ class BmaConnector:
     async def verified_get(self, currency, request, req_args):
         # If no node is known as a member, lookup synced nodes as a fallback
         synced_nodes = self._nodes_processor.synced_nodes(currency)
+        offline_nodes = self._nodes_processor.offline_synced_nodes(currency)
+        random_offline_node = random.sample(offline_nodes, min(1, len(offline_nodes)))
         nodes_generator = (n for n in synced_nodes)
         answers = {}
         answers_data = {}
@@ -203,6 +205,10 @@ class BmaConnector:
                         self._logger.debug(
                             "Requesting {0} on endpoint {1}".format(str(request.__name__), str(endpoint)))
                         futures.append(self._verified_request(node, request(next(
+                            endpoint.conn_handler(session, proxy=self._user_parameters.proxy())),
+                            **req_args)))
+                    if random_offline_node:
+                        futures.append(self._verified_request(random_offline_node[0], request(next(
                             endpoint.conn_handler(session, proxy=self._user_parameters.proxy())),
                             **req_args)))
                 except StopIteration:

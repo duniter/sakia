@@ -40,6 +40,13 @@ class NodesProcessor:
         current_buid = self._repo.current_buid(currency=currency)
         return self._repo.get_synced_nodes(currency, current_buid)
 
+    def offline_synced_nodes(self, currency):
+        """
+        Get nodes which are in the ONLINE state.
+        """
+        current_buid = self._repo.current_buid(currency=currency)
+        return self._repo.get_offline_synced_nodes(currency, current_buid)
+
     def synced_members_nodes(self, currency):
         """
         Get nodes which are in the ONLINE state.
@@ -168,13 +175,13 @@ class NodesProcessor:
     def handle_success(self, node):
         if not node.online():
             node.last_state_change = time.time()
-        node.state = node.state - 1
+        node.state = max(0, node.state - 1)
         self.update_node(node)
 
     def handle_failure(self, node, weight=1):
         if node.state + weight > Node.FAILURE_THRESHOLD and node.online():
             node.last_state_change = time.time()
-        node.state += weight
+        node.state = min(5, node.state + weight)
         self.update_node(node)
 
     def drop_all(self, currency):
