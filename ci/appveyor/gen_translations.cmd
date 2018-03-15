@@ -1,7 +1,7 @@
 @ECHO ON
 
 # Add qt to path
-- "SET PATH=%QTDIR%\\bin;%QTDIR%\\lib;%PATH%"
+SET PATH=%QTDIR%\\bin;%QTDIR%\\lib;%PATH%
 
 lrelease -version
 
