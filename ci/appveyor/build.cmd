@@ -20,7 +20,6 @@ python gen_resources.py
 if %errorlevel% neq 0 exit /b 1s
 
 .\\ci\\appveyor\\gen_translations.cmd
-if %errorlevel% neq 0 exit /b 1
 
 pyinstaller sakia.spec
 if %errorlevel% neq 0 exit /b 1
