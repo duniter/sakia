@@ -22,7 +22,7 @@ if %errorlevel% neq 0 exit /b 1s
 call .\\ci\\appveyor\\gen_translations.cmd
 if %errorlevel% neq 0 exit /b 1
 
-SET PATH=c:\\python35_64\\envs\\test-environment\\lib\\site-packages\\PyQt5\\;%PATH%
+SET PATH=c:\\python35_64\\envs\\test-environment\\lib\\site-packages\\PyQt5\\Qt\\bin;%PATH%
 
 pyinstaller sakia.spec
 if %errorlevel% neq 0 exit /b 1
