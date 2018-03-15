@@ -19,7 +19,7 @@ pip install packaging
 python gen_resources.py
 if %errorlevel% neq 0 exit /b 1s
 
-python gen_translations.py
+.\\ci\\appveyor\\gen_translations.cmd
 if %errorlevel% neq 0 exit /b 1
 
 pyinstaller sakia.spec

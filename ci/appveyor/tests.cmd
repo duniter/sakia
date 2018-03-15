@@ -4,6 +4,7 @@ call activate test-environment
 
 echo "%PATH%"
 echo "%QT_PLUGIN_PATH%"
+
 python -V
 call pyuic5 --version
 
