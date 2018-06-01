@@ -58,5 +58,7 @@ releases:
     - pip install -r requirements.txt
     - pip install wheel
     - pip install twine
+    - python gen_resources.py
+    - python gen_translations.py --lrelease
     - python setup.py bdist_wheel
     - twine upload dist/* --username duniter --password $PYPI_PASSWORD

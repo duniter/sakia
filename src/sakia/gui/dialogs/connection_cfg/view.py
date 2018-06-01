@@ -133,7 +133,7 @@ class ConnectionConfigView(QDialog, Ui_ConnectionConfigurationDialog):
     def action_show_pubkey(self):
         salt = self.edit_salt.text()
         password = self.edit_password.text()
-        pubkey = SigningKey(salt, password, self.scrypt_params).pubkey
+        pubkey = SigningKey(salt, password, self.scrypt_params).pubkey.decode("utf-8")
         self.label_info.setText(pubkey)
 
     def account_name(self):
