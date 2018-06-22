@@ -26,6 +26,10 @@ def which(program):
 
     return None
 
+
+
+path = os.path.abspath(os.path.join(os.path.dirname(__file__)))
+
 EDITABLE_REQUIREMENT = re.compile(r'^-e (?P<link>(?P<vcs>git|svn|hg|bzr).+#egg=(?P<package>.+)-(?P<version>\d(?:\.\d)*))$')
 
 install_requires = []
