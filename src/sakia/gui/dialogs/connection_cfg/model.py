@@ -81,8 +81,7 @@ class ConnectionConfigModel(QObject):
         :return:
         """
         log_stream("Parsing sources...")
-        await self.app.sources_service.refresh_sources_of_pubkey(self.connection.pubkey, transactions, dividends,
-                                                                 None, log_stream, progress)
+        await self.app.sources_service.initialize_sources(self.connection.pubkey, log_stream, progress)
         log_stream("Sources parsed succefully !")
 
     async def initialize_identity(self, identity, log_stream, progress):

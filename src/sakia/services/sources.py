@@ -1,8 +1,10 @@
 from PyQt5.QtCore import QObject
 from duniterpy.api import bma, errors
 from duniterpy.documents import Transaction as TransactionDoc
+from duniterpy.grammars.output import Condition
 from duniterpy.documents import BlockUID
 import logging
+import pypeg2
 from sakia.data.entities import Source, Transaction,Dividend
 import hashlib
 
@@ -43,15 +45,14 @@ class SourcesServices(QObject):
         """
         txdoc = TransactionDoc.from_signed_raw(transaction.raw)
         for offset, output in enumerate(txdoc.outputs):
-            if output.conditions.left.pubkey == pubkey:
-                source = Source(currency=self.currency,
-                                pubkey=pubkey,
-                                identifier=txdoc.sha_hash,
-                                type='T',
-                                noffset=offset,
-                                amount=output.amount,
-                                base=output.base)
-                self._sources_processor.insert(source)
+            source = Source(currency=self.currency,
+                            pubkey=pubkey,
+                            identifier=txdoc.sha_hash,
+                            type='T',
+                            noffset=offset,
+                            amount=output.amount,
+                            base=output.base)
+            self._sources_processor.insert(source)
 
     def parse_transaction_inputs(self, pubkey, transaction):
         """
@@ -84,6 +85,27 @@ class SourcesServices(QObject):
                         amount=dividend.amount,
                         base=dividend.base)
         self._sources_processor.insert(source)
+
+    async def initialize_sources(self, pubkey, log_stream, progress):
+        sources_data = await self._bma_connector.get(self.currency, bma.tx.sources, req_args={'pubkey': pubkey})
+        nb_sources = len(sources_data["sources"])
+        for i, s in enumerate(sources_data["sources"]):
+            log_stream("Parsing source ud/tx {:}/{:}".format(i, nb_sources))
+            progress(1/nb_sources)
+            conditions = pypeg2.parse(s["conditions"], Condition)
+            if conditions.left.pubkey == pubkey:
+                try:
+                    if conditions.left.pubkey == pubkey:
+                        source = Source(currency=self.currency,
+                                        pubkey=pubkey,
+                                        identifier=s["identifier"],
+                                        type=s["type"],
+                                        noffset=s["noffset"],
+                                        amount=s["amount"],
+                                        base=s["base"])
+                        self._sources_processor.insert(source)
+                except AttributeError as e:
+                    self._logger.error(str(e))
 
     async def check_destruction(self, pubkey, block_number, unit_base):
         amount = self._sources_processor.amount(self.currency, pubkey)
