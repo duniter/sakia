@@ -7,7 +7,7 @@ from sakia.helpers import attrs_tuple_of_str
 import math
 
 
-STOPLINE_HASH = hashlib.sha256("Stopline").hexdigest()
+STOPLINE_HASH = hashlib.sha256("STOPLINE".encode("UTF-8")).hexdigest()
 
 def parse_transaction_doc(tx_doc, pubkey, block_number, mediantime, txid):
     """
