@@ -45,14 +45,15 @@ class SourcesServices(QObject):
         """
         txdoc = TransactionDoc.from_signed_raw(transaction.raw)
         for offset, output in enumerate(txdoc.outputs):
-            source = Source(currency=self.currency,
-                            pubkey=pubkey,
-                            identifier=txdoc.sha_hash,
-                            type='T',
-                            noffset=offset,
-                            amount=output.amount,
-                            base=output.base)
-            self._sources_processor.insert(source)
+            if output.conditions.left.pubkey == pubkey:
+                source = Source(currency=self.currency,
+                                pubkey=pubkey,
+                                identifier=txdoc.sha_hash,
+                                type='T',
+                                noffset=offset,
+                                amount=output.amount,
+                                base=output.base)
+                self._sources_processor.insert(source)
 
     def parse_transaction_inputs(self, pubkey, transaction):
         """
@@ -201,6 +202,7 @@ class SourcesServices(QObject):
             # there can be bugs if the current base switch during the parsing of blocks
             # but since it only happens every 23 years and that its only on accounts having less than 100
             # this is acceptable I guess
+
             destructions[conn] += await self.refresh_sources_of_pubkey(conn.pubkey, transactions[conn],
                                                                        dividends[conn], current_base)
 
