@@ -141,7 +141,7 @@ class IdentitiesService(QObject):
                                                          uid=other_data["uids"][0],
                                                          member=other_data["isMember"])
                                     if cert not in certifiers:
-                                        cert.timestamp = await self._blockchain_processor.timestamp(self.currency,
+                                        cert.timestamp = self._blockchain_processor.rounded_timestamp(self.currency,
                                                                                                     cert.block)
                                         certifiers[cert] = certifier
                                         # We save connections pubkeys
@@ -162,7 +162,7 @@ class IdentitiesService(QObject):
                         certified[cert] = certified_idty
                         # We save connections pubkeys
                         if self.is_identity_of_connection(identity):
-                            cert.timestamp = await self._blockchain_processor.timestamp(self.currency,
+                            cert.timestamp = self._blockchain_processor.rounded_timestamp(self.currency,
                                                                                         cert.block)
                             self._certs_processor.insert_or_update_certification(cert)
         except errors.DuniterError as e:
@@ -282,11 +282,8 @@ class IdentitiesService(QObject):
             i += 1
             if progress:
                 progress(1/nb_certs)
-            certifier = self.get_identity(cert.certifier)
-            if not certifier:
-                certifier = await self.find_from_pubkey(cert.certifier)
-                certifier = await self.load_requirements(certifier)
-                identities.append(certifier)
+            if not self.get_identity(cert.certifier):
+                identities.append(certifiers[cert])
 
         for cert in certified:
             if log_stream:
@@ -294,11 +291,8 @@ class IdentitiesService(QObject):
             i += 1
             if progress:
                 progress(1/nb_certs)
-            certified = self.get_identity(cert.certified)
-            if not certified:
-                certified = await self.find_from_pubkey(cert.certified)
-                certified = await self.load_requirements(certified)
-                identities.append(certified)
+            if not self.get_identity(cert.certified):
+                identities.append(certified[cert])
         if log_stream:
             log_stream("Commiting identities...")
         for idty in identities:
@@ -413,7 +407,7 @@ class IdentitiesService(QObject):
             # if we have are a target or a source of the certification
                 if cert.pubkey_from == identity.pubkey or cert.pubkey_to in identity.pubkey:
                     identity.written = True
-                    timestamp = await self._blockchain_processor.timestamp(self.currency, cert.timestamp.number)
+                    timestamp = self._blockchain_processor.rounded_timestamp(self.currency, cert.timestamp.number)
                     self._certs_processor.create_or_update_certification(self.currency, cert, timestamp, block.blockUID)
                     need_refresh.append(identity)
 

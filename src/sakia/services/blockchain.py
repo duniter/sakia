@@ -85,8 +85,6 @@ class BlockchainService(QObject):
                         for conn in new_dividends:
                             for ud in new_dividends[conn]:
                                 self.app.new_dividend.emit(conn, ud)
-                        for idty in identities:
-                            self.app.identity_changed.emit(idty)
                         self.app.new_blocks_handled.emit()
                         block_numbers = await self.new_blocks(network_blockstamp)
                 self.app.sources_refreshed.emit()

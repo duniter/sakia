@@ -73,6 +73,15 @@ class BlockchainProcessor:
                 raise
         return 0
 
+    def rounded_timestamp(self, currency, block_number):
+        parameters = self.parameters(currency)
+        current_time = self.time(currency)
+        current_block = self.current_buid(currency)
+        diff_blocks = block_number - current_block.number
+        diff_time = diff_blocks * parameters.avg_gen_time
+        return current_time + diff_time
+
+
     def current_buid(self, currency):
         """
         Get the local current blockuid

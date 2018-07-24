@@ -21,7 +21,6 @@ class WotController(BaseGraphController):
         """
         super().__init__(parent, view, model, password_asker)
         self.set_scene(view.scene())
-        self.reset()
 
     @classmethod
     def create(cls, parent, app, blockchain_service, identities_service):

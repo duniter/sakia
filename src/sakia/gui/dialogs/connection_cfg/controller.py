@@ -212,8 +212,7 @@ class ConnectionConfigController(QObject):
                                                               progress=self.view.progress)
 
             self.view.set_step(5)
-            await self.model.initialize_sources(transactions, dividends,
-                                                log_stream=self.view.stream_log,
+            await self.model.initialize_sources(log_stream=self.view.stream_log,
                                                 progress=self.view.progress)
 
             self.view.set_step(6)

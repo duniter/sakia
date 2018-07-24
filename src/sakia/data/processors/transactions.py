@@ -13,7 +13,8 @@ from duniterpy.documents import Transaction as TransactionDoc
 
 @attr.s
 class TransactionsProcessor:
-    _repo = attr.ib()  # :type sakia.data.repositories.SourcesRepo
+    _repo = attr.ib()  # :type sakia.data.repositories.TransactionsRepo
+    _blockchain_repo = attr.ib()
     _bma_connector = attr.ib()  # :type sakia.data.connectors.bma.BmaConnector
     _table_states = attr.ib(default=attr.Factory(dict))
     _logger = attr.ib(default=attr.Factory(lambda: logging.getLogger('sakia')))
@@ -24,7 +25,7 @@ class TransactionsProcessor:
         Instanciate a blockchain processor
         :param sakia.app.Application app: the app
         """
-        return cls(app.db.transactions_repo,
+        return cls(app.db.transactions_repo, app.db.blockchains_repo,
                    BmaConnector(NodesProcessor(app.db.nodes_repo), app.parameters))
 
     def next_txid(self, currency, block_number):
@@ -132,8 +133,14 @@ class TransactionsProcessor:
         :param function log_stream:
         :param function progress: progress callback
         """
-        history_data = await self._bma_connector.get(connection.currency, bma.tx.history,
-                                                     req_args={'pubkey': connection.pubkey})
+        blockchain = self._blockchain_repo.get_one(currency=connection.currency)
+        avg_blocks_per_month = int(30 * 24 * 3600 / blockchain.parameters.avg_gen_time)
+        start = blockchain.current_buid.number - avg_blocks_per_month
+        end = blockchain.current_buid.number
+        history_data = await self._bma_connector.get(connection.currency, bma.tx.blocks,
+                                                     req_args={'pubkey': connection.pubkey,
+                                                               'start': start,
+                                                               'end': end})
         txid = 0
         nb_tx = len(history_data["history"]["sent"]) + len(history_data["history"]["received"])
         log_stream("Found {0} transactions".format(nb_tx))

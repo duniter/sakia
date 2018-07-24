@@ -264,17 +264,20 @@ class NetworkService(QObject):
             else:
                 if r:
                     for head_data in r["heads"]:
-                        if "messageV2" in head_data:
-                            head, _ = HeadV2.from_inline(head_data["messageV2"], head_data["sigV2"])
-                        else:
-                            head, _ = HeadV1.from_inline(head_data["message"], head_data["sig"])
+                        try:
+                            if "messageV2" in head_data:
+                                head, _ = HeadV2.from_inline(head_data["messageV2"], head_data["sigV2"])
+                            else:
+                                head, _ = HeadV1.from_inline(head_data["message"], head_data["sig"])
 
-                        VerifyingKey(head.pubkey).verify_ws2p_head(head)
-                        if head.pubkey in ws2p_heads:
-                            if ws2p_heads[head.pubkey].blockstamp < head.blockstamp:
+                            VerifyingKey(head.pubkey).verify_ws2p_head(head)
+                            if head.pubkey in ws2p_heads:
+                                if ws2p_heads[head.pubkey].blockstamp < head.blockstamp:
+                                    ws2p_heads[head.pubkey] = head
+                            else:
                                 ws2p_heads[head.pubkey] = head
-                        else:
-                            ws2p_heads[head.pubkey] = head
+                        except MalformedDocumentError as e:
+                            self._logger.error(str(e))
 
         for head in ws2p_heads.values():
             node, updated = self._processor.update_ws2p(self.currency, head)

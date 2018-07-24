@@ -47,32 +47,33 @@ class DividendsProcessor:
         :param function progress: progress callback
         """
         blockchain = self._blockchain_repo.get_one(currency=connection.currency)
+        avg_blocks_per_month = int(30 * 24 * 3600 / blockchain.parameters.avg_gen_time)
+        start = blockchain.current_buid.number - avg_blocks_per_month
         history_data = await self._bma_connector.get(connection.currency, bma.ud.history,
                                                      req_args={'pubkey': connection.pubkey})
-        log_stream("Found {0} available dividends".format(len(history_data["history"]["history"])))
         block_numbers = []
         dividends = []
-        nb_ud_tx = len(history_data["history"]["history"]) + len(transactions)
         for ud_data in history_data["history"]["history"]:
-            dividend = Dividend(currency=connection.currency,
-                                pubkey=connection.pubkey,
-                                block_number=ud_data["block_number"],
-                                timestamp=ud_data["time"],
-                                amount=ud_data["amount"],
-                                base=ud_data["base"])
-            log_stream("Dividend of block {0}".format(dividend.block_number))
-            progress(1/nb_ud_tx)
-            block_numbers.append(dividend.block_number)
-            try:
-                dividends.append(dividend)
-                self._repo.insert(dividend)
-            except sqlite3.IntegrityError:
-                log_stream("Dividend already registered in database")
+            if ud_data["block_number"] > start:
+                dividend = Dividend(currency=connection.currency,
+                                    pubkey=connection.pubkey,
+                                    block_number=ud_data["block_number"],
+                                    timestamp=ud_data["time"],
+                                    amount=ud_data["amount"],
+                                    base=ud_data["base"])
+                log_stream("Dividend of block {0}".format(dividend.block_number))
+                block_numbers.append(dividend.block_number)
+                try:
+                    dividends.append(dividend)
+                    self._repo.insert(dividend)
+                except sqlite3.IntegrityError:
+                    log_stream("Dividend already registered in database")
 
         for tx in transactions:
             txdoc = Transaction.from_signed_raw(tx.raw)
             for input in txdoc.inputs:
-                if input.source == "D" and input.origin_id == connection.pubkey and input.index not in block_numbers:
+                if input.source == "D" and input.origin_id == connection.pubkey \
+                        and input.index not in block_numbers and input.index > start:
                     diff_blocks = blockchain.current_buid.number - input.index
                     ud_mediantime = blockchain.median_time - diff_blocks*blockchain.parameters.avg_gen_time
                     dividend = Dividend(currency=connection.currency,
@@ -82,7 +83,6 @@ class DividendsProcessor:
                                         amount=input.amount,
                                         base=input.base)
                     log_stream("Dividend of block {0}".format(dividend.block_number))
-                    progress(1/nb_ud_tx)
                     try:
                         dividends.append(dividend)
                         self._repo.insert(dividend)
