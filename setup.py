@@ -1,6 +1,7 @@
 from setuptools import setup, find_packages
 import os
 import re
+import subprocess
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 import sakia
@@ -29,6 +30,13 @@ def which(program):
 
 
 path = os.path.abspath(os.path.join(os.path.dirname(__file__)))
+
+subprocess.call(
+    "python {0}/gen_resources.py".format(path), shell=True
+)
+subprocess.call(
+    "python {0}/gen_translations.py".format(path), shell=True
+)
 
 EDITABLE_REQUIREMENT = re.compile(r'^-e (?P<link>(?P<vcs>git|svn|hg|bzr).+#egg=(?P<package>.+)-(?P<version>\d(?:\.\d)*))$')
 
