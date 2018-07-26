@@ -10,8 +10,8 @@ cd ~/projects/sakia_dev
 
 ### Install pip dependencies
 ```bash
-sudo pip3 install --upgrade pip
-sudo pip3 install -r requirements.txt
+pip3 install --upgrade pip --user
+pip3 install -r requirements.txt --user
 ```
 
 ### Fix Qt link
@@ -21,32 +21,29 @@ sudo ln -s /usr/bin/lrelease-qt5 /usr/bin/lrelease
 
 ### Script to launch Sakia
 ```bash
-cd ..
 echo "#!/bin/bash
 
 if [ $1 == "dev" ]; then
-        cd sakia_dev
-        git pull
-        python3 gen_resources.py
-        python3 gen_translations.py
-        python3 src/sakia/main.py -d
+        python3 $HOME/projects/gen_resources.py
+        python3 $HOME/projects/gen_translations.py
+        python3 $HOME/projects/src/sakia/main.py -d
 fi
 if [ $1 == "stable" ]; then
         ./sakia_stable/dist/sakia/sakia -d
-fi" >> run_sakia.sh
+fi" >> $HOME/run_sakia.sh
 ```
 
 ## Python path
 ### Bash
 ```bash
 echo "# Sakia
-export PYTHONPATH=/home/$USER/projects/sakia/src" >> ~/.bashrc
+export PYTHONPATH=$HOME/projects/sakia_dev/src" >> ~/.bashrc
 ```
 
 ### Fish
 ```bash
 echo "# Sakia
-set -x PYTHONPATH /home/$USER/projects/sakia/src" >> ~/.config/fish/config.fish
+set -x PYTHONPATH "$HOME/projects/sakia_dev/src" >> ~/.config/fish/config.fish
 ```
 
 ## Install dependencies
@@ -67,10 +64,4 @@ sudo pip3 install --upgrade duniterpy
 ## Dependency to build
 ```bash
 sudo pip3 install pyinstaller
-```
-
-### Previous dependencies no more needed
-```bash
-#qtchooser qt5-qtbase-devel qt5-qtsvg-devel openssl-devel \
-#zfstream-devel readline-devel sqlite-devel gcc-c++ qt5-qtsvg
 ```
