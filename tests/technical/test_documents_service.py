@@ -4,14 +4,14 @@ from sakia.data.processors import ConnectionsProcessor
 
 @pytest.mark.asyncio
 async def test_send_more_than_40_sources(application_with_one_connection, fake_server_with_blockchain, bob, alice):
+    start = fake_server_with_blockchain.forge.blocks[-1].number + 1
     for i in range(0, 60):
         fake_server_with_blockchain.forge.generate_dividend()
         fake_server_with_blockchain.forge.forge_block()
-
-    new_blocks = fake_server_with_blockchain.forge.blocks[-60:]
+    end = fake_server_with_blockchain.forge.blocks[-1].number
     connections = ConnectionsProcessor.instanciate(application_with_one_connection).connections()
     changed_tx, new_tx, new_ud = await application_with_one_connection.transactions_service.handle_new_blocks(connections,
-                                                                                                              new_blocks)
+                                                                                                              start, end)
 
     await application_with_one_connection.sources_service.refresh_sources_of_pubkey(bob.key.pubkey)
     amount_before_send = application_with_one_connection.sources_service.amount(bob.key.pubkey)

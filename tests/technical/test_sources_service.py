@@ -8,12 +8,13 @@ async def test_receive_source(application_with_one_connection, fake_server_with_
     amount = application_with_one_connection.sources_service.amount(bob.key.pubkey)
     fake_server_with_blockchain.forge.push(alice.send_money(150, fake_server_with_blockchain.forge.user_identities[alice.key.pubkey].sources, bob,
                                             fake_server_with_blockchain.forge.blocks[-1].blockUID, "Test receive"))
+    start = fake_server_with_blockchain.forge.blocks[-1].number + 1
     fake_server_with_blockchain.forge.forge_block()
     fake_server_with_blockchain.forge.forge_block()
     fake_server_with_blockchain.forge.forge_block()
-    new_blocks = fake_server_with_blockchain.forge.blocks[-3:]
+    end = fake_server_with_blockchain.forge.blocks[-1].number + 1
     connections = ConnectionsProcessor.instanciate(application_with_one_connection).connections()
-    await application_with_one_connection.transactions_service.handle_new_blocks(connections, new_blocks)
+    await application_with_one_connection.transactions_service.handle_new_blocks(connections, start, end)
     await application_with_one_connection.sources_service.refresh_sources(connections)
     assert amount + 150 == application_with_one_connection.sources_service.amount(bob.key.pubkey)
     await fake_server_with_blockchain.close()
@@ -24,33 +25,16 @@ async def test_send_source(application_with_one_connection, fake_server_with_blo
     amount = application_with_one_connection.sources_service.amount(bob.key.pubkey)
     fake_server_with_blockchain.forge.push(bob.send_money(150, fake_server_with_blockchain.forge.user_identities[bob.key.pubkey].sources, alice,
                                             fake_server_with_blockchain.forge.blocks[-1].blockUID, "Test receive"))
+    start = fake_server_with_blockchain.forge.blocks[-1].number + 1
+
     fake_server_with_blockchain.forge.forge_block()
     fake_server_with_blockchain.forge.forge_block()
     fake_server_with_blockchain.forge.forge_block()
-    new_blocks = fake_server_with_blockchain.forge.blocks[-3:]
+    end = fake_server_with_blockchain.forge.blocks[-1].number + 1
     connections = ConnectionsProcessor.instanciate(application_with_one_connection).connections()
-    await application_with_one_connection.transactions_service.handle_new_blocks(connections, new_blocks)
+    await application_with_one_connection.transactions_service.handle_new_blocks(connections, start, end)
     await application_with_one_connection.sources_service.refresh_sources(connections)
     assert amount - 150 == application_with_one_connection.sources_service.amount(bob.key.pubkey)
-    await fake_server_with_blockchain.close()
-
-
-@pytest.mark.asyncio
-async def test_destruction(application_with_one_connection, fake_server_with_blockchain, bob, alice):
-    amount = application_with_one_connection.sources_service.amount(bob.key.pubkey)
-    fake_server_with_blockchain.forge.push(bob.send_money(amount - 80, fake_server_with_blockchain.forge.user_identities[bob.key.pubkey].sources, alice,
-                                            fake_server_with_blockchain.forge.blocks[-1].blockUID, "Test receive"))
-    fake_server_with_blockchain.forge.forge_block()
-    fake_server_with_blockchain.forge.forge_block()
-    fake_server_with_blockchain.forge.forge_block()
-    new_blocks = fake_server_with_blockchain.forge.blocks[-3:]
-    connections = ConnectionsProcessor.instanciate(application_with_one_connection).connections()
-    await application_with_one_connection.transactions_service.handle_new_blocks(connections,
-                                                                                                              new_blocks)
-    await application_with_one_connection.sources_service.refresh_sources(connections)
-    assert 0 == application_with_one_connection.sources_service.amount(bob.key.pubkey)
-    tx_after_parse = application_with_one_connection.transactions_service.transfers(bob.key.pubkey)
-    assert "Too low balance" in [t.comment for t in tx_after_parse]
     await fake_server_with_blockchain.close()
 
 

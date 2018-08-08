@@ -286,7 +286,14 @@ class BlockchainProcessor:
         except errors.DuniterError as e:
             if e.ucode != errors.NO_CURRENT_BLOCK:
                 raise
+        await self.refresh_dividend_data(currency, blockchain)
 
+        try:
+            self._repo.insert(blockchain)
+        except sqlite3.IntegrityError:
+            self._repo.update(blockchain)
+
+    async def refresh_dividend_data(self, currency, blockchain):
         self._logger.debug("Requesting blocks with dividend")
         with_ud = await self._bma_connector.get(currency, bma.blockchain.ud)
         blocks_with_ud = with_ud['result']['blocks']
@@ -341,11 +348,6 @@ class BlockchainProcessor:
                 if e.ucode != errors.NO_CURRENT_BLOCK:
                     raise
 
-        try:
-            self._repo.insert(blockchain)
-        except sqlite3.IntegrityError:
-            self._repo.update(blockchain)
-
     async def handle_new_blocks(self, currency, network_blockstamp):
         """
         Initialize blockchain for a given currency if no source exists locally
@@ -363,22 +365,16 @@ class BlockchainProcessor:
             blockchain.current_buid = block.blockUID
             blockchain.median_time = block.mediantime
             blockchain.current_members_count = block.members_count
-            if block.ud:
-                blockchain.current_mass += (block.ud * 10**block.unit_base) * block.members_count
-            if block.ud and blockchain.last_ud_time + blockchain.parameters.dt_reeval >= block.mediantime:
-                blockchain.previous_mass = blockchain.last_mass
-                blockchain.previous_members_count = blockchain.last_members_count
-                blockchain.previous_ud = blockchain.last_ud
-                blockchain.previous_ud_base = blockchain.last_ud_base
-                blockchain.previous_ud_time = blockchain.last_ud_time
-                blockchain.last_members_count = block.members_count
-                blockchain.last_ud = block.ud
-                blockchain.last_ud_base = block.unit_base
-                blockchain.last_ud_time = block.mediantime
+
+            if blockchain.last_ud_time + blockchain.parameters.dt <= blockchain.median_time:
+                await self.refresh_dividend_data(currency, blockchain)
+
             self._repo.update(blockchain)
+
         except errors.DuniterError as e:
             if e.ucode != errors.NO_CURRENT_BLOCK:
                 raise
+
 
     def remove_blockchain(self, currency):
         self._repo.drop(self._repo.get_one(currency=currency))
