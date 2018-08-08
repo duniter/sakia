@@ -313,106 +313,6 @@ class IdentitiesService(QObject):
                 identities.append(idty)
         return identities
 
-    def _parse_revocations(self, block):
-        """
-        Parse revoked pubkeys found in a block and refresh local data
-
-        :param duniterpy.documents.Block block: the block received
-        :return: list of identities updated
-        """
-        revoked = []
-        connections_identities = self._get_connections_identities()
-        for idty in connections_identities:
-            for rev in block.revoked:
-                if rev.pubkey == idty.pubkey:
-                    idty.revoked_on = block.number
-                    revoked.append(idty)
-        return revoked
-
-    def _parse_identities(self, block):
-        """
-        Parse revoked pubkeys found in a block and refresh local data
-
-        :param duniterpy.documents.Block block: the block received
-        :return: list of identities updated
-        """
-        identities = []
-        connections_identities = self._get_connections_identities()
-        for idty in connections_identities:
-            for idty_doc in block.identities:
-                if idty_doc.pubkey == idty.pubkey:
-                    idty.written = True
-                    identities.append(idty)
-        return identities
-
-    def _parse_memberships(self, block):
-        """
-        Parse memberships pubkeys found in a block and refresh local data
-
-        :param duniterpy.documents.Block block: the block received
-        :return: list of pubkeys requiring a refresh of requirements
-        """
-        need_refresh = []
-        connections_identities = self._get_connections_identities()
-        for ms in block.joiners + block.actives:
-            # we update every written identities known locally
-            for identity in connections_identities:
-                if ms.issuer == identity:
-                    identity.membership_written_on = block.number
-                    identity.membership_type = "IN"
-                    identity.membership_buid = ms.membership_ts
-                    identity.written = True
-                    self._identities_processor.insert_or_update_identity(identity)
-                    # If the identity was not member
-                    # it can become one
-                    if not identity.member:
-                        need_refresh.append(identity)
-
-        for ms in block.leavers:
-            # we update every written identities known locally
-            for identity in connections_identities:
-                identity.membership_written_on = block.number
-                identity.membership_type = "OUT"
-                identity.membership_buid = ms.membership_ts
-                identity.written = True
-                self._identities_processor.insert_or_update_identity(identity)
-                # If the identity was a member
-                # it can stop to be one
-                if identity.member:
-                    need_refresh.append(identity)
-
-        return need_refresh
-
-    async def _parse_certifications(self, block):
-        """
-        Parse certified pubkeys found in a block and refresh local data
-        This method only creates certifications if one of both identities is
-        locally known as written.
-        This method returns the identities needing to be refreshed. These can only be
-        the identities which we already known as written before parsing this certification.
-        :param duniterpy.documents.Block block:
-        :return:
-        """
-        connections_identities = self._get_connections_identities()
-        need_refresh = []
-        parameters = self._blockchain_processor.parameters(self.currency)
-        current_ts = self._blockchain_processor.time(self.currency)
-        for identity in connections_identities:
-            if self._certs_processor.drop_expired(identity, sig_validity=parameters.sig_validity,
-                                                  sig_window=parameters.sig_window,
-                                                  current_ts=current_ts):
-                need_refresh.append(identity)
-
-            for cert in block.certifications:
-            # if we have are a target or a source of the certification
-                if cert.pubkey_from == identity.pubkey or cert.pubkey_to in identity.pubkey:
-                    identity.written = True
-                    timestamp = self._blockchain_processor.rounded_timestamp(self.currency, cert.timestamp.number)
-                    self._certs_processor.create_or_update_certification(self.currency, cert, timestamp, block.blockUID)
-                    need_refresh.append(identity)
-
-        return need_refresh
-
     async def load_requirements(self, identity):
         """
         Refresh a given identity information
@@ -427,7 +327,7 @@ class IdentitiesService(QObject):
                     if not identity.blockstamp or identity.blockstamp == block_uid(identity_data["meta"]["timestamp"]):
                         identity.uid = identity_data["uid"]
                         identity.blockstamp = block_uid(identity_data["meta"]["timestamp"])
-                        identity.timestamp = await self._blockchain_processor.timestamp(self.currency, identity.blockstamp.number)
+                        identity.timestamp = self._blockchain_processor.rounded_timestamp(self.currency, identity.blockstamp.number)
                         identity.outdistanced = identity_data["outdistanced"]
                         identity.written = identity_data["wasMember"]
                         identity.sentry = identity_data["isSentry"]
@@ -447,28 +347,12 @@ class IdentitiesService(QObject):
             self._logger.debug(str(e))
         return identity
 
-    async def parse_block(self, block):
-        """
-        Parse a block to refresh local data
-        :param block:
-        :return:
-        """
-        self._parse_revocations(block)
-        need_refresh = []
-        need_refresh += self._parse_identities(block)
-        need_refresh += self._parse_memberships(block)
-        need_refresh += await self._parse_certifications(block)
-        need_refresh += self._parse_median_time(block)
-        return set(need_refresh)
-
-    async def handle_new_blocks(self, blocks):
+    async def refresh(self):
         """
         Handle new block received and refresh local data
         :param duniterpy.documents.Block block: the received block
         """
-        need_refresh = []
-        for block in blocks:
-            need_refresh += await self.parse_block(block)
+        need_refresh = self._get_connections_identities()
         refresh_futures = []
         # for every identity for which we need a refresh, we gather
         # requirements requests

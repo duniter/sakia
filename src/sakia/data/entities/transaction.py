@@ -1,6 +1,6 @@
 import attr
 import hashlib
-from duniterpy.documents import block_uid
+from duniterpy.documents import block_uid, BlockUID
 from duniterpy.documents import Transaction as TransactionDoc
 from duniterpy.documents.transaction import reduce_base
 from sakia.helpers import attrs_tuple_of_str
@@ -8,6 +8,7 @@ import math
 
 
 STOPLINE_HASH = hashlib.sha256("STOPLINE".encode("UTF-8")).hexdigest()
+
 
 def parse_transaction_doc(tx_doc, pubkey, block_number, mediantime, txid):
     """
@@ -72,6 +73,32 @@ def parse_transaction_doc(tx_doc, pubkey, block_number, mediantime, txid):
                               state=Transaction.VALIDATED,
                               raw=tx_doc.signed_raw())
     return transaction
+
+
+STOPLINE_HASH = hashlib.sha256("STOPLINE".encode("UTF-8")).hexdigest()
+
+
+def build_stopline(currency, pubkey, block_number, mediantime):
+    """
+    Used to insert a line of ignored tx in the history
+    """
+    transaction = Transaction(currency=currency,
+                              pubkey=pubkey,
+                              sha_hash=STOPLINE_HASH,
+                              written_block=block_number,
+                              blockstamp=BlockUID(block_number, BlockUID.empty().sha_hash),
+                              timestamp=mediantime,
+                              signatures="",
+                              issuers="",
+                              receivers="",
+                              amount=0,
+                              amount_base=0,
+                              comment="",
+                              txid=0,
+                              state=Transaction.VALIDATED,
+                              raw="")
+    return transaction
+
 
 @attr.s(hash=True)
 class Transaction:

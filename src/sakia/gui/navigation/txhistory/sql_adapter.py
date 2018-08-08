@@ -19,6 +19,7 @@ SELECT
       AND transactions.ts >= ? 
       and transactions.ts <= ? 
       AND transactions.issuers LIKE "%{pubkey}%"
+      
 UNION ALL
 SELECT 
       transactions.ts,
@@ -35,7 +36,8 @@ SELECT
       and transactions.pubkey = ? 
       AND transactions.ts >= ? 
       and transactions.ts <= ? 
-      AND transactions.receivers LIKE "%{pubkey}%"
+      AND (transactions.receivers LIKE "%{pubkey}%"
+        OR transactions.sha_hash = ?)
 UNION ALL
 SELECT 
       dividends.timestamp as ts,
@@ -61,7 +63,7 @@ PAGE_LENGTH = 50
 class TxHistorySqlAdapter:
     _conn = attr.ib()  # :type sqlite3.Connection
 
-    def _transfers_and_dividends(self, currency, pubkey, ts_from, ts_to, offset=0, limit=1000,
+    def _transfers_and_dividends(self, currency, pubkey, ts_from, ts_to, stopline_hash, offset=0, limit=1000,
                                     sort_by="currency", sort_order="ASC"):
         """
         Get all transfers in the database on a given currency from or to a pubkey
@@ -78,14 +80,14 @@ LIMIT {limit} OFFSET {offset}""").format(offset=offset,
                                          pubkey=pubkey
                                          )
         c = self._conn.execute(request, (currency, pubkey, ts_from, ts_to,
-                                         currency, pubkey, ts_from, ts_to,
+                                         currency, pubkey, ts_from, ts_to, stopline_hash,
                                          currency, pubkey, ts_from, ts_to))
         datas = c.fetchall()
         if datas:
             return datas
         return []
 
-    def _transfers_and_dividends_count(self, currency, pubkey, ts_from, ts_to):
+    def _transfers_and_dividends_count(self, currency, pubkey, ts_from, ts_to, stopline_hash):
         """
         Get all transfers in the database on a given currency from or to a pubkey
 
@@ -97,14 +99,14 @@ SELECT COUNT(*)
 FROM (
 """ + TX_HISTORY_REQUEST + ")").format(pubkey=pubkey)
         c = self._conn.execute(request, (currency, pubkey, ts_from, ts_to,
-                                                    currency, pubkey, ts_from, ts_to,
+                                                    currency, pubkey, ts_from, ts_to, stopline_hash,
                                                     currency, pubkey, ts_from, ts_to))
         datas = c.fetchone()
         if datas:
             return datas[0]
         return 0
 
-    def transfers_and_dividends(self, currency, pubkey, page, ts_from, ts_to, sort_by, sort_order):
+    def transfers_and_dividends(self, currency, pubkey, page, ts_from, ts_to, stopline_hash, sort_by, sort_order):
         """
         Get all transfers and dividends from or to a given pubkey
         :param str currency:
@@ -115,12 +117,12 @@ FROM (
         :return: the list of Transaction entities
         :rtype: List[sakia.data.entities.Transaction]
         """
-        return self._transfers_and_dividends(currency, pubkey, ts_from, ts_to,
+        return self._transfers_and_dividends(currency, pubkey, ts_from, ts_to, stopline_hash,
                                                       offset=page*PAGE_LENGTH,
                                                       limit=PAGE_LENGTH,
                                                       sort_by=sort_by, sort_order=sort_order)
 
-    def pages(self, currency, pubkey, ts_from, ts_to):
+    def pages(self, currency, pubkey, ts_from, ts_to, stopline_hash):
         """
         Get all transfers and dividends from or to a given pubkey
         :param str currency:
@@ -131,7 +133,7 @@ FROM (
         :return: the list of Transaction entities
         :rtype: List[sakia.data.entities.Transaction]
         """
-        count = self._transfers_and_dividends_count(currency, pubkey, ts_from, ts_to)
+        count = self._transfers_and_dividends_count(currency, pubkey, ts_from, ts_to, stopline_hash)
         return int(count / PAGE_LENGTH)
 
 

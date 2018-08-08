@@ -81,6 +81,15 @@ class BlockchainProcessor:
         diff_time = diff_blocks * parameters.avg_gen_time
         return current_time + diff_time
 
+    def block_number_30days_ago(self, currency, blockstamp):
+        """
+        When refreshing data, we only request the last 30 days
+        This method computes the block number 30 days ago
+        :param currency:
+        :return:
+        """
+        avg_blocks_per_month = int(30 * 24 * 3600 / self.parameters(currency).avg_gen_time)
+        return blockstamp.number - avg_blocks_per_month
 
     def current_buid(self, currency):
         """
@@ -231,22 +240,6 @@ class BlockchainProcessor:
         local_current_buid = self.current_buid(currency)
         return sorted([b for b in with_money if b > local_current_buid.number])
 
-    async def next_blocks(self, start, filter, currency):
-        """
-        Get blocks from the network
-        :param List[int] numbers: list of blocks numbers to get
-        :return: the list of block documents
-        :rtype: List[duniterpy.documents.Block]
-        """
-        blocks = []
-        blocks_data = await self._bma_connector.get(currency, bma.blockchain.blocks, req_args={'count': 100,
-                                                                                 'start': start})
-        for data in blocks_data:
-            if data['number'] in filter or data['number'] == start+99:
-                blocks.append(Block.from_signed_raw(data["raw"] + data["signature"] + "\n"))
-
-        return blocks
-
     async def initialize_blockchain(self, currency):
         """
         Initialize blockchain for a given currency if no source exists locally
@@ -353,30 +346,39 @@ class BlockchainProcessor:
         except sqlite3.IntegrityError:
             self._repo.update(blockchain)
 
-    def handle_new_blocks(self, currency, blocks):
+    async def handle_new_blocks(self, currency, network_blockstamp):
         """
         Initialize blockchain for a given currency if no source exists locally
-        :param List[duniterpy.documents.Block] blocks
+        :param str currency:
+        :param BlockUID network_blockstamp: the blockstamp of the network
         """
-        blockchain = self._repo.get_one(currency=currency)
-        for block in sorted(blocks):
-            if blockchain.current_buid < block.blockUID:
-                blockchain.current_buid = block.blockUID
-                blockchain.median_time = block.mediantime
-                blockchain.current_members_count = block.members_count
-                if block.ud:
-                    blockchain.current_mass += (block.ud * 10**block.unit_base) * block.members_count
-                if block.ud and blockchain.last_ud_time + blockchain.parameters.dt_reeval >= block.mediantime:
-                    blockchain.previous_mass = blockchain.last_mass
-                    blockchain.previous_members_count = blockchain.last_members_count
-                    blockchain.previous_ud = blockchain.last_ud
-                    blockchain.previous_ud_base = blockchain.last_ud_base
-                    blockchain.previous_ud_time = blockchain.last_ud_time
-                    blockchain.last_members_count = block.members_count
-                    blockchain.last_ud = block.ud
-                    blockchain.last_ud_base = block.unit_base
-                    blockchain.last_ud_time = block.mediantime
-        self._repo.update(blockchain)
+
+        self._logger.debug("Requesting current block")
+        try:
+            current_block = await self._bma_connector.get(currency, bma.blockchain.block,
+                                                                  req_args={'number': network_blockstamp.number})
+            signed_raw = "{0}{1}\n".format(current_block['raw'], current_block['signature'])
+            block = Block.from_signed_raw(signed_raw)
+            blockchain = self._repo.get_one(currency=currency)
+            blockchain.current_buid = block.blockUID
+            blockchain.median_time = block.mediantime
+            blockchain.current_members_count = block.members_count
+            if block.ud:
+                blockchain.current_mass += (block.ud * 10**block.unit_base) * block.members_count
+            if block.ud and blockchain.last_ud_time + blockchain.parameters.dt_reeval >= block.mediantime:
+                blockchain.previous_mass = blockchain.last_mass
+                blockchain.previous_members_count = blockchain.last_members_count
+                blockchain.previous_ud = blockchain.last_ud
+                blockchain.previous_ud_base = blockchain.last_ud_base
+                blockchain.previous_ud_time = blockchain.last_ud_time
+                blockchain.last_members_count = block.members_count
+                blockchain.last_ud = block.ud
+                blockchain.last_ud_base = block.unit_base
+                blockchain.last_ud_time = block.mediantime
+            self._repo.update(blockchain)
+        except errors.DuniterError as e:
+            if e.ucode != errors.NO_CURRENT_BLOCK:
+                raise
 
     def remove_blockchain(self, currency):
         self._repo.drop(self._repo.get_one(currency=currency))

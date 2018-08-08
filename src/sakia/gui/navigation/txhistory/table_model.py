@@ -9,6 +9,7 @@ from sakia.constants import MAX_CONFIRMATIONS
 from sakia.data.processors import BlockchainProcessor
 from .sql_adapter import TxHistorySqlAdapter
 from sakia.data.repositories import TransactionsRepo, DividendsRepo
+from sakia.data.entities.transaction import STOPLINE_HASH
 
 
 class HistoryTableModel(QAbstractTableModel):
@@ -89,7 +90,8 @@ class HistoryTableModel(QAbstractTableModel):
         return self.sql_adapter.pages(self.app.currency,
                                       self.connection.pubkey,
                                       ts_from=self.ts_from,
-                                      ts_to=self.ts_to)
+                                      ts_to=self.ts_to,
+                                      stopline_hash=STOPLINE_HASH)
 
     def pubkeys(self, row):
         return self.transfers_data[row][HistoryTableModel.columns_types.index('pubkey')].split('\n')
@@ -104,6 +106,7 @@ class HistoryTableModel(QAbstractTableModel):
                                                         page=self.current_page,
                                                         ts_from=self.ts_from,
                                                         ts_to=self.ts_to,
+                                                        stopline_hash=STOPLINE_HASH,
                                                         sort_by=HistoryTableModel.columns_to_sql[self.main_column_id],
                                                         sort_order= "ASC" if Qt.AscendingOrder else "DESC")
 
@@ -121,6 +124,29 @@ class HistoryTableModel(QAbstractTableModel):
                     if self.connection.pubkey in transfer.receivers:
                         self.transfers_data[i] = self.data_received(transfer)
                         self.dataChanged.emit(self.index(i, 0), self.index(i, len(HistoryTableModel.columns_types)))
+
+    def data_stopline(self, transfer):
+        """
+        Converts a transaction to table data
+        :param sakia.data.entities.Transaction transfer: the transaction
+        :return: data as tuple
+        """
+        block_number = transfer.written_block
+
+        senders = []
+        for issuer in transfer.issuers:
+            identity = self.identities_service.get_identity(issuer)
+            if identity:
+                senders.append(issuer + " (" + identity.uid + ")")
+            else:
+                senders.append(issuer)
+
+        date_ts = transfer.timestamp
+        txid = transfer.txid
+
+        return (date_ts, "", 0,
+                self.tr("Transactions missing from history"), transfer.state, txid,
+                transfer.issuers, block_number, transfer.sha_hash, transfer)
 
     def data_received(self, transfer):
         """
@@ -199,7 +225,9 @@ class HistoryTableModel(QAbstractTableModel):
                                                           sha_hash=data[4])
 
                 if transfer.state != Transaction.DROPPED:
-                    if data[2] < 0:
+                    if data[4] == STOPLINE_HASH:
+                        self.transfers_data.append(self.data_stopline(transfer))
+                    elif data[2] < 0:
                         self.transfers_data.append(self.data_sent(transfer))
                     else:
                         self.transfers_data.append(self.data_received(transfer))
@@ -240,6 +268,7 @@ class HistoryTableModel(QAbstractTableModel):
             return QVariant()
 
         source_data = self.transfers_data[row][col]
+        txhash_data = self.transfers_data[row][HistoryTableModel.columns_types.index('txhash')]
         state_data = self.transfers_data[row][HistoryTableModel.columns_types.index('state')]
         block_data = self.transfers_data[row][HistoryTableModel.columns_types.index('block_number')]
 
@@ -252,29 +281,39 @@ class HistoryTableModel(QAbstractTableModel):
             if col == HistoryTableModel.columns_types.index('pubkey'):
                 return "<p>" + source_data.replace('\n', "<br>") + "</p>"
             if col == HistoryTableModel.columns_types.index('date'):
-                ts = self.blockchain_processor.adjusted_ts(self.connection.currency, source_data)
-                return QLocale.toString(
-                    QLocale(),
-                    QDateTime.fromTime_t(ts).date(),
-                    QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
-                ) + " BAT"
+                if txhash_data == STOPLINE_HASH:
+                    return ""
+                else:
+                    ts = self.blockchain_processor.adjusted_ts(self.connection.currency, source_data)
+                    return QLocale.toString(
+                        QLocale(),
+                        QDateTime.fromTime_t(ts).date(),
+                        QLocale.dateFormat(QLocale(), QLocale.ShortFormat)
+                    ) + " BAT"
             if col == HistoryTableModel.columns_types.index('amount'):
-                amount = self.app.current_ref.instance(source_data, self.connection.currency,
-                                                       self.app, block_data).diff_localized(False, False)
-                return amount
+                if txhash_data == STOPLINE_HASH:
+                    return ""
+                else:
+                    amount = self.app.current_ref.instance(source_data, self.connection.currency,
+                                                           self.app, block_data).diff_localized(False, False)
+                    return amount
+
             return source_data
 
         if role == Qt.FontRole:
             font = QFont()
-            if state_data == Transaction.AWAITING or \
-                    (state_data == Transaction.VALIDATED and current_confirmations < MAX_CONFIRMATIONS):
+            if txhash_data == STOPLINE_HASH:
                 font.setItalic(True)
-            elif state_data == Transaction.REFUSED:
-                font.setItalic(True)
-            elif state_data == Transaction.TO_SEND:
-                font.setBold(True)
             else:
-                font.setItalic(False)
+                if state_data == Transaction.AWAITING or \
+                        (state_data == Transaction.VALIDATED and current_confirmations < MAX_CONFIRMATIONS):
+                    font.setItalic(True)
+                elif state_data == Transaction.REFUSED:
+                    font.setItalic(True)
+                elif state_data == Transaction.TO_SEND:
+                    font.setBold(True)
+                else:
+                    font.setItalic(False)
             return font
 
         if role == Qt.ForegroundRole:

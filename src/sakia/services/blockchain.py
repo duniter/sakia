@@ -2,6 +2,7 @@ import asyncio
 from PyQt5.QtCore import QObject
 import math
 import logging
+from duniterpy.api import bma
 from duniterpy.api.errors import DuniterError
 from sakia.errors import NoPeerAvailable
 
@@ -40,17 +41,6 @@ class BlockchainService(QObject):
     def initialized(self):
         return self._blockchain_processor.initialized(self.app.currency)
 
-    def handle_new_blocks(self, blocks):
-        self._blockchain_processor.handle_new_blocks(self.currency, blocks)
-
-    async def new_blocks(self, network_blockstamp):
-        with_identities = await self._blockchain_processor.new_blocks_with_identities(self.currency)
-        with_money = await self._blockchain_processor.new_blocks_with_money(self.currency)
-        block_numbers = with_identities + with_money
-        if network_blockstamp > self.current_buid():
-            block_numbers += [network_blockstamp.number]
-        return block_numbers
-
     async def handle_blockchain_progress(self, network_blockstamp):
         """
         Handle a new current block uid
@@ -61,32 +51,33 @@ class BlockchainService(QObject):
             try:
                 self._update_lock = True
                 self.app.refresh_started.emit()
-                block_numbers = await self.new_blocks(network_blockstamp)
-                while block_numbers:
-                    start = self.current_buid().number
-                    self._logger.debug("Parsing from {0}".format(start))
-                    blocks = await self._blockchain_processor.next_blocks(start, block_numbers, self.currency)
-                    if len(blocks) > 0:
-                        connections = self._connections_processor.connections_to(self.currency)
-                        identities = await self._identities_service.handle_new_blocks(blocks)
-                        changed_tx, new_tx, new_dividends = await self._transactions_service.handle_new_blocks(connections,
-                                                                                                               blocks)
-                        destructions = await self._sources_service.refresh_sources(connections, new_tx, new_dividends)
-                        self.handle_new_blocks(blocks)
-                        self.app.db.commit()
-                        for tx in changed_tx:
-                            self.app.transaction_state_changed.emit(tx)
-                        for conn in new_tx:
-                            for tx in new_tx[conn]:
-                                self.app.new_transfer.emit(conn, tx)
-                        for conn in destructions:
-                            for tx in destructions[conn]:
-                                self.app.new_transfer.emit(conn, tx)
-                        for conn in new_dividends:
-                            for ud in new_dividends[conn]:
-                                self.app.new_dividend.emit(conn, ud)
-                        self.app.new_blocks_handled.emit()
-                        block_numbers = await self.new_blocks(network_blockstamp)
+                start = self._blockchain_processor.block_number_30days_ago(self.currency, network_blockstamp)
+                if self.current_buid().number > start:
+                    start = self.current_buid().number + 1
+                else:
+                    connections = self._connections_processor.connections_to(self.currency)
+                    time_30days_ago = self._blockchain_processor.rounded_timestamp(self.currency, start)
+                    self._transactions_service.insert_stopline(connections, start, time_30days_ago)
+                self._logger.debug("Parsing from {0}".format(start))
+                connections = self._connections_processor.connections_to(self.currency)
+                await self._identities_service.refresh()
+                changed_tx, new_tx, new_dividends = await self._transactions_service.handle_new_blocks(connections,
+                                                                                                       start,
+                                                                                                       network_blockstamp.number)
+                await self._sources_service.refresh_sources(connections)
+
+                await self._blockchain_processor.handle_new_blocks(self.currency, network_blockstamp)
+
+                self.app.db.commit()
+                for tx in changed_tx:
+                    self.app.transaction_state_changed.emit(tx)
+                for conn in new_tx:
+                    for tx in new_tx[conn]:
+                        self.app.new_transfer.emit(conn, tx)
+                for conn in new_dividends:
+                    for ud in new_dividends[conn]:
+                        self.app.new_dividend.emit(conn, ud)
+                self.app.new_blocks_handled.emit()
                 self.app.sources_refreshed.emit()
             except (NoPeerAvailable, DuniterError) as e:
                 self._logger.debug(str(e))

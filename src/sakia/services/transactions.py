@@ -1,5 +1,5 @@
 from PyQt5.QtCore import QObject
-from sakia.data.entities.transaction import parse_transaction_doc, Transaction
+from sakia.data.entities.transaction import parse_transaction_doc, Transaction, build_stopline
 from duniterpy.documents import Transaction as TransactionDoc
 from duniterpy.documents import SimpleTransaction, Block
 from sakia.data.entities import Dividend
@@ -51,66 +51,62 @@ class TransactionsService(QObject):
             else:
                 logging.debug("Error during transfer parsing")
 
-    def _parse_block(self, connections, block_doc, txid):
-        """
-        Parse a block
-        :param duniterpy.documents.Block block_doc: The block
-        :param int txid: Latest tx id
-        :return: The list of transfers sent
-        """
-        transfers_changed = []
-        new_transfers = {}
-        for tx in [t for t in self._transactions_processor.awaiting(self.currency)]:
-            if self._transactions_processor.run_state_transitions(tx, block_doc):
-                transfers_changed.append(tx)
-                self._logger.debug("New transaction validated : {0}".format(tx.sha_hash))
+    def insert_stopline(self, connections, block_number, time):
         for conn in connections:
-            new_transactions = [t for t in block_doc.transactions
-                                if not self._transactions_processor.find_by_hash(conn.pubkey, t.sha_hash)
-                                and SimpleTransaction.is_simple(t)]
+            self._transactions_processor.commit(build_stopline(conn.currency, conn.pubkey, block_number, time))
 
-            new_transfers[conn] = []
-            for (i, tx_doc) in enumerate(new_transactions):
-                tx = parse_transaction_doc(tx_doc, conn.pubkey, block_doc.blockUID.number,  block_doc.mediantime, txid+i)
-                if tx:
-                    new_transfers[conn].append(tx)
-                    self._transactions_processor.commit(tx)
-                else:
-                    logging.debug("Error during transfer parsing")
-
-        return transfers_changed, new_transfers
-
-    async def handle_new_blocks(self, connections, blocks):
+    async def handle_new_blocks(self, connections, start, end):
         """
         Refresh last transactions
 
         :param list[duniterpy.documents.Block] blocks: The blocks containing data to parse
         """
         self._logger.debug("Refresh transactions")
-        transfers_changed = []
-        new_transfers = {}
-        txid = 0
-        for block in blocks:
-            changes, new_tx = self._parse_block(connections, block, txid)
-            txid += len(new_tx)
-            transfers_changed += changes
-            for conn in new_tx:
-                try:
-                    new_transfers[conn] += new_tx[conn]
-                except KeyError:
-                    new_transfers[conn] = new_tx[conn]
-        new_dividends = await self.parse_dividends_history(connections, blocks, new_transfers)
+        transfers_changed, new_transfers = await self.parse_transactions_history(connections, start, end)
+        new_dividends = await self.parse_dividends_history(connections, start, end, new_transfers)
         return transfers_changed, new_transfers, new_dividends
 
-    async def parse_dividends_history(self, connections, blocks, transactions):
+    async def parse_transactions_history(self, connections, start, end):
+        """
+        Request transactions from the network to initialize data for a given pubkey
+        :param List[sakia.data.entities.Connection] connections: the list of connections found by tx parsing
+        :param int start: the first block
+        :param int end: the last block
+        """
+        transfers_changed = []
+        new_transfers = {}
+        for connection in connections:
+            txid = 0
+            new_transfers[connection] = []
+            history_data = await self._bma_connector.get(self.currency, bma.tx.blocks,
+                                                         req_args={'pubkey': connection.pubkey,
+                                                                   'start': start,
+                                                                   'end': end})
+            for tx_data in history_data["history"]["sent"]:
+                for tx in [t for t in self._transactions_processor.awaiting(self.currency)]:
+                    if self._transactions_processor.run_state_transitions(tx, tx_data["hash"], tx_data["block_number"]):
+                        transfers_changed.append(tx)
+                        self._logger.debug("New transaction validated : {0}".format(tx.sha_hash))
+            for tx_data in history_data["history"]["received"]:
+                tx_doc = TransactionDoc.from_bma_history(history_data["currency"], tx_data)
+                if not self._transactions_processor.find_by_hash(connection.pubkey, tx_doc.sha_hash) \
+                    and SimpleTransaction.is_simple(tx_doc):
+                    tx = parse_transaction_doc(tx_doc, connection.pubkey, tx_data["block_number"],
+                                               tx_data["time"], txid)
+                    if tx:
+                        new_transfers[connection].append(tx)
+                        self._transactions_processor.commit(tx)
+                    else:
+                        logging.debug("Error during transfer parsing")
+        return transfers_changed, new_transfers
+
+    async def parse_dividends_history(self, connections, start, end, transactions):
         """
         Request transactions from the network to initialize data for a given pubkey
         :param List[sakia.data.entities.Connection] connections: the list of connections found by tx parsing
         :param List[duniterpy.documents.Block] blocks: the list of transactions found by tx parsing
         :param List[sakia.data.entities.Transaction] transactions: the list of transactions found by tx parsing
         """
-        min_block_number = blocks[0].number
-        max_block_number = blocks[-1].number
         dividends = {}
         for connection in connections:
             dividends[connection] = []
@@ -124,7 +120,7 @@ class TransactionsService(QObject):
                                     timestamp=ud_data["time"],
                                     amount=ud_data["amount"],
                                     base=ud_data["base"])
-                if max_block_number >= dividend.block_number >= min_block_number:
+                if start <= dividend.block_number <= end:
                     self._logger.debug("Dividend of block {0}".format(dividend.block_number))
                     block_numbers.append(dividend.block_number)
                     if self._dividends_processor.commit(dividend):
@@ -135,13 +131,9 @@ class TransactionsService(QObject):
                 for input in txdoc.inputs:
                     # For each dividends inputs, if it is consumed (not present in ud history)
                     if input.source == "D" and input.origin_id == connection.pubkey and input.index not in block_numbers:
-                        try:
-                            # we try to get the block of the dividend
-                            block = next((b for b in blocks if b.number == input.index))
-                        except StopIteration:
-                            block_data = await self._bma_connector.get(self.currency, bma.blockchain.block,
-                                                                  req_args={'number': input.index})
-                            block = Block.from_signed_raw(block_data["raw"] + block_data["signature"] + "\n")
+                        block_data = await self._bma_connector.get(self.currency, bma.blockchain.block,
+                                                              req_args={'number': input.index})
+                        block = Block.from_signed_raw(block_data["raw"] + block_data["signature"] + "\n")
                         dividend = Dividend(currency=self.currency,
                                             pubkey=connection.pubkey,
                                             block_number=input.index,

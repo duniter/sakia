@@ -5,6 +5,7 @@ import random
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt
 from duniterpy.api import errors
+from duniterpy.documents import MalformedDocumentError
 from duniterpy.documents.ws2p.heads import *
 from duniterpy.documents.peer import BMAEndpoint
 from duniterpy.key import VerifyingKey

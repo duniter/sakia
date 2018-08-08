@@ -135,59 +135,31 @@ class SourcesServices(QObject):
                 self._transactions_processor.commit(destruction)
                 return destruction
 
-    async def refresh_sources_of_pubkey(self, pubkey, transactions, dividends, unit_base, log_stream=None,
-                                        progress=None):
+    async def refresh_sources_of_pubkey(self, pubkey):
         """
         Refresh the sources for a given pubkey
         :param str pubkey:
-        :param list[sakia.data.entities.Transaction] transactions:
-        :param list[sakia.data.entities.Dividend] dividends:
-        :param int unit_base: the unit base of the destruction. None to look for the past uds
         :return: the destruction of sources
         """
-        tx_ud_data = {}
-        for tx in transactions:
-            try:
-                tx_ud_data[tx.written_block].append(tx)
-            except:
-                tx_ud_data[tx.written_block] = [tx]
-        for ud in dividends:
-            try:
-                tx_ud_data[ud.block_number].append(ud)
-            except:
-                tx_ud_data[ud.block_number] = [ud]
+        sources_data = await self._bma_connector.get(self.currency, bma.tx.sources, req_args={'pubkey': pubkey})
+        self._sources_processor.drop_all_of(self.currency, pubkey)
+        for i, s in enumerate(sources_data["sources"]):
+            conditions = pypeg2.parse(s["conditions"], Condition)
+            if conditions.left.pubkey == pubkey:
+                try:
+                    if conditions.left.pubkey == pubkey:
+                        source = Source(currency=self.currency,
+                                        pubkey=pubkey,
+                                        identifier=s["identifier"],
+                                        type=s["type"],
+                                        noffset=s["noffset"],
+                                        amount=s["amount"],
+                                        base=s["base"])
+                        self._sources_processor.insert(source)
+                except AttributeError as e:
+                    self._logger.error(str(e))
 
-        blocks = sorted(b for b in tx_ud_data.keys())
-
-        nb_tx_ud = len(transactions) + len(dividends)
-        udblocks = await self._bma_connector.get(self.currency, bma.blockchain.ud)
-        destructions = []
-        for block_number in blocks:
-            if log_stream:
-                log_stream("Parsing info ud/tx of {:}".format(block_number))
-            if progress:
-                progress(1/nb_tx_ud)
-
-            for data in tx_ud_data[block_number]:
-                if isinstance(data, Dividend):
-                    self._parse_ud(pubkey, data)
-                if isinstance(data, Transaction):
-                    self.parse_transaction_outputs(pubkey, data)
-
-            for data in tx_ud_data[block_number]:
-                if isinstance(data, Transaction):
-                    self.parse_transaction_inputs(pubkey, data)
-
-            if not unit_base:
-                _, destruction_base = await self._blockchain_processor.ud_before(self.currency, block_number, udblocks)
-            else:
-                destruction_base = unit_base
-            destruction = await self.check_destruction(pubkey, block_number, destruction_base)
-            if destruction:
-                destructions.append(destruction)
-        return destructions
-
-    async def refresh_sources(self, connections, transactions, dividends):
+    async def refresh_sources(self, connections):
         """
 
         :param list[sakia.data.entities.Connection] connections:
@@ -195,18 +167,13 @@ class SourcesServices(QObject):
         :param dict[sakia.data.entities.Dividend] dividends:
         :return: the destruction of sources
         """
-        destructions = {}
         for conn in connections:
-            destructions[conn] = []
             _, current_base = self._blockchain_processor.last_ud(self.currency)
             # there can be bugs if the current base switch during the parsing of blocks
             # but since it only happens every 23 years and that its only on accounts having less than 100
             # this is acceptable I guess
 
-            destructions[conn] += await self.refresh_sources_of_pubkey(conn.pubkey, transactions[conn],
-                                                                       dividends[conn], current_base)
-
-        return destructions
+            await self.refresh_sources_of_pubkey(conn.pubkey)
 
     def restore_sources(self, pubkey, tx):
         """
