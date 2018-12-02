@@ -3,7 +3,7 @@ asynctest
 networkx
 attrs
 duniter-mirage
-duniterpy>=0.40
+duniterpy>=0.40,<0.50.0
 pytest
 pytest-asyncio<0.6
 pyyaml
